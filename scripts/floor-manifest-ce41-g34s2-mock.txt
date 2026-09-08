@@ -1,0 +1,34 @@
+# scripts/floor-manifest-ce41-g34s2-mock.txt
+# CE-41 · SEAT C · G3.4 s2 — THE MOCK (docs only; nothing under src/, app/, components/, lib/).
+# BASE: 034426fd956216cdebaca58ff490471fdc00a643 — re-derived at the cut (fetch-first); authored at 3d65c4e, carried over 13 A9 paths, none under docs/mocks/.
+docs/mocks/schedule-edit-mock.html
+docs/mocks/G34_S2_VETO_SHEET.md
+scripts/floor-manifest-ce41-g34s2-mock.txt
+docs/mocks/schedule-edit-mock__S1-as-shipped__dark__374.png
+docs/mocks/schedule-edit-mock__S1-as-shipped__dark__390.png
+docs/mocks/schedule-edit-mock__S1-as-shipped__light__374.png
+docs/mocks/schedule-edit-mock__S1-as-shipped__light__390.png
+docs/mocks/schedule-edit-mock__S2-row-controls__dark__374.png
+docs/mocks/schedule-edit-mock__S2-row-controls__dark__390.png
+docs/mocks/schedule-edit-mock__S2-row-controls__light__374.png
+docs/mocks/schedule-edit-mock__S2-row-controls__light__390.png
+docs/mocks/schedule-edit-mock__S3-edit-sheet__dark__374.png
+docs/mocks/schedule-edit-mock__S3-edit-sheet__dark__390.png
+docs/mocks/schedule-edit-mock__S3-edit-sheet__light__374.png
+docs/mocks/schedule-edit-mock__S3-edit-sheet__light__390.png
+docs/mocks/schedule-edit-mock__S4-edit-refused__dark__374.png
+docs/mocks/schedule-edit-mock__S4-edit-refused__dark__390.png
+docs/mocks/schedule-edit-mock__S4-edit-refused__light__374.png
+docs/mocks/schedule-edit-mock__S4-edit-refused__light__390.png
+docs/mocks/schedule-edit-mock__S5-remove-confirm__dark__374.png
+docs/mocks/schedule-edit-mock__S5-remove-confirm__dark__390.png
+docs/mocks/schedule-edit-mock__S5-remove-confirm__light__374.png
+docs/mocks/schedule-edit-mock__S5-remove-confirm__light__390.png
+docs/mocks/schedule-edit-mock__S6-chip-states__dark__374.png
+docs/mocks/schedule-edit-mock__S6-chip-states__dark__390.png
+docs/mocks/schedule-edit-mock__S6-chip-states__light__374.png
+docs/mocks/schedule-edit-mock__S6-chip-states__light__390.png
+docs/mocks/schedule-edit-mock__S7-gate-shut-plain-words__dark__374.png
+docs/mocks/schedule-edit-mock__S7-gate-shut-plain-words__dark__390.png
+docs/mocks/schedule-edit-mock__S7-gate-shut-plain-words__light__374.png
+docs/mocks/schedule-edit-mock__S7-gate-shut-plain-words__light__390.png
