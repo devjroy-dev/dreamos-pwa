@@ -1,0 +1,10 @@
+# scripts/floor-manifest-ce41-a5.txt
+# CE-41 · A5 — F-41.18 THE SIGN-OUT LOOP (dreamos-pwa). Seat A, R-41.53 a–d.
+# BASE f9bd72e00fb723fac14ba2b658a0063f66c8390c, re-derived at the cut.
+# F-14.16 / F-19.16: a dirty file outside this list is a STOP until accounted for.
+
+app/(landing)/page.tsx
+docs/TDW_CE41_A5_F4118_HANDOVER.md
+lib/vendor/session.ts
+scripts/b20_a3_assistance_pwa.proof.mjs
+scripts/floor-manifest-ce41-a5.txt

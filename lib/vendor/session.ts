@@ -189,12 +189,23 @@ export function setVendorSession(session: VendorSession): void {
   setCookieSession(stamped as unknown as VendorSession);
 }
 
+// ── F-41.18 · THE SECOND HOME (R-41.53a, CE-41 seat A, A5) ───────────────────
+// The legacy pin pages (app/vendor/(legacy)/pin-login, pin, pin-reset) and the
+// landing's own sign-in write `vendor_web_session` beside `vendor_session`.
+// This file never knew the key, so sign-out left it behind; the front door's
+// wider read (lib/frost-api/_base.ts) then saw a vendor while this file saw
+// none, and `/` and `/vendor/rooms` replace()d each other forever. Sign-out
+// now clears BOTH keys. The read is made to agree at the front door (R-41.53b);
+// retiring the legacy key itself is the auth sitting's, named in the handover.
+const LEGACY_WEB_SESSION_KEY = 'vendor_web_session';
+
 export function clearVendorSession(): void {
   try {
     const store = ls();
     if (store) {
       store.removeItem(SESSION_KEY);
       store.removeItem(SESSION_KEY + '_meta');
+      store.removeItem(LEGACY_WEB_SESSION_KEY);
     }
   } catch { /* ignore */ }
   clearCookieToken();

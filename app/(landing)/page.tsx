@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { entryRedirectFor } from '@/lib/frost/entryRedirect';
-import { getVendorSession, getCoupleSession } from '@/lib/frost-api/_base';
+import { getCoupleSession } from '@/lib/frost-api/_base';
+import { getVendorSession } from '@/lib/vendor/session'; // F-41.18 / R-41.53b: the SHELL's read, so `/` and `/vendor/rooms` cannot disagree
 import { API_BASE } from '../../lib/api';
 import { rowBaseline, rowGlyphSlot } from '@/lib/vendor/controls';
 // F-05.9: signup + returning-no-PIN moved off the dead Supabase Phone-OTP (Twilio) onto
@@ -335,8 +336,10 @@ export default function Home() {
   // page, because this file WROTE vendor_session / couple_session on sign-in and
   // never read either on mount. One read, one replace, nothing else on this page
   // changes. The rule is lib/frost/entryRedirect.ts (pure, benched); the session
-  // reads are lib/frost-api/_base's, the one home. §6.6: no trap — Back is the
-  // browser's; this covers re-entry.
+  // couple read is lib/frost-api/_base's; the VENDOR read is lib/vendor/session's —
+  // the shell's own home (F-41.18, R-41.53b: the first cut read _base's wider
+  // `vendor_session || vendor_web_session`, and after sign-out the two homes
+  // disagreed — a loop). §6.6: no trap — Back is the browser's; this covers re-entry.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (window.location.pathname !== '/') return;

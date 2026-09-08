@@ -48,8 +48,10 @@ async function loadTs(rel) {
   if (!src) return null;
   const ts = (await import('typescript')).default;
   const out = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
-  const tmp = path.join(ROOT, '.tmp_' + path.basename(rel, '.ts') + '.mjs');
-  fs.writeFileSync(tmp, out);
+  // Written BESIDE the source so its relative imports resolve; transpiled siblings it
+  // imports are written the same way by the caller when needed.
+  const tmp = path.join(path.dirname(P(rel)), '.tmp_' + path.basename(rel, '.ts') + '.mjs');
+  fs.writeFileSync(tmp, out.replace(/from '(\.[^']+)'/g, (m, r) => r.endsWith('.mjs') ? m : `from '${r}.ts'`));
   try { return await import(pathToFileURL(tmp).href + '?t=' + Date.now()); }
   finally { fs.unlinkSync(tmp); }
 }
@@ -142,6 +144,41 @@ if (entry) {
 const land = strip(read(LAND));
 ok('the landing page calls the rule on mount at `/` with the one-home session reads and router.replace', /entryRedirectFor\(!!getVendorSession\(\), !!getCoupleSession\(\)\)/.test(land) && /router\.replace\(to\)/.test(land) && /window\.location\.pathname !== '\/'/.test(land) && /from '@\/lib\/frost-api\/_base'/.test(read(LAND)));
 ok('F-41.2: the stale "dream-os byte never built" comment is gone', !/dream-os is zero-byte this sitting/.test(read(LAND)) && !/Chartered separately, not faked client-side/.test(read(LAND)));
+// ── F-41.18 · R-41.53c — after sign-out, BOTH session homes read null, so the front
+// door has nothing to redirect on. Behavioural: a fake window + localStorage, both
+// homes loaded through the repo's own TypeScript, the legacy key planted the way the
+// pin pages plant it. The first cut of this rider read _base's wider home and looped.
+{
+  const store = new Map();
+  globalThis.window = { localStorage: {
+    getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)),
+    removeItem: (k) => store.delete(k), clear: () => store.clear(), key: () => null, get length() { return store.size; } },
+    location: { hostname: 'thedreamwedding.in', pathname: '/' } };
+  globalThis.localStorage = globalThis.window.localStorage;
+  globalThis.document = { cookie: '' };
+  const sess = await loadTs('lib/vendor/session.ts').catch(() => null);
+  const base = await loadTs('lib/frost-api/_base.ts').catch(() => null);
+  ok('R-41.53c: both session homes load under a fake window', !!sess && !!base && typeof sess.clearVendorSession === 'function' && typeof base.getVendorSession === 'function');
+  if (sess && base && entry) {
+    // Stamped `_v: 2` as the pin-login writes it (pin-login/page.tsx:109; session.ts:24
+    // SESSION_VERSION = 2) — the shell evicts anything older as stale (session.ts:41).
+    const planted = JSON.stringify({ id: 'v-dev440', vendorId: 'v-dev440', userId: 'u', phone: '+919888294440', pin_set: true, access_token: 't', _v: 2 });
+    const prePin  = JSON.stringify({ id: 'v-dev440', vendorId: 'v-dev440', userId: 'u', phone: '+919888294440', pin_set: true });
+    store.set('vendor_session', prePin);
+    ok('R-41.53b consequence: the landing\'s pre-PIN write (no _v) is evicted by the shell home, so the door does NOT redirect a vendor who has not entered her PIN', sess.getVendorSession() === null && entry.entryRedirectFor(!!sess.getVendorSession(), false) === null && !store.has('vendor_session'));
+    store.set('vendor_session', planted); store.set('vendor_web_session', planted);
+    const before = entry.entryRedirectFor(!!sess.getVendorSession(), false);
+    ok('R-41.53c: with both keys present the shell home sees a vendor and the door redirects', before === '/vendor/rooms');
+    sess.clearVendorSession();
+    ok('R-41.53a: sign-out removes vendor_web_session too, not only vendor_session', !store.has('vendor_session') && !store.has('vendor_web_session'));
+    ok('R-41.53c: after clearVendorSession() the SHELL home reads null → entryRedirectFor is null', sess.getVendorSession() === null && entry.entryRedirectFor(!!sess.getVendorSession(), false) === null);
+    ok('R-41.53c: after clearVendorSession() the FRONT-DOOR home (_base) reads null too → the two cannot disagree', base.getVendorSession() === null && entry.entryRedirectFor(!!base.getVendorSession(), false) === null);
+    // the loop's exact shape, refused: only the legacy key left behind (as before the cure)
+    store.set('vendor_web_session', planted);
+    ok('R-41.53b: the front door reads the shell\'s home — a stray legacy key alone no longer redirects', /import \{ getVendorSession \} from '@\/lib\/vendor\/session'/.test(read(LAND)) && !/getVendorSession[^\n]*from '@\/lib\/frost-api\/_base'/.test(read(LAND)) && entry.entryRedirectFor(!!sess.getVendorSession(), false) === null);
+  }
+  delete globalThis.window; delete globalThis.localStorage; delete globalThis.document;
+}
 ok('nothing else on the landing page moved: sign-in handler, role toggle, both entry doors still present', /handleSignIn/.test(land) && /setRole\('Maker'\)/.test(land) && /router\.push\(isVendor \? '\/vendor\/pin-login' : '\/couple\/pin-login'\)/.test(land));
 // A4 rider (R-41.50): the homepage privacy link is the literal Google compares to the consent
 // screen's Privacy policy URI — absolute, no trailing slash — and Terms sits beside it.
