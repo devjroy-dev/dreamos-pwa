@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 # scripts/run-floor.sh
 #
@@ -548,7 +549,17 @@ if [ "$CHECK" = "yes" ]; then
   # Nineteen one-line exit-site cures rode this ZIP (fourteen refusals 1→3, one 2→3,
   # five throws → 2 under F-39.67, tdw09_p2b_vocab's superseded refuse-as-RED
   # doctrine); none moved a line.
-  printf 'RED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\n' | sort > /tmp/base.txt
+  # ── BASE RE-BASED, LABELLED — CE-41 · THE CHAIR'S ACT (2026-09-08, c-41.12) ──
+  # BY MEASUREMENT: the founder's `run-floor.sh --check` on a clean clone at
+  # dreamos-pwa 3d20215 read 28 RED; this base held 23. FIVE LINES JOIN, each a
+  # red that predates this act and was disclosed by the seat that first met it
+  # (TDW_19 palette handover, "the floor base is stale and is not re-based by
+  # this seat"): b40_worklist_shell_bench (C50, C102) · b42_g11_wedding_pages_bench
+  # · tdw09_hotfix · tdw37_leadgate_b_slot · tdw_f3942_census_guard.
+  # Nothing leaves, nothing reclassifies. A base that prints a delta on every
+  # delivery teaches the founder to read past the STOP (F-41.10); this act ends
+  # that. A red not on this list is that delivery's to explain.
+  printf 'RED: b40_worklist_shell_bench\nRED: b42_g11_wedding_pages_bench\nRED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_hotfix\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw37_leadgate_b_slot\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\nRED: tdw_f3942_census_guard\n' | sort > /tmp/base.txt
   grep -v '^REFUSED: ' /tmp/floor.txt > /tmp/floor_fail.txt
   if grep -q '^REFUSED: ' /tmp/base.txt; then
     echo "STOP — the named base carries a REFUSED line. Bases hold failures only (c-39.57)."
