@@ -110,6 +110,8 @@ export const DOMAINS: Domain[] = [
     key: 'engine', label: 'Engine', icon: 'engine',
     sections: [
       { label: 'AI Caps', path: '/admin/config', icon: 'config', hints: ['model', 'matrix', 'provider', 'spend', 'admin_config'] },
+      // CE-41 seat C · R-41.8: every gate in Business Solutions, readable and flippable here.
+      { label: 'Switchboard', path: '/admin/switchboard', icon: 'switchboard', hints: ['gates', 'flags', 'templates', 'permissions', 'scopes', 'capabilities', 'meta'] },
     ],
   },
   {
@@ -174,6 +176,7 @@ export const ROUTE_MAP: MappedRoute[] = [
   { path: '/admin/conversations/vendors',    domain: 'people',      disposition: 'LIVE' },
   { path: '/admin/conversations/brides',     domain: 'people',      disposition: 'LIVE' },
   { path: '/admin/config',                   domain: 'engine',      disposition: 'LIVE' },
+  { path: '/admin/switchboard',              domain: 'engine',      disposition: 'LIVE' }, // CE-41 seat C, C2 (R-41.8)
   { path: '/admin/content/landing',          domain: 'content',     disposition: 'LIVE' },
   { path: '/admin/content/exploring',        domain: 'content',     disposition: 'LIVE' },
   { path: '/admin/content/spotlight',        domain: 'content',     disposition: 'LIVE' },

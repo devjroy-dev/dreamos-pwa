@@ -1,0 +1,11 @@
+# scripts/floor-manifest-ce41-c2.txt
+# CE-41 · SEAT C · C2 — THE SWITCHBOARD CARD (dreamos-pwa), kickoff §5 C2 + the
+# Templates on Meta panel (F-41.6's instrument).
+# BASE: 02030f0466f08c787325a47946c33ecdf7bd3f71 — re-derived at the cut (fetch-first).
+app/admin/switchboard/page.tsx
+app/admin/_components/adminNav.ts
+app/admin/layout.tsx
+lib/admin-api/index.ts
+scripts/tdw10_p1_shell.proof.mjs
+scripts/floor-manifest-ce41-c2.txt
+docs/TDW_CE41_C2_SWITCHBOARD_PWA_HANDOVER.md

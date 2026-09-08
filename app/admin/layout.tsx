@@ -145,6 +145,8 @@ function Icon({ name, size = 18 }: { name: string; size?: number }) {
     chat:      <path d="M21 12a8 8 0 01-11.5 7.2L4 21l1.8-5.5A8 8 0 1121 12z"/>,
     chatHeart: <><path d="M21 12a8 8 0 01-11.5 7.2L4 21l1.8-5.5A8 8 0 1121 12z"/><path d="M12 14.5s-2.4-1.5-2.4-3a1.2 1.2 0 012.4-.5 1.2 1.2 0 012.4.5c0 1.5-2.4 3-2.4 3z"/></>,
     config:    <><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h6M14 18h6"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></>,
+    // CE-41 seat C: two switch handles, one up, one down.
+    switchboard: <><rect x="3" y="9" width="8" height="6" rx="3"/><circle cx="8" cy="12" r="1.6"/><rect x="13" y="9" width="8" height="6" rx="3"/><circle cx="16" cy="12" r="1.6"/></>,
     landing:   <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></>,
     exploring: <><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></>,
     heroes:    <path d="M12 3l2.6 5.6 6.1.6-4.6 4 1.4 6L12 16.9 6.5 19.2l1.4-6-4.6-4 6.1-.6z"/>,

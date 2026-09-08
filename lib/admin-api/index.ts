@@ -214,3 +214,29 @@ export const deleteHotDate  = (id: string)                                 => ad
 
 export const getCoutureVendors  = () => adminGet<{ vendors: AdminVendor[] }>('/api/v2/admin/couture');
 export const setCoutureEligible = (vendorId: string, eligible: boolean) => adminPost(`/api/v2/admin/couture/eligible/${vendorId}`, { eligible });
+
+// ── CE-41 seat C · THE SWITCHBOARD (R-41.8) ───────────────────────────────────
+// Read the backend handler before any of these: src/api/admin/capabilities.js at
+// dream-os. Shapes copied from it, never assumed (protocol §6).
+export type CapabilityKind = 'template' | 'permission' | 'scope' | 'flag';
+export type CapabilityStatus = 'pending' | 'approved' | 'rejected' | 'paused' | 'armed' | 'on' | 'off';
+export interface CapabilityRow {
+  key: string;
+  kind: CapabilityKind;
+  status: CapabilityStatus;
+  evidence: string | null;
+  checked_at: string | null;
+  flipped_at: string | null;
+  flipped_by: string | null;
+  auto_on: boolean;
+  walk_ref: string | null;
+  updated_at: string;
+}
+export interface WabaTemplate { name: string; status: string | null; category: string | null; id: string | null; language: string | null }
+
+export const getCapabilities     = () => adminGet<{ rows: CapabilityRow[]; guards: Record<string, string> }>('/api/v2/admin/capabilities');
+export const flipCapability      = (key: string, to: 'on' | 'off') => adminPost<{ row: CapabilityRow; before: CapabilityStatus; after: CapabilityStatus }>(`/api/v2/admin/capabilities/${encodeURIComponent(key)}/flip`, { to });
+export const setCapabilityAutoOn = (key: string, auto_on: boolean, walk_ref?: string) => adminPost<{ row: CapabilityRow }>(`/api/v2/admin/capabilities/${encodeURIComponent(key)}/auto_on`, { auto_on, walk_ref });
+export const checkCapability     = (key: string) => adminPost<{ row: CapabilityRow; result: unknown }>(`/api/v2/admin/capabilities/${encodeURIComponent(key)}/check`);
+export const sweepCapabilities   = () => adminPost<{ checked: number; moved: number }>('/api/v2/admin/capabilities/sweep');
+export const getWabaTemplates    = () => adminGet<{ count: number; pages: number; truncated: boolean; evidence: string; templates: WabaTemplate[] }>('/api/v2/admin/capabilities/waba_templates');
