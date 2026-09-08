@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TDW_20 &middot; Concierge s2 &middot; D1 frames</title>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TDW · BLOCK 20 · CONCIERGE s2 — D1 FRAMES (CE-41 seat D)
+     Cut at dreamos-pwa 44b8590b1e5302313d63d3918308d85dfbf50bf9.
+     Rulings read at dream-os 0b27cc67a0bfe3dfc7bc5c9b57bb532df24dd67e.
+
+     NO PRODUCT BYTE IS IN THIS FILE. Every string is a PROPOSAL. The veto
+     instrument is TDW_20_S2_VETO_SHEET.md in this folder; this file is the
+     picture. Numbering is S2-1.. — a separate register from seat A's 1..38,
+     so the two sheets can never collide.
+
+     ── R-41.98, THE COPY RULE THIS DRAWS UNDER ──────────────────────────────
+     The founder's rule, now law: no prose, no poetry. Plain, short, direct.
+     A label is a noun phrase. A control is a verb. A refusal is ONE sentence
+     carrying the reason and the next step. No clause chains, no em-dash tails,
+     no three-line rows at 374. Every string below was re-checked against this
+     after it was drawn; nine were rewritten. R-41.32 as amended by R-41.98:
+     ALL veto columns are the chair's, V1/V2 included.
+
+     ── THREE PALETTES, TRANSCRIBED, NOT INVENTED ────────────────────────────
+     ADMIN + VENDOR (F*, V*) — Graphite, seven inks (R-40.129). From the colour
+     census §1 (dream-os docs/TDW_PWA_COLOUR_CENSUS.md), which reads
+     lib/worklist/theme.ts:173 GRAPHITE:
+       bg #0F1011 · card #17181A · line #2A2C2E · ink #EDEEEF · soft #C8CACC ·
+       dim #A3A6A9 · mute #888B8E · teal #68C9B4 · gold #C9A84C ·
+       positive #6FC98C · caution #DFAE6C · critical #E8836B — inks, never grounds.
+
+     BRIDE (A1, A2) — Wine Night, PINNED (lib/frost/tokens.ts:194), so one mode:
+       bg #1E0A0E · accent #C4856A · signal #6B9E8F · ink #F5E5DC ·
+       inkSoft rgba(245,229,220,.72) · line rgba(196,133,106,.14)
+
+     PUBLIC (P1) — THE LANDING'S OWN CHROME, AND HERE IS WHY. R-41.94 rules that
+     the public intake link is NOT an unauthenticated write: it is couple signup
+     with the sheet pre-filled. She enters her phone, the bride-line OTP creates
+     the couple, THEN the request writes with couple_id set and origin='public'.
+     So this frame inherits SIGNUP's surface, which is neither Wine Night nor a
+     light public page. Transcribed from app/(landing)/page.tsx:688-775:
+       ground #0C0A09 · ink #F8F7F5 · gold #C9A84C · field rgba(255,255,255,.13) ·
+       hairline rgba(255,255,255,.12) · Jost 200/.25em labels · DM Sans 300 body ·
+       Cormorant Garamond italic display.
+
+     ── WHAT IS NOT DRAWN, BY REFUSAL ─────────────────────────────────────────
+     No queue the couple can see (roadmap §7). No vendor directory she browses.
+     No spend or volume ranking on any admin row. No persona name in chrome.
+     No "we found you" bride surface — those bodies are witnessed at Meta now
+     (c-41.30) and D3 draws them from the real text, not from a guess.
+     No phone of the couple's in any outsider-facing byte.
+
+     Frames: F1-item-374 · F2-wall-374 · F3-outsider-374 · F4-override-374 ·
+             F5-item-430 · P1-public-374 · A1-s2-edit-374 · A2-amend-374 ·
+             V1-lead-374 · V2-decline-374 · I1-inbound
+     Shot arm: node tools/mock_shot.cjs docs/mocks/TDW_20_CONCIERGE/concierge-s2-mock.html
+     ═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&family=Italianno&family=JetBrains+Mono:wght@400&family=Jost:wght@200;300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Wine Night (bride) */
+  --bg:#1E0A0E;--accent:#C4856A;--signal:#6B9E8F;--ink:#F5E5DC;
+  --soft:rgba(245,229,220,.72);--mute:rgba(196,133,106,.50);--line:rgba(196,133,106,.14);
+  --rowbg:rgba(196,133,106,.05);--rowbdr:rgba(196,133,106,.12);
+  /* Graphite (admin + vendor) */
+  --g-bg:#0F1011;--g-card:#17181A;--g-line:#2A2C2E;--g-ink:#EDEEEF;--g-soft:#C8CACC;
+  --g-dim:#A3A6A9;--g-mute:#888B8E;
+  --teal:#68C9B4;--gold:#C9A84C;--pos:#6FC98C;--cau:#DFAE6C;--crit:#E8836B;
+  /* Landing (public intake) */
+  --l-bg:#0C0A09;--l-ink:#F8F7F5;--l-field:rgba(255,255,255,.13);
+  --l-hair:rgba(255,255,255,.12);--l-dim:rgba(248,247,245,.40);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#08090A;color:var(--g-ink);font:400 14px/1.5 "DM Sans",system-ui,sans-serif;padding:26px 18px 80px}
+.pagehead{max-width:1180px;margin:0 auto 22px}
+.pagehead h1{font:300 22px/1.3 "Fraunces",serif;font-style:italic;color:var(--g-ink)}
+.pagehead p{color:var(--g-soft);font-size:13px;margin-top:6px;max-width:820px}
+.pagehead code{color:var(--teal);font-size:12px}
+.rule{max-width:1180px;margin:16px auto 0;padding:12px 14px;border:1px solid var(--g-line);border-radius:4px;background:var(--g-card);font-size:12.5px;color:var(--g-soft)}
+.rule b{color:var(--gold);font-weight:500}
+.gallery{max-width:1180px;margin:26px auto 0;display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start}
+.framewrap{display:block}
+.cap{font:400 10px/1.3 "JetBrains Mono",monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--g-mute);margin:0 0 8px 2px;max-width:374px}
+.cap.w{max-width:1180px}
+.fr{width:374px;height:844px;overflow:hidden;position:relative;border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.6);background:var(--g-bg)}
+.fr.w430{width:430px}
+.fr.wine{background:radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)}
+.fr.land{background:var(--l-bg)}
+.fr.wide{width:1180px;height:700px;border-radius:8px;background:var(--g-bg)}
+.pane{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Graphite chrome (admin + vendor) ── */
+.ghead{padding:20px 18px 13px;border-bottom:1px solid var(--g-line);flex-shrink:0}
+.ghead .back{font:400 10px/1 "DM Sans";letter-spacing:.16em;text-transform:uppercase;color:var(--g-mute);margin-bottom:10px}
+.ghead h2{font:500 17px/1.25 "DM Sans";letter-spacing:.01em;color:var(--g-ink)}
+.ghead .sub{font-size:12.5px;color:var(--g-dim);margin-top:3px}
+.gbody{padding:14px 18px;flex:1;overflow:hidden}
+.lab{font:500 10px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--g-mute);margin-bottom:8px}
+.item{border:1px solid var(--g-line);border-radius:4px;background:var(--g-card);margin-bottom:12px}
+.ih{display:flex;align-items:center;gap:10px;padding:12px 13px;border-bottom:1px solid var(--g-line);flex-wrap:wrap}
+.ih .c{font:500 14px/1 "DM Sans";color:var(--g-ink)}
+.ih .rs{font-size:13px;color:var(--g-soft)}
+.ih .fw{margin-left:auto;font:500 10px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--teal);white-space:nowrap}
+.fwd{padding:9px 13px;border-bottom:1px solid var(--g-line);font-size:12.5px;color:var(--g-soft)}
+.fwd:last-of-type{border-bottom:none}
+.fwd .who{color:var(--g-ink);font-weight:500}
+.fwd .st{display:block;margin-top:3px;color:var(--g-dim);font-size:12px}
+.fwd .st.bad{color:var(--crit)}
+.fwd .st.dark{color:var(--cau)}
+.acts{padding:11px 13px;display:grid;gap:8px}
+.btn{display:block;text-align:center;font:500 11px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase;
+  color:var(--teal);border:1px solid var(--teal);border-radius:3px;padding:11px 10px}
+.btn.mute{color:var(--g-mute);border-color:var(--g-line)}
+.btn.warn{color:var(--cau);border-color:var(--cau)}
+.btn.solid{background:var(--teal);color:#0F1011;border-color:var(--teal)}
+.foot{margin-top:6px;font-size:12px;color:var(--g-dim)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#1D1E20;border-top:1px solid var(--g-line);
+  border-radius:16px 16px 0 0;padding:8px 18px 26px;max-height:78%;overflow:hidden}
+.grab{width:34px;height:3px;border-radius:2px;background:var(--g-line);margin:0 auto 14px}
+.sheet h3{font:500 15px/1.3 "DM Sans";color:var(--g-ink);margin-bottom:12px}
+.scrimg{position:absolute;inset:0;background:rgba(10,11,12,.62)}
+.inp{border:1px solid rgba(104,201,180,.58);border-radius:3px;padding:10px 11px;font-size:13px;color:var(--g-ink);margin-bottom:9px}
+.inp .ph{color:var(--g-mute)}
+.res{display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-bottom:1px solid var(--g-line);font-size:13px}
+.res .nm{color:var(--g-ink)}
+.res .nm small{display:block;color:var(--g-dim);font-size:11.5px;margin-top:2px}
+.res .b{font:500 10px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--teal);border:1px solid var(--teal);border-radius:3px;padding:7px 9px;white-space:nowrap}
+.res .b.done{color:var(--g-mute);border-color:var(--g-line)}
+.note{font-size:12px;color:var(--g-dim);margin-top:10px}
+.chip{display:inline-block;font:500 9px/1 "DM Sans";letter-spacing:.16em;text-transform:uppercase;
+  border:1px solid var(--teal);color:var(--teal);border-radius:2px;padding:5px 7px}
+.chip.badge{border-color:var(--g-line);color:var(--g-dim)}
+.drow{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--g-line);font-size:13px}
+.drow .k{color:var(--g-mute);font-size:11px;letter-spacing:.14em;text-transform:uppercase;align-self:center}
+.drow .v{color:var(--g-soft)}
+
+/* ── Wine Night (bride) ── */
+.whead{padding:22px 20px 14px;border-bottom:.5px solid var(--line);flex-shrink:0}
+.wtitle{font:400 46px/1 "Italianno",cursive;color:var(--ink);margin-bottom:4px}
+.wlede{font:300 16px/1.6 "Fraunces",serif;font-style:italic;color:var(--soft)}
+.wbody{padding:16px 20px;flex:1;overflow:hidden;color:var(--ink)}
+.wlbl{font:400 9px/1 "JetBrains Mono",monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);margin:16px 0 8px}
+.wfound{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:.5px solid var(--line)}
+.wfound .n{font:400 15px/1.3 "DM Sans";color:var(--ink)}
+.wfound .n small{display:block;color:var(--soft);font-size:11.5px;margin-top:2px}
+.wfound .st{font:400 9px/1 "JetBrains Mono",monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--signal);white-space:nowrap}
+.wfound .st.wait{color:var(--mute)}
+.wfound .st.off{color:var(--accent)}
+.wsend{margin-top:18px;background:var(--accent);color:#1E0A0E;border-radius:999px;padding:14px;text-align:center;
+  font:500 13px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase}
+.wsend.ghost{background:transparent;color:var(--soft);border:1px solid var(--rowbdr)}
+.wsheet{position:absolute;left:0;right:0;bottom:0;background:#1A0A0E;border-top:1px solid var(--rowbdr);
+  border-radius:20px 20px 0 0;padding:8px 20px 28px;max-height:80%;overflow:hidden}
+.wgrab{width:34px;height:3px;border-radius:2px;background:var(--rowbdr);margin:0 auto 14px}
+.crow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--line)}
+.crow .tick{width:16px;height:16px;border-radius:4px;border:1px solid var(--mute);flex-shrink:0}
+.crow .tick.on{background:var(--accent);border-color:var(--accent)}
+.crow .nm{font:300 16px/1 "Fraunces",serif;font-style:italic;color:var(--ink);flex:1}
+.crow .nm.off{color:var(--mute)}
+.crow .rs{font:400 13px/1 "DM Sans";color:var(--ink);background:var(--rowbg);border:1px solid var(--rowbdr);
+  border-radius:5px;padding:7px 9px;min-width:104px;text-align:right}
+.crow .rs.ph{color:var(--mute);text-align:left}
+.wnote{font:400 12px/1.5 "DM Sans";color:var(--mute);margin-top:9px}
+
+/* ── Landing (public intake) ── */
+.lhead{padding:34px 24px 16px;flex-shrink:0}
+.ldisp{font:300 34px/1.15 "Cormorant Garamond",serif;font-style:italic;color:var(--l-ink)}
+.lsub{font:300 13px/1.6 "DM Sans";color:var(--l-dim);margin-top:8px}
+.lbody{padding:8px 24px;flex:1;overflow:hidden}
+.llab{font:200 8px/1 "Jost",sans-serif;letter-spacing:.25em;text-transform:uppercase;color:var(--l-dim);margin:16px 0 7px}
+.lfield{background:var(--l-field);border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:11px 13px;
+  font:300 15px/1.3 "DM Sans";color:var(--l-ink);display:flex;justify-content:space-between;align-items:center}
+.lfield .ph{color:var(--l-dim)}
+.lfield .pre{font:200 11px/1 "Jost";letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.lrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--l-hair)}
+.lrow .tick{width:15px;height:15px;border-radius:3px;border:1px solid var(--l-dim);flex-shrink:0}
+.lrow .tick.on{background:var(--gold);border-color:var(--gold)}
+.lrow .nm{font:300 15px/1 "DM Sans";color:var(--l-ink);flex:1}
+.lrow .nm.off{color:var(--l-dim)}
+.lrow .rs{font:300 13px/1 "DM Sans";color:var(--l-ink);background:var(--l-field);
+  border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:6px 9px;min-width:100px;text-align:right}
+.lrow .rs.ph{color:var(--l-dim);text-align:left}
+.lbtn{margin-top:20px;background:var(--gold);color:#0C0A09;border-radius:3px;padding:14px;text-align:center;
+  font:400 10px/1 "Jost";letter-spacing:.2em;text-transform:uppercase}
+.lfine{font:300 12px/1.5 "DM Sans";color:var(--l-dim);margin-top:12px;text-align:center}
+.otp{display:flex;gap:9px;margin-top:6px}
+.otp span{flex:1;height:52px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:var(--l-field);
+  display:flex;align-items:center;justify-content:center;font:300 21px/1 "DM Sans";color:var(--l-ink)}
+.otp span.e{color:var(--l-dim)}
+
+/* ── design sheet ── */
+.ds{padding:26px 30px;color:var(--g-soft);font-size:13.5px;line-height:1.62;height:100%;overflow:hidden}
+.ds h3{font:500 16px/1.3 "DM Sans";color:var(--g-ink);margin-bottom:4px}
+.ds .tag{font:400 9px/1 "JetBrains Mono",monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--cau);margin-bottom:14px;display:block}
+.ds .cols{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:14px}
+.ds h4{font:500 11px/1 "DM Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--g-mute);margin:16px 0 8px}
+.ds ol,.ds ul{margin:0 0 0 17px}
+.ds li{margin-bottom:7px}
+.ds b{color:var(--g-ink);font-weight:500}
+.ds .flow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:10px 0 4px}
+.ds .n{border:1px solid var(--g-line);border-radius:3px;padding:9px 11px;font-size:12.5px;color:var(--g-soft);background:var(--g-card)}
+.ds .n.k{border-color:var(--teal);color:var(--teal)}
+.ds .ar{color:var(--g-mute)}
+.ds .warn{border-left:2px solid var(--cau);padding-left:12px;margin-top:14px;color:var(--g-soft)}
+
+/* ── solo (mock_shot) ── */
+body.solo{background:transparent;padding:0}
+body.solo .pagehead,body.solo .cap,body.solo .rule{display:none}
+body.solo .gallery{display:block;padding:0;gap:0;max-width:none;margin:0}
+body.solo .framewrap{display:none}
+body.solo .framewrap.on{display:block}
+body.solo .fr{width:100vw;height:100vh;box-shadow:none;border-radius:0}
+</style></head><body>
+
+<div class="pagehead">
+  <h1>TDW_20 &middot; Concierge sitting 2 &middot; D1 frames</h1>
+  <p>Eleven frames, three palettes, no product bytes. Every string is numbered <code>S2-n</code> in <code>TDW_20_S2_VETO_SHEET.md</code> — a separate register from seat A's 1&ndash;38. All veto columns are the chair's (R-41.98).</p>
+  <div class="rule"><b>R-41.98 &middot; the copy rule every string here is drawn under.</b> No prose, no poetry. Plain, short, direct. A label is a noun phrase. A control is a verb. A refusal is one sentence carrying the reason and the next step. No clause chains, no em-dash tails, no three-line rows at 374.</div>
+</div>
+
+<div class="gallery">
+
+<!-- ══ F1 · the forward row, re-shaped for 374 (c-41.28 / F-41.30 / F-41.58) ══ -->
+<div class="framewrap" data-frame="F1-item-374" data-shot-width="374" data-shot-height="844" data-shot-modes="dark">
+<div class="cap">F1-item-374 &middot; /admin/assistance &middot; one column, no side-by-side &middot; the vendor wall and the outsider fields each move to a sheet</div>
+<div class="fr"><div class="pane">
+  <div class="ghead">
+    <div class="back">&larr; Queue</div>
+    <h2>Ananya &middot; 9625759924</h2>
+    <div class="sub">22 December 2026 &middot; Jaipur &middot; Civil Lines</div>
+  </div>
+  <div class="gbody">
+    <div class="lab">The look</div>
+    <div class="brief" style="background:var(--g-card);border:1px solid var(--g-line);border-radius:4px;padding:11px 13px;font-size:13px;color:var(--g-soft);margin-bottom:14px">Warm tones, candid, no heavy posing.</div>
+
+    <div class="item">
+      <div class="ih"><span class="c">Photography</span><span class="rs">Rs 1,50,000</span><span class="fw">2 of 3</span></div>
+      <div class="fwd"><span class="who">MAKEUPBYSWATIROY</span><span class="st">Lead created. 9 Sep.</span></div>
+      <div class="fwd"><span class="who">@stillframe.co</span><span class="st bad">Not delivered because of Meta's marketing limit on this number, so forward someone else.</span></div>
+      <div class="acts">
+        <span class="btn">Forward to a TDW vendor</span>
+        <span class="btn">Forward to someone not on TDW</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="ih"><span class="c">Makeup</span><span class="rs">Rs 60,000</span><span class="fw" style="color:var(--g-mute)">0 of 3</span></div>
+      <div class="acts">
+        <span class="btn">Forward to a TDW vendor</span>
+        <span class="btn">Forward to someone not on TDW</span>
+      </div>
+    </div>
+
+    <span class="btn mute">Close request</span>
+    <div class="foot">Closing tells her nothing.</div>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ F2 · the vendor wall as a sheet ══════════════════════════════════════ -->
+<div class="framewrap" data-frame="F2-wall-374" data-shot-width="374" data-shot-height="844" data-shot-modes="dark">
+<div class="cap">F2-wall-374 &middot; the vendor wall, lifted out of the column &middot; trade first, then city, alphabetical, never ranked</div>
+<div class="fr"><div class="pane">
+  <div class="ghead">
+    <div class="back">&larr; Queue</div>
+    <h2>Ananya &middot; 9625759924</h2>
+    <div class="sub">22 December 2026 &middot; Jaipur &middot; Civil Lines</div>
+  </div>
+  <div class="gbody"><div class="item"><div class="ih"><span class="c">Photography</span><span class="rs">Rs 1,50,000</span><span class="fw">2 of 3</span></div></div></div>
+  <div class="scrimg"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>TDW vendors &middot; photography</h3>
+    <div class="inp"><span class="ph">Name or handle</span></div>
+    <div class="res"><span class="nm">Dev Roy Photography<small>@DEV440 &middot; Jaipur</small></span><span class="b">Forward</span></div>
+    <div class="res"><span class="nm">MAKEUPBYSWATIROY<small>@swatiroy &middot; Jaipur</small></span><span class="b done">Sent</span></div>
+    <div class="res"><span class="nm">Stillwater Studio<small>@stillwater &middot; Delhi</small></span><span class="b">Forward</span></div>
+    <div class="note">Jaipur first, then everywhere else. Both alphabetical.</div>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ F3 · the outsider fields as a sheet ══════════════════════════════════ -->
+<div class="framewrap" data-frame="F3-outsider-374" data-shot-width="374" data-shot-height="844" data-shot-modes="dark">
+<div class="cap">F3-outsider-374 &middot; someone not on TDW &middot; no couple phone leaves in the body (roadmap &sect;7)</div>
+<div class="fr"><div class="pane">
+  <div class="ghead">
+    <div class="back">&larr; Queue</div>
+    <h2>Ananya &middot; 9625759924</h2>
+    <div class="sub">22 December 2026 &middot; Jaipur &middot; Civil Lines</div>
+  </div>
+  <div class="gbody"><div class="item"><div class="ih"><span class="c">Photography</span><span class="rs">Rs 1,50,000</span><span class="fw">2 of 3</span></div></div></div>
+  <div class="scrimg"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>Someone not on TDW</h3>
+    <div class="inp"><span class="ph">Instagram handle</span></div>
+    <div class="inp"><span class="ph">WhatsApp number</span></div>
+    <div class="inp"><span class="ph">Name</span></div>
+    <span class="btn solid">Forward</span>
+    <div class="note">They get one message to join. Her number stays with us until they do.</div>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ F4 · R-41.95's override confirm ══════════════════════════════════════ -->
+<div class="framewrap" data-frame="F4-override-374" data-shot-width="374" data-shot-height="844" data-shot-modes="dark">
+<div class="cap">F4-override-374 &middot; R-41.95 &middot; the override attaches the EXISTING lead and re-alerts &middot; never a second lead</div>
+<div class="fr"><div class="pane">
+  <div class="ghead">
+    <div class="back">&larr; Queue</div>
+    <h2>Ananya &middot; 9625759924</h2>
+    <div class="sub">22 December 2026 &middot; Jaipur &middot; Civil Lines</div>
+  </div>
+  <div class="gbody"><div class="item"><div class="ih"><span class="c">Photography</span><span class="rs">Rs 1,50,000</span><span class="fw">2 of 3</span></div></div></div>
+  <div class="scrimg"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>Dev Roy Photography already has her enquiry</h3>
+    <div class="note" style="margin-top:0;color:var(--g-soft);font-size:13px">Forwarding again adds this request to that lead and alerts her. No second lead is created.</div>
+    <div style="height:16px"></div>
+    <span class="btn warn">Forward anyway</span>
+    <div style="height:8px"></div>
+    <span class="btn mute">Cancel</span>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ F5 · the same row at 430 ═════════════════════════════════════════════ -->
+<div class="framewrap" data-frame="F5-item-430" data-shot-width="430" data-shot-height="844" data-shot-modes="dark">
+<div class="cap">F5-item-430 &middot; the column stays one at 430 &middot; the two-up grid does not return</div>
+<div class="fr w430"><div class="pane">
+  <div class="ghead">
+    <div class="back">&larr; Queue</div>
+    <h2>Ananya &middot; 9625759924</h2>
+    <div class="sub">22 December 2026 &middot; Jaipur &middot; Civil Lines</div>
+  </div>
+  <div class="gbody">
+    <div class="item">
+      <div class="ih"><span class="c">Photography</span><span class="rs">Rs 1,50,000</span><span class="fw">2 of 3</span></div>
+      <div class="fwd"><span class="who">MAKEUPBYSWATIROY</span><span class="st">Lead created. 9 Sep.</span></div>
+      <div class="fwd"><span class="who">@stillframe.co</span><span class="st bad">Not delivered because of Meta's marketing limit on this number, so forward someone else.</span></div>
+      <div class="acts">
+        <span class="btn">Forward to a TDW vendor</span>
+        <span class="btn">Forward to someone not on TDW</span>
+      </div>
+    </div>
+    <div class="item">
+      <div class="ih"><span class="c">Décor</span><span class="rs">Rs 2,40,000</span><span class="fw" style="color:var(--cau)">1 of 3</span></div>
+      <div class="fwd"><span class="who">@bloomhouse.jpr</span><span class="st dark">Recorded, not sent. The outsider join alert is off.</span></div>
+      <div class="acts">
+        <span class="btn">Forward to a TDW vendor</span>
+        <span class="btn">Forward to someone not on TDW</span>
+      </div>
+    </div>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ P1 · the public intake door (R-41.94) ════════════════════════════════ -->
+<div class="framewrap" data-frame="P1-public-374" data-shot-width="374" data-shot-height="844" data-shot-modes="dark">
+<div class="cap">P1-public-374 &middot; the link the founder texts a caller &middot; R-41.94: this IS couple signup with the sheet pre-filled &middot; landing chrome, not Wine Night</div>
+<div class="fr land"><div class="pane">
+  <div class="lhead">
+    <div class="ldisp">Find my vendors</div>
+    <div class="lsub">Tell us what you need. We find and book it.</div>
+  </div>
+  <div class="lbody">
+    <div class="llab">Wedding date</div>
+    <div class="lfield"><span class="ph">22 / 12 / 2026</span></div>
+    <div class="llab">City</div>
+    <div class="lfield"><span class="ph">Jaipur</span></div>
+    <div class="llab">What you need</div>
+    <div class="lrow"><span class="tick on"></span><span class="nm">Photography</span><span class="rs">1,50,000</span></div>
+    <div class="lrow"><span class="tick on"></span><span class="nm">Makeup</span><span class="rs">60,000</span></div>
+    <div class="lrow"><span class="tick"></span><span class="nm off">Décor</span><span class="rs ph">Rs</span></div>
+    <div class="llab">WhatsApp number</div>
+    <div class="lfield"><span class="pre">+91</span><span class="ph">10 digits</span></div>
+    <div class="lbtn">Send me a code</div>
+    <div class="lfine">We send a code to confirm the number is yours.</div>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ A1 · S2 with Edit (amend after Send) ═════════════════════════════════ -->
+<div class="framewrap" data-frame="A1-s2-edit-374" data-shot-width="374" data-shot-height="844" data-shot-modes="dark">
+<div class="cap">A1-s2-edit-374 &middot; /frost/canvas/assistance &middot; S2 gains one control &middot; she never sees a queue</div>
+<div class="fr wine"><div class="pane">
+  <div class="whead">
+    <div class="wtitle">Your wedding assistant</div>
+    <div class="wlede">Sent. We&rsquo;re on it.</div>
+  </div>
+  <div class="wbody">
+    <div style="font:300 19px/1.25 'Fraunces',serif;font-style:italic;color:var(--ink)">We&rsquo;ll message you on WhatsApp as we find each vendor.</div>
+    <div style="font:400 13px/1.5 'DM Sans';color:var(--soft);margin-top:8px">Photography &middot; Makeup &middot; Décor &mdash; 22 December 2026, Jaipur.</div>
+
+    <div class="wlbl">Found so far</div>
+    <div class="wfound"><span class="n">MAKEUPBYSWATIROY<small>Photography</small></span><span class="st">Found</span></div>
+    <div class="wfound"><span class="n">Makeup<small>We&rsquo;re still looking.</small></span><span class="st wait">Looking</span></div>
+    <div class="wfound"><span class="n">Décor<small>We&rsquo;re still looking.</small></span><span class="st wait">Looking</span></div>
+
+    <div class="wsend ghost">Edit request</div>
+    <div class="wnote">Add a category or change a budget.</div>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ A2 · the amend sheet ═════════════════════════════════════════════════ -->
+<div class="framewrap" data-frame="A2-amend-374" data-shot-width="374" data-shot-height="844" data-shot-modes="dark">
+<div class="cap">A2-amend-374 &middot; amend while open OR forwarded &middot; per-item status &middot; the lead keeps the budget it was forwarded with</div>
+<div class="fr wine"><div class="pane">
+  <div class="whead">
+    <div class="wtitle">Your wedding assistant</div>
+    <div class="wlede">Sent. We&rsquo;re on it.</div>
+  </div>
+  <div class="wbody"><div style="font:300 19px/1.25 'Fraunces',serif;font-style:italic;color:var(--ink)">We&rsquo;ll message you on WhatsApp as we find each vendor.</div></div>
+  <div style="position:absolute;inset:0;background:rgba(10,4,5,.66)"></div>
+  <div class="wsheet">
+    <div class="wgrab"></div>
+    <div style="font:300 21px/1.2 'Fraunces',serif;font-style:italic;color:var(--ink);margin-bottom:4px">Edit request</div>
+    <div class="crow"><span class="tick on"></span><span class="nm">Photography</span><span class="rs">1,50,000</span></div>
+    <div class="wnote" style="margin:2px 0 6px">Already forwarded. A new budget won&rsquo;t reach the vendors we asked.</div>
+    <div class="crow"><span class="tick on"></span><span class="nm">Makeup</span><span class="rs">60,000</span></div>
+    <div class="crow"><span class="tick on"></span><span class="nm">Décor</span><span class="rs">2,40,000</span></div>
+    <div class="crow"><span class="tick"></span><span class="nm off">Planning</span><span class="rs ph">Rs</span></div>
+    <div class="crow"><span class="tick"></span><span class="nm off">Outfits</span><span class="rs ph">Rs</span></div>
+    <div class="wsend">Save changes</div>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ V1 · the vendor's lead card, with the decline control (R-41.96) ══════ -->
+<div class="framewrap" data-frame="V1-lead-374" data-shot-width="374" data-shot-height="844" data-shot-modes="dark">
+<div class="cap">V1-lead-374 &middot; vendor lane, Graphite &middot; the decline control on her lead card &middot; every string here is the chair's veto (R-41.98)</div>
+<div class="fr"><div class="pane">
+  <div class="ghead">
+    <div class="back">&larr; Leads</div>
+    <h2>Ananya</h2>
+    <div class="sub">Jaipur &middot; 22 December 2026</div>
+  </div>
+  <div class="gbody">
+    <div style="display:flex;gap:7px;margin-bottom:14px"><span class="chip">TDW</span><span class="chip badge">New</span></div>
+    <div class="drow"><span class="k">State</span><span class="v">New</span></div>
+    <div class="drow"><span class="k">Arrived</span><span class="v">9 Sep, 2:14 pm</span></div>
+    <div class="drow"><span class="k">Wedding date</span><span class="v">22 December 2026</span></div>
+    <div class="drow"><span class="k">City</span><span class="v">Jaipur</span></div>
+    <div class="drow"><span class="k">Budget</span><span class="v">Rs 1,50,000</span></div>
+    <div class="drow"><span class="k">Source</span><span class="v">The Dream Wedding</span></div>
+    <div class="drow"><span class="k">Notes</span><span class="v">Warm tones, candid, no heavy posing.</span></div>
+    <div style="height:18px"></div>
+    <span class="btn solid">Reply</span>
+    <div style="height:8px"></div>
+    <span class="btn mute">Not for me</span>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ V2 · the decline confirm ═════════════════════════════════════════════ -->
+<div class="framewrap" data-frame="V2-decline-374" data-shot-width="374" data-shot-height="844" data-shot-modes="dark">
+<div class="cap">V2-decline-374 &middot; declining unwinds forwarded_count and returns the request to open if nothing else is out &middot; the couple's read filters it</div>
+<div class="fr"><div class="pane">
+  <div class="ghead">
+    <div class="back">&larr; Leads</div>
+    <h2>Ananya</h2>
+    <div class="sub">Jaipur &middot; 22 December 2026</div>
+  </div>
+  <div class="gbody">
+    <div style="display:flex;gap:7px;margin-bottom:14px"><span class="chip">TDW</span><span class="chip badge">New</span></div>
+    <div class="drow"><span class="k">State</span><span class="v">New</span></div>
+    <div class="drow"><span class="k">City</span><span class="v">Jaipur</span></div>
+  </div>
+  <div class="scrimg"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>Return this lead to The Dream Wedding?</h3>
+    <div class="note" style="margin-top:0;color:var(--g-soft);font-size:13px">It leaves your list and we offer it to someone else. Ananya is not told.</div>
+    <div style="height:16px"></div>
+    <span class="btn warn">Return it</span>
+    <div style="height:8px"></div>
+    <span class="btn mute">Keep it</span>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ I1 · the inbound-first outsider door — DESIGN, NOT A SCREEN ══════════ -->
+<div class="framewrap" data-frame="I1-inbound" data-shot-width="1180" data-shot-height="700" data-shot-modes="dark">
+<div class="cap w">I1-inbound &middot; R-41.93 option B &middot; a DESIGN SHEET, not a surface &middot; framed for the chair, built only if ruled</div>
+<div class="fr wide"><div class="pane"><div class="ds">
+  <h3>The inbound-first outsider door</h3>
+  <span class="tag">design item &middot; no build in D2 or D3 unless the chair rules it</span>
+
+  <p>Today the outsider forward pushes a <b>Marketing</b> template at a vendor who has never written to TDW. That is the most throttled class Meta has, and <code style="color:var(--crit)">131049</code> is normal for it, not exceptional. The inbound-first door inverts the direction: the outsider opens the window, and TDW answers inside it with a free-form line and no template at all.</p>
+
+  <div class="flow">
+    <span class="n">Founder sends a <b>wa.me</b> link or QR</span><span class="ar">&rarr;</span>
+    <span class="n">She taps it and messages TDW</span><span class="ar">&rarr;</span>
+    <span class="n k">24h window opens</span><span class="ar">&rarr;</span>
+    <span class="n">Free-form line carries the request</span><span class="ar">&rarr;</span>
+    <span class="n">She joins, and the lead materialises</span>
+  </div>
+
+  <div class="cols">
+    <div>
+      <h4>What it buys</h4>
+      <ul>
+        <li><b>No template, no category.</b> The Utility-versus-Marketing argument the founder raised at s1 stops applying, because a windowed reply is neither.</li>
+        <li><b>No per-user marketing cap.</b> 131049 cannot fire on this path.</li>
+        <li><b>The request can be longer</b> and can carry the brief in her own words.</li>
+      </ul>
+      <h4>What it costs</h4>
+      <ul>
+        <li><b>She must act first.</b> A forward becomes a two-step ask, and the founder carries the first step by hand.</li>
+        <li><b>The window closes in 24 hours</b> and cannot be reopened without a template.</li>
+        <li><b>It is a different product shape</b>, not a re-filing of the existing one. Seat A said so at close and this sheet agrees.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>The gate</h4>
+      <p>A windowed free-form send has no template, so there is no template key to gate it on. The register key is therefore a <b style="color:var(--teal)">flag.*</b>, not a <code style="color:var(--teal)">template.*</code> &mdash; chair-ruled. Proposed name: <code style="color:var(--teal)">flag.assist_inbound_door</code>, seeded off, flipped on the Switchboard like every other plane.</p>
+      <h4>What it does not change</h4>
+      <ul>
+        <li>The couple's phone still reaches nobody until that vendor joins.</li>
+        <li><code>createLead</code> stays the sole lead writer.</li>
+        <li>No follow-up if she never taps. One ask, then silence.</li>
+      </ul>
+      <div class="warn"><b>Open, for the chair.</b> Whether the link is per-request (a token that names which request she is answering) or one standing TDW link. Per-request is stronger evidence and a longer URL; standing is one QR the founder reuses forever. This sheet does not choose.</div>
+    </div>
+  </div>
+</div></div></div>
+</div>
+
+</div>
+
+<script>
+(function(){
+  var q={};(location.hash||'').replace(/^#/,'').split('&').forEach(function(p){
+    var kv=p.split('=');if(kv[0])q[kv[0]]=decodeURIComponent(kv[1]||'');});
+  var frames=[].slice.call(document.querySelectorAll('.framewrap'));
+  // Bride is pinned to Wine Night, admin and vendor are Graphite, the public
+  // intake inherits the landing's own chrome. Every frame declares
+  // data-shot-modes="dark", so mode is read and ignored.
+  if(q.solo){
+    document.body.classList.add('solo');
+    frames.forEach(function(f){f.classList.toggle('on',f.getAttribute('data-frame')===q.solo);});
+  }
+})();
+</script>
+</body></html>

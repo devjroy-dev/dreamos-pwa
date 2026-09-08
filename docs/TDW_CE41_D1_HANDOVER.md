@@ -1,0 +1,57 @@
+# CE-41 · SEAT D · D1 — the concierge s2 frames · HANDOVER
+
+**Cut by** LE-D **at** dreamos-pwa `44b8590b1e5302313d63d3918308d85dfbf50bf9`. Rulings derived at dream-os `0b27cc67a0bfe3dfc7bc5c9b57bb532df24dd67e`. Both fetch-first by command.
+
+**Docs only.** No byte in `app/`, `lib/`, `src/` or `db/` moves. No migration. No bench. Nothing to deploy and nothing that can break a build.
+
+---
+
+## 1 · What shipped
+
+| file | what |
+|---|---|
+| `docs/mocks/TDW_20_CONCIERGE/concierge-s2-mock.html` | eleven frames, three palettes, one design sheet |
+| `docs/mocks/TDW_20_CONCIERGE/TDW_20_S2_VETO_SHEET.md` | the veto instrument — 37 numbered strings, 3 opens, 1 derivation to confirm |
+| `docs/TDW_CE41_D1_HANDOVER.md` | this file |
+
+Frames: `F1-item-374` · `F2-wall-374` · `F3-outsider-374` · `F4-override-374` · `F5-item-430` · `P1-public-374` · `A1-s2-edit-374` · `A2-amend-374` · `V1-lead-374` · `V2-decline-374` · `I1-inbound`.
+
+## 2 · The three palettes, and where each came from
+
+Transcribed by command at the tips above, never recalled.
+
+- **Graphite** (`F*`, `V*`) — the colour census §1, reading `lib/worklist/theme.ts:173`. Seven inks as inks, never grounds (R-40.129).
+- **Wine Night** (`A1`, `A2`) — `lib/frost/tokens.ts:194`, pinned, so one mode and no light arm.
+- **The landing's own chrome** (`P1`) — `app/(landing)/page.tsx:688–775`. **This is the derivation most worth checking.** R-41.94 makes the public link couple signup with the sheet pre-filled, so it inherits signup's surface: not Wine Night, not a light public page. Named on the sheet as the one derivation the chair should confirm or overturn.
+
+## 3 · R-41.98 did work, and here is the evidence
+
+The frames were drawn, then re-checked against the rule, then **nine strings were rewritten**. Each is marked ✎ on the sheet with its previous text: S2-3, S2-4, S2-8, S2-12, S2-16, S2-21, S2-25, S2-33, S2-34.
+
+Two of the nine were not style. **S2-4 and S2-34 were removing a register key from glass** — `source tdw_assist` was rendering on an admin row and on the vendor's `Source` row. That is F-41.62's own class (a machine token where a sentence belongs), which seat C filed against G3.4 earlier this sprint. The copy rule caught a second specimen of a finding already on the register.
+
+## 4 · What this does not draw, and why
+
+- **No "we found you" bride surface.** The bodies are witnessed at Meta now (c-41.30) and D3 draws them from the real text. Drawing them here would have been a guess against a document that has already disagreed with itself once.
+- **No queue the couple can see, no vendor directory she browses, no ranking on any admin row** — roadmap §7, carried.
+- **No couple phone in any outsider-facing byte.**
+- **No bare Meta error code on any glass.** `131049` becomes S2-5's sentence through a code-to-words map; the code lives in the log and on the row.
+
+## 5 · The sequencing this creates
+
+`F1` and `F5` are the frame for the **F-41.30/.58 build that sits in D0's pwa rider**. Under the chair's §5(i) ruling the build follows this veto. If the pwa D0 turn is named before the veto lands, that rider ships without the forward-panel build and the build moves to D3. **This seat will not cut that build ahead of its veto** (mock-first, c-39.26).
+
+## 6 · Open, for the chair
+
+1. **S2-1 … S2-37** — KEEP or the replacement.
+2. **S2-o1** — does the pre-filled sheet survive the OTP round-trip visually? (a second frame if yes)
+3. **S2-o2** — may she remove a category already forwarded? (seat leans no in s2)
+4. **S2-o3** — does decline ever carry a reason? (R-41.96 says no; the frame asks for none)
+5. **The `P1` ground** — confirm or overturn §2 above.
+6. **`I1`'s one question** — per-request link, or one standing TDW link.
+
+## 7 · Carried, not cured
+
+- **F-41.64** `b39_telemetry` reds 3.1–3.4 and 5.3, **F-41.65** `b61_mutations` M8 dead anchor — both seat C's plane, both untouched by this packet, both named again so a later floor reading does not attribute them here.
+- The four stale marketing-receipt sites (`A10_HANDOVER.md:19`/`:29`, `templates.js:769–770`, `assistance.js:528–532`, `b20_a2_assistance_bench.js:405`) are **D0's**, not D1's.
+- **R-41.97's two cells** (seat B's document-side spec, plus the wire-side `vars`-to-`variables` binding, both with mutation proofs and the named partitions in both directions) ride the **F-41.63 rider in D0 dream-os**, base `0b27cc6`, when the chair names the turn.
