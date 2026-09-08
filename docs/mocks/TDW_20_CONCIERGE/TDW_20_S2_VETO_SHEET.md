@@ -37,6 +37,8 @@ The frames were drawn before the rule arrived and re-checked against it after. *
 
 Frames: `F1-item-374` · `F2-wall-374` · `F3-outsider-374` · `F4-override-374` · `F5-item-430`.
 
+> **c-41.38 — the palette of these five frames is a STAND-IN; the SHAPE is what was vetoed.** `/admin/assistance` reads `T` from `AdminUI.tsx`, which is navy and oxblood (`#0A0F18` / `#F0EAE0` / `#C44058`), not Graphite. Seat A labelled the same Graphite a stand-in; this seat inherited it and called it a transcription, which it was for `V1`/`V2` and was not for these. **Colour on the cockpit is seat E's under R-41.71** — Graphite is the destination, `AdminUI.T` is what leaves. Under R-41.101 seat D re-shapes this file first and seat E re-tokens on top.
+
 | # | frame | string | why |
 |---|---|---|---|
 | **S2-1** | F1 | `Forward to a TDW vendor` | control, verb-first; full width, no longer a column header |

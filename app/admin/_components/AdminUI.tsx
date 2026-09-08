@@ -4,6 +4,7 @@
 // Every page imports only from here. Change here, changes everywhere.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { ReactNode, DragEvent as ReactDragEvent } from 'react';
 
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
@@ -430,7 +431,22 @@ export function BottomSheet({ visible, onClose, title, children }: {
 
   const opacity = dragY > 0 ? Math.max(0, 1 - dragY / 300) : 1;
 
-  return (
+  // ── F-41.40 · THE SHEET GOES THROUGH A PORTAL, ESTATE-WIDE ─────────────────
+  // `position:fixed` is positioned against the nearest ancestor with a transform,
+  // not against the viewport. The admin content wrapper animates with `fade-up`,
+  // so it CREATES A STACKING CONTEXT and every fixed child of it — this sheet and
+  // its scrim — was trapped under the bottom bar (zIndex 195) no matter what
+  // zIndex the sheet declared. A9 shipped a padding cure and it did not hold on
+  // the founder's glass; seat A named the true cause in the same handover and
+  // shipped the weaker fix anyway (its own close note, §3.6).
+  // A portal to document.body takes the sheet OUT of that ancestor, which is the
+  // only thing that actually removes the trap. No zIndex value changes here.
+  // SSR: document does not exist during the server render, so the portal waits
+  // for mount. Before mount the sheet renders nothing — it is only ever open in
+  // response to a tap, which cannot happen on the server.
+  const body = typeof document === 'undefined' ? null : document.body;
+
+  const sheet = (
     <>
       <style>{`@keyframes sheetIn{from{transform:translateY(105%)}to{transform:translateY(0)}}`}</style>
 
@@ -486,6 +502,8 @@ export function BottomSheet({ visible, onClose, title, children }: {
       </div>
     </>
   );
+
+  return body ? createPortal(sheet, body) : null;
 }
 
 // ── UploadZone ────────────────────────────────────────────────────────────────

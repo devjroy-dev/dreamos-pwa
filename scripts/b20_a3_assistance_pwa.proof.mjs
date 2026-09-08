@@ -191,8 +191,13 @@ const adm = strip(read(ADMIN));
 ok('the page exists at /admin/assistance and reads through lib/admin-api/assistance.ts', exists(ADMIN) && /from '@\/lib\/admin-api\/assistance'/.test(adm) && !/fetch\(/.test(adm));
 ok('money via formatRs (c-41.2), no glyph', /import \{ formatRs \} from '@\/lib\/vendor\/format'/.test(adm) && !/\u20b9/.test(read(ADMIN)));
 ok('the per-item forward row: vendor search by trade + city, alphabetical from the server; outsider by handle + number', /searchAssistVendors\(\{ category: item\.category, city: request\.city/.test(adm) && /forwardToVendor\(item\.id, v\.id\)/.test(adm) && /forwardToProspect\(item\.id, \{ phone: phone\.trim\(\)/.test(adm));
-ok('the dark reason is shown verbatim, never hidden', /out\.dark\.reason/.test(adm));
-ok('`Forwarded N of <fanout>` reads the server\'s fanout_default (§6.2)', /Forwarded \{item\.forwarded_count\} of \{fanout\}/.test(adm) && /fanout_default/.test(adm));
+// SEAT D, D0: the chair struck the verbatim register reason at the S2 veto (S2-6).
+// `dark.reason` reads `template.tdw_assist_lead_outside is off on the switchboard` —
+// register grammar on glass, F-41.17's class. The row now speaks words from the one
+// map. The DARK STATE IS STILL SHOWN; only its vocabulary changed.
+ok('the dark state is shown in words, never hidden and never as register grammar',
+   /dark:\s*'Recorded, not sent\. The outsider join alert is off\.'/.test(adm) && !/out\.dark\.reason/.test(strip(adm)));
+ok('`N of <fanout>` reads the server\'s fanout_default (§6.2; S2-3 struck the word `Forwarded`)', /\{item\.forwarded_count\} of \{fanout\}/.test(adm) && /fanout_default/.test(adm));
 ok('no client-side ranking of vendors (roadmap §7): the list is rendered in the order served', !/\.sort\(/.test(adm));
 const nav = read(NAV);
 ok('the nav registers /admin/assistance under People and ROUTE_MAP marks it LIVE', /path: '\/admin\/assistance',\s+icon:/.test(nav) && /\{ path: '\/admin\/assistance',\s+domain: 'people',\s+disposition: 'LIVE' \}/.test(nav));
@@ -266,7 +271,13 @@ section('§A9 · F-41.38 / .39 / .40 / .41');
   }
   const adm9 = strip(read(ADMIN));
   ok('F-41.39: the wire carries normaliseDate(date), and the field shows what it will file', /wedding_date: normaliseDate\(date\) \|\| undefined/.test(adm9) && /hint=\{normaliseDate\(date\) \? `files as/.test(adm9));
-  ok('F-41.40: the typed form and the detail\'s last row keep above the admin bar (padding, cause named)', /const ABOVE_ADMIN_BAR = 'calc\(96px \+ env\(safe-area-inset-bottom, 0px\)\)'/.test(adm9) && (adm9.match(/paddingBottom: ABOVE_ADMIN_BAR/g) || []).length === 2 && /fade-up/.test(read(ADMIN)));
+  ok('F-41.40: the typed form and the detail\'s last row keep above the admin bar (padding, cause named)', /const ABOVE_ADMIN_BAR = 'calc\(96px \+ env\(safe-area-inset-bottom, 0px\)\)'/.test(adm9) && (adm9.match(/paddingBottom: ABOVE_ADMIN_BAR/g) || []).length >= 2 && /fade-up/.test(read(ADMIN)));
+  // SEAT D, D0: `=== 2` was a CALL-SITE COUNT and this rider legitimately adds two
+  // more (the wall sheet and the outsider sheet each keep their last control clear).
+  // Relaxed to `>= 2`, which is the guarantee the label actually claims. Same class
+  // as b20_a2:404, struck under c-41.39 — the third specimen this sitting.
+  // The padding is no longer THE cure: F-41.40's portal is. It stays because a sheet
+  // still needs its last control clear of the bar once it is out of the trap.
   const sheet9 = strip(read(SHEET));
   ok('F-41.41: the sheet draws a quiet frame until the read settles, then S1 or S2 once', /const \[settled, setSettled\] = useState\(false\)/.test(sheet9) && /\.finally\(\(\) => \{ if \(live\) setSettled\(true\); \}\)/.test(sheet9) && /\{!settled \? \(/.test(sheet9) && /\{!settled \? '' : state === 'sent' \? S\.sentLede : S\.lede\}/.test(sheet9));
 }
@@ -281,6 +292,54 @@ ok('no persona name in any new chrome string (Meridian only as the existing room
   ok('no rupee glyph, no K/L/Cr shorthand in any new rendered string', !/\u20b9|\b\d+\s*[KkLl]\b|\bCr\b/.test(lits) && !/\u20b9/.test(chrome));
 }
 ok('typographic apostrophes in couple-facing bytes (R-40.19)', !/'[A-Za-z ]+'[^\\]*[a-z]'[a-z]/.test(sheet.match(/const S = \{[\s\S]*?\};/)?.[0] || "x'y") );
+
+// ═══ D0 · CE-41 seat D — the residue built ══════════════════════════════════
+{
+  const adm = read(ADMIN);
+  const admS = strip(adm);
+  const ui  = read('app/admin/_components/AdminUI.tsx');   // read() applies P itself
+
+  // ── F-41.30 / F-41.58 · one column at 374 AND at 430 ──────────────────────
+  ok('F-41.30/.58: the two-up forward grid is gone from the item row',
+     !/gridTemplateColumns:\s*'1fr 1fr'/.test(admS));
+  ok('F-41.30/.58: no column divider survives (the borderLeft that split them)',
+     !/borderLeft/.test(admS));
+  ok('F-41.30/.58: both forward doors are full-width controls that open a sheet',
+     /setSheet\('vendor'\)/.test(admS) && /setSheet\('outsider'\)/.test(admS));
+  ok('F-41.30/.58: the vendor wall and the outsider fields each live in a BottomSheet',
+     (admS.match(/<BottomSheet/g) || []).length === 4);
+
+  // ── F-41.40 · the estate-wide portal, at its one home ────────────────────
+  ok('F-41.40: BottomSheet imports createPortal from react-dom',
+     /import \{ createPortal \} from 'react-dom'/.test(ui));
+  ok('F-41.40: the sheet is rendered THROUGH the portal to document.body, SSR-guarded',
+     /createPortal\(sheet, body\)/.test(strip(ui)) && /typeof document === 'undefined'/.test(strip(ui)));
+  ok('F-41.40: no zIndex value changed — the cure is the portal, not a number',
+     /zIndex:300/.test(ui) && /zIndex:301/.test(ui));
+
+  // ── F-41.62 / F-41.81 · a code is never a sentence ───────────────────────
+  ok('F-41.62: the code-to-words map exists and carries the ratified S2-5 byte',
+     /FORWARD_CODE_WORDS/.test(admS) && /marketing limit blocked this number/.test(adm));
+  ok('F-41.62: no bare error_code is interpolated into a rendered row',
+     !/\$\{f\.error_code\}/.test(adm) && !/` \u00b7 \$\{f\.error_code\}`/.test(adm));
+  ok('F-41.62: the row and the toast read the SAME home (forwardWords), not two',
+     (admS.match(/forwardWords\(/g) || []).length >= 3);
+  ok('F-41.81: `interrupted` has words of its own and is not dressed as a Meta refusal',
+     /interrupted:/.test(admS) && /interrupted before it left/.test(adm));
+
+  // ── S2-4 / F-41.76 · the register key leaves the glass ───────────────────
+  // R-40.105: an absence cell reads COMMENT-STRIPPED code. The first cut read the
+  // raw file and convicted the comment that explains the strike.
+  ok('S2-4/F-41.76: `source tdw_assist` no longer renders on any admin row or toast',
+     !/source tdw_assist/.test(admS) && !/source \$\{out\.lead/.test(admS));
+
+  // ── R-41.101 · shape and words only; colour is seat E's ──────────────────
+  const keys = (t) => [...new Set((t.match(/T\.[a-z][a-zA-Z]*/g) || []))].sort().join(',');
+  ok('R-41.101: the palette KEY SET is unchanged — no colour key added, none dropped',
+     keys(admS) === 'T.border,T.card,T.danger,T.ff,T.gold,T.ink,T.muted,T.soft,T.success,T.warning');
+  ok('R-41.101: this file names no hex of its own (colour comes from T, always)',
+     !/#[0-9a-fA-F]{6}/.test(admS));
+}
 
 console.log(`\n${fail ? 'RED' : 'GREEN'} — b20_a3_assistance_pwa ${pass}/${pass + fail}`);
 process.exit(fail ? 1 : 0);

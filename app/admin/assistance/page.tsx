@@ -39,6 +39,38 @@ const REFUSAL_WORDS: Record<string, string> = {
 };
 const refusalText = (e: any): string => (e && e.code && REFUSAL_WORDS[e.code]) || (e && e.message) || 'Forward refused';
 
+// ── F-41.62 · A META CODE IS NOT A SENTENCE ────────────────────────────────────
+// The outsider send's synchronous refusal comes back on the SUCCESS shape, not as
+// a thrown error: the writer's catch returns `ok:true` with the code on the row,
+// so the door answers 201 and `AdminApiError` never constructs. REFUSAL_WORDS
+// above is keyed on the door's refusal codes and is never reached by these. This
+// is their own home, keyed on what the row carries.
+// S2-5, ratified by the chair 2026-09-09 under R-41.98: one sentence, the reason
+// then the next step. The bare code never renders — it lives in the log and on
+// the row, where it is for the founder to grep, not for him to decode on glass.
+const FORWARD_CODE_WORDS: Record<string, string> = {
+  '131049':     'Meta\u2019s marketing limit blocked this number. Forward someone else.',
+  // F-41.81: written by the boot reconciler, never by Meta. A send whose process
+  // died mid-flight. It must not read as a Meta refusal, because Meta never answered.
+  interrupted:  'The send was interrupted before it left. Forward again.',
+  no_vendor_phone: 'That vendor has no WhatsApp number on file.',
+};
+// A status word the founder should read as final, with no code to explain it.
+const FORWARD_STATUS_WORDS: Record<string, string> = {
+  dark:  'Recorded, not sent. The outsider join alert is off.',
+  sent:  'Sent.',
+  delivered: 'Delivered.',
+  read:  'Read.',
+  recorded: 'Lead created.',
+};
+// The one sentence a forward row shows. Code first (it is the specific fact),
+// then the status word, then the status verbatim so an unmapped word still reads.
+function forwardWords(f: { status: string; error_code: string | null }): string {
+  if (f.error_code && FORWARD_CODE_WORDS[f.error_code]) return FORWARD_CODE_WORDS[f.error_code];
+  if (f.status === 'failed') return 'Not delivered. Forward someone else.';
+  return FORWARD_STATUS_WORDS[f.status] || f.status;
+}
+
 const STATUS_PILLS = [{ value: 'open', label: 'Open' }, { value: 'forwarded', label: 'Forwarded' }, { value: 'closed', label: 'Closed' }];
 const statusInk: Record<AssistStatus, string> = { open: T.warning, forwarded: T.gold, closed: T.success };
 
@@ -145,6 +177,7 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
   const [handle, setHandle] = useState('');
   const [phone, setPhone] = useState('');
   const [oname, setOname] = useState('');
+  const [sheet, setSheet] = useState<null | 'vendor' | 'outsider'>(null);
   const closed = request.status === 'closed';
   const sentTo = useMemo(() => new Set(item.forwards.filter(f => f.vendor_id).map(f => f.vendor_id as string)), [item.forwards]);
 
@@ -160,7 +193,8 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
     setBusy(v.id);
     try {
       const out = await forwardToVendor(item.id, v.id);
-      onToast({ msg: `Lead created for ${v.routing_handle || v.business_name} · source ${out.lead?.source || 'tdw_assist'}` });
+      onToast({ msg: `Lead created for ${v.routing_handle || v.business_name}.` });
+      setSheet(null);            // the row it wrote is behind this sheet
       await onChanged();
     } catch (e: any) { onToast({ msg: refusalText(e), error: true }); }
     setBusy(null);
@@ -170,8 +204,11 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
     setBusy('outsider');
     try {
       const out = await forwardToProspect(item.id, { phone: phone.trim(), ig_handle: handle.trim() || undefined, name: oname.trim() || undefined });
-      onToast({ msg: out.dark ? `Recorded, not sent — ${out.dark.reason}` : `Recorded · ${out.forward.status}` });
+      // F-41.62: the same words on the toast as on the row, from the one map.
+      // `dark.reason` is the switchboard's register grammar and is for the log.
+      onToast({ msg: forwardWords(out.forward), error: out.forward.status === 'failed' });
       setHandle(''); setPhone(''); setOname('');
+      setSheet(null);            // the row it wrote is behind this sheet
       await onChanged();
     } catch (e: any) { onToast({ msg: refusalText(e), error: true }); }
     setBusy(null);
@@ -183,46 +220,71 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px', borderBottom: `0.5px solid ${T.border}` }}>
         <span style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 500, color: T.ink }}>{word(item.category)}</span>
         <span style={{ fontFamily: T.ff.body, fontSize: 13, color: T.soft }}>{rs(item.budget_rs)}</span>
-        <span style={{ marginLeft: 'auto', fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: fwdWord }}>Forwarded {item.forwarded_count} of {fanout}</span>
+        <span style={{ marginLeft: 'auto', fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: fwdWord }}>{item.forwarded_count} of {fanout}</span>
       </div>
 
       {item.forwards.length > 0 && (
         <div style={{ padding: '8px 14px 0' }}>
           {item.forwards.map(f => (
             <div key={f.id} style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, padding: '4px 0' }}>
+              {/* S2-4 ratified: the register key `source tdw_assist` is struck from the
+                  glass (F-41.76, a second specimen of F-41.62's class). The three
+                  state inks below are carried BYTE-UNCHANGED — colour is seat E's
+                  under R-41.71 and this rider touches shape and words only. */}
               {f.target_kind === 'vendor'
-                ? <>Lead created for <b style={{ color: T.ink, fontWeight: 500 }}>{f.vendor?.routing_handle || f.vendor?.business_name || f.vendor_id}</b> · source tdw_assist · {when(f.created_at)}</>
-                : <>Not on TDW · <b style={{ color: T.ink, fontWeight: 500 }}>{f.prospect?.ig_handle ? `@${f.prospect.ig_handle}` : f.prospect?.name || f.prospect?.phone || f.prospect_id}</b> · <span style={{ color: f.status === 'dark' ? T.warning : f.status === 'failed' ? T.danger : T.soft }}>{f.status}</span>{f.error_code ? ` · ${f.error_code}` : ''} · {when(f.created_at)}</>}
+                ? <><b style={{ color: T.ink, fontWeight: 500 }}>{f.vendor?.routing_handle || f.vendor?.business_name || f.vendor_id}</b> · Lead created. {when(f.created_at)}</>
+                : <><b style={{ color: T.ink, fontWeight: 500 }}>{f.prospect?.ig_handle ? `@${f.prospect.ig_handle}` : f.prospect?.name || f.prospect?.phone || f.prospect_id}</b> · <span style={{ color: f.status === 'dark' ? T.warning : f.status === 'failed' ? T.danger : T.soft }}>{forwardWords(f)}</span> · {when(f.created_at)}</>}
             </div>
           ))}
         </div>
       )}
 
+      {/* ── F-41.30 / F-41.58 · ONE COLUMN ─────────────────────────────────────
+          The two-up grid put a search field, a name + @handle + city span and a
+          button into ~180px at 374, and the founder's own glass showed it
+          clipping: `Instagram handl`, `WhatsApp numl`, `Name, if you knc`
+          (F-41.79, the walked specimen). The frame the chair vetoed is
+          docs/mocks/TDW_20_CONCIERGE/concierge-s2-mock.html `F1-item-374` /
+          `F5-item-430`: one column at both widths, each forward door a
+          full-width control that opens its own sheet. The 430 arm does NOT
+          bring the grid back — a desk is not the surface this queue is walked on.
+          COLOUR: every T.* read below is carried byte-unchanged (R-41.101). */}
       {!closed && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
-          <div style={{ padding: '12px 14px' }}>
-            <div style={{ fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, marginBottom: 8 }}>Forward to a TDW vendor · {word(item.category)}{request.city ? ` · ${request.city}` : ''}</div>
-            <FieldInput label="" value={q} onChange={setQ} placeholder="name or handle" />
-            {hits.length === 0 && <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.muted }}>No one on TDW matches yet.</div>}
-            {hits.map(v => (
-              <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 2px', borderBottom: `0.5px solid ${T.border}` }}>
-                <span style={{ fontFamily: T.ff.body, fontSize: 13, color: T.ink }}>{v.business_name}<span style={{ color: T.soft, fontSize: 11.5, marginLeft: 6 }}>@{v.routing_handle} · {v.city || '—'}</span></span>
-                {sentTo.has(v.id)
-                  ? <span style={{ fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted }}>Sent</span>
-                  : <GhostBtn label={busy === v.id ? '…' : 'Forward'} small disabled={!!busy} onClick={() => fwdVendor(v)} />}
-              </div>
-            ))}
-          </div>
-          <div style={{ padding: '12px 14px', borderLeft: `0.5px solid ${T.border}` }}>
-            <div style={{ fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, marginBottom: 8 }}>Forward to someone not on TDW</div>
-            <FieldInput label="" value={handle} onChange={setHandle} placeholder="Instagram handle" />
-            <FieldInput label="" value={phone} onChange={setPhone} placeholder="WhatsApp number" />
-            <FieldInput label="" value={oname} onChange={setOname} placeholder="Name, if you know it" />
-            <GhostBtn label={busy === 'outsider' ? '…' : 'Forward'} small disabled={!!busy} onClick={fwdOutsider} />
-            <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginTop: 8, lineHeight: 1.5 }}>They get one message to join; her number stays with TDW until they do. While the join message is dark, the forward is recorded and nothing is sent — the row says so.</div>
-          </div>
+        <div style={{ display: 'grid', gap: 8, padding: '11px 13px' }}>
+          <GhostBtn label={`Forward to a TDW vendor`} small disabled={!!busy} onClick={() => setSheet('vendor')} />
+          <GhostBtn label="Forward to someone not on TDW" small disabled={!!busy} onClick={() => setSheet('outsider')} />
         </div>
       )}
+
+      {/* The vendor wall, lifted out of the column (F2-wall-374). */}
+      <BottomSheet visible={sheet === 'vendor'} onClose={() => setSheet(null)} title={`TDW vendors · ${word(item.category)}`}>
+        <FieldInput label="" value={q} onChange={setQ} placeholder="Name or handle" />
+        {hits.length === 0 && <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.muted }}>No matches.</div>}
+        {hits.map(v => (
+          <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '10px 2px', borderBottom: `0.5px solid ${T.border}` }}>
+            <span style={{ fontFamily: T.ff.body, fontSize: 13, color: T.ink }}>{v.business_name}<span style={{ display: 'block', color: T.soft, fontSize: 11.5, marginTop: 2 }}>@{v.routing_handle} · {v.city || '—'}</span></span>
+            {sentTo.has(v.id)
+              ? <span style={{ fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted }}>Sent</span>
+              : <GhostBtn label={busy === v.id ? '…' : 'Forward'} small disabled={!!busy} onClick={() => fwdVendor(v)} />}
+          </div>
+        ))}
+        {/* S2-12 ratified: the partition made visible, and it is not a ranking. */}
+        <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginTop: 10, paddingBottom: ABOVE_ADMIN_BAR }}>
+          {request.city ? `${request.city} first, then everywhere else. A–Z within each.` : 'A–Z.'}
+        </div>
+      </BottomSheet>
+
+      {/* The outsider fields, lifted out of the column (F3-outsider-374). */}
+      <BottomSheet visible={sheet === 'outsider'} onClose={() => setSheet(null)} title="Someone not on TDW">
+        <FieldInput label="Instagram handle" value={handle} onChange={setHandle} placeholder="@handle" />
+        <FieldInput label="WhatsApp number" value={phone} onChange={setPhone} placeholder="10 digits" />
+        <FieldInput label="Name" value={oname} onChange={setOname} placeholder="If you know it" />
+        <GoldBtn label={busy === 'outsider' ? '…' : 'Forward'} disabled={!!busy} onClick={fwdOutsider} />
+        {/* S2-16, KEPT as drawn — the refusal, plain. */}
+        <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginTop: 10, lineHeight: 1.5, paddingBottom: ABOVE_ADMIN_BAR }}>
+          They get one message to join. Her number stays with us until they do.
+        </div>
+      </BottomSheet>
     </div>
   );
 }

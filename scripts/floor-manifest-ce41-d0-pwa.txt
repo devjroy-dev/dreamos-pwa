@@ -1,0 +1,45 @@
+CE-41 · SEAT D · D0 (dreamos-pwa) · FLOOR MANIFEST
+base: 501d7bf2ad4acc01f9ea322b493fbe993d3c3e57   (seat F's F2)
+run:  the seat's container, node + npx tsc, after `npm install`
+
+FLOOR = NAMED BASE, no delta.
+
+b20_a3_assistance_pwa.proof.mjs   GREEN  102/102   was 88/88 — +14 cells (the D0 section)
+tsc --noEmit                      exit 0
+
+BOTH WAYS, BY COMMAND:
+  cured    GREEN 102/102
+  uncured  RED    90/102   (12 cells red at the pre-rider tree)
+
+COUNT MOVEMENT, DISCLOSED:
+  b20_a3   88 -> 102  (+14: the D0 section — F-41.30/.58 x4, F-41.40 x3,
+                       F-41.62/F-41.81 x4, S2-4 x1, R-41.101 x2)
+  THREE EXISTING CELLS RE-CUT, none added, none removed:
+    :194  asserted `out.dark.reason` shown verbatim — the chair STRUCK that byte at
+          the S2 veto (S2-6). `dark.reason` is register grammar on glass, F-41.17's
+          class. The cell now asserts the WORDS and that the register byte is gone.
+    :195  asserted `Forwarded {n} of {fanout}` — S2-3 struck the word `Forwarded`.
+    :269  asserted `paddingBottom: ABOVE_ADMIN_BAR` appears EXACTLY 2 times. A
+          CALL-SITE COUNT: this rider legitimately adds two more (the wall sheet and
+          the outsider sheet each keep their last control clear). Relaxed to `>= 2`,
+          the guarantee the label actually claims. F-41.65's class; c-41.39 struck
+          the same shape from b20_a2:404. THIRD SPECIMEN THIS SITTING.
+
+R-41.101 · COLOUR CARRIED, ACCOUNTED SITE BY SITE:
+  T.* reads   38 -> 36.   Every difference is an element that LEFT, not a value that changed:
+    T.border  6 -> 5   the two-up grid's `borderLeft` column divider
+    T.muted   8 -> 6   the two column-header labels, now button labels
+    T.soft   10 -> 11   +1, S2-12's partition line
+  DISTINCT COLOUR KEY SET IS BYTE-IDENTICAL BEFORE AND AFTER:
+    T.border T.card T.danger T.ff T.gold T.ink T.muted T.soft T.success T.warning
+  No hex literal in the file. No zIndex value changed by F-41.40's cure.
+  Seat E re-tokens this file after, per R-41.101.
+
+BUILD GATE — DECLARED, NOT ABSORBED:
+  `npm run build` FAILS in this container: `next/font` cannot fetch DM Sans, Italiana
+  and Jost from Google Fonts. That is F-40.134's known egress limit, and it is exactly
+  why R-40.66 makes `next build` THE FOUNDER'S GATE AT APPLY and `tsc --noEmit` the
+  seat's sweep. The sweep is clean (exit 0). THE BUILD IS UNPROVEN FROM HERE and the
+  verify chain runs it on the founder's machine, where the fonts resolve.
+
+No migration. No dream-os byte.
