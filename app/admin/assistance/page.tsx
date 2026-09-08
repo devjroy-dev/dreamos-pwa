@@ -228,7 +228,10 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
 }
 
 // F-41.39 · `2026-12-22`, `22/12/2026`, `22-12-2026`, `22.12.2026` → `2026-12-22`; anything else → null.
-export function normaliseDate(raw: string): string | null {
+// c-41.23 (R-41.86, seat C rider, seat A ratifies or reverts): NOT exported — a page.tsx may export only
+// `default` and Next's reserved config fields; the named export failed Vercel's type check for three
+// deploys (A9, the mock, C3). Nothing imported it. The proof reads the function by its declaration.
+function normaliseDate(raw: string): string | null {
   const s = (raw || '').trim();
   let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (m) return s;

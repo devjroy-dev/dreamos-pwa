@@ -256,9 +256,10 @@ section('§A9 · F-41.38 / .39 / .40 / .41');
   ok('F-41.38: a redirect keeps it blank (replace, no setEntryChecked); no session lets the hero paint; off-root paths paint at once', /if \(to\) \{ router\.replace\(to\); return; \}\s*setEntryChecked\(true\);/.test(land9) && /pathname !== '\/'\) \{ setEntryChecked\(true\); return; \}/.test(land9));
   // F-41.39 — the normaliser, behavioural
   const admTs = read(ADMIN);
-  const fnSrc = (admTs.match(/export function normaliseDate\([\s\S]*?\n\}/) || [''])[0];
+  // c-41.23: the function is no longer exported (a page.tsx may not export helpers); read it by declaration.
+  const fnSrc = (admTs.match(/(?:^|\n)function normaliseDate\([\s\S]*?\n\}/) || [''])[0];
   let normaliseDate = null;
-  try { const ts = (await import('typescript')).default; const js = ts.transpileModule(fnSrc, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText; const tmp = P('.tmp_nd.mjs'); fs.writeFileSync(tmp, js); normaliseDate = (await import(pathToFileURL(tmp).href + '?t=' + Date.now())).normaliseDate; fs.unlinkSync(tmp); } catch { normaliseDate = null; }
+  try { const ts = (await import('typescript')).default; const js = ts.transpileModule('export ' + fnSrc.trimStart(), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText; const tmp = P('.tmp_nd.mjs'); fs.writeFileSync(tmp, js); normaliseDate = (await import(pathToFileURL(tmp).href + '?t=' + Date.now())).normaliseDate; fs.unlinkSync(tmp); } catch { normaliseDate = null; }
   ok('F-41.39: normaliseDate exists in the typed intake', typeof normaliseDate === 'function');
   if (normaliseDate) {
     ok('F-41.39: ISO passes through; DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY → ISO; junk → null; 31/02 → null', normaliseDate('2026-12-22') === '2026-12-22' && normaliseDate('22/12/2026') === '2026-12-22' && normaliseDate('22-12-2026') === '2026-12-22' && normaliseDate('22.12.2026') === '2026-12-22' && normaliseDate('lots') === null && normaliseDate('') === null && normaliseDate('31/02/2026') === null);

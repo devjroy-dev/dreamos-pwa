@@ -1,0 +1,9 @@
+# scripts/floor-manifest-ce41-c-41-23.txt
+# CE-41 · SEAT C · c-41.23 (R-41.86) — cross-seat rider: `normaliseDate` un-exported from
+# app/admin/assistance/page.tsx (a page.tsx may export only default + reserved fields;
+# three Vercel deploys failed the type check); seat A's proof reads it by declaration.
+# Seat A ratifies or reverts at its next cut (c-41.10's precedent). F-41.55: the gate is `npm run build`.
+# BASE: 82338174e8a5fe9cec0fd3157cadf35454779e41 — re-derived at the cut (fetch-first).
+app/admin/assistance/page.tsx
+scripts/b20_a3_assistance_pwa.proof.mjs
+scripts/floor-manifest-ce41-c-41-23.txt
