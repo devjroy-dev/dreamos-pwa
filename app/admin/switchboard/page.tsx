@@ -26,6 +26,14 @@ import {
   type CapabilityRow, type CapabilityStatus, type CapabilityKind, type WabaTemplate,
 } from '../../../lib/admin-api/index';
 import { gateName, gateSpec, gateMeta } from '../../../lib/admin-api/switchboardCopy';
+// ── CE-41 F2 · ONE LABELLED CROSS-SEAT LINE (c-41.10's form, chair-authorised) ──
+// Model routes is a GROUP INSIDE THIS PAGE in seat E's ratified IA (veto sheet §D,
+// and the group order at row 16), not a room of its own — a route of its own would
+// be an orphan the shell proof rightly refuses. Seat F owns everything the group
+// renders; this file's whole reach into it is the import and the one element below.
+// When seat E's re-shape (R-41.82) lands, the element moves to its place in the new
+// group order and nothing else changes.
+import ModelRoutesPanel from './ModelRoutesPanel';
 
 // ── THE WORDS LIVE IN ONE HOME (C3, F-41.52/.53): lib/admin-api/switchboardCopy.ts.
 // Every gate is TWO LINES (F-41.57): the short name, then the dotted spec. The
@@ -169,6 +177,11 @@ export default function SwitchboardPage() {
           ))}
         </section>
       ))}
+
+      {/* ── MODEL ROUTES (CE-41 seat F, R-41.85) ─────────────────────────────
+          Who answers, per lane and per hand. Its own doors, its own copy home,
+          its own bench; this page only gives it its place. */}
+      <ModelRoutesPanel />
 
       {/* ── TEMPLATES ON META (C1b, F-41.6's instrument) ─────────────────────
           A bare URL cannot carry the admin bearer, so the raw listing lives here

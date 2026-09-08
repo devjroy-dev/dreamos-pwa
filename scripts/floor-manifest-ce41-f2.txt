@@ -1,0 +1,33 @@
+# scripts/floor-manifest-ce41-f2.txt
+# CE-41 · F2 — MODEL ROUTES PANEL (R-41.85): seat E's ratified room (VETO_SHEET §D),
+# painted in the current card's tokens, driven entirely by F1's read and write doors.
+# BASE 81570ed371a547f29ee4be32dd75bf173a6d68af, re-derived at the cut.
+# Sibling dream-os at c473390 (F1 pushed) — the doors this panel calls.
+# F-19.16: a dirty file outside this list is a STOP until accounted for.
+
+app/admin/switchboard/page.tsx
+app/admin/switchboard/ModelRoutesPanel.tsx
+docs/TDW_CE41_F2_HANDOVER.md
+lib/admin-api/index.ts
+lib/admin-api/modelRoutesCopy.ts
+scripts/b61_f2_model_routes_panel.js
+scripts/b61_mutations.js
+scripts/floor-manifest-ce41-f2.txt
+
+# FLOOR at the cured tree, ONE invocation, sibling dream-os present at c473390:
+#   `bash scripts/run-floor.sh --delivery scripts/floor-manifest-ce41-f2.txt --check`
+#   -> FLOOR = NAMED BASE, no delta  (refusals, not in base: 0)
+# Nothing above the base, nothing below it, no refusal outside the base.
+#
+# ONE DELTA APPEARED IN THE FIRST RUN AND IT WAS THIS PACKET'S, correctly caught:
+#   RED: tdw10_p1_shell — the first cut shipped `app/admin/model-routes/page.tsx`,
+#   a route on disk with no row in `adminNav.ts`. That proof refuses an orphan
+#   route and it was right to; so was the ratified IA, which lists Model routes
+#   among the SWITCHBOARD'S GROUPS and not among the cockpit's rooms (veto sheet
+#   §D, group order row 16). The route was withdrawn and the panel mounted where
+#   the frame always put it. No bench was edited to make this green.
+#
+# b61_f2_model_routes_panel 34/34 (5/34 at the uncured tree); b61_mutations 21/21.
+# `npx tsc --noEmit` clean. `npm run build` is the founder's gate (R-40.66) — this
+# container cannot reach fonts.googleapis.com and next/font fails there, so the
+# build is NOT claimed here; it is the last line of the verify block.

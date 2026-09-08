@@ -240,3 +240,42 @@ export const setCapabilityAutoOn = (key: string, auto_on: boolean, walk_ref?: st
 export const checkCapability     = (key: string) => adminPost<{ row: CapabilityRow; result: unknown }>(`/api/v2/admin/capabilities/${encodeURIComponent(key)}/check`);
 export const sweepCapabilities   = () => adminPost<{ checked: number; moved: number }>('/api/v2/admin/capabilities/sweep');
 export const getWabaTemplates    = () => adminGet<{ count: number; pages: number; truncated: boolean; evidence: string; templates: WabaTemplate[] }>('/api/v2/admin/capabilities/waba_templates');
+
+// ── MODEL ROUTES (CE-41 seat F, R-41.85) ──────────────────────────────────────
+// The panel holds NO list of lane keys, providers or models. All three come down
+// the wire from `src/lib/modelRouter.js`'s registry via F1's read door, because a
+// second copy of the routing map on the glass is the day the glass lies about the
+// wire. `switchable` is that door's allow-list, served rather than transcribed.
+export interface ModelRoute {
+  provider: string; model: string;
+  donna_provider?: string; donna_model?: string;
+  nudge_provider?: string; nudge_model?: string;
+  changed_by?: string; changed_at?: string;
+  [k: string]: unknown;
+}
+export type ModelRole = 'provider' | 'donna' | 'nudge';
+export interface ModelRouteLane {
+  key: string; surface: string; tier: string;
+  roles: ModelRole[];
+  reachable: boolean; unreachable_because: string | null;
+  fallback_surface: string | null;
+  has_row: boolean;
+  live: ModelRoute | null;
+  code_default: ModelRoute | null;
+  effective: ModelRoute;
+  borrowed: boolean;
+  differs: string[];
+  unknown_fields: string[];
+  outside_switchable: ModelRole[];
+  changed_by: string | null;
+  changed_at: string | null;
+  updated_at: string | null;
+}
+export const getModelRoutes = () => adminGet<{
+  lanes: ModelRouteLane[]; switchable: Record<string, string>;
+  roles: ModelRole[]; forced: string | null; cache_ms: number;
+}>('/api/v2/admin/model_routes');
+export const setModelRoute = (key: string, role: ModelRole, provider: string) => adminPost<{
+  key: string; role: ModelRole; seeded_from: string; created: boolean;
+  value: ModelRoute; updated_at: string; effective: ModelRoute; forced: string | null;
+}>(`/api/v2/admin/model_routes/${encodeURIComponent(key)}`, { role, provider });
