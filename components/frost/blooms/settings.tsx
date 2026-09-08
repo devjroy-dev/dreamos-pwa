@@ -7,6 +7,7 @@
 // at the top of its own file. No token conversion, no hygiene, no feature —
 // those are P3 and P5 and they do not ride a relocation commit (F-1).
 
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { FT, FS, FI } from '@/lib/frost/tokens';
 import { fetchProfile, saveProfile, type CoupleProfile } from '@/lib/frost/journey';
@@ -21,6 +22,10 @@ import { waNumberFor } from '@/lib/waNumbers';
 import { usePress } from '@/components/frost/_shared/usePress';
 
 const DREAMAI_WA_LINK   = `https://wa.me/${waNumberFor('bride')}?text=Hi`;
+// Block 20 s1 — the two vetoed bytes for the assistant's row (#34, #35), one home each.
+export const ASSIST_ROW_LABEL = 'Wedding assistant';
+export const ASSIST_ROW_VALUE = 'Ask us to find and book your vendors.';
+const ASSIST_SHEET_PATH = '/frost/canvas/assistance';
 
 
 // ── SETTINGS ROOM ──────────────────────────────────────────────────────────────
@@ -29,6 +34,7 @@ const DREAMAI_WA_LINK   = `https://wa.me/${waNumberFor('bride')}?text=Hi`;
 interface SettingsRoomProps { dark:boolean; accent:string; signal:string; }
 
 export function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
+  const router = useRouter();
   const { press, pressed } = usePress();
   const bg      = dark
     ? 'radial-gradient(ellipse 80% 45% at 80% 0%,rgba(196,133,106,.12) 0%,transparent 52%),linear-gradient(160deg,#1A0A0E 0%,#120608 40%,#0C0404 100%)'
@@ -209,6 +215,8 @@ export function SettingsRoom({ dark, accent, signal }: SettingsRoomProps) {
 
         {/* Info rows */}
         <Row label="Wedding date" value={fmtWeddingDate(profile?.wedding_date||null)} onTap={openEditDate} arrow/>
+        {/* Block 20 s1 · #34/#35 (vetoed 2026-09-08) — the Settings entry to the sheet (R-41.1). */}
+        <Row label={ASSIST_ROW_LABEL} value={ASSIST_ROW_VALUE} onTap={()=>router.push(ASSIST_SHEET_PATH)} arrow/>
         {/* RIDER 2. The line that stood here — "Ask Dream Ai on WhatsApp to change
             your budget" — was FALSE and is deleted, not reworded. src/api/couple/
             chat.js runs the same runBrideAgenticTurn as WhatsApp over one shared

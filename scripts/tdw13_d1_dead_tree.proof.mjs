@@ -67,6 +67,9 @@ const SURVIVORS = [
   'app/(frost)/frost/canvas/surprise/page.tsx',
   'app/(frost)/frost/canvas/onboarding/page.tsx',
   'app/(frost)/frost/canvas/discover/page.tsx',
+  // CARRIED, LABELLED — Block 20 s1 (CE-41 seat A, A3; the chair's c-41.6 class):
+  // the eighth surviving route is the couple's assistance sheet (R-41.1/.2), chartered.
+  'app/(frost)/frost/canvas/assistance/page.tsx',
 ];
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -100,7 +103,7 @@ const frostFiles = [];
     if (e.isDirectory()) walk(p); else frostFiles.push(p);
   }
 })('app/(frost)');
-ok('3. the (frost) tree holds exactly the 7 surviving files and no others',
+ok('3. the (frost) tree holds exactly the 8 surviving files and no others',
    frostFiles.length === SURVIVORS.length && SURVIVORS.every(s => frostFiles.includes(s)),
    `found ${frostFiles.length}: ${frostFiles.join(', ')}`);
 

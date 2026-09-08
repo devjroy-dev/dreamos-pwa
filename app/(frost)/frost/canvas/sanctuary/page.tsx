@@ -53,6 +53,7 @@ import { MuseRoom }     from '@/components/frost/blooms/muse';
 import { CircleRoom }   from '@/components/frost/blooms/circle';
 import { PagesRoom }    from '@/components/frost/blooms/pages';
 import { MeridianRoom } from '@/components/frost/blooms/meridian';
+import AssistPopup from '@/components/frost/AssistPopup'; // Block 20 s1: the popup on /frost (R-41.1, §6.1)
 import { usePress } from '@/components/frost/_shared/usePress';
 import { coupleAccessToken } from '@/components/frost/_shared/coupleAccessToken';
 // ── TDW_07 P6 · THE FOLD UNDER F-D ────────────────────────────────────────────
@@ -159,7 +160,7 @@ const CSS=`
 // SLICES are now dynamic — hints updated from live data on mount.
 // Base definitions — hints overridden by useSanctuaryHints() state.
 const BASE_SLICES=[
-  {key:'discover'as RoomKey, label:'Discover',     candle:false, premium:false},
+  {key:'discover'as RoomKey, label:'Discover · Storefront', candle:false, premium:false}, // R-41.5/.17, §6.4(b): one room, two names, the middle dot
   {key:'circle'  as RoomKey, label:'Circle',       candle:true,  premium:false},
   {key:'muse'    as RoomKey, label:'Muse',         candle:false, premium:false},
   {key:'people'  as RoomKey, label:'My People',    candle:false, premium:false},
@@ -843,6 +844,7 @@ function timeAgoShort(iso:string):string {
   // ── SANCTUARY ─────────────────────────────────────────────────────────────
   return (
     <div style={{position:'fixed',inset:0,background:bg,display:'flex',flexDirection:'column',overflow:'hidden',userSelect:'none',WebkitUserSelect:'none' as any}}>
+      <AssistPopup/>
 
       {/* Grain */}
       <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:0,backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,backgroundSize:'160px',opacity:dark?.45:.22}}/>

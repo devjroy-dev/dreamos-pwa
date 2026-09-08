@@ -108,6 +108,24 @@ cell('§1 THE MASTHEAD IS BACK TO ITS APPROVED BYTES — byte-identical at ' + A
         && now.replace(NEW_IMPORT, OLD_IMPORT) === old) return true;
   }
 
+  // ── AMENDED AT BLOCK 20 s1 (CE-41 seat A, A3), THREE LINES, LABELLED ──────
+  // The pin is NOT loosened. It admits exactly the three ruled edits and nothing
+  // else: the `discover` slice label (R-41.5/.17, §6.4(b)), the AssistPopup import
+  // and its one mount (R-41.1, §6.1). Each must be PRESENT in its ruled form and,
+  // with the three restored to the approved bytes, every other byte identical.
+  {
+    const OLD_IMPORT = "import { useFrostMode } from '../../../layout';";
+    const NEW_IMPORT = "import { useFrostMode } from '@/lib/frost/FrostCtx'; // R-36.11: the context left the layout";
+    const OLD_LABEL  = "  {key:'discover'as RoomKey, label:'Discover',     candle:false, premium:false},";
+    const NEW_LABEL  = "  {key:'discover'as RoomKey, label:'Discover \u00b7 Storefront', candle:false, premium:false}, // R-41.5/.17, \u00a76.4(b): one room, two names, the middle dot";
+    const POP_IMPORT = "import AssistPopup from '@/components/frost/AssistPopup'; // Block 20 s1: the popup on /frost (R-41.1, \u00a76.1)\n";
+    const POP_MOUNT  = "      <AssistPopup/>\n";
+    if (now.includes(NEW_LABEL) && now.includes(POP_IMPORT) && (now.match(/<AssistPopup\/>/g) || []).length === 1) {
+      const restored = now.replace(NEW_IMPORT, OLD_IMPORT).replace(NEW_LABEL, OLD_LABEL).replace(POP_IMPORT, '').replace(POP_MOUNT, '');
+      if (restored === old) return true;
+    }
+  }
+
   // Report the SHAPE of the difference, not merely its existence: a reader
   // chasing this needs to know whether something was left behind or lost.
   const a = old.split('\n'), b = now.split('\n');

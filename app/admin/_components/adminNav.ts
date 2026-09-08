@@ -91,6 +91,7 @@ export const DOMAINS: Domain[] = [
     sections: [
       { label: 'Makers',        path: '/admin/makers',                 icon: 'makers',    hints: ['vendors', 'tier', 'suppliers'] },
       { label: 'Dreamers',      path: '/admin/dreamers',               icon: 'dreamers',  hints: ['couples', 'brides'] },
+      { label: 'Assistance',    path: '/admin/assistance',             icon: 'dreamers',  hints: ['concierge', 'requests', 'forward', 'couples'] }, // Block 20 s1 (R-41.3)
       { label: 'Vendor Chats',  path: '/admin/conversations/vendors',  icon: 'chat',      hints: ['conversations', 'threads', 'transcripts'] },
       { label: 'Bride Chats',   path: '/admin/conversations/brides',   icon: 'chatHeart', hints: ['conversations', 'threads', 'transcripts'] },
     ],
@@ -169,6 +170,7 @@ export const ROUTE_MAP: MappedRoute[] = [
   { path: '/admin/hot-dates',                domain: 'marketplace', disposition: 'LIVE' },
   { path: '/admin/makers',                   domain: 'people',      disposition: 'LIVE' },
   { path: '/admin/dreamers',                 domain: 'people',      disposition: 'LIVE' },
+  { path: '/admin/assistance',               domain: 'people',      disposition: 'LIVE' }, // Block 20 s1
   { path: '/admin/conversations/vendors',    domain: 'people',      disposition: 'LIVE' },
   { path: '/admin/conversations/brides',     domain: 'people',      disposition: 'LIVE' },
   { path: '/admin/config',                   domain: 'engine',      disposition: 'LIVE' },

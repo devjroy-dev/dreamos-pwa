@@ -241,7 +241,10 @@ ok('6z. the document claims eleven closed capabilities',
 // ── 7 · the reverse axis: bloom capabilities with no tool ────────────────────
 for (const [what, re] of [
   ['Moments', /\/api\/v2\/couple\/moments/],
-  ['Meridian concierge', /\/api\/v2\/couple\/concierge\/request/],
+  // CARRIED, LABELLED — Block 20 s1 (CE-41 seat A, A3; the chair's c-41.6 class): 
+  // the concierge tap no longer POSTs; it NAVIGATES to the assistance sheet (R-41.19/.24).
+  // The reverse gap is the same gap — the affordance exists in a bloom — at its new mechanism.
+  ['Meridian concierge', /router\.push\(ASSIST_SHEET_PATH\)/],
   ['Circle threads', /\/api\/v2\/frost\/circle\/messages/],
   ['vendor enquiries', /fetchEnquiries\s*\(/],
 ]) ok(`7. reverse gap is real — ${what} exists in a bloom`, re.test(allBlooms));

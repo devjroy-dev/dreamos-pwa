@@ -1,0 +1,56 @@
+# scripts/floor-manifest-ce41-a3.txt
+# TDW_20 · BLOCK 20 · CONCIERGE s1 — PACKET A3 (dreamos-pwa). CE-41 seat A.
+# The sheet · the popup (§6.1) · Settings #34/#35 · the Meridian fold (R-41.19/.24)
+# · the three `Discover · Storefront` bytes (R-41.17, §6.4(b)) · the admin queue
+# · the F-41.1 rider + F-41.2's comment deleted · the veto sheet annotated
+# · seven sealed benches carried, labelled (the chair's c-41.6 class) · the packet's own bench.
+#
+# BASE 08a31d7e314a5ac467cd244774fc6312e39191cd, re-derived at the cut; sibling
+# dream-os 1feb1cc0b836d639b5d30fb14eeb62dbfd9d45f9 (A2, banked). Preflight CLEAR.
+#
+# F-14.16 / F-19.16: a dirty file outside this list is a STOP until accounted for.
+
+app/(frost)/frost/canvas/assistance/page.tsx
+app/(frost)/frost/canvas/sanctuary/page.tsx
+app/(landing)/page.tsx
+app/admin/_components/adminNav.ts
+app/admin/assistance/page.tsx
+app/components/couple/MuseRow.tsx
+components/frost/AssistPopup.tsx
+components/frost/blooms/discover.tsx
+components/frost/blooms/meridian.tsx
+components/frost/blooms/settings.tsx
+docs/TDW_20_A3_HANDOVER.md
+docs/mocks/TDW_20_CONCIERGE/TDW_20_VETO_SHEET.md
+lib/admin-api/assistance.ts
+lib/frost-api/assistance.ts
+lib/frost/assistPopup.ts
+lib/frost/entryRedirect.ts
+scripts/b20_a3_assistance_pwa.proof.mjs
+scripts/floor-manifest-ce41-a3.txt
+scripts/tdw07_p1_discover.proof.mjs
+scripts/tdw07_p6_fold.proof.mjs
+scripts/tdw09_frost_parity.proof.mjs
+scripts/tdw10_p1_shell.proof.mjs
+scripts/tdw13_d1_dead_tree.proof.mjs
+scripts/tdw13_d6_parity_matrix.proof.mjs
+scripts/tdw15_p3_pulse.proof.mjs
+
+# ── THE FLOOR ───────────────────────────────────────────────────────────────
+# BEFORE, at 08a31d7 (clean tree, run-floor.sh):   27 non-green
+#   (the runner's own `--check` named 4 of those ABOVE its stored base, all at the
+#    untouched tip: b40_worklist_shell · b42_g11_wedding_pages · tdw09_hotfix ·
+#    tdw37_leadgate_b_slot — none this packet's; the chair's re-base item.)
+# AFTER, cured tree, `--delivery` with this manifest: see the handover's §3 for the
+#   set, derived at the cut. The one movement expected: b20_a3_assistance_pwa
+#   absent → GREEN (60/60); RED 9/48 at the uncured tree.
+#
+# THE SEVEN CARRIES, each in-file and labelled, each asserting the pre-fold surface:
+#   tdw07_p1_discover §0.4 · tdw07_p6_fold §0.4  — stripper canary re-anchored (the
+#     concPulse keyframe left with the folded button)
+#   tdw09_frost_parity 2.2 — the `discover` label byte is ruled (§6.4(b));
+#     6.12 was NOT amended: the seat's new bytes were moved ONTO the rungs instead
+#   tdw10_p1_shell — admin route census 34→35 disk, 37→38 rows, 18→19 LIVE
+#   tdw13_d1_dead_tree 3 — the (frost) tree holds eight survivors, the sheet chartered
+#   tdw13_d6_parity_matrix 7 — the concierge affordance at its new mechanism (navigate)
+#   tdw15_p3_pulse §1 — the sanctuary byte-pin admits exactly the three ruled lines

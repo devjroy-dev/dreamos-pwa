@@ -7,89 +7,63 @@
 // feature — those are P3 and P5 and they do not ride a relocation commit (F-1).
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { FT, FS, FI } from '@/lib/frost/tokens';
-import { getAccessToken } from '@/lib/frost-api/_base';
 import { Send } from 'lucide-react';
 import { usePress } from '@/components/frost/_shared/usePress';
 import { coupleAccessToken } from '@/components/frost/_shared/coupleAccessToken';
 
-// ── MERIDIAN CONCIERGE BUTTON ────────────────────────────────────────────────
-// Throbbing heartbeat line — same pulse as Discover peek nav.
-// Taps → fires POST /couple/concierge/request → admin gets WA notification.
-// All brides, no gate.
+// ── MERIDIAN CONCIERGE CARD — FOLDED (Block 20 s1, R-41.19/.24, CE-41 seat A) ──
+// WHAT THIS WAS: `MeridianConciergeBtn` fired `POST /couple/concierge/request`
+// with `body:'{}'` and, on `ok`, showed a sentence claiming a concierge would
+// reach her. The door is now a 308 to /api/v2/couple/assistance (dream-os
+// 1feb1cc), the row it wrote is gone, and the sentence was STRUCK at the A1 veto.
+// WHAT THIS IS: a card that NAVIGATES to the sheet. No POST remains in this file.
+// Strings #36–#38 as vetoed 2026-09-08 (#38 is the founder's own phrase, kept by
+// his word). The compact form (chat view) keeps its one existing word and
+// navigates too. Control inventory (CE-115): the POST tap REMOVED-BY-RULING;
+// chat input, send, history, Clear all KEPT byte-untouched below.
 
-interface MeridianConciergeBtnProps { accent:string; dark:boolean; compact?:boolean; }
+export const MERIDIAN_ASSIST_STRINGS = {
+  title: 'Want a personal concierge?',                                                                  // #36 (ruled)
+  body:  'The Dream Wedding finds and books your vendors — photography, makeup, décor, planning, all of it. One sheet.', // #37 (ruled)
+  link:  'Ask a Personal Concierge →',                                                              // #38 (ruled, the founder's phrase)
+  compact: 'Concierge',                                                                                 // existing byte, KEPT
+} as const;
 
-function MeridianConciergeBtn({ accent, dark, compact=false }: MeridianConciergeBtnProps) {
+export const ASSIST_SHEET_PATH = '/frost/canvas/assistance';
+
+interface MeridianConciergeCardProps { accent:string; dark:boolean; compact?:boolean; }
+
+function MeridianConciergeCard({ accent, dark, compact=false }: MeridianConciergeCardProps) {
+  const router = useRouter();
   const { press, pressed } = usePress();
-  const [state, setState] = React.useState<'idle'|'sending'|'sent'|'error'>('idle');
-  const API = process.env.NEXT_PUBLIC_API_BASE||'https://dream-os-production.up.railway.app';
-
-  const request = async () => {
-    if(state==='sending'||state==='sent') return;
-    setState('sending');
-    try {
-      const token = getAccessToken();
-      const res = await fetch(`${API}/api/v2/couple/concierge/request`,{
-        method:'POST',
-        headers:{'Authorization':`Bearer ${token||''}`,'Content-Type':'application/json'},
-        body:'{}',
-      });
-      const data = await res.json();
-      if(data.ok) {
-        setState('sent');
-      } else {
-        setState('error');
-        setTimeout(()=>setState('idle'), 3000);
-      }
-    } catch {
-      setState('error');
-      setTimeout(()=>setState('idle'), 3000);
-    }
-  };
+  void dark;
+  const go = () => router.push(ASSIST_SHEET_PATH);
 
   const ink     = '#F0EDE8';
-  const inkMute = 'rgba(240,237,232,.35)';
-  const line    = 'rgba(240,237,232,.08)';
+  const inkSoft = 'rgba(240,237,232,.62)';
+  const cardBg  = 'rgba(240,237,232,.04)';
+  const cardBdr = 'rgba(240,237,232,.10)';
+
+  if (compact) {
+    return (
+      <div onClick={go} {...press('concierge:compact')} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',gap:8,...pressed('concierge:compact')}}>
+        <div style={{width:32,height:2,borderRadius:1,background:`linear-gradient(90deg,transparent,${accent},transparent)`}}/>
+        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:accent}}>
+          {MERIDIAN_ASSIST_STRINGS.compact}
+        </span>
+      </div>
+    );
+  }
 
   return (
-    <div style={{padding:'0 20px 4px'}}>
-      <style>{`
-        @keyframes concPulse {
-          0%,100% { opacity:0.5; box-shadow:0 0 6px ${accent}44; }
-          50%      { opacity:1;   box-shadow:0 0 18px ${accent}88; }
-        }
-      `}</style>
-
-      {state==='sent' ? (
-        <div style={{padding:compact?'8px 12px':'16px 20px',borderRadius:10,background:`${accent}10`,border:`0.5px solid ${accent}33`,textAlign:'center' as any}}>
-          <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:compact?12:14,color:ink,lineHeight:1.6,fontFeatureSettings:'"opsz" 9'}}>
-            Our concierge will reach you at the earliest.
-          </div>
-        </div>
-      ) : compact ? (
-        // Compact version — single line for chat view
-        <div onClick={request} {...press('concierge:compact')} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',display:'flex',alignItems:'center',gap:8,...pressed('concierge:compact')}}>
-          <div style={{width:32,height:2,borderRadius:1,background:`linear-gradient(90deg,transparent,${accent},transparent)`,animation:'concPulse 2.8s ease-in-out infinite',opacity:state==='sending'?.3:1}}/>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:state==='error'?'rgba(220,80,70,.8)':accent}}>
-            {state==='sending'?'…':state==='error'?'retry':'Concierge'}
-          </span>
-        </div>
-      ) : (
-        <div onClick={request} {...press('concierge:full')} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',padding:'14px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:10,...pressed('concierge:full')}}>
-          {/* Heartbeat line */}
-          <div style={{
-            width:'72%',height:3,borderRadius:2,
-            background:`linear-gradient(90deg, transparent 0%, ${accent} 20%, ${accent} 80%, transparent 100%)`,
-            animation:state==='sending'?'none':'concPulse 2.8s ease-in-out infinite',
-            opacity:state==='sending'?.4:1,
-            transition:'opacity 200ms ease',
-          }}/>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:state==='error'?'rgba(220,80,70,.8)':accent}}>
-            {state==='sending'?'Reaching out…':state==='error'?'Try again':'Ask a Personal Concierge'}
-          </div>
-        </div>
-      )}
+    <div style={{padding:'0 16px 4px'}}>
+      <div onClick={go} {...press('concierge:full')} style={{cursor:'pointer',WebkitTapHighlightColor:'transparent',padding:'16px 18px',borderRadius:10,background:cardBg,border:`0.5px solid ${cardBdr}`,...pressed('concierge:full')}}>
+        <div style={{fontFamily:"'Fraunces',serif",fontStyle:'italic',fontWeight:300,fontSize:19,color:ink,lineHeight:1.25,fontFeatureSettings:'"opsz" 9'}}>{MERIDIAN_ASSIST_STRINGS.title}</div>
+        <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:16,color:inkSoft,marginTop:6,lineHeight:1.5}}>{MERIDIAN_ASSIST_STRINGS.body}</div>
+        <div style={{marginTop:12,fontFamily:"'DM Sans',sans-serif",fontWeight:500,fontSize:11,letterSpacing:'.16em',textTransform:'uppercase' as any,color:accent}}>{MERIDIAN_ASSIST_STRINGS.link}</div>
+      </div>
     </div>
   );
 }
@@ -273,7 +247,7 @@ export function MeridianRoom({ accent, dark }: MeridianRoomProps) {
             </div>
 
             {/* Concierge heartbeat button */}
-            <MeridianConciergeBtn accent={accent} dark={dark}/>
+            <MeridianConciergeCard accent={accent} dark={dark}/>
 
             <div style={{height:80}}/>
           </div>
@@ -322,7 +296,7 @@ export function MeridianRoom({ accent, dark }: MeridianRoomProps) {
           <button onClick={()=>{cancelRef.current?.();setMsgs([]);setLoading(false);}} style={{background:'none',border:'none',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",fontSize:9,letterSpacing:'.22em',textTransform:'uppercase' as any,color:inkMute,padding:0}}>
             Clear
           </button>
-          <MeridianConciergeBtn accent={accent} dark={dark} compact/>
+          <MeridianConciergeCard accent={accent} dark={dark} compact/>
         </div>}
       </div>
     </div>

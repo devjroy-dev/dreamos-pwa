@@ -115,7 +115,10 @@ sec('§0 · THE CANARY — the stripper must not swallow live code');
   ok('§0.1 canary survives stripping — page.tsx: const prevReceipts = receipts;', _c.includes('const prevReceipts = receipts;'));
   ok('§0.2 canary survives stripping — page.tsx: function fmtTime(t:string|null):string {', _c.includes('function fmtTime(t:string|null):string {'));
   ok('§0.3 canary survives stripping — page.tsx: const saveTags=async()=>{', _c.includes('const saveTags=async()=>{'));
-  ok('§0.4 canary survives stripping — page.tsx: 0%,100% { opacity:0.5; box-shadow:0 0 6px ${', _c.includes('0%,100% { opacity:0.5; box-shadow:0 0 6px ${accent}44; }'));
+    // CARRIED, LABELLED — Block 20 s1 (CE-41 seat A, A3; the chair's c-41.6 class): 
+  // the old waist anchor (the concPulse keyframe) left with the folded button; re-anchored to
+  // surviving live code on the same surface (meridian.tsx, the card's navigation).
+  ok('§0.4 canary survives stripping — meridian.tsx: const go = () => router.push(ASSIST_SHEET_PATH);', _c.includes('const go = () => router.push(ASSIST_SHEET_PATH);'));
   ok('§0.5 canary survives stripping — page.tsx: const touchStartX = useRef(0);', _c.includes('const touchStartX = useRef(0);'));
   const _spec = 'const a = 1;\nconst input = { accept: "image/*" };\nconst KEEP_ME = 2;\n/* real */\nconst ALSO_KEEP = 3;\n';
   ok('§0.X the stripper does NOT open a block on a mid-token /* — F-07.74 cured',

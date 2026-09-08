@@ -168,7 +168,10 @@ const sliceKeys = [...S.matchAll(/\{key:'(\w+)'\s*as RoomKey,\s*label:'([^']+)'/
 ok('2.1', 'BASE_SLICES still carries exactly eleven slices', sliceKeys.length === 11,
    `found ${sliceKeys.length}: ${sliceKeys.map((k) => k[0]).join(',')}`);
 
-const EXPECTED = [['discover', 'Discover'], ['circle', 'Circle'], ['muse', 'Muse'],
+// ── CARRIED, LABELLED — Block 20 s1 (CE-41 seat A, A3; the chair's c-41.6 class): the
+// `discover` label byte is RULED to `Discover · Storefront` (R-41.5/.17, §6.4(b), founder-vetoed
+// 2026-09-08). The other ten bytes and the order are unchanged; the cell shape is unchanged.
+const EXPECTED = [['discover', 'Discover \u00b7 Storefront'], ['circle', 'Circle'], ['muse', 'Muse'],
   ['people', 'My People'], ['pages', 'Pages'], ['moments', 'Moments'],
   ['events', 'The Journey'], ['expenses', 'Expenses'], ['vendors', 'Vendors'],
   ['meridian', 'Meridian'], ['settings', 'Settings']];

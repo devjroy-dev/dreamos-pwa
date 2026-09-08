@@ -127,7 +127,7 @@ function DiscFilterSheet({visible,onClose,filters,accent,dark,onApply}:{
         onTouchEnd={e=>e.stopPropagation()}>
         <div style={{display:'flex',justifyContent:'center',padding:'12px 0 4px'}}><div style={{width:36,height:4,borderRadius:2,background:'rgba(255,255,255,.2)'}}/></div>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 24px 4px'}}>
-          <span style={{fontFamily:"'Italianno',cursive",fontSize:46,color:'#F8F7F5',lineHeight:1}}>Discover</span>
+          <span style={{fontFamily:"'Italianno',cursive",fontSize:46,color:'#F8F7F5',lineHeight:1}}>Discover · Storefront</span>{/* R-41.17, §6.4(b) */}
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',color:'rgba(248,247,245,.4)',padding:4,fontSize:18}}>✕</button>
         </div>
         <Section id="cat" label="Category" hasVal={!!local.category}>

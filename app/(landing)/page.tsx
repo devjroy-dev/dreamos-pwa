@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { entryRedirectFor } from '@/lib/frost/entryRedirect';
+import { getVendorSession, getCoupleSession } from '@/lib/frost-api/_base';
 import { API_BASE } from '../../lib/api';
 import { rowBaseline, rowGlyphSlot } from '@/lib/vendor/controls';
 // F-05.9: signup + returning-no-PIN moved off the dead Supabase Phone-OTP (Twilio) onto
@@ -328,6 +330,20 @@ export default function Home() {
     }
   }, []);
 
+  // ── F-41.1 · THE FRONT DOOR READS THE SESSION (CE-41 seat A, packet A3) ──────
+  // A signed-in member who types the domain used to land here, on the marketing
+  // page, because this file WROTE vendor_session / couple_session on sign-in and
+  // never read either on mount. One read, one replace, nothing else on this page
+  // changes. The rule is lib/frost/entryRedirect.ts (pure, benched); the session
+  // reads are lib/frost-api/_base's, the one home. §6.6: no trap — Back is the
+  // browser's; this covers re-entry.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname !== '/') return;
+    const to = entryRedirectFor(!!getVendorSession(), !!getCoupleSession());
+    if (to) router.replace(to);
+  }, [router]);
+
   const startCarousel = useCallback(() => {
     if (intervalRef.current) return; // already running — preserve slide position
     intervalRef.current = setInterval(() => setCur(c => (c + 1) % slidesRef.current.length), 4000);
@@ -642,9 +658,10 @@ export default function Home() {
   // THE TOGGLE ITSELF STAYS, R-O3: `handleSignIn` derives `isVendor` from `role`, and
   // the chrome Sign in link reaches this screen with role null. Without this control a
   // returning VENDOR is signed in against the couple endpoints, silently.
-  // THE REAL CURE IS NOT HERE: a returning member should not be asked at all. That needs
-  // `/auth/pin-status` to answer for both roles in one call — a dream-os byte, and
-  // dream-os is zero-byte this sitting. Chartered separately, not faked client-side.
+  // (F-41.2, closed 2026-09-08: three lines here once deferred the returning-member cure to
+  //  "a dream-os byte never built"; src/api/pin-status.js has answered both roles when `role`
+  //  is absent since before this comment was written. The front door now reads the session
+  //  on mount — see the F-41.1 effect above `handleSignIn`.)
   // L-1: `SIGNIN_ROLES` RETIRED WITH ITS CHIPS. The pair it declared is the pair the two
   // entry doors already carry (S1, S2); with the chips gone it had one reader and no purpose.
 

@@ -66,7 +66,7 @@ export default function MuseRow({ muse = [], loading = false }: MuseRowProps) {
             padding: '24px 24px',
             lineHeight: 1.6,
             margin: 0,
-          }}>Start saving vendors in Discover to build your Muse.</p>
+          }}>Start saving vendors in Discover · Storefront to build your Muse.</p>
         ) : (
           <>
             {/* Horizontal scroll */}

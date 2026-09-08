@@ -204,10 +204,13 @@ ok('NO tombstoned route survives on disk — retired means gone, not hidden',
 // retired routes, 37 → 34, while the TABLE stays 37 because the tombstones
 // remain. The two numbers are deliberately no longer equal, and the gap between
 // them IS the retirement — asserted as such rather than papered over.
-ok('the disk carries exactly 34 non-login admin routes (37 minus F-10.76\'s three)',
-   routes.length === 34 && new Set(routes).size === 34, `disk=${routes.length}`);
-ok('the table still carries 37 rows — the three retired persist as tombstones',
-   tablePaths.length === 37 && new Set(tablePaths).size === 37,
+// ── CENSUS MOVED BY ONE — Block 20 s1 (CE-41 seat A, A3): /admin/assistance is a new
+// LIVE route (R-41.3). 34→35 on disk, 37→38 rows, 18→19 LIVE. The retired three and
+// the phantom fifteen are unchanged; the cell shape is unchanged.
+ok('the disk carries exactly 35 non-login admin routes (38 minus F-10.76\'s three)',
+   routes.length === 35 && new Set(routes).size === 35, `disk=${routes.length}`);
+ok('the table still carries 38 rows — the three retired persist as tombstones',
+   tablePaths.length === 38 && new Set(tablePaths).size === 38,
    `table=${tablePaths.length}`);
 ok('table minus disk equals the retired count, exactly — no other row is dangling',
    tablePaths.length - routes.length === retiredPaths.size,
@@ -222,8 +225,8 @@ const corpseCount  = (NAV.match(/disposition:\s*'CORPSE'/g)  || []).length;
 // and a fourth disposition joins the sum. The TOTAL is unchanged at 37 — which is
 // the point of a tombstone, and the reason this cell is amended rather than
 // deleted: the ledger must still balance.
-ok('18 LIVE + 1 RETIRES + 15 PHANTOM + 3 RETIRED = 37',
-   liveCount + retireCount + phantomCount + retiredCount === 37,
+ok('19 LIVE + 1 RETIRES + 15 PHANTOM + 3 RETIRED = 38',
+   liveCount + retireCount + phantomCount + retiredCount === 38,
    `LIVE=${liveCount} RETIRES=${retireCount} PHANTOM=${phantomCount} RETIRED=${retiredCount}`);
 ok('F-10.76 reduced the phantom ledger by exactly three (acceptance ②)',
    phantomCount === 15 && retiredCount === 3, `PHANTOM=${phantomCount} RETIRED=${retiredCount}`);
