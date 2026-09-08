@@ -21,6 +21,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { PALETTE_SECTIONS, type Section } from './adminNav';
+import { GATE_KEYS, gateMatches, gateSentence, gateMeta, gatePath } from '../../../lib/admin-api/switchboardCopy';
 import { adminSearch, getRecentJumps, recordJump, type SearchGroup, type RecentJump } from '@/lib/admin-api/search';
 
 interface Row { key: string; label: string; sub?: string; path: string; group: string; }
@@ -50,6 +51,16 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
     }));
   }, [q]);
 
+  // ── Switchboard gates (C3, F-41.53): any word of the sentence, the register
+  // key, or the Meta template name — local, so the nav survives a dead API.
+  const gateRows: Row[] = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return [];
+    return GATE_KEYS.filter(k => gateMatches(k, needle)).map(k => ({
+      key: `gate:${k}`, label: gateSentence(k), sub: gateMeta(k) ? `${k} · ${gateMeta(k)}` : k, path: gatePath(k), group: 'Switchboard',
+    }));
+  }, [q]);
+
   const serverRows: Row[] = useMemo(
     () => groups.flatMap(g => g.hits.map(h => ({
       key: `${g.key}:${h.id}`, label: h.label, sub: h.sub, path: h.path, group: g.label,
@@ -65,8 +76,8 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
   }, [q, recents]);
 
   const rows: Row[] = useMemo(
-    () => [...recentRows, ...staticRows, ...serverRows],
-    [recentRows, staticRows, serverRows],
+    () => [...recentRows, ...staticRows, ...gateRows, ...serverRows],
+    [recentRows, staticRows, gateRows, serverRows],
   );
 
   // ── Open: focus, reset, load recents ──────────────────────────────────────

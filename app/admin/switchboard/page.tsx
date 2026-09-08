@@ -25,46 +25,12 @@ import {
   getCapabilities, flipCapability, setCapabilityAutoOn, checkCapability, sweepCapabilities, getWabaTemplates,
   type CapabilityRow, type CapabilityStatus, type CapabilityKind, type WabaTemplate,
 } from '../../../lib/admin-api/index';
+import { gateSentence, gateMeta } from '../../../lib/admin-api/switchboardCopy';
 
-// ── PLAIN WORDS FOR EVERY KEY (one home; a key with no entry is humanised) ────
-const NAMES: Record<string, string> = {
-  'flag.contract_sign_send':     'Contract signing link',
-  'flag.contract_copy_send':     'Signed contract copy',
-  'flag.payment_reminder_send':  'Payment reminders',
-  'flag.referral_alert_send':    'Peer referral alert',
-  'flag.wedding_credit_send':    'Wedding credit invite',
-  'flag.wedding_consent_send':   'Guest consent ask',
-  'flag.review_ask_send':        'Review request',
-  'flag.wedding_reel':           'Wedding reel',
-  'template.tdw_contract_sign':      'Contract signing link (Meta words)',
-  'template.tdw_contract_sign_otp':  'Contract signing code (Meta words)',
-  'template.tdw_contract_copy':      'Signed contract copy (Meta words)',
-  'template.tdw_payment_reminder':   'Payment reminder (Meta words)',
-  'template.tdw_referral_alert':     'Peer referral alert (Meta words)',
-  'template.tdw_wedding_credit':     'Wedding credit invite (Meta words)',
-  'template.tdw_wedding_consent':    'Guest consent ask (Meta words)',
-  'template.tdw_review_request':     'Review request (Meta words)',
-  'template.tdw_assist_lead_outside':  'Concierge: outside vendor lead',
-  'template.tdw_assist_found_vendor':  'Concierge: we found you a vendor',
-  'template.tdw_assist_found_outside': 'Concierge: we found an outside vendor',
-  'template.tdw_introduction':         'Introductions (own number)',
-  'template.tdw_capability_armed':     'Switchboard notice to you',
-  'perm.whatsapp_business_pair':             'WhatsApp business permissions',
-  'perm.instagram_business_basic':           'Instagram: basic',
-  'perm.instagram_business_manage_messages': 'Instagram: reply to DMs',
-  'perm.instagram_business_manage_insights': 'Instagram: read insights',
-  'perm.instagram_business_content_publish': 'Instagram: publish',
-  'perm.instagram_business_manage_comments': 'Instagram: reply to comments',
-  'perm.ads_read':            'Ads: read results',
-  'perm.business_management': 'Ads: business management',
-  'scope.google.siteverification':    'Google: site verification',
-  'scope.google.webmasters.readonly': 'Google: Search Console (read)',
-  'scope.google.business.manage':     'Google: Business Profile',
-};
-function nameFor(key: string) {
-  if (NAMES[key]) return NAMES[key];
-  return key.replace(/^(template|perm|scope|flag)\./, '').replace(/^tdw_/, '').replace(/[_.]/g, ' ');
-}
+// ── THE WORDS LIVE IN ONE HOME (C3, F-41.52/.53): lib/admin-api/switchboardCopy.ts.
+// Every gate is one sentence naming the recipient, the line and the effect; the
+// palette reads the same file to match and jump here.
+function nameFor(key: string) { return gateSentence(key); }
 
 const KIND_LABEL: Record<CapabilityKind, string> = {
   flag: 'Features you switch on',
@@ -104,6 +70,24 @@ export default function SwitchboardPage() {
   const [meta, setMeta] = useState<{ count: number; pages: number; truncated: boolean; evidence: string; templates: WabaTemplate[] } | null>(null);
   const [metaLoading, setMetaLoading] = useState(false);
   const [metaError, setMetaError] = useState<string | null>(null);
+
+  // ── THE PALETTE'S LANDING (F-41.53): /admin/switchboard#<key> scrolls to the
+  // row and lights its hairline for a moment, on load and on every hash change.
+  const [lit, setLit] = useState<string | null>(null);
+  useEffect(() => {
+    const land = () => {
+      const key = decodeURIComponent((window.location.hash || '').replace(/^#/, ''));
+      if (!key) return;
+      const el = document.querySelector<HTMLElement>(`[data-gate="${CSS.escape(key)}"]`);
+      if (!el) return;
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      setLit(key);
+      window.setTimeout(() => setLit(k => (k === key ? null : k)), 2400);
+    };
+    if (!loading) land();
+    window.addEventListener('hashchange', land);
+    return () => window.removeEventListener('hashchange', land);
+  }, [loading]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -177,7 +161,7 @@ export default function SwitchboardPage() {
           <h2 style={{ fontFamily: T.ff.body, fontWeight: 600, fontSize: 14, color: T.ink, margin: '0 0 14px' }}>{KIND_LABEL[g.kind]}</h2>
           {g.rows.map(row => (
             <GateRow
-              key={row.key} row={row} busy={busy === row.key || busy === '*'}
+              key={row.key} row={row} busy={busy === row.key || busy === '*'} lit={lit === row.key}
               walkRef={walkRef[row.key] ?? row.walk_ref ?? ''}
               onWalkRef={v => setWalkRef(p => ({ ...p, [row.key]: v }))}
               onFlip={to => flip(row, to)} onAutoOn={on => autoOn(row, on)} onCheck={() => check(row)}
@@ -248,8 +232,8 @@ function metaInk(s: string | null) {
 }
 
 // ── ONE GATE ──────────────────────────────────────────────────────────────────
-function GateRow({ row, busy, walkRef, onWalkRef, onFlip, onAutoOn, onCheck }: {
-  row: CapabilityRow; busy: boolean; walkRef: string;
+function GateRow({ row, busy, lit, walkRef, onWalkRef, onFlip, onAutoOn, onCheck }: {
+  row: CapabilityRow; busy: boolean; lit: boolean; walkRef: string;
   onWalkRef: (v: string) => void; onFlip: (to: 'on' | 'off') => void; onAutoOn: (on: boolean) => void; onCheck: () => void;
 }) {
   const canTurnOn = row.status === 'armed' || row.status === 'approved' || row.status === 'off';
@@ -257,11 +241,11 @@ function GateRow({ row, busy, walkRef, onWalkRef, onFlip, onAutoOn, onCheck }: {
   const probeable = row.kind === 'template' || row.kind === 'scope';
   const ink = statusInk(row.status);
   return (
-    <div style={{ padding: '12px 0 14px', borderBottom: `0.5px solid ${T.border}` }}>
+    <div data-gate={row.key} style={{ padding: '12px 0 14px', borderBottom: `0.5px solid ${T.border}`, boxShadow: lit ? `inset 3px 0 0 ${T.gold}` : 'none', paddingLeft: lit ? 10 : 0, transition: 'box-shadow 300ms, padding-left 300ms' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-          <div style={{ fontFamily: T.ff.body, fontSize: 14, color: T.ink, lineHeight: 1.3 }}>{nameFor(row.key)}</div>
-          <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.muted, letterSpacing: '0.06em', marginTop: 2, wordBreak: 'break-all' }}>{row.key}</div>
+          <div style={{ fontFamily: T.ff.body, fontSize: 14, color: T.ink, lineHeight: 1.4, maxWidth: 560 }}>{nameFor(row.key)}</div>
+          <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.muted, letterSpacing: '0.06em', marginTop: 3, wordBreak: 'break-all' }}>{row.key}{gateMeta(row.key) && !row.key.endsWith(gateMeta(row.key) as string) ? ` · ${gateMeta(row.key)}` : ''}</div>
           <div style={{ marginTop: 8, display: 'inline-block', fontFamily: T.ff.body, fontSize: 12, color: ink, borderBottom: `1px solid ${ink}`, paddingBottom: 1 }}>
             {STATUS_WORD[row.status]}
           </div>

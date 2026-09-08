@@ -1,0 +1,8 @@
+# scripts/floor-manifest-ce41-c3.txt
+# CE-41 · SEAT C · C3 — THE SWITCHBOARD'S WORDS (F-41.52, F-41.53), one pwa rider.
+# BASE: 4f7c15c75dbb0095df8625ae74af089b64d10574 — the G3.4 s2 mock's tip, re-derived at the cut (fetch-first).
+app/admin/switchboard/page.tsx
+app/admin/_components/CommandPalette.tsx
+lib/admin-api/switchboardCopy.ts
+scripts/tdw41_c3_switchboard_copy.proof.mjs
+scripts/floor-manifest-ce41-c3.txt
