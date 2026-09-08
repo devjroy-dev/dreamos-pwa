@@ -86,6 +86,7 @@ const LANE_LINE: Record<ListSlice, string> = {
 };
 import { DetailSheet } from './DetailSheet';
 import { reminderPreview, reminderDate } from '@/lib/worklist/paymentReminders';
+import { updateMilestone, deleteSchedule } from '@/lib/vendor/api/vendor';
 
 import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 // ── F-40.141 · THE FLAG THAT OUTLIVED ITS REASON ──────────────────────────
@@ -256,6 +257,17 @@ interface SliceShellProps {
 // than silent ones, and both are named in the handover and excluded from the render arm's
 // tuple cell by name: the slice tree's thirty colour LITERALS (F-38.22) and its old type
 // register. Neither is swept inside a structural crossing.
+// ── G3.4 s2 · the edit sheet's two field styles, one home (mock S3) ─────────
+const msLabel: React.CSSProperties = {
+  display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8,
+  letterSpacing: '0.32em', textTransform: 'uppercase', color: A.inkMute, margin: '12px 0 6px',
+};
+const msInput: React.CSSProperties = {
+  padding: '9px 10px', boxSizing: 'border-box', width: '100%',
+  background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)',
+  borderRadius: 2, fontFamily: F.script, fontWeight: 300, fontSize: 16, color: 'var(--atelier-ink)',
+};
+
 export function SliceShell({ slice, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
@@ -413,6 +425,17 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // message and needs the label and the amount to compose it.
   const [remindMs,        setRemindMs]        = useState<ScheduleMilestone | null>(null);
   const [remindBusy,      setRemindBusy]      = useState(false);
+  // ── G3.4 s2 · F-40.215 / R-41.61 — the schedule can be corrected ──────────
+  // The milestone being edited is HELD, not its id: the sheet renders its label,
+  // share and date, and the amount it recomputes for her to read before she saves.
+  const [editMs,          setEditMs]          = useState<ScheduleMilestone | null>(null);
+  const [editLabel,       setEditLabel]       = useState('');
+  const [editPct,         setEditPct]         = useState('');
+  const [editDue,         setEditDue]         = useState('');
+  const [editErr,         setEditErr]         = useState<string | null>(null);
+  const [editBusy,        setEditBusy]        = useState(false);
+  const [removeSchedule,  setRemoveSchedule]  = useState(false);
+  const [removeBusy,      setRemoveBusy]      = useState(false);
   // ⚠ NO `remindedIds` STATE. F-40.209: the control used to be drawn from a local
   // array, so a reload offered a Remind for a milestone already chased — the UNIQUE
   // key held and no client was messaged twice, but the surface was offering
@@ -1086,6 +1109,19 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 letterSpacing: '0.28em', textTransform: 'uppercase',
               }}>Add</button>
             )}
+            {/* ── F-40.215 · REMOVE THE WHOLE SCHEDULE ─────────────────────
+                `deleteSchedule` and its door have existed since s1 with NO
+                affordance onto them. It lives in the panel's own header, at the
+                rule's end, in the critical ink at rest — rare, and unmistakably
+                the SCHEDULE's, which the invoice's own Delete never was. */}
+            {schedule && schedule.length > 0 && !removeSchedule && (
+              <button type="button" onClick={() => setRemoveSchedule(true)} style={{
+                padding: '5px 10px', background: 'transparent',
+                border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
+                fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.red,
+                letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+              }}>{COPY.studioScheduleRemove}</button>
+            )}
           </div>
           {scheduleLoading && <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>}
           {/* #18 · NO SCHEDULE ⇒ NO CONTROL, AND A SENTENCE INSTEAD. The reminder
@@ -1097,67 +1133,105 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             </div>
           )}
           {schedule && schedule.map(ms => (
-            <div key={ms.id} style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
-              borderBottom: '0.5px solid rgba(201,168,76,0.10)',
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>{ms.milestone_label}</div>
-                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>
-                  {/* ── F-40.182 · THE HOUSE DATE, NOT THE COLUMN ──────────────
-                      This printed `2026-09-08` — the raw DATE column — because the
-                      panel was written dark and never read by an eye. `8 Sep 2026`
-                      is the house format the invoice document and the WhatsApp
-                      message about it already use, and it comes from the room's
-                      one date home rather than a second `toLocaleString` here.
-                      The money keeps `toLocaleString('en-IN')`: it is the shipped
-                      byte on this row and matches `reminderRs`'s grouping exactly. */}
-                  Rs {ms.amount_due.toLocaleString('en-IN')} · {ms.pct}%{ms.due_date ? ` · ${reminderDate(ms.due_date)}` : ''}
-                </div>
+            /* ── THE ROW IS TWO LINES (R-41.70 §A 3) ─────────────────────────
+               The shipped row put the words and up to five controls on ONE flex
+               line, and at 374 the amount wrapped over three lines ("Rs 18,000 ·"
+               / "30% · 8" / "Sep 2026") — visible in the founder's own screens and
+               transcribed as S1 of the mock. With Edit and a third chip state it
+               went to one word per line. Line one is hers to read; line two is
+               hers to tap. Nothing shrinks, nothing truncates. */
+            <div key={ms.id} style={{ padding: '10px 0', borderBottom: '0.5px solid rgba(201,168,76,0.10)' }}>
+              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>{ms.milestone_label}</div>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+                {/* ── F-40.182 · THE HOUSE DATE, NOT THE COLUMN ──────────────
+                    This printed `2026-09-08` — the raw DATE column — because the
+                    panel was written dark and never read by an eye. `8 Sep 2026`
+                    is the house format the invoice document and the WhatsApp
+                    message about it already use, and it comes from the room's
+                    one date home rather than a second `toLocaleString` here.
+                    The money keeps `toLocaleString('en-IN')`: it is the shipped
+                    byte on this row and matches `reminderRs`'s grouping exactly. */}
+                Rs {ms.amount_due.toLocaleString('en-IN')} · {ms.pct}%{ms.due_date ? ` · ${reminderDate(ms.due_date)}` : ''}
               </div>
-              <span style={{
-                fontFamily: F.label, fontWeight: 400, fontSize: 8,
-                color: ms.state === 'paid' ? A.green : ms.state === 'waived' ? A.inkMute : A.brassWarm,
-                letterSpacing: '0.28em', textTransform: 'uppercase',
-                border: `0.5px solid ${ms.state === 'paid' ? A.green : ms.state === 'waived' ? 'var(--atelier-ink-dim)' : 'var(--role-metal)'}`,
-                borderRadius: 2, padding: '3px 8px', flexShrink: 0,
-              }}>{ms.state}</span>
-              {/* ── G3.4 · SEND THE REMINDER ─────────────────────────────
-                  ⚠ ON THE MILESTONE ROW, NOT AT THE FOOT OF THE PANEL. An
-                  invoice has three milestones; a single button below them all
-                  would have to ask her WHICH — a question the row she is looking
-                  at has already answered. It names no milestone in its own label
-                  because the row it sits on is the label.
-                  It DISAPPEARS once sent rather than greying: once-per-milestone
-                  is the database's UNIQUE key, and a disabled button would be a
-                  control lying about a state it does not own. */}
-              {ms.state === 'pending' && !ms.reminded_at && (
-                <button type="button" onClick={() => setRemindMs(ms)} style={{
-                  padding: '5px 10px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
-                  border: '0.5px solid rgba(201,168,76,0.5)',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
-                  letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
-                }}>Remind</button>
-              )}
-              {ms.reminded_at && (
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                 <span style={{
-                  fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.inkMute,
-                  letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
-                }}>{COPY.studioReminderSent}</span>
-              )}
-              {ms.state === 'pending' && (
-                <button type="button" onClick={async () => {
-                  setScheduleSaving(true);
-                  const res = await markMilestonePaid(ms.id, ms.amount_due);
-                  if (res.ok) setSchedule(prev => prev ? prev.map(m => m.id === ms.id ? (res as { milestone: ScheduleMilestone }).milestone : m) : prev);
-                  setScheduleSaving(false);
-                }} disabled={scheduleSaving} className="atelier-fab" style={{
-                  padding: '5px 10px', borderRadius: 2, cursor: 'pointer',
-                  border: '0.5px solid var(--atelier-label)',
-                  fontFamily: F.label, fontWeight: 400, fontSize: 8, color: INK_DEEP,
-                  letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
-                }}>Paid</button>
-              )}
+                  fontFamily: F.label, fontWeight: 400, fontSize: 8,
+                  color: ms.state === 'paid' ? A.green : ms.state === 'waived' ? A.inkMute : A.brassWarm,
+                  letterSpacing: '0.28em', textTransform: 'uppercase',
+                  border: `0.5px solid ${ms.state === 'paid' ? A.green : ms.state === 'waived' ? 'var(--atelier-ink-dim)' : 'var(--role-metal)'}`,
+                  borderRadius: 2, padding: '3px 8px', flexShrink: 0,
+                }}>{ms.state}</span>
+
+                <span style={{ flex: 1 }} />
+
+                {/* ── F-41.15 · THE CHIP'S THREE HONEST STATES ────────────────
+                    `sent_at` is a wamid — the message reached Meta. `reminded_at`
+                    is only a ROW, and the record said "Reminder sent" over a row
+                    whose wamid was null (the founder's walk, 2026-09-08). A failed
+                    attempt says so and offers Remind again, because 0152's partial
+                    UNIQUE (`WHERE status <> 'failed'`) frees the milestone. */}
+                {ms.sent_at && (
+                  <span style={{
+                    fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.inkMute,
+                    letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                  }}>{COPY.studioReminderSent}</span>
+                )}
+                {!ms.sent_at && ms.reminder_failed && (
+                  <span style={{
+                    fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.brassWarm,
+                    letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                  }}>{COPY.studioReminderDidntGo}</span>
+                )}
+
+                {/* ── G3.4 · SEND THE REMINDER ─────────────────────────────
+                    ⚠ ON THE MILESTONE ROW, NOT AT THE FOOT OF THE PANEL. An
+                    invoice has three milestones; a single button below them all
+                    would have to ask her WHICH — a question the row she is looking
+                    at has already answered. It names no milestone in its own label
+                    because the row it sits on is the label.
+                    It DISAPPEARS once SENT rather than greying: once-per-milestone
+                    is the database's key, and a disabled button would be a control
+                    lying about a state it does not own. A FAILED attempt brings it
+                    back, because the key no longer holds the milestone. */}
+                {ms.state === 'pending' && !ms.sent_at && (
+                  <button type="button" onClick={() => setRemindMs(ms)} style={{
+                    padding: '5px 10px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                    border: '0.5px solid rgba(201,168,76,0.5)',
+                    fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
+                    letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                  }}>Remind</button>
+                )}
+
+                {/* ── F-40.215 · EDIT, ON THE ROW IT EDITS ────────────────────
+                    A paid milestone has no Edit: a paid share is history, and the
+                    door would have to re-share the rest to accept a change. */}
+                {ms.state === 'pending' && (
+                  <button type="button" onClick={() => {
+                    setEditMs(ms); setEditLabel(ms.milestone_label); setEditPct(String(ms.pct));
+                    setEditDue(ms.due_date || ''); setEditErr(null);
+                  }} style={{
+                    padding: '5px 10px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                    border: '0.5px solid var(--atelier-card-border)',
+                    fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkDim,
+                    letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                  }}>{COPY.studioMsEdit}</button>
+                )}
+
+                {ms.state === 'pending' && (
+                  <button type="button" onClick={async () => {
+                    setScheduleSaving(true);
+                    const res = await markMilestonePaid(ms.id, ms.amount_due);
+                    if (res.ok) setSchedule(prev => prev ? prev.map(m => m.id === ms.id ? (res as { milestone: ScheduleMilestone }).milestone : m) : prev);
+                    setScheduleSaving(false);
+                  }} disabled={scheduleSaving} className="atelier-fab" style={{
+                    padding: '5px 10px', borderRadius: 2, cursor: 'pointer',
+                    border: '0.5px solid var(--atelier-label)',
+                    fontFamily: F.label, fontWeight: 400, fontSize: 8, color: INK_DEEP,
+                    letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                  }}>Paid</button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -1387,6 +1461,147 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           the backend is the truth; the bench asserts them identical.
 
           DISMISSING SENDS NOTHING. Silence never means yes.  */}
+      {/* ══ F-40.215 / R-41.61 · THE EDIT SHEET (mock S3/S4) ══════════════════
+          The three fields `PATCH /schedules/:milestoneId` has accepted since
+          G3.4 s1. The AMOUNT is shown and never typed: the door recomputes it
+          from the share and the invoice total, and a second arithmetic on this
+          side would be a second home for one number. A refusal prints the DOOR's
+          own sentence — `Percentages would sum to 110, not 100.` — because the
+          number is Postgres's answer, not this surface's guess. */}
+      {editMs && sel && (
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+          onClick={() => { if (!editBusy) setEditMs(null); }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width: '100%', background: 'var(--atelier-sheet-bg)',
+            backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+            borderTop: '0.5px solid var(--atelier-card-border)',
+            borderRadius: '10px 10px 0 0', padding: '18px 16px 26px',
+          }}>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: A.ink, marginBottom: 6 }}>{editMs.milestone_label}</div>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 14 }}>
+              {COPY.studioMsEditTitle}
+            </div>
+
+            <label style={msLabel}>{COPY.studioMsLabel}</label>
+            <input value={editLabel} onChange={e => { setEditLabel(e.target.value); setEditErr(null); }} style={msInput} />
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <label style={msLabel}>{COPY.studioMsShare}</label>
+                <input value={editPct} inputMode="numeric" onChange={e => { setEditPct(e.target.value); setEditErr(null); }}
+                  style={{ ...msInput, borderColor: editErr ? 'var(--role-critical)' : 'var(--atelier-card-border)' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <label style={msLabel}>{COPY.studioMsAmount}</label>
+                {/* ⚠ NOT COMPUTED HERE, AND THAT IS THE POINT. The amount is the
+                    door's arithmetic over the invoice total (`schedules.js:33`),
+                    and this surface does not hold that total — `Row` carries no
+                    money. Reproducing the formula would be a second home for one
+                    number and the first divergence would be a figure a client was
+                    invoiced for. So: the milestone's CURRENT amount while the
+                    share is untouched, and an honest sentence the moment it is. */}
+                <div style={{ ...msInput, color: A.inkMute }}>
+                  {Number(editPct) === editMs.pct
+                    ? `Rs ${editMs.amount_due.toLocaleString('en-IN')}`
+                    : 'Recomputed on save'}
+                </div>
+              </div>
+            </div>
+
+            <label style={msLabel}>{COPY.studioMsDue}</label>
+            <input type="date" value={editDue} onChange={e => { setEditDue(e.target.value); setEditErr(null); }} style={msInput} />
+
+            {editErr && (
+              <p style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, margin: '10px 0 0' }}>{editErr}</p>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button type="button" disabled={editBusy} onClick={() => setEditMs(null)} style={{
+                flex: 1, padding: '12px 16px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                border: '0.5px solid var(--atelier-card-border)',
+                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: A.inkDim,
+                letterSpacing: '0.32em', textTransform: 'uppercase',
+              }}>{COPY.studioMsCancel}</button>
+              <button type="button" disabled={editBusy} className="atelier-fab" onClick={async () => {
+                setEditBusy(true); setEditErr(null);
+                const patch: { milestone_label?: string; pct?: number; due_date?: string | null } = {};
+                if (editLabel !== editMs.milestone_label) patch.milestone_label = editLabel.trim();
+                if (Number(editPct) !== editMs.pct) patch.pct = Number(editPct);
+                if ((editDue || null) !== editMs.due_date) patch.due_date = editDue || null;
+                if (!Object.keys(patch).length) { setEditBusy(false); setEditMs(null); return; }
+                const res = await updateMilestone(editMs.id, patch) as { ok: boolean; error?: string };
+                if (res.ok) {
+                  // RE-READ, never a local patch: the door recomputes `amount_due`
+                  // and may re-share nothing else, and only it knows the result.
+                  const again = await fetchSchedule(sel.id);
+                  if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
+                  showToast(COPY.studioMsSaved, 'success');
+                  setEditMs(null);
+                } else {
+                  // The door's own sentence, printed as it came.
+                  setEditErr(res.error ?? COPY.studioMsSaveFailed);
+                }
+                setEditBusy(false);
+              }} style={{
+                flex: 1, padding: '12px 16px', borderRadius: 2, cursor: 'pointer',
+                border: '0.5px solid var(--atelier-label)',
+                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
+                letterSpacing: '0.32em', textTransform: 'uppercase',
+              }}>{COPY.studioMsSave}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ F-40.215 · REMOVE THE SCHEDULE (mock S5) ══════════════════════════
+          The sheet's own question shape, aimed at the schedule rather than the
+          invoice. The second line tells her what she KEEPS: 0139's rows outlive
+          their milestone (ON DELETE SET NULL, R-G34.6), so reminders already sent
+          stay in her record. */}
+      {removeSchedule && sel && schedule && (
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+          onClick={() => { if (!removeBusy) setRemoveSchedule(false); }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width: '100%', background: 'var(--atelier-sheet-bg)',
+            backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+            borderTop: '0.5px solid var(--atelier-card-border)',
+            borderRadius: '10px 10px 0 0', padding: '18px 16px 26px',
+          }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.6, color: A.inkSoft, textAlign: 'center', padding: '8px 0' }}>
+              Remove the schedule for <span style={{ color: A.ink, fontWeight: 500 }}>{sel.primary}</span>?
+              <span style={{ display: 'block', fontSize: 14, color: A.inkMute, marginTop: 6 }}>
+                The {schedule.length === 1 ? 'milestone goes' : `${schedule.length} milestones go`}. Reminders already sent stay in your record.
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <button type="button" disabled={removeBusy} onClick={() => setRemoveSchedule(false)} style={{
+                flex: 1, padding: '12px 16px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                border: '0.5px solid var(--atelier-card-border)',
+                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: A.inkDim,
+                letterSpacing: '0.32em', textTransform: 'uppercase',
+              }}>{COPY.studioScheduleKeep}</button>
+              <button type="button" disabled={removeBusy} onClick={async () => {
+                setRemoveBusy(true);
+                const res = await deleteSchedule(sel.id) as { ok: boolean; error?: string };
+                if (res.ok) {
+                  const again = await fetchSchedule(sel.id);
+                  if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
+                  showToast(COPY.studioScheduleGone, 'success');
+                } else {
+                  showToast(res.error ?? COPY.studioScheduleRemoveFailed, 'error');
+                }
+                setRemoveBusy(false); setRemoveSchedule(false);
+              }} style={{
+                flex: 1, padding: '12px 16px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                border: '0.5px solid var(--role-critical)',
+                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.red,
+                letterSpacing: '0.32em', textTransform: 'uppercase',
+              }}>{COPY.studioScheduleRemove}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {remindMs && sel && (
         <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
           onClick={() => { if (!remindBusy) setRemindMs(null); }}>
@@ -1427,7 +1642,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               onClick={async () => {
                 setRemindBusy(true);
                 try {
-                  const res = await sendReminder(remindMs.id) as { ok: boolean; sent?: boolean; skipped?: boolean; reason?: string | null; error?: string };
+                  const res = await sendReminder(remindMs.id) as { ok: boolean; sent?: boolean; skipped?: boolean; failed?: boolean; reason?: string | null; reason_text?: string | null; error?: string };
                   if (res.ok && res.sent) {
                     // ⚠ THE ROW IS MARKED ONLY WHEN THE DOOR SAYS SENT. A skipped
                     // send leaves the control standing, because the reminder did
@@ -1442,9 +1657,16 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     }
                     showToast(COPY.studioReminderDone, 'success');
                   } else if (res.ok && res.skipped) {
-                    showToast(res.reason ?? COPY.studioReminderDark, 'error');
+                    // ── F-41.17 · PLAIN WORDS ON HER GLASS ────────────────
+                    // `reason` is the register's own sentence — the log's word,
+                    // and what she read on 2026-09-08:
+                    // `flag.payment_reminder_send is off on the switchboard`.
+                    // `reason_text` is the door's sentence for a person. The key
+                    // is never printed here; the fallback is this room's own copy.
+                    showToast(res.reason_text ?? COPY.studioReminderDark, 'error');
                   } else {
-                    showToast(res.error ?? res.reason ?? COPY.studioReminderFailed, 'error');
+                    // R-41.70 §D 18: the row says "Didn't go"; the toast says why.
+                    showToast(res.reason_text ?? (res.failed ? COPY.studioReminderRetry : COPY.studioReminderFailed), 'error');
                   }
                 } catch {
                   showToast(COPY.studioReminderFailed, 'error');

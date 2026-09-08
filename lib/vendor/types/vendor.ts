@@ -1299,6 +1299,20 @@ export interface ScheduleMilestone {
    * the database (R-G11c's law, the same one the couple's switch obeys).
    */
   reminded_at?:    string | null;
+  /**
+   * F-41.15 — WHEN IT REACHED META, OR NULL. The `created_at` of the first
+   * reminder row for this milestone that carries a `wamid`. `reminded_at` says a
+   * row EXISTS (the control is spent); this says the message actually went. The
+   * record printed "Reminder sent" from row-presence alone and put that word over
+   * a send that never happened (the founder's walk, 2026-09-08).
+   */
+  sent_at?:        string | null;
+  /**
+   * F-41.15 / R-41.59 — the attempt failed and the milestone is free again: no
+   * row for it carries a wamid, and one of them is `failed`. The row offers
+   * Remind a second time because 0152's partial UNIQUE lets it.
+   */
+  reminder_failed?: boolean;
   ordinal:         number;
   created_at:      string;
   updated_at:      string;

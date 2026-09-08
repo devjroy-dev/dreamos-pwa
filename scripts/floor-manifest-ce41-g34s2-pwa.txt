@@ -1,0 +1,14 @@
+# scripts/floor-manifest-ce41-g34s2-pwa.txt
+# CE-41 · SEAT C · G3.4 s2 — the pwa half, the mock as ratified (R-41.70, item 11 struck).
+# BASE: 3c91a8ac88ac1d1ba9a1286fcba154af91ecd664 — re-derived at the cut (fetch-first).
+# F-40.215/R-41.61 Edit + Remove schedule + the Delete invoice relabel · the two-line row ·
+# F-41.15 the chip's three states on sent_at/reminder_failed · F-41.17 the shut gate in
+# plain words from reason_text. Reads dream-os `a6dfc23`'s wire (sent_at, reminder_failed,
+# reason_text) — this packet ships no arithmetic of its own.
+components/vendor/slices/SliceShell.tsx
+components/vendor/slices/DetailSheet.tsx
+lib/vendor/api/vendor.ts
+lib/vendor/types/vendor.ts
+lib/worklist/copy.ts
+scripts/tdw41_g34s2_pwa.proof.mjs
+scripts/floor-manifest-ce41-g34s2-pwa.txt

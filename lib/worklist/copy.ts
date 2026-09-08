@@ -711,7 +711,31 @@ export const COPY = {
   studioReminderTitle:   'Send this reminder?',                                  // #15
   studioReminderRails:   'Your UPI and bank details are on the invoice PDF. Send that with the reminder if she needs them.', // #16b
   studioReminderSent:    'Reminder sent',                                        // #17
+  // ── G3.4 s2 (R-41.70 §D 16/18) ─────────────────────────────────────────────
+  // The row says the short form; the toast on a failed tap says the sentence.
+  // At 8px/0.28em beside three controls the full sentence does not fit a 374 row.
+  studioReminderDidntGo: "Didn't go",
+  studioReminderRetry:   "Reminder didn't go — try again.",
+  // ── G3.4 s2 (R-41.70 §A/§B/§C) — the schedule can be corrected ─────────────
+  studioMsEdit:          'Edit',
+  studioMsEditTitle:     'Change the name, the share or the date. The amount follows the share.',
+  studioMsLabel:         'Milestone',
+  studioMsShare:         'Share',
+  studioMsAmount:        'Amount',
+  studioMsDue:           'Due',
+  studioMsSave:          'Save',
+  studioMsCancel:        'Cancel',
+  studioMsSaved:         'Milestone updated.',
+  studioMsSaveFailed:    'Could not save the milestone.',
+  studioScheduleRemove:  'Remove schedule',
+  studioScheduleKeep:    'Keep',
+  studioScheduleGone:    'Schedule removed.',
+  studioScheduleRemoveFailed: 'Could not remove the schedule.',
+  studioInvoiceDelete:   'Delete invoice',
   studioReminderNone:    'No schedule on this invoice. Add one and you can send reminders for each milestone.', // #18
+  // F-41.17: the door now hands `reason_text` — the sentence the vendor reads —
+  // beside `reason`, the register key the log keeps. This stays as the fallback
+  // for a door that answers neither.
   studioReminderDark:    'Reminders are not sending yet.',
   studioReminderDone:    'Reminder sent.',
   studioReminderFailed:  'Could not send the reminder. Nothing was sent.',

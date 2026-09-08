@@ -1297,6 +1297,20 @@ export function createSchedule(invoiceId: string, milestones: Array<{ label: str
 export function markMilestonePaid(milestoneId: string, amount_paid: number): Promise<{ ok: boolean; milestone: ScheduleMilestone } | ApiErr> {
   return postJson(`/api/v2/vendor/schedules/${milestoneId}/paid`, { amount_paid });
 }
+/**
+ * F-40.215 / R-41.61 — AMEND ONE MILESTONE. The door has accepted exactly these
+ * three fields since G3.4 s1 (`schedules.js:24`) and had no affordance onto it,
+ * so a mistyped label, share or date could only be fixed by cancelling the whole
+ * invoice. `amount_due` is NOT sent: the door recomputes it from the share and the
+ * invoice total, and arithmetic here would be a second home for one number.
+ */
+export function updateMilestone(
+  milestoneId: string,
+  patch: { milestone_label?: string; pct?: number; due_date?: string | null },
+): Promise<{ ok: boolean; milestone: ScheduleMilestone } | ApiErr> {
+  return patchJson(`/api/v2/vendor/schedules/${milestoneId}`, patch);
+}
+
 export function deleteSchedule(invoiceId: string): Promise<{ ok: boolean; deleted: boolean } | ApiErr> {
   return deleteJson(`/api/v2/vendor/invoices/${invoiceId}/schedule`);
 }

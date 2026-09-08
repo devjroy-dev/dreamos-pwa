@@ -90,12 +90,17 @@ export function DetailSheet({
                 letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>Edit Here</button>
 
+              {/* ── R-41.70 §A 4 · IT SAYS WHAT IT DELETES ──────────────────
+                  On an invoice this button sits directly beneath the payment
+                  schedule, and the founder's walk read it as the schedule's. The
+                  schedule has its own Remove in the panel header now; this one
+                  names the invoice so the two can never be confused. */}
               <button type="button" onClick={() => { setConfirmDel(true); setDeleteMsg(null); }} style={{
                 flex: 1, padding: '12px 16px', background: 'transparent',
                 border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
                 fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.red,
                 letterSpacing: '0.32em', textTransform: 'uppercase',
-              }}>Delete</button>
+              }}>{slice === 'invoices' ? 'Delete invoice' : 'Delete'}</button>
             </div>
           ) : deleteMsg ? (
             <div style={{
