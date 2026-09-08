@@ -2,7 +2,22 @@
 
 **Cut by** LE-D under CE-41 **at** dreamos-pwa `44b8590b1e5302313d63d3918308d85dfbf50bf9`, derived fetch-first by command. Rulings read at dream-os `0b27cc67a0bfe3dfc7bc5c9b57bb532df24dd67e`.
 
-**Status:** PROPOSED. Nothing here is on the tree as product. No byte in `app/` or `src/` moves until the veto lands. **Silence is not approval.**
+**Status: RATIFIED 2026-09-09** by the chair under R-41.98 (the founder's veto, delegated in full including `V1`/`V2`).
+
+> **THE RULING, RECORDED.** All 37 strings **KEEP**, with two word changes made in place below and in `concierge-s2-mock.html`:
+> - **S2-5** → `Meta's marketing limit blocked this number. Forward someone else.` — *"so" made it a clause chain; two short sentences instead.*
+> - **S2-12** → `Jaipur first, then everywhere else. A–Z within each.` — *"Both alphabetical" read as a note about the code, not a sentence for the glass.*
+> - **S2-16 KEPT as drawn** — it is the refusal, plain.
+>
+> The four ✎ rewrites stand. The two register-key strikes (**S2-4**, **S2-34**) stand and are recorded as **F-41.76** — a second specimen of F-41.62's class, a machine token where a sentence belongs.
+>
+> **Opens, ruled.** **S2-o1** — no second frame; the pre-filled sheet persists through the OTP as state, she sees it once, and after the code she lands on S2 with her request showing. **S2-o2** — no removal in s2; recorded for s3 beside decline. **S2-o3** — no reason, ever, on the vendor's side; if the founder wants one for his queue it is a field and a later veto.
+>
+> **`P1` on the landing chrome: CONFIRMED.** R-41.94 makes the public link signup, and signup's surface is the landing's.
+>
+> **`I1`: one standing TDW link — `thedreamwedding.in/plan`.** Per-request tokens are s3.
+
+Built against these bytes in D2 (dream-os) and D3 (pwa). No byte in `app/` or `src/` moved for D1.
 
 **Numbering:** `S2-1` onward. This is a **separate register** from seat A's `#1`–`#38` on `TDW_20_VETO_SHEET.md`; the two cannot collide, and a ruling on `#7` never touches `S2-7`.
 
@@ -28,14 +43,14 @@ Frames: `F1-item-374` · `F2-wall-374` · `F3-outsider-374` · `F4-override-374`
 | **S2-2** | F1 | `Forward to someone not on TDW` | the outsider control, same shape |
 | **S2-3** | F1 | `2 of 3` | ✎ was `Forwarded 2 of 3`. The row already sits under a forwards list; the word was doing nothing at 374. |
 | **S2-4** | F1 | `Lead created. 9 Sep.` | ✎ was `Lead created for MAKEUPBYSWATIROY · source tdw_assist · 9 Sep`. The name is the row's own bold; `source tdw_assist` is a register key on vendor-adjacent glass and is struck (the F-41.62 class seat C already filed against G3.4). |
-| **S2-5** | F1, F5 | `Not delivered because of Meta's marketing limit on this number, so forward someone else.` | **the F-41.62 sentence.** One sentence, reason then next step, per R-41.98. Keyed on `131049` in the code-to-words map; the bare code never renders. |
+| **S2-5** | F1, F5 | `Meta's marketing limit blocked this number. Forward someone else.` | **the F-41.62 sentence, as ruled.** Two short sentences: the reason, then the next step. Keyed on `131049` in the code-to-words map; the bare code never renders. |
 | **S2-6** | F5 | `Recorded, not sent. The outsider join alert is off.` | the `dark` row's words. Two short sentences; a state and its reason, no next step because there is none for her. |
 | **S2-7** | F1 | `Close request` | control |
 | **S2-8** | F1 | `Closing tells her nothing.` | ✎ was `Closing tells her nothing. She hears from us only when a vendor is found.` Second clause struck as a clause chain. |
 | **S2-9** | F2 | `TDW vendors · photography` | sheet title, noun phrase |
 | **S2-10** | F2 | `Name or handle` | field placeholder |
 | **S2-11** | F2 | `Forward` / `Sent` | control, and its done-state |
-| **S2-12** | F2 | `Jaipur first, then everywhere else. Both alphabetical.` | ✎ was a one-line explanation of the partition. This says the same in two short sentences and makes the no-ranking refusal visible on the glass. |
+| **S2-12** | F2 | `Jaipur first, then everywhere else. A–Z within each.` | ✎ twice: once for the clause chain, once at the veto. Makes the no-ranking refusal visible on the glass without describing the code. |
 | **S2-13** | F2 | `No matches.` | empty state (not drawn; specified) |
 | **S2-14** | F3 | `Someone not on TDW` | sheet title |
 | **S2-15** | F3 | `Instagram handle` · `WhatsApp number` · `Name` | field labels, noun phrases |
@@ -61,7 +76,7 @@ Frames: `F1-item-374` · `F2-wall-374` · `F3-outsider-374` · `F4-override-374`
 | **S2-24** | `Send me a code` | control, verb |
 | **S2-25** | `We send a code to confirm the number is yours.` | ✎ was `We'll text you a code to check it's really you.` Plainer, and "text" was wrong — it rides WhatsApp. |
 
-**Open for the chair, S2-o1:** the OTP step itself is signup's existing surface and I did not redraw it. If the pre-filled sheet must survive the OTP round-trip visually (she sees her categories again after the code), that is a second frame and I will cut it.
+**S2-o1 — RULED, no second frame.** The pre-filled sheet persists through the OTP as state; after the code she lands on S2 with her request showing. *(As asked:)* the OTP step itself is signup's existing surface and I did not redraw it. If the pre-filled sheet must survive the OTP round-trip visually (she sees her categories again after the code), that is a second frame and I will cut it.
 
 ---
 
@@ -77,7 +92,7 @@ Frames: `F1-item-374` · `F2-wall-374` · `F3-outsider-374` · `F4-override-374`
 | **S2-31** | A2 | `Already forwarded. A new budget won't reach the vendors we asked.` | **the (b) ruling made visible.** The lead keeps the budget it was forwarded with, no re-push; she is told rather than left to assume. |
 | **S2-32** | A2 | `Save changes` | control |
 
-**Open for the chair, S2-o2:** may she **remove** a category she already sent? The frame does not draw it. Removing a forwarded item raises the same question as decline — a lead exists on the vendor's list. My lean is no in s2: un-tick is disabled on a forwarded item, and the founder closes it by hand from the queue.
+**S2-o2 — RULED, no removal in s2**, recorded for s3 beside decline. *(As asked:)* may she **remove** a category she already sent? The frame does not draw it. Removing a forwarded item raises the same question as decline — a lead exists on the vendor's list. My lean is no in s2: un-tick is disabled on a forwarded item, and the founder closes it by hand from the queue.
 
 ---
 
@@ -93,7 +108,7 @@ Graphite, vendor lane. **All strings the chair's under R-41.98.** The card's exi
 | **S2-36** | V2 | `It leaves your list and we offer it to someone else. Ananya is not told.` | the consequence, then the refusal that protects the couple. Two short sentences. |
 | **S2-37** | V2 | `Return it` / `Keep it` | controls, both verbs, symmetrical |
 
-**Open for the chair, S2-o3:** R-41.96 says decline takes no reason. The frame therefore asks for none. If the founder later wants a reason on the forward row for his own reading, that is a field and a second veto, not a tweak.
+**S2-o3 — RULED, no reason ever on the vendor's side.** A reason for the founder's queue would be a field and a later veto. *(As asked:)* R-41.96 says decline takes no reason. The frame therefore asks for none. If the founder later wants a reason on the forward row for his own reading, that is a field and a second veto, not a tweak.
 
 ---
 
@@ -105,11 +120,17 @@ The one ruled byte it records: the gate for a windowed free-form send is a **`fl
 
 ---
 
-## 6 · What the chair is being asked for
+## 6 · Closed — what was asked, and what was ruled
 
-1. **KEEP, or the replacement, beside each of S2-1 … S2-37.**
-2. **Three opens:** S2-o1 (does the pre-filled sheet survive the OTP round-trip visually), S2-o2 (may she remove a forwarded category), S2-o3 (does decline ever carry a reason).
-3. **One derivation to confirm or overturn:** that R-41.94 puts `P1` on the landing's chrome rather than Wine Night (§2 above).
-4. **One sequencing consequence:** `F1`/`F5` are the frame for the F-41.30/.58 build that sits in D0's pwa rider. **Per your §5(i) ruling, that build follows this veto.** If the pwa D0 turn is named before the veto lands, the rider ships without it and the build moves to D3.
+| asked | ruled 2026-09-09 |
+|---|---|
+| KEEP or replace S2-1 … S2-37 | **all KEEP**, two word changes (S2-5, S2-12), S2-16 kept as drawn |
+| S2-o1 · does the sheet survive the OTP visually | **no second frame** — it persists as state; after the code she lands on S2 with her request showing |
+| S2-o2 · may she remove a forwarded category | **no in s2**; recorded for s3 beside decline |
+| S2-o3 · does decline carry a reason | **no, ever, on the vendor's side**; a founder-queue reason is a field and a later veto |
+| `P1`'s ground | **confirmed** — R-41.94 makes it signup, and signup's surface is the landing's |
+| `I1`'s link | **one standing link, `thedreamwedding.in/plan`**; per-request tokens are s3 |
+
+**The sequencing this leaves.** `F1`/`F5` are the frame for the F-41.30/.58 build. Under §5(i) that build follows this veto, and the veto has landed — so **the build now rides the pwa D0 rider**, which cuts when the chair names the turn (seat E's docs ZIP).
 
 **Shot arm:** `node tools/mock_shot.cjs docs/mocks/TDW_20_CONCIERGE/concierge-s2-mock.html` — the seat's container has no font egress, so the PNGs are the founder's to cut if he wants them. The HTML opens in any browser and each frame isolates at `#solo=<data-frame>`.

@@ -1,6 +1,6 @@
 # CE-41 · SEAT D · D1 — the concierge s2 frames · HANDOVER
 
-**Cut by** LE-D **at** dreamos-pwa `44b8590b1e5302313d63d3918308d85dfbf50bf9`. Rulings derived at dream-os `0b27cc67a0bfe3dfc7bc5c9b57bb532df24dd67e`. Both fetch-first by command.
+**Cut by** LE-D **at** dreamos-pwa `44b8590b1e5302313d63d3918308d85dfbf50bf9`, sealed at `60e66cf94d19b1f7ab01e55b48f34988a01e0b1f`, **ratified 2026-09-09** and amended by the ratification rider, **re-pinned to base `8dc7ada0021534cfabd1feee39a1f154f5fdd7e9`** after seat E's E0/E1 landed. Collision derivation, by command: `git diff --stat 60e66cf..8dc7ada -- docs/TDW_CE41_D1_HANDOVER.md docs/mocks/TDW_20_CONCIERGE/` is empty — seat E wrote only into `docs/mocks/COCKPIT/`, so these three files land as authored and revert nothing. Rulings derived at dream-os `0b27cc67a0bfe3dfc7bc5c9b57bb532df24dd67e`. Both fetch-first by command.
 
 **Docs only.** No byte in `app/`, `lib/`, `src/` or `db/` moves. No migration. No bench. Nothing to deploy and nothing that can break a build.
 
@@ -37,18 +37,19 @@ Two of the nine were not style. **S2-4 and S2-34 were removing a register key fr
 - **No couple phone in any outsider-facing byte.**
 - **No bare Meta error code on any glass.** `131049` becomes S2-5's sentence through a code-to-words map; the code lives in the log and on the row.
 
-## 5 · The sequencing this creates
+## 5 · The sequencing this creates — resolved
 
-`F1` and `F5` are the frame for the **F-41.30/.58 build that sits in D0's pwa rider**. Under the chair's §5(i) ruling the build follows this veto. If the pwa D0 turn is named before the veto lands, that rider ships without the forward-panel build and the build moves to D3. **This seat will not cut that build ahead of its veto** (mock-first, c-39.26).
+`F1` and `F5` are the frame for the **F-41.30/.58 build**. Under §5(i) the build follows this veto; **the veto landed 2026-09-09**, so the build rides the **pwa D0 rider** when the chair names that turn. Mock-first (c-39.26) is satisfied: the frame was drawn, vetoed and sealed before a byte of it was cut.
 
-## 6 · Open, for the chair
+## 6 · Closed by the veto, 2026-09-09
 
-1. **S2-1 … S2-37** — KEEP or the replacement.
-2. **S2-o1** — does the pre-filled sheet survive the OTP round-trip visually? (a second frame if yes)
-3. **S2-o2** — may she remove a category already forwarded? (seat leans no in s2)
-4. **S2-o3** — does decline ever carry a reason? (R-41.96 says no; the frame asks for none)
-5. **The `P1` ground** — confirm or overturn §2 above.
-6. **`I1`'s one question** — per-request link, or one standing TDW link.
+All 37 strings **KEEP**. Two word changes, made in place in the mock and the sheet by the ratification rider: **S2-5** → `Meta's marketing limit blocked this number. Forward someone else.` and **S2-12** → `Jaipur first, then everywhere else. A–Z within each.` **S2-16** kept as drawn.
+
+**S2-o1** no second frame, the sheet persists through the OTP as state. **S2-o2** no removal in s2, recorded for s3 beside decline. **S2-o3** no reason ever on the vendor's side. **`P1`'s ground confirmed** — R-41.94 makes it signup. **`I1`** takes one standing link, `thedreamwedding.in/plan`; per-request tokens are s3.
+
+**F-41.76 recorded** against S2-4 and S2-34: a register key (`source tdw_assist`) rendering on admin and vendor glass. A second specimen of F-41.62's class, found by the copy rule rather than by any instrument.
+
+**Seat D's finding range: F-41.76–F-41.85**, derived unused at both origins immediately before allocation (parallel-mint law). F-41.76 is the chair's; F-41.77–.85 are unspent.
 
 ## 7 · Carried, not cured
 
