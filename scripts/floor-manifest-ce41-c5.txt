@@ -1,0 +1,9 @@
+# scripts/floor-manifest-ce41-c5.txt
+# CE-41 · SEAT C · C5 — F-41.56 (the palette jump lands on a same-path push) and
+# F-41.57 (two lines per gate: the short name, then the dotted spec; ruled (a), c-41.24).
+# BASE: 33bede02d2254792ef1d75b0f783ed59fcb11a97 — re-derived at the cut (fetch-first).
+lib/admin-api/switchboardCopy.ts
+app/admin/switchboard/page.tsx
+app/admin/_components/CommandPalette.tsx
+scripts/tdw41_c3_switchboard_copy.proof.mjs
+scripts/floor-manifest-ce41-c5.txt

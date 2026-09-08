@@ -25,12 +25,12 @@ import {
   getCapabilities, flipCapability, setCapabilityAutoOn, checkCapability, sweepCapabilities, getWabaTemplates,
   type CapabilityRow, type CapabilityStatus, type CapabilityKind, type WabaTemplate,
 } from '../../../lib/admin-api/index';
-import { gateSentence, gateMeta } from '../../../lib/admin-api/switchboardCopy';
+import { gateName, gateSpec, gateMeta } from '../../../lib/admin-api/switchboardCopy';
 
 // ── THE WORDS LIVE IN ONE HOME (C3, F-41.52/.53): lib/admin-api/switchboardCopy.ts.
-// Every gate is one sentence naming the recipient, the line and the effect; the
+// Every gate is TWO LINES (F-41.57): the short name, then the dotted spec. The
 // palette reads the same file to match and jump here.
-function nameFor(key: string) { return gateSentence(key); }
+function nameFor(key: string) { return gateName(key); }
 
 const KIND_LABEL: Record<CapabilityKind, string> = {
   flag: 'Features you switch on',
@@ -244,7 +244,8 @@ function GateRow({ row, busy, lit, walkRef, onWalkRef, onFlip, onAutoOn, onCheck
     <div data-gate={row.key} style={{ padding: '12px 0 14px', borderBottom: `0.5px solid ${T.border}`, boxShadow: lit ? `inset 3px 0 0 ${T.gold}` : 'none', paddingLeft: lit ? 10 : 0, transition: 'box-shadow 300ms, padding-left 300ms' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-          <div style={{ fontFamily: T.ff.body, fontSize: 14, color: T.ink, lineHeight: 1.4, maxWidth: 560 }}>{nameFor(row.key)}</div>
+          <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.ink, lineHeight: 1.35, maxWidth: 560 }}>{nameFor(row.key)}</div>
+          <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, lineHeight: 1.45, marginTop: 2, maxWidth: 560 }}>{gateSpec(row.key)}</div>
           <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.muted, letterSpacing: '0.06em', marginTop: 3, wordBreak: 'break-all' }}>{row.key}{gateMeta(row.key) && !row.key.endsWith(gateMeta(row.key) as string) ? ` · ${gateMeta(row.key)}` : ''}</div>
           <div style={{ marginTop: 8, display: 'inline-block', fontFamily: T.ff.body, fontSize: 12, color: ink, borderBottom: `1px solid ${ink}`, paddingBottom: 1 }}>
             {STATUS_WORD[row.status]}

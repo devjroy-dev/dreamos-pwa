@@ -21,7 +21,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { PALETTE_SECTIONS, type Section } from './adminNav';
-import { GATE_KEYS, gateMatches, gateSentence, gateMeta, gatePath } from '../../../lib/admin-api/switchboardCopy';
+import { GATE_KEYS, gateMatches, gateName, gateSpec, gateMeta, gatePath } from '../../../lib/admin-api/switchboardCopy';
 import { adminSearch, getRecentJumps, recordJump, type SearchGroup, type RecentJump } from '@/lib/admin-api/search';
 
 interface Row { key: string; label: string; sub?: string; path: string; group: string; }
@@ -57,7 +57,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
     const needle = q.trim().toLowerCase();
     if (!needle) return [];
     return GATE_KEYS.filter(k => gateMatches(k, needle)).map(k => ({
-      key: `gate:${k}`, label: gateSentence(k), sub: gateMeta(k) ? `${k} · ${gateMeta(k)}` : k, path: gatePath(k), group: 'Switchboard',
+      key: `gate:${k}`, label: gateName(k), sub: `${gateSpec(k)} · ${gateMeta(k) || k}`, path: gatePath(k), group: 'Switchboard',
     }));
   }, [q]);
 
@@ -114,6 +114,20 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
   const jump = useCallback((row: Row) => {
     recordJump(row.label, row.path);   // fire-and-forget, R-A7
     onClose();
+    // ── F-41.56 · A SAME-PATH JUMP MUST STILL LAND ───────────────────────────
+    // `router.push` is `history.pushState`, and pushState NEVER fires
+    // `hashchange` — the spec fires it only on a user-driven hash navigation or
+    // an assignment to `location.hash`. The Switchboard's landing (its
+    // `hashchange` listener) therefore never ran when the palette was opened
+    // FROM the Switchboard: the URL changed, the page sat still, and the founder
+    // scrolled by hand. When the target is the page we are already on, assign
+    // the hash — which does fire the event and does not remount the route.
+    const [pathname, hash] = row.path.split('#');
+    if (hash && typeof window !== 'undefined' && window.location.pathname === pathname) {
+      if (window.location.hash === `#${hash}`) window.dispatchEvent(new HashChangeEvent('hashchange'));
+      else window.location.hash = hash;
+      return;
+    }
     router.push(row.path);
   }, [onClose, router]);
 
