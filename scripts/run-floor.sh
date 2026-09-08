@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 # scripts/run-floor.sh
 #
