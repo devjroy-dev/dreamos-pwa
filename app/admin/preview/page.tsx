@@ -16,7 +16,7 @@ type AvailableVendor = Vendor;
 
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
   useEffect(() => { const t = setTimeout(onDone, 3000); return () => clearTimeout(t); }, [onDone]);
-  return <div style={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', background: '#111', color: '#F8F7F5', fontFamily: "'DM Sans',sans-serif", fontSize: 13, padding: '10px 20px', borderRadius: 100, zIndex: 9999, whiteSpace: 'nowrap' }}>{msg}</div>;
+  return <div style={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)', fontFamily: "'DM Sans',sans-serif", fontSize: 13, padding: '10px 20px', borderRadius: 100, zIndex: 9999, whiteSpace: 'nowrap' }}>{msg}</div>;
 }
 
 export default function PreviewVendorsPage() {
@@ -116,20 +116,20 @@ export default function PreviewVendorsPage() {
 
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontWeight: 200, fontSize: 9, color: '#888580', letterSpacing: '0.25em', textTransform: 'uppercase', margin: '0 0 4px' }}>PLATFORM</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontWeight: 200, fontSize: 9, color: 'var(--atelier-ink-mute)', letterSpacing: '0.25em', textTransform: 'uppercase', margin: '0 0 4px' }}>PLATFORM</p>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: 32, color: '#111', margin: 0 }}>
+          <p style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: 32, color: 'var(--atelier-ink)', margin: 0 }}>
             Preview Vendors
-            <span style={{ fontSize: 16, color: '#888580', marginLeft: 10 }}>({filledCount}/10 slots filled)</span>
+            <span style={{ fontSize: 16, color: 'var(--atelier-ink-mute)', marginLeft: 10 }}>({filledCount}/10 slots filled)</span>
           </p>
           <button onClick={save} disabled={saving} style={{
-            height: 44, padding: '0 24px', background: '#111', color: '#F8F7F5', border: 'none',
+            height: 44, padding: '0 24px', background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)', border: 'none',
             borderRadius: 100, cursor: saving ? 'default' : 'pointer',
             fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
             letterSpacing: '0.18em', textTransform: 'uppercase', opacity: saving ? 0.5 : 1,
           }}>{saving ? 'Saving...' : 'Save Preview →'}</button>
         </div>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: '#888580', margin: '8px 0 0' }}>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: 'var(--atelier-ink-mute)', margin: '8px 0 0' }}>
           These 10 vendors appear in the "Just Exploring" blind swipe preview on the landing page. Only approved vendors can be selected.
         </p>
       </div>
@@ -138,31 +138,31 @@ export default function PreviewVendorsPage() {
 
         {/* Left: 10 slots */}
         <div>
-          <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>PREVIEW ORDER</p>
+          <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>PREVIEW ORDER</p>
           {slots.map((vendor, idx) => (
             <div key={idx} style={{
               display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6,
-              background: vendor ? '#FFFFFF' : '#F8F7F5',
-              border: `0.5px solid ${vendor ? '#E2DED8' : '#EEECE8'}`,
+              background: vendor ? 'var(--atelier-card-bg)' : 'var(--atelier-page-bg)',
+              border: `0.5px solid ${vendor ? 'var(--atelier-card-border)' : 'var(--atelier-card-border)'}`,
               borderRadius: 10, padding: '10px 12px',
             }}>
               {/* Slot number */}
-              <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 200, color: '#C8C4BE', minWidth: 16, textAlign: 'right' }}>{idx + 1}</span>
+              <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 200, color: 'var(--atelier-ink-fade)', minWidth: 16, textAlign: 'right' }}>{idx + 1}</span>
 
               {vendor ? (
                 <>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontWeight: 300, color: '#111', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vendor.name}</p>
-                    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: '#888580', margin: 0 }}>{vendor.category} · {vendor.city}</p>
+                    <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontWeight: 300, color: 'var(--atelier-ink)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vendor.name}</p>
+                    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: 'var(--atelier-ink-mute)', margin: 0 }}>{vendor.category} · {vendor.city}</p>
                   </div>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    <button onClick={() => moveUp(idx)} disabled={idx === 0} style={{ width: 26, height: 26, border: '0.5px solid #E2DED8', borderRadius: 4, background: 'transparent', cursor: idx === 0 ? 'default' : 'pointer', color: '#888580', fontSize: 12, opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
-                    <button onClick={() => moveDown(idx)} disabled={idx === 9 || !slots[idx + 1]} style={{ width: 26, height: 26, border: '0.5px solid #E2DED8', borderRadius: 4, background: 'transparent', cursor: 'pointer', color: '#888580', fontSize: 12, opacity: (idx === 9 || !slots[idx + 1]) ? 0.3 : 1 }}>↓</button>
-                    <button onClick={() => removeFromSlot(idx)} style={{ width: 26, height: 26, border: '0.5px solid #E2DED8', borderRadius: 4, background: 'transparent', cursor: 'pointer', color: '#E57373', fontSize: 14 }}>✕</button>
+                    <button onClick={() => moveUp(idx)} disabled={idx === 0} style={{ width: 26, height: 26, border: '0.5px solid var(--atelier-card-border)', borderRadius: 4, background: 'transparent', cursor: idx === 0 ? 'default' : 'pointer', color: 'var(--atelier-ink-mute)', fontSize: 12, opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
+                    <button onClick={() => moveDown(idx)} disabled={idx === 9 || !slots[idx + 1]} style={{ width: 26, height: 26, border: '0.5px solid var(--atelier-card-border)', borderRadius: 4, background: 'transparent', cursor: 'pointer', color: 'var(--atelier-ink-mute)', fontSize: 12, opacity: (idx === 9 || !slots[idx + 1]) ? 0.3 : 1 }}>↓</button>
+                    <button onClick={() => removeFromSlot(idx)} style={{ width: 26, height: 26, border: '0.5px solid var(--atelier-card-border)', borderRadius: 4, background: 'transparent', cursor: 'pointer', color: 'transparent', fontSize: 14 }}>✕</button>
                   </div>
                 </>
               ) : (
-                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#C8C4BE', fontStyle: 'italic', margin: 0, flex: 1 }}>Empty slot — add a vendor from the right</p>
+                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: 'var(--atelier-ink-fade)', fontStyle: 'italic', margin: 0, flex: 1 }}>Empty slot — add a vendor from the right</p>
               )}
             </div>
           ))}
@@ -171,18 +171,18 @@ export default function PreviewVendorsPage() {
         {/* Right: available vendors */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: 0 }}>APPROVED VENDORS ({available.length})</p>
+            <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: 0 }}>APPROVED VENDORS ({available.length})</p>
           </div>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or category..."
-            style={{ width: '100%', height: 36, padding: '0 12px', border: '0.5px solid #E2DED8', borderRadius: 8, fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: '#111', outline: 'none', marginBottom: 10 }}
+            style={{ width: '100%', height: 36, padding: '0 12px', border: '0.5px solid var(--atelier-card-border)', borderRadius: 8, fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: 'var(--atelier-ink)', outline: 'none', marginBottom: 10 }}
           />
           {loading ? (
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: '#888580' }}>Loading...</p>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: 'var(--atelier-ink-mute)' }}>Loading...</p>
           ) : filtered.length === 0 ? (
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: '#888580', fontStyle: 'italic' }}>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: 'var(--atelier-ink-mute)', fontStyle: 'italic' }}>
               {available.length === 0 ? 'No approved vendors yet. Approve vendors from Discovery Approvals.' : 'No results.'}
             </p>
           ) : (
@@ -190,19 +190,19 @@ export default function PreviewVendorsPage() {
               {filtered.map(v => (
                 <div key={v.id} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '10px 12px', background: '#FFFFFF', border: '0.5px solid #E2DED8',
+                  padding: '10px 12px', background: 'var(--atelier-card-bg)', border: '0.5px solid transparent',
                   borderRadius: 10, marginBottom: 6, gap: 10,
                 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontWeight: 300, color: '#111', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</p>
-                    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: '#888580', margin: 0 }}>{v.category} · {v.city}</p>
+                    <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, fontWeight: 300, color: 'var(--atelier-ink)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</p>
+                    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: 'var(--atelier-ink-mute)', margin: 0 }}>{v.category} · {v.city}</p>
                   </div>
                   <button onClick={() => addToSlot(v)} disabled={filledCount >= 10} style={{
-                    height: 32, padding: '0 12px', background: filledCount >= 10 ? '#F4F1EC' : '#C9A84C',
+                    height: 32, padding: '0 12px', background: filledCount >= 10 ? 'var(--atelier-section-bg)' : 'var(--role-metal)',
                     border: 'none', borderRadius: 100, cursor: filledCount >= 10 ? 'default' : 'pointer',
                     fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300,
                     letterSpacing: '0.12em', textTransform: 'uppercase',
-                    color: filledCount >= 10 ? '#888580' : '#111', flexShrink: 0,
+                    color: filledCount >= 10 ? 'var(--atelier-ink-mute)' : 'var(--atelier-ink)', flexShrink: 0,
                   }}>+ Add</button>
                 </div>
               ))}

@@ -81,16 +81,30 @@ const GROUPS: Group[] = [
     } },
 ];
 
-function keyLabel(key: string): { tier: string; period: string } {
+// F-41.115 — `what · tier`, ruled. `period` used to be the second half of the label and
+// the SURFACE was nowhere: `Basic · Daily` never said daily WHAT. The what carries both
+// the surface and the period, which is the pair a founder reasons about when he is
+// deciding how many turns a tier gets.
+function keyLabel(key: string): { what: string; tier: string; period: string } {
   const parts = key.split('_');
   const tier   = parts[parts.length - 1];
   const period = key.includes('daily') ? 'Daily' : 'Monthly';
-  return { tier: tier.charAt(0).toUpperCase() + tier.slice(1), period };
+  const surface = key.startsWith('couple_wa') ? 'WhatsApp turns'
+                : key.startsWith('vendor_ai') ? 'AI turns'
+                : 'turns';
+  return {
+    what: `${period} ${surface}`,
+    tier: tier.charAt(0).toUpperCase() + tier.slice(1),
+    period,
+  };
 }
 
 export default function ConfigPage() {
   const [rows, setRows]       = useState<ConfigRow[]>([]);
   const [edits, setEdits]     = useState<Record<string, string>>({});
+  // F-41.115 — one key shown at a time, one tap deep. Not a per-row boolean: the founder
+  // opens a key to read it, not to keep a dozen of them open.
+  const [shownKey, setShownKey] = useState<string | null>(null);
   const [saving, setSaving]   = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast]     = useState('');
@@ -136,14 +150,28 @@ export default function ConfigPage() {
               <p style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted, lineHeight: 1.5, marginTop: -8, marginBottom: 16 }}>{group.note}</p>
             )}
             {group.keys.map(key => {
-              const { tier, period } = group.labels?.[key] ?? keyLabel(key);
+              // The Discover keys carry explicit {tier, period} rather than the token-cap
+              // shape, so `what` falls back to their period when they have no surface to name.
+              const named = group.labels?.[key];
+              const { what, tier } = named ? { what: named.period, tier: named.tier } : keyLabel(key);
               const val  = getValue(key);
               const dirty = isDirty(key);
               return (
                 <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 14, marginBottom: 14, borderBottom: `0.5px solid ${T.border}` }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: T.ff.body, fontSize: 13, color: T.ink, marginBottom: 2 }}>{tier} <span style={{ color: T.soft, fontSize: 11 }}>· {period}</span></div>
-                    <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted, letterSpacing: '0.08em' }}>{key}</div>
+                    {/* F-41.115 — THE REGISTER KEY COMES OFF THE GLASS. The row printed
+                        `vendor_ai_daily_basic` under every label: admin language on the
+                        founder's surface, the same argument R-41.82 #21 made on the
+                        Switchboard, which did not reach this room. The plain label reads
+                        `what · tier` — Daily AI turns · Basic — and the key moves one tap
+                        deep beside the value, where a founder who needs it can find it and
+                        a founder reading his caps does not have to step over it. */}
+                    <div style={{ fontFamily: T.ff.body, fontSize: 13, color: T.ink, marginBottom: 2 }}>{what} <span style={{ color: T.soft, fontSize: 11 }}>· {tier}</span></div>
+                    <button
+                      onClick={() => setShownKey(shownKey === key ? null : key)}
+                      style={{ background: 'none', border: 'none', padding: 0, minHeight: 28, cursor: 'pointer',
+                               fontFamily: T.ff.label, fontSize: 8, color: T.dim, letterSpacing: '0.08em', textAlign: 'left' }}
+                    >{shownKey === key ? key : 'key'}</button>
                   </div>
                   <input
                     type="number"

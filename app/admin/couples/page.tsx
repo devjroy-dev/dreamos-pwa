@@ -63,33 +63,33 @@ export default function AdminCouplesPage() {
     return matchS && matchF;
   });
 
-  const lbl: React.CSSProperties = { fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 7, color: '#555250', letterSpacing: '0.22em', textTransform: 'uppercase', display: 'block', marginBottom: 4 };
-  const fld: React.CSSProperties = { width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid #E2DED8', outline: 'none', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: '#111111', padding: '6px 0', marginBottom: 14 };
+  const lbl: React.CSSProperties = { fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 7, color: 'var(--atelier-ink-soft)', letterSpacing: '0.22em', textTransform: 'uppercase', display: 'block', marginBottom: 4 };
+  const fld: React.CSSProperties = { width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid transparent', outline: 'none', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink)', padding: '6px 0', marginBottom: 14 };
 
-  const tierColor = (t: string) => t === 'platinum' ? '#111111' : t === 'signature' ? '#C9A84C' : '#555250';
+  const tierColor = (t: string) => t === 'platinum' ? 'var(--atelier-ink)' : t === 'signature' ? 'var(--role-metal)' : 'var(--atelier-ink-soft)';
 
   return (
     <>
       <style>{fonts}</style>
-      {toast && <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: '#111111', color: '#F8F7F5', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, padding: '10px 20px', borderRadius: 4, zIndex: 9999 }}>{toast}</div>}
+      {toast && <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, padding: '10px 20px', borderRadius: 4, zIndex: 9999 }}>{toast}</div>}
 
       {confirmRevoke && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9998 }}>
-          <div style={{ background: '#FFFFFF', border: '1px solid #E2DED8', borderRadius: 6, padding: 28, maxWidth: 360, width: '90%' }}>
-            <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 22, color: '#111111', marginBottom: 10 }}>Revoke access?</div>
-            <div style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: '#555250', marginBottom: 24 }}>This will lock the Dreamer out of their account.</div>
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--role-scrim)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9998 }}>
+          <div style={{ background: 'var(--atelier-card-bg)', border: '1px solid transparent', borderRadius: 6, padding: 28, maxWidth: 360, width: '90%' }}>
+            <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 22, color: 'var(--atelier-ink)', marginBottom: 10 }}>Revoke access?</div>
+            <div style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: 'var(--atelier-ink-soft)', marginBottom: 24 }}>This will lock the Dreamer out of their account.</div>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => revoke(confirmRevoke)} style={{ background: '#111111', color: '#F8F7F5', border: 'none', padding: '11px 20px', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 2 }}>Revoke</button>
-              <button onClick={() => setConfirmRevoke(null)} style={{ background: 'none', border: 'none', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: '#555250', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => revoke(confirmRevoke)} style={{ background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)', border: 'none', padding: '11px 20px', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 2 }}>Revoke</button>
+              <button onClick={() => setConfirmRevoke(null)} style={{ background: 'none', border: 'none', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: 'var(--atelier-ink-soft)', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </div>
       )}
 
       {showCreate && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 9997 }}>
-          <div style={{ background: '#FFFFFF', borderRadius: '8px 8px 0 0', padding: 28, width: '100%', maxWidth: 480 }}>
-            <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 24, color: '#111111', marginBottom: 20 }}>Create Dreamer</div>
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--role-scrim)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 9997 }}>
+          <div style={{ background: 'var(--atelier-card-bg)', borderRadius: '8px 8px 0 0', padding: 28, width: '100%', maxWidth: 480 }}>
+            <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 24, color: 'var(--atelier-ink)', marginBottom: 20 }}>Create Dreamer</div>
             <label style={lbl}>Name *</label>
             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={fld} />
             <label style={lbl}>Phone *</label>
@@ -101,12 +101,12 @@ export default function AdminCouplesPage() {
             <label style={lbl}>Tier</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
               {['lite', 'signature', 'platinum'].map(t => (
-                <button key={t} onClick={() => setForm(f => ({ ...f, tier: t }))} style={{ padding: '7px 14px', border: `0.5px solid ${form.tier === t ? '#C9A84C' : '#E2DED8'}`, background: form.tier === t ? '#111111' : 'transparent', color: form.tier === t ? '#F8F7F5' : '#555250', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', borderRadius: 3, cursor: 'pointer' }}>{t}</button>
+                <button key={t} onClick={() => setForm(f => ({ ...f, tier: t }))} style={{ padding: '7px 14px', border: `0.5px solid ${form.tier === t ? 'var(--role-metal)' : 'var(--atelier-card-border)'}`, background: form.tier === t ? 'var(--atelier-sheet-bg)' : 'transparent', color: form.tier === t ? 'var(--atelier-ink)' : 'var(--atelier-ink-soft)', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', borderRadius: 3, cursor: 'pointer' }}>{t}</button>
               ))}
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={create} disabled={creating} style={{ flex: 1, background: '#111111', color: '#F8F7F5', border: 'none', padding: '14px 0', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 2 }}>{creating ? 'Creating…' : 'Create Dreamer'}</button>
-              <button onClick={() => setShowCreate(false)} style={{ background: 'none', border: 'none', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: '#555250', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={create} disabled={creating} style={{ flex: 1, background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)', border: 'none', padding: '14px 0', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 2 }}>{creating ? 'Creating…' : 'Create Dreamer'}</button>
+              <button onClick={() => setShowCreate(false)} style={{ background: 'none', border: 'none', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: 'var(--atelier-ink-soft)', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </div>
@@ -114,42 +114,42 @@ export default function AdminCouplesPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 28 }}>
         <div>
-          <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, color: '#555250', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 6 }}>Admin</div>
-          <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 28, color: '#111111' }}>Dreamers</div>
+          <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, color: 'var(--atelier-ink-soft)', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 6 }}>Admin</div>
+          <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 28, color: 'var(--atelier-ink)' }}>Dreamers</div>
         </div>
-        <button onClick={() => setShowCreate(true)} style={{ background: '#111111', color: '#F8F7F5', border: 'none', padding: '11px 20px', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 2 }}>+ Create Dreamer</button>
+        <button onClick={() => setShowCreate(true)} style={{ background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)', border: 'none', padding: '11px 20px', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 2 }}>+ Create Dreamer</button>
       </div>
 
-      <input placeholder="Search dreamers…" value={search} onChange={e => setSearch(e.target.value)} style={{ width: '100%', maxWidth: 340, background: 'transparent', border: 'none', borderBottom: '1px solid #E2DED8', outline: 'none', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: '#111111', padding: '8px 0', marginBottom: 16 }} />
+      <input placeholder="Search dreamers…" value={search} onChange={e => setSearch(e.target.value)} style={{ width: '100%', maxWidth: 340, background: 'transparent', border: 'none', borderBottom: '1px solid transparent', outline: 'none', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: 'var(--atelier-ink)', padding: '8px 0', marginBottom: 16 }} />
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         {(['all', 'lite', 'signature', 'platinum'] as Filter[]).map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{ border: `0.5px solid ${filter === f ? '#C9A84C' : '#E2DED8'}`, background: filter === f ? 'rgba(201,168,76,0.08)' : 'transparent', color: filter === f ? '#C9A84C' : '#555250', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '5px 14px', borderRadius: 20, cursor: 'pointer' }}>{f}</button>
+          <button key={f} onClick={() => setFilter(f)} style={{ border: `0.5px solid ${filter === f ? 'var(--role-metal)' : 'var(--atelier-card-border)'}`, background: filter === f ? 'var(--atelier-row-hover)' : 'transparent', color: filter === f ? 'var(--role-metal)' : 'var(--atelier-ink-soft)', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '5px 14px', borderRadius: 20, cursor: 'pointer' }}>{f}</button>
         ))}
       </div>
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[1,2,3].map(i => <div key={i} style={{ height: 52, background: '#FFFFFF', borderRadius: 4, border: '1px solid #E2DED8', backgroundImage: 'linear-gradient(90deg, #F8F7F5 25%, #F0EEE8 50%, #F8F7F5 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />)}
+          {[1,2,3].map(i => <div key={i} style={{ height: 52, background: 'var(--atelier-card-bg)', borderRadius: 4, border: '1px solid transparent', backgroundImage: 'linear-gradient(90deg, var(--atelier-page-bg) 25%, var(--atelier-section-bg) 50%, var(--atelier-page-bg) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />)}
         </div>
       ) : (
-        <div style={{ background: '#FFFFFF', border: '1px solid #E2DED8', borderRadius: 6, overflow: 'auto' }}>
+        <div style={{ background: 'var(--atelier-card-bg)', border: '1px solid transparent', borderRadius: 6, overflow: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#F8F7F5' }}>
+              <tr style={{ background: 'var(--atelier-page-bg)' }}>
                 {['Name', 'Phone', 'Tier', 'Wedding Date', 'Joined', 'Actions'].map(col => (
-                  <th key={col} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, color: '#555250', letterSpacing: '0.22em', textTransform: 'uppercase' }}>{col}</th>
+                  <th key={col} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, color: 'var(--atelier-ink-soft)', letterSpacing: '0.22em', textTransform: 'uppercase' }}>{col}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={6} style={{ padding: '40px 14px', textAlign: 'center', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: '#555250' }}>Every empty table is a dream yet to find its way here.</td></tr>
+                <tr><td colSpan={6} style={{ padding: '40px 14px', textAlign: 'center', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: 'var(--atelier-ink-soft)' }}>Every empty table is a dream yet to find its way here.</td></tr>
               )}
               {filtered.map(c => (
-                <tr key={c.id} style={{ borderTop: '1px solid #F0EEE8' }}>
-                  <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 400, fontSize: 13, color: '#111111' }}>{c.name || '—'}</td>
-                  <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: '#555250' }}>{c.phone}</td>
+                <tr key={c.id} style={{ borderTop: '1px solid var(--atelier-card-border)' }}>
+                  <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 400, fontSize: 13, color: 'var(--atelier-ink)' }}>{c.name || '—'}</td>
+                  <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink-soft)' }}>{c.phone}</td>
                   <td style={{ padding: '11px 14px' }}>
                     <select value={c.dreamer_type} onChange={e => changeTier(c.id, e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: tierColor(c.dreamer_type), cursor: 'pointer' }}>
                       <option value="lite">Lite</option>
@@ -157,12 +157,12 @@ export default function AdminCouplesPage() {
                       <option value="platinum">Platinum</option>
                     </select>
                   </td>
-                  <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: '#555250' }}>{c.wedding_date ? new Date(c.wedding_date).toLocaleDateString('en-IN') : '—'}</td>
-                  <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: '#555250' }}>{new Date(c.created_at).toLocaleDateString('en-IN')}</td>
+                  <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink-soft)' }}>{c.wedding_date ? new Date(c.wedding_date).toLocaleDateString('en-IN') : '—'}</td>
+                  <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: 'var(--atelier-ink-soft)' }}>{new Date(c.created_at).toLocaleDateString('en-IN')}</td>
                   <td style={{ padding: '11px 14px' }}>
                     <div style={{ display: 'flex', gap: 10 }}>
-                      <a href={`https://thedreamwedding.in/frost`} target="_blank" rel="noreferrer" style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#555250', textDecoration: 'underline' }}>View</a>
-                      <button onClick={() => setConfirmRevoke(c.id)} style={{ background: 'none', border: 'none', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#C0392B', cursor: 'pointer' }}>Revoke</button>
+                      <a href={`https://thedreamwedding.in/frost`} target="_blank" rel="noreferrer" style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--atelier-ink-soft)', textDecoration: 'underline' }}>View</a>
+                      <button onClick={() => setConfirmRevoke(c.id)} style={{ background: 'none', border: 'none', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--role-critical)', cursor: 'pointer' }}>Revoke</button>
                     </div>
                   </td>
                 </tr>

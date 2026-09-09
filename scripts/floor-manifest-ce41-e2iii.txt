@@ -1,0 +1,22 @@
+# scripts/floor-manifest-ce41-e2iii.txt — CE-41 · SEAT E · E2 (iii), THE LIST ROOMS.
+# FLOOR = NAMED BASE, no delta. No cell arrives and none leaves; one widens.
+#
+#   ce41_e2i_cockpit_ink_census  18 -> 40 cells. The list is WIDENED rather than a
+#   second cell added: the argument is identical at every group, and one cell naming
+#   every cured file shows at a glance which rooms are done. Both ways, by command:
+#   30 pass / 10 RED at the uncured tree (5d38798), 40 pass / 0 RED cured.
+#   The rooms (iv) and (v) will cure are listed BY NAME in the cell as not-yet-cured,
+#   so the gap is declared rather than discovered.
+#
+#   ce41_e2ia_accent_ink   9 -> 9    (no new accent ground in the ten rooms)
+#   ce41_e2iia_cockpit_arms 9 -> 9   (the arms are the layout's, unchanged here)
+#
+# THE PROPERTY READER MISSED A TUPLE, AND THE SWEEP CAUGHT IT. collab's statusPill held
+# [ink, ground] PAIRS inside an array literal, where there is no CSS property in front of
+# the value to read — so the pass mapped the ground slot as if it were an ink and produced
+# ink-on-ink. Found by the survivors sweep afterwards, not by the pass. (iv) and (v) must
+# look for colour pairs in data structures rather than trusting the property reader; the
+# note is in collab/page.tsx at the site.
+scripts/ce41_e2i_cockpit_ink_census.mjs
+scripts/ce41_e2ia_accent_ink.mjs
+scripts/ce41_e2iia_cockpit_arms.mjs

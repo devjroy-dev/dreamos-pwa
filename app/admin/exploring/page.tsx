@@ -37,15 +37,15 @@ async function compressImage(file: File): Promise<Blob> {
 
 const labelStyle: React.CSSProperties = {
   fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 7,
-  color: '#555250', letterSpacing: '0.22em', textTransform: 'uppercase',
+  color: 'var(--atelier-ink-soft)', letterSpacing: '0.22em', textTransform: 'uppercase',
   display: 'block', marginBottom: 4,
 };
 
 const fieldStyle: React.CSSProperties = {
   width: '100%', background: 'transparent', border: 'none',
-  borderBottom: '1px solid #E2DED8', outline: 'none',
+  borderBottom: '1px solid transparent', outline: 'none',
   fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13,
-  color: '#111111', padding: '6px 0', marginBottom: 12,
+  color: 'var(--atelier-ink)', padding: '6px 0', marginBottom: 12,
 };
 
 export default function ExploringPhotosAdmin() {
@@ -176,9 +176,9 @@ export default function ExploringPhotosAdmin() {
     } catch { showToast('Delete failed'); }
   };
 
-  const BORDER = '#E2DED8';
-  const MUTED = '#555250';
-  const GOLD = '#C9A84C';
+  const BORDER = 'var(--atelier-card-border)';
+  const MUTED = 'var(--atelier-ink-soft)';
+  const GOLD = 'var(--role-metal)';
 
   const pillStyle = (on: boolean): React.CSSProperties => ({
     display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer',
@@ -187,7 +187,7 @@ export default function ExploringPhotosAdmin() {
     color: on ? GOLD : MUTED,
     border: `0.5px solid ${on ? GOLD : BORDER}`,
     padding: '4px 10px', borderRadius: 20,
-    background: on ? 'rgba(201,168,76,0.06)' : 'transparent',
+    background: on ? 'var(--atelier-row-hover)' : 'transparent',
   });
 
   return (
@@ -201,12 +201,12 @@ export default function ExploringPhotosAdmin() {
       {toast && (
         <div style={{
           position: 'fixed', top: 20, right: 20, zIndex: 999,
-          background: '#111', color: '#fff', padding: '10px 18px',
+          background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-card-bg)', padding: '10px 18px',
           borderRadius: 8, fontFamily: '"DM Sans", sans-serif', fontSize: 13,
         }}>{toast}</div>
       )}
 
-      <div style={{ minHeight: '100vh', background: '#F8F7F5' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--atelier-page-bg)' }}>
         <div style={{ padding: '48px 40px' }}>
 
           {/* Header */}
@@ -214,7 +214,7 @@ export default function ExploringPhotosAdmin() {
             <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, color: MUTED, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 6 }}>
               Platform
             </div>
-            <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 28, color: '#111111', marginBottom: 4 }}>
+            <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 28, color: 'var(--atelier-ink)', marginBottom: 4 }}>
               Just Exploring — Editorial Photos
             </div>
             <div style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: MUTED, lineHeight: 1.6, maxWidth: 560 }}>
@@ -225,18 +225,18 @@ export default function ExploringPhotosAdmin() {
           {/* Save order banner */}
           {orderDirty && (
             <div style={{
-              background: 'rgba(201,168,76,0.06)', border: `1px solid ${GOLD}`,
+              background: 'var(--atelier-row-hover)', border: `1px solid ${GOLD}`,
               borderRadius: 6, padding: '14px 20px', marginBottom: 24,
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
-              <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 13, fontWeight: 300, color: '#111', margin: 0 }}>
+              <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 13, fontWeight: 300, color: 'var(--atelier-ink)', margin: 0 }}>
                 Order changed — save to apply on the landing page.
               </p>
               <button onClick={saveOrder} disabled={savingOrder} style={{
-                height: 36, padding: '0 20px', background: '#111', border: 'none',
+                height: 36, padding: '0 20px', background: 'var(--atelier-sheet-bg)', border: 'none',
                 borderRadius: 4, cursor: 'pointer',
                 fontFamily: '"Jost", sans-serif', fontSize: 9, fontWeight: 300,
-                letterSpacing: '0.18em', textTransform: 'uppercase', color: '#F8F7F5',
+                letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--atelier-ink)',
               }}>{savingOrder ? 'Saving...' : 'Save Order'}</button>
             </div>
           )}
@@ -249,7 +249,7 @@ export default function ExploringPhotosAdmin() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20, marginBottom: 24 }}>
                 {photos.map((photo, idx) => (
                   <div key={photo.id} style={{
-                    background: '#FFFFFF', border: `1px solid ${BORDER}`,
+                    background: 'var(--atelier-card-bg)', border: `1px solid ${BORDER}`,
                     borderRadius: 6, overflow: 'hidden',
                     opacity: photo.active ? 1 : 0.55,
                   }}>
@@ -270,8 +270,8 @@ export default function ExploringPhotosAdmin() {
                         position: 'absolute', top: 8, right: 10,
                         fontFamily: '"Jost", sans-serif', fontSize: 8, fontWeight: 200,
                         letterSpacing: '0.15em', textTransform: 'uppercase',
-                        color: photo.active ? '#4CAF50' : MUTED,
-                        background: 'rgba(255,255,255,0.85)',
+                        color: photo.active ? 'var(--role-positive)' : MUTED,
+                        background: 'var(--atelier-row-hover)',
                         padding: '3px 8px', borderRadius: 100,
                       }}>{photo.active ? '● Live' : '○ Off'}</div>
                     </div>
@@ -289,17 +289,17 @@ export default function ExploringPhotosAdmin() {
                       <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
                         <button onClick={() => movePhoto(idx, 'up')} disabled={idx === 0} style={{
                           flex: 1, height: 30, border: `0.5px solid ${BORDER}`, borderRadius: 4,
-                          background: idx === 0 ? '#F8F7F5' : '#fff',
+                          background: idx === 0 ? 'var(--atelier-page-bg)' : 'var(--atelier-card-bg)',
                           cursor: idx === 0 ? 'default' : 'pointer',
                           fontFamily: '"Jost", sans-serif', fontSize: 10,
-                          color: idx === 0 ? '#ccc' : '#111',
+                          color: idx === 0 ? 'var(--atelier-ink-fade)' : 'var(--atelier-ink)',
                         }}>↑ Up</button>
                         <button onClick={() => movePhoto(idx, 'down')} disabled={idx === photos.length - 1} style={{
                           flex: 1, height: 30, border: `0.5px solid ${BORDER}`, borderRadius: 4,
-                          background: idx === photos.length - 1 ? '#F8F7F5' : '#fff',
+                          background: idx === photos.length - 1 ? 'var(--atelier-page-bg)' : 'var(--atelier-card-bg)',
                           cursor: idx === photos.length - 1 ? 'default' : 'pointer',
                           fontFamily: '"Jost", sans-serif', fontSize: 10,
-                          color: idx === photos.length - 1 ? '#ccc' : '#111',
+                          color: idx === photos.length - 1 ? 'var(--atelier-ink-fade)' : 'var(--atelier-ink)',
                         }}>↓ Down</button>
                       </div>
 
@@ -310,7 +310,7 @@ export default function ExploringPhotosAdmin() {
                         </button>
                         {deleteConfirm === photo.id ? (
                           <button onClick={() => deletePhoto(photo.id)} style={{
-                            background: '#E57373', color: '#fff', border: 'none',
+                            background: 'transparent', color: 'var(--atelier-card-bg)', border: 'none',
                             padding: '4px 12px', borderRadius: 4, cursor: 'pointer',
                             fontFamily: '"Jost", sans-serif', fontSize: 8,
                             letterSpacing: '0.12em', textTransform: 'uppercase',
@@ -331,7 +331,7 @@ export default function ExploringPhotosAdmin() {
                 {/* Add slot */}
                 {!showAdd && (
                   <button onClick={() => setShowAdd(true)} style={{
-                    border: '1px dashed #E2DED8', borderRadius: 6,
+                    border: '1px dashed var(--atelier-card-border)', borderRadius: 6,
                     background: 'transparent', minHeight: 200,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer',
@@ -347,12 +347,12 @@ export default function ExploringPhotosAdmin() {
               {/* Add form */}
               {showAdd && (
                 <div style={{
-                  background: '#FFFFFF', border: `1px solid ${BORDER}`,
+                  background: 'var(--atelier-card-bg)', border: `1px solid ${BORDER}`,
                   borderRadius: 6, padding: 24, maxWidth: 440, marginBottom: 24,
                 }}>
                   <div style={{
                     fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9,
-                    color: '#111', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16,
+                    color: 'var(--atelier-ink)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16,
                   }}>New Editorial Photo</div>
 
                   {/* Upload area */}
@@ -360,9 +360,9 @@ export default function ExploringPhotosAdmin() {
                   <div
                     onClick={() => fileRef.current?.click()}
                     style={{
-                      border: '1px dashed #E2DED8', borderRadius: 6,
+                      border: '1px dashed var(--atelier-card-border)', borderRadius: 6,
                       padding: 20, marginBottom: 12, cursor: 'pointer',
-                      textAlign: 'center', background: '#F8F7F5',
+                      textAlign: 'center', background: 'var(--atelier-page-bg)',
                     }}
                   >
                     {previewUrl ? (
@@ -372,7 +372,7 @@ export default function ExploringPhotosAdmin() {
                         <div style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: MUTED, marginBottom: 8 }}>
                           Uploading... {uploadProgress}%
                         </div>
-                        <div style={{ height: 4, background: '#E2DED8', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ height: 4, background: 'transparent', borderRadius: 2, overflow: 'hidden' }}>
                           <div style={{
                             height: '100%', width: `${uploadProgress}%`,
                             background: GOLD, borderRadius: 2,
@@ -385,7 +385,7 @@ export default function ExploringPhotosAdmin() {
                         <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 10, color: MUTED, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>
                           Click to upload
                         </div>
-                        <div style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: '#888580' }}>
+                        <div style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: 'var(--atelier-ink-mute)' }}>
                           JPG, PNG — max 1920px, high quality
                         </div>
                       </div>
@@ -419,10 +419,10 @@ export default function ExploringPhotosAdmin() {
 
               {photos.length === 0 && !showAdd && (
                 <div style={{
-                  background: '#FFFFFF', border: `0.5px solid ${BORDER}`,
+                  background: 'var(--atelier-card-bg)', border: `0.5px solid ${BORDER}`,
                   borderRadius: 6, padding: '48px 24px', textAlign: 'center', marginTop: 8,
                 }}>
-                  <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 20, fontWeight: 300, color: '#111', margin: '0 0 8px' }}>
+                  <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 20, fontWeight: 300, color: 'var(--atelier-ink)', margin: '0 0 8px' }}>
                     No photos yet.
                   </p>
                   <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 13, fontWeight: 300, color: MUTED, margin: 0 }}>

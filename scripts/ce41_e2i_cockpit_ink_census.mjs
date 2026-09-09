@@ -38,14 +38,40 @@ import { GRAPHITE } from '../lib/worklist/theme.ts';
 // These six are the shell: the layout that mounts the tokens, the one control
 // home, and the four files that read --admin-* roles. The deleted file is asserted
 // separately because "absent" is not something you can grep inside.
+// E2 (iii) WIDENED THIS LIST RATHER THAN ADDING A SECOND CELL. The argument is the
+// same at every group — no colour value, no retired role — and one cell that names
+// every cured file is how a later seat sees at a glance which rooms are done. The
+// rooms (iv) and (v) will cure are absent BY NAME below, so their absence is a
+// statement rather than an oversight.
 const GROUP = [
+  // (i) the shell
   'app/admin/layout.tsx',
   'app/admin/_components/AdminUI.tsx',
   'app/admin/_components/Bridge.tsx',
   'app/admin/_components/MintSheet.tsx',
   'app/admin/_components/CommandPalette.tsx',
   'app/admin/approvals/discover/page.tsx',
+  // (ii) the Bridge and the mode
+  'app/admin/_components/Bridge.tsx',
+  // (iii) the list rooms
+  'app/admin/vendors/page.tsx',
+  'app/admin/couples/page.tsx',
+  'app/admin/messages/page.tsx',
+  'app/admin/collab/page.tsx',
+  'app/admin/images/page.tsx',
+  'app/admin/photos/page.tsx',
+  'app/admin/featured/page.tsx',
+  'app/admin/exploring/page.tsx',
+  'app/admin/discover-heroes/page.tsx',
+  'app/admin/preview/page.tsx',
 ];
+
+// NOT YET CURED, NAMED SO THE GAP IS DECLARED AND NOT DISCOVERED:
+//   (iv) control-dense — config, switchboard, assistance, approvals, control-room
+//   (v)  the rest      — dashboard, data, health, demo, login, makers, dreamers,
+//                        prospects, couture, hot-dates, conversations/*, content/*,
+//                        vendors/portfolio, approvals/photos
+// Their literals are counted in docs/mocks/COCKPIT/COCKPIT_CENSUS.md and stand.
 const DELETED = 'app/admin/_components/tokens.css';
 
 const RE_LITERAL = /#[0-9A-Fa-f]{3}\b(?![0-9A-Fa-f])|#[0-9A-Fa-f]{6}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/g;

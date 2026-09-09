@@ -17,15 +17,15 @@ interface DiscoverHero {
 
 const labelStyle: React.CSSProperties = {
   fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 7,
-  color: '#555250', letterSpacing: '0.22em', textTransform: 'uppercase',
+  color: 'var(--atelier-ink-soft)', letterSpacing: '0.22em', textTransform: 'uppercase',
   display: 'block', marginBottom: 3,
 };
 
 const fieldStyle: React.CSSProperties = {
   width: '100%', background: 'transparent', border: 'none',
-  borderBottom: '1px solid #E2DED8', outline: 'none',
+  borderBottom: '1px solid transparent', outline: 'none',
   fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12,
-  color: '#111111', padding: '6px 0', marginBottom: 10,
+  color: 'var(--atelier-ink)', padding: '6px 0', marginBottom: 10,
 };
 
 // Compress image client-side before upload — same pattern as cover photos
@@ -205,9 +205,9 @@ export default function AdminDiscoverHeroesPage() {
     finally { setSavingOrder(false); }
   };
 
-  const BORDER = '#E2DED8';
-  const MUTED = '#555250';
-  const GOLD = '#C9A84C';
+  const BORDER = 'var(--atelier-card-border)';
+  const MUTED = 'var(--atelier-ink-soft)';
+  const GOLD = 'var(--role-metal)';
 
   const pillStyle = (on: boolean): React.CSSProperties => ({
     display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer',
@@ -216,7 +216,7 @@ export default function AdminDiscoverHeroesPage() {
     color: on ? GOLD : MUTED,
     border: `0.5px solid ${on ? GOLD : BORDER}`,
     padding: '4px 10px', borderRadius: 20, transition: 'all 0.2s ease',
-    background: on ? 'rgba(201,168,76,0.06)' : 'transparent',
+    background: on ? 'var(--atelier-row-hover)' : 'transparent',
   });
 
   return (
@@ -230,12 +230,12 @@ export default function AdminDiscoverHeroesPage() {
       {toast && (
         <div style={{
           position: 'fixed', top: 20, right: 20, zIndex: 999,
-          background: '#111', color: '#fff', padding: '10px 18px',
+          background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-card-bg)', padding: '10px 18px',
           borderRadius: 8, fontFamily: '"DM Sans", sans-serif', fontSize: 13,
         }}>{toast}</div>
       )}
 
-      <div style={{ minHeight: '100vh', background: '#F8F7F5' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--atelier-page-bg)' }}>
         <div style={{ padding: '48px 40px', overflowY: 'auto' }}>
 
           {/* Header */}
@@ -243,7 +243,7 @@ export default function AdminDiscoverHeroesPage() {
             <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, color: MUTED, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 6 }}>
               Discovery
             </div>
-            <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 28, color: '#111111', marginBottom: 4 }}>
+            <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 28, color: 'var(--atelier-ink)', marginBottom: 4 }}>
               Discover Heroes
             </div>
             <div style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: MUTED, lineHeight: 1.6, maxWidth: 560 }}>
@@ -254,18 +254,18 @@ export default function AdminDiscoverHeroesPage() {
           {/* Save order banner */}
           {orderDirty && (
             <div style={{
-              background: 'rgba(201,168,76,0.06)', border: `1px solid ${GOLD}`,
+              background: 'var(--atelier-row-hover)', border: `1px solid ${GOLD}`,
               borderRadius: 6, padding: '14px 20px', marginBottom: 24,
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
-              <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 13, fontWeight: 300, color: '#111', margin: 0 }}>
+              <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 13, fontWeight: 300, color: 'var(--atelier-ink)', margin: 0 }}>
                 Order changed — save to apply on the app.
               </p>
               <button onClick={saveOrder} disabled={savingOrder} style={{
-                height: 36, padding: '0 20px', background: '#111', border: 'none',
+                height: 36, padding: '0 20px', background: 'var(--atelier-sheet-bg)', border: 'none',
                 borderRadius: 4, cursor: 'pointer',
                 fontFamily: '"Jost", sans-serif', fontSize: 9, fontWeight: 300,
-                letterSpacing: '0.18em', textTransform: 'uppercase', color: '#F8F7F5',
+                letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--atelier-ink)',
               }}>{savingOrder ? 'Saving...' : 'Save Order'}</button>
             </div>
           )}
@@ -277,7 +277,7 @@ export default function AdminDiscoverHeroesPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20, marginBottom: 24 }}>
                 {heroes.map((hero, idx) => (
                   <div key={hero.id} style={{
-                    background: '#FFFFFF', border: `1px solid ${BORDER}`,
+                    background: 'var(--atelier-card-bg)', border: `1px solid ${BORDER}`,
                     borderRadius: 6, overflow: 'hidden',
                     opacity: hero.is_active ? 1 : 0.55,
                   }}>
@@ -285,7 +285,7 @@ export default function AdminDiscoverHeroesPage() {
                     <div style={{
                       height: 200, position: 'relative',
                       backgroundImage: hero.image_url ? `url(${hero.image_url})` : undefined,
-                      backgroundColor: hero.image_url ? undefined : '#F4F1EC',
+                      backgroundColor: hero.image_url ? undefined : 'var(--atelier-section-bg)',
                       backgroundSize: 'cover', backgroundPosition: 'center',
                     }}>
                       {/* Slot badge */}
@@ -299,8 +299,8 @@ export default function AdminDiscoverHeroesPage() {
                         position: 'absolute', top: 8, right: 10,
                         fontFamily: '"Jost", sans-serif', fontSize: 8, fontWeight: 200,
                         letterSpacing: '0.15em', textTransform: 'uppercase',
-                        color: hero.is_active ? '#4CAF50' : MUTED,
-                        background: 'rgba(255,255,255,0.85)',
+                        color: hero.is_active ? 'var(--role-positive)' : MUTED,
+                        background: 'var(--atelier-row-hover)',
                         padding: '3px 8px', borderRadius: 100,
                       }}>{hero.is_active ? '● Live' : '○ Off'}</div>
                     </div>
@@ -319,17 +319,17 @@ export default function AdminDiscoverHeroesPage() {
                       <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                         <button onClick={() => moveHero(idx, 'up')} disabled={idx === 0} style={{
                           flex: 1, height: 30, border: `0.5px solid ${BORDER}`, borderRadius: 4,
-                          background: idx === 0 ? '#F8F7F5' : '#fff',
+                          background: idx === 0 ? 'var(--atelier-page-bg)' : 'var(--atelier-card-bg)',
                           cursor: idx === 0 ? 'default' : 'pointer',
                           fontFamily: '"Jost", sans-serif', fontSize: 10,
-                          color: idx === 0 ? '#ccc' : '#111',
+                          color: idx === 0 ? 'var(--atelier-ink-fade)' : 'var(--atelier-ink)',
                         }}>↑ Up</button>
                         <button onClick={() => moveHero(idx, 'down')} disabled={idx === heroes.length - 1} style={{
                           flex: 1, height: 30, border: `0.5px solid ${BORDER}`, borderRadius: 4,
-                          background: idx === heroes.length - 1 ? '#F8F7F5' : '#fff',
+                          background: idx === heroes.length - 1 ? 'var(--atelier-page-bg)' : 'var(--atelier-card-bg)',
                           cursor: idx === heroes.length - 1 ? 'default' : 'pointer',
                           fontFamily: '"Jost", sans-serif', fontSize: 10,
-                          color: idx === heroes.length - 1 ? '#ccc' : '#111',
+                          color: idx === heroes.length - 1 ? 'var(--atelier-ink-fade)' : 'var(--atelier-ink)',
                         }}>↓ Down</button>
                       </div>
 
@@ -343,7 +343,7 @@ export default function AdminDiscoverHeroesPage() {
                               style={{ ...fieldStyle, width: 120, marginBottom: 0, fontSize: 10 }} />
                             <button
                               onClick={async () => { await update(hero.id, { image_url: newUrl }); setEditingUrl(null); setNewUrl(''); }}
-                              style={{ background: '#111111', color: '#F8F7F5', border: 'none', padding: '4px 10px', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 2 }}>
+                              style={{ background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)', border: 'none', padding: '4px 10px', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: 2 }}>
                               Save
                             </button>
                           </div>
@@ -366,7 +366,7 @@ export default function AdminDiscoverHeroesPage() {
                 {/* Add slot button */}
                 {heroes.length < MAX_HEROES && !showAdd && (
                   <button onClick={() => setShowAdd(true)} style={{
-                    border: '1px dashed #E2DED8', borderRadius: 6,
+                    border: '1px dashed var(--atelier-card-border)', borderRadius: 6,
                     background: 'transparent', minHeight: 200,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer',
@@ -382,12 +382,12 @@ export default function AdminDiscoverHeroesPage() {
               {/* Add form */}
               {showAdd && (
                 <div style={{
-                  background: '#FFFFFF', border: `1px solid ${BORDER}`,
+                  background: 'var(--atelier-card-bg)', border: `1px solid ${BORDER}`,
                   borderRadius: 6, padding: 24, maxWidth: 440, marginBottom: 24,
                 }}>
                   <div style={{
                     fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9,
-                    color: '#111', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16,
+                    color: 'var(--atelier-ink)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16,
                   }}>New Hero Photo</div>
 
                   {/* Upload area */}
@@ -395,9 +395,9 @@ export default function AdminDiscoverHeroesPage() {
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     style={{
-                      border: '1px dashed #E2DED8', borderRadius: 6,
+                      border: '1px dashed var(--atelier-card-border)', borderRadius: 6,
                       padding: '20px', marginBottom: 12, cursor: 'pointer',
-                      textAlign: 'center', background: '#F8F7F5',
+                      textAlign: 'center', background: 'var(--atelier-page-bg)',
                     }}
                   >
                     {addForm.image_url ? (
@@ -408,7 +408,7 @@ export default function AdminDiscoverHeroesPage() {
                         <div style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: MUTED, marginBottom: 8 }}>
                           Uploading… {uploadProgress}%
                         </div>
-                        <div style={{ height: 4, background: '#E2DED8', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ height: 4, background: 'transparent', borderRadius: 2, overflow: 'hidden' }}>
                           <div style={{
                             height: '100%', width: `${uploadProgress}%`,
                             background: GOLD, borderRadius: 2,
@@ -421,7 +421,7 @@ export default function AdminDiscoverHeroesPage() {
                         <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 10, color: MUTED, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 }}>
                           Click to upload
                         </div>
-                        <div style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: '#888580' }}>
+                        <div style={{ fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: 'var(--atelier-ink-mute)' }}>
                           JPG, PNG — max 1920px, high quality
                         </div>
                       </div>
@@ -431,9 +431,9 @@ export default function AdminDiscoverHeroesPage() {
 
                   {/* OR divider */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <div style={{ flex: 1, height: '0.5px', background: '#E2DED8' }} />
-                    <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, color: '#888580', letterSpacing: '0.15em' }}>OR PASTE URL</span>
-                    <div style={{ flex: 1, height: '0.5px', background: '#E2DED8' }} />
+                    <div style={{ flex: 1, height: '0.5px', background: 'transparent' }} />
+                    <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, color: 'var(--atelier-ink-mute)', letterSpacing: '0.15em' }}>OR PASTE URL</span>
+                    <div style={{ flex: 1, height: '0.5px', background: 'transparent' }} />
                   </div>
 
                   <input
@@ -456,8 +456,8 @@ export default function AdminDiscoverHeroesPage() {
                       onClick={addHero}
                       disabled={saving || uploading || !addForm.image_url}
                       style={{
-                        background: addForm.image_url ? '#111111' : '#E2DED8',
-                        color: addForm.image_url ? '#F8F7F5' : '#888580',
+                        background: addForm.image_url ? 'var(--atelier-sheet-bg)' : 'transparent',
+                        color: addForm.image_url ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
                         border: 'none', padding: '12px 24px',
                         fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 9,
                         letterSpacing: '0.2em', textTransform: 'uppercase',
@@ -474,10 +474,10 @@ export default function AdminDiscoverHeroesPage() {
 
               {heroes.length === 0 && !showAdd && (
                 <div style={{
-                  background: '#FFFFFF', border: `0.5px solid ${BORDER}`,
+                  background: 'var(--atelier-card-bg)', border: `0.5px solid ${BORDER}`,
                   borderRadius: 6, padding: '48px 24px', textAlign: 'center', marginTop: 8,
                 }}>
-                  <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 20, fontWeight: 300, color: '#111', margin: '0 0 8px' }}>
+                  <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 20, fontWeight: 300, color: 'var(--atelier-ink)', margin: '0 0 8px' }}>
                     No heroes yet.
                   </p>
                   <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 13, fontWeight: 300, color: MUTED, margin: 0 }}>

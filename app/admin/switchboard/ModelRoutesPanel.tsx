@@ -116,7 +116,16 @@ function RoleRow({ lane, role, providers, busy, onPick }: {
   const current = lane.effective[pf] as string | undefined;
   // A split that is not set means the hand FOLLOWS the primary — Donna riding
   // Victor's route rather than her own. The switch shows where she actually is,
-  // which is the primary's provider, and the word beneath says she is following.
+  // which is the primary's provider.
+  //
+  // F-41.118 — THE PROVENANCE WORD IS `borrowed`, AND FOLLOWING IS NOT A SIXTH WORD.
+  // This line used to render `following Victor` IN THE PROVENANCE SLOT, which put a
+  // sixth word on the glass against R-41.103's five — and the definitions panel, which
+  // draws those five once, had no entry for it. It was also the wrong KIND of fact:
+  // the five answer *where did this value come from*, and following answers *whose
+  // value is it*. `borrowed` is already the exact word for a hand with no row of its
+  // own reading another's, so the provenance slot says borrowed and the relationship
+  // moves to its own line beneath, where it is a relationship and not a provenance.
   const following = role !== 'provider' && !current;
   const shown = current ?? (lane.effective.provider as string | undefined);
   const name = roleName(lane.surface, role);
@@ -129,8 +138,13 @@ function RoleRow({ lane, role, providers, busy, onPick }: {
     <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', columnGap: 10, alignItems: 'center', minHeight: 44 }}>
       <div style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted, minWidth: 0 }}>
         {name && <b style={{ display: 'block', fontSize: 12, fontWeight: 400, color: T.soft }}>{name}</b>}
-        {providerName(shown)} · {following ? `following ${roleName(lane.surface, 'provider') || 'the main hand'}` : provenanceWord(lane, role)}
+        {providerName(shown)} · {following ? 'borrowed' : provenanceWord(lane, role)}
         {outside && ' · outside the two this panel offers'}
+        {following && (
+          <span style={{ display: 'block', fontSize: 10, color: T.dim }}>
+            following {roleName(lane.surface, 'provider') || 'the main hand'}
+          </span>
+        )}
       </div>
       <TwoWay
         label={`${name || surfaceName(lane.surface)} — choose who answers`}
