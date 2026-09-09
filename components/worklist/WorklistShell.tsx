@@ -149,7 +149,30 @@ export function WorklistShell({ title, room, children }: {
             seventh tuple and the whole warrant of a closed set is that it is closed.
             Cormorant survives at t0 and t1: the numeral and the page title. */}
         <div className="wl-hstack">
-          <span className="wl-house">The Dream Wedding</span>
+          {/* ── CE-41 · R-41.129 · SEAT E, ONE LABELLED CROSS-SEAT LINE ──────────────
+              This file is the shell seat's. Seat E adds the monogram and nothing else:
+              no rung moves, no token changes, `.wl-house` keeps its t2 and its ink, and
+              the beta row below is untouched.
+
+              WHY IT IS HERE AT ALL (F-B). After R-41.126 the estate had a mark on the
+              landing and a mark in the cockpit and TYPE in the one room a paying vendor
+              lives in — the only masthead she ever looks at. R-41.129 makes all three the
+              same: monogram at 28px (3:1, so 84px wide), the name beside it as type.
+
+              BOTH ARMS. `monogram-gold` is drawn for Graphite; on Chalk its brighter gold
+              sits on white at about 2:1, which is what `monogram-gold-deep` is for. `mode`
+              is already in hand at line 61 — this reads it, it does not fetch a second one.
+
+              alt="TDW": the house name is real text on the very next line, and an image
+              that repeats it makes a screen reader say it twice. */}
+          <span className="wl-housestack">
+            <img
+              className="wl-mono"
+              src={mode === 'light' ? '/brand/monogram-gold-deep.png' : '/brand/monogram-gold.png'}
+              alt="TDW"
+            />
+            <span className="wl-house">The Dream Wedding</span>
+          </span>
           {/* P7.2 · THE BETA MARK (S9, mock frame `P7-badge`). It sits on the LABEL row, after
               the room name, so neither the house name nor the numeral below moves. One rung
               (t5, the label role's own), one token (`--atelier-accent-text`: #68C9B4 Graphite,
@@ -322,6 +345,8 @@ const SHELL_CSS = `
 .wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:16px var(--wl-gutter);display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
 .wl-hstack{display:flex;flex-direction:column;gap:2px;min-width:0}
 .wl-house{font:var(--wl-t2);color:var(--atelier-ink)}
+.wl-housestack{display:flex;align-items:center;gap:9px;min-width:0}
+.wl-mono{height:28px;width:auto;display:block;flex-shrink:0}
 .wl-lbl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-lblrow{display:flex;align-items:baseline;gap:8px;min-width:0}
 .wl-beta{font:var(--wl-t5);letter-spacing:.12em;text-transform:uppercase;color:var(--atelier-accent-text);flex-shrink:0}

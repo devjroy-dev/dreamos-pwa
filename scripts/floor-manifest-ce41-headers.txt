@@ -1,0 +1,20 @@
+# scripts/floor-manifest-ce41-headers.txt — CE-41 · SEAT E · R-41.129, THE MASTHEADS.
+# FLOOR = NAMED BASE, no delta. No cell arrives; one widens.
+#
+#   ce41_brand_family  15 -> 19 cells. Both ways, by command:
+#   15 pass / 4 RED at the uncured tree (2d25573), 19 pass / 0 RED cured.
+#
+# THE TWO NEW ASSERTIONS ARE RULES, NOT SPELLINGS (R-41.121).
+#   · No file under app/ or components/ references lockup-for-{dark,light}-ground.
+#     Not "the three <img> tags this rider fixed" — a fourth masthead written tomorrow
+#     reds tomorrow without anyone editing this cell.
+#   · Each of the three ruled mastheads draws /brand/monogram-gold.png, and the two
+#     with a light arm draw monogram-gold-deep.png as well. The vendor shell and the
+#     cockpit both have arms; the landing hero does not.
+#
+# WHY THE LOCKUP LEFT THE SCREEN. F-A, walked by the founder: it is 8.52:1, so at the
+# 23px this seat shipped (faithful to R-41.126's "same height") it rendered 158px wide
+# with its caps at 7px — a third under the shell's own type floor. The monogram is 3:1:
+# 28px tall is 84px wide, the mass the italic wordmark had. The lockup is print and the
+# PDF cover now.
+scripts/ce41_brand_family.mjs

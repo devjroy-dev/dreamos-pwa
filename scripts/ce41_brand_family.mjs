@@ -97,6 +97,44 @@ if (existsSync('app/favicon.ico') && existsSync(`${BRAND}/favicon.ico`)) {
   red('app/favicon.ico and the family\'s .ico both exist', 'one of them is missing');
 }
 
+// ── R-41.129 · THE LOCKUP IS FOR PRINT, AND NO SCREEN MAY DRAW IT ───────────
+// F-A: the horizontal lockup is 8.52:1, so at any height that fits a 374 header its
+// words fall under the shell's 11px type floor — 7px at the 23px this seat shipped.
+// The masthead is the monogram; the lockup belongs to print and the PDF cover. This
+// asserts the RULE (no screen surface references the lockup file) rather than the
+// spelling of the three <img> tags that were fixed, so a fourth masthead added
+// tomorrow reds tomorrow.
+{
+  const surfaces = [...walk('app'), ...walk('components')].filter((f) => /\.(tsx|ts|jsx|js|css)$/.test(f));
+  const offenders = [];
+  for (const f of surfaces) {
+    const src = readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    if (/lockup-for-(dark|light)-ground/.test(src)) offenders.push(f);
+  }
+  if (offenders.length) red('no screen surface draws the horizontal lockup (R-41.129)', offenders.join('\n      '));
+  else green('no screen surface draws the horizontal lockup (R-41.129)');
+}
+
+// ── EVERY MASTHEAD IS THE MONOGRAM, AND BOTH ARMS EXIST ─────────────────────
+// Three surfaces were ruled: the landing header, the cockpit masthead, the vendor
+// shell's. Each must draw a monogram; the two that have a light arm must draw both.
+{
+  const MASTHEADS = [
+    ['app/(landing)/page.tsx', false],
+    ['app/admin/layout.tsx', true],
+    ['components/worklist/WorklistShell.tsx', true],
+  ];
+  for (const [f, twoArms] of MASTHEADS) {
+    if (!existsSync(f)) { red(`${f} — present`, 'a ruled masthead is missing'); continue; }
+    const src = readFileSync(f, 'utf8');
+    const gold = /\/brand\/monogram-gold\.png/.test(src);
+    const deep = /\/brand\/monogram-gold-deep\.png/.test(src);
+    if (!gold) { red(`${f} — draws the monogram`, 'no /brand/monogram-gold.png'); continue; }
+    if (twoArms && !deep) { red(`${f} — draws both arms' monograms`, 'has gold, no gold-deep; on Chalk the brighter gold sits on white at about 2:1'); continue; }
+    green(twoArms ? `${f} — monogram, both arms` : `${f} — monogram`);
+  }
+}
+
 // ── THE MASKABLE PURPOSE IS DECLARED, AND ONCE ───────────────────────────────
 // A maskable icon served as `any` gets letterboxed on Android; an `any` icon served as
 // maskable gets its edges cropped. The purpose is the whole point of the third file.

@@ -306,22 +306,32 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
             his ruling; aria-label carries the word. */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ minWidth: 0 }}>
-            {/* R-41.126 (d) — THE COCKPIT MASTHEAD IS THE LOCKUP.
-                Cormorant italic 22 became a 25px image: 22 × 1.15 is the line box the type
-                occupied, so the Control Room line beneath does not move.
+            {/* R-41.129 — THE MONOGRAM, AND THE NAME BESIDE IT AS TYPE.
+                F-A: the horizontal lockup at 25px rendered 213px wide with its words at
+                8px. The monogram is 3:1 — 28px tall is 84px wide, the mass the Cormorant
+                italic 22 had — and `The Dream Wedding` is type again, which is the only
+                form of it that survives a small screen.
 
-                TWO LOCKUPS, BECAUSE THE COCKPIT HAS TWO ARMS (R-41.112). The dark-ground
-                lockup is a gold seal drawn to sit on Graphite; on Chalk it is gold on white,
-                which is the case `lockup-for-light-ground.png` exists for. The mode is read
-                from the cockpit's own lane, the same `useMode()` the scope and the Bridge's
-                control read — one authority, not a third. THE SPEC NAMED ONLY THE DARK
-                LOCKUP; swapping by arm is this seat's reading of it and is flagged for the
-                founder's veto rather than presented as the ruling. */}
-            <img
-              src={mastheadMode === 'light' ? '/brand/lockup-for-light-ground.png' : '/brand/lockup-for-dark-ground.png'}
-              alt="The Dream Wedding"
-              style={{ height: 25, width: 'auto', display: 'block' }}
-            />
+                TWO MONOGRAMS, BECAUSE THE COCKPIT HAS TWO ARMS (R-41.112). `monogram-gold`
+                is drawn for Graphite; on Chalk its brighter gold sits on white at roughly
+                2:1, which is what `monogram-gold-deep` exists for. The arm comes from the
+                cockpit's own lane through the same `useMode()` the scope and the Bridge's
+                control read — one authority, not a third.
+
+                `alt="TDW"` and not the full name: the name is real text two nodes along,
+                and an image that repeats it makes a screen reader say it twice. */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+              <img
+                src={mastheadMode === 'light' ? '/brand/monogram-gold-deep.png' : '/brand/monogram-gold.png'}
+                alt="TDW"
+                style={{ height: 28, width: 'auto', display: 'block' }}
+              />
+              <div>
+                <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontWeight: 400, fontSize: 17, color: 'var(--role-metal)', letterSpacing: '0.01em', lineHeight: 1.1 }}>
+                  The Dream Wedding
+                </div>
+              </div>
+            </div>
             <div style={{ fontFamily: '"Jost",sans-serif', fontWeight: 400, fontSize: 9, color: 'var(--atelier-ink-mute)', letterSpacing: '0.34em', textTransform: 'uppercase', marginTop: 6 }}>
               Control Room
             </div>

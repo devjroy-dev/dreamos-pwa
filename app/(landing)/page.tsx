@@ -771,27 +771,33 @@ export default function Home() {
               {/* Brand row */}
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
                 <div>
-                  {/* R-41.126 (c) — THE WORDMARK BECOMES THE LOCKUP, AT ITS OWN HEIGHT.
-                      The type it replaces was Cormorant italic 20/1.15, so the image is
-                      23px tall and the row's baseline alignment is untouched. `alt` carries
-                      the words the picture now says, because a header whose brand is an
-                      image says nothing to a screen reader or to a search crawler without
-                      it. The dark-ground lockup: this header sits on the landing's dark
-                      hero, which does not have a light arm. */}
-                  <img
-                    src="/brand/lockup-for-dark-ground.png"
-                    alt="The Dream Wedding"
-                    style={{ height: 23, width: 'auto', display: 'block' }}
-                  />
-                  {/* F-09.14 resolves to ONE line, founder-ruled (R-O11): `The Wedding OS`
-                      replaces BOTH `THE CURATED WEDDING OS` and `India's First Wedding OS`
-                      at all three homes — here, the exploring sites, and the document
-                      description meta in app/layout.tsx. */}
-                  <p style={{
-                    fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 7,
-                    letterSpacing: '0.32em', textTransform: 'uppercase',
-                    color: '#C9A84C', margin: '4px 0 0',
-                  }}>The Wedding OS</p>
+                  {/* R-41.129 — THE MASTHEAD IS THE MONOGRAM, AND THE WORDS STAY TYPE.
+                      F-A: the horizontal lockup is 8.52:1, so sizing it by the HEIGHT of
+                      the type it replaced (23px, faithful to R-41.126's words) rendered it
+                      158px wide with its caps at 7px — a third under the shell's own type
+                      floor, and unreadable on the founder's glass. The lockup is for print
+                      and the PDF cover now. The monogram is 3:1: at 28px tall it is 84px
+                      wide, which is the mass the italic wordmark had, and the words beside
+                      it are type that can be read at any size.
+                      ONE ROW: monogram left, THE WEDDING OS right, per the founder's own
+                      instruction. `alt` is the monogram's own words — the row's other half
+                      is real text, so the image must not repeat it. */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <img
+                      src="/brand/monogram-gold.png"
+                      alt="TDW"
+                      style={{ height: 28, width: 'auto', display: 'block' }}
+                    />
+                    {/* F-09.14 resolves to ONE line, founder-ruled (R-O11): `The Wedding OS`
+                        replaces BOTH `THE CURATED WEDDING OS` and `India's First Wedding OS`
+                        at all three homes — here, the exploring sites, and the document
+                        description meta in app/layout.tsx. */}
+                    <p style={{
+                      fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 7,
+                      letterSpacing: '0.32em', textTransform: 'uppercase',
+                      color: '#C9A84C', margin: 0,
+                    }}>The Wedding OS</p>
+                  </div>
                 </div>
               </div>
 
