@@ -771,33 +771,26 @@ export default function Home() {
               {/* Brand row */}
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
                 <div>
-                  {/* R-41.129 — THE MASTHEAD IS THE MONOGRAM, AND THE WORDS STAY TYPE.
-                      F-A: the horizontal lockup is 8.52:1, so sizing it by the HEIGHT of
-                      the type it replaced (23px, faithful to R-41.126's words) rendered it
-                      158px wide with its caps at 7px — a third under the shell's own type
-                      floor, and unreadable on the founder's glass. The lockup is for print
-                      and the PDF cover now. The monogram is 3:1: at 28px tall it is 84px
-                      wide, which is the mass the italic wordmark had, and the words beside
-                      it are type that can be read at any size.
-                      ONE ROW: monogram left, THE WEDDING OS right, per the founder's own
-                      instruction. `alt` is the monogram's own words — the row's other half
-                      is real text, so the image must not repeat it. */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <img
-                      src="/brand/monogram-gold.png"
-                      alt="TDW"
-                      style={{ height: 28, width: 'auto', display: 'block' }}
-                    />
-                    {/* F-09.14 resolves to ONE line, founder-ruled (R-O11): `The Wedding OS`
-                        replaces BOTH `THE CURATED WEDDING OS` and `India's First Wedding OS`
-                        at all three homes — here, the exploring sites, and the document
-                        description meta in app/layout.tsx. */}
-                    <p style={{
-                      fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 7,
-                      letterSpacing: '0.32em', textTransform: 'uppercase',
-                      color: '#C9A84C', margin: 0,
-                    }}>The Wedding OS</p>
-                  </div>
+                  {/* R-41.134 — REVERTED TO TYPE (c-41.74, the chair's).
+                      R-41.126 made this the horizontal lockup and R-41.129 the monogram;
+                      the founder ruled both back off the mastheads. The seal keeps the
+                      icons, the favicon, the WhatsApp profiles and the PDF cover, where it
+                      is drawn at a size that holds it. These bytes are the ones that stood
+                      before the brand riders, restored from 6116627 and not re-typed. */}
+                  <p style={{
+                    fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic',
+                    fontWeight: 300, fontSize: 20, color: '#F8F7F5',
+                    margin: 0, lineHeight: 1.15, letterSpacing: '0.02em',
+                  }}>The Dream Wedding</p>
+                  {/* F-09.14 resolves to ONE line, founder-ruled (R-O11): `The Wedding OS`
+                      replaces BOTH `THE CURATED WEDDING OS` and `India's First Wedding OS`
+                      at all three homes — here, the exploring sites, and the document
+                      description meta in app/layout.tsx. */}
+                  <p style={{
+                    fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 7,
+                    letterSpacing: '0.32em', textTransform: 'uppercase',
+                    color: '#C9A84C', margin: '4px 0 0',
+                  }}>The Wedding OS</p>
                 </div>
               </div>
 

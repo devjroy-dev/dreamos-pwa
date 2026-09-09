@@ -1,0 +1,37 @@
+# scripts/floor-manifest-ce41-revert.txt — CE-41 · SEAT E · R-41.134, THE MASTHEADS REVERT.
+# FLOOR = NAMED BASE, no delta. No cell arrives, none leaves; one INVERTS.
+#
+#   ce41_brand_family  19 -> 19 cells. Both ways, by command:
+#   17 pass / 2 RED at the uncured tree, 19 pass / 0 RED cured.
+#
+#   RE-BASED 7b76858 -> d9d37e4d. The guard refused the first cut: seat D's D3 pwa landed
+#   between the cut and the apply, which is the guard doing exactly its job — nothing was
+#   copied. Collision derivation over this rider's five files: empty. D3 touched
+#   app/admin/assistance/page.tsx, lib/admin-api/assistance.ts and its own bench.
+#
+#   ONE COUNT MOVED AND IT IS NOT THIS RIDER'S: ce41_e2ia_accent_ink 15 -> 16. D3's
+#   optional tick above Forward is a sixteenth saturated ground, and it is GREEN — seat D
+#   wrote it with the right ink without being told. Disclosed rather than absorbed.
+#   b20_a3_assistance_pwa reads 127/127 at this base.
+#
+# THE ASSERTION INVERTED AND THE CELL SAYS SO. It began as `every masthead draws the
+# monogram` (R-41.129, four cells). R-41.134 ruled the mark off the mastheads: the
+# lockup failed at header width (F-A) and the monogram failed at 16px in a tab (F-C).
+# The rule is now `no file under app/ or components/ references a lockup or a monogram`,
+# plus `each of the three mastheads holds the house name as TYPE` — asserted by what
+# they hold, because a sweep that only checked for absence would pass a masthead
+# somebody deleted outright.
+#
+# THE CELL FOUND A LIVE DEFECT IN THE FOUNDER'S OWN FAVICON FIX. 7b76858 cut the new
+# single-glyph favicon into public/brand/ but app/favicon.ico — Next's convention, the
+# file the tab actually serves — still held the old three-letter .ico this seat copied
+# there at R-41.126 (5463 bytes, ink 0→63, no margin; the family's is 3158 bytes, ink
+# 18→46, margins 18/17). The tab would have kept serving the mark the founder had just
+# replaced. Cured here by copying the family's file, which is what the `byte for byte`
+# assertion existed to catch.
+#
+# AND THE CELL WAS WRONG ONCE: the type assertion matched `>Name<` by exact adjacency
+# and redded the cockpit masthead, which is correct but sits on its own line. A cell that
+# reads JSX by adjacency is asserting formatting, not the rule; it is whitespace-tolerant
+# now.
+scripts/ce41_brand_family.mjs

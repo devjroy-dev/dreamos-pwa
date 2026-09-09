@@ -278,9 +278,9 @@ function DomainSections({ domain, onNavigate }: { domain: Domain; onNavigate: ()
 }
 
 function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: () => void }) {
-  // R-41.126 (d) — the masthead's arm. Read from the cockpit's own lane through the same
-  // provider the scope and the Bridge's control use; nothing here decides a mode.
-  const { mode: mastheadMode } = useMode();
+  // R-41.134 — the masthead's arm read is gone with the image it fed. `useMode` is still
+  // imported by this file for AdmScope, which is the cockpit's one mode authority; this
+  // component no longer needs it and does not hold a second read of it.
   const router = useRouter();
   const pathname = usePathname();
 
@@ -306,31 +306,11 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
             his ruling; aria-label carries the word. */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ minWidth: 0 }}>
-            {/* R-41.129 — THE MONOGRAM, AND THE NAME BESIDE IT AS TYPE.
-                F-A: the horizontal lockup at 25px rendered 213px wide with its words at
-                8px. The monogram is 3:1 — 28px tall is 84px wide, the mass the Cormorant
-                italic 22 had — and `The Dream Wedding` is type again, which is the only
-                form of it that survives a small screen.
-
-                TWO MONOGRAMS, BECAUSE THE COCKPIT HAS TWO ARMS (R-41.112). `monogram-gold`
-                is drawn for Graphite; on Chalk its brighter gold sits on white at roughly
-                2:1, which is what `monogram-gold-deep` exists for. The arm comes from the
-                cockpit's own lane through the same `useMode()` the scope and the Bridge's
-                control read — one authority, not a third.
-
-                `alt="TDW"` and not the full name: the name is real text two nodes along,
-                and an image that repeats it makes a screen reader say it twice. */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-              <img
-                src={mastheadMode === 'light' ? '/brand/monogram-gold-deep.png' : '/brand/monogram-gold.png'}
-                alt="TDW"
-                style={{ height: 28, width: 'auto', display: 'block' }}
-              />
-              <div>
-                <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontWeight: 400, fontSize: 17, color: 'var(--role-metal)', letterSpacing: '0.01em', lineHeight: 1.1 }}>
-                  The Dream Wedding
-                </div>
-              </div>
+            {/* R-41.134 — REVERTED TO TYPE (c-41.74). The lockup, then the monogram,
+                then neither: the founder ruled the mark off every masthead. Restored from
+                6116627 rather than re-typed, so the bytes are the ones that stood. */}
+            <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontWeight: 400, fontSize: 22, color: 'var(--role-metal)', letterSpacing: '-0.01em', lineHeight: 1 }}>
+              The Dream Wedding
             </div>
             <div style={{ fontFamily: '"Jost",sans-serif', fontWeight: 400, fontSize: 9, color: 'var(--atelier-ink-mute)', letterSpacing: '0.34em', textTransform: 'uppercase', marginTop: 6 }}>
               Control Room

@@ -97,41 +97,52 @@ if (existsSync('app/favicon.ico') && existsSync(`${BRAND}/favicon.ico`)) {
   red('app/favicon.ico and the family\'s .ico both exist', 'one of them is missing');
 }
 
-// ── R-41.129 · THE LOCKUP IS FOR PRINT, AND NO SCREEN MAY DRAW IT ───────────
-// F-A: the horizontal lockup is 8.52:1, so at any height that fits a 374 header its
-// words fall under the shell's 11px type floor — 7px at the 23px this seat shipped.
-// The masthead is the monogram; the lockup belongs to print and the PDF cover. This
-// asserts the RULE (no screen surface references the lockup file) rather than the
-// spelling of the three <img> tags that were fixed, so a fourth masthead added
-// tomorrow reds tomorrow.
+// ── R-41.134 · NO MASTHEAD DRAWS THE MARK AT ALL ────────────────────────────
+// THIS ASSERTION INVERTED, AND IT IS WRITTEN DOWN RATHER THAN QUIETLY SWAPPED.
+// It began (R-41.129) as `every masthead draws the monogram` — four cells naming the
+// three ruled surfaces. R-41.134 ruled the mark off the mastheads entirely: the lockup
+// failed at header width (F-A, 8.52:1, caps at 7px), the monogram failed at 16px in a
+// browser tab (F-C, three italic serif letters over five pixels each), and the founder
+// took both back to type. The seal keeps the icons, the favicon, the WhatsApp profiles
+// and the PDF cover — every surface where it is drawn at a size that holds it.
+//
+// So the rule now is the opposite one, and it is still a RULE and not a list (R-41.121):
+// NO file under app/ or components/ references a lockup or a monogram. A fourth masthead
+// written tomorrow that reaches for the mark reds tomorrow, with nobody editing this cell.
+//
+// WHAT STAYS LAWFUL: the <link rel="icon"> and <link rel="apple-touch-icon"> tags in
+// app/layout.tsx. Those are icons, not mastheads, and they are asserted above — this
+// sweep matches only the two mark filenames, so it cannot red on them.
 {
   const surfaces = [...walk('app'), ...walk('components')].filter((f) => /\.(tsx|ts|jsx|js|css)$/.test(f));
   const offenders = [];
   for (const f of surfaces) {
     const src = readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
-    if (/lockup-for-(dark|light)-ground/.test(src)) offenders.push(f);
+    if (/lockup-for-(dark|light)-ground|monogram-gold(-deep)?\.png/.test(src)) offenders.push(f);
   }
-  if (offenders.length) red('no screen surface draws the horizontal lockup (R-41.129)', offenders.join('\n      '));
-  else green('no screen surface draws the horizontal lockup (R-41.129)');
+  if (offenders.length) red('no screen surface draws the lockup or the monogram (R-41.134)', offenders.join('\n      '));
+  else green('no screen surface draws the lockup or the monogram (R-41.134)');
 }
 
-// ── EVERY MASTHEAD IS THE MONOGRAM, AND BOTH ARMS EXIST ─────────────────────
-// Three surfaces were ruled: the landing header, the cockpit masthead, the vendor
-// shell's. Each must draw a monogram; the two that have a light arm must draw both.
+// THE THREE REVERTED MASTHEADS ARE TYPE. Asserted by what they DO hold rather than by
+// what they no longer do: a sweep that only checked for absence would pass a masthead
+// somebody deleted outright.
 {
   const MASTHEADS = [
-    ['app/(landing)/page.tsx', false],
-    ['app/admin/layout.tsx', true],
-    ['components/worklist/WorklistShell.tsx', true],
+    ['app/(landing)/page.tsx', 'The Dream Wedding'],
+    ['app/admin/layout.tsx', 'The Dream Wedding'],
+    ['components/worklist/WorklistShell.tsx', 'The Dream Wedding'],
   ];
-  for (const [f, twoArms] of MASTHEADS) {
+  for (const [f, words] of MASTHEADS) {
     if (!existsSync(f)) { red(`${f} — present`, 'a ruled masthead is missing'); continue; }
     const src = readFileSync(f, 'utf8');
-    const gold = /\/brand\/monogram-gold\.png/.test(src);
-    const deep = /\/brand\/monogram-gold-deep\.png/.test(src);
-    if (!gold) { red(`${f} — draws the monogram`, 'no /brand/monogram-gold.png'); continue; }
-    if (twoArms && !deep) { red(`${f} — draws both arms' monograms`, 'has gold, no gold-deep; on Chalk the brighter gold sits on white at about 2:1'); continue; }
-    green(twoArms ? `${f} — monogram, both arms` : `${f} — monogram`);
+    // Whitespace-tolerant: the cockpit's masthead sits on its own line inside its div,
+    // so `>The Dream Wedding<` never matches. The first cut of this assertion redded a
+    // masthead that is correct — a cell that reads JSX by exact adjacency is asserting
+    // formatting, not the rule.
+    const asText = new RegExp('>\\s*' + words.replace(/ /g, '\\s+') + '\\s*<');
+    if (asText.test(src)) green(`${f} — the house name is type`);
+    else red(`${f} — the house name is type`, `no plain "${words}" text node found`);
   }
 }
 
