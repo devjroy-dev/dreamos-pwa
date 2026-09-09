@@ -6,46 +6,79 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactNode, DragEvent as ReactDragEvent } from 'react';
+import { TYPE_ROLE } from '@/lib/worklist/theme';
 
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
+// R-41.71/.72/.75 — THE VALUES ARE GONE; THE NAMES ARE NOT.
+//
+// `T` used to hold navy, oxblood and warm ivory as literals, read at 522 sites in
+// 16 files. Every key below now resolves to a var() emitted by lib/worklist/theme.ts
+// — the same emitter the vendor rooms mount — so all 522 sites take the shell's
+// colour without one of them being edited. The keys keep their names ON PURPOSE:
+// `gold` has meant "the primary accent" here since CE-10 and is a symbol, not
+// chrome (R-41.75); renaming it would be a 522-site diff carrying no meaning.
+//
+// WHY A JS OBJECT OF var() STRINGS AND NOT A SECOND TOKEN FILE. R-41.72 ruled one
+// home and one read-path: these are not values, they are POINTERS at the home. A
+// site reading T.ink emits `color: var(--atelier-ink)` — the same string the
+// vendor rooms write by hand. If the shell retints, this file changes nothing.
+//
+// THE FOUR THAT DIED (⊘-2, R-40.129 ①): goldSoft, dangerSoft, successSoft and the
+// tinted disabled ground were role colours used as GROUNDS. A role is an ink and
+// an edge, never a fill. They are kept as keys pointing at `transparent` rather
+// than deleted, because deleting them is a 28-site diff in pages this rider does
+// not open — and a key that renders nothing is honest, where a key that renders a
+// pink slab is not. The pages that read them are re-tokened in E2 (iii)–(v) and
+// the keys go when their last reader does.
 export const T = {
-  // Backgrounds — deep navy chrome
-  bg:           '#0A0F18',
-  surface:      '#0F1622',
-  card:         'rgba(255,255,255,0.055)',
-  cardHover:    'rgba(255,255,255,0.09)',
-  sheet:        '#0F1622',
+  // Grounds
+  bg:           'var(--atelier-page-bg)',
+  surface:      'var(--atelier-card-bg)',
+  card:         'var(--atelier-card-bg)',
+  cardHover:    'var(--atelier-row-hover)',
+  sheet:        'var(--atelier-sheet-bg)',
 
-  // Borders — neutral hairlines; oxblood reserved for focus
-  border:       'rgba(255,255,255,0.10)',
-  borderStrong: 'rgba(255,255,255,0.18)',
-  borderFocus:  'rgba(196,64,88,0.55)',
+  // Hairlines, two weights. Focus is the shell's accent, not a third edge colour.
+  border:       'var(--atelier-card-border)',
+  borderStrong: 'var(--atelier-sheet-border)',
+  borderFocus:  'var(--atelier-accent-text)',
 
-  // Colour — oxblood spark. Key name kept as `gold` so no page/call-site needs editing.
-  gold:         '#C44058',
-  goldDim:      'rgba(196,64,88,0.70)',
-  goldSoft:     'rgba(196,64,88,0.18)',
+  // The accent. `gold` is the key's name and teal is its value: the cockpit's
+  // primary is the shell's primary, and the oxblood is gone with the navy.
+  gold:         'var(--atelier-accent-text)',
+  goldDim:      'var(--atelier-ink-mute)',
+  goldSoft:     'transparent',
 
-  // Text — warm ivory (pairs with navy + oxblood)
-  ink:          '#F0EAE0',
-  soft:         'rgba(240,234,224,0.62)',
-  muted:        'rgba(240,234,224,0.42)',
-  dim:          'rgba(240,234,224,0.22)',
+  // The ink ladder — five rungs, the shell's own.
+  ink:          'var(--atelier-ink)',
+  soft:         'var(--atelier-ink-soft)',
+  muted:        'var(--atelier-ink-mute)',
+  dim:          'var(--atelier-ink-fade)',
 
-  // Semantic — danger nudged orange so the red Deny chip never reads as oxblood
-  danger:       '#E0574E',
-  dangerSoft:   'rgba(224,87,78,0.15)',
-  success:      '#4EC994',
-  successSoft:  'rgba(78,201,148,0.15)',
-  warning:      '#D4A017',
+  // Roles. Inks and edges only.
+  danger:       'var(--role-critical)',
+  dangerSoft:   'transparent',
+  success:      'var(--role-positive)',
+  successSoft:  'transparent',
+  warning:      'var(--role-caution)',
+  metal:        'var(--role-metal)',
+  onAccent:     'var(--role-ink-deep)',
 
-  // Fonts
+  // Fonts. R-41.77 put type in scope: the shell runs two families and six rungs,
+  // and Jost is retired (R-38.4). `label` is kept as a key and points at the body
+  // family so the 211 call sites that name it do not each need editing in this
+  // rider; the rungs replace the sizes group by group in E2 (ii)–(v).
+  // TYPE_ROLE is imported, not transcribed: typeCss emits the rungs as whole font
+  // shorthands (--wl-t0…t5), so there is no --wl-tN-family to read and a var() here
+  // would have resolved to its fallback forever — a pointer that never points is a
+  // hollow green. The two families come from the same export the rungs are built
+  // from, so this file still holds no font name of its own.
   ff: {
-    display: '"Cormorant Garamond", serif',
-    body:    '"DM Sans", sans-serif',
-    label:   '"Jost", sans-serif',
+    display: TYPE_ROLE.feature,
+    body:    TYPE_ROLE.body,
+    label:   TYPE_ROLE.body,
   },
 };
 
@@ -61,7 +94,7 @@ export function PageHeader({ title, sub, action }: {
             Rose #C44058 measured 3.31:1 on the retiring navy and 3.84:1 on the
             espresso ground — better, and still under the 4.5 body bar both times.
             tokens.css's own P1 header convicted it once; R-B1's arithmetic
-            convicts it again. `--admin-ink-mute` measures 5.73:1.
+            convicts it again. `--atelier-ink-mute` measures 5.73:1.
             WIDENING DISCLOSED: PageHeader is shared by 16 admin screens, so this
             ONE PROPERTY moves the eyebrow on all of them. That is a strict gain
             everywhere and is why it was not localised to the Bridge — 15 screens
@@ -73,7 +106,7 @@ export function PageHeader({ title, sub, action }: {
             chevron, a section divider) are NOT eyebrows and are NOT touched. They
             belong to whatever sitting re-values T itself. */}
         {sub && (
-          <p style={{ fontFamily:T.ff.label, fontWeight:600, fontSize:10, color:'var(--admin-ink-mute)', letterSpacing:'0.14em', textTransform:'uppercase', marginTop:9, marginBottom:0 }}>{sub}</p>
+          <p style={{ fontFamily:T.ff.label, fontWeight:600, fontSize:10, color:'var(--atelier-ink-mute)', letterSpacing:'0.14em', textTransform:'uppercase', marginTop:9, marginBottom:0 }}>{sub}</p>
         )}
       </div>
       {action && <div style={{ flexShrink:0, marginTop:4 }}>{action}</div>}
@@ -108,19 +141,28 @@ export function GoldBtn({ label, onClick, disabled, small }: {
       onMouseUp={() => setPressed(false)}
       onMouseLeave={() => setPressed(false)}
       style={{
-        background: disabled ? T.goldSoft : T.gold,
-        border:'none', borderRadius:10,
-        padding: small ? '9px 16px' : '13px 22px',
-        fontFamily:T.ff.label, fontWeight:300,
-        fontSize: small ? 9 : 10,
-        letterSpacing:'0.2em', textTransform:'uppercase',
-        color: disabled ? T.goldDim : T.ink,
-        minHeight: small ? 38 : 44,
+        // R-41.75 — the shell's `.wl-btn.pri` (components/worklist/WorklistShell.tsx:251,257),
+        // carried by value because that rule lives in a room's CSS and cannot be
+        // imported. A digest cell holds the donor honest.
+        // DISABLED IS THE GHOST SHAPE, NOT THE FILLED ONE AT HALF OPACITY. F-41.66:
+        // the shell's own `:disabled{opacity:.5}` over an accent ground gives a muddy
+        // slab that still reads as the page's main action. The shell's cure is the
+        // shell seat's; the cockpit does not wait for it.
+        background: disabled ? 'transparent' : T.gold,
+        border: disabled ? `0.5px solid ${T.border}` : '0.5px solid transparent',
+        borderRadius: 3,
+        padding: small ? '0 12px' : '0 16px',
+        font: small ? 'var(--wl-t5)' : 'var(--wl-t4)',
+        letterSpacing: '0.08em', textTransform: 'uppercase',
+        color: disabled ? T.muted : T.onAccent,
+        minHeight: small ? 36 : 44,
         cursor: disabled ? 'not-allowed' : 'pointer',
-        whiteSpace:'nowrap',
+        whiteSpace: 'nowrap',
         transform: pressed && !disabled ? 'scale(0.97)' : 'scale(1)',
-        transition:`all 120ms ${EASE}`,
-        boxShadow: pressed || disabled ? 'none' : '0 2px 12px rgba(196,64,88,0.22)',
+        transition: `all 120ms ${EASE}`,
+        // The oxblood glow dies with the oxblood (⊘-3, R-40.60): a shadow in an
+        // accent colour is decoration, and the shell draws none.
+        boxShadow: 'none',
       }}
     >
       {label}
@@ -141,17 +183,20 @@ export function GhostBtn({ label, onClick, danger, small, disabled }: {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        background: hov ? (danger ? T.dangerSoft : 'rgba(240,234,224,0.04)') : 'transparent',
-        border:`0.5px solid ${danger ? (hov ? T.danger : 'rgba(217,88,88,0.4)') : T.borderStrong}`,
-        borderRadius:10,
-        padding: small ? '9px 16px' : '13px 22px',
-        fontFamily:T.ff.label, fontWeight:200,
-        fontSize: small ? 9 : 10,
-        letterSpacing:'0.2em', textTransform:'uppercase',
-        color: col, minHeight: small ? 38 : 44,
-        whiteSpace:'nowrap', cursor: disabled ? 'not-allowed' : 'pointer',
+        // The shell's `.gho` / `.dan` (components/worklist/StudioSheets.tsx:468-469).
+        // They live in a room's SHEET_CSS rather than the shell's own register —
+        // F-41.47, the P7.2 hoist missed two classes — so they are carried by value
+        // here and the hoist stays the shell seat's to cut.
+        background: hov && !disabled ? 'var(--atelier-row-hover)' : 'transparent',
+        border: `0.5px solid ${danger ? T.danger : T.border}`,
+        borderRadius: 3,
+        padding: small ? '0 12px' : '0 16px',
+        font: small ? 'var(--wl-t5)' : 'var(--wl-t4)',
+        letterSpacing: '0.08em', textTransform: 'uppercase',
+        color: col, minHeight: small ? 36 : 44,
+        whiteSpace: 'nowrap', cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
-        transition:`all 150ms ${EASE}`,
+        transition: `all 150ms ${EASE}`,
       }}
     >
       {label}
@@ -165,8 +210,12 @@ export function GhostBtn({ label, onClick, danger, small, disabled }: {
 export function ActionChip({ label, tone, onClick, disabled }: {
   label: string; tone: 'ok' | 'no' | 'neutral'; onClick: () => void; disabled?: boolean;
 }) {
-  const map = { ok: [T.success, T.successSoft], no: [T.danger, T.dangerSoft], neutral: [T.gold, T.goldSoft] } as const;
-  const [c, bg] = map[tone];
+  // ⊘-2, R-40.129 ① — THE TINTED GROUND DIES. `successSoft` / `dangerSoft` /
+  // `goldSoft` were role colours used as fills; a role is an ink and an edge. The
+  // tone now reaches the edge and the label only, which is the shape the vendor
+  // rooms' own verbs already draw.
+  const map = { ok: T.success, no: T.danger, neutral: T.gold } as const;
+  const c = map[tone];
   const [pressed, setPressed] = useState(false);
   return (
     <button
@@ -174,11 +223,11 @@ export function ActionChip({ label, tone, onClick, disabled }: {
       disabled={disabled}
       onMouseDown={() => setPressed(true)} onMouseUp={() => setPressed(false)} onMouseLeave={() => setPressed(false)}
       style={{
-        flex: 1, background: disabled ? 'rgba(255,255,255,0.04)' : bg,
+        flex: 1, background: 'transparent',
         border: `0.5px solid ${disabled ? T.border : c}`,
         color: disabled ? T.muted : c,
-        fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
-        borderRadius: 9, minHeight: 44, cursor: disabled ? 'not-allowed' : 'pointer',
+        font: 'var(--wl-t5)', letterSpacing: '0.08em', textTransform: 'uppercase',
+        borderRadius: 3, minHeight: 44, cursor: disabled ? 'not-allowed' : 'pointer',
         transform: pressed && !disabled ? 'scale(0.97)' : 'scale(1)',
         transition: `all 120ms ${EASE}`,
       }}
@@ -216,8 +265,12 @@ export function ActionChip({ label, tone, onClick, disabled }: {
 export function ActionLink({ label, tone, href }: {
   label: string; tone: 'ok' | 'no' | 'neutral'; href: string;
 }) {
-  const map = { ok: [T.success, T.successSoft], no: [T.danger, T.dangerSoft], neutral: [T.gold, T.goldSoft] } as const;
-  const [c, bg] = map[tone];
+  // ⊘-2, R-40.129 ① — THE TINTED GROUND DIES. `successSoft` / `dangerSoft` /
+  // `goldSoft` were role colours used as fills; a role is an ink and an edge. The
+  // tone now reaches the edge and the label only, which is the shape the vendor
+  // rooms' own verbs already draw.
+  const map = { ok: T.success, no: T.danger, neutral: T.gold } as const;
+  const c = map[tone];
   const [pressed, setPressed] = useState(false);
   return (
     <a
@@ -227,11 +280,11 @@ export function ActionLink({ label, tone, href }: {
       onClick={(e) => { e.stopPropagation(); }}
       onMouseDown={() => setPressed(true)} onMouseUp={() => setPressed(false)} onMouseLeave={() => setPressed(false)}
       style={{
-        flex: 1, background: bg,
+        flex: 1, background: 'transparent',
         border: `0.5px solid ${c}`,
         color: c,
-        fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
-        borderRadius: 9, minHeight: 44, cursor: 'pointer',
+        font: 'var(--wl-t5)', letterSpacing: '0.08em', textTransform: 'uppercase',
+        borderRadius: 3, minHeight: 44, cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
         transform: pressed ? 'scale(0.97)' : 'scale(1)',
         transition: `all 120ms ${EASE}`,
@@ -299,12 +352,12 @@ export function Toast({ msg, onDone, error }: { msg: string; onDone: () => void;
       // offset simply lifts the toast a little.
       position:'fixed', bottom:'calc(env(safe-area-inset-bottom,0px) + 76px)',
       left:'50%', transform:'translateX(-50%)',
-      background: error ? '#2A1010' : '#0F1F14',
+      background: error ? 'var(--atelier-sheet-bg)' : 'var(--atelier-sheet-bg)',
       border:`0.5px solid ${error ? T.danger : T.success}`,
       color: error ? T.danger : T.success,
       fontFamily:T.ff.label, fontSize:11, fontWeight:300, letterSpacing:'0.14em',
       padding:'11px 22px', borderRadius:100, zIndex:9999,
-      whiteSpace:'nowrap', boxShadow:'0 8px 40px rgba(0,0,0,0.6)',
+      whiteSpace:'nowrap', boxShadow:'0 8px 40px var(--role-scrim)',
       animation:`toastIn 240ms ${EASE} both`,
     }}>
       <style>{`@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`}</style>
@@ -333,13 +386,13 @@ export function FieldInput({ label, value, onChange, placeholder, type = 'text',
         onBlur={() => setFocused(false)}
         style={{
           width:'100%',
-          background: focused ? 'rgba(196,64,88,0.04)' : 'rgba(255,255,255,0.03)',
+          background: focused ? 'var(--atelier-input-bg)' : 'var(--atelier-card-bg)',
           border:`0.5px solid ${focused ? T.borderFocus : T.border}`,
           borderRadius:9, padding:'12px 14px',
           fontFamily:T.ff.body, fontSize:14, fontWeight:300, color:T.ink,
           outline:'none', minHeight:46,
           transition:`all 200ms ${EASE}`,
-          boxShadow: focused ? `0 0 0 3px rgba(196,64,88,0.07)` : 'none',
+          boxShadow: focused ? `0 0 0 3px var(--atelier-row-hover)` : 'none',
         }}
       />
     </div>
@@ -370,17 +423,17 @@ export function FieldSelect({ label, value, onChange, options, hint }: {
           onBlur={() => setFocused(false)}
           style={{
             width:'100%',
-            background: focused ? 'rgba(196,64,88,0.04)' : '#10171F',
+            background: focused ? 'var(--atelier-input-bg)' : 'var(--atelier-sheet-bg)',
             border:`0.5px solid ${focused ? T.borderFocus : T.border}`,
             borderRadius:9, padding:'12px 36px 12px 14px',
             fontFamily:T.ff.body, fontSize:14, fontWeight:300, color:T.ink,
             outline:'none', minHeight:46, appearance:'none',
             transition:`all 200ms ${EASE}`,
-            boxShadow: focused ? `0 0 0 3px rgba(196,64,88,0.07)` : 'none',
+            boxShadow: focused ? `0 0 0 3px var(--atelier-row-hover)` : 'none',
             cursor:'pointer',
           }}
         >
-          {options.map(o => <option key={o.value} value={o.value} style={{ background:'#10171F' }}>{o.label}</option>)}
+          {options.map(o => <option key={o.value} value={o.value} style={{ background:'var(--atelier-sheet-bg)' }}>{o.label}</option>)}
         </select>
         {/* Custom chevron */}
         <span style={{ position:'absolute', right:13, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:T.goldDim, fontSize:11, fontFamily:T.ff.label }}>▾</span>
@@ -455,7 +508,7 @@ export function BottomSheet({ visible, onClose, title, children }: {
         onClick={onClose}
         style={{
           position:'fixed', inset:0, zIndex:300,
-          background:'rgba(0,0,0,0.72)',
+          background:'var(--atelier-overlay)',
           backdropFilter:'blur(6px)', WebkitBackdropFilter:'blur(6px)',
           opacity: visible ? opacity : 0,
           pointerEvents: visible ? 'auto' : 'none',
@@ -471,7 +524,10 @@ export function BottomSheet({ visible, onClose, title, children }: {
         onTouchEnd={onTouchEnd}
         style={{
           position:'fixed', bottom:0, left:0, right:0, zIndex:301,
-          background:'linear-gradient(180deg, #161310 0%, #111009 100%)',
+          // ⊘-3 — THE SHEET'S GRADIENT DIES. The shell is flat: one sheet ground, and the
+          // shell's own sheet draws sheet-top → sheet-bot only where it lifts off the
+          // page. Here it was two espresso stops nobody could name apart on a phone.
+          background:'var(--atelier-sheet-bg)',
           border:`0.5px solid ${T.border}`,
           borderTop:`0.5px solid ${T.borderStrong}`,
           borderRadius:'20px 20px 0 0',
@@ -493,7 +549,7 @@ export function BottomSheet({ visible, onClose, title, children }: {
           <span style={{ fontFamily:T.ff.display, fontStyle:'italic', fontSize:24, fontWeight:300, color:T.ink, letterSpacing:'-0.01em' }}>{title}</span>
           <button
             onClick={onClose}
-            style={{ background:'rgba(255,255,255,0.05)', border:`0.5px solid ${T.border}`, borderRadius:'50%', width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:T.soft, fontSize:14, flexShrink:0, transition:`all 150ms ${EASE}` }}
+            style={{ background:'var(--atelier-card-bg)', border:`0.5px solid ${T.border}`, borderRadius:'50%', width:34, height:34, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:T.soft, fontSize:14, flexShrink:0, transition:`all 150ms ${EASE}` }}
           >✕</button>
         </div>
 
@@ -528,7 +584,7 @@ export function UploadZone({ onFile, onUrl, loading, accept = 'image/*' }: {
   return (
     <div style={{ background:T.card, border:`0.5px solid ${T.border}`, borderRadius:14, padding:20, marginBottom:24 }}>
       {/* Tab switcher */}
-      <div style={{ display:'flex', gap:8, marginBottom:16, background:'rgba(255,255,255,0.03)', borderRadius:9, padding:3 }}>
+      <div style={{ display:'flex', gap:8, marginBottom:16, background:'var(--atelier-card-bg)', borderRadius:9, padding:3 }}>
         {(['file','url'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{ flex:1, padding:'9px 0', background: tab===t ? T.card : 'transparent', border: tab===t ? `0.5px solid ${T.border}` : 'none', borderRadius:7, fontFamily:T.ff.label, fontSize:9, fontWeight: tab===t ? 300 : 200, letterSpacing:'0.2em', textTransform:'uppercase', color: tab===t ? T.gold : T.muted, cursor:'pointer', minHeight:36, transition:`all 150ms ${EASE}` }}>
             {t === 'file' ? 'From Device' : 'From URL'}
@@ -562,7 +618,7 @@ export function UploadZone({ onFile, onUrl, loading, accept = 'image/*' }: {
             onFocus={() => setUrlFocus(true)}
             onBlur={() => setUrlFocus(false)}
             placeholder="https://res.cloudinary.com/…"
-            style={{ flex:1, background: urlFocus ? 'rgba(196,64,88,0.04)' : 'rgba(255,255,255,0.03)', border:`0.5px solid ${urlFocus ? T.borderFocus : T.border}`, borderRadius:9, padding:'12px 14px', fontFamily:T.ff.body, fontSize:13, color:T.ink, outline:'none', minHeight:46, transition:`all 200ms ${EASE}` }}
+            style={{ flex:1, background: urlFocus ? 'var(--atelier-input-bg)' : 'var(--atelier-card-bg)', border:`0.5px solid ${urlFocus ? T.borderFocus : T.border}`, borderRadius:9, padding:'12px 14px', fontFamily:T.ff.body, fontSize:13, color:T.ink, outline:'none', minHeight:46, transition:`all 200ms ${EASE}` }}
           />
           <GoldBtn label={loading ? '…' : 'Add'} onClick={() => { if(url.trim()){onUrl(url.trim());setUrl('');} }} disabled={!url.trim()||loading} />
         </div>
@@ -597,8 +653,8 @@ export function ImageGrid({ items, onToggle, onDelete }: {
   return (
     <>
       {confirmId && (
-        <div onClick={() => setConfirmId(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:400, display:'flex', alignItems:'center', justifyContent:'center', padding:24, backdropFilter:'blur(8px)' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background:'#161310', border:`0.5px solid ${T.border}`, borderRadius:18, padding:28, maxWidth:320, width:'100%' }}>
+        <div onClick={() => setConfirmId(null)} style={{ position:'fixed', inset:0, background:'var(--atelier-overlay)', zIndex:400, display:'flex', alignItems:'center', justifyContent:'center', padding:24, backdropFilter:'blur(8px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background:'var(--atelier-sheet-bg)', border:`0.5px solid ${T.border}`, borderRadius:18, padding:28, maxWidth:320, width:'100%' }}>
             <div style={{ fontFamily:T.ff.display, fontStyle:'italic', fontSize:22, color:T.ink, marginBottom:8 }}>Delete image?</div>
             <div style={{ fontFamily:T.ff.body, fontSize:13, color:T.soft, marginBottom:24, lineHeight:1.6 }}>This also removes it from Cloudinary. Cannot be undone.</div>
             <div style={{ display:'flex', gap:10 }}>
@@ -611,12 +667,12 @@ export function ImageGrid({ items, onToggle, onDelete }: {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:12 }}>
         {items.map(item => (
           <div key={item.id} style={{ background:T.card, border:`0.5px solid ${item.active ? T.borderStrong : T.border}`, borderRadius:13, overflow:'hidden', opacity:item.active ? 1 : 0.45, transition:`all 200ms ${EASE}` }}>
-            <div style={{ aspectRatio:'3/4', position:'relative', overflow:'hidden', background:'#1A1614' }}>
+            <div style={{ aspectRatio:'3/4', position:'relative', overflow:'hidden', background:'var(--atelier-section-bg)' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={item.image_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }} loading="lazy" />
               {!item.active && (
-                <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <span style={{ fontFamily:T.ff.label, fontSize:8, letterSpacing:'0.22em', color:'rgba(255,255,255,0.45)', textTransform:'uppercase' }}>Inactive</span>
+                <div style={{ position:'absolute', inset:0, background:'var(--role-scrim)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <span style={{ fontFamily:T.ff.label, fontSize:8, letterSpacing:'0.22em', color:'var(--atelier-ink-mute)', textTransform:'uppercase' }}>Inactive</span>
                 </div>
               )}
             </div>
@@ -666,7 +722,7 @@ export function Counter({ current, max }: { current: number; max: number }) {
   return (
     <div style={{ display:'flex', alignItems:'center', gap:14, background:T.card, border:`0.5px solid ${full ? T.gold : T.border}`, borderRadius:10, padding:'12px 16px', marginBottom:20 }}>
       <div style={{ flex:1, height:3, background:T.border, borderRadius:2, overflow:'hidden' }}>
-        <div style={{ height:'100%', width:`${pct}%`, background: full ? T.gold : 'rgba(196,64,88,0.45)', borderRadius:2, transition:`width 500ms ${EASE}` }} />
+        <div style={{ height:'100%', width:`${pct}%`, background: full ? T.gold : T.muted, borderRadius:2, transition:`width 500ms ${EASE}` }} />
       </div>
       <span style={{ fontFamily:T.ff.label, fontSize:10, fontWeight:200, color: full ? T.gold : T.soft, letterSpacing:'0.12em', whiteSpace:'nowrap', flexShrink:0 }}>{current} / {max}</span>
     </div>
@@ -686,7 +742,7 @@ export function SearchBar({ value, onChange, placeholder = 'Search…' }: {
         placeholder={placeholder}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        style={{ width:'100%', background: focused ? 'rgba(196,64,88,0.04)' : 'rgba(255,255,255,0.03)', border:`0.5px solid ${focused ? T.borderFocus : T.border}`, borderRadius:10, padding:'11px 14px 11px 38px', fontFamily:T.ff.body, fontSize:14, fontWeight:300, color:T.ink, outline:'none', minHeight:44, transition:`all 200ms ${EASE}` }}
+        style={{ width:'100%', background: focused ? 'var(--atelier-input-bg)' : 'var(--atelier-card-bg)', border:`0.5px solid ${focused ? T.borderFocus : T.border}`, borderRadius:10, padding:'11px 14px 11px 38px', fontFamily:T.ff.body, fontSize:14, fontWeight:300, color:T.ink, outline:'none', minHeight:44, transition:`all 200ms ${EASE}` }}
       />
       {value && (
         <button onClick={() => onChange('')} style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:T.muted, fontSize:16, cursor:'pointer', padding:4 }}>×</button>
@@ -723,7 +779,7 @@ export function Row({ children, onClick, danger }: {
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      style={{ background: hov && onClick ? 'rgba(196,64,88,0.03)' : 'transparent', border:`0.5px solid ${danger ? 'rgba(217,88,88,0.2)' : T.border}`, borderRadius:12, padding:'14px 18px', marginBottom:8, cursor:onClick?'pointer':'default', transition:`all 150ms ${EASE}` }}
+      style={{ background: hov && onClick ? 'var(--atelier-row-hover)' : 'transparent', border:`0.5px solid ${danger ? 'var(--role-critical)' : T.border}`, borderRadius:12, padding:'14px 18px', marginBottom:8, cursor:onClick?'pointer':'default', transition:`all 150ms ${EASE}` }}
     >
       {children}
     </div>

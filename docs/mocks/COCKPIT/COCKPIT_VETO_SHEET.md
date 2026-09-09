@@ -1,5 +1,9 @@
 # CE-41 · SEAT E · THE COCKPIT ON THE SHELL'S TOKENS — THE VETO SHEET (E1, amended at E1a)
 
+**STAMPED AT E2 (i), 2026-09-09** — the frames in this folder were re-shot at `1619cae` and now carry R-41.102 (a template is its flag's second line, and a flag carries every template its door sends), the standing row above the groups (fork B), and §D true to the wire: six surfaces, six tiers with Basic first and Trial last and read-only, the five provenance words with their definitions one tap deep in a new frame `E1-switchboard-words`, and `Fill gaps after an app chat` for what was falsely called Harvest prospects (F-41.109). `wa_couple`'s live switch and the bride lane's `server` are drawn as the founder witnessed them on his walk, 2026-09-09 05:45. Between `81570ed` and this rider the Switchboard frames were stale by R-41.102; that window is closed here.
+
+**c-41.44** — this seat's count correction (32 gates, 9 ratified in E1, 23 on the verb sheet) collided with seat F's number and moved from c-41.36 to c-41.44. The sheet's earlier reference to c-41.36 is superseded by this line.
+
 **STATUS: RATIFIED, 2026-09-09** — #1–#44 kept, ten bytes amended at the veto. The amendments are folded into the tables below, so **the table shows what ships**; each amended row is marked **(amended)** and carries the seat's original for the record. The frames in this folder were re-shot at E1a against the amended words, so the pictures and the tables agree.
 
 **Mock:** `docs/mocks/COCKPIT/cockpit-mock.html` · ten frames, eleven captures (`E1-grid` is primary and shot twice, 374 and 390) · authored at dreamos-pwa `dfc8f27e508868ef58108d0d6ea6a66183fd3057`, derived at origin.

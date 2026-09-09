@@ -1,0 +1,15 @@
+# scripts/floor-manifest-ce41-e2i.txt — CE-41 · SEAT E · E2 (i), THE SHELL.
+# FLOOR = NAMED BASE, no delta. Counts are disclosed, never padded.
+#
+# ONE CELL LEAVES AND ONE ARRIVES, AND THEY ARE NOT THE SAME SIZE.
+#   OUT  scripts/tdw10_p2_retint.proof.mjs — 76 cells (55 pass / 21 RED at 1619cae).
+#        Retired by R-41.78: its subject, app/admin/_components/tokens.css, is
+#        deleted by R-41.73. The file stays on disk exiting 0 with its reason,
+#        so the floor's movement has a name rather than a hole.
+#   IN   scripts/ce41_e2i_cockpit_ink_census.mjs — 18 cells.
+#        Both ways, by command: 3 pass / 15 RED at the uncured tree (1619cae),
+#        18 pass / 0 RED at the cured tree. The red is non-vacuous — it is the
+#        production change that moves it, not the cell.
+#
+# NET: the floor loses 21 known reds and 76 cells, and gains 18. The chair re-bases.
+scripts/ce41_e2i_cockpit_ink_census.mjs

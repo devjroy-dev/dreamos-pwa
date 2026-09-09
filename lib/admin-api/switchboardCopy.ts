@@ -1,5 +1,27 @@
 // lib/admin-api/switchboardCopy.ts — THE SWITCHBOARD'S WORDS, ONE HOME. CE-41 seat C, C3 (F-41.52, F-41.53).
 //
+// ── OWNERSHIP ──────────────────────────────────────────────────────────────────
+// Authored by seat C (C3). Seat C rested mid-arc and R-41.99 gave this file to
+// seat E, which holds it from CE-41 E2 (i) on. The cross-seat note is here rather
+// than in a commit message because the next seat to open this file reads the file,
+// not the log.
+//
+// ── R-41.102 · A TEMPLATE IS A LINE, NOT A ROW ────────────────────────────────
+// A `template.*` gate guarded by a `flag.*` renders as that flag's SECOND LINE,
+// and a flag carries EVERY template its door sends (the amendment: the contract
+// flag carries both the signing link and the signing code). Only an orphan
+// template — one no flag guards — gets a row of its own with a verb. This halves
+// the card: 8 flags + 5 orphan templates + 8 perms + 3 scopes, with one perm
+// hoisted to the standing row above the groups, is 24 rows for 32 gates.
+// The join is `meta` below; it is not a second list.
+//
+// ── THE TWO DARK WORDS ARE NOT SYNONYMS ───────────────────────────────────────
+// `Waiting` — Meta has not answered yet.
+// `Not sending yet` — Meta HAS approved the words and the door is still dark.
+// They sit adjacent in STATUS_WORD and a later seat will be tempted to tidy one
+// into the other. Do not: a founder reading `Waiting` waits on Meta, and a founder
+// reading `Not sending yet` waits on this estate. Different queue, different act.
+//
 // Every gate on the Switchboard is TWO LINES (F-41.57, ruled (a)): a short bold
 // NAME the founder scans for, and a dotted SPEC — recipient · line · category ·
 // dark-state — in the estate's own idiom (`Rs 18,000 · 30% · 8 Sep 2026`). One
@@ -28,6 +50,8 @@ export interface GateCopy {
   spec: string;
   /** The Meta template name, when the gate is or guards one. */
   meta?: string;
+  /** The Meta template ID, shown one tap deep in the evidence disclosure. */
+  metaId?: string;
 }
 
 export const GATE_COPY: Readonly<Record<string, GateCopy>> = Object.freeze({
@@ -55,7 +79,11 @@ export const GATE_COPY: Readonly<Record<string, GateCopy>> = Object.freeze({
   'template.tdw_assist_found_vendor':      { name: 'Found her a vendor from The Dream Wedding', spec: 'to the couple · couple line · Utility · dark until A10', meta: 'tdw_assist_found_vendor' },
   'template.tdw_assist_found_outside':     { name: 'Found her a vendor from outside The Dream Wedding', spec: 'to the couple · couple line · Utility · dark until seat D', meta: 'tdw_assist_found_outside' },
   'template.tdw_introduction':             { name: 'Vendor introduction', spec: 'to the vendor · marketing line · Marketing · not sent before R9', meta: 'tdw_introduction' },
-  'template.tdw_capability_armed':         { name: 'Switchboard notice to you', spec: 'to you · vendor line · Utility · not yet filed at Meta', meta: 'tdw_capability_armed' },
+  // F-41.69 — THE SPEC SAID `not yet filed at Meta` AND IT IS ACTIVE. A shipped byte
+  // on the founder's glass asserting a false fact about Meta is worse than a blank
+  // one: he plans around it. Filed and Active, ID 1063533856046167 — the ID rides
+  // the evidence disclosure (R-41.103's form), not the spec line.
+  'template.tdw_capability_armed':         { name: 'Tell me when a switch is ready', spec: 'to you · vendor line · Utility', meta: 'tdw_capability_armed', metaId: '1063533856046167' },
 
   // ── Meta app permissions (perm.*) ─────────────────────────────────────────
   'perm.whatsapp_business_pair':           { name: 'WhatsApp business permissions', spec: 'Meta app · in review since 2 September' },
@@ -121,4 +149,21 @@ export function gateMatches(key: string, needle: string): boolean {
 }
 
 /** Every key in the one home, in the card's order. */
+// ── STATE WORDS · ONE HOME (R-41.99) ──────────────────────────────────────────
+// These lived in `app/admin/switchboard/page.tsx` as a local const, which made the
+// page both a renderer and a copy home. The four the E1 veto ratified could not be
+// added there without deepening that: a word the founder vetoed belongs with the
+// other words he vetoed. The page reads this map from E2 (iv) on; until then the
+// two coexist and the page's local const is the one on the glass — declared here
+// so the duplication is visible rather than discovered.
+export const STATUS_WORD: Readonly<Record<string, string>> = Object.freeze({
+  on: 'On', off: 'Off', armed: 'Ready to switch on', approved: 'Approved',
+  pending: 'Waiting', paused: 'Paused by Meta', rejected: 'Rejected',
+  // Ratified at the E1 veto, 2026-09-09.
+  granted: 'Granted',
+  not_filed: 'Not filed',
+  not_requested: 'Not requested',
+  dark: 'Not sending yet',
+});
+
 export const GATE_KEYS: readonly string[] = Object.freeze(Object.keys(GATE_COPY));

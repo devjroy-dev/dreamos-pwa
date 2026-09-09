@@ -146,7 +146,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
     <>
       <div
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'var(--admin-scrim)', zIndex: 300, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+        style={{ position: 'fixed', inset: 0, background: 'var(--role-scrim)', zIndex: 300, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
       />
       <div
         role="dialog"
@@ -159,8 +159,8 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
         }}
       >
         <div style={{
-          background: 'var(--admin-sheet)', border: '0.5px solid var(--admin-sheet-border)',
-          borderRadius: 12, overflow: 'hidden', boxShadow: '0 24px 60px -20px rgba(0,0,0,0.7)',
+          background: 'var(--atelier-sheet-bg)', border: '0.5px solid var(--atelier-sheet-border)',
+          borderRadius: 12, overflow: 'hidden', boxShadow: '0 24px 60px -20px var(--role-scrim)',
         }}>
           <input
             ref={inputRef}
@@ -172,20 +172,20 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
             style={{
               width: '100%', background: 'transparent', border: 'none', outline: 'none',
               padding: '18px 20px', fontFamily: '"DM Sans", sans-serif', fontSize: 16,
-              color: 'var(--admin-ink)', borderBottom: '0.5px solid var(--admin-hairline)',
+              color: 'var(--atelier-ink)', borderBottom: '0.5px solid var(--atelier-card-border)',
               minHeight: 48,
             }}
           />
 
           <div style={{ maxHeight: '60vh', overflowY: 'auto', padding: '6px 0 10px' }}>
             {busy && rows.length === 0 && (
-              <div style={{ padding: '18px 20px', fontFamily: '"Jost", sans-serif', fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--admin-ink-dim)' }}>
+              <div style={{ padding: '18px 20px', fontFamily: '"Jost", sans-serif', fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--atelier-ink-dim)' }}>
                 Searching
               </div>
             )}
 
             {!busy && rows.length === 0 && q.trim().length >= 2 && (
-              <div style={{ padding: '18px 20px', fontFamily: '"DM Sans", sans-serif', fontSize: 14, color: 'var(--admin-ink-mute)' }}>
+              <div style={{ padding: '18px 20px', fontFamily: '"DM Sans", sans-serif', fontSize: 14, color: 'var(--atelier-ink-mute)' }}>
                 Nothing matches “{q.trim()}”.
               </div>
             )}
@@ -200,7 +200,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
                     <div style={{
                       fontFamily: '"Jost", sans-serif', fontWeight: 600, fontSize: 10,
                       letterSpacing: '0.14em', textTransform: 'uppercase',
-                      color: 'var(--admin-ink-dim)', padding: '14px 20px 6px',
+                      color: 'var(--atelier-ink-dim)', padding: '14px 20px 6px',
                     }}>
                       {header}
                     </div>
@@ -210,16 +210,16 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
                     onMouseEnter={() => setCursor(i)}
                     style={{
                       display: 'block', width: '100%', textAlign: 'left', border: 'none',
-                      background: active ? 'var(--admin-row-hover)' : 'transparent',
+                      background: active ? 'var(--atelier-row-hover)' : 'transparent',
                       padding: '10px 20px', minHeight: 48, cursor: 'pointer',
-                      borderLeft: active ? '2px solid var(--admin-metal)' : '2px solid transparent',
+                      borderLeft: active ? '2px solid var(--role-metal)' : '2px solid transparent',
                     }}
                   >
-                    <div style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 15, color: 'var(--admin-ink)' }}>
+                    <div style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 15, color: 'var(--atelier-ink)' }}>
                       {r.label}
                     </div>
                     {r.sub && (
-                      <div style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: 'var(--admin-ink-mute)', marginTop: 2 }}>
+                      <div style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: 'var(--atelier-ink-mute)', marginTop: 2 }}>
                         {r.sub}
                       </div>
                     )}
@@ -232,7 +232,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
               // NAMED PARTIAL, NOT A SILENT ONE. If a source failed, the
               // operator is told which. An empty group and a broken group must
               // never look the same.
-              <div style={{ padding: '12px 20px 4px', fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: 'var(--admin-caution)' }}>
+              <div style={{ padding: '12px 20px 4px', fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: 'var(--role-caution)' }}>
                 Some sources did not answer: {degraded.join(', ')}.
               </div>
             )}
@@ -240,9 +240,9 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
 
           <div style={{
             display: 'flex', gap: 16, padding: '10px 20px',
-            borderTop: '0.5px solid var(--admin-hairline)',
+            borderTop: '0.5px solid var(--atelier-card-border)',
             fontFamily: '"Jost", sans-serif', fontSize: 10, letterSpacing: '0.14em',
-            textTransform: 'uppercase', color: 'var(--admin-ink-dim)',
+            textTransform: 'uppercase', color: 'var(--atelier-ink-dim)',
           }}>
             <span>↑↓ move</span><span>↵ jump</span><span>esc close</span>
           </div>

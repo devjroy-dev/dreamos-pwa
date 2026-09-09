@@ -75,7 +75,7 @@ const PULL_THRESHOLD  = 72;       // px of overscroll before a pull commits
 const EYEBROW: React.CSSProperties = {
   fontFamily: T.ff.label, fontWeight: 600, fontSize: 9.5,
   letterSpacing: '0.16em', textTransform: 'uppercase',
-  color: 'var(--admin-ink-mute)',
+  color: 'var(--atelier-ink-mute)',
 };
 
 /** The masthead figure. Cormorant for the number, Jost for the eyebrow — the
@@ -92,10 +92,10 @@ function Figure({
 }) {
   const dead   = value === null;
   const canTap = !!drill && !!drill.path && !!onDrill;
-  const colour = dead ? 'var(--admin-ink-dim)'
-               : tone === 'metal'   ? 'var(--admin-metal)'
-               : tone === 'caution' ? 'var(--admin-caution)'
-               : 'var(--admin-ink)';
+  const colour = dead ? 'var(--atelier-ink-dim)'
+               : tone === 'metal'   ? 'var(--role-metal)'
+               : tone === 'caution' ? 'var(--role-caution)'
+               : 'var(--atelier-ink)';
   return (
     <div
       onClick={canTap ? () => onDrill!(drill!) : undefined}
@@ -104,8 +104,8 @@ function Figure({
       onKeyDown={canTap ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onDrill!(drill!); } } : undefined}
       aria-label={`${label}: ${dead ? 'could not load' : value}`}
       style={{
-        background: 'var(--admin-card-bg)',
-        border: '0.5px solid var(--admin-card-border)',
+        background: 'var(--atelier-card-bg)',
+        border: '0.5px solid var(--atelier-card-border)',
         borderRadius: 14, padding: '16px 18px',
         cursor: canTap ? 'pointer' : 'default',
         minHeight: 96, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
@@ -115,7 +115,7 @@ function Figure({
       <div style={{ fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums', fontWeight: 500, fontSize: 40, lineHeight: 1, color: colour, letterSpacing: '-0.02em', marginTop: 10 }}>
         {dead ? '—' : value}
       </div>
-      <div style={{ fontFamily: T.ff.body, fontWeight: 400, fontSize: 11, color: dead ? 'var(--admin-critical)' : 'var(--admin-ink-mute)', marginTop: 7 }}>
+      <div style={{ fontFamily: T.ff.body, fontWeight: 400, fontSize: 11, color: dead ? 'var(--role-critical)' : 'var(--atelier-ink-mute)', marginTop: 7 }}>
         {dead ? 'Could not load' : (sub || (canTap ? 'Tap to open' : '\u00A0'))}
       </div>
     </div>
@@ -128,26 +128,26 @@ function Honest({ s, extra }: { s: HonestState; extra?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{
-      background: 'var(--admin-card-bg)',
-      border: '0.5px solid var(--admin-card-border)',
-      borderLeft: '2px solid var(--admin-metal-line)',
+      background: 'var(--atelier-card-bg)',
+      border: '0.5px solid var(--atelier-card-border)',
+      borderLeft: '2px solid var(--atelier-card-border)',
       borderRadius: 14, padding: '16px 18px',
     }}>
-      <div style={{ ...EYEBROW, color: 'var(--admin-metal-soft)' }}>{s.label}</div>
+      <div style={{ ...EYEBROW, color: 'var(--role-metal)' }}>{s.label}</div>
       {extra}
       <button
         onClick={() => setOpen(v => !v)}
         style={{
           background: 'none', border: 'none', padding: 0, marginTop: 10, cursor: 'pointer', textAlign: 'left',
-          fontFamily: T.ff.body, fontWeight: 400, fontSize: 11, color: 'var(--admin-ink-soft)',
+          fontFamily: T.ff.body, fontWeight: 400, fontSize: 11, color: 'var(--atelier-ink-soft)',
         }}
       >
         {open ? 'Hide why' : 'Why'} · {s.finding}
       </button>
       {open && (
-        <div style={{ marginTop: 8, fontFamily: T.ff.body, fontWeight: 400, fontSize: 11.5, lineHeight: 1.55, color: 'var(--admin-ink-soft)' }}>
+        <div style={{ marginTop: 8, fontFamily: T.ff.body, fontWeight: 400, fontSize: 11.5, lineHeight: 1.55, color: 'var(--atelier-ink-soft)' }}>
           {s.why}
-          <div style={{ marginTop: 6, color: 'var(--admin-ink-mute)' }}>Owner: {s.owner}</div>
+          <div style={{ marginTop: 6, color: 'var(--atelier-ink-mute)' }}>Owner: {s.owner}</div>
         </div>
       )}
     </div>
@@ -160,28 +160,28 @@ function StageBar({ states, total, partial }: { states: Record<string, number>; 
   const entries = Object.entries(states).filter(([, n]) => n > 0);
   return (
     <div>
-      <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', background: 'var(--admin-ink-fade)' }}>
+      <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', background: 'var(--atelier-ink-fade)' }}>
         {total > 0 && entries.map(([k, n], i) => (
           <div key={k} title={`${k}: ${n}`} style={{
             width: `${(n / total) * 100}%`,
-            background: k === 'other' ? 'var(--admin-critical)' : (i % 2 ? 'var(--admin-metal-soft)' : 'var(--admin-metal)'),
+            background: k === 'other' ? 'var(--role-critical)' : (i % 2 ? 'var(--role-metal)' : 'var(--role-metal)'),
           }} />
         ))}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 11 }}>
         {entries.length === 0 && (
-          <span style={{ fontFamily: T.ff.body, fontSize: 11, color: 'var(--admin-ink-mute)' }}>No rows yet</span>
+          <span style={{ fontFamily: T.ff.body, fontSize: 11, color: 'var(--atelier-ink-mute)' }}>No rows yet</span>
         )}
         {entries.map(([k, n]) => (
-          <span key={k} style={{ fontFamily: T.ff.body, fontSize: 11, color: k === 'other' ? 'var(--admin-critical)' : 'var(--admin-ink-soft)' }}>
-            {k.replace(/_/g, ' ')} <strong style={{ color: 'var(--admin-ink)' }}>{n}</strong>
+          <span key={k} style={{ fontFamily: T.ff.body, fontSize: 11, color: k === 'other' ? 'var(--role-critical)' : 'var(--atelier-ink-soft)' }}>
+            {k.replace(/_/g, ' ')} <strong style={{ color: 'var(--atelier-ink)' }}>{n}</strong>
           </span>
         ))}
       </div>
       {partial && (
         // The truncation guard, surfaced. A split that under-reports and says
         // so is usable; one that under-reports silently is the disease.
-        <div style={{ marginTop: 8, fontFamily: T.ff.body, fontSize: 10.5, color: 'var(--admin-caution)' }}>
+        <div style={{ marginTop: 8, fontFamily: T.ff.body, fontSize: 10.5, color: 'var(--role-caution)' }}>
           Partial — more rows than the server fetch cap. The total above is exact.
         </div>
       )}
@@ -206,25 +206,25 @@ function QueueRow({
       onKeyDown={canTap ? (e) => { if (e.key === 'Enter') onDrill!(drill!); } : undefined}
       style={{
         display: 'flex', alignItems: 'center', gap: 14, minHeight: 56,
-        padding: '12px 16px', borderBottom: '0.5px solid var(--admin-hairline)',
+        padding: '12px 16px', borderBottom: '0.5px solid var(--atelier-card-border)',
         cursor: canTap ? 'pointer' : 'default',
       }}
     >
       <div style={{
         fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums tabular-nums', fontWeight: 500, fontSize: 26, lineHeight: 1, minWidth: 42,
-        color: count === null ? 'var(--admin-ink-dim)' : (urgent && count > 0 ? 'var(--admin-critical)' : 'var(--admin-ink)'),
+        color: count === null ? 'var(--atelier-ink-dim)' : (urgent && count > 0 ? 'var(--role-critical)' : 'var(--atelier-ink)'),
       }}>
         {count === null ? '—' : count}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: T.ff.body, fontWeight: 500, fontSize: 13, color: 'var(--admin-ink)' }}>{label}</div>
+        <div style={{ fontFamily: T.ff.body, fontWeight: 500, fontSize: 13, color: 'var(--atelier-ink)' }}>{label}</div>
         {(note || (drill && !drill.path && drill.absent)) && (
-          <div style={{ fontFamily: T.ff.body, fontWeight: 400, fontSize: 11, color: 'var(--admin-ink-mute)', marginTop: 3 }}>
+          <div style={{ fontFamily: T.ff.body, fontWeight: 400, fontSize: 11, color: 'var(--atelier-ink-mute)', marginTop: 3 }}>
             {note || drill!.absent}
           </div>
         )}
       </div>
-      {canTap && <div style={{ fontFamily: T.ff.body, fontSize: 15, color: 'var(--admin-ink-dim)' }}>›</div>}
+      {canTap && <div style={{ fontFamily: T.ff.body, fontSize: 15, color: 'var(--atelier-ink-dim)' }}>›</div>}
     </div>
   );
 }
@@ -233,7 +233,7 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
   return (
     <section style={{ marginTop: 30 }}>
       <div style={{ ...EYEBROW, marginBottom: 12 }}>{title}</div>
-      <div style={{ background: 'var(--admin-card-bg)', border: '0.5px solid var(--admin-card-border)', borderRadius: 14, padding: 18 }}>
+      <div style={{ background: 'var(--atelier-card-bg)', border: '0.5px solid var(--atelier-card-border)', borderRadius: 14, padding: 18 }}>
         {children}
       </div>
     </section>
@@ -302,17 +302,17 @@ export default function Bridge() {
   const drill = useCallback((d: DrillTarget) => { if (d.path) router.push(d.path); }, [router]);
 
   if (loading && !data) {
-    return <div style={{ fontFamily: T.ff.body, fontSize: 13, color: 'var(--admin-ink-mute)', padding: '40px 0' }}>Reading the day…</div>;
+    return <div style={{ fontFamily: T.ff.body, fontSize: 13, color: 'var(--atelier-ink-mute)', padding: '40px 0' }}>Reading the day…</div>;
   }
   if (error && !data) {
     return (
       <div style={{ padding: '28px 0' }}>
-        <div style={{ fontFamily: T.ff.body, fontSize: 14, color: 'var(--admin-critical)' }}>The Bridge could not be reached.</div>
-        <div style={{ fontFamily: T.ff.body, fontSize: 12, color: 'var(--admin-ink-mute)', marginTop: 8 }}>{error}</div>
+        <div style={{ fontFamily: T.ff.body, fontSize: 14, color: 'var(--role-critical)' }}>The Bridge could not be reached.</div>
+        <div style={{ fontFamily: T.ff.body, fontSize: 12, color: 'var(--atelier-ink-mute)', marginTop: 8 }}>{error}</div>
         <button onClick={load} style={{
           marginTop: 16, minHeight: 44, padding: '0 20px', cursor: 'pointer',
-          background: 'var(--admin-metal-wash)', border: '0.5px solid var(--admin-metal-line)',
-          borderRadius: 10, color: 'var(--admin-metal)', fontFamily: T.ff.label, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
+          background: 'var(--atelier-row-hover)', border: '0.5px solid var(--atelier-card-border)',
+          borderRadius: 10, color: 'var(--role-metal)', fontFamily: T.ff.label, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
         }}>Try again</button>
       </div>
     );
@@ -326,7 +326,7 @@ export default function Bridge() {
   return (
     <div>
       {pull > 0 && (
-        <div style={{ height: pull, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--admin-ink-mute)' }}>
+        <div style={{ height: pull, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: T.ff.label, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)' }}>
           {pull >= PULL_THRESHOLD ? 'Release to refresh' : 'Pull to refresh'}
         </div>
       )}
@@ -336,8 +336,8 @@ export default function Bridge() {
         // alike — search.js's rule, carried to the Bridge.
         <div style={{
           marginBottom: 18, padding: '11px 14px', borderRadius: 10,
-          background: 'var(--admin-card-bg)', border: '0.5px solid var(--admin-critical)',
-          fontFamily: T.ff.body, fontSize: 11.5, color: 'var(--admin-critical)',
+          background: 'var(--atelier-card-bg)', border: '0.5px solid var(--role-critical)',
+          fontFamily: T.ff.body, fontSize: 11.5, color: 'var(--role-critical)',
         }}>
           These sources did not answer: {data.degraded.join(', ')}. Their figures show — , not zero.
         </div>
@@ -370,15 +370,15 @@ export default function Bridge() {
             own words apply to each — a zero that can move the day Razorpay clears
             is a live instrument. Razorpay has cleared. */}
         <div style={{
-          background: 'var(--admin-card-bg)',
-          border: '0.5px solid var(--admin-card-border)',
+          background: 'var(--atelier-card-bg)',
+          border: '0.5px solid var(--atelier-card-border)',
           borderRadius: 14, padding: '16px 18px',
         }}>
           <div style={{ ...EYEBROW, fontSize: 9 }}>Subscriptions · today</div>
-          <div style={{ fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums', fontWeight: 500, fontSize: 34, lineHeight: 1.05, color: 'var(--admin-ink)', marginTop: 6 }}>
+          <div style={{ fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums', fontWeight: 500, fontSize: 34, lineHeight: 1.05, color: 'var(--atelier-ink)', marginTop: 6 }}>
             {today.revenue.subscriptions.today_inr === null ? '—' : formatRs(today.revenue.subscriptions.today_inr)}
           </div>
-          <div style={{ fontFamily: T.ff.body, fontSize: 11, color: 'var(--admin-ink-mute)', marginTop: 6 }}>
+          <div style={{ fontFamily: T.ff.body, fontSize: 11, color: 'var(--atelier-ink-mute)', marginTop: 6 }}>
             {today.revenue.subscriptions.lifetime_inr === null
               ? 'Lifetime could not be read'
               : `${formatRs(today.revenue.subscriptions.lifetime_inr)} lifetime`}
@@ -392,16 +392,16 @@ export default function Bridge() {
               follows it 0.2 seconds later. Both are ledgered, neither is counted
               (R-BILL.4). Naming it here means the next reader of this screen does
               not have to rediscover it from a number that looks wrong. */}
-          <div style={{ marginTop: 10, fontFamily: T.ff.body, fontSize: 10.5, lineHeight: 1.5, color: 'var(--admin-ink-mute)' }}>
+          <div style={{ marginTop: 10, fontFamily: T.ff.body, fontSize: 10.5, lineHeight: 1.5, color: 'var(--atelier-ink-mute)' }}>
             Captured charges only — authorisation and activation events are ledgered, never counted.
           </div>
 
-          <div style={{ marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--admin-hairline)' }}>
+          <div style={{ marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--atelier-card-border)' }}>
             <div style={{ ...EYEBROW, fontSize: 9 }}>Featured slot fees · today</div>
-            <div style={{ fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums', fontWeight: 500, fontSize: 34, lineHeight: 1.05, color: 'var(--admin-ink)', marginTop: 6 }}>
+            <div style={{ fontFamily: T.ff.display, fontVariantNumeric: 'lining-nums', fontWeight: 500, fontSize: 34, lineHeight: 1.05, color: 'var(--atelier-ink)', marginTop: 6 }}>
               {today.revenue.featured_fees.today_inr === null ? '—' : formatRs(today.revenue.featured_fees.today_inr)}
             </div>
-            <div style={{ fontFamily: T.ff.body, fontSize: 11, color: 'var(--admin-ink-mute)', marginTop: 6 }}>
+            <div style={{ fontFamily: T.ff.body, fontSize: 11, color: 'var(--atelier-ink-mute)', marginTop: 6 }}>
               {today.revenue.featured_fees.lifetime_inr === null
                 ? 'Lifetime could not be read'
                 : `${formatRs(today.revenue.featured_fees.lifetime_inr)} lifetime`}
@@ -416,28 +416,28 @@ export default function Bridge() {
 
       <Panel title="Model spend by surface">
         {surfaces.length === 0 && (
-          <div style={{ fontFamily: T.ff.body, fontSize: 12, color: 'var(--admin-ink-mute)' }}>No WhatsApp turns today.</div>
+          <div style={{ fontFamily: T.ff.body, fontSize: 12, color: 'var(--atelier-ink-mute)' }}>No WhatsApp turns today.</div>
         )}
         {surfaces.map(([kind, s]) => (
-          <div key={kind} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '7px 0', borderBottom: '0.5px solid var(--admin-hairline)' }}>
-            <span style={{ fontFamily: T.ff.body, fontSize: 12.5, color: 'var(--admin-ink-soft)' }}>{kind.replace(/_/g, ' ')}</span>
-            <span style={{ fontFamily: T.ff.body, fontSize: 12.5, color: 'var(--admin-ink)' }}>{s.turns} · {formatRs(s.inr)}</span>
+          <div key={kind} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '7px 0', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+            <span style={{ fontFamily: T.ff.body, fontSize: 12.5, color: 'var(--atelier-ink-soft)' }}>{kind.replace(/_/g, ' ')}</span>
+            <span style={{ fontFamily: T.ff.body, fontSize: 12.5, color: 'var(--atelier-ink)' }}>{s.turns} · {formatRs(s.inr)}</span>
           </div>
         ))}
         {today.wa.unattributed.turns > 0 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0' }}>
-            <span style={{ fontFamily: T.ff.body, fontSize: 12.5, color: 'var(--admin-caution)' }}>unattributed</span>
-            <span style={{ fontFamily: T.ff.body, fontSize: 12.5, color: 'var(--admin-caution)' }}>
+            <span style={{ fontFamily: T.ff.body, fontSize: 12.5, color: 'var(--role-caution)' }}>unattributed</span>
+            <span style={{ fontFamily: T.ff.body, fontSize: 12.5, color: 'var(--role-caution)' }}>
               {today.wa.unattributed.turns} · {formatRs(today.wa.unattributed.inr)}
             </span>
           </div>
         )}
         {today.wa.partial && (
-          <div style={{ marginTop: 10, fontFamily: T.ff.body, fontSize: 10.5, color: 'var(--admin-caution)' }}>
+          <div style={{ marginTop: 10, fontFamily: T.ff.body, fontSize: 10.5, color: 'var(--role-caution)' }}>
             Partial split — more turns than the fetch cap. The headline count is exact.
           </div>
         )}
-        <div style={{ marginTop: 10, fontFamily: T.ff.body, fontSize: 10.5, color: 'var(--admin-ink-mute)', lineHeight: 1.5 }}>
+        <div style={{ marginTop: 10, fontFamily: T.ff.body, fontSize: 10.5, color: 'var(--atelier-ink-mute)', lineHeight: 1.5 }}>
           {today.wa.excludes}
         </div>
       </Panel>
@@ -448,7 +448,7 @@ export default function Bridge() {
 
       <Panel title="Demo lifecycle">
         <StageBar states={funnels.demo.states} total={funnels.demo.total} partial={funnels.demo.partial} />
-        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--admin-hairline)', fontFamily: T.ff.body, fontSize: 12, color: 'var(--admin-ink-soft)' }}>
+        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '0.5px solid var(--atelier-card-border)', fontFamily: T.ff.body, fontSize: 12, color: 'var(--atelier-ink-soft)' }}>
           {/* A rate over zero invitations is not 0%. It is no rate at all. */}
           {funnels.claim_rate_7d.rate === null
             ? `7-day claim rate — no rate yet (${funnels.claim_rate_7d.invited ?? '—'} invited in the last 7 days)`
@@ -458,7 +458,7 @@ export default function Bridge() {
 
       <section style={{ marginTop: 30 }}>
         <div style={{ ...EYEBROW, marginBottom: 12 }}>The queue</div>
-        <div style={{ background: 'var(--admin-card-bg)', border: '0.5px solid var(--admin-card-border)', borderRadius: 14, overflow: 'hidden' }}>
+        <div style={{ background: 'var(--atelier-card-bg)', border: '0.5px solid var(--atelier-card-border)', borderRadius: 14, overflow: 'hidden' }}>
           <QueueRow
             label="Discover approvals pending"
             count={queue.approvals_pending.count}
@@ -488,7 +488,7 @@ export default function Bridge() {
         <Honest s={today.credit_state} />
       </div>
 
-      <div style={{ marginTop: 24, fontFamily: T.ff.body, fontSize: 10.5, color: 'var(--admin-ink-mute)' }}>
+      <div style={{ marginTop: 24, fontFamily: T.ff.body, fontSize: 10.5, color: 'var(--atelier-ink-mute)' }}>
         {data.ist_date} IST · assembled in {data.took_ms}ms · refreshes every 60s
       </div>
     </div>

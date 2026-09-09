@@ -167,6 +167,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 .sb-evbody b{display:block;color:var(--atelier-ink);font-weight:500}
 .sb-ctl{display:flex;gap:var(--wl-step);align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .sb-more{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}
+.sb-msg{font:var(--wl-t5);color:var(--atelier-ink-soft);margin-top:6px;padding-left:10px;border-left:.5px solid var(--atelier-card-border);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .wide .sb-row{max-width:900px}
 .sb-tier{grid-column:1/-1;padding:8px 0 8px 14px;border-left:.5px solid var(--atelier-card-border);margin-top:6px}
 .sb-tname{font:var(--wl-t4);color:var(--atelier-ink-soft);display:flex;justify-content:space-between;align-items:baseline;gap:10px}
@@ -366,21 +367,22 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
       <div class="b sm">Check everything now</div>
       <div class="fi on" style="margin-top:14px"><span>reminder</span><i>2 rows</i></div>
 
+      <div class="sb-row" style="border-top:.5px solid var(--atelier-card-border);margin-top:16px">
+        <div><div class="sb-act">Use WhatsApp for every message below</div>
+          <div class="q-d" style="margin-top:3px">Meta app · in review since 2 September</div>
+          <div class="sb-st"><span class="status wait">Waiting</span></div></div>
+        <div class="sb-ctl"><span class="b sm off">On</span><span class="b sm off">Off</span></div>
+      </div>
+
       <div class="sb-group">
-        <div class="sb-gh"><h2>Payment reminders</h2><span>2 of 2 shown</span></div>
+        <div class="sb-gh"><h2>Payment reminders</h2><span>1 of 1 shown</span></div>
         <div class="sb-row lit">
           <div><div class="sb-act">Send payment reminders</div>
             <div class="q-d" style="margin-top:3px">to the client · couple line · Utility</div>
-            <div class="sb-st"><span class="status on">On</span><span class="q-d" style="margin:0">since 6 Sep</span></div></div>
+            <div class="sb-st"><span class="status on">On</span><span class="q-d" style="margin:0">since 6 Sep</span></div>
+            <div class="sb-msg">Payment reminder <span class="status on">Approved</span> <span class="q-d" style="margin:0">checked 07:40</span></div></div>
           <div class="sb-ctl"><span class="b sm off">On</span><span class="b sm dan">Off</span></div>
-          <div class="sb-more"><a class="sb-ev" href="#">Meta's words, the key and the seal ›</a></div>
-        </div>
-        <div class="sb-row">
-          <div><div class="sb-act">Use Meta's words for the reminder</div>
-            <div class="q-d" style="margin-top:3px">to the client · couple line · Utility</div>
-            <div class="sb-st"><span class="status on">Approved</span><span class="q-d" style="margin:0">checked 07:40</span></div></div>
-          <div class="sb-ctl"><span class="b sm">Check now</span></div>
-          <div class="sb-more"><a class="sb-ev open" href="#">Meta's words, the key and the seal ‹</a>
+          <div class="sb-more"><a class="sb-ev open" href="#">Meta&#8217;s words, the key and the seal &#8249;</a>
             <div class="sb-evbody"><b>tdw_payment_reminder · APPROVED · Utility · en</b>Hi {{1}}, a payment reminder from {{3}}. {{2}} is due on {{4}}. UPI or cash, whichever suits.<br>Filed 3 Sep · ID 1781270206634381<br>Key <span style="color:var(--atelier-ink-mute)">template.tdw_payment_reminder</span>
               <div class="fi ph" style="margin-top:8px">Walk seal (commit hash)</div>
               <div class="hand on" style="margin-top:8px"><s></s>Switch on automatically once approved</div>
@@ -416,90 +418,86 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 
 <!-- ═══════════════════ E1-switchboard-model · the Model routes group ═══════════════════ -->
 <div class="framewrap" data-frame="E1-switchboard-model" data-shot-modes="dark">
-  <div class="cap"><b>E1-switchboard-model · Model routes</b>374 · seat F's plane · surface, tiers beneath, one role row per switch · live value from admin_config model.* · persona names here only (R-41.89)</div>
+  <div class="cap"><b>E1-switchboard-model · Model routes</b>374 · six surfaces, six tiers · true to the wire at 1619cae · provenance in five words, defined one tap deep · persona names here only (R-41.89)</div>
   <div class="wl" data-wl-mode="dark">
-    <div class="ad-bar"><span class="ad-mark">The Dream Wedding</span><span class="ad-baricons"><span class="ad-ic">⌘K</span><span class="ad-ic">Out</span></span></div>
+    <div class="ad-bar"><span class="ad-mark">The Dream Wedding</span><span class="ad-baricons"><span class="ad-ic">&#8984;K</span><span class="ad-ic">Out</span></span></div>
     <div class="ad-main">
       <div class="ad-head"><div><div class="ad-h1">Switchboard</div></div></div>
       <div class="fi on"><span>model</span><i>Model routes</i></div>
 
       <div class="sb-group">
-        <div class="sb-gh"><h2>Model routes</h2><span>5 surfaces</span></div>
+        <div class="sb-gh"><h2>Model routes</h2><span>6 surfaces</span></div>
         <div class="sb-banner">LLM_PROVIDER is set on the server. Every switch below is overridden until it is unset.</div>
+        <a class="sb-ev" href="#" style="margin-top:8px">What default, borrowed, seeded, changed and server mean &#8250;</a>
 
         <div class="sb-row">
           <div><div class="sb-act">Answer vendors on WhatsApp</div>
-            <div class="sb-st"><span class="q-d" style="margin:0">vendor line · five tiers · Victor and Donna</span></div></div>
+            <div class="q-d" style="margin-top:3px">vendor line &#183; Victor and Donna</div></div>
           <div class="sb-ctl"></div>
-          <div class="sb-tier">
-            <div class="sb-tname">Trial</div>
-            <div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-            <div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-          </div>
-          <div class="sb-tier">
-            <div class="sb-tname">Essential <span class="chip diff">Differs from code</span></div>
-            <div class="sb-role"><div class="r"><b>Victor</b>DeepSeek · changed 4 Sep</div><div class="sw"><span>Anthropic</span><span class="on">DeepSeek</span></div></div>
-            <div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-          </div>
-          <div class="sb-tier">
-            <div class="sb-tname">Signature</div>
-            <div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-            <div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-          </div>
-          <div class="sb-tier">
-            <div class="sb-tname">Prestige</div>
-            <div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-            <div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-          </div>
-          <div class="sb-tier">
-            <div class="sb-tname">Advisor</div>
-            <div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-            <div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-          </div>
+          <div class="sb-tier"><div class="sb-tname">Basic</div><div class="sb-role"><div class="r"><b>Victor</b>Anthropic · seeded</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div><div class="sb-role"><div class="r"><b>Donna</b>Anthropic · seeded</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div></div><div class="sb-tier"><div class="sb-tname">Essential <span class="chip diff">Differs from code</span></div><div class="sb-role"><div class="r"><b>Victor</b>DeepSeek · changed 4 Sep</div><div class="sw"><span class="">Anthropic</span><span class="on">DeepSeek</span></div></div><div class="sb-role"><div class="r"><b>Donna</b>Anthropic · seeded</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div></div><div class="sb-tier"><div class="sb-tname">Signature</div><div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div><div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div></div><div class="sb-tier"><div class="sb-tname">Prestige</div><div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div><div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div></div><div class="sb-tier"><div class="sb-tname">Advisor</div><div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div><div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div></div><div class="sb-tier"><div class="sb-tname">Trial <span class="status">Read-only</span></div><div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw ro"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div><div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw ro"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div><div class="q-d" style="margin-top:2px">No lane reaches this row.</div></div>
         </div>
 
         <div class="sb-row">
           <div><div class="sb-act">Answer vendors in the app</div>
-            <div class="sb-st"><span class="q-d" style="margin:0">vendor rooms · five tiers · Victor and Donna</span></div></div>
+            <div class="q-d" style="margin-top:3px">vendor rooms &#183; Victor and Donna</div></div>
           <div class="sb-ctl"></div>
-          <div class="sb-tier">
-            <div class="sb-tname">Trial</div>
-            <div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-            <div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-          </div>
-          <div class="sb-tier">
-            <div class="sb-tname">Essential</div>
-            <div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-            <div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-          </div>
+          <div class="sb-tier"><div class="sb-tname">Basic</div><div class="sb-role"><div class="r"><b>Victor</b>Anthropic · seeded</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div><div class="sb-role"><div class="r"><b>Donna</b>Anthropic · seeded</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div></div><div class="sb-tier"><div class="sb-tname">Essential</div><div class="sb-role"><div class="r"><b>Victor</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div><div class="sb-role"><div class="r"><b>Donna</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span class="">DeepSeek</span></div></div></div>
         </div>
 
         <div class="sb-row">
           <div><div class="sb-act">Answer couples on WhatsApp</div>
-            <div class="sb-st"><span class="status">Read-only</span><span class="q-d" style="margin:0">couple line · Set on the server</span></div></div>
-          <div class="sb-ctl"><div class="sw ro"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
+            <div class="q-d" style="margin-top:3px">couple line</div>
+            <div class="sb-st"><span class="q-d" style="margin:0">Anthropic &#183; seeded</span></div></div>
+          <div class="sb-ctl"><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
         </div>
 
         <div class="sb-row">
           <div><div class="sb-act">Write the marketing outreach</div>
-            <div class="sb-st"><span class="q-d" style="margin:0">marketing line · Mira and Mira&#8217;s nudge</span></div></div>
+            <div class="q-d" style="margin-top:3px">marketing line &#183; Mira and Mira&#8217;s nudge</div></div>
           <div class="sb-ctl"></div>
           <div class="sb-tier">
-            <div class="sb-role"><div class="r"><b>Mira</b>Anthropic · default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
-            <div class="sb-role"><div class="r"><b>Mira&#8217;s nudge</b>DeepSeek · changed 2 Sep</div><div class="sw"><span>Anthropic</span><span class="on">DeepSeek</span></div></div>
+            <div class="sb-role"><div class="r"><b>Mira</b>Anthropic &#183; default</div><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
+            <div class="sb-role"><div class="r"><b>Mira&#8217;s nudge</b>DeepSeek &#183; changed 2 Sep</div><div class="sw"><span>Anthropic</span><span class="on">DeepSeek</span></div></div>
           </div>
         </div>
 
         <div class="sb-row">
-          <div><div class="sb-act">Harvest prospects</div>
-            <div class="sb-st"><span class="q-d" style="margin:0">one role · Anthropic · default</span></div></div>
+          <div><div class="sb-act">Fill gaps after an app chat</div>
+            <div class="q-d" style="margin-top:3px">one role &#183; the app</div>
+            <div class="sb-st"><span class="q-d" style="margin:0">Anthropic &#183; borrowed</span></div></div>
           <div class="sb-ctl"><div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
+        </div>
+
+        <div class="sb-row">
+          <div><div class="sb-act">Answer couples in the app</div>
+            <div class="q-d" style="margin-top:3px">bride app lane &#183; set on the server</div>
+            <div class="sb-st"><span class="status">Read-only</span><span class="q-d" style="margin:0">Anthropic &#183; server</span></div>
+            <div class="q-d" style="margin-top:4px">BRIDE_LLM_PROVIDER is not set.</div></div>
+          <div class="sb-ctl"><div class="sw ro"><span class="on">Anthropic</span><span>DeepSeek</span></div></div>
         </div>
       </div>
     </div>
     <div class="ad-nav">
       <div class="ad-seat"><s></s>Bridge</div><div class="ad-seat"><s></s>Growth</div><div class="ad-seat"><s></s>Market</div>
       <div class="ad-seat"><s></s>People</div><div class="ad-seat"><s></s>Money</div><div class="ad-seat on"><s></s>Engine</div><div class="ad-seat"><s></s>Content</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ E1-switchboard-words · the five provenance words, one tap deep ═══════════════════ -->
+<div class="framewrap" data-frame="E1-switchboard-words" data-shot-modes="dark">
+  <div class="cap"><b>E1-switchboard-words · where a value came from</b>374 · the five words drawn once, one tap deep, in the chair&#8217;s own wording (R-41.103 &#9314;)</div>
+  <div class="wl" data-wl-mode="dark">
+    <div class="ad-bar"><span class="ad-mark">The Dream Wedding</span></div>
+    <div class="ad-main">
+      <div class="ad-head"><div><div class="ad-h1">Where a value came from</div><div class="ad-sub">Every lane&#8217;s second line ends in one of these five words.</div></div></div>
+      <div class="ad-panel" style="margin-top:0">
+        <div class="ad-line" style="border-top:none;display:block"><b>default</b><div class="q-d" style="margin-top:3px">no row, the code&#8217;s built-in answer</div></div>
+        <div class="ad-line" style="display:block"><b>borrowed</b><div class="q-d" style="margin-top:3px">no row of its own; it reads another lane&#8217;s row</div></div>
+        <div class="ad-line" style="display:block"><b>seeded</b><div class="q-d" style="margin-top:3px">the row was written by a migration, never changed by a hand</div></div>
+        <div class="ad-line" style="display:block"><b>changed &#8249;date&#8250;</b><div class="q-d" style="margin-top:3px">a hand changed it</div></div>
+        <div class="ad-line" style="display:block"><b>server</b><div class="q-d" style="margin-top:3px">the lane is set on the server, not in a row</div></div>
+      </div>
     </div>
   </div>
 </div>

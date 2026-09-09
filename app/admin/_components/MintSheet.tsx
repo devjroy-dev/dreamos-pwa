@@ -186,7 +186,7 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
           {error && (
             <p style={{
               fontFamily: '"Jost", sans-serif', fontSize: 12, lineHeight: 1.5,
-              color: 'var(--admin-critical)', margin: '10px 0 0',
+              color: 'var(--role-critical)', margin: '10px 0 0',
             }}>{error}</p>
           )}
 
@@ -206,11 +206,11 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
               disabled={busy}
               style={{
                 width: '100%', minHeight: 48, padding: '14px 22px',
-                background: busy ? 'var(--admin-metal-wash)' : 'var(--admin-metal)',
+                background: busy ? 'var(--atelier-row-hover)' : 'var(--role-metal)',
                 border: 'none', borderRadius: 10,
                 fontFamily: '"Jost", sans-serif', fontWeight: 400, fontSize: 10,
                 letterSpacing: '0.2em', textTransform: 'uppercase',
-                color: busy ? 'var(--admin-ink-mute)' : 'var(--admin-shell)',
+                color: busy ? 'var(--atelier-ink-mute)' : 'var(--atelier-page-bg)',
                 cursor: busy ? 'not-allowed' : 'pointer',
               }}
             >{busy ? 'Working…' : (kind === 'vendor' ? 'Create vendor' : 'Create couple')}</button>
@@ -224,15 +224,15 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
               now says which happened, in the founder's own words. */}
           <div style={{
             padding: '16px 18px',
-            background: 'var(--admin-card-bg)',
-            border: '0.5px solid var(--admin-card-border)',
-            borderLeft: `2px solid ${result.outcome === 'created' ? 'var(--admin-positive)' : 'var(--admin-caution)'}`,
+            background: 'var(--atelier-card-bg)',
+            border: '0.5px solid var(--atelier-card-border)',
+            borderLeft: `2px solid ${result.outcome === 'created' ? 'var(--role-positive)' : 'var(--role-caution)'}`,
             borderRadius: 10,
           }}>
             <div style={{
               fontFamily: '"Jost", sans-serif', fontWeight: 500, fontSize: 9,
               letterSpacing: '0.28em', textTransform: 'uppercase',
-              color: result.outcome === 'created' ? 'var(--admin-positive)' : 'var(--admin-caution)',
+              color: result.outcome === 'created' ? 'var(--role-positive)' : 'var(--role-caution)',
               marginBottom: 8,
             }}>
               {result.outcome === 'created'
@@ -241,11 +241,11 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
             </div>
             <div style={{
               fontFamily: '"DM Sans", sans-serif', fontSize: 15,
-              color: 'var(--admin-ink)', marginBottom: 6,
+              color: 'var(--atelier-ink)', marginBottom: 6,
             }}>{result.name || phone}</div>
             <div style={{
               fontFamily: '"Jost", sans-serif', fontSize: 12, lineHeight: 1.6,
-              color: 'var(--admin-ink-soft)',
+              color: 'var(--atelier-ink-soft)',
             }}>
               {result.outcome === 'created'
                 ? (result.kind === 'vendor'
@@ -261,7 +261,7 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
             {result.routing_handle && (
               <div style={{
                 fontFamily: '"Jost", sans-serif', fontSize: 12, letterSpacing: '0.16em',
-                color: 'var(--admin-metal)', marginTop: 10,
+                color: 'var(--role-metal)', marginTop: 10,
               }}>{result.routing_handle}</div>
             )}
           </div>
@@ -282,7 +282,7 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
               {welcome && !welcome.approved && !welcomeOutcome && (
                 <p style={{
                   fontFamily: '"Jost", sans-serif', fontSize: 11, lineHeight: 1.6,
-                  color: 'var(--admin-ink-mute)', margin: '10px 0 0',
+                  color: 'var(--atelier-ink-mute)', margin: '10px 0 0',
                 }}>Welcome template is not approved by Meta yet.</p>
               )}
               {/* AFTER the tap: a RESULT — eyebrow, colour, and a sentence that
@@ -291,17 +291,17 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
               {welcomeOutcome && (
                 <div style={{
                   marginTop: 12, paddingLeft: 12,
-                  borderLeft: `2px solid ${welcomeOutcome === 'sent' ? 'var(--admin-positive)' : 'var(--admin-caution)'}`,
+                  borderLeft: `2px solid ${welcomeOutcome === 'sent' ? 'var(--role-positive)' : 'var(--role-caution)'}`,
                 }}>
                   <div style={{
                     fontFamily: '"Jost", sans-serif', fontWeight: 500, fontSize: 9,
                     letterSpacing: '0.28em', textTransform: 'uppercase',
-                    color: welcomeOutcome === 'sent' ? 'var(--admin-positive)' : 'var(--admin-caution)',
+                    color: welcomeOutcome === 'sent' ? 'var(--role-positive)' : 'var(--role-caution)',
                     marginBottom: 5,
                   }}>{welcomeOutcome === 'sent' ? 'Sent' : 'Not sent'}</div>
                   <p style={{
                     fontFamily: '"Jost", sans-serif', fontSize: 11, lineHeight: 1.6,
-                    color: 'var(--admin-ink-soft)', margin: 0,
+                    color: 'var(--atelier-ink-soft)', margin: 0,
                   }}>{welcomeMsg}</p>
                 </div>
               )}

@@ -265,7 +265,7 @@ export default function DiscoverApprovalsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[1, 2].map(i => (
             <div key={i} className="shimmer" style={{
-              background: 'var(--admin-card-bg)', borderRadius: 12, height: 160,
+              background: 'var(--atelier-card-bg)', borderRadius: 12, height: 160,
             }} />
           ))}
         </div>
@@ -273,15 +273,15 @@ export default function DiscoverApprovalsPage() {
         <div style={{
           textAlign: 'center', padding: '56px 0',
           fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
-          fontSize: 19, color: 'var(--admin-ink-mute)',
+          fontSize: 19, color: 'var(--atelier-ink-mute)',
         }}>Nothing waiting.</div>
       ) : mode === 'bulk' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {pendingList.map(r => (
             <label key={r.vendor_id} style={{
               display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
-              background: 'var(--admin-card-bg)',
-              border: '0.5px solid var(--admin-card-border)',
+              background: 'var(--atelier-card-bg)',
+              border: '0.5px solid var(--atelier-card-border)',
               borderRadius: 10, cursor: r.meets_floor ? 'pointer' : 'not-allowed',
               opacity: r.meets_floor ? 1 : 0.55,
             }}>
@@ -294,16 +294,16 @@ export default function DiscoverApprovalsPage() {
                   if (n.has(r.vendor_id)) n.delete(r.vendor_id); else n.add(r.vendor_id);
                   return n;
                 })}
-                style={{ width: 20, height: 20, accentColor: 'var(--admin-metal)' }}
+                style={{ width: 20, height: 20, accentColor: 'var(--role-metal)' }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   fontFamily: '"DM Sans", sans-serif', fontSize: 14,
-                  color: 'var(--admin-ink)',
+                  color: 'var(--atelier-ink)',
                 }}>{r.vendor_name}</div>
                 <div style={{
                   fontFamily: '"Jost", sans-serif', fontSize: 10,
-                  letterSpacing: '0.1em', color: 'var(--admin-ink-mute)', marginTop: 3,
+                  letterSpacing: '0.1em', color: 'var(--atelier-ink-mute)', marginTop: 3,
                 }}>
                   {r.photos_total} photos · {r.photos_approved} approved
                   {!r.meets_floor && ` · below the ${r.photo_floor}-photo floor`}
@@ -326,8 +326,8 @@ export default function DiscoverApprovalsPage() {
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
             style={{
-              background: 'var(--admin-card-bg)',
-              border: '0.5px solid var(--admin-card-border)',
+              background: 'var(--atelier-card-bg)',
+              border: '0.5px solid var(--atelier-card-border)',
               borderRadius: 14, padding: 18,
               transform: `translateX(${drag}px) rotate(${drag / 40}deg)`,
               transition: dragStart.current === null ? 'transform 220ms ease' : 'none',
@@ -335,17 +335,17 @@ export default function DiscoverApprovalsPage() {
           >
             <div style={{
               fontFamily: '"Jost", sans-serif', fontSize: 9, letterSpacing: '0.28em',
-              textTransform: 'uppercase', color: 'var(--admin-ink-mute)', marginBottom: 8,
+              textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', marginBottom: 8,
             }}>{idx + 1} of {pendingList.length} · {label(stateOf(card))}</div>
 
             <div style={{
               fontFamily: '"Cormorant Garamond", serif', fontSize: 26, fontWeight: 300,
-              color: 'var(--admin-ink)', lineHeight: 1.15,
+              color: 'var(--atelier-ink)', lineHeight: 1.15,
             }}>{card.vendor_name}</div>
 
             <div style={{
               fontFamily: '"Jost", sans-serif', fontSize: 11, letterSpacing: '0.1em',
-              color: 'var(--admin-ink-soft)', marginTop: 6,
+              color: 'var(--atelier-ink-soft)', marginTop: 6,
             }}>{[card.vendor_category, card.vendor_city].filter(Boolean).join(' · ')}</div>
 
             {/* ── FORK 5 · TWO LABELLED COUNTS, NEVER ONE BLENDED NUMBER ────────
@@ -355,7 +355,7 @@ export default function DiscoverApprovalsPage() {
                 collapsing them would make one of the two lie on this screen. */}
             <div style={{
               display: 'flex', gap: 22, marginTop: 16, paddingTop: 14,
-              borderTop: '0.5px solid var(--admin-hairline)',
+              borderTop: '0.5px solid var(--atelier-card-border)',
             }}>
               <Metric
                 value={`${card.photos_total}`}
@@ -368,14 +368,14 @@ export default function DiscoverApprovalsPage() {
             {!card.meets_floor && (
               <p style={{
                 fontFamily: '"Jost", sans-serif', fontSize: 11, lineHeight: 1.6,
-                color: 'var(--admin-caution)', margin: '12px 0 0',
+                color: 'var(--role-caution)', margin: '12px 0 0',
               }}>Below the {card.photo_floor}-photo floor — cannot approve.</p>
             )}
 
             {card.pitch && (
               <p style={{
                 fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic',
-                fontSize: 15, lineHeight: 1.55, color: 'var(--admin-ink-soft)',
+                fontSize: 15, lineHeight: 1.55, color: 'var(--atelier-ink-soft)',
                 margin: '14px 0 0',
               }}>{card.pitch}</p>
             )}
@@ -392,7 +392,7 @@ export default function DiscoverApprovalsPage() {
                 href={`/admin/vendors/portfolio?vendor=${card.vendor_id}`}
                 style={{
                   fontFamily: '"Jost", sans-serif', fontSize: 10, letterSpacing: '0.22em',
-                  textTransform: 'uppercase', color: 'var(--admin-metal)', textDecoration: 'none',
+                  textTransform: 'uppercase', color: 'var(--role-metal)', textDecoration: 'none',
                 }}
               >See the portfolio</a>
             </div>
@@ -407,7 +407,7 @@ export default function DiscoverApprovalsPage() {
             <div style={{ marginTop: 16 }}>
               <div style={{
                 fontFamily: '"Jost", sans-serif', fontSize: 9, letterSpacing: '0.28em',
-                textTransform: 'uppercase', color: 'var(--admin-ink-mute)', marginBottom: 10,
+                textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', marginBottom: 10,
               }}>Why?</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {REASON_CHIPS.map(c => (
@@ -421,9 +421,9 @@ export default function DiscoverApprovalsPage() {
                   placeholder={CUSTOM_CHIP}
                   style={{
                     flex: 1, minWidth: 0, padding: '11px 13px',
-                    background: 'var(--admin-input-bg)',
-                    border: '0.5px solid var(--admin-input-border)',
-                    borderRadius: 8, color: 'var(--admin-ink)',
+                    background: 'var(--atelier-input-bg)',
+                    border: '0.5px solid var(--atelier-input-border)',
+                    borderRadius: 8, color: 'var(--atelier-ink)',
                     fontFamily: '"DM Sans", sans-serif', fontSize: 14,
                   }}
                 />
@@ -452,30 +452,30 @@ export default function DiscoverApprovalsPage() {
         <div style={{ marginTop: 34 }}>
           <div style={{
             fontFamily: '"Jost", sans-serif', fontSize: 9, letterSpacing: '0.28em',
-            textTransform: 'uppercase', color: 'var(--admin-ink-mute)', marginBottom: 12,
+            textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', marginBottom: 12,
           }}>Decided</div>
           {settled.map(r => (
             <div key={r.id} style={{
               display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px',
-              background: 'var(--admin-card-bg)',
-              border: '0.5px solid var(--admin-card-border)',
+              background: 'var(--atelier-card-bg)',
+              border: '0.5px solid var(--atelier-card-border)',
               borderRadius: 10, marginBottom: 8,
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontFamily: '"DM Sans", sans-serif', fontSize: 14, color: 'var(--admin-ink)',
+                  fontFamily: '"DM Sans", sans-serif', fontSize: 14, color: 'var(--atelier-ink)',
                 }}>{r.vendor_name}</div>
                 {r.decision_reason && (
                   <div style={{
                     fontFamily: '"Jost", sans-serif', fontSize: 11, lineHeight: 1.5,
-                    color: 'var(--admin-ink-mute)', marginTop: 4,
+                    color: 'var(--atelier-ink-mute)', marginTop: 4,
                   }}>{r.decision_reason}</div>
                 )}
               </div>
               <span style={{
                 fontFamily: '"Jost", sans-serif', fontSize: 8, letterSpacing: '0.18em',
-                textTransform: 'uppercase', color: 'var(--admin-ink-soft)',
-                border: '0.5px solid var(--admin-hairline-firm)',
+                textTransform: 'uppercase', color: 'var(--atelier-ink-soft)',
+                border: '0.5px solid var(--atelier-sheet-border)',
                 borderRadius: 20, padding: '4px 11px', flexShrink: 0,
               }}>{label(stateOf(r))}</span>
               {stateOf(r) === 'approved' ? (
@@ -501,25 +501,25 @@ export default function DiscoverApprovalsPage() {
           bottom: 'calc(env(safe-area-inset-bottom, 0px) + 76px)',
           zIndex: 400, display: 'flex', alignItems: 'center', gap: 12,
           padding: '13px 16px', borderRadius: 12,
-          background: 'var(--admin-sheet)',
-          border: '0.5px solid var(--admin-caution)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
+          background: 'var(--atelier-sheet-bg)',
+          border: '0.5px solid var(--role-caution)',
+          boxShadow: '0 8px 40px var(--role-scrim)',
         }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               fontFamily: '"Jost", sans-serif', fontSize: 11, lineHeight: 1.5,
-              color: 'var(--admin-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              color: 'var(--atelier-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>Rejecting {pending.req.vendor_name} — {pending.reason}</div>
             <div style={{
               fontFamily: '"Jost", sans-serif', fontSize: 9, letterSpacing: '0.18em',
-              textTransform: 'uppercase', color: 'var(--admin-ink-mute)', marginTop: 4,
+              textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', marginTop: 4,
             }}>Nothing sent yet</div>
           </div>
           <button onClick={undo} style={{
             flexShrink: 0, minHeight: 40, padding: '10px 18px', borderRadius: 8,
-            background: 'transparent', border: '0.5px solid var(--admin-metal)',
+            background: 'transparent', border: '0.5px solid var(--role-metal)',
             fontFamily: '"Jost", sans-serif', fontSize: 10, letterSpacing: '0.22em',
-            textTransform: 'uppercase', color: 'var(--admin-metal)', cursor: 'pointer',
+            textTransform: 'uppercase', color: 'var(--role-metal)', cursor: 'pointer',
           }}>Undo</button>
         </div>
       )}
@@ -531,10 +531,10 @@ export default function DiscoverApprovalsPage() {
 
 const chipStyle: React.CSSProperties = {
   background: 'transparent',
-  border: '0.5px solid var(--admin-hairline-firm)',
+  border: '0.5px solid var(--atelier-sheet-border)',
   borderRadius: 20, padding: '10px 15px', minHeight: 40,
   fontFamily: '"Jost", sans-serif', fontSize: 11, letterSpacing: '0.08em',
-  color: 'var(--admin-ink-soft)', cursor: 'pointer',
+  color: 'var(--atelier-ink-soft)', cursor: 'pointer',
 };
 
 function Metric({ value, label, warn }: { value: string; label: string; warn?: boolean }) {
@@ -543,11 +543,11 @@ function Metric({ value, label, warn }: { value: string; label: string; warn?: b
       <div style={{
         fontFamily: '"Cormorant Garamond", serif', fontVariantNumeric: 'lining-nums',
         fontSize: 25, fontWeight: 300,
-        color: warn ? 'var(--admin-caution)' : 'var(--admin-ink)', lineHeight: 1,
+        color: warn ? 'var(--role-caution)' : 'var(--atelier-ink)', lineHeight: 1,
       }}>{value}</div>
       <div style={{
         fontFamily: '"Jost", sans-serif', fontSize: 9, letterSpacing: '0.16em',
-        textTransform: 'uppercase', color: 'var(--admin-ink-mute)', marginTop: 6,
+        textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', marginTop: 6,
       }}>{label}</div>
     </div>
   );
@@ -556,7 +556,7 @@ function Metric({ value, label, warn }: { value: string; label: string; warn?: b
 function DeckBtn({ label, tone, onClick, disabled }: {
   label: string; tone: 'ok' | 'no'; onClick: () => void; disabled?: boolean;
 }) {
-  const col = tone === 'ok' ? 'var(--admin-positive)' : 'var(--admin-critical)';
+  const col = tone === 'ok' ? 'var(--role-positive)' : 'var(--role-critical)';
   return (
     <button onClick={onClick} disabled={disabled} style={{
       flex: 1, padding: '15px 0', minHeight: 48,

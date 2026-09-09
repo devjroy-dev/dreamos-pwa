@@ -1,5 +1,8 @@
 // lib/admin-api/modelRoutesCopy.ts — THE WORDS ON THE MODEL ROUTES PANEL.
-// CE-41 seat F, R-41.85. Every string ratified in seat E's veto sheet §D
+// CE-41 seat F, R-41.85. OWNED BY SEAT E FROM CE-41 E2 (i) — R-41.110, after seat F
+// stood down. The header's own rule below (one home each, no shared file edited by
+// two seats mid-arc) is why this line exists rather than a silent edit.
+// Every string ratified in seat E's veto sheet §D
 // (`docs/mocks/COCKPIT/COCKPIT_VETO_SHEET.md`, rows 27–35) unless marked below.
 //
 // WHY THIS FILE AND NOT `switchboardCopy.ts`. R-41.99 gives seat E that file. These
@@ -21,14 +24,25 @@
 // ── SURFACES ────────────────────────────────────────────────────────────────
 // Order is the frame's (§D-28), and the panel renders in this order rather than
 // the door's, so the room reads the same every load.
-export const SURFACE_ORDER = ['wa_vendor', 'pwa_vendor', 'wa_couple', 'wa_marketing', 'harvest'] as const;
+// `bride_app` is sixth and last. F0's panel already rendered it — under the "rest"
+// rule, printing its raw key, because this file had no entry for it. That is the
+// panel's no-invented-lane law working: the lane was on the wire and the founder
+// could see it, unreadable but present. R-41.103 ② ratified its name; this entry is
+// the only thing that changed.
+export const SURFACE_ORDER = ['wa_vendor', 'pwa_vendor', 'wa_couple', 'wa_marketing', 'harvest', 'bride_app'] as const;
 
 const SURFACE_NAME: Record<string, string> = {
   wa_vendor:    'Answer vendors on WhatsApp',
   pwa_vendor:   'Answer vendors in the app',
   wa_couple:    'Answer couples on WhatsApp',
   wa_marketing: 'Write the marketing outreach',
-  harvest:      'Harvest prospects',
+  // F-41.109 — `Harvest prospects` was false twice over: harvest is the post-turn
+  // extraction on Victor's app chat that fills a vendor's own missing lead and record
+  // cells (src/agent/harvest.js, one call site at chat.js:2765). It never sees a
+  // prospect and never touches WhatsApp. A row naming a surface the founder does not
+  // have is a switch he cannot reason about.
+  harvest:      'Fill gaps after an app chat',
+  bride_app:    'Answer couples in the app',
 };
 
 const SURFACE_SUB: Record<string, string> = {
@@ -36,7 +50,10 @@ const SURFACE_SUB: Record<string, string> = {
   pwa_vendor:   'vendor rooms · Victor and Donna',
   wa_couple:    'couple line',
   wa_marketing: 'marketing line · Mira and Mira’s nudge',
-  harvest:      'one role',
+  harvest:      'one role · the app',
+  // Witnessed on the founder's walk, 2026-09-09 05:45: the bride row reads set on
+  // the server, not in a row, and BRIDE_LLM_PROVIDER is not set.
+  bride_app:    'bride app lane · set on the server',
 };
 
 // ── TIERS ───────────────────────────────────────────────────────────────────
@@ -67,6 +84,7 @@ const ROLE_NAME: Record<string, Record<string, string>> = {
   wa_marketing: { provider: 'Mira',   nudge: 'Mira’s nudge' },
   wa_couple:    { provider: '' },   // a single unnamed role — the switch rides the surface row
   harvest:      { provider: '' },
+  bride_app:    { provider: '' },   // read-only; the switch renders as an outline
 };
 
 // ── PROVIDERS ───────────────────────────────────────────────────────────────

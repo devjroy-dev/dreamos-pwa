@@ -34,7 +34,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { hasAdminSession, clearAdminSession } from '@/lib/admin-api/_base';
-import './_components/tokens.css';
+// R-41.73 — THE COCKPIT'S TOKENS ARE THE SHELL'S, AND ITS FILE IS GONE.
+// `_components/tokens.css` held 34 --admin-* roles, each citing lib/vendor/theme.ts
+// DARK as its donor. The donor moved to Graphite at CE-40 and the citations went
+// false without a cell to catch it (scripts/tdw10_p2_retint.proof.mjs read 21/76
+// RED at 1619cae — retired in this rider, R-41.78). One home now: every colour in
+// app/admin is a var() emitted by lib/worklist/theme.ts, the same emitter the vendor
+// rooms mount. No alias file — 34 names for 33 tokens is F-40.143's class.
+import { scopeCss, typeCss, GRAPHITE } from '@/lib/worklist/theme';
 import { BRIDGE, DOMAINS, type Domain, type Section } from './_components/adminNav';
 import { adminGet } from '@/lib/admin-api/_base';
 import CommandPalette from './_components/CommandPalette';
@@ -47,27 +54,27 @@ const FONTS = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    background: var(--admin-bg);
+    background: var(--atelier-page-bg);
     background-attachment: fixed;
-    color: var(--admin-ink);
+    color: var(--atelier-ink);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
   }
   ::-webkit-scrollbar { width: 2px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--admin-metal-line); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb { background: var(--atelier-card-border); border-radius: 2px; }
   scrollbar-width: thin;
-  scrollbar-color: var(--admin-metal-line) transparent;
+  scrollbar-color: var(--atelier-card-border) transparent;
 
   input, select, textarea {
     font-family: "DM Sans", sans-serif;
-    color: var(--admin-ink) !important;
+    color: var(--atelier-ink) !important;
     -webkit-appearance: none;
   }
-  input::placeholder, textarea::placeholder { color: var(--admin-ink-dim) !important; }
+  input::placeholder, textarea::placeholder { color: var(--atelier-ink-dim) !important; }
   button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-  option { background: var(--admin-option-bg); }
+  option { background: var(--atelier-sheet-bg); }
 
   /* ── F-08.42 LIMB 1 · CE-RULED FORK 1(e) ──────────────────────────────────
      THIS KEYFRAME DECLARES NO TRANSFORM, AND THAT IS THE WHOLE CURE.
@@ -185,9 +192,9 @@ function NavItem({ label, icon, active, retiring, onClick, count }: {
         width: '100%', textAlign: 'left',
         padding: '9px 18px 9px 14px',
         border: 'none', outline: 'none',
-        background: active ? 'var(--admin-metal-wash)' : hov ? 'var(--admin-row-hover)' : 'transparent',
-        borderLeft: `2px solid ${active ? 'var(--admin-metal)' : 'transparent'}`,
-        color: active ? 'var(--admin-metal)' : hov ? 'var(--admin-ink)' : 'var(--admin-ink-mute)',
+        background: active ? 'var(--atelier-row-hover)' : hov ? 'var(--atelier-row-hover)' : 'transparent',
+        borderLeft: `2px solid ${active ? 'var(--role-metal)' : 'transparent'}`,
+        color: active ? 'var(--role-metal)' : hov ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
         fontFamily: '"DM Sans", sans-serif',
         fontWeight: active ? 600 : 500,
         fontSize: 13.5, letterSpacing: '0.005em',
@@ -203,14 +210,14 @@ function NavItem({ label, icon, active, retiring, onClick, count }: {
       {typeof count === 'number' && count > 0 && (
         <span aria-label={`${count} open`} style={{
           marginLeft: 'auto', fontFamily: '"DM Sans", sans-serif', fontWeight: 600, fontSize: 10.5,
-          letterSpacing: '0.04em', color: 'var(--admin-metal)', border: '1px solid var(--admin-metal)',
+          letterSpacing: '0.04em', color: 'var(--role-metal)', border: '1px solid var(--role-metal)',
           borderRadius: 999, padding: '1px 7px', lineHeight: 1.5, flexShrink: 0,
         }}>{count}</span>
       )}
       {/* R-A4: the death warrant is VISIBLE. A surface chartered to retire says
           so on the nav, so nobody builds a habit on it between now and then. */}
       {retiring && (
-        <span style={{ fontFamily: '"Jost", sans-serif', fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--admin-ink-dim)' }}>
+        <span style={{ fontFamily: '"Jost", sans-serif', fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--atelier-ink-dim)' }}>
           retiring
         </span>
       )}
@@ -246,7 +253,7 @@ function DomainSections({ domain, onNavigate }: { domain: Domain; onNavigate: ()
     return (
       <div style={{
         padding: '10px 18px 14px', fontFamily: '"DM Sans", sans-serif',
-        fontSize: 12, lineHeight: 1.5, color: 'var(--admin-ink-dim)',
+        fontSize: 12, lineHeight: 1.5, color: 'var(--atelier-ink-dim)',
       }}>
         {domain.empty}
       </div>
@@ -274,12 +281,12 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
   const pathname = usePathname();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--admin-nav-bg)', borderRight: '0.5px solid var(--admin-hairline)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--atelier-header-bg)', borderRight: '0.5px solid var(--atelier-card-border)' }}>
       {/* Wordmark — the metal's first sanctioned home (spec P1.1) */}
       <div style={{ padding: '26px 20px 14px', flexShrink: 0 }}>
         {/* ── F-10.74 LIMB 2 — THE SIGN-OUT MOVED UP HERE, AND WHY ────────────
             IT USED TO SIT AT THE SIDEBAR'S FOOT: a 10px uppercase word in
-            --admin-ink-dim, below the wordmark, the Search box, the Bridge row
+            --atelier-ink-dim, below the wordmark, the Search box, the Bridge row
             and six domains' worth of nav. Bench-green the whole time
             (tdw07_f0784_panel §2.3 asserted the handler clears the real
             session, 34/34) — and the founder still said, verbatim:
@@ -295,10 +302,10 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
             his ruling; aria-label carries the word. */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontWeight: 400, fontSize: 22, color: 'var(--admin-metal)', letterSpacing: '-0.01em', lineHeight: 1 }}>
+            <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontWeight: 400, fontSize: 22, color: 'var(--role-metal)', letterSpacing: '-0.01em', lineHeight: 1 }}>
               The Dream Wedding
             </div>
-            <div style={{ fontFamily: '"Jost",sans-serif', fontWeight: 400, fontSize: 9, color: 'var(--admin-ink-mute)', letterSpacing: '0.34em', textTransform: 'uppercase', marginTop: 6 }}>
+            <div style={{ fontFamily: '"Jost",sans-serif', fontWeight: 400, fontSize: 9, color: 'var(--atelier-ink-mute)', letterSpacing: '0.34em', textTransform: 'uppercase', marginTop: 6 }}>
               Control Room
             </div>
           </div>
@@ -310,13 +317,13 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
               flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 44, height: 44, marginTop: -10, marginRight: -10,
               background: 'none', border: 'none', padding: 0,
-              color: 'var(--admin-ink-mute)', cursor: 'pointer',
+              color: 'var(--atelier-ink-mute)', cursor: 'pointer',
             }}
           >
             <Icon name="power" size={18} />
           </button>
         </div>
-        <div style={{ height: '0.5px', background: 'linear-gradient(to right, var(--admin-metal-soft), transparent)', marginTop: 14 }} />
+        <div style={{ height: '0.5px', background: 'linear-gradient(to right, var(--role-metal), transparent)', marginTop: 14 }} />
       </div>
 
       {/* Palette opener — a visible door, not only a keystroke */}
@@ -325,14 +332,14 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
           onClick={onSearch}
           style={{
             display: 'flex', alignItems: 'center', gap: 9, width: '100%',
-            background: 'var(--admin-input-bg)', border: '0.5px solid var(--admin-input-border)',
+            background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)',
             borderRadius: 8, padding: '0 10px', minHeight: 40,
-            color: 'var(--admin-ink-mute)', fontFamily: '"DM Sans", sans-serif', fontSize: 13,
+            color: 'var(--atelier-ink-mute)', fontFamily: '"DM Sans", sans-serif', fontSize: 13,
           }}
         >
           <Icon name="search" size={15} />
           <span style={{ flex: 1, textAlign: 'left' }}>Search</span>
-          <span style={{ fontFamily: '"Jost", sans-serif', fontSize: 10, letterSpacing: '0.1em', color: 'var(--admin-ink-dim)' }}>⌘K</span>
+          <span style={{ fontFamily: '"Jost", sans-serif', fontSize: 10, letterSpacing: '0.1em', color: 'var(--atelier-ink-dim)' }}>⌘K</span>
         </button>
       </div>
 
@@ -348,7 +355,7 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
             <div style={{
               display: 'flex', alignItems: 'center', gap: 8,
               fontFamily: '"Jost",sans-serif', fontWeight: 600, fontSize: 10,
-              color: 'var(--admin-ink-dim)', letterSpacing: '0.14em', textTransform: 'uppercase',
+              color: 'var(--atelier-ink-dim)', letterSpacing: '0.14em', textTransform: 'uppercase',
               padding: '18px 18px 6px',
             }}>
               <Icon name={d.icon} size={13} />
@@ -373,6 +380,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [authed, setAuthed] = useState(false);
   const [openDomain, setOpenDomain] = useState<string | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // ── R-41.72/.73 — THE SCOPE, WORN BY THE DOCUMENT ELEMENT ──────────────────
+  // `scopeCss('html.adm')` above emits `html.adm[data-wl-mode="dark"]{…}`, so both
+  // halves have to be on <html> for a single token to resolve. They go on in an
+  // effect and come OFF on unmount: /admin is one route group inside the same SPA
+  // as the bride's wine and the vendor's Graphite, and a class left behind on the
+  // document element would follow the founder out of the cockpit and re-token
+  // whatever he opened next. R-41.74 pins the arm; nothing writes 'light'.
+  useEffect(() => {
+    const el = document.documentElement;
+    el.classList.add('adm');
+    el.setAttribute('data-wl-mode', 'dark');
+    return () => { el.classList.remove('adm'); el.removeAttribute('data-wl-mode'); };
+  }, []);
 
   useEffect(() => {
     // ── F-07.84 CURED — THE BOOLEAN OPENS NOTHING ────────────────────────────
@@ -405,6 +426,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <>
+      {/* R-41.72/.73 — THE ONE MOUNT. `html.adm` and not a wrapper <div>: this file
+          returns a fragment of position:fixed panes, and wrapping them would put the
+          <head> below inside a <div> and give every fixed pane a new containing
+          block. The scope rides the document element instead, set in the effect
+          above, so the panes are untouched and the tokens still cascade to all 37
+          routes. R-41.74 pins the dark arm — the cockpit is the protocol's sanctioned
+          dark exception and has no mode switch; scopeCss still emits the light arm
+          because it emits one home's whole map, and nothing sets data-wl-mode to it. */}
+      <style>{scopeCss('html.adm') + typeCss('html.adm')}</style>
       <style>{FONTS}</style>
 
       {/* PWA meta — admin scope installs as separate app on Android */}
@@ -418,8 +448,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             have stayed NAVY while every pixel below them went espresso, which is
             precisely the seam the founder's smoke test looks at. Caught by
             scripts/tdw10_p2_retint.proof.mjs §6, not by eye.
-            #1F1612 is theme.ts DARK.pageBg, the same value --admin-shell carries. */}
-        <meta name="theme-color" content="#1F1612" />
+            R-41.73 CURES THE CITATION ITSELF. The literal is gone: the attribute now
+            reads GRAPHITE['page-bg'] from lib/worklist/theme.ts, so the status bar
+            cannot drift from the ground again — there is no second copy to drift.
+            The cockpit's ink census cell allows this one site by name and asserts the
+            equality; it is the only place in app/admin a colour may leave the var(). */}
+        <meta name="theme-color" content={GRAPHITE['page-bg']} />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -439,13 +473,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <>
           <div
             onClick={() => setOpenDomain(null)}
-            style={{ position: 'fixed', inset: 0, background: 'var(--admin-scrim)', zIndex: 190, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+            style={{ position: 'fixed', inset: 0, background: 'var(--role-scrim)', zIndex: 190, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
           />
           <div
             id="m-sheet"
             style={{
               position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 191,
-              background: 'var(--admin-sheet)', borderTop: '0.5px solid var(--admin-sheet-border)',
+              background: 'var(--atelier-sheet-bg)', borderTop: '0.5px solid var(--atelier-sheet-border)',
               borderRadius: '14px 14px 0 0', paddingBottom: 'calc(74px + env(safe-area-inset-bottom))',
               maxHeight: '70vh', overflowY: 'auto',
             }}
@@ -453,7 +487,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div style={{
               fontFamily: '"Jost",sans-serif', fontWeight: 600, fontSize: 10,
               letterSpacing: '0.14em', textTransform: 'uppercase',
-              color: 'var(--admin-ink-dim)', padding: '18px 18px 8px',
+              color: 'var(--atelier-ink-dim)', padding: '18px 18px 8px',
             }}>
               {activeDomain.label}
             </div>
@@ -463,18 +497,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Main */}
-      <div id="admin-main" style={{ background: 'var(--admin-bg)', backgroundAttachment: 'fixed', minHeight: '100dvh' }}>
+      <div id="admin-main" style={{ background: 'var(--atelier-page-bg)', backgroundAttachment: 'fixed', minHeight: '100dvh' }}>
 
         {/* Mobile top bar — wordmark + the palette's pull-down */}
         <div id="m-bar" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 18px', height: 54,
-          borderBottom: '0.5px solid var(--admin-hairline)',
-          background: 'var(--admin-bar-bg)',
+          borderBottom: '0.5px solid var(--atelier-card-border)',
+          background: 'var(--atelier-header-bg)',
           position: 'sticky', top: 0, zIndex: 100,
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         }}>
-          <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontSize: 18, fontWeight: 400, color: 'var(--admin-metal)' }}>TDW</div>
+          <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontSize: 18, fontWeight: 400, color: 'var(--role-metal)' }}>TDW</div>
           {/* F-10.74: the bar's justifyContent is space-between and it carried
               exactly two children. A third would have floated the Jump box into
               the middle of the bar, so the two right-hand controls group. */}
@@ -484,9 +518,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             aria-label="Search"
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              background: 'var(--admin-input-bg)', border: '0.5px solid var(--admin-input-border)',
+              background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)',
               borderRadius: 8, padding: '0 12px', minHeight: 40, minWidth: 48,
-              color: 'var(--admin-ink-mute)', fontFamily: '"DM Sans", sans-serif', fontSize: 13,
+              color: 'var(--atelier-ink-mute)', fontFamily: '"DM Sans", sans-serif', fontSize: 13,
             }}
           >
             <Icon name="search" size={15} />
@@ -508,7 +542,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 44, height: 44, marginRight: -10,
               background: 'none', border: 'none', padding: 0,
-              color: 'var(--admin-ink-mute)', cursor: 'pointer',
+              color: 'var(--atelier-ink-mute)', cursor: 'pointer',
             }}
           >
             <Icon name="power" size={18} />
@@ -526,8 +560,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div id="m-domains" style={{
         position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 195,
         display: 'flex', alignItems: 'stretch',
-        background: 'var(--admin-bar-bg)',
-        borderTop: '0.5px solid var(--admin-hairline)',
+        background: 'var(--atelier-header-bg)',
+        borderTop: '0.5px solid var(--atelier-card-border)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}>
@@ -574,7 +608,7 @@ function domainBtn(active: boolean): React.CSSProperties {
   return {
     flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
     gap: 3, border: 'none', background: 'transparent', minHeight: 56, padding: '6px 2px',
-    color: active ? 'var(--admin-metal)' : 'var(--admin-ink-mute)',
+    color: active ? 'var(--role-metal)' : 'var(--atelier-ink-mute)',
   };
 }
 
