@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F2b · the flat row at 374 · CE-41 seat F</title>
+<!--
+  docs/mocks/COCKPIT/F2b-flat-row-374.html — CE-41 · SEAT F · F-41.94.
+
+  WHAT THIS IS FOR. The Model routes panel's three SINGLE-ROLE surfaces overlapped at
+  374 on the founder's own glass: `Answer couples on WhatsApp` broke to four lines
+  with `Anthropic · seeded` painted over the first of them. The cure is structural —
+  every lane renders as a block spanning the full width, and nothing nests in the
+  surface row's `auto` column — and this file is that cure drawn, at the width it
+  failed at, for the chair to veto before it ships.
+
+  WHY AN HTML FILE AND NOT A PNG. The estate shoots frames with puppeteer-core plus
+  @sparticuz/chromium (`scripts/b41_theme_bleed_fixture.js:44`). The executor's
+  container has neither a browser nor font egress — the same wall that makes
+  `npm run build` the founder's gate. Chair-ruled: an HTML file at 374 inside the
+  packet is the accepted form; seat E's PNG arm is the exception, not the rule.
+
+  THE COLOURS ARE THE CURRENT CARD'S, transcribed from `app/admin/_components/AdminUI.tsx`
+  `T` at fc3cd72 — this is a MOCK and a mock may hold a copy; the shipped panel holds
+  none and b61 §2 asserts it. If `T` moves, this file is stale and says so here rather
+  than pretending to track it.
+
+  BOTH STATES ARE DRAWN so the veto is a comparison and not a memory: the defect as
+  the founder saw it, then the cure. Open at 374 wide.
+-->
+<style>
+  :root{
+    --bg:#0A0F18; --card:rgba(255,255,255,0.055); --border:rgba(255,255,255,0.10);
+    --gold:#C44058; --ink:#F0EAE0; --soft:rgba(240,234,224,0.62);
+    --muted:rgba(240,234,224,0.42); --warning:#D4A017;
+    --body:"DM Sans",system-ui,sans-serif; --label:"Jost",system-ui,sans-serif;
+  }
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);padding:16px 0 48px}
+  .stage{width:374px;margin:0 auto;}
+  .note{width:374px;margin:0 auto 10px;font-size:11px;color:var(--muted);line-height:1.5}
+  .note b{color:var(--ink);font-weight:500}
+  .card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:18px 20px 6px;margin-bottom:22px}
+  .gh{display:flex;justify-content:space-between;align-items:baseline;border-bottom:.5px solid var(--border);padding-bottom:6px;margin-bottom:2px}
+  .gh h2{font-size:14px;font-weight:600;margin:0}
+  .gh span{font-family:var(--label);font-size:10px;color:var(--muted);letter-spacing:.06em}
+  .act{font-size:14px;font-weight:500;line-height:1.35}
+  .sub{font-size:11px;color:var(--muted);margin-top:4px}
+  .r{font-size:11px;color:var(--muted);min-width:0}
+  .r b{display:block;font-size:12px;font-weight:400;color:var(--soft)}
+  .sw{display:inline-flex;border:.5px solid var(--border);border-radius:3px;overflow:hidden}
+  .sw span{min-height:36px;min-width:84px;display:flex;align-items:center;justify-content:center;
+           padding:0 12px;font-family:var(--label);font-size:9px;letter-spacing:.08em;
+           text-transform:uppercase;color:var(--muted)}
+  .sw span.on{background:var(--gold);color:var(--ink)}
+  .sw.ro span.on{background:transparent;color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+
+  /* ── THE DEFECT, as shipped at 501d7bf ─────────────────────────────────────
+     The role row is nested in the surface row's `auto` column. That track sizes to
+     the nested row's max-content — text plus 168px of segments — and takes the box.  */
+  .row-old{display:grid;grid-template-columns:1fr auto;column-gap:12px;row-gap:6px;
+           align-items:start;padding:12px 0;border-bottom:.5px solid var(--border)}
+  .row-old .nested{display:grid;grid-template-columns:1fr auto;column-gap:10px;align-items:center;min-height:44px}
+
+  /* ── THE CURE (F-41.94) ────────────────────────────────────────────────────
+     The lane is a block spanning 1/-1. Nothing is in the `auto` column at all, so
+     there are no two tracks to compete and no width is named anywhere.            */
+  .row-new{display:grid;grid-template-columns:1fr auto;column-gap:12px;row-gap:6px;
+           align-items:start;padding:12px 0;border-bottom:.5px solid var(--border)}
+  .lane{grid-column:1/-1;padding:2px 0 4px}
+  .role{display:grid;grid-template-columns:1fr auto;column-gap:10px;align-items:center;min-height:44px}
+  .ro-why{font-size:11px;color:var(--muted);margin:2px 0 0;line-height:1.45}
+  h3{width:374px;margin:0 auto 8px;font-family:var(--label);font-size:10px;letter-spacing:.14em;
+     text-transform:uppercase;color:var(--muted);font-weight:400}
+</style>
+</head>
+<body>
+
+<h3>① The defect — as it renders today at 374</h3>
+<p class="note"><b>Answer couples on WhatsApp</b> breaks to four lines and the value text paints over it.
+The switch column has claimed the box.</p>
+<div class="stage"><div class="card">
+  <div class="gh"><h2>Model routes</h2><span>6 surfaces</span></div>
+  <div class="row-old">
+    <div>
+      <div class="act">Answer couples on WhatsApp</div>
+      <div class="sub">couple line</div>
+    </div>
+    <div>
+      <div class="nested">
+        <div class="r">Anthropic · seeded</div>
+        <div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<h3>② The cure — all three flat surfaces</h3>
+<p class="note">Title first, then the value line and its switch on a line of their own, spanning the full width —
+the same shape a tier's role rows have had since <b>F-41.67</b>. No pixel named, no breakpoint added.</p>
+<div class="stage"><div class="card">
+  <div class="gh"><h2>Model routes</h2><span>6 surfaces</span></div>
+
+  <div class="row-new">
+    <div>
+      <div class="act">Answer couples on WhatsApp</div>
+      <div class="sub">couple line</div>
+    </div>
+    <div class="lane">
+      <div class="role">
+        <div class="r">Anthropic · seeded</div>
+        <div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-new">
+    <div>
+      <div class="act">Harvest prospects</div>
+      <div class="sub">one role</div>
+    </div>
+    <div class="lane">
+      <div class="role">
+        <div class="r">DeepSeek · seeded</div>
+        <div class="sw"><span>Anthropic</span><span class="on">DeepSeek</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row-new">
+    <div>
+      <div class="act">Answer couples in the app</div>
+      <div class="sub">bride app lane</div>
+    </div>
+    <div class="lane">
+      <p class="ro-why">this lane is set on the server, not in a row · BRIDE_LLM_PROVIDER is not set</p>
+      <div class="role" style="margin-top:6px">
+        <div class="r">Anthropic · server</div>
+        <div class="sw ro"><span class="on">Anthropic</span><span>DeepSeek</span></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<h3>③ A tiered surface, unchanged — the cure must not move it</h3>
+<p class="note">The tier heading, its <b>Differs from code</b> chip and the two 44px hands are byte-identical to
+what shipped. Drawn so the veto can see the cure did not reach where it had no business.</p>
+<div class="stage"><div class="card">
+  <div class="row-new">
+    <div>
+      <div class="act">Answer vendors on WhatsApp</div>
+      <div class="sub">vendor line · Victor and Donna</div>
+    </div>
+    <div class="lane" style="padding:8px 0 8px 14px;border-left:.5px solid var(--border);margin-top:6px">
+      <div style="font-size:12px;color:var(--soft);display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <span>Essential</span>
+        <span style="border:.5px solid var(--warning);color:var(--warning);border-radius:3px;padding:3px 8px;font-family:var(--label);font-size:9px;letter-spacing:.08em;text-transform:uppercase">Differs from code</span>
+      </div>
+      <div class="role">
+        <div class="r"><b>Victor</b>Anthropic · seeded</div>
+        <div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div>
+      </div>
+      <div class="role">
+        <div class="r"><b>Donna</b>Anthropic · changed 9 Sep</div>
+        <div class="sw"><span class="on">Anthropic</span><span>DeepSeek</span></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<p class="note" style="margin-top:24px">
+  <b>F-41.93 is visible in ③:</b> Donna reads <b>changed 9 Sep</b> and Victor reads <b>seeded</b>.
+  Before this packet both said <i>changed</i>, because the stamp belonged to the row rather than the hand.
+</p>
+
+</body>
+</html>

@@ -92,24 +92,40 @@ export function providerName(id: string | undefined | null) {
   return PROVIDER_NAME[id] ?? id;
 }
 
-// ── THE VALUE LINE (§D-31, amended) ─────────────────────────────────────────
-// The frame ratified two shapes: `Anthropic · default` and `DeepSeek · changed 4 Sep`.
-// Two more words are needed and both are named in the handover as additions:
+// ── THE VALUE LINE (§D-31, amended; R-41.103 ③) ─────────────────────────────
+// FIVE WORDS, each answering the same question — *where did this value come from* —
+// and each of them false in the other four's place:
 //
-//   `borrowed`  — a WhatsApp vendor lane with no row of its own resolves through
-//                 its in-app twin (F-41.46). Calling that `default` would be false:
-//                 there is no default for `wa_vendor` in the code matrix at all,
-//                 and the value shown came from another lane's row.
-//   `seeded`    — a row exists but no one has moved it (0153's four wa_vendor rows,
-//                 and any row written before the panel existed). `default` would
-//                 claim there is no row; `changed` would claim a hand moved it.
-//
-// Each word answers "where did this value come from", which is the only question
-// the line is for.
-export function provenanceWord(lane: {
-  has_row: boolean; borrowed: boolean; changed_at: string | null;
-}): string {
-  if (lane.changed_at) return `changed ${shortDate(lane.changed_at)}`;
+//   `default`   no row anywhere; the router's own literal or its code matrix.
+//   `borrowed`  a WhatsApp vendor lane with no row of its own, resolving through its
+//               in-app twin (F-41.46). Not `default`: there is no wa_vendor entry in
+//               the matrix at all, and the value came from another lane's row.
+//   `seeded`    a row exists and no hand has moved it — 0153's four, and any row
+//               written before the panel existed.
+//   `changed …` a hand moved it, and F-41.93 means THAT HAND. The stamp used to be
+//               row-level and the panel showed it beside every hand, so flipping
+//               Donna made Victor's line claim an edit he had not had. Each role now
+//               reads its own; the row-level pair is consulted ONLY for rows that
+//               carry no per-role stamp at all, which is every row written before
+//               F1b, and never to speak for a hand that has one.
+//   `server`    the lane is not a row. Only the bride app lane, whose value lives in
+//               `BRIDE_LLM_PROVIDER` on the server.
+export function provenanceWord(
+  lane: {
+    has_row: boolean; borrowed: boolean; changed_at: string | null;
+    provenance?: 'server' | null;
+    roles_changed?: Partial<Record<string, { at: string | null; by: string | null }>>;
+  },
+  role?: string,
+): string {
+  if (lane.provenance === 'server') return 'server';
+  const stamps = lane.roles_changed || {};
+  const mine = role ? stamps[role] : undefined;
+  if (mine && mine.at) return `changed ${shortDate(mine.at)}`;
+  // THE FALLBACK IS NARROW ON PURPOSE. A row with per-role stamps has already said
+  // which hands moved; letting the row-level date speak for the others would put the
+  // very defect this packet cures back on the glass one branch lower.
+  if (Object.keys(stamps).length === 0 && lane.changed_at) return `changed ${shortDate(lane.changed_at)}`;
   if (lane.borrowed) return 'borrowed';
   if (lane.has_row) return 'seeded';
   return 'default';

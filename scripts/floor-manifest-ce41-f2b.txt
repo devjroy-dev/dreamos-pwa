@@ -1,0 +1,27 @@
+# scripts/floor-manifest-ce41-f2b.txt
+# CE-41 · F2b — the Model routes panel's three riders:
+#   F-41.94  the flat row at 374 — every lane spans the full width, nothing nests
+#   F-41.93  the panel reads each hand's own stamp; `server` is the fifth word
+#   F-41.97  c-41.40/.41 reassigned to c-41.51/.52, the reassignment recorded
+# BASE fc3cd72b483572321f103a6455ac58e44dde3531, re-derived at the cut.
+# Sibling dream-os at b505238 (F1b pushed) — the door this panel reads.
+# The chair vetoes docs/mocks/COCKPIT/F2b-flat-row-374.html on this ZIP (R-40.101).
+# F-19.16: a dirty file outside this list is a STOP until accounted for.
+
+app/admin/switchboard/ModelRoutesPanel.tsx
+docs/TDW_CE41_F2B_HANDOVER.md
+docs/TDW_CE41_F2_HANDOVER.md
+docs/mocks/COCKPIT/F2b-flat-row-374.html
+lib/admin-api/index.ts
+lib/admin-api/modelRoutesCopy.ts
+scripts/b61_f2_model_routes_panel.js
+scripts/b61_mutations.js
+scripts/floor-manifest-ce41-f2b.txt
+
+# FLOOR at the cured tree, ONE invocation, sibling dream-os present at b505238:
+#   `bash scripts/run-floor.sh --delivery scripts/floor-manifest-ce41-f2b.txt --check`
+#   -> FLOOR = NAMED BASE, no delta  (refusals, not in base: 0)
+# Nothing above the base, nothing below it, no refusal outside it.
+# b61_f2_model_routes_panel 51/51 (39/51 at the uncured tree); b61_mutations 33/33.
+# `npx tsc --noEmit` clean. `npm run build` is the founder's gate (R-40.66) and is
+# NOT claimed here — this container cannot reach fonts.googleapis.com.

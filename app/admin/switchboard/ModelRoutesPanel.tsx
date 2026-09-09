@@ -121,12 +121,15 @@ function RoleRow({ lane, role, providers, busy, onPick }: {
   const shown = current ?? (lane.effective.provider as string | undefined);
   const name = roleName(lane.surface, role);
   const outside = lane.outside_switchable.includes(role);
-  const readOnly = !lane.reachable || outside;
+  // A lane whose value lives on the server has no switch to offer — the founder
+  // changes it in Railway, not here, and a control that cannot act is worse than
+  // none. F1b serves `read_only_because` so the glass says WHY in the same breath.
+  const readOnly = !lane.reachable || outside || !!lane.env;
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', columnGap: 10, alignItems: 'center', minHeight: 44 }}>
       <div style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted, minWidth: 0 }}>
         {name && <b style={{ display: 'block', fontSize: 12, fontWeight: 400, color: T.soft }}>{name}</b>}
-        {providerName(shown)} · {following ? `following ${roleName(lane.surface, 'provider') || 'the main hand'}` : provenanceWord(lane)}
+        {providerName(shown)} · {following ? `following ${roleName(lane.surface, 'provider') || 'the main hand'}` : provenanceWord(lane, role)}
         {outside && ' · outside the two this panel offers'}
       </div>
       <TwoWay
@@ -143,10 +146,27 @@ function SurfaceBlock({ surface, lanes, providers, busy, onPick }: {
   surface: string; lanes: ModelRouteLane[]; providers: { id: string; label: string }[];
   busy: string | null; onPick: (lane: ModelRouteLane, role: ModelRole, provider: string) => void;
 }) {
-  // A surface with exactly one lane and one role wears its switch on its own row —
-  // there is no tier to head and no second hand to distinguish (§D, the couple and
-  // harvest rows). Everything else stacks tiers beneath.
-  const flat = lanes.length === 1 && lanes[0].tier === 'default' && lanes[0].roles.length === 1;
+  // ── F-41.94 · NO SWITCH SHARES A LINE WITH PROSE ──────────────────────────
+  // A single-role surface used to wear its switch in this grid's right-hand `auto`
+  // column, with the whole role row nested inside it. That column then sized to the
+  // nested row's max-content — the value text PLUS 168px of segments — and at 374
+  // it claimed nearly the whole box, squeezed the title to min-content, and the two
+  // tracks overlapped: `Answer couples on WhatsApp` broke to four lines with
+  // `Anthropic · seeded` painted over the first of them.
+  //
+  // This is F-41.67's class on the variant its cure never reached. Seat E fixed the
+  // TIER row by giving it a line of its own; the flat row kept the triptych because
+  // in the mock it carried no value text beside the switch — and mine does. So the
+  // cure is the same cure, applied to the variant that was missed: EVERY lane now
+  // renders as a block spanning `1 / -1`, tiered or not, and nothing nests in the
+  // `auto` column at all. No pixel is named and no breakpoint is added; the row
+  // cannot overlap because there are no longer two tracks competing for one line.
+  // `TDW_M_ROWFIX_PASS2_HANDOVER.md`'s discipline — no cell names 374.
+  //
+  // `flat` now decides only whether a TIER HEADING is drawn, never where a switch
+  // goes. Three surfaces are flat today: the couple line, harvest, and the bride app
+  // lane F1b added — which arrives cured rather than arriving broken behind them.
+  const flat = lanes.length === 1 && lanes[0].tier === 'default';
   const only = lanes[0];
   return (
     <div style={{
@@ -163,27 +183,29 @@ function SurfaceBlock({ surface, lanes, providers, busy, onPick }: {
         </div>
       </div>
 
-      <div>
-        {flat && (
-          <RoleRow
-            lane={only} role={only.roles[0]} providers={providers}
-            busy={busy === only.key} onPick={(r, p) => onPick(only, r, p)}
-          />
-        )}
-      </div>
-
-      {!flat && lanes.map(lane => (
+      {lanes.map(lane => (
         <div key={lane.key} style={{
-          gridColumn: '1 / -1', padding: '8px 0 8px 14px',
-          borderLeft: `0.5px solid ${T.border}`, marginTop: 6,
+          gridColumn: '1 / -1',
+          padding: flat ? '2px 0 4px' : '8px 0 8px 14px',
+          borderLeft: flat ? 'none' : `0.5px solid ${T.border}`,
+          marginTop: flat ? 0 : 6,
         }}>
-          <div style={{
-            fontFamily: T.ff.body, fontSize: 12, color: T.soft,
-            display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap',
-          }}>
-            <span>{tierName(lane.tier)}</span>
-            {lane.differs.length > 0 && <DiffersChip fields={lane.differs} />}
-          </div>
+          {!flat && (
+            <div style={{
+              fontFamily: T.ff.body, fontSize: 12, color: T.soft,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, flexWrap: 'wrap',
+            }}>
+              <span>{tierName(lane.tier)}</span>
+              {lane.differs.length > 0 && <DiffersChip fields={lane.differs} />}
+            </div>
+          )}
+
+          {/* A lane set on the server says so where a switch would otherwise be. */}
+          {lane.read_only_because && (
+            <p style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted, margin: '2px 0 0', lineHeight: 1.45 }}>
+              {lane.read_only_because}{lane.env ? ` · ${lane.env}${lane.env_set ? '' : ' is not set'}` : ''}
+            </p>
+          )}
 
           {/* A lane no code path can reach says so in place of offering a switch.
               `model.pwa_vendor.trial` is live, well-formed and asked for by nothing:
@@ -198,7 +220,7 @@ function SurfaceBlock({ surface, lanes, providers, busy, onPick }: {
           {lane.roles.length === 0 ? (
             <div style={{ marginTop: 6 }}>
               <TwoWay
-                label={`${tierName(lane.tier)} — read only`} readOnly
+                label={`${tierName(lane.tier) || surfaceName(lane.surface)} — read only`} readOnly
                 options={providers} value={lane.effective.provider as string} onPick={() => {}}
               />
             </div>

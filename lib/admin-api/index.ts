@@ -269,6 +269,16 @@ export interface ModelRouteLane {
   outside_switchable: ModelRole[];
   changed_by: string | null;
   changed_at: string | null;
+  // F-41.93 — each hand's own stamp. Absent for a role nobody has moved, and empty
+  // for every row written before F1b; the row-level pair above is the fallback for
+  // exactly those rows and for nothing else.
+  roles_changed: Partial<Record<ModelRole, { at: string | null; by: string | null }>>;
+  // Served only for the lane whose value is not a row at all — `server`. Every other
+  // lane's provenance is derived on the glass from has_row / borrowed / the stamps.
+  provenance: 'server' | null;
+  env: string | null;
+  env_set: boolean;
+  read_only_because: string | null;
   updated_at: string | null;
 }
 export const getModelRoutes = () => adminGet<{

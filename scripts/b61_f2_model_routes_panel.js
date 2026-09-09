@@ -19,7 +19,9 @@
 // copy; each mutation must RED its named cell.
 'use strict';
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const ROOT = process.env.B61_ROOT ? path.resolve(process.env.B61_ROOT) : path.resolve(__dirname, '..');
 const read = (rel) => { try { return fs.readFileSync(path.join(ROOT, rel), 'utf8'); } catch { return ''; } };
@@ -340,6 +342,167 @@ cell('a first tap on a lane with no row says a row was written from what was liv
   const p = read(PANEL);
   return /r\.created/.test(p) && /had no row; one was written from what was already live/.test(p)
     ? true : 'the created case is silent';
+});
+
+// ═════ §9 · F-41.94 — NO SWITCH SHARES A LINE WITH PROSE ═══════════════════
+sec('§9 F-41.94 — the flat row at 374');
+
+cell('every lane renders as a full-width block — nothing nests in the auto column', () => {
+  const p = codeOf(PANEL);
+  // The defect was a RoleRow dropped into the surface grid's right-hand `auto`
+  // column. The cure is that `lanes.map` is the ONLY place a RoleRow is created,
+  // and every block it makes spans 1/-1.
+  const spans = /gridColumn: '1 \/ -1'/.test(p);
+  const nested = /<div>\s*\{flat && \(\s*<RoleRow/.test(p);
+  const oneMapper = (p.match(/<RoleRow/g) || []).length === 1;
+  return spans && !nested && oneMapper ? true : `spans=${spans} nested=${nested} roleRowSites=${(p.match(/<RoleRow/g) || []).length}`;
+});
+
+cell('`flat` decides a HEADING only — it can no longer place a switch', () => {
+  const p = codeOf(PANEL);
+  // Every surviving use of `flat` must be about the tier heading, the chip, or
+  // spacing. If it ever gates a RoleRow or a TwoWay again, the triptych is back.
+  const uses = p.match(/flat[^\n]*/g) || [];
+  const placesAControl = uses.some(u => /<RoleRow|<TwoWay/.test(u));
+  return !placesAControl && /const flat = lanes\.length === 1 && lanes\[0\]\.tier === 'default'/.test(p)
+    ? true : `flat still places a control: ${uses.filter(u => /<RoleRow|<TwoWay/.test(u)).join(' | ')}`;
+});
+
+cell('no width, breakpoint or media query is named anywhere (TDW_M_ROWFIX\'s discipline)', () => {
+  const p = codeOf(PANEL);
+  return !/@media|374|390|clamp\(|maxWidth: \d/.test(p) ? true : 'the cure names a pixel';
+});
+
+cell('the tiered row is untouched — heading, chip and 44px hands all still there', () => {
+  const p = codeOf(PANEL);
+  return /\{!flat && \(/.test(p) && /tierName\(lane\.tier\)/.test(p)
+    && /\{lane\.differs\.length > 0 && <DiffersChip/.test(p) && /minHeight: 44/.test(p)
+    ? true : 'the cure reached where it had no business';
+});
+
+cell('the frame the chair vetoes on is in the packet, at 374, with both states drawn', () => {
+  const f = 'docs/mocks/COCKPIT/F2b-flat-row-374.html';
+  if (!exists(f)) return 'no frame';
+  const h = read(f);
+  return /width:374px/.test(h) && /The defect/.test(h) && /The cure/.test(h)
+    && /Answer couples on WhatsApp/.test(h) && /Harvest prospects/.test(h) && /bride app lane/.test(h)
+    ? true : 'the frame does not draw all three flat surfaces in both states';
+});
+
+// ═════ §10 · F-41.93 — THE STAMP READS PER HAND ════════════════════════════
+sec('§10 F-41.93 — the panel reads the hand, not the row');
+
+// ── THE WORDS ARE DRIVEN, NOT READ ──────────────────────────────────────────
+// `provenanceWord` decides what every hand on this panel says about itself, and a
+// source-text cell can only prove the branches are PRESENT, never that they answer.
+// Node strips the types off the shipped `.ts` and runs the real function — no copy
+// of it here, no transpile step, and a rename or a reordered branch fails loudly
+// rather than passing on a regex.
+const STAMP = { at: '2026-09-09T00:00:00.000Z', by: 'admin:deadbeef' };
+const LANE_SPLIT = { has_row: true, borrowed: false, changed_at: STAMP.at, roles_changed: { donna: STAMP } };
+let PROV = null;
+try {
+  const drv = path.join(os.tmpdir(), `b61-prov-${process.pid}.mjs`);
+  fs.writeFileSync(drv, `const m = await import(process.argv[2]);
+const L = ${JSON.stringify(LANE_SPLIT)};
+console.log(JSON.stringify({
+  donna: m.provenanceWord(L, 'donna'),
+  victor: m.provenanceWord(L, 'provider'),
+  preF1b: m.provenanceWord({ has_row: true, borrowed: false, changed_at: '2026-09-08T00:00:00.000Z', roles_changed: {} }, 'provider'),
+  preF1bDonna: m.provenanceWord({ has_row: true, borrowed: false, changed_at: '2026-09-08T00:00:00.000Z', roles_changed: {} }, 'donna'),
+  dflt: m.provenanceWord({ has_row: false, borrowed: false, changed_at: null, roles_changed: {} }),
+  borrowed: m.provenanceWord({ has_row: false, borrowed: true, changed_at: null, roles_changed: {} }),
+  seeded: m.provenanceWord({ has_row: true, borrowed: false, changed_at: null, roles_changed: {} }),
+  server: m.provenanceWord({ has_row: true, borrowed: true, changed_at: '2026-09-09T00:00:00.000Z', provenance: 'server', roles_changed: { provider: ${JSON.stringify(STAMP)} } }, 'provider'),
+}));`);
+  PROV = JSON.parse(execSync(
+    `node --experimental-strip-types --no-warnings ${drv} ${JSON.stringify(path.join(ROOT, COPY))}`,
+    { encoding: 'utf8' },
+  ).trim());
+  fs.unlinkSync(drv);
+} catch (e) { PROV = { _error: (e && e.message) || String(e) }; }
+
+cell('provenanceWord takes a ROLE and prefers that role\'s own stamp', () => {
+  const c = codeOf(COPY);
+  return /export function provenanceWord\(/.test(c) && /role\?: string,/.test(c)
+    && /const mine = role \? stamps\[role\] : undefined;/.test(c)
+    && /if \(mine && mine\.at\) return `changed \$\{shortDate\(mine\.at\)\}`;/.test(c)
+    ? true : 'the word is still row-scoped';
+});
+
+cell('THE DEFECT: a row-level date must NOT speak for a hand that has its own', () => {
+  const c = codeOf(COPY);
+  const fn = c.slice(c.indexOf('export function provenanceWord'));
+  // The fallback is guarded on there being NO per-role stamps at all. Without that
+  // guard, flipping Donna makes Victor claim the edit — which is the defect.
+  return /Object\.keys\(stamps\)\.length === 0 && lane\.changed_at/.test(fn)
+    ? true : 'the row-level date is unguarded and speaks for every hand';
+});
+
+cell('the real module ran — these cells drive it, they do not read it', () =>
+  (PROV && !PROV._error) ? true : `the driver failed: ${PROV && PROV._error}`);
+
+cell('the PANEL passes the role — the word can only be per-hand if the caller says which', () => {
+  const p = codeOf(PANEL);
+  return /provenanceWord\(lane, role\)/.test(p) && !/provenanceWord\(lane\)/.test(p)
+    ? true : 'the panel asks for the row\'s word and renders it beside every hand';
+});
+
+cell('driven: Donna stamped, Victor not — two different words on one row', () =>
+  /^changed /.test(PROV.donna) && PROV.victor === 'seeded'
+    ? true : `donna=${PROV.donna} victor=${PROV.victor}`);
+
+cell('driven: a pre-F1b row keeps its row-level truth for BOTH hands', () =>
+  /^changed /.test(PROV.preF1b) && /^changed /.test(PROV.preF1bDonna)
+    ? true : `victor=${PROV.preF1b} donna=${PROV.preF1bDonna}`);
+
+cell('driven: the other three words survive the fifth', () =>
+  PROV.dflt === 'default' && PROV.borrowed === 'borrowed' && PROV.seeded === 'seeded'
+    ? true : JSON.stringify(PROV));
+
+// ═════ §11 · `server` — THE FIFTH WORD ═════════════════════════════════════
+sec('§11 the lane that is not a row');
+
+cell('driven: `server` wins over every other word — it is not a row at all', () =>
+  PROV.server === 'server' ? true : `a row with every other signal set said "${PROV.server}"`);
+
+cell('an env lane is read-only on the glass and says why, naming its variable', () => {
+  const p = codeOf(PANEL);
+  const raw = read(PANEL);
+  return /const readOnly = !lane\.reachable \|\| outside \|\| !!lane\.env;/.test(p)
+    && /\{lane\.read_only_because\}/.test(raw) && /\$\{lane\.env\}/.test(raw)
+    && /is not set/.test(raw) ? true : 'the env lane is offered as a switch, or says nothing';
+});
+
+cell('the panel still invents no lane — env, provenance and stamps all come down the wire', () => {
+  const p = codeOf(PANEL);
+  return !/BRIDE_LLM_PROVIDER/.test(p) && !/'server'/.test(p)
+    && /lane\.provenance|provenanceWord\(lane, role\)/.test(p) ? true : 'the panel names an env var or a provenance literal';
+});
+
+// ═════ §12 · THE RENUMBERING (F-41.97) ═════════════════════════════════════
+sec('§12 c-41.51 / c-41.52');
+
+cell('the live references are the new pair; the old pair survives only as history', () => {
+  const h = read('docs/TDW_CE41_F2_HANDOVER.md');
+  if (!/\*\*c-41\.51\*\*/.test(h) || !/\*\*c-41\.52\*\*/.test(h)) return 'the new numbers are absent';
+  // Every remaining mention of the old pair must sit in a sentence that says it was
+  // reassigned — a bare survivor is a stale live reference.
+  // The historical mentions live in §1a and §8 and each sits in a sentence that
+  // marks it as the OLD number. A line carrying the old pair with none of these
+  // markers is a stale live reference and must fail.
+  const stale = h.split('\n').filter(l => /c-41\.4[01]/.test(l)
+    && !/(first issued|reassigned|returns exactly one|zero|seat D's at|b62_mutations M6)/.test(l));
+  return stale.length === 0 ? true : stale.slice(0, 2).join(' | ');
+});
+
+cell('§8 records the reassignment under F-41.97 and the corrected count', () => {
+  const h = read('docs/TDW_CE41_F2_HANDOVER.md');
+  // The token alone is not the record — it appears twice in this file and one of
+  // those is a passing mention. The cell demands the SENTENCE that reassigns.
+  return /reassigned by the chair under \*\*F-41\.97\*\*/.test(h)
+    && /The collision was one, not two/.test(h)
+    && /c473390|501d7bf/.test(h) ? true : 'the reassignment sentence is not recorded';
 });
 
 console.log(`\n  b61_f2_model_routes_panel  ${pass}/${pass + fail}`);

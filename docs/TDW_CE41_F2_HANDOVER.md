@@ -47,9 +47,9 @@ E's §D-34 *Set on the server* re-aimed at the **bride app lane** (Eliza,
 and four provenance words — `default · borrowed · seeded · changed <date>` — because
 *default* for a borrowed lane was false.
 
-The two seat-owned, self-caught corrections of §2 and §5 are chair-numbered
-**c-41.40** (the withdrawn orphan route) and **c-41.41** (the glob misattribution).
-**c-41.40 is already taken at origin — see §8.**
+The two seat-owned, self-caught corrections of §2 and §5 are **c-41.51** (the
+withdrawn orphan route) and **c-41.52** (the glob misattribution). They were first
+issued as c-41.40 / c-41.41 and reassigned — see §8.
 
 ## 2 · THE ORPHAN ROUTE — caught by another seat's proof, and it was right
 
@@ -215,28 +215,27 @@ after this lands, per the chair.
 
 ---
 
-## 8 · TWO CORRECTION-NUMBER COLLISIONS, DERIVED AT ORIGIN AT THE CUT
+## 8 · THE RENUMBERING, AND WHAT THE LEDGER ACTUALLY SAID
 
-R-M3 says a number is allocated from a chair-issued range derived at origin
-**immediately before allocation** and never carried from memory. Both numbers below
-were derived by `git log --all --grep` at origin in the minute before this ZIP was
-cut, and both are already spent:
+These two corrections were first issued as **c-41.40** and **c-41.41** and are now
+**c-41.51** and **c-41.52**, reassigned by the chair under **F-41.97** — the
+parallel-mint law's own failure mode, twice in one arc, on the allocation side rather
+than the seat side. The original numbers are recorded here rather than overwritten: a
+correction log that loses its own history is a log that cannot be read back, and the
+F2 commit at `501d7bf` carries the old pair in its message permanently.
 
-- **`c-41.40` is seat D's.** `c52e92a` (CE-41 D0b, at origin now) reads
-  *"c-41.40 b62_mutations M6 anchor re-derived"*. The chair has just assigned c-41.40
-  to seat F's withdrawn orphan route. Two corrections, one number, both at origin the
-  moment this lands. **Seat F does not self-mint a replacement** — the number is
-  carried here as the chair issued it, flagged, for the chair to re-allocate.
+**The collision was one, not two.** A full-body search of both repos at the cut
+(`git log --all --format=%B | grep -o 'c-41\.4[01]'`) returns exactly one occurrence
+of `c-41.40` — seat D's at `c52e92a`, *"b62_mutations M6 anchor re-derived"* — and
+**zero** of `c-41.41`, which no commit but my own F2 has ever held. The first report
+of this said two; the fuller search corrected it and the chair recorded the
+correction. The pair still moved together, because splitting them across two bands
+would make a reader follow a footnote to learn that only one had moved.
 
-- **`c-41.36` was already doubled before F1 pushed.** Seat E's `81570ed3` (the very
-  tip F2 cuts from) reads *"c-41.36 count corrected"*; seat F's `c473390` reads
-  *"c-41.35/.36 two transcription cells cured"*. F1 pushed second, so the duplicate is
-  in the record and it is seat F's to name. It was not visible to me at F1's cut —
-  E1a landed at 21:11 and F1's tip was 0b27cc6 — but it is visible now.
+`c-41.51` and `c-41.52` were derived free on both repos immediately before allocation,
+which is the step whose absence produced F-41.97 in the first place.
 
-`c-41.35` and `c-41.41` are free at origin; only this packet claims them.
-
-**This is the parallel-mint law's own failure mode arriving twice in one arc, and it
-is a chair-side allocation matter, not a seat-side one.** Named rather than absorbed,
-because a correction record with two entries under one number is a record that cannot
-be read back.
+**Separately, `c-41.36` is doubled and stays doubled.** Seat E's `81570ed3` — the tip
+F2 cut from — reads *"c-41.36 count corrected"*, and seat F's `c473390` reads
+*"c-41.35/.36 two transcription cells cured"*. F1 pushed second. It was not visible at
+F1's cut and is visible now; the chair holds it.
