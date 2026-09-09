@@ -391,9 +391,32 @@ function AdmScope() {
     const el = document.documentElement;
     el.classList.add('adm');
     el.setAttribute('data-wl-mode', mode);
+    // ── F-41.117 · THE ATTRIBUTE ALONE COULD NEVER WIN ────────────────────────
+    // `scopeCss` emits `html.adm[data-wl-mode="light"]{…}` — far more specific than
+    // `:root` and still beaten by it, because app/globals.css:1293 declares every
+    // --atelier-* at :root with !important (a forced Graphite palette) and :1329
+    // carries the matching `html.theme-light` layer that undoes it. Specificity does
+    // not outrank !important. So the cockpit resolved Graphite under BOTH arms: the
+    // switch wrote, the cookie held, the attribute landed, and the page ignored all
+    // three. The dark arm agreed with the override, which is why (i) and (ii) walked
+    // clean and both cells stayed green — a green that was green for the wrong reason.
+    //
+    // The cure is the estate's OWN light layer, not a third forced palette. Toggling
+    // `theme-light` puts the cockpit on the mechanism the vendor lane already walks;
+    // adding `!important` to the admin scope would have won too, and left the next
+    // seat a third override in a file that already has two.
+    //
+    // NOTHING ELSE UNDER /admin READS theme-light (derived at c9423e4). A future seat
+    // that mounts something here which reads it differently owns that finding then.
+    el.classList.toggle('theme-light', mode === 'light');
     // Removed on unmount: /admin shares an SPA with the bride's wine and the vendor's
-    // Graphite, and a class left on <html> follows the founder out of the cockpit.
-    return () => { el.classList.remove('adm'); el.removeAttribute('data-wl-mode'); };
+    // Graphite, and a class left on <html> follows the founder out of the cockpit —
+    // `theme-light` most of all, since the whole estate is keyed on it.
+    return () => {
+      el.classList.remove('adm');
+      el.classList.remove('theme-light');
+      el.removeAttribute('data-wl-mode');
+    };
   }, [mode]);
   return null;
 }

@@ -1,0 +1,17 @@
+# scripts/floor-manifest-ce41-e2iia.txt — CE-41 · SEAT E · E2 (iia), F-41.117.
+# FLOOR = NAMED BASE, no delta. One cell arrives; none leaves.
+#
+#   IN  scripts/ce41_e2iia_cockpit_arms.mjs — 9 cells.
+#       Both ways, by command: 3 pass / 6 RED at the uncured tree (c9423e4),
+#       9 pass / 0 RED cured. It needs a browser (puppeteer-core + @sparticuz/
+#       chromium, both already dependencies for tools/mock_shot.cjs) because the
+#       thing it asserts is a RESOLVED value, and no static read can see an
+#       !important override on the output.
+#
+# THIS CELL WAS VACUOUS ONCE AND THE RECORD SAYS SO. Its first cut toggled
+# `theme-light` in its own harness, unconditionally — so all four palette
+# assertions passed at the UNCURED tree, the harness applying the cure and then
+# crediting the code with it. It now derives what to replay from
+# app/admin/layout.tsx, so deleting the production line reds the cells. Caught by
+# the mutation run, not by reading it.
+scripts/ce41_e2iia_cockpit_arms.mjs
