@@ -14,6 +14,10 @@ export interface ChatMessage {
   role:       ChatMessageRole;
   text:       string;
   toolCalls?: string[];
+  // R-41.142 — the room this message was ANSWERED in, from the engine. Only assistant
+  // messages carry one; a user's turn has no room of its own, and the seam is drawn
+  // from the assistant messages' fields alone.
+  room?: 'advisor' | 'business' | null;
   contact?:   ContactCard;
   clarify?:   ClarifyPayload;  // when set, render options as inline chips
   suggestions?: SuggestionsPayload;  // 3.0-C2: optional next-step cards under a completed action
@@ -85,7 +89,10 @@ export function useChat({ vendorId, room }: UseChatArgs): UseChatReturn {
         try {
           const h = await fetchChatHistory(vendorId, 10);
           if (!cancelled && h.ok && Array.isArray(h.messages)) {
-            history = h.messages.map(m => ({ id: m.id, role: m.role, text: m.text }));
+            // R-41.142: the room rides in from history too, or a reload loses every
+            // seam. F-41.103 and F-41.104 were both a cure on a write path with no read;
+            // this is the read.
+            history = h.messages.map(m => ({ id: m.id, role: m.role, text: m.text, room: m.room ?? null }));
           }
         } catch {}
         if (cancelled) return;
@@ -168,6 +175,9 @@ export function useChat({ vendorId, room }: UseChatArgs): UseChatReturn {
                 contact:    result.contact,
                 clarify:    result.clarify,
                 suggestions: result.suggestions,
+                // R-41.142: the room the ENGINE answered in, landing on the message it
+                // answered. This is what the seam reads — never the request's assertion.
+                room:       result.room ?? null,
               }
             : m
         ));

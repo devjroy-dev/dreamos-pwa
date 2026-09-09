@@ -230,9 +230,17 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '8px 22px' }}>
       <div style={{ maxWidth: '92%', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ padding: '8px 18px 4px 16px', position: 'relative' }}>
+          {/* R-41.142 — THE ADVISOR EDGE IS THIS HAIRLINE, RECOLOURED. The bubble
+              already draws a left rule; giving the room a SECOND one would put two
+              elements on one edge and let them disagree. When the message was
+              answered in the advisor room it thickens to 2px and takes the accent,
+              so the room reads on every reply rather than only at the seam.
+              `message.room` is the ENGINE'S resolved value (R-41.142), null in
+              consult — and null draws the ordinary hairline, which is the truth. */}
           <span aria-hidden style={{
             position: 'absolute', left: 4, top: 12, bottom: 12,
-            width: 1, background: hairline,
+            width: message.room === 'advisor' ? 2 : 1,
+            background: message.room === 'advisor' ? 'var(--atelier-accent-text)' : hairline,
           }} />
           <div style={{
             fontFamily: F.label, fontWeight: 300, fontSize: 8,

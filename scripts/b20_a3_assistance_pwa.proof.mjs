@@ -478,5 +478,51 @@ function listTsx(dir = ROOT, out = []) {
      && /'her_words' \| 'founder_attested' \| 'none'/.test(api));
 }
 
+// ═══ D3d pwa · R-41.142 — the chip, the edge, the seam ══════════════════════
+{
+  const api   = strip(read('lib/vendor/api/vendor.ts'));
+  const hook  = strip(read('hooks/vendor/useChat.ts'));
+  const thr   = strip(read('components/vendor/ChatThread.tsx'));
+  const bub   = strip(read('components/vendor/MessageBubble.tsx'));
+  const adv   = strip(read('app/vendor/(shell)/advisor/page.tsx'));
+  const copyf = read('lib/worklist/copy.ts');
+
+  // ── the room comes DOWN, on both transports and through history ──────────
+  ok('R-41.142: the done payload declares room as advisor | business | null',
+     /room\?: 'advisor' \| 'business' \| null/.test(api));
+  ok('R-41.142: the stream reads it off the done event', /room:\s*event\.room \?\? null/.test(api));
+  ok('R-41.142: history carries it too — a reload keeps every seam',
+     /at: string; room\?: 'advisor' \| 'business' \| null/.test(api)
+     && /room: m\.room \?\? null/.test(hook));
+  ok('R-41.142: onDone attaches it to the message it answered',
+     /room:\s*result\.room \?\? null/.test(hook));
+
+  // ── THE SEAM RENDERS IFF ADJACENT ROOMS DIFFER ──────────────────────────
+  ok('R-41.142: the seam compares the PREVIOUS message that has a room, not idx-1',
+     /for \(let k = idx - 1; k >= 0; k -= 1\)/.test(thr) && /messages\[k\]\.room/.test(thr));
+  ok('R-41.142: no seam when the rooms match, and none at the first roomed message',
+     /if \(prevRoom === null \|\| prevRoom === m\.room\) return null;/.test(thr));
+  ok('R-41.142: a null room draws no seam — consult is unmarked, never business',
+     /if \(!m\.room\) return null;/.test(thr)
+     && !/m\.room \|\| 'business'/.test(thr) && !/\?\?\s*'business'/.test(thr));
+  ok('R-41.142: teal into Advisor, card-border into Business, both from tokens',
+     /var\(--atelier-accent-text\)/.test(thr) && /var\(--atelier-card-border\)/.test(thr));
+  ok('R-41.142: the seam is drawn from the MESSAGES, never a pathname',
+     !/usePathname/.test(thr) && !/pathname/.test(thr));
+
+  // ── the edge is the bubble's OWN hairline, recoloured ───────────────────
+  ok('R-41.142: the advisor edge recolours the existing hairline, it does not add a second',
+     (bub.match(/position: 'absolute', left: 4/g) || []).length === 1
+     && /width: message\.room === 'advisor' \? 2 : 1/.test(bub));
+
+  // ── the chip equals the assertion ───────────────────────────────────────
+  ok('R-41.142: the chip is on the page that asserts, and reads the same room it passes',
+     /wl-advchip/.test(adv) && /useChat\(\{ vendorId, room: 'advisor' \}\)/.test(adv));
+
+  // ── the note is retired, and the copy home says why ─────────────────────
+  ok('R-41.142: advisorThreadNote no longer renders — one thread crosses rooms now',
+     !/\{COPY\.advisorThreadNote\}/.test(adv));
+}
+
 console.log(`\n${fail ? 'RED' : 'GREEN'} — b20_a3_assistance_pwa ${pass}/${pass + fail}`);
 process.exit(fail ? 1 : 0);

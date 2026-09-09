@@ -97,6 +97,45 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
     >
       {messages.map((m, idx) => (
         <div key={m.id ?? idx}>
+          {/* ── R-41.142 · THE ROOM SEAM ────────────────────────────────────────
+              One hairline where consecutive ANSWERED rooms differ, naming the room
+              the thread ENTERS. Teal into Advisor, card-border grey into Business.
+              A rule line and never a bubble, the same shape D-7's fresh-thread seam
+              already uses — the scrollback above stays where it was.
+
+              DRAWN FROM THE MESSAGES' OWN room FIELDS, never from a pathname and
+              never from the request's assertion (R-41.141's rule, carried): the
+              assertion is what was ASKED for, and a seam must mark what HAPPENED.
+
+              ONLY ASSISTANT MESSAGES CARRY A ROOM. A user's turn has none of its
+              own, so `prevRoom` walks back to the last message that has one — a
+              naive idx-1 compare would draw a seam at every user turn.
+
+              NULL IS CONSULT AND DRAWS NOTHING. The engine leaves the mode undefined
+              there deliberately, so an unmarked stretch is the truth; folding it to
+              business would put the estate in a room it was kept out of. */}
+          {(() => {
+            if (!m.room) return null;
+            let prevRoom: string | null = null;
+            for (let k = idx - 1; k >= 0; k -= 1) {
+              if (messages[k].room) { prevRoom = messages[k].room as string; break; }
+            }
+            if (prevRoom === null || prevRoom === m.room) return null;
+            const advisor = m.room === 'advisor';
+            const line = advisor ? 'var(--atelier-accent-text)' : 'var(--atelier-card-border)';
+            const ink  = advisor ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-mute)';
+            return (
+              <div aria-label={`Entering the ${m.room} room`} style={{
+                display: 'flex', alignItems: 'center', gap: 10, padding: '14px 22px 10px',
+              }}>
+                <span style={{ flex: 1, height: '1px', background: line }} />
+                <span style={{ font: 'var(--wl-t5)', letterSpacing: '0.2em', textTransform: 'uppercase', color: ink }}>
+                  {m.room === 'advisor' ? 'Advisor' : 'Business'}
+                </span>
+                <span style={{ flex: 1, height: '1px', background: line }} />
+              </div>
+            );
+          })()}
           {/* TDW_06 D-7 — the fresh-thread seam. A rule line, never a bubble:
               the scrollback above it stays exactly where it was (the visible
               truth D-7 requires), and the new thread continues beneath. Copy

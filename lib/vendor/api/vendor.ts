@@ -201,7 +201,7 @@ export function editBinder(binderId: string, fields: BinderEditFields): Promise<
 }
 
 // ── Chat history (3.0-B: display-only scrollback) ─────────────────────────
-export type ChatHistoryMessage = { id: string; role: 'user' | 'ai'; text: string; at: string };
+export type ChatHistoryMessage = { id: string; role: 'user' | 'ai'; text: string; at: string; room?: 'advisor' | 'business' | null };   // R-41.142: the room rides in from history, or a reload loses every seam
 export type ChatHistoryResponse = { ok: boolean; messages: ChatHistoryMessage[]; error?: string };
 export function fetchChatHistory(vendorId: string, limit = 10): Promise<ChatHistoryResponse> {
   return getJson<ChatHistoryResponse>(`/api/v2/vendor/chat/history/${vendorId}?limit=${limit}`);
@@ -353,6 +353,13 @@ export type StreamDonePayload = {
   meta?: { tier: string; turns_used: number; turns_cap: number; state: 'ok' | 'nearing' | 'capped'; upgrade?: { label: string; href: string } }; // TDW_02 P5
   tool_calls: string[];
   refresh?: boolean;
+  // R-41.142 — THE ROOM COMES BACK. `room` has travelled UP since F-41.98 and nothing
+  // came down. This is the return leg, and it is the ENGINE'S resolved value
+  // (TurnResult.victor_mode), never the assertion this client sent — a seam drawn from
+  // what was ASKED for would appear even on a turn the engine had overridden.
+  // `null` is the consult room, where the engine leaves the mode undefined on purpose.
+  // Rendered UNMARKED, never folded to 'business'.
+  room?: 'advisor' | 'business' | null;
   contact?: ContactCard;
   clarify?: ClarifyPayload;
   suggestions?: SuggestionsPayload;
@@ -519,6 +526,7 @@ export function streamChat(
               clarify:    event.clarify,
               meta:       event.meta, // TDW_02 P5: the tier meter, every turn
               intercept:  event.intercept, // TDW_06 M-3: the wire guard's replacement, if any
+              room:       event.room ?? null, // R-41.142
             });
           } else if (event.type === 'error') {
             onError(event.message ?? 'Agent error. Try again.');

@@ -1,0 +1,30 @@
+CE-41 · SEAT D · D3d (dreamos-pwa) · FLOOR MANIFEST
+base: 30e3103e877953a229e0cec4b042187eaa514760   (R-41.139 PUSHED and live; the relay's
+                                                 256d3eb+ and "unpushed" were stale — c-41.88)
+
+b20_a3_assistance_pwa.proof.mjs   GREEN  141/141   was 129/129 — +12 (the D3d section)
+tsc --noEmit                      exit 0, ZERO errors
+BOTH WAYS: cured GREEN 141/141 · uncured RED 131/141
+
+BUILD GATE — DECLARED. `npm run build` fails here with 16 font-fetch failures and
+ZERO type errors: F-40.134's egress limit, nothing of this packet's. R-40.66 makes
+`next build` the founder's gate and tsc the seat's sweep.
+  ⚠ AN EARLIER BUILD RUN REPORTED exit 228 with zero font failures — that was the
+  container OUT OF DISK from this sitting's scratch trees, not a result. Re-run after
+  reclaiming: exit 1, 16 font failures, 0 type errors. A green or a red from a full
+  disk is neither.
+
+NEEDS D3d dream-os OR EVERY MESSAGE READS NULL. The room comes down on the done event,
+the JSON reply and the history rows — all three added there. Until that half lands the
+thread renders unmarked, which is B3's shape and not a lie, so the order is safe either
+way; but the seam cannot draw without it.
+
+THE EDGE IS THE BUBBLE'S OWN HAIRLINE, RECOLOURED. MessageBubble already draws a left
+rule at left:4; giving the room a SECOND one would put two elements on one edge and let
+them disagree. A cell asserts exactly one such rule exists.
+
+THE SEAM WALKS BACK, NEVER idx-1. Only assistant messages carry a room, so a naive
+adjacent compare would draw a seam at every user turn. A cell asserts the walk.
+
+NULL DRAWS NOTHING. Consult is unmarked — never folded to 'business', which is the one
+room carrying the estate. Cells assert both the absence of the fold and the null guard.

@@ -93,6 +93,11 @@ export default function AdvisorPage() {
     // R-41.139 proposes no word of them. Only the shape moves.
     <WorklistShell title={COPY.advisorTitle}>
       <div className="wl-advroom" aria-busy={!ready}>
+        {/* R-41.142 — the mode chip, from THE CURRENT ASSERTION. This page always
+            asserts advisor, so the chip is constant here; it reads from the same
+            literal the useChat call passes, never a second constant, so the chip
+            cannot outlive the assertion. */}
+        <div className="wl-advchip">Advisor</div>
         {/* Before the first message the ratified header and intro stand. Once a
             turn exists they give way: at 374 the page cannot carry a header, an
             intro, a note AND a thread without the conversation starting below the
@@ -102,7 +107,12 @@ export default function AdvisorPage() {
             <h1 className="wl-advtitle">{COPY.advisorTitle}</h1>
             <p className="wl-advbody">{COPY.advisorEmpty}</p>
             {failed && <p className="wl-advnote">{COPY.advisorUnset}</p>}
-            <p className="wl-advnote">{COPY.advisorThreadNote}</p>
+            {/* R-41.142 — advisorThreadNote RETIRED. It said "Moving between Advisor
+                and the ask bar starts a fresh conversation each time", and that stopped
+                being true the moment one thread crossed rooms: the Advisor page and the
+                shared surface now read the SAME conversation, and the seam marks where
+                the room changed rather than a new thread beginning. A note that
+                describes the old behaviour is worse than no note. */}
           </div>
         )}
         <div className="wl-advthread" ref={scrollRef}>
@@ -125,6 +135,7 @@ export default function AdvisorPage() {
       </div>
       <style>{`
 .wl-advroom{display:flex;flex-direction:column;height:100%;min-height:0}
+.wl-advchip{align-self:flex-start;font:var(--wl-t5);letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-accent-text);border:1px solid var(--atelier-accent-text);border-radius:999px;padding:4px 10px;margin:8px 0 2px}
 .wl-adv{padding-top:20px;padding-bottom:8px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .wl-advtitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0}
 .wl-advbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
