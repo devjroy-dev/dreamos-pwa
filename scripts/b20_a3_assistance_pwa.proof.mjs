@@ -437,16 +437,29 @@ function listTsx(dir = ROOT, out = []) {
      && !/She hears from us only when a vendor is found/.test(adm));
 
   // ── R-41.119 · the prefix branch, and the address it opens ───────────────
+  // AMENDED BY LABEL AT D5a (F-38.27's shape, caught at the cut): this cell pinned
+  // the spelling `code.startsWith(...)`, and F-42.1 renamed the subject to the
+  // placeholder-stripped code. A cell asserts the MEANING the law names, never a
+  // spelling (R-41.121), so it now asserts the harder thing: the constant exists,
+  // the branch is taken on a constant and not a shape, and NOTHING branches on the
+  // raw param any more — the strip cannot be bypassed by a later edit.
   ok('R-41.119: /r/ branches on an EXPLICIT prefix constant, never on shape',
-     /const ENQUIRY_PREFIX = 'enq-';/.test(rte) && /code\.startsWith\(ENQUIRY_PREFIX\)/.test(rte));
+     /const ENQUIRY_PREFIX = 'enq-';/.test(rte) && /\.startsWith\(ENQUIRY_PREFIX\)/.test(rte)
+     && !/code\.startsWith\(/.test(rte) && !/code\.slice\(/.test(rte));
   ok('R-41.119: it 302s to the enquiry family and leaves every other code untouched',
      /Response\.redirect\(new URL\(`\/e\/\$\{encodeURIComponent\(id\)\}`/.test(rte));
   ok('R-41.119: a bare prefix with no id does NOT redirect',
      /if \(id\) return Response\.redirect/.test(rte));
   ok('R-41.119: /e/[id] exists and answers 200 with a sentence, never a 404',
      enq.length > 0 && /status: 200/.test(enq) && !/notFound\(\)/.test(enq));
-  ok('R-41.119: /e/[id] carries NO phone and fetches nothing (no public door exists yet)',
-     !/phone/i.test(enq) && !/fetch\(/.test(enq));
+  // AMENDED BY LABEL AT D5a. The parenthesis was a dated fact, not a law: the public
+  // door did not exist when this was written and F-41.156 wires it. The refusal that
+  // MATTERS is untouched and is now asserted harder — no phone, and exactly ONE
+  // outbound call, to the one public door. A second fetch from this page reds.
+  ok('R-41.119: /e/[id] carries NO phone, and fetches ONLY the one public door',
+     !/phone/i.test(enq)
+     && (enq.match(/fetch\(/g) || []).length === 1
+     && /\/api\/v2\/public\/enquiry\//.test(enq));
 }
 
 // ═══ D3 pwa · R-41.133 / R-41.135 — the tick, and the one word for a record ══
@@ -580,6 +593,155 @@ function listTsx(dir = ROOT, out = []) {
   // The door's sentence names the handle and the count; the local map is the fallback.
   ok('F-41.151: the server\'s richer sentence wins for those two',
      /SERVER_WORDS_WIN/.test(adm) && /SERVER_WORDS_WIN\.has\(e\.code\) && e\.error/.test(adm));
+}
+
+// ═══ §9 · D5a (CE-42 seat D2) — F-42.1 · F-41.156 · F-41.144/.145 ═══════════
+// Behavioural wherever a pure expression exists. The two route handlers import
+// `next/server`, which a bench container has no business installing, so their PURE
+// pieces are lifted out and DRIVEN — the placeholder strip, the token normaliser,
+// the escaper — and only the wiring around them is asserted textually on stripped
+// source (R-40.105). A cell never re-implements its subject: every driven function
+// below is the file's own bytes, transpiled, not a copy of them.
+{
+  const rSrc = read('app/r/[code]/route.ts');
+  const eSrc = read('app/e/[id]/route.ts');
+  const r = strip(rSrc);
+  const e = strip(eSrc);
+
+  // Lift one declaration out of a source file and evaluate it for real.
+  async function drive(src, re, exportName) {
+    const m = src.match(re);
+    if (!m) return null;
+    try {
+      const ts = (await import('typescript')).default;
+      const js = ts.transpileModule('export ' + m[0], { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
+      const tmp = P(`.tmp_d5a_${Date.now()}_${Math.random().toString(36).slice(2)}.mjs`);
+      fs.writeFileSync(tmp, js);
+      try {
+        const mod = await import(pathToFileURL(tmp).href);
+        return mod[exportName] ?? null;
+      } finally { try { fs.unlinkSync(tmp); } catch { /* already gone */ } }
+    } catch { return null; }
+  }
+
+  // ── BYTE 1 · F-42.1 ────────────────────────────────────────────────────────
+  section('§9a · F-42.1 — the placeholder Meta stored, stripped not decoded');
+
+  const PH = await drive(rSrc, /const META_PLACEHOLDER = \/.*?\/[a-z]*;/, 'META_PLACEHOLDER');
+  const strip1 = (c) => (PH ? c.replace(PH, '') : null);
+
+  ok('the witnessed shape cures: `{{1}}enq-<8hex>` becomes `enq-<8hex>`',
+     strip1('{{1}}enq-5b253fb2') === 'enq-5b253fb2');
+  ok('the encoded spelling cures too, so no assumption about the runtime decodes is load-bearing',
+     strip1('%7B%7B1%7D%7Denq-5b253fb2') === 'enq-5b253fb2');
+  ok('the review family is untouched: a bare code passes through unchanged',
+     strip1('AB12CD34') === 'AB12CD34');
+  ok('c-42.5: a review code holding a bare `%` survives — no decode, no URIError',
+     strip1('AB%CD') === 'AB%CD' && !/decodeURIComponent/.test(r));
+  // ⚠ THIS CELL WAS VACUOUS ON ITS FIRST CUT AND THE MUTATION CAUGHT IT. It asserted
+  // `stripped.startsWith(...)`, which stays true under `const stripped = code;` — the
+  // regex would exist, be driven green by the cells above, and never be APPLIED. So
+  // it now derives the branch's subject from the source and requires that subject to
+  // be assigned from an expression mentioning BOTH the param and the placeholder.
+  // Structural, not a spelling: rename `stripped` and it still holds.
+  ok('the branch\'s subject is DERIVED from the raw param by the placeholder strip',
+     (() => {
+       const branch = r.match(/(\w+)\.startsWith\(ENQUIRY_PREFIX\)/);
+       if (!branch) return 'no prefix branch';
+       const name = branch[1];
+       if (name === 'code') return 'the branch still reads the raw param';
+       const assign = r.match(new RegExp(`const\\s+${name}\\s*=\\s*([^;]+);`));
+       if (!assign) return `${name} is never assigned`;
+       const rhs = assign[1];
+       return (/\bcode\b/.test(rhs) && /META_PLACEHOLDER/.test(rhs)) ? true
+         : `${name} is assigned from ${rhs.trim()}`;
+     })() === true);
+  ok('and the id is sliced off that same subject, so the raw param reaches nothing',
+     /\.slice\(ENQUIRY_PREFIX\.length\)/.test(r) && !/code\.slice\(/.test(r) && !/code\.startsWith\(/.test(r));
+
+  // ── R-38.22 · both public routes name their own build ──────────────────────
+  ok('R-38.22: /r/ and /e/ each stamp `tdw-build` in their own document',
+     /name="tdw-build"/.test(r) && /name="tdw-build"/.test(e));
+  ok('R-41.106: the build const falls back with `||`, never `??` — an empty env var is not a name',
+     /VERCEL_GIT_COMMIT_SHA\s*\|\|/.test(r) && /VERCEL_GIT_COMMIT_SHA\s*\|\|/.test(e)
+     && !/VERCEL_GIT_COMMIT_SHA\s*\?\?/.test(r) && !/VERCEL_GIT_COMMIT_SHA\s*\?\?/.test(e));
+
+  // ── BYTE 2 · F-41.156 ──────────────────────────────────────────────────────
+  section('§9b · F-41.156 — /e/ reads the door, escaped, light, noindex');
+
+  const esc = await drive(eSrc, /function esc\(s: string\): string \{[\s\S]*?\n\}/, 'esc');
+  ok('the escaper neutralises a script tag — the city is her free text and this page is public',
+     !!esc && esc('<script>alert(1)</script>') === '&lt;script&gt;alert(1)&lt;/script&gt;');
+  ok('the escaper closes the attribute and entity vectors too',
+     !!esc && esc('a"b\'c&d') === 'a&quot;b&#39;c&amp;d');
+  ok('EVERY door-borne value goes through it; none is interpolated bare',
+     /\$\{esc\(line\)\}/.test(e) && /\$\{esc\(sub\)\}/.test(e)
+     && /\$\{esc\(r\.label\)\}/.test(e) && /\$\{esc\(r\.value\)\}/.test(e) && /\$\{esc\(BUILD\)\}/.test(e)
+     && !/\$\{line\}/.test(e) && !/\$\{sub\}/.test(e)
+     && !/\$\{r\.label\}/.test(e) && !/\$\{r\.value\}/.test(e) && !/\$\{BUILD\}/.test(e));
+
+  // The file's OWN expression, lifted and bound — never a copy of it (R-40.94). Only
+  // the `id` binding is the bench's; every byte evaluated is `route.ts`'s.
+  const mkToken = (() => {
+    const m = e.match(/const token = (`[^`]*`);/);
+    if (!m) return null;
+    try { return new Function('id', `return ${m[1]};`); } catch { return null; }
+  })();
+  ok('the token round-trip holds BOTH ways — /r/ strips the prefix today, /e/ will carry it after the edit window',
+     !!mkToken && mkToken('5b253fb2') === 'enq-5b253fb2' && mkToken('enq-5b253fb2') === 'enq-5b253fb2'
+     && mkToken('ENQ-5b253fb2') === 'enq-5b253fb2');
+  ok('it calls the one public door, on the estate\'s API base',
+     /\/api\/v2\/public\/enquiry\//.test(e) && /NEXT_PUBLIC_API_BASE/.test(e));
+  ok('a down door, a non-200 and an unparseable body are all the SAME answer as a miss',
+     /if \(!r\.ok\) return null;/.test(e) && /catch \{\s*return null;\s*\}/.test(e));
+
+  ok('§13: the page stands on the public light ground and declares it three ways',
+     /background:#F8F7F5/.test(e) && /content="#F8F7F5"/.test(e)
+     && /name="color-scheme" content="light"/.test(e) && /color-scheme:light/.test(e));
+  ok('§13: the retired dark ground is gone — #0C0A09 is ink here, never a background',
+     !/background:#0C0A09/.test(e) && /color:#0C0A09/.test(e));
+  ok('noindex ships in BOTH homes — the page\'s meta and the estate\'s robots file',
+     /name="robots" content="noindex"/.test(e) && /'\/e\/'/.test(strip(read('app/robots.ts'))));
+
+  ok('the four vetoed labels, byte-exact',
+     /hitTitle:\s*'Your enquiry is with us'/.test(eSrc)
+     && /service:\s*'Service'/.test(eSrc) && /city:\s*'City'/.test(eSrc)
+     && /month:\s*'Month'/.test(eSrc) && /budget:\s*'Budget'/.test(eSrc));
+  ok('the hit\'s second line was replaced — it promised details it now shows',
+     /hitSub:\s*'Reply on WhatsApp to take it\.'/.test(eSrc)
+     && !/hitSub:.*we will send you the full details/.test(eSrc));
+  ok('the miss keeps both of its bytes, unchanged',
+     /missSub:\s*'Reply on the WhatsApp message and we will send you the full details\.'/.test(eSrc)
+     && /noIdSub:\s*'Reply on WhatsApp and we will send it again\.'/.test(eSrc));
+  ok('the null rule: a row is pushed only when its value is there, all four guarded',
+     (e.match(/if \(enquiry\.(category|city|month|budget_band)\)\s+rows\.push/g) || []).length === 4);
+  ok('roadmap §7 stands: the page never names a phone, a name or an id',
+     !/phone/i.test(e) && !/\bnotify\b/i.test(e));
+
+  // ── BYTE 3 · F-41.144 / F-41.145 ───────────────────────────────────────────
+  section('§9c · F-41.144 / F-41.145 — the ninth flag, and two comments that lied');
+
+  const sb = await loadTs('lib/admin-api/switchboardCopy.ts').catch(() => null);
+  const K = 'flag.assist_forward_alert';
+  ok('F-41.144: the flag has a vetoed NAME, not the humanised fallback',
+     !!sb && sb.gateName(K) === 'Tell a vendor a concierge forward landed');
+  ok('F-41.144: it has a spec line — the fallback returned the empty string',
+     !!sb && sb.gateSpec(K) === 'to the vendor · vendor line · Utility · records only until you switch it on');
+  ok('F-41.144 second line: it lands in Concierge, not the Your-notices fallback',
+     !!sb && sb.roomOf(K) === 'Concierge');
+  ok('the Meta name and ID are the filing\'s, witnessed at TEMPLATES.md:516',
+     !!sb && sb.gateMeta(K) === 'tdw_lead_alert_utility' && sb.gateMetaId(K) === '1753685715867036');
+  ok('adding it folded no template away: it guards no row of its own',
+     !!sb && sb.templatesUnder(K).length === 0);
+  ok('and it moved no existing row: the guarded set is still the eight it was',
+     !!sb && sb.GUARDED_TEMPLATES.length === 8);
+
+  const sbSrc = read('lib/admin-api/switchboardCopy.ts');
+  ok('F-41.145: the sentence announcing a duplication that E2 (iv-b) retired is gone',
+     !/until then the two coexist/.test(sbSrc)
+     && /const STATUS_WORD: Record<string, string> = COPY_STATUS_WORD;/.test(read('app/admin/switchboard/page.tsx')));
+  ok('F-41.145\'s class: the header no longer freezes a count it cannot keep true',
+     !/24 rows for 32 gates/.test(sbSrc) && !/8 flags \+ 5 orphan templates/.test(sbSrc));
 }
 
 console.log(`\n${fail ? 'RED' : 'GREEN'} — b20_a3_assistance_pwa ${pass}/${pass + fail}`);

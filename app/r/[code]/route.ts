@@ -40,6 +40,22 @@ export const dynamic = 'force-dynamic';
 // there; if the two ever disagree, the register wins.
 const UNSET_LINE = 'This review link is not set up yet.';
 
+// ── R-38.22 · THIS ROUTE NAMES ITS OWN BUILD ────────────────────────────────
+// Same shape and same reason as `app/v/[code]/page.tsx:177`, whose comment states
+// the standing rule: a finding on a page whose build cannot be named is filed as
+// unattributable, not chased. F-42.1 cost a round trip on exactly that question —
+// "still the review sentence" had two readings (the branch is wrong, or the branch
+// is not deployed) and nothing on the page could tell them apart. It can now:
+// view-source and read the commit. `unknown` locally, which is honest.
+// `||` and not `??` — R-41.106. An env var is `string | undefined` and never null,
+// so the two differ on exactly one value: the empty string, which `??` would pass
+// through and render as `content=""`. An unnamed build that LOOKS named is the
+// defect this tag exists to kill. (`app/v/[code]/page.tsx:177` spells it `??` and
+// carries the same hole; out of this packet's radius, named so it is not lost.)
+const BUILD = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
+  || process.env.VERCEL_GIT_COMMIT_SHA
+  || 'unknown';
+
 function page(line: string): Response {
   // Deliberately plain. This is not inside the shell — no session, no rungs, no
   // fonts to load. A stranger who tapped a WhatsApp button deserves a fast,
@@ -57,6 +73,7 @@ function page(line: string): Response {
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#F8F7F5">
 <meta name="color-scheme" content="light">
+<meta name="tdw-build" content="${BUILD}">
 <title>The Dream Wedding</title>
 <style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
 background:#F8F7F5;color:#0C0A09;font:400 16px/1.5 system-ui,-apple-system,sans-serif;padding:24px}
@@ -84,12 +101,45 @@ p{margin:0;max-width:34ch;text-align:center}</style></head>
 // changed by a single byte, only preceded.
 const ENQUIRY_PREFIX = 'enq-';
 
+// ── F-42.1 · A BEND TO WHAT META ACTUALLY STORED, RETIRED WITH THE BRANCH ────
+// WITNESSED, not inferred. The founder long-pressed the outsider's `Visit website`
+// button and copied the link, 2026-09-10:
+//
+//     https://thedreamwedding.in/r/%7B%7B1%7D%7Denq-12bc406c-...
+//
+// Meta's stored base ends in a LITERAL `{{1}}` and our suffix parameter is appended
+// to it rather than substituted into it. So the code arrives as `{{1}}enq-<token>`,
+// `startsWith('enq-')` is false, and every outsider landed on the review family's
+// sentence. Three other readings were alive and all three are dead by command:
+// `/v/DEV440` carries `tdw-build cc109bd7` (Vercel is on the tip), `/r/enq-<uuid>`
+// typed by hand reaches `/e/` (the branch is deployed), and the walk after D4
+// reproduced it with the eight-hex suffix (not a stale message).
+//
+// ⚠ STRIP, DO NOT DECODE — c-42.5. Next decodes dynamic segment params before the
+// handler sees them, so `%7B%7B1%7D%7D` ARRIVES as `{{1}}`; this route's own code
+// proves the author knew it — see the `encodeURIComponent` on the redirect below,
+// which would double-encode if the param arrived raw. A `decodeURIComponent`
+// here would be a SECOND decode and would throw `URIError` on any review code
+// holding a bare `%` — a 500 where there is a sentence today, and §8 ranks that
+// regression worse than the missing feature. Both spellings are matched anyway so
+// no assumption about the runtime's decoding is load-bearing.
+//
+// THIS DIES WITH THE BRANCH. When the button base moves to `/e/` at the next Meta
+// edit window, the `enq-` branch retires (R-41.119) and this strip retires with it.
+const META_PLACEHOLDER = /^(\{\{1\}\}|%7B%7B1%7D%7D)/i;
+
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ code: string }> }) {
   const { code } = await ctx.params;
   if (!code) return page(UNSET_LINE);
 
-  if (code.startsWith(ENQUIRY_PREFIX)) {
-    const id = code.slice(ENQUIRY_PREFIX.length);
+  // The review family reads the stripped code too: a review code has never begun
+  // with the placeholder, so this is a no-op for every one of them, and if Meta
+  // ever stores the same base for `tdw_review_request` it is already cured.
+  const stripped = code.replace(META_PLACEHOLDER, '');
+  if (!stripped) return page(UNSET_LINE);
+
+  if (stripped.startsWith(ENQUIRY_PREFIX)) {
+    const id = stripped.slice(ENQUIRY_PREFIX.length);
     // A bare prefix with nothing after it is not an enquiry; it falls to the review
     // family's own answer rather than redirecting to a page that cannot exist.
     if (id) return Response.redirect(new URL(`/e/${encodeURIComponent(id)}`, _req.url), 302);

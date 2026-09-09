@@ -11,9 +11,19 @@
 // and a flag carries EVERY template its door sends (the amendment: the contract
 // flag carries both the signing link and the signing code). Only an orphan
 // template — one no flag guards — gets a row of its own with a verb. This halves
-// the card: 8 flags + 5 orphan templates + 8 perms + 3 scopes, with one perm
-// hoisted to the standing row above the groups, is 24 rows for 32 gates.
-// The join is `meta` below; it is not a second list.
+// the card. The join is `meta` below; it is not a second list.
+//
+// ⚠ THE ROW ARITHMETIC THIS PARAGRAPH USED TO CARRY IS GONE, DELIBERATELY — and
+// the old figures are NOT restated here, because a bench cell asserts their absence
+// and a quotation would defeat it (R-40.105's shape: an absence cell reads what is
+// on the page, and a comment is on the page). Read the diff for what they were.
+// They had drifted twice unnoticed — F-41.122 added orphan rows, F-41.144 adds the
+// ninth flag — and a count frozen in a comment goes stale on the next edit while
+// reading as fact forever. That is the same defect as the note further down this
+// file, which is why both are cured in one packet. The rows are DERIVED at render
+// from `GATE_COPY`, `GUARDED_TEMPLATES` and `ROOM_OF`; if a number is wanted it is
+// counted, not recalled. The gate total was never this file's fact either: the
+// register is the `capabilities` table in dream-os and this file cannot see it.
 //
 // ── THE TWO DARK WORDS ARE NOT SYNONYMS ───────────────────────────────────────
 // `Waiting` — Meta has not answered yet.
@@ -64,6 +74,21 @@ export const GATE_COPY: Readonly<Record<string, GateCopy>> = Object.freeze({
   'flag.wedding_consent_send':             { name: 'Ask the couple to allow the guest gallery', spec: 'to the couple · vendor line · Utility', meta: 'tdw_wedding_consent' },
   'flag.review_ask_send':                  { name: 'Ask the couple for a Google review', spec: 'to the couple · couple line · Marketing', meta: 'tdw_review_request' },
   'flag.wedding_reel':                     { name: 'Make the wedding reel', spec: 'no message · needs ffmpeg on the server · absent today' },
+  // ── F-41.144 · THE NINTH FLAG, AND WHAT THE FILING GOT WRONG ────────────────
+  // Filed by D3c as "renders its raw key". It does not: `gateName`'s fallback below
+  // humanises, so the founder's glass read `assist forward alert` — lowercase, no
+  // spec line at all, and (the half nobody filed) NO `ROOM_OF` entry, so `roomOf`
+  // dropped it into `Your notices` while it belongs beside the concierge templates.
+  // Both lines ship together; the copy entry alone would have been correct words in
+  // the wrong room, which is F-41.122's shape a second time.
+  //
+  // The register has held this key since `0151_assist_forward_alert_flag.sql:19`,
+  // seeded `off`. It gates `alertVendorOfForward` (dream-os
+  // `src/lib/couple/assistance.js:826`, flag at `:106`), which sends the registry's
+  // `lead_alert_utility` on the vendor line. Meta name and ID witnessed at
+  // `docs/TEMPLATES.md:516` (dream-os `3fa603a4`): `tdw_lead_alert_utility`,
+  // `1753685715867036`, UTILITY, APPROVED — read from the filing, not from memory.
+  'flag.assist_forward_alert':             { name: 'Tell a vendor a concierge forward landed', spec: 'to the vendor · vendor line · Utility · records only until you switch it on', meta: 'tdw_lead_alert_utility', metaId: '1753685715867036' },
 
   // ── Message templates on Meta (template.*) — the words themselves ─────────
   'template.tdw_contract_sign':            { name: 'Contract signing link', spec: 'to the couple · vendor line · Utility', meta: 'tdw_contract_sign' },
@@ -168,9 +193,16 @@ export function gateMatches(key: string, needle: string): boolean {
 // These lived in `app/admin/switchboard/page.tsx` as a local const, which made the
 // page both a renderer and a copy home. The four the E1 veto ratified could not be
 // added there without deepening that: a word the founder vetoed belongs with the
-// other words he vetoed. The page reads this map from E2 (iv) on; until then the
-// two coexist and the page's local const is the one on the glass — declared here
-// so the duplication is visible rather than discovered.
+// other words he vetoed.
+//
+// F-41.145 · THE SENTENCE THAT USED TO END THIS PARAGRAPH IS RETIRED, and it is not
+// requoted here — a cell asserts its absence, and a quotation would defeat the cell.
+// It described the page as still holding its own copy of these words, pending a
+// later packet. That packet landed: E2 (iv-b) at `256d3eb7` retired the duplicate,
+// and `app/admin/switchboard/page.tsx:63` is now an alias onto this map, not a
+// second one. The comment outlived its condition and went on announcing a
+// duplication that no longer existed — worse than silence, because a seat reading
+// it would have gone hunting for a second home to cure. THIS IS THE ONE HOME.
 export const STATUS_WORD: Readonly<Record<string, string>> = Object.freeze({
   on: 'On', off: 'Off', armed: 'Ready to switch on', approved: 'Approved',
   pending: 'Waiting', paused: 'Paused by Meta', rejected: 'Rejected',
@@ -211,6 +243,9 @@ const ROOM_OF: Readonly<Record<string, Room>> = Object.freeze({
   'flag.contract_copy_send': 'Contracts',
   'template.tdw_contract_copy': 'Contracts',
 
+  // F-41.144's second half: the flag belongs with the templates its lane sends, not
+  // in `Your notices` where the room fallback was putting it.
+  'flag.assist_forward_alert': 'Concierge',
   'template.tdw_assist_lead_outside': 'Concierge',
   'template.tdw_assist_lead_outside_v2': 'Concierge',
   'template.tdw_assist_found_vendor': 'Concierge',

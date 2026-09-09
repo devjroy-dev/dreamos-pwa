@@ -18,7 +18,15 @@ export default function robots(): MetadataRoute.Robots {
       disallow: [
         '/vendor', '/admin', '/api', '/w',
         '/consent', '/sign', '/crew', '/coplanner', '/circle', '/credits',
-        '/demo', '/demodiscover', '/r/',
+        // F-41.156 · `/e/` JOINS ITS SIBLING. `/r/` has been here since G3.1 s2 and
+        // `/e/` was never added — it was a sentence with nothing to leak, so nobody
+        // noticed. From this cut it renders an enquiry summary about a real couple
+        // (service, city, month, budget band) and a crawlable one is a public record
+        // she never agreed to. The page's own `noindex` meta ships in the same
+        // delivery; this line and that meta are both required, neither is the cure
+        // alone — a meta is invisible to a crawler that was told not to come, and
+        // robots.txt is advisory.
+        '/demo', '/demodiscover', '/r/', '/e/',
       ],
     }],
     sitemap: `${SITE_BASE}/sitemap.xml`,
