@@ -466,7 +466,7 @@ export default function DemoAdminPage() {
             <div>
               <div style={{ ...label, letterSpacing: '0.18em', color: T.soft, marginBottom: 8 }}>About</div>
               <textarea value={about} onChange={e => setAbout(e.target.value)} placeholder="Short bio…" rows={3}
-                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: T.ff.body, fontSize: 13, color: T.ink, resize: 'vertical' as const, outline: 'none' }} />
+                style={{ width: '100%', background: 'var(--atelier-row-hover)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: T.ff.body, fontSize: 13, color: T.ink, resize: 'vertical' as const, outline: 'none' }} />
             </div>
             <div>
               {/* C3 — the floor is the server's number. */}
@@ -478,7 +478,7 @@ export default function DemoAdminPage() {
                   <div key={i} style={{ position: 'relative', width: 72, height: 72 }}>
                     <img src={p.url} alt="" onClick={() => setHero(i)} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: p.is_hero ? `2px solid ${T.gold}` : `0.5px solid ${T.border}`, cursor: 'pointer' }} />
                     {p.is_hero && <div style={{ position: 'absolute', top: 3, left: 3, background: T.gold, borderRadius: 4, padding: '1px 5px', fontFamily: T.ff.label, fontSize: 7, color: T.onAccent }}>HERO</div>}
-                    <button onClick={() => removePhoto(i)} style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, background: T.danger, border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                    <button onClick={() => removePhoto(i)} style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, background: T.danger, border: 'none', color: 'var(--atelier-card-bg)', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                   </div>
                 ))}
               </div>
@@ -511,7 +511,7 @@ export default function DemoAdminPage() {
           </p>
           <textarea value={bulkText} onChange={e => setBulkText(e.target.value)} rows={6}
             placeholder={'swatimakeup\tSwati Tomar\tmakeup\tDelhi\t+919888294440\tRs 50,000 – Rs 2,00,000\tBridal specialist\thttps://… https://…'}
-            style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: 'monospace', fontSize: 12, color: T.ink, resize: 'vertical' as const, outline: 'none' }} />
+            style={{ width: '100%', background: 'var(--atelier-row-hover)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: 'monospace', fontSize: 12, color: T.ink, resize: 'vertical' as const, outline: 'none' }} />
           <div style={{ display: 'flex', gap: 10, paddingTop: 12, alignItems: 'center' }}>
             <GoldBtn label={bulkBusy ? 'Building…' : `Build ${parseBulk(bulkText).length} demos`} onClick={handleBulk} disabled={bulkBusy} />
           </div>
@@ -649,14 +649,14 @@ export default function DemoAdminPage() {
                           </div>
 
                           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const, marginTop: 8 }}>
-                            <span style={{ ...label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color: v.active ? T.success : T.muted, background: v.active ? T.successSoft : 'rgba(240,234,224,0.06)', borderRadius: 8, padding: '2px 7px' }}>
+                            <span style={{ ...label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color: v.active ? T.success : T.muted, background: v.active ? T.successSoft : 'var(--atelier-row-hover)', borderRadius: 8, padding: '2px 7px' }}>
                               {v.active ? 'active' : 'inactive'}
                             </span>
                             {v.discover_eligible && (
                               <span style={{ ...label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color: T.gold, background: T.goldSoft, borderRadius: 8, padding: '2px 7px' }}>in discover</span>
                             )}
                             {v.shared_handset && (
-                              <span style={{ ...label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color: T.warning, background: 'rgba(212,160,23,0.15)', borderRadius: 8, padding: '2px 7px' }}>shared handset</span>
+                              <span style={{ ...label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color: T.warning, background: 'var(--atelier-row-hover)', borderRadius: 8, padding: '2px 7px' }}>shared handset</span>
                             )}
                             {v.linkage_held_by && (
                               <span style={{ ...label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color: T.danger, background: T.dangerSoft, borderRadius: 8, padding: '2px 7px' }}>
@@ -713,7 +713,7 @@ export default function DemoAdminPage() {
                       {f.n}{pct === null ? '' : <span style={{ color: T.muted }}> · {pct}% of {funnel[i - 1].stage}</span>}
                     </span>
                   </div>
-                  <div style={{ height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ height: 6, background: 'var(--atelier-row-hover)', borderRadius: 3, overflow: 'hidden' }}>
                     <div style={{ width: `${Math.round((f.n / top) * 100)}%`, height: '100%', background: T.gold }} />
                   </div>
                 </div>
@@ -802,12 +802,12 @@ export default function DemoAdminPage() {
                           setClaims(prev => prev.map(x => x.id === cl.id ? { ...x, contacted: !cl.contacted } : x));
                         } catch { showToast('Failed to update.', true); }
                       }}
-                      style={{ background: cl.contacted ? 'rgba(78,201,148,0.1)' : T.card, border: `0.5px solid ${cl.contacted ? T.success : T.border}`, borderRadius: 8, padding: '6px 12px', ...label, fontSize: 8, letterSpacing: '0.14em', color: cl.contacted ? T.success : T.soft, cursor: 'pointer' }}
+                      style={{ background: cl.contacted ? 'var(--atelier-row-hover)' : T.card, border: `0.5px solid ${cl.contacted ? T.success : T.border}`, borderRadius: 8, padding: '6px 12px', ...label, fontSize: 8, letterSpacing: '0.14em', color: cl.contacted ? T.success : T.soft, cursor: 'pointer' }}
                     >
                       {cl.contacted ? 'Contacted ✓' : 'Mark Contacted'}
                     </button>
                     <a href={`https://wa.me/${cl.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer"
-                      style={{ background: 'rgba(37,211,102,0.12)', border: '0.5px solid rgba(37,211,102,0.35)', borderRadius: 8, padding: '6px 12px', ...label, fontSize: 8, letterSpacing: '0.14em', color: '#25d366', textDecoration: 'none', display: 'block', textAlign: 'center' as const }}>
+                      style={{ background: 'var(--atelier-row-hover)', border: '0.5px solid var(--atelier-row-hover)', borderRadius: 8, padding: '6px 12px', ...label, fontSize: 8, letterSpacing: '0.14em', color: 'var(--role-positive)', textDecoration: 'none', display: 'block', textAlign: 'center' as const }}>
                       WhatsApp →
                     </a>
                   </div>

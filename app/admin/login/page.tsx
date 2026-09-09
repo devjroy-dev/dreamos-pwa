@@ -31,10 +31,14 @@ const WRONG_PWD    = 'Incorrect password.';
 
 // Frozen bytes, unchanged from before this delivery — the design-system palette
 // this screen has always used. Moved with the header rewrite, not re-authored.
-const G      = '#C44058';
-const INK    = '#F0EAE0';
-const SOFT   = 'rgba(240,234,224,0.5)';
-const BORDER = 'rgba(255,255,255,0.12)';
+// The three constants this file painted from. They were the retired navy set's
+// oxblood, ivory and a half-alpha ivory — a fourth palette, in the one room a
+// founder sees before he is authed. They point at the one home now; the names stay
+// because 24 call sites read them and a rename is a diff carrying no meaning.
+const G      = 'var(--atelier-accent-text)';
+const INK    = 'var(--atelier-ink)';
+const SOFT   = 'var(--atelier-ink-mute)';
+const BORDER = 'var(--atelier-card-border)';
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -61,7 +65,8 @@ export default function AdminLogin() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(165deg, #213650 0%, #18293E 50%, #122031 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ minHeight: '100vh', // ⊘-3 — the gradient dies with the navy; the shell is flat.
+      background: 'var(--atelier-page-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ width: '100%', maxWidth: 360 }}>
         <div style={{ textAlign: 'center', marginBottom: 52 }}>
           <p style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic', fontWeight: 400, fontSize: 28, color: INK, marginBottom: 7 }}>The Dream Wedding</p>
@@ -77,16 +82,16 @@ export default function AdminLogin() {
             onChange={e => setPassword(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
             autoFocus
-            style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '14px 16px', fontFamily: '"DM Sans", sans-serif', fontWeight: 400, fontSize: 15, color: INK, outline: 'none', minHeight: 52 }}
+            style={{ width: '100%', background: 'var(--atelier-row-hover)', border: `0.5px solid ${BORDER}`, borderRadius: 10, padding: '14px 16px', fontFamily: '"DM Sans", sans-serif', fontWeight: 400, fontSize: 15, color: INK, outline: 'none', minHeight: 52 }}
           />
         </div>
 
-        {error && <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: '#E0574E', marginBottom: 12 }}>{error}</p>}
+        {error && <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: 12, color: 'var(--role-critical)', marginBottom: 12 }}>{error}</p>}
 
         <button
           onClick={handleLogin}
           disabled={loading || !password}
-          style={{ width: '100%', background: !password || loading ? 'rgba(196,64,88,0.25)' : G, border: 'none', borderRadius: 10, padding: '16px 0', fontFamily: '"Jost", sans-serif', fontWeight: 600, fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: !password || loading ? 'rgba(240,234,224,0.4)' : INK, minHeight: 52, cursor: !password || loading ? 'not-allowed' : 'pointer', marginTop: 4 }}
+          style={{ width: '100%', background: !password || loading ? 'var(--atelier-row-hover)' : G, border: 'none', borderRadius: 10, padding: '16px 0', fontFamily: '"Jost", sans-serif', fontWeight: 600, fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: !password || loading ? 'var(--atelier-ink-mute)' : INK, minHeight: 52, cursor: !password || loading ? 'not-allowed' : 'pointer', marginTop: 4 }}
         >
           {loading ? 'Entering…' : 'Enter'}
         </button>

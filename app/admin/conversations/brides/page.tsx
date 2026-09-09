@@ -35,7 +35,7 @@ function MessageBubble({ msg }: { msg: Message }) {
   );
   return (
     <div style={{ display: 'flex', justifyContent: isBride ? 'flex-end' : 'flex-start', marginBottom: 8 }}>
-      <div style={{ maxWidth: '80%', background: isBride ? 'rgba(240,234,224,0.12)' : T.goldSoft, border: `0.5px solid ${isBride ? 'rgba(240,234,224,0.15)' : T.borderStrong}`, borderRadius: isBride ? '16px 4px 16px 16px' : '4px 16px 16px 16px', padding: '10px 14px' }}>
+      <div style={{ maxWidth: '80%', background: isBride ? 'var(--atelier-row-hover)' : T.goldSoft, border: `0.5px solid ${isBride ? 'var(--atelier-card-border)' : T.borderStrong}`, borderRadius: isBride ? '16px 4px 16px 16px' : '4px 16px 16px 16px', padding: '10px 14px' }}>
         <div style={{ fontFamily: T.ff.body, fontSize: 13, fontWeight: 400, color: T.ink, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{msg.body}</div>
         <div style={{ fontFamily: T.ff.label, fontSize: 7, color: T.muted, marginTop: 4, letterSpacing: '0.1em', textAlign: 'right' as const }}>{msg.channel} · {timeAgo(msg.created_at)}</div>
       </div>
@@ -94,7 +94,7 @@ export default function BrideConversationsPage() {
             return (
               <div key={t.id} style={{ background: T.card, border: `0.5px solid ${open ? T.borderStrong : T.border}`, borderRadius: 12, overflow: 'hidden', transition: 'border-color 150ms' }}>
                 <div onClick={() => toggle(t)} style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', minHeight: 68 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(240,234,224,0.06)', border: `0.5px solid ${T.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--atelier-card-bg)', border: `0.5px solid ${T.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <span style={{ fontFamily: T.ff.display, fontStyle: 'italic', fontSize: 14, color: T.ink }}>{(t.bride_name || 'B')[0]}</span>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>

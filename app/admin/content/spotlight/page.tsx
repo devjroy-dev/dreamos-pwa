@@ -97,7 +97,7 @@ export default function SpotlightPage() {
           <FieldInput label="Week label (optional)" value={weekLabel} onChange={setWeekLabel} placeholder="May 2026" />
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 9, color: T.soft, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 8 }}>Link to Vendor (optional)</div>
-            <select value={vendorId} onChange={e => setVendorId(e.target.value)} style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '12px 14px', fontFamily: T.ff.body, fontSize: 13, color: T.ink, outline: 'none', minHeight: 44, appearance: 'none' as const }}>
+            <select value={vendorId} onChange={e => setVendorId(e.target.value)} style={{ width: '100%', background: 'var(--atelier-input-bg)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '12px 14px', fontFamily: T.ff.body, fontSize: 13, color: T.ink, outline: 'none', minHeight: 44, appearance: 'none' as const }}>
               <option value="">No vendor link</option>
               {vendors.map(v => <option key={v.id} value={v.id}>{v.name} — {v.category}</option>)}
             </select>

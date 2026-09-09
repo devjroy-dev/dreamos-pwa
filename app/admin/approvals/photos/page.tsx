@@ -72,7 +72,7 @@ export default function PhotosPage() {
             const rejecting = rejectingId === p.id;
             return (
               <div key={p.id} style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12, overflow: 'hidden' }}>
-                <div style={{ aspectRatio: '3/4', background: '#10171F', overflow: 'hidden' }}>
+                <div style={{ aspectRatio: '3/4', background: 'var(--atelier-section-bg)', overflow: 'hidden' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
                 </div>
@@ -87,7 +87,7 @@ export default function PhotosPage() {
                     </div>
                   ) : (
                     <div>
-                      <input value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Reason (optional)…" autoFocus style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '9px 11px', fontFamily: T.ff.body, fontSize: 12, color: T.ink, outline: 'none', minHeight: 40, marginBottom: 6 }} />
+                      <input value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Reason (optional)…" autoFocus style={{ width: '100%', background: 'var(--atelier-input-bg)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '9px 11px', fontFamily: T.ff.body, fontSize: 12, color: T.ink, outline: 'none', minHeight: 40, marginBottom: 6 }} />
                       <div style={{ display: 'flex', gap: 6 }}>
                         <ActionChip label="Cancel" tone="neutral" onClick={() => { setRejectingId(null); setRejectReason(''); }} />
                         <ActionChip label="Confirm" tone="no" onClick={() => reject(p.id)} />

@@ -175,7 +175,7 @@ function VendorPortfolioInner() {
         <select
           value={vendorId}
           onChange={e => handleVendorChange(e.target.value)}
-          style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: `0.5px solid ${vendorId ? T.gold : T.border}`, borderRadius: 10, padding: '14px 16px', fontFamily: T.ff.body, fontSize: 14, color: vendorId ? T.ink : T.soft, outline: 'none', minHeight: 52, appearance: 'none' as const }}
+          style={{ width: '100%', background: 'var(--atelier-input-bg)', border: `0.5px solid ${vendorId ? T.gold : T.border}`, borderRadius: 10, padding: '14px 16px', fontFamily: T.ff.body, fontSize: 14, color: vendorId ? T.ink : T.soft, outline: 'none', minHeight: 52, appearance: 'none' as const }}
         >
           <option value="">— Choose a vendor —</option>
           {vendors.map(v => (

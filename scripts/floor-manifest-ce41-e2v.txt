@@ -1,0 +1,25 @@
+# scripts/floor-manifest-ce41-e2v.txt — CE-41 · SEAT E · E2 (v), THE REST. THE RE-TOKEN CLOSES.
+# FLOOR = NAMED BASE, no delta. No cell arrives; two widen.
+#
+#   ce41_e2i_cockpit_ink_census  52 -> 63  (57/6 red uncured, 63/0 cured)
+#   ce41_e2ia_accent_ink         14 -> 15  (unchanged in shape; one more ground exists)
+#   ce41_e2iia_cockpit_arms       9 ->  9
+#   ce41_e2iv_painted_surface     7 ->  7
+#
+# R-41.121, APPLIED TO THE CELL ITSELF. Until this rider the census asserted a NAMED LIST
+# of files — the spelling of whichever rider last touched them. The law is `no file under
+# app/admin holds a colour value`, so the cell now WALKS THE DIRECTORY from disk and reds
+# on any .tsx/.ts/.css outside the cured list that holds one. It found three rooms the
+# named list called cured on its first run — approvals/photos, content/spotlight,
+# conversations/brides — and two more after those were fixed: conversations/vendors and
+# vendors/portfolio. Five rooms this seat had reported as carried-free by E2 (i)'s pointer
+# re-authoring were not: they read `T` for most of their paint and held an input ground or
+# a bubble ground of their own. The count in the (iv) note — "nine rooms already at zero"
+# — was wrong by five, and the sweep is why that is a fact rather than a belief.
+#
+# A room added to app/admin tomorrow is judged tomorrow, with nobody remembering to edit
+# this file. That is the whole point of asserting the meaning instead of the list.
+scripts/ce41_e2i_cockpit_ink_census.mjs
+scripts/ce41_e2ia_accent_ink.mjs
+scripts/ce41_e2iia_cockpit_arms.mjs
+scripts/ce41_e2iv_painted_surface.mjs

@@ -31,7 +31,8 @@
 // pass. It also says nothing about groups (ii)–(v), which still hold their literals
 // by design and get their own cells as they are cut.
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { GRAPHITE } from '../lib/worklist/theme.ts';
 
 // ── THE GROUP, BY NAME ───────────────────────────────────────────────────────
@@ -71,13 +72,20 @@ const GROUP = [
   'app/admin/switchboard/page.tsx',
   'app/admin/switchboard/ModelRoutesPanel.tsx',
   'app/admin/assistance/page.tsx',
+  // (v) the rest
+  'app/admin/dashboard/page.tsx',
+  'app/admin/data/page.tsx',
+  'app/admin/health/page.tsx',
+  'app/admin/login/page.tsx',
+  'app/admin/demo/page.tsx',
 ];
 
-// NOT YET CURED, NAMED SO THE GAP IS DECLARED AND NOT DISCOVERED:
-//   (v)  the rest      — dashboard, data, health, demo, login, makers, dreamers,
-//                        prospects, couture, hot-dates, conversations/*, content/*,
-//                        vendors/portfolio, approvals/photos
-// Their literals are counted in docs/mocks/COCKPIT/COCKPIT_CENSUS.md and stand.
+// EVERY GROUP IS CURED, SO THE LIST STOPS BEING THE SUBJECT (R-41.121). A named list
+// asserts the SPELLING of the last rider — the files it happened to touch — and the law
+// is `no file under app/admin holds a colour value`. The sweep below walks the directory
+// from disk, so a room added tomorrow is judged tomorrow without anyone remembering to
+// add it here. The list above is kept as the record of which rider cured what; the sweep
+// is what actually reds.
 const DELETED = 'app/admin/_components/tokens.css';
 
 const RE_LITERAL = /#[0-9A-Fa-f]{3}\b(?![0-9A-Fa-f])|#[0-9A-Fa-f]{6}\b|rgba?\([^)]*\)|hsla?\([^)]*\)/g;
@@ -107,6 +115,25 @@ for (const f of GROUP) {
   const admins = code.match(RE_ADMIN_VAR) || [];
   if (admins.length) red(`${f} — no --admin-* read`, `${admins.length} found: ${[...new Set(admins)].slice(0, 6).join(', ')}`);
   else green(`${f} — no --admin-* read`);
+}
+
+// ── THE WHOLE DIRECTORY, NOT THE LIST (R-41.121) ────────────────────────────
+{
+  const seen = new Set(GROUP);
+  const walk = (dir) => readdirSync(dir).flatMap((e) => {
+    const p = join(dir, e);
+    return statSync(p).isDirectory() ? walk(p) : (p.endsWith('.tsx') || p.endsWith('.ts') || p.endsWith('.css') ? [p] : []);
+  });
+  const strays = [];
+  for (const f of walk('app/admin')) {
+    if (seen.has(f)) continue;
+    const code = codeOf(readFileSync(f, 'utf8'));
+    const lits = code.match(RE_LITERAL) || [];
+    const admins = code.match(RE_ADMIN_VAR) || [];
+    if (lits.length || admins.length) strays.push(`${f} (${lits.length} literals, ${admins.length} --admin-*)`);
+  }
+  if (strays.length) red('no file under app/admin outside the cured list holds a colour value', strays.join('\n      '));
+  else green('no file under app/admin outside the cured list holds a colour value');
 }
 
 // ── THE DELETED FILE ─────────────────────────────────────────────────────────

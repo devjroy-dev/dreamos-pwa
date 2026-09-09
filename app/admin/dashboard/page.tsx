@@ -15,12 +15,12 @@ function timeAgo(d: string) {
 }
 
 function Shimmer({ h: height, w = '100%', br = 8 }: { h: number; w?: string | number; br?: number }) {
-  return <div style={{ height, width: w, borderRadius: br, background: 'linear-gradient(90deg,#F0EEE8 25%,#E8E5DF 50%,#F0EEE8 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />;
+  return <div style={{ height, width: w, borderRadius: br, background: 'linear-gradient(90deg,var(--atelier-section-bg) 25%,var(--atelier-section-bg) 50%,var(--atelier-section-bg) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />;
 }
 
 function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
   useEffect(() => { const t = setTimeout(onDone, 3000); return () => clearTimeout(t); }, [onDone]);
-  return <div style={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', background: '#111111', color: '#F8F7F5', fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, padding: '10px 20px', borderRadius: 100, zIndex: 9999, whiteSpace: 'nowrap' }}>{msg}</div>;
+  return <div style={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)', fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, padding: '10px 20px', borderRadius: 100, zIndex: 9999, whiteSpace: 'nowrap' }}>{msg}</div>;
 }
 
 interface Counter { total: number; today_delta?: number; delta?: number; }
@@ -32,11 +32,11 @@ interface Data {
 
 function CounterCard({ label, value, delta }: { label: string; value: number; delta?: number }) {
   return (
-    <div style={{ background: '#FFFFFF', border: '1px solid #E2DED8', borderRadius: 14, padding: '20px 20px 18px', flex: 1, minWidth: 0 }}>
-      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 42, fontWeight: 300, color: '#111111', margin: '0 0 4px', lineHeight: 1 }}>{value.toLocaleString('en-IN')}</p>
-      <p style={{ fontFamily: "'Jost', sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 8px' }}>{label}</p>
+    <div style={{ background: 'var(--atelier-card-bg)', border: '1px solid transparent', borderRadius: 14, padding: '20px 20px 18px', flex: 1, minWidth: 0 }}>
+      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 42, fontWeight: 300, color: 'var(--atelier-ink)', margin: '0 0 4px', lineHeight: 1 }}>{value.toLocaleString('en-IN')}</p>
+      <p style={{ fontFamily: "'Jost', sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 8px' }}>{label}</p>
       {delta !== undefined && delta !== 0 && (
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 300, color: delta > 0 ? '#4A7C59' : '#9B4545', margin: 0 }}>
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: 300, color: delta > 0 ? 'var(--role-positive)' : 'var(--role-critical)', margin: 0 }}>
           {delta > 0 ? '▲' : '▼'} {Math.abs(delta)} vs yesterday
         </p>
       )}
@@ -90,9 +90,13 @@ export default function CommandCentrePage() {
     setToast('Report exported');
   }
 
+  // R-41.121 — a colour map is the shape the property reader is blind to, so it is
+  // found first rather than in a survivors sweep. These are INKS (a dot beside each
+  // activity line), not grounds, so each maps to its role and none becomes a fill.
   const activityColor: Record<string, string> = {
-    new_dreamer: '#F0A500', new_maker: '#4A7C59', enquiry: '#555250',
-    muse_save: '#C9A84C', flagged: '#9B4545',
+    new_dreamer: 'var(--role-caution)', new_maker: 'var(--role-positive)',
+    enquiry: 'var(--atelier-ink-soft)', muse_save: 'var(--role-metal)',
+    flagged: 'var(--role-critical)',
   };
 
   return (
@@ -101,10 +105,10 @@ export default function CommandCentrePage() {
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <p style={{ fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 9, color: '#888580', letterSpacing: '0.25em', textTransform: 'uppercase', margin: '0 0 4px' }}>Admin</p>
+        <p style={{ fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 9, color: 'var(--atelier-ink-mute)', letterSpacing: '0.25em', textTransform: 'uppercase', margin: '0 0 4px' }}>Admin</p>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 32, color: '#111111', margin: 0 }}>Command Centre</p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 300, color: '#888580', margin: 0 }}>
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 32, color: 'var(--atelier-ink)', margin: 0 }}>Command Centre</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0 }}>
             {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
         </div>
@@ -126,13 +130,13 @@ export default function CommandCentrePage() {
 
       {/* Quick actions */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
-        <button onClick={backfill} disabled={backfilling} style={{ height: 36, padding: '0 16px', background: '#111111', color: '#F8F7F5', border: 'none', borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', opacity: backfilling ? 0.6 : 1, whiteSpace: 'nowrap' }}>
+        <button onClick={backfill} disabled={backfilling} style={{ height: 36, padding: '0 16px', background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)', border: 'none', borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', opacity: backfilling ? 0.6 : 1, whiteSpace: 'nowrap' }}>
           {backfilling ? '⟳ Backfilling...' : '⟳ Backfill Entity Links'}
         </button>
-        <button onClick={exportReport} style={{ height: 36, padding: '0 16px', background: 'transparent', color: '#111111', border: '1px solid #E2DED8', borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        <button onClick={exportReport} style={{ height: 36, padding: '0 16px', background: 'transparent', color: 'var(--atelier-sheet-bg)', border: '1px solid transparent', borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap' }}>
           ↓ Export Today's Report
         </button>
-        <button onClick={() => router.push('/admin/images')} style={{ height: 36, padding: '0 16px', background: 'transparent', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.4)', borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        <button onClick={() => router.push('/admin/images')} style={{ height: 36, padding: '0 16px', background: 'transparent', color: 'var(--role-metal)', border: '1px solid var(--atelier-row-hover)', borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap' }}>
           ⬡ Approve Images
         </button>
       </div>
@@ -140,8 +144,8 @@ export default function CommandCentrePage() {
       {/* Activity Feed */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#888580', margin: 0 }}>Activity — Last 24 Hours</p>
-          <button onClick={load} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Jost', sans-serif", fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#C9A84C' }}>Refresh</button>
+          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: 0 }}>Activity — Last 24 Hours</p>
+          <button onClick={load} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Jost', sans-serif", fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--role-metal)' }}>Refresh</button>
         </div>
 
         {loading ? (
@@ -149,23 +153,23 @@ export default function CommandCentrePage() {
             {[1,2,3,4,5].map(i => <Shimmer key={i} h={44} br={10} />)}
           </div>
         ) : !data?.activity?.length ? (
-          <div style={{ background: '#FFFFFF', border: '1px solid #E2DED8', borderRadius: 12, padding: 32, textAlign: 'center' }}>
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 300, fontStyle: 'italic', color: '#888580', margin: 0 }}>Quiet so far today.</p>
+          <div style={{ background: 'var(--atelier-card-bg)', border: '1px solid transparent', borderRadius: 12, padding: 32, textAlign: 'center' }}>
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 300, fontStyle: 'italic', color: 'var(--atelier-ink-mute)', margin: 0 }}>Quiet so far today.</p>
           </div>
         ) : (
-          <div style={{ background: '#FFFFFF', border: '1px solid #E2DED8', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ background: 'var(--atelier-card-bg)', border: '1px solid transparent', borderRadius: 12, overflow: 'hidden' }}>
             {data.activity.map((item, i) => (
               <div key={i} onClick={() => {
                 if (item.type === 'new_dreamer') router.push(`/admin/dreamers/${item.id}`);
                 else if (item.type === 'new_maker') router.push(`/admin/makers/${item.id}`);
                 else if (item.type === 'flagged') router.push('/admin/messages');
-              }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: i < data.activity.length - 1 ? '0.5px solid #F0EEE8' : 'none', cursor: 'pointer', transition: 'background 150ms' }}
-                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#F8F7F5'}
+              }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: i < data.activity.length - 1 ? '0.5px solid var(--atelier-card-border)' : 'none', cursor: 'pointer', transition: 'background 150ms' }}
+                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--atelier-page-bg)'}
                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
               >
                 <span style={{ fontSize: 14, flexShrink: 0 }}>{item.emoji}</span>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 300, color: item.type === 'flagged' ? '#9B4545' : '#111', margin: 0, flex: 1, lineHeight: 1.4 }}>{item.text}</p>
-                <span style={{ fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, color: '#C8C4BE', flexShrink: 0 }}>{timeAgo(item.at)}</span>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 300, color: item.type === 'flagged' ? 'var(--role-critical)' : 'var(--atelier-ink)', margin: 0, flex: 1, lineHeight: 1.4 }}>{item.text}</p>
+                <span style={{ fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, color: 'var(--atelier-ink-fade)', flexShrink: 0 }}>{timeAgo(item.at)}</span>
               </div>
             ))}
           </div>
