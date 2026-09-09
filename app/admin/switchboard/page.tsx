@@ -290,7 +290,7 @@ function GateRow({ row, busy, lit, walkRef, onWalkRef, onFlip, onAutoOn, onCheck
               <input
                 value={walkRef} onChange={e => onWalkRef(e.target.value)} placeholder="Walk seal (commit hash)"
                 aria-label={`Walk seal for ${nameFor(row.key)}`}
-                style={{ background: 'rgba(255,255,255,0.04)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '7px 10px', fontFamily: T.ff.body, fontSize: 11, color: T.ink, outline: 'none' }}
+                style={{ background: 'var(--atelier-input-bg)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '7px 10px', fontFamily: T.ff.body, fontSize: 11, color: T.ink, outline: 'none' }}
                 onFocus={e => { e.currentTarget.style.borderColor = T.borderFocus; }}
                 onBlur={e => { e.currentTarget.style.borderColor = T.border; }}
               />

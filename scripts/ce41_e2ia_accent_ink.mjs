@@ -104,7 +104,12 @@ function styleObjectAt(src, i) {
 }
 
 let pass = 0, fail = 0, grounds = 0;
-const RE_GROUND = /background(?:Color)?\s*:\s*[^,;}]*\bT\.gold\b/g;
+// (iv) WIDENED THE SUBJECT. The cell was written for `T.gold` because that is the pointer
+// E2 (i) moved. The re-tokened rooms do not go through `T` at all — they write
+// `var(--role-metal)` and `var(--atelier-accent-text)` directly — and (iii) shipped one of
+// those with a translucent-white ink on it (photos:94, a count pill), which this cell could
+// not see. A saturated ground is a saturated ground whichever name it arrives under.
+const RE_GROUND = /background(?:Color)?\s*:\s*[^,;}]*(?:\bT\.gold\b|var\(--role-metal\)|var\(--atelier-accent-text\))/g;
 
 console.log('\nCE-41 E2 (ia) — no ink chosen for the oxblood sits on the teal\n');
 
@@ -121,7 +126,7 @@ for (const f of walk(ROOT)) {
     const own = obj.match(/\bcolor\s*:\s*[^,;}]+/g) || [];
     const inks = own.length ? own : (el ? inksOnAccent(el) : []);
     if (inks.length === 0) { pass++; console.log(`  ✓ ${f}:${line} — accent ground, no ink in its subtree`); continue; }
-    if (inks.every((c) => /T\.onAccent/.test(c))) { pass++; console.log(`  ✓ ${f}:${line} — accent ground, ink is T.onAccent`); }
+    if (inks.every((c) => /T\.onAccent|var\(--role-ink-on-metal\)|var\(--role-ink-deep\)/.test(c))) { pass++; console.log(`  ✓ ${f}:${line} — accent ground, ink is T.onAccent`); }
     else { fail++; console.log(`  ✗ ${f}:${line} — accent ground with ink chosen for the oxblood\n      ${inks.join(' | ').slice(0, 120)}`); }
   }
 }

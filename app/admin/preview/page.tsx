@@ -202,7 +202,7 @@ export default function PreviewVendorsPage() {
                     border: 'none', borderRadius: 100, cursor: filledCount >= 10 ? 'default' : 'pointer',
                     fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300,
                     letterSpacing: '0.12em', textTransform: 'uppercase',
-                    color: filledCount >= 10 ? 'var(--atelier-ink-mute)' : 'var(--atelier-ink)', flexShrink: 0,
+                    color: filledCount >= 10 ? 'var(--atelier-ink-mute)' : 'var(--role-ink-on-metal)', flexShrink: 0,
                   }}>+ Add</button>
                 </div>
               ))}

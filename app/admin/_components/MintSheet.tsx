@@ -210,7 +210,7 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
                 border: 'none', borderRadius: 10,
                 fontFamily: '"Jost", sans-serif', fontWeight: 400, fontSize: 10,
                 letterSpacing: '0.2em', textTransform: 'uppercase',
-                color: busy ? 'var(--atelier-ink-mute)' : 'var(--atelier-page-bg)',
+                color: busy ? 'var(--atelier-ink-mute)' : 'var(--role-ink-on-metal)',
                 cursor: busy ? 'not-allowed' : 'pointer',
               }}
             >{busy ? 'Working…' : (kind === 'vendor' ? 'Create vendor' : 'Create couple')}</button>

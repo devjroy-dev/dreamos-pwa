@@ -91,7 +91,7 @@ export default function AdminPhotosPage() {
             }}>
               {CAT_LABELS[cat]}
               {count > 0 && (
-                <span style={{ background: 'var(--role-metal)', color: 'var(--atelier-card-bg)', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 8, padding: '1px 6px', borderRadius: 10 }}>{count}</span>
+                <span style={{ background: 'transparent', border: '0.5px solid var(--role-metal)', color: 'var(--role-metal)', fontFamily: '"Jost", sans-serif', fontWeight: 300, fontSize: 8, padding: '1px 6px', borderRadius: 10 }}>{count}</span>
               )}
             </button>
           );

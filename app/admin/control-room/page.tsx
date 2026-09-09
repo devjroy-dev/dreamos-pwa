@@ -10,23 +10,32 @@ type TabId = 'access' | 'couple-tiers' | 'vendor-tiers' | 'pricing' | 'discovery
 function SectionHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle?: string }) {
   return (
     <div style={{ marginBottom: 24 }}>
-      <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 4px' }}>{eyebrow}</p>
-      <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 26, fontWeight: 300, color: '#111111', margin: '0 0 6px' }}>{title}</p>
-      {subtitle && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: '#888580', margin: 0, lineHeight: 1.6 }}>{subtitle}</p>}
+      <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--role-metal)', margin: '0 0 4px' }}>{eyebrow}</p>
+      <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 26, fontWeight: 300, color: 'var(--atelier-ink)', margin: '0 0 6px' }}>{title}</p>
+      {subtitle && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0, lineHeight: 1.6 }}>{subtitle}</p>}
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: Status }) {
-  const map: Record<Status, { label: string; bg: string; color: string }> = {
-    'live':         { label: 'Live',         bg: 'rgba(74,124,89,0.1)',   color: '#4A7C59' },
-    'off':          { label: 'Off',          bg: '#F0EEE8',               color: '#888580' },
-    'invite-only':  { label: 'Invite Only',  bg: 'rgba(201,168,76,0.1)', color: '#C9A84C' },
-    'coming-soon':  { label: 'Coming Soon',  bg: '#F0EEE8',               color: '#888580' },
+  // ⊘-2, R-40.129 ① — the tinted grounds die. Each status carried a wash of its own ink
+  // (green at .10, gold at .10, cream for the two dead states); a role is an ink and an
+  // edge and never a fill. The badge is transparent now, with the role on its edge and
+  // its label — the same shape collab's pill took in (iii).
+  //
+  // A COLOUR MAP IN A DATA STRUCTURE, WHICH IS WHERE THE RE-TOKEN IS BLIND. The pass
+  // reads the CSS property in front of a value to tell a ground from an ink; inside an
+  // object literal there is no property to read. (iii) learned this on collab's tuple and
+  // this rider looked for the shape FIRST rather than finding it in the survivors sweep.
+  const map: Record<Status, { label: string; color: string }> = {
+    'live':         { label: 'Live',         color: 'var(--role-positive)' },
+    'off':          { label: 'Off',          color: 'var(--atelier-ink-mute)' },
+    'invite-only':  { label: 'Invite Only',  color: 'var(--role-metal)' },
+    'coming-soon':  { label: 'Coming Soon',  color: 'var(--atelier-ink-mute)' },
   };
   const s = map[status];
   return (
-    <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: 100, background: s.bg, color: s.color, whiteSpace: 'nowrap' as const }}>
+    <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: 100, background: 'transparent', border: `0.5px solid ${s.color}`, color: s.color, whiteSpace: 'nowrap' as const }}>
       {s.label}
     </span>
   );
@@ -35,13 +44,13 @@ function StatusBadge({ status }: { status: Status }) {
 function Toggle({ value, label, note }: { value: boolean; label: string; note?: string }) {
   const [on, setOn] = useState(value);
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 20, padding: '14px 0', borderBottom: '0.5px solid #F0EEE8' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 20, padding: '14px 0', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
       <div>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: '#111111', margin: '0 0 3px' }}>{label}</p>
-        {note && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: '#888580', margin: 0, lineHeight: 1.5 }}>{note}</p>}
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: 'var(--atelier-ink)', margin: '0 0 3px' }}>{label}</p>
+        {note && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0, lineHeight: 1.5 }}>{note}</p>}
       </div>
-      <button onClick={() => setOn(!on)} style={{ flexShrink: 0, width: 48, height: 26, borderRadius: 13, background: on ? '#111111' : '#E2DED8', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 200ms' }}>
-        <div style={{ position: 'absolute', top: 3, left: on ? 25 : 3, width: 20, height: 20, borderRadius: '50%', background: on ? '#C9A84C' : '#FFFFFF', transition: 'left 200ms', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+      <button onClick={() => setOn(!on)} style={{ flexShrink: 0, width: 48, height: 26, borderRadius: 13, background: on ? 'var(--atelier-sheet-bg)' : 'transparent', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 200ms' }}>
+        <div style={{ position: 'absolute', top: 3, left: on ? 25 : 3, width: 20, height: 20, borderRadius: '50%', background: on ? 'var(--role-metal)' : 'var(--atelier-card-bg)', transition: 'left 200ms', boxShadow: '0 1px 3px var(--atelier-card-shadow)' }} />
       </button>
     </div>
   );
@@ -51,15 +60,15 @@ function Toggle({ value, label, note }: { value: boolean; label: string; note?: 
 function PriceField({ label, value, note, prefix = 'Rs' }: { label: string; value: string; note?: string; prefix?: string }) {
   const [val, setVal] = useState(value);
   return (
-    <div style={{ padding: '14px 0', borderBottom: '0.5px solid #F0EEE8' }}>
+    <div style={{ padding: '14px 0', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
         <div style={{ flex: 1 }}>
-          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: '#111111', margin: '0 0 3px' }}>{label}</p>
-          {note && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: '#888580', margin: 0 }}>{note}</p>}
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: 'var(--atelier-ink)', margin: '0 0 3px' }}>{label}</p>
+          {note && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0 }}>{note}</p>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-          <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: '#888580' }}>{prefix}</span>
-          <input value={val} onChange={e => setVal(e.target.value)} style={{ width: 90, border: 'none', borderBottom: '1px solid #E2DED8', background: 'transparent', fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: '#111111', padding: '4px 0', outline: 'none', textAlign: 'right' }} />
+          <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: 'var(--atelier-ink-mute)' }}>{prefix}</span>
+          <input value={val} onChange={e => setVal(e.target.value)} style={{ width: 90, border: 'none', borderBottom: '1px solid var(--atelier-card-border)', background: 'transparent', fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: 'var(--atelier-ink)', padding: '4px 0', outline: 'none', textAlign: 'right' }} />
         </div>
       </div>
     </div>
@@ -69,13 +78,13 @@ function PriceField({ label, value, note, prefix = 'Rs' }: { label: string; valu
 function SelectField({ label, value, options, note }: { label: string; value: string; options: string[]; note?: string }) {
   const [val, setVal] = useState(value);
   return (
-    <div style={{ padding: '14px 0', borderBottom: '0.5px solid #F0EEE8' }}>
+    <div style={{ padding: '14px 0', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
         <div style={{ flex: 1 }}>
-          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: '#111111', margin: '0 0 3px' }}>{label}</p>
-          {note && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: '#888580', margin: 0 }}>{note}</p>}
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: 'var(--atelier-ink)', margin: '0 0 3px' }}>{label}</p>
+          {note && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0 }}>{note}</p>}
         </div>
-        <select value={val} onChange={e => setVal(e.target.value)} style={{ border: 'none', borderBottom: '1px solid #E2DED8', background: 'transparent', fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: '#111111', padding: '4px 0', outline: 'none', cursor: 'pointer' }}>
+        <select value={val} onChange={e => setVal(e.target.value)} style={{ border: 'none', borderBottom: '1px solid var(--atelier-card-border)', background: 'transparent', fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: 'var(--atelier-ink)', padding: '4px 0', outline: 'none', cursor: 'pointer' }}>
           {options.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
       </div>
@@ -85,7 +94,7 @@ function SelectField({ label, value, options, note }: { label: string; value: st
 
 function Card({ children, gold }: { children: React.ReactNode; gold?: boolean }) {
   return (
-    <div style={{ background: '#FFFFFF', border: `1px solid ${gold ? 'rgba(201,168,76,0.3)' : '#E2DED8'}`, borderRadius: 14, padding: '20px 24px', marginBottom: 16 }}>
+    <div style={{ background: 'var(--atelier-card-bg)', border: `1px solid ${gold ? 'var(--role-metal)' : 'var(--atelier-card-border)'}`, borderRadius: 14, padding: '20px 24px', marginBottom: 16 }}>
       {children}
     </div>
   );
@@ -95,16 +104,16 @@ function TierCard({ tier, color, badge, features, price, priceNote }: {
   tier: string; color: string; badge?: string; features: string[]; price: string; priceNote: string;
 }) {
   return (
-    <div style={{ background: '#FFFFFF', border: `1px solid ${color}30`, borderTop: `3px solid ${color}`, borderRadius: 14, padding: '20px 24px', flex: 1, minWidth: 0 }}>
+    <div style={{ background: 'var(--atelier-card-bg)', border: `1px solid ${color}30`, borderTop: `3px solid ${color}`, borderRadius: 14, padding: '20px 24px', flex: 1, minWidth: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, fontWeight: 300, color: '#111111', margin: 0 }}>{tier}</p>
+        <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, fontWeight: 300, color: 'var(--atelier-ink)', margin: 0 }}>{tier}</p>
         {badge && <span style={{ fontFamily: "'Jost',sans-serif", fontSize: 7, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 100, background: `${color}15`, color }}>{badge}</span>}
       </div>
       <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 28, fontWeight: 300, color, margin: '0 0 4px' }}>{price}</p>
-      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 300, color: '#888580', margin: '0 0 16px' }}>{priceNote}</p>
+      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: '0 0 16px' }}>{priceNote}</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {features.map((f, i) => (
-          <p key={i} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: '#555250', margin: 0, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+          <p key={i} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-soft)', margin: 0, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <span style={{ color, flexShrink: 0, marginTop: 1 }}>—</span> {f}
           </p>
         ))}
@@ -115,9 +124,9 @@ function TierCard({ tier, color, badge, features, price, priceNote }: {
 
 function NoteBanner({ text }: { text: string }) {
   return (
-    <div style={{ background: 'rgba(201,168,76,0.06)', border: '0.5px solid rgba(201,168,76,0.25)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
-      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: '#555250', margin: 0, lineHeight: 1.6 }}>
-        <span style={{ color: '#C9A84C', fontWeight: 400 }}>Note: </span>{text}
+    <div style={{ background: 'var(--atelier-row-hover)', border: '0.5px solid var(--atelier-row-hover)', borderRadius: 10, padding: '12px 16px', marginBottom: 16 }}>
+      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: 'var(--atelier-ink-soft)', margin: 0, lineHeight: 1.6 }}>
+        <span style={{ color: 'var(--role-metal)', fontWeight: 400 }}>Note: </span>{text}
       </p>
     </div>
   );
@@ -131,7 +140,7 @@ function TabAccess() {
       <SectionHeader eyebrow="Platform Access" title="Who can get in." subtitle="Control the gates at every entry point. These are your velvet rope decisions." />
 
       <Card gold>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 12px' }}>Couple Side</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--role-metal)', margin: '0 0 12px' }}>Couple Side</p>
         <Toggle value={false} label="Couples require invite code to join" note="When ON: only couples with a valid invite code can sign up. Maintain Net-a-Porter exclusivity at launch." />
         <Toggle value={true} label="Couples can self-register (phone OTP)" note="When ON: any couple can sign up. When OFF: invite code required." />
         <Toggle value={false} label="Discovery feed requires login" note="When ON: couples must be logged in to browse vendors. When OFF: the feed is publicly viewable." />
@@ -139,7 +148,7 @@ function TabAccess() {
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Vendor (Maker) Side</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Vendor (Maker) Side</p>
         <Toggle value={true} label="Vendors require invite code to join" note="Current state: invite code required. Maintains curation. Good for launch." />
         <Toggle value={false} label="Vendors can self-register" note="When ON: any vendor can sign up without a code. Opens the floodgates." />
         <Toggle value={true} label="Vendor requires admin approval to go live" note="Current state: manual approval before appearing in discovery feed." />
@@ -148,7 +157,7 @@ function TabAccess() {
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Admin</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Admin</p>
         <Toggle value={true} label="Admin portal password protected" note="Always ON. The password lives in Railway env only — never on this screen (F-07.88)." />
       </Card>
     </div>
@@ -164,7 +173,7 @@ function TabCoupleTiers() {
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         <TierCard
-          tier="Basic" color="#888580" badge="Free"
+          tier="Basic" color="var(--atelier-ink-mute)" badge="Free"
           price={formatRs(0)} priceNote="Always free — no credit card"
           features={[
             'Discovery feed — unlimited browsing',
@@ -176,7 +185,7 @@ function TabCoupleTiers() {
           ]}
         />
         <TierCard
-          tier="Gold" color="#C9A84C" badge="One-time"
+          tier="Gold" color="var(--role-metal)" badge="One-time"
           price={formatRs(999)} priceNote="One-time unlock, lifetime"
           features={[
             'Everything in Basic',
@@ -188,7 +197,7 @@ function TabCoupleTiers() {
           ]}
         />
         <TierCard
-          tier="Platinum" color="#111111" badge="One-time"
+          tier="Platinum" color="var(--atelier-ink)" badge="One-time"
           price={formatRs(2999)} priceNote="One-time unlock, lifetime"
           features={[
             'Everything in Gold',
@@ -202,20 +211,20 @@ function TabCoupleTiers() {
       </div>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Pricing Controls</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Pricing Controls</p>
         <PriceField label="Gold tier price" value="999" note="One-time payment. Currently Rs 999." />
         <PriceField label="Platinum tier price" value="2999" note="One-time payment. Currently Rs 2,999." />
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>DreamAi Token Packs (All Tiers)</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>DreamAi Token Packs (All Tiers)</p>
         <PriceField label="50 token pack" value="100" note="Rs 2 per query" />
         <PriceField label="200 token pack" value="350" note="Rs 1.75 per query — 12% saving" />
         <PriceField label="500 token pack" value="800" note="Rs 1.60 per query — 20% saving" />
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Access Gates per Tier</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Access Gates per Tier</p>
         <Toggle value={true} label="Basic: Free browsing of discovery feed" note="Couples should always be able to browse. Remove this gate only if you want discovery to be entirely invite-only." />
         <Toggle value={true} label="Basic: Can send enquiries" note="When OFF: Basic users must upgrade to Gold to send an enquiry. High friction, higher conversion — use carefully." />
         <Toggle value={true} label="Gold: Full vendor profiles (Page 2)" note="Page 2 includes extended portfolio, team, awards, packages. Currently gated to Gold+." />
@@ -235,7 +244,7 @@ function TabVendorTiers() {
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         <TierCard
-          tier="Essential" color="#888580" badge="Entry paid tier"
+          tier="Essential" color="var(--atelier-ink-mute)" badge="Entry paid tier"
           price={formatRs(999) + '/mo'} priceNote="Basic is the free rung below this"
           features={[
             'Visible in discovery feed (post-approval)',
@@ -247,7 +256,7 @@ function TabVendorTiers() {
           ]}
         />
         <TierCard
-          tier="Signature" color="#C9A84C" badge="Recommended"
+          tier="Signature" color="var(--role-metal)" badge="Recommended"
           price={formatRs(1499) + '/mo'} priceNote="Monthly subscription"
           features={[
             'Everything in Essential',
@@ -260,7 +269,7 @@ function TabVendorTiers() {
           ]}
         />
         <TierCard
-          tier="Prestige" color="#C9A84C" badge="Invite Only"
+          tier="Prestige" color="var(--role-metal)" badge="Invite Only"
           price={formatRs(3999) + '/mo'} priceNote="Invite only — you assign"
           features={[
             'Everything in Signature',
@@ -275,7 +284,7 @@ function TabVendorTiers() {
       </div>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Subscription Pricing</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Subscription Pricing</p>
         <PriceField label="Essential monthly" value="499" />
         <PriceField label="Signature monthly" value="1499" />
         <PriceField label="Prestige monthly" value="3999" note="Invite only. Assigned by you from admin." />
@@ -303,12 +312,12 @@ function TabVendorTiers() {
             The interim AI lever is real and lives elsewhere: the tier-keyed cap
             keys in Config, where 0 now genuinely means denied (F-10.85). Per-tier
             enforcement proper is F-10.41's own W-1-gated sitting. */}
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Tier Mechanic</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Tier Mechanic</p>
         <NoteBanner text="No trial exists. Basic is permanent, un-clocked, and the rung a lapsed subscription returns to. Nothing here needs setting — AI usage on Basic is regulated from the vendor cap keys in Config until per-tier enforcement ships." />
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Prestige Controls</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Prestige Controls</p>
         <Toggle value={true} label="Prestige is invite-only" note="Prestige vendors are hand-picked by you and Swati. Cannot be self-upgraded to." />
         <Toggle value={false} label="Prestige auto-approves all image uploads" note="When ON: Prestige vendor images go live without admin review. When OFF: all images need approval regardless of tier." />
         <Toggle value={true} label="Prestige vendors can set their own Lock Date amount" note="Each Prestige vendor sets their own deposit amount (Rs 2K–Rs 10K range)." />
@@ -323,20 +332,20 @@ function TabPricing() {
       <SectionHeader eyebrow="Revenue Model" title="Six streams." subtitle="Every pricing decision in one place. Nothing wired to the live product yet — this is your brainstorm surface." />
 
       <Card gold>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 16px' }}>Stream 1 — Vendor Subscriptions (MRR)</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--role-metal)', margin: '0 0 16px' }}>Stream 1 — Vendor Subscriptions (MRR)</p>
         <PriceField label="Essential" value="499" note="/month. Baseline product." />
         <PriceField label="Signature" value="1499" note="/month. Full SaaS layer." />
         <PriceField label="Prestige" value="3999" note="/month. Invite only." />
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 16px' }}>Stream 2 — Couple Tier Unlocks (One-time)</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 16px' }}>Stream 2 — Couple Tier Unlocks (One-time)</p>
         <PriceField label="Gold tier" value="999" note="One-time. Lifetime access." />
         <PriceField label="Platinum tier" value="2999" note="One-time. Lifetime access." />
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 16px' }}>Stream 3 — DreamAi Token Packs</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 16px' }}>Stream 3 — DreamAi Token Packs</p>
         <PriceField label="50 tokens" value="100" />
         <PriceField label="200 tokens" value="350" />
         <PriceField label="500 tokens" value="800" />
@@ -344,7 +353,7 @@ function TabPricing() {
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 16px' }}>Stream 4 — Couture Appointments</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 16px' }}>Stream 4 — Couture Appointments</p>
         <PriceField label="Minimum appointment fee" value="2000" note="Couple pays this to book a trial." />
         <PriceField label="Maximum appointment fee" value="5000" />
         <SelectField label="TDW platform share" value="20%" options={['10%', '15%', '20%', '25%', '30%']} note="TDW takes this % of every appointment fee. Designer keeps the rest." />
@@ -352,14 +361,14 @@ function TabPricing() {
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 16px' }}>Stream 5 — Featured Placement</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 16px' }}>Stream 5 — Featured Placement</p>
         <PriceField label="Featured board placement" value="10000" note="/month. Vendor pays to appear in editorial boards." />
         <PriceField label="Cover photo placement (paid)" value="25000" note="/month. Front page of the platform." />
         <Toggle value={true} label="Featured placement available" />
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 16px' }}>Stream 6 — Collab Hub</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 16px' }}>Stream 6 — Collab Hub</p>
         <PriceField label="Essential post fee" value="100" note="Signature/Prestige post free." />
         <PriceField label="Premium placement (top of feed 48h)" value="500" />
         <SelectField label="Match fee (% of job value)" value="5%" options={['3%', '5%', '7%', '10%']} note="Capped at Rs 2,000 per match. Referral type exempt." />
@@ -368,7 +377,7 @@ function TabPricing() {
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 16px' }}>Lock Date</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 16px' }}>Lock Date</p>
         <PriceField label="Lock Date minimum" value="2000" note="Couple pays this to lock a vendor's date. Non-refundable." />
         <PriceField label="Lock Date maximum" value="10000" note="Each Prestige vendor sets their own amount within this range." />
         <SelectField label="TDW cut of Lock Date" value="10%" options={['0%', '5%', '10%', '15%', '20%']} />
@@ -384,7 +393,7 @@ function TabDiscovery() {
       <SectionHeader eyebrow="Discovery Feed" title="The front door." subtitle="Control what couples see, how they see it, and what's gated." />
 
       <Card gold>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 12px' }}>Feed Access</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--role-metal)', margin: '0 0 12px' }}>Feed Access</p>
         <Toggle value={true} label="Discovery feed is public (no login required)" note="Recommended for launch — maximum top-of-funnel. Couples can browse before signing up." />
         <Toggle value={false} label="Discovery requires couple account" note="Higher commitment signal but reduces casual discovery." />
         <Toggle value={true} label="Blind mode is the default" note="Couples see work first, name second. Core editorial decision — recommend keeping ON always." />
@@ -392,14 +401,14 @@ function TabDiscovery() {
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Cover Photos (Landing Page)</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Cover Photos (Landing Page)</p>
         <Toggle value={true} label="Cover photo rotation active" note="The 'Vogue front page' — 10 slots rotating on the landing screen. Controlled from Cover Placement tab." />
         <Toggle value={false} label="Cover photos show photographer credit" note="When ON: small watermark/credit shown. When OFF: pure editorial." />
         <SelectField label="Rotation interval" value="Every session" options={['Every session', 'Every 24 hours', 'Every week', 'Manual only']} />
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Vendor Discovery Eligibility</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Vendor Discovery Eligibility</p>
         <Toggle value={true} label="Vendor must be approved to appear in feed" note="Core quality gate. Always keep ON." />
         <Toggle value={true} label="Vendor must have at least one hero image" note="No image = no feed. Keeps quality high." />
         <SelectField label="Minimum profile completion to appear" value="60%" options={['40%', '50%', '60%', '70%', '80%']} />
@@ -407,7 +416,7 @@ function TabDiscovery() {
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Couture Section</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Couture Section</p>
         <Toggle value={true} label="Couture section visible to couples" note="Currently shows 'Launching Q3 2026' if OFF." />
         <Toggle value={true} label="Couture requires Platinum to book appointment" note="Browsing is free. Booking a trial requires Platinum." />
         <Toggle value={true} label="Couture designers are invite-only" note="You and Swati approve each designer personally." />
@@ -424,7 +433,7 @@ function TabDreamAi() {
       <NoteBanner text="DreamAi is your primary moat and your most expensive feature to run (Claude API costs). These settings let you control who gets it, how much, and whether they pay for more." />
 
       <Card gold>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 12px' }}>Access Model</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--role-metal)', margin: '0 0 12px' }}>Access Model</p>
         <Toggle value={false} label="DreamAi is invite-only (global)" note="When ON: DreamAi is completely hidden until you manually grant access to a user. Hard gate." />
         <Toggle value={true} label="DreamAi available to all couples (within quota)" note="When ON: all logged-in couples can use DreamAi within their tier quota." />
         <Toggle value={true} label="DreamAi available to all vendors (within quota)" note="When ON: all vendors on any tier can use DreamAi." />
@@ -432,28 +441,28 @@ function TabDreamAi() {
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Couple Quotas (per month)</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Couple Quotas (per month)</p>
         <PriceField label="Basic tier queries/month" value="5" prefix="" note="Free tier gets a taste. Enough to be hooked, not enough to be satisfied." />
         <PriceField label="Gold tier queries/month" value="30" prefix="" />
         <PriceField label="Platinum tier queries/month" value="999" prefix="" note="Effectively unlimited." />
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Vendor Quotas (per month)</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Vendor Quotas (per month)</p>
         <PriceField label="Essential tier queries/month" value="20" prefix="" />
         <PriceField label="Signature tier queries/month" value="75" prefix="" />
         <PriceField label="Prestige tier queries/month" value="500" prefix="" />
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Agentic Actions</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Agentic Actions</p>
         <Toggle value={true} label="Couple agentic actions enabled" note="Complete task, log expense, send WhatsApp reminder, send enquiry — all require Confirm." />
         <Toggle value={true} label="Vendor agentic actions enabled" note="Send payment reminder, reply to enquiry, block date, log expense." />
         <Toggle value={true} label="Actions always require Confirm before execution" note="NEVER turn this OFF. DreamAi never acts without user confirmation." />
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>WhatsApp Integration</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>WhatsApp Integration</p>
         <Toggle value={true} label="DreamAi WhatsApp channel active" note="Twilio sandbox currently. Upgrade to paid Twilio (~$20/mo) for production." />
         <Toggle value={false} label="DreamAi WhatsApp Lead Capture" note="Vendors forward enquiries to TDW number → Claude parses → auto-creates lead. Coming soon." />
       </Card>
@@ -467,7 +476,7 @@ function TabFeatures() {
       <SectionHeader eyebrow="Platform Features" title="What's live, what's gated, what's coming." subtitle="Every major feature and its current state. Use this to plan your launch sequence." />
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Couple-Side Features</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Couple-Side Features</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[
             { label: 'Discovery Feed (blind swipe)', status: 'live' as Status, note: 'Core product. Always on.' },
@@ -485,8 +494,8 @@ function TabFeatures() {
           ].map(f => (
             <div key={f.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>
-                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: '#111111', margin: '0 0 2px' }}>{f.label}</p>
-                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: '#888580', margin: 0 }}>{f.note}</p>
+                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: 'var(--atelier-ink)', margin: '0 0 2px' }}>{f.label}</p>
+                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0 }}>{f.note}</p>
               </div>
               <StatusBadge status={f.status} />
             </div>
@@ -495,7 +504,7 @@ function TabFeatures() {
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 12px' }}>Vendor-Side Features</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Vendor-Side Features</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[
             { label: 'Clients CRM (Progress Ring)', status: 'live' as Status, note: 'All tiers.' },
@@ -513,8 +522,8 @@ function TabFeatures() {
           ].map(f => (
             <div key={f.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div>
-                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: '#111111', margin: '0 0 2px' }}>{f.label}</p>
-                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: '#888580', margin: 0 }}>{f.note}</p>
+                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: 'var(--atelier-ink)', margin: '0 0 2px' }}>{f.label}</p>
+                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0 }}>{f.note}</p>
               </div>
               <StatusBadge status={f.status} />
             </div>
@@ -531,7 +540,7 @@ function TabLaunch() {
       <SectionHeader eyebrow="Launch Readiness" title="What needs to happen before you open the doors." subtitle="A checklist of every decision and dependency. Nothing wired yet." />
 
       <Card gold>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 16px' }}>Decisions You Need to Make</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--role-metal)', margin: '0 0 16px' }}>Decisions You Need to Make</p>
         {[
           ['Couple access model', 'Open self-signup OR invite-only? Invite-only maintains exclusivity but limits growth. Recommend: open self-signup + waitlist approval for first 500 couples.'],
           ['DreamAi: invite-only or all?', 'Invite-only = premium feel, controlled cost. All-access = higher engagement, higher Claude API spend. Recommend: all-access with tight quotas on Basic tier.'],
@@ -542,15 +551,15 @@ function TabLaunch() {
           ['Payment Shield: who covers disputes?', 'The escrow model needs a clear policy document before going live with real money.'],
           ['Prestige: who gets it at launch?', 'Hand-pick 5-10 photographers, MUAs, decorators for launch. They set the tone for the entire platform.'],
         ].map(([title, note]) => (
-          <div key={title} style={{ padding: '12px 0', borderBottom: '0.5px solid #F0EEE8' }}>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: '#111111', margin: '0 0 4px' }}>{title}</p>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: '#555250', margin: 0, lineHeight: 1.6 }}>{note}</p>
+          <div key={title} style={{ padding: '12px 0', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: 'var(--atelier-ink)', margin: '0 0 4px' }}>{title}</p>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: 'var(--atelier-ink-soft)', margin: 0, lineHeight: 1.6 }}>{note}</p>
           </div>
         ))}
       </Card>
 
       <Card>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 16px' }}>Technical Dependencies (before go-live)</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 16px' }}>Technical Dependencies (before go-live)</p>
         {[
           ['Razorpay', 'Required for couple tier upgrades, vendor subscriptions, Lock Date, Couture appointments. Currently mock.', 'coming-soon'],
           ['Twilio paid upgrade', '~$20/mo. Required for DreamAi WhatsApp in production. Currently sandbox.', 'coming-soon'],
@@ -558,10 +567,10 @@ function TabLaunch() {
           ['Push notifications', 'PWA push + Play Store. Not yet built.', 'coming-soon'],
           ['Play Store submission', 'React Native build needed.', 'coming-soon'],
         ].map(([title, note, status]) => (
-          <div key={title} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '12px 0', borderBottom: '0.5px solid #F0EEE8' }}>
+          <div key={title} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '12px 0', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
             <div>
-              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: '#111111', margin: '0 0 4px' }}>{title}</p>
-              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: '#888580', margin: 0, lineHeight: 1.5 }}>{note}</p>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 400, color: 'var(--atelier-ink)', margin: '0 0 4px' }}>{title}</p>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0, lineHeight: 1.5 }}>{note}</p>
             </div>
             <StatusBadge status={status as Status} />
           </div>
@@ -592,10 +601,10 @@ export default function ControlRoomPage() {
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontWeight: 200, fontSize: 9, color: '#888580', letterSpacing: '0.25em', textTransform: 'uppercase', margin: '0 0 4px' }}>Admin</p>
-        <p style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: 32, color: '#111111', margin: '0 0 6px' }}>Control Room</p>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: '#888580', margin: 0, lineHeight: 1.5 }}>
-          Every lever on the platform, laid out for brainstorming. <span style={{ color: '#C9A84C' }}>Nothing here is wired to the live product yet.</span> Use this to decide your launch configuration.
+        <p style={{ fontFamily: "'Jost',sans-serif", fontWeight: 200, fontSize: 9, color: 'var(--atelier-ink-mute)', letterSpacing: '0.25em', textTransform: 'uppercase', margin: '0 0 4px' }}>Admin</p>
+        <p style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: 32, color: 'var(--atelier-ink)', margin: '0 0 6px' }}>Control Room</p>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0, lineHeight: 1.5 }}>
+          Every lever on the platform, laid out for brainstorming. <span style={{ color: 'var(--role-metal)' }}>Nothing here is wired to the live product yet.</span> Use this to decide your launch configuration.
         </p>
       </div>
 
@@ -607,8 +616,8 @@ export default function ControlRoomPage() {
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '7px 14px', borderRadius: 100, border: 'none', cursor: 'pointer',
             fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.12em', textTransform: 'uppercase',
-            background: tab === t.id ? '#111111' : '#F4F1EC',
-            color: tab === t.id ? '#F8F7F5' : '#888580',
+            background: tab === t.id ? 'var(--atelier-sheet-bg)' : 'var(--atelier-section-bg)',
+            color: tab === t.id ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
             transition: 'all 150ms ease',
           }}>
             <span style={{ fontSize: 11 }}>{t.icon}</span>

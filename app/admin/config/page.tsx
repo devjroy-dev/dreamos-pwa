@@ -178,7 +178,7 @@ export default function ConfigPage() {
                     step={group.step ?? '1'}
                     value={val}
                     onChange={e => setEdits(prev => ({ ...prev, [key]: e.target.value }))}
-                    style={{ width: 70, background: 'rgba(255,255,255,0.06)', border: `0.5px solid ${dirty ? T.gold : T.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: T.ff.body, fontSize: 15, color: dirty ? T.gold : T.ink, textAlign: 'center', outline: 'none', minHeight: 44 }}
+                    style={{ width: 70, background: 'var(--atelier-input-bg)', border: `0.5px solid ${dirty ? T.gold : T.border}`, borderRadius: 8, padding: '8px 12px', fontFamily: T.ff.body, fontSize: 15, color: dirty ? T.gold : T.ink, textAlign: 'center', outline: 'none', minHeight: 44 }}
                   />
                   <button
                     onClick={() => save(key)}

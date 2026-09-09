@@ -64,10 +64,16 @@ const GROUP = [
   'app/admin/exploring/page.tsx',
   'app/admin/discover-heroes/page.tsx',
   'app/admin/preview/page.tsx',
+  // (iv) the control-dense rooms
+  'app/admin/approvals/page.tsx',
+  'app/admin/control-room/page.tsx',
+  'app/admin/config/page.tsx',
+  'app/admin/switchboard/page.tsx',
+  'app/admin/switchboard/ModelRoutesPanel.tsx',
+  'app/admin/assistance/page.tsx',
 ];
 
 // NOT YET CURED, NAMED SO THE GAP IS DECLARED AND NOT DISCOVERED:
-//   (iv) control-dense — config, switchboard, assistance, approvals, control-room
 //   (v)  the rest      — dashboard, data, health, demo, login, makers, dreamers,
 //                        prospects, couture, hot-dates, conversations/*, content/*,
 //                        vendors/portfolio, approvals/photos

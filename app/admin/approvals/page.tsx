@@ -60,7 +60,7 @@ function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
   return (
     <div style={{
       position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)',
-      background: '#111', color: '#F8F7F5',
+      background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)',
       fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300,
       padding: '10px 20px', borderRadius: 100, zIndex: 9999, whiteSpace: 'nowrap',
     }}>{msg}</div>
@@ -68,14 +68,20 @@ function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
 }
 
 function TierChip({ tier }: { tier: string }) {
-  const bg: Record<string, string>   = { essential: '#F4F1EC', signature: 'rgba(201,168,76,0.1)', prestige: '#111' };
-  const col: Record<string, string>  = { essential: '#888580', signature: '#C9A84C',               prestige: '#F8F7F5' };
+  // ⊘-2 — the tier chip was ink-on-wash, and prestige was near-black fill with cream ink.
+  // One map now, the tier's ink; the chip is transparent with that ink on its edge.
+  // (The pass cannot see these: an object literal has no CSS property in front of it.)
+  const col: Record<string, string>  = {
+    essential: 'var(--atelier-ink-mute)',
+    signature: 'var(--role-metal)',
+    prestige:  'var(--atelier-accent-text)',
+  };
   return (
     <span style={{
       fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300,
       letterSpacing: '0.12em', textTransform: 'uppercase',
       padding: '2px 8px', borderRadius: 100,
-      background: bg[tier] || '#F4F1EC', color: col[tier] || '#888580',
+      background: 'transparent', border: `0.5px solid ${col[tier] || 'var(--atelier-card-border)'}`, color: col[tier] || 'var(--atelier-ink-mute)',
     }}>{tier}</span>
   );
 }
@@ -91,24 +97,24 @@ function VendorRow({
   return (
     <tr
       onClick={onOpen}
-      style={{ cursor: 'pointer', borderBottom: '0.5px solid #E2DED8' }}
+      style={{ cursor: 'pointer', borderBottom: '0.5px solid var(--atelier-card-border)' }}
     >
       <td style={{ padding: '12px 14px' }}>
-        <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, fontWeight: 300, color: '#111', margin: '0 0 2px' }}>{vendor.name}</p>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 300, color: '#888580', margin: 0 }}>{vendor.category} · {vendor.city}</p>
+        <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 16, fontWeight: 300, color: 'var(--atelier-ink)', margin: '0 0 2px' }}>{vendor.name}</p>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0 }}>{vendor.category} · {vendor.city}</p>
       </td>
       <td style={{ padding: '12px 14px' }}><TierChip tier={vendor.tier} /></td>
-      <td style={{ padding: '12px 14px', fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#888580' }}>{fmtDate(vendor.discover_submitted_at)}</td>
+      <td style={{ padding: '12px 14px', fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: 'var(--atelier-ink-mute)' }}>{fmtDate(vendor.discover_submitted_at)}</td>
       <td style={{ padding: '12px 14px' }}>
         <span style={{
           fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300,
           letterSpacing: '0.12em', textTransform: 'uppercase',
           padding: '3px 8px', borderRadius: 100,
-          background: isLive ? 'rgba(76,175,80,0.1)' : 'rgba(201,168,76,0.08)',
-          color: isLive ? '#388E3C' : '#C9A84C',
+          background: isLive ? 'var(--atelier-row-hover)' : 'var(--atelier-row-hover)',
+          color: isLive ? 'var(--role-positive)' : 'var(--role-metal)',
         }}>{isLive ? '● Live' : '○ Pending'}</span>
       </td>
-      <td style={{ padding: '12px 14px', fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#C9A84C' }}>Review →</td>
+      <td style={{ padding: '12px 14px', fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: 'var(--role-metal)' }}>Review →</td>
     </tr>
   );
 }
@@ -240,29 +246,29 @@ function ReviewDrawer({
     <>
       {/* Backdrop */}
       <div onClick={onClose} style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 300,
+        position: 'fixed', inset: 0, background: 'var(--role-scrim)', zIndex: 300,
       }} />
 
       {/* Drawer */}
       <div style={{
         position: 'fixed', top: 0, right: 0, bottom: 0,
         width: '100%', maxWidth: 560,
-        background: '#FFFFFF', zIndex: 301,
+        background: 'var(--atelier-card-bg)', zIndex: 301,
         overflowY: 'auto', padding: '0 0 80px',
-        boxShadow: '-4px 0 24px rgba(0,0,0,0.1)',
+        boxShadow: '-4px 0 24px var(--atelier-card-shadow)',
         animation: 'slideInRight 300ms cubic-bezier(0.22,1,0.36,1)',
       }}>
         {/* Header */}
         <div style={{
-          position: 'sticky', top: 0, background: '#FFFFFF',
-          borderBottom: '0.5px solid #E2DED8', padding: '16px 20px',
+          position: 'sticky', top: 0, background: 'var(--atelier-card-bg)',
+          borderBottom: '0.5px solid transparent', padding: '16px 20px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10,
         }}>
           <div>
-            <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#888580', margin: '0 0 2px' }}>REVIEWING</p>
-            <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, color: '#111', margin: 0 }}>{vendor.name}</p>
+            <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 2px' }}>REVIEWING</p>
+            <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, color: 'var(--atelier-ink)', margin: 0 }}>{vendor.name}</p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#888580', padding: 4 }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--atelier-ink-mute)', padding: 4 }}>✕</button>
         </div>
 
         <div style={{ padding: '20px' }}>
@@ -270,40 +276,40 @@ function ReviewDrawer({
           {/* Key info strip */}
           <div style={{
             display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20,
-            padding: '12px 14px', background: '#F8F7F5', borderRadius: 10,
+            padding: '12px 14px', background: 'var(--atelier-page-bg)', borderRadius: 10,
           }}>
             <TierChip tier={vendor.tier} />
-            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#888580' }}>{vendor.category}</span>
-            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#888580' }}>·</span>
-            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#888580' }}>{vendor.city}</span>
+            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: 'var(--atelier-ink-mute)' }}>{vendor.category}</span>
+            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: 'var(--atelier-ink-mute)' }}>·</span>
+            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: 'var(--atelier-ink-mute)' }}>{vendor.city}</span>
             {vendor.starting_price && (
               <>
-                <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#888580' }}>·</span>
-                <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#C9A84C' }}>from {fmtINR(vendor.starting_price)}</span>
+                <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: 'var(--atelier-ink-mute)' }}>·</span>
+                <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: 'var(--role-metal)' }}>from {fmtINR(vendor.starting_price)}</span>
               </>
             )}
-            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#888580' }}>·</span>
-            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#888580' }}>{vendor.phone}</span>
+            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: 'var(--atelier-ink-mute)' }}>·</span>
+            <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: 'var(--atelier-ink-mute)' }}>{vendor.phone}</span>
           </div>
 
           {/* Bio */}
           {vendor.about && (
             <div style={{ marginBottom: 20 }}>
-              <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 8px' }}>BIO</p>
-              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: '#555250', lineHeight: 1.6, margin: 0 }}>{vendor.about}</p>
+              <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 8px' }}>BIO</p>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 300, color: 'var(--atelier-ink-soft)', lineHeight: 1.6, margin: 0 }}>{vendor.about}</p>
             </div>
           )}
 
           {/* Vibe tags */}
           {vendor.vibe_tags && vendor.vibe_tags.length > 0 && (
             <div style={{ marginBottom: 20 }}>
-              <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 8px' }}>VIBE TAGS</p>
+              <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 8px' }}>VIBE TAGS</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {vendor.vibe_tags.map(tag => (
                   <span key={tag} style={{
                     fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
                     letterSpacing: '0.1em', padding: '3px 10px', borderRadius: 100,
-                    background: '#F0EEE8', color: '#555250',
+                    background: 'var(--atelier-section-bg)', color: 'var(--atelier-ink-soft)',
                   }}>{tag}</span>
                 ))}
               </div>
@@ -313,21 +319,21 @@ function ReviewDrawer({
           {/* Instagram */}
           {vendor.instagram_url && (
             <div style={{ marginBottom: 20 }}>
-              <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: '0 0 4px' }}>INSTAGRAM</p>
-              <a href={`https://instagram.com/${vendor.instagram_url.replace('@','')}`} target="_blank" rel="noreferrer" style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: '#C9A84C' }}>
+              <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: '0 0 4px' }}>INSTAGRAM</p>
+              <a href={`https://instagram.com/${vendor.instagram_url.replace('@','')}`} target="_blank" rel="noreferrer" style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: 'var(--role-metal)' }}>
                 @{vendor.instagram_url.replace('@','')}
               </a>
             </div>
           )}
 
           {/* ── Photos section ─────────────────────────────────────────────── */}
-          <div style={{ borderTop: '0.5px solid #E2DED8', paddingTop: 20, marginBottom: 20 }}>
+          <div style={{ borderTop: '0.5px solid var(--atelier-card-border)', paddingTop: 20, marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580', margin: 0 }}>
+              <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', margin: 0 }}>
                 PHOTOS ({approvedPhotoCount} approved of {localImages.length})
               </p>
               {!canApprove && (
-                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: '#E57373', margin: 0 }}>
+                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: 'var(--role-critical)', margin: 0 }}>
                   Need {Math.max(0, 5 - approvedPhotoCount)} more approved{!hasHero ? ' + hero' : ''}
                 </p>
               )}
@@ -336,7 +342,7 @@ function ReviewDrawer({
             {/* Hero photo */}
             {heroImage && (
               <div style={{ marginBottom: 12 }}>
-                <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 6px' }}>HERO</p>
+                <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--role-metal)', margin: '0 0 6px' }}>HERO</p>
                 <PhotoCard img={heroImage} onApprove={approvePhoto} onReject={setRejectTarget} working={working} />
               </div>
             )}
@@ -351,25 +357,25 @@ function ReviewDrawer({
             )}
 
             {localImages.length === 0 && (
-              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: '#888580', fontStyle: 'italic' }}>No photos uploaded yet.</p>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: 'var(--atelier-ink-mute)', fontStyle: 'italic' }}>No photos uploaded yet.</p>
             )}
           </div>
 
           {/* ── Action buttons ─────────────────────────────────────────────── */}
-          <div style={{ borderTop: '0.5px solid #E2DED8', paddingTop: 20 }}>
+          <div style={{ borderTop: '0.5px solid var(--atelier-card-border)', paddingTop: 20 }}>
 
             {isLive ? (
               // Already live — only option is revoke
               <div>
-                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: '#388E3C', margin: '0 0 16px' }}>
+                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: 'var(--role-positive)', margin: '0 0 16px' }}>
                   ● This vendor is live on couple discovery.
                 </p>
                 <button onClick={revokeFromFeed} disabled={working} style={{
                   height: 44, padding: '0 20px',
-                  background: 'transparent', border: '1px solid #E57373',
+                  background: 'transparent', border: '1px solid transparent',
                   borderRadius: 100, cursor: working ? 'default' : 'pointer',
                   fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
-                  letterSpacing: '0.15em', textTransform: 'uppercase', color: '#E57373',
+                  letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--role-critical)',
                 }}>Remove from Feed</button>
               </div>
             ) : (
@@ -382,12 +388,12 @@ function ReviewDrawer({
                   disabled={!canApprove || working}
                   title={!canApprove ? `Need ${Math.max(0,5-approvedPhotoCount)} more approved photos${!hasHero?' + hero photo':''}` : ''}
                   style={{
-                    height: 52, background: canApprove ? '#C9A84C' : '#E2DED8',
+                    height: 52, background: canApprove ? 'var(--role-metal)' : 'transparent',
                     border: 'none', borderRadius: 100,
                     cursor: canApprove && !working ? 'pointer' : 'default',
                     fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 400,
                     letterSpacing: '0.2em', textTransform: 'uppercase',
-                    color: canApprove ? '#111' : '#888580',
+                    color: canApprove ? 'var(--role-ink-on-metal)' : 'var(--atelier-ink-mute)',
                   }}
                 >
                   {canApprove ? 'Approve for Discovery →' : `Approve (need ${Math.max(0,5-approvedPhotoCount)} more approved photos)`}
@@ -397,13 +403,13 @@ function ReviewDrawer({
                 {!showDenyForm ? (
                   <button onClick={() => setShowDenyForm(true)} style={{
                     height: 44, background: 'transparent',
-                    border: '0.5px solid #E2DED8', borderRadius: 100, cursor: 'pointer',
+                    border: '0.5px solid transparent', borderRadius: 100, cursor: 'pointer',
                     fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
-                    letterSpacing: '0.15em', textTransform: 'uppercase', color: '#888580',
+                    letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)',
                   }}>Deny Profile</button>
                 ) : (
-                  <div style={{ background: '#FFF5F5', border: '1px solid #FFCDD2', borderRadius: 12, padding: 16 }}>
-                    <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E57373', margin: '0 0 8px' }}>DENIAL REASON (shown to vendor)</p>
+                  <div style={{ background: 'var(--atelier-row-hover)', border: '1px solid transparent', borderRadius: 12, padding: 16 }}>
+                    <p style={{ fontFamily: "'Jost',sans-serif", fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--role-critical)', margin: '0 0 8px' }}>DENIAL REASON (shown to vendor)</p>
                     <textarea
                       value={denyReason}
                       onChange={e => setDenyReason(e.target.value)}
@@ -411,25 +417,25 @@ function ReviewDrawer({
                       rows={3}
                       placeholder="e.g. Portfolio quality doesn't meet our current standard. Please add more editorial photos and resubmit."
                       style={{
-                        width: '100%', border: '0.5px solid #FFCDD2', borderRadius: 8,
+                        width: '100%', border: '0.5px solid var(--role-critical)', borderRadius: 8,
                         padding: '10px 12px', fontFamily: "'DM Sans',sans-serif",
-                        fontSize: 13, fontWeight: 300, color: '#111', outline: 'none',
-                        resize: 'none', background: '#FFFFFF',
+                        fontSize: 13, fontWeight: 300, color: 'var(--atelier-ink)', outline: 'none',
+                        resize: 'none', background: 'var(--atelier-card-bg)',
                       }}
                     />
                     <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                       <button onClick={denyProfile} disabled={!denyReason.trim() || working} style={{
-                        flex: 1, height: 40, background: denyReason.trim() ? '#E57373' : '#E2DED8',
+                        flex: 1, height: 40, background: denyReason.trim() ? 'transparent' : 'transparent',
                         border: 'none', borderRadius: 100,
                         cursor: denyReason.trim() ? 'pointer' : 'default',
                         fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
                         letterSpacing: '0.15em', textTransform: 'uppercase',
-                        color: denyReason.trim() ? '#FFFFFF' : '#888580',
+                        color: denyReason.trim() ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
                       }}>Confirm Denial</button>
                       <button onClick={() => { setShowDenyForm(false); setDenyReason(''); }} style={{
                         height: 40, padding: '0 16px', background: 'transparent',
-                        border: '0.5px solid #E2DED8', borderRadius: 100, cursor: 'pointer',
-                        fontFamily: "'Jost',sans-serif", fontSize: 9, color: '#888580',
+                        border: '0.5px solid transparent', borderRadius: 100, cursor: 'pointer',
+                        fontFamily: "'Jost',sans-serif", fontSize: 9, color: 'var(--atelier-ink-mute)',
                       }}>Cancel</button>
                     </div>
                   </div>
@@ -443,12 +449,12 @@ function ReviewDrawer({
       {/* Photo reject modal */}
       {rejectTarget && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          position: 'fixed', inset: 0, background: 'var(--role-scrim)',
           zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
         }}>
-          <div style={{ background: '#FFFFFF', borderRadius: 16, padding: 24, maxWidth: 360, width: '100%' }}>
-            <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, color: '#111', margin: '0 0 12px' }}>Reject Photo</p>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: '#888580', margin: '0 0 12px' }}>Leave a short note for the vendor (max 200 chars).</p>
+          <div style={{ background: 'var(--atelier-card-bg)', borderRadius: 16, padding: 24, maxWidth: 360, width: '100%' }}>
+            <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 300, color: 'var(--atelier-ink)', margin: '0 0 12px' }}>Reject Photo</p>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: '0 0 12px' }}>Leave a short note for the vendor (max 200 chars).</p>
             {[
               'Too dark — please upload a well-lit version',
               'Image quality too low — minimum 1080px width',
@@ -457,8 +463,8 @@ function ReviewDrawer({
             ].map(r => (
               <button key={r} onClick={() => setRejectNote(r)} style={{
                 display: 'block', width: '100%', padding: '8px 12px', marginBottom: 6, textAlign: 'left',
-                background: rejectNote === r ? '#111' : '#F4F1EC',
-                color: rejectNote === r ? '#F8F7F5' : '#111',
+                background: rejectNote === r ? 'var(--atelier-sheet-bg)' : 'var(--atelier-section-bg)',
+                color: rejectNote === r ? 'var(--atelier-ink)' : 'var(--atelier-ink)',
                 border: 'none', borderRadius: 8, cursor: 'pointer',
                 fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 300,
               }}>{r}</button>
@@ -470,9 +476,9 @@ function ReviewDrawer({
               placeholder="Or write a custom note..."
               rows={2}
               style={{
-                width: '100%', border: '0.5px solid #E2DED8', borderRadius: 8,
+                width: '100%', border: '0.5px solid var(--atelier-card-border)', borderRadius: 8,
                 padding: '8px 12px', fontFamily: "'DM Sans',sans-serif",
-                fontSize: 12, fontWeight: 300, color: '#111', outline: 'none',
+                fontSize: 12, fontWeight: 300, color: 'var(--atelier-ink)', outline: 'none',
                 resize: 'none', marginTop: 8, marginBottom: 12,
               }}
             />
@@ -481,15 +487,15 @@ function ReviewDrawer({
                 onClick={() => rejectPhoto(rejectTarget, rejectNote)}
                 disabled={!rejectNote.trim() || working}
                 style={{
-                  flex: 1, height: 40, background: rejectNote.trim() ? '#9B4545' : '#E2DED8',
+                  flex: 1, height: 40, background: rejectNote.trim() ? 'transparent' : 'transparent',
                   border: 'none', borderRadius: 100, cursor: rejectNote.trim() ? 'pointer' : 'default',
                   fontFamily: "'Jost',sans-serif", fontSize: 9, letterSpacing: '0.15em',
-                  textTransform: 'uppercase', color: rejectNote.trim() ? '#FFFFFF' : '#888580',
+                  textTransform: 'uppercase', color: rejectNote.trim() ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
                 }}>Reject</button>
               <button onClick={() => { setRejectTarget(null); setRejectNote(''); }} style={{
                 height: 40, padding: '0 16px', background: 'transparent',
-                border: '0.5px solid #E2DED8', borderRadius: 100, cursor: 'pointer',
-                fontFamily: "'Jost',sans-serif", fontSize: 9, color: '#888580',
+                border: '0.5px solid transparent', borderRadius: 100, cursor: 'pointer',
+                fontFamily: "'Jost',sans-serif", fontSize: 9, color: 'var(--atelier-ink-mute)',
               }}>Cancel</button>
             </div>
           </div>
@@ -517,8 +523,8 @@ function PhotoCard({
         fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 300,
         letterSpacing: '0.1em', textTransform: 'uppercase',
         padding: '2px 7px', borderRadius: 100,
-        background: img.approved ? 'rgba(76,175,80,0.85)' : 'rgba(0,0,0,0.55)',
-        color: '#FFFFFF',
+        background: img.approved ? 'var(--atelier-row-hover)' : 'var(--role-scrim)',
+        color: 'var(--atelier-ink)',
       }}>{img.approved ? '✓ Approved' : 'Pending'}</div>
       {/* Action buttons */}
       <div style={{ position: 'absolute', bottom: 6, right: 6, display: 'flex', gap: 4 }}>
@@ -527,8 +533,8 @@ function PhotoCard({
           disabled={img.approved || working}
           style={{
             width: 28, height: 28, borderRadius: '50%', border: 'none',
-            background: img.approved ? 'rgba(76,175,80,0.85)' : 'rgba(201,168,76,0.9)',
-            color: '#111', cursor: img.approved ? 'default' : 'pointer',
+            background: img.approved ? 'var(--atelier-row-hover)' : 'var(--atelier-row-hover)',
+            color: 'var(--atelier-ink)', cursor: img.approved ? 'default' : 'pointer',
             fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >✓</button>
@@ -537,7 +543,7 @@ function PhotoCard({
           disabled={working}
           style={{
             width: 28, height: 28, borderRadius: '50%', border: 'none',
-            background: 'rgba(0,0,0,0.6)', color: '#F8F7F5',
+            background: 'var(--role-scrim)', color: 'var(--atelier-page-bg)',
             cursor: 'pointer', fontSize: 14,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
@@ -547,9 +553,9 @@ function PhotoCard({
       {img.rejection_reason && (
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          background: 'rgba(155,69,69,0.9)', padding: '4px 8px',
+          background: 'var(--atelier-row-hover)', padding: '4px 8px',
         }}>
-          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: '#FFFFFF', margin: 0 }}>{img.rejection_reason}</p>
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: 'var(--atelier-ink)', margin: 0 }}>{img.rejection_reason}</p>
         </div>
       )}
     </div>
@@ -631,8 +637,8 @@ export default function ApprovalsPage() {
 
   const th: React.CSSProperties = {
     fontFamily: "'Jost',sans-serif", fontSize: 8, fontWeight: 200,
-    letterSpacing: '0.2em', textTransform: 'uppercase', color: '#888580',
-    padding: '10px 14px', textAlign: 'left', borderBottom: '0.5px solid #E2DED8',
+    letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)',
+    padding: '10px 14px', textAlign: 'left', borderBottom: '0.5px solid var(--atelier-card-border)',
   };
 
   return (
@@ -659,19 +665,19 @@ export default function ApprovalsPage() {
 
       {/* Page header */}
       <div style={{ marginBottom: 24 }}>
-        <p style={{ fontFamily: "'Jost',sans-serif", fontWeight: 200, fontSize: 9, color: '#888580', letterSpacing: '0.25em', textTransform: 'uppercase', margin: '0 0 4px' }}>PLATFORM</p>
+        <p style={{ fontFamily: "'Jost',sans-serif", fontWeight: 200, fontSize: 9, color: 'var(--atelier-ink-mute)', letterSpacing: '0.25em', textTransform: 'uppercase', margin: '0 0 4px' }}>PLATFORM</p>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: 32, color: '#111', margin: 0 }}>
+          <p style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 300, fontSize: 32, color: 'var(--atelier-ink)', margin: 0 }}>
             Discovery Approvals
-            <span style={{ fontSize: 18, color: pending.length > 0 ? '#C9A84C' : '#888580', marginLeft: 10 }}>
+            <span style={{ fontSize: 18, color: pending.length > 0 ? 'var(--role-metal)' : 'var(--atelier-ink-mute)', marginLeft: 10 }}>
               ({pending.length} pending)
             </span>
           </p>
           <button onClick={load} style={{
             height: 36, padding: '0 16px', background: 'transparent',
-            border: '0.5px solid #E2DED8', borderRadius: 8,
+            border: '0.5px solid transparent', borderRadius: 8,
             fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
-            letterSpacing: '0.12em', textTransform: 'uppercase', color: '#888580', cursor: 'pointer',
+            letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--atelier-ink-mute)', cursor: 'pointer',
           }}>Refresh</button>
         </div>
       </div>
@@ -682,8 +688,8 @@ export default function ApprovalsPage() {
           {(['pending', 'live'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
               height: 34, padding: '0 16px', border: 'none', borderRadius: 6,
-              background: tab === t ? '#111' : 'transparent',
-              color: tab === t ? '#F8F7F5' : '#888580',
+              background: tab === t ? 'var(--atelier-sheet-bg)' : 'transparent',
+              color: tab === t ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
               fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
               letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer',
             }}>
@@ -696,22 +702,22 @@ export default function ApprovalsPage() {
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by name..."
           style={{
-            height: 34, padding: '0 12px', border: '0.5px solid #E2DED8',
+            height: 34, padding: '0 12px', border: '0.5px solid var(--atelier-card-border)',
             borderRadius: 6, fontFamily: "'DM Sans',sans-serif", fontSize: 13,
-            color: '#111', outline: 'none', minWidth: 180,
+            color: 'var(--atelier-ink)', outline: 'none', minWidth: 180,
           }}
         />
       </div>
 
       {/* Table */}
       {loading ? (
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: '#888580', margin: '40px 0', textAlign: 'center' }}>Loading...</p>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: 'var(--atelier-ink-mute)', margin: '40px 0', textAlign: 'center' }}>Loading...</p>
       ) : shown.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 0' }}>
-          <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, fontWeight: 300, color: '#888580', margin: '0 0 8px' }}>
+          <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: '0 0 8px' }}>
             {tab === 'pending' ? 'No pending submissions' : 'No live vendors yet'}
           </p>
-          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: '#C8C4BE' }}>
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: 'var(--atelier-ink-fade)' }}>
             {tab === 'pending' ? 'Vendors appear here when they hit Submit for Discovery.' : 'Approve vendors from the Pending tab.'}
           </p>
         </div>
@@ -742,10 +748,10 @@ export default function ApprovalsPage() {
 
       {loadingDetail && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)',
+          position: 'fixed', inset: 0, background: 'var(--role-scrim)',
           zIndex: 290, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, color: '#F8F7F5' }}>Loading profile...</p>
+          <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, color: 'var(--atelier-ink)' }}>Loading profile...</p>
         </div>
       )}
     </>

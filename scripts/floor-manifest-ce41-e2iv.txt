@@ -1,0 +1,25 @@
+# scripts/floor-manifest-ce41-e2iv.txt — CE-41 · SEAT E · E2 (iv), THE CONTROL-DENSE ROOMS.
+# FLOOR = NAMED BASE, no delta. One cell arrives; two widen.
+#
+#   IN  scripts/ce41_e2iv_painted_surface.mjs — 7 cells. Reads a painted element's
+#       backgroundColor (and backgroundImage, since card-bg is a gradient) in each arm
+#       rather than the custom property it reads from. c-41.63's cure: a token is an
+#       INPUT, and the arms cell called it the page. It cures no open finding — F-41.119
+#       was a stale bundle — and exists so the next deploy seam cannot hide behind a
+#       green token. That reason is written in the cell rather than dressed as a cure.
+#
+#   ce41_e2i_cockpit_ink_census   40 -> 52  (48/4 red uncured, 52/0 cured)
+#   ce41_e2ia_accent_ink           9 -> 14  (10/3 red uncured, 14/0 cured)
+#       WIDENED SUBJECT: it matched `T.gold` only, because that is the pointer E2 (i)
+#       moved. Re-tokened rooms do not go through `T` at all — they write
+#       var(--role-metal) and var(--atelier-accent-text) directly — so (iii) shipped a
+#       count pill with a translucent-white ink on gold (photos:94) that the cell could
+#       not see. It now matches any saturated ground under any of the three names, and
+#       found three more the earlier riders shipped: MintSheet:179, approvals:381,
+#       preview:197 — one of them from (i). All four cured here.
+#
+#   ce41_e2iia_cockpit_arms        9 -> 9   (unchanged)
+scripts/ce41_e2i_cockpit_ink_census.mjs
+scripts/ce41_e2ia_accent_ink.mjs
+scripts/ce41_e2iia_cockpit_arms.mjs
+scripts/ce41_e2iv_painted_surface.mjs
