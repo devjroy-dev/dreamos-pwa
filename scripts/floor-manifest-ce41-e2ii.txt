@@ -1,0 +1,13 @@
+# scripts/floor-manifest-ce41-e2ii.txt — CE-41 · SEAT E · E2 (ii), THE BRIDGE + THE MODE.
+# FLOOR = NAMED BASE, no delta. No cell arrives and none leaves.
+#
+# The two standing cells both widen on their own, by construction, because both read
+# the tree rather than a list of files:
+#   ce41_e2i_cockpit_ink_census  18 -> 18 (the group did not grow)
+#   ce41_e2ia_accent_ink          8 ->  9 (the Bridge's ModeRow is a ninth accent
+#                                          ground; it was written with T.onAccent from
+#                                          the first line, so it greens without an edit)
+# That widening is the point of a cell that walks the disk: a new ground written wrong
+# tomorrow reds tomorrow, with no manifest to remember to update.
+scripts/ce41_e2i_cockpit_ink_census.mjs
+scripts/ce41_e2ia_accent_ink.mjs

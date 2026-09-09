@@ -34,7 +34,36 @@
 // SameSite=Lax and no Secure flag: this is a display preference, not a credential. Lax so
 // it survives a link into the shell; no Secure so it works on a plain-http preview.
 
+// ── R-41.112 · A SECOND LANE, AND ONLY A SECOND LANE ─────────────────────────
+// CE-41 seat E, one labeled cross-seat addition in c-41.10's form. This file is the
+// shell seat's; the addition is a lane key and nothing else — no new writer, no new
+// storage mechanism, no change to any existing caller. `lane` defaults to 'shell'
+// everywhere, so every call site in components/worklist and app/w reads and writes
+// exactly the byte it read and wrote before.
+//
+// WHY THE COCKPIT DOES NOT SHARE THE VENDOR'S COOKIE. The founder ruled the cockpit
+// has its own light/dark, independent of the vendor app: he works both on one device
+// and one tap must not repaint the other. Two lanes, two cookies, one writer.
+//
+// THE COCKPIT'S FIRST PAINT IS NOT THE SHELL'S. /w has a server layout that reads the
+// cookie off the request, so its first frame is already correct. /admin has no server
+// layout — app/admin/layout.tsx is a client component by construction (it holds the
+// session gate) — so the cockpit resolves its mode during render from a lazy
+// initialiser and lands the attribute in an effect. That is ONE FRAME OF DARK on a
+// cold load, and it is accepted rather than engineered away: the gate renders null
+// until authed, so the frame is behind a redirect, and the alternative is an inline
+// <head> script the founder did not ask for.
+export type ModeLane = 'shell' | 'admin';
+
+/** The cookie for a lane. The shell's name is unchanged — a renamed cookie is every
+ *  vendor's mode reset to Graphite on deploy. */
+export function cookieFor(lane: ModeLane = 'shell'): string {
+  return lane === 'admin' ? ADMIN_MODE_COOKIE : MODE_COOKIE;
+}
+
 export const MODE_COOKIE = 'tdw_wl_mode';
+/** The cockpit's own. No legacy key: this lane has never had one. */
+export const ADMIN_MODE_COOKIE = 'tdw_adm_mode';
 /** The pre-cookie home. Read as a fallback, written in step, retiring next sitting. */
 export const MODE_LEGACY_KEY = 'tdw_worklist_mode';
 
@@ -59,10 +88,14 @@ export function readShellModeCookie(): WlMode | null {
   return hit ? asMode(decodeURIComponent(hit.slice(MODE_COOKIE.length + 1))) : null;
 }
 
-export function readModeClient(): WlMode {
+export function readModeClient(lane: ModeLane = 'shell'): WlMode {
   if (typeof document === 'undefined') return 'dark';
-  const hit = document.cookie.split('; ').find((c) => c.startsWith(MODE_COOKIE + '='));
-  if (hit) return asMode(decodeURIComponent(hit.slice(MODE_COOKIE.length + 1)));
+  const key = cookieFor(lane);
+  const hit = document.cookie.split('; ').find((c) => c.startsWith(key + '='));
+  if (hit) return asMode(decodeURIComponent(hit.slice(key.length + 1)));
+  // The legacy localStorage key belongs to the SHELL lane and to no other. The cockpit
+  // falling back to it would hand the founder the vendor mode he just ruled apart.
+  if (lane !== 'shell') return 'dark';
   try { return asMode(localStorage.getItem(MODE_LEGACY_KEY)); } catch { return 'dark'; }
 }
 
@@ -124,11 +157,13 @@ export function readModeClient(): WlMode {
 export const VENDOR_LANE_KEY = 'dreamai_theme';
 
 /** The one writer. The drawer toggle calls this and nothing else writes the mode. */
-export function writeMode(mode: WlMode): void {
+export function writeMode(mode: WlMode, lane: ModeLane = 'shell'): void {
   if (typeof document === 'undefined') return;
   // One year. A display preference that expires is a vendor who finds his shell has
   // changed colour for no reason he can name.
-  document.cookie = `${MODE_COOKIE}=${mode}; path=/; max-age=31536000; samesite=lax`;
+  document.cookie = `${cookieFor(lane)}=${mode}; path=/; max-age=31536000; samesite=lax`;
+  // The legacy key is the shell lane's migration and nothing else writes it.
+  if (lane !== 'shell') return;
   try {
     localStorage.setItem(MODE_LEGACY_KEY, mode);
     // ── F-38.52's BRIDGE WRITE STOOD HERE AND RETIRED AT §4-4 BATCH ③ ────────

@@ -64,7 +64,24 @@ export const T = {
   successSoft:  'transparent',
   warning:      'var(--role-caution)',
   metal:        'var(--role-metal)',
-  onAccent:     'var(--role-ink-deep)',
+  // F-41.116 — THE INK ON THE ACCENT MUST FLIP WITH THE ARM, AND `ink-deep` DOES NOT.
+  // This read `--role-ink-deep` from E2 (i) until the light arm was shot at (ii) and the
+  // primary button came back near-black on dark green: Graphite's accent is LIGHT teal
+  // (#68C9B4) and Chalk's is DARK green (#0D6A5A), while ink-deep is near-black in both
+  // (#0F1011 / #17191A). Dark ink on a light accent is right; dark ink on a dark accent
+  // is F-41.70 again, one arm over.
+  //
+  // `--role-ink-on-metal` is the estate's only token for "ink that sits on a saturated
+  // ground", and it is the one that flips: #141516 on Graphite, #FFFFFF on Chalk —
+  // exactly the pairing each arm needs. It is named for the metal because the metal was
+  // the only saturated ground when it was minted; a `--role-ink-on-accent` of its own is
+  // the chair's to mint in the one home (R-40.133's queue), and this pointer moves to it
+  // the day it exists. The name is wrong here and the VALUE is right, which is the safer
+  // of the two errors and is written down rather than left to be rediscovered.
+  //
+  // The shell's own `.wl-btn.pri` (WorklistShell.tsx:257) still reads ink-deep and has
+  // this defect in Chalk. That is the shell seat's, filed, not fixed from here.
+  onAccent:     'var(--role-ink-on-metal)',
 
   // Fonts. R-41.77 put type in scope: the shell runs two families and six rungs,
   // and Jost is retired (R-38.4). `label` is kept as a key and points at the body

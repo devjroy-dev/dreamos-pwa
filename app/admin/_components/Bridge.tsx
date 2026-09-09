@@ -30,6 +30,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { T } from './AdminUI';
 import { formatRs } from '@/lib/vendor/format';
+import { useMode } from '@/lib/worklist/ModeContext';
 import { getBridge, DRILL, type BridgeResponse, type HonestState, type DrillTarget } from '@/lib/admin-api/bridge';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -350,7 +351,7 @@ export default function Bridge() {
         <Figure label="New vendors" value={today.new_vendors} drill={DRILL.new_vendors} onDrill={drill} tone="metal" />
         <Figure label="Basic"       value={today.trials.active} sub="On the basic tier" drill={DRILL.trials} onDrill={drill} />
         <Figure label="WA turns"    value={today.wa.turns} sub={formatRs(Math.round(totalInr * 100) / 100)} drill={DRILL.wa_turns} onDrill={drill} />
-        <Figure label="Downgrades"  value={today.downgrades} sub="Provider fell back to Haiku" drill={DRILL.downgrades} onDrill={drill} tone={today.downgrades ? 'caution' : undefined} />
+        <Figure label="Downgrades"  value={today.downgrades} sub="Fell back to the cheaper model" drill={DRILL.downgrades} onDrill={drill} tone={today.downgrades ? 'caution' : undefined} />
       </div>
 
       <Panel title="Revenue">
@@ -488,8 +489,50 @@ export default function Bridge() {
         <Honest s={today.credit_state} />
       </div>
 
+      {/* R-41.112 — THE COCKPIT'S OWN LIGHT/DARK, AT THE FOOT OF THE BRIDGE.
+          One row, two words, no icon and no label above it: the founder ruled it
+          plain. It writes the cockpit's lane (`tdw_adm_mode`) through the shell's
+          one writer, so the vendor app on the same device does not move. Dark is
+          the default and stays the default — this is a preference, not a setting
+          with a story. The seat is the Bridge's foot rather than the header because
+          a control tapped twice a year does not earn a permanent 44px of the bar. */}
+      <ModeRow />
+
       <div style={{ marginTop: 24, fontFamily: T.ff.body, fontSize: 10.5, color: 'var(--atelier-ink-mute)' }}>
         {data.ist_date} IST · assembled in {data.took_ms}ms · refreshes every 60s
+      </div>
+    </div>
+  );
+}
+
+// ── ModeRow ───────────────────────────────────────────────────────────────────
+// Two segments, the live one filled with the accent and inked with `--role-ink-deep`
+// — F-41.70's pairing, held from the start rather than found on a walk. 44px tall,
+// the estate's tap floor. `aria-pressed` carries the state the fill shows, because a
+// filled segment says nothing to a screen reader.
+function ModeRow() {
+  const { mode, setMode } = useMode();
+  const seg = (m: 'light' | 'dark', label: string) => (
+    <button
+      key={m}
+      onClick={() => setMode(m)}
+      aria-pressed={mode === m}
+      style={{
+        flex: 1, minHeight: 44,
+        background: mode === m ? T.gold : 'transparent',
+        color: mode === m ? T.onAccent : T.soft,
+        border: 'none', borderRight: m === 'light' ? `0.5px solid ${T.border}` : 'none',
+        font: 'var(--wl-t5)', letterSpacing: '0.08em', textTransform: 'uppercase',
+        cursor: 'pointer',
+      }}
+    >{label}</button>
+  );
+  return (
+    <div style={{ marginTop: 22, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <span style={{ fontFamily: T.ff.body, fontSize: 10.5, color: 'var(--atelier-ink-mute)', whiteSpace: 'nowrap' }}>Theme</span>
+      <div style={{ display: 'flex', flex: 1, maxWidth: 240, border: `0.5px solid ${T.border}`, borderRadius: 3, overflow: 'hidden' }}>
+        {seg('light', 'Light')}
+        {seg('dark', 'Dark')}
       </div>
     </div>
   );

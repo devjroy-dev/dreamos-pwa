@@ -20,7 +20,7 @@
 // initialiser re-reads on the client only as a belt for the case where the two disagree —
 // a cookie written in another tab since this document was served.
 import { createContext, useContext, useState } from 'react';
-import { readModeClient, writeMode, type WlMode } from '@/lib/worklist/mode';
+import { readModeClient, writeMode, type ModeLane, type WlMode } from '@/lib/worklist/mode';
 
 type Ctx = { mode: WlMode; setMode: (m: WlMode) => void };
 
@@ -29,23 +29,26 @@ type Ctx = { mode: WlMode; setMode: (m: WlMode) => void };
 // chartered over, and it does not get to be reintroduced by this file.
 const ModeCtx = createContext<Ctx | null>(null);
 
-export function ModeProvider({ initial, children }: { initial: WlMode; children: React.ReactNode }) {
+// R-41.112 — `lane` is the one addition (CE-41 seat E, c-41.10's form). It defaults to
+// 'shell', so `/w`'s provider is byte-identical in behaviour; the cockpit passes 'admin'
+// and gets its own cookie. One provider, one writer, two lanes.
+export function ModeProvider({ initial, lane = 'shell', children }: { initial: WlMode; lane?: ModeLane; children: React.ReactNode }) {
   // Lazy, so it runs during render rather than after paint. On a cold load `initial` is
   // already right and this agrees with it; on a cross-tab change it corrects before the
   // first frame instead of flashing and then settling.
   const [mode, setModeState] = useState<WlMode>(() =>
-    (typeof document === 'undefined' ? initial : readModeClient()));
+    (typeof document === 'undefined' ? initial : readModeClient(lane)));
 
   // ONE WRITER. The drawer's toggle calls this; the cookie and the state move together,
   // in one place, so there is no path by which the painted mode and the stored mode can
   // disagree.
-  const setMode = (m: WlMode) => { setModeState(m); writeMode(m); };
+  const setMode = (m: WlMode) => { setModeState(m); writeMode(m, lane); };
 
   return <ModeCtx.Provider value={{ mode, setMode }}>{children}</ModeCtx.Provider>;
 }
 
 export function useMode(): Ctx {
   const c = useContext(ModeCtx);
-  if (!c) throw new Error('useMode outside ModeProvider — the /w layout provides it');
+  if (!c) throw new Error('useMode outside ModeProvider — the /w layout and the /admin layout each provide one');
   return c;
 }

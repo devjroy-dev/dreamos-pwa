@@ -108,8 +108,15 @@ const lcode = codeOf(layout);
 if (/scopeCss\('html\.adm'\)/.test(lcode) && /typeCss\('html\.adm'\)/.test(lcode)) green('layout mounts scopeCss + typeCss on html.adm');
 else red('layout mounts scopeCss + typeCss on html.adm', 'the tokens are not emitted; every var() would fall back to nothing');
 
-if (/classList\.add\('adm'\)/.test(lcode) && /setAttribute\('data-wl-mode', 'dark'\)/.test(lcode)) green('layout wears .adm and pins the dark arm (R-41.74)');
-else red('layout wears .adm and pins the dark arm', 'scopeCss emits html.adm[data-wl-mode="dark"]; both halves are required');
+// R-41.112 SUPERSEDED THIS CELL'S CLAUSE AND THE CELL SAYS SO RATHER THAN BEING QUIETLY
+// LOOSENED. It asserted `setAttribute('data-wl-mode', 'dark')` — the pin R-41.74 required.
+// The founder then ruled the cockpit has its own light/dark, so the pin is now the defect
+// and the attribute must carry the cockpit's OWN mode. What has to stay true either way is
+// that both halves of the selector are written: a `.adm` with no mode attribute resolves
+// no token at all.
+if (/classList\.add\('adm'\)/.test(lcode) && /setAttribute\('data-wl-mode', mode\)/.test(lcode) && /readModeClient|useMode/.test(readFileSync('app/admin/layout.tsx', 'utf8')))
+  green("layout wears .adm and carries the cockpit's own mode (R-41.112)");
+else red("layout wears .adm and carries the cockpit's own mode", 'scopeCss emits html.adm[data-wl-mode="…"]; both halves are required, and the mode must come from the admin lane, not a literal');
 
 if (/classList\.remove\('adm'\)/.test(lcode)) green('the scope is removed on unmount');
 else red('the scope is removed on unmount', 'a class left on <html> follows the founder out of the cockpit');

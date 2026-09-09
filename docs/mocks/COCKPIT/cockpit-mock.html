@@ -104,7 +104,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 .b{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 16px;border-radius:3px;
    font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;border:.5px solid var(--atelier-card-border);
    background:transparent;color:var(--atelier-ink-soft);cursor:pointer;white-space:nowrap}
-.b.pri{background:var(--atelier-accent-text);color:var(--role-ink-deep);border-color:transparent}
+.b.pri{background:var(--atelier-accent-text);color:var(--role-ink-on-metal);border-color:transparent}
 .b.dan{border-color:var(--role-critical);color:var(--role-critical)}
 .b.pos{border-color:var(--role-positive);color:var(--role-positive)}
 .b.met{border-color:var(--role-metal);color:var(--role-metal)}
@@ -136,7 +136,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 .toast.err s{background:var(--role-critical)}
 .sw{display:inline-flex;border:.5px solid var(--atelier-card-border);border-radius:3px;overflow:hidden}
 .sw span{min-height:36px;min-width:84px;display:flex;align-items:center;justify-content:center;padding:0 12px;font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
-.sw span.on{background:var(--atelier-accent-text);color:var(--role-ink-deep)}
+.sw span.on{background:var(--atelier-accent-text);color:var(--role-ink-on-metal)}
 .sw.ro span.on{background:transparent;color:var(--atelier-accent-text);border:1px solid var(--atelier-accent-text);margin:-.5px}
 .hand{display:inline-flex;align-items:center;gap:6px;font:var(--wl-t5);color:var(--atelier-ink-mute)}
 .hand s{display:block;width:26px;height:16px;border:1px solid var(--atelier-card-border);border-radius:9px;position:relative;text-decoration:none}
@@ -190,7 +190,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 <div class="gallery">
 
 <!-- ═══════════════════ E1-grid · the shell + the Bridge at 374 ═══════════════════ -->
-<div class="framewrap" data-frame="E1-grid" data-shot-modes="dark">
+<div class="framewrap" data-frame="E1-grid" data-shot-modes="dark light">
   <div class="cap"><b>E1-grid · the shell and the Bridge</b>374 · top bar opaque · figures on .wl-tile · six domains + Bridge on the shell's nav</div>
   <div class="wl" data-wl-mode="dark">
     <div class="ad-bar"><span class="ad-mark">The Dream Wedding</span><span class="ad-baricons"><span class="ad-ic">⌘K</span><span class="ad-ic">Out</span></span></div>
@@ -282,7 +282,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 </div>
 
 <!-- ═══════════════════ E1-queue · Assistance at 374 ═══════════════════ -->
-<div class="framewrap" data-frame="E1-queue" data-shot-modes="dark">
+<div class="framewrap" data-frame="E1-queue" data-shot-modes="dark light">
   <div class="cap"><b>E1-queue · Assistance requests</b>374 · seat A's room re-tokened, not re-shaped · status as a word in a role ink · wallet law on every figure</div>
   <div class="wl" data-wl-mode="dark">
     <div class="ad-bar"><span class="ad-mark">The Dream Wedding</span><span class="ad-baricons"><span class="ad-ic">⌘K</span><span class="ad-ic">Out</span></span></div>
@@ -358,7 +358,7 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
 </div>
 
 <!-- ═══════════════════ E1-switchboard · re-shaped, at 374 ═══════════════════ -->
-<div class="framewrap" data-frame="E1-switchboard" data-shot-modes="dark">
+<div class="framewrap" data-frame="E1-switchboard" data-shot-modes="dark light">
   <div class="cap"><b>E1-switchboard · grouped by room</b>374 · search by any word · one row per switchable thing, as an action · status in words · Meta one tap deep · no key on the glass</div>
   <div class="wl" data-wl-mode="dark">
     <div class="ad-bar"><span class="ad-mark">The Dream Wedding</span><span class="ad-baricons"><span class="ad-ic">⌘K</span><span class="ad-ic">Out</span></span></div>
@@ -588,7 +588,13 @@ body.solo .wl{width:100vw;height:100vh;box-shadow:none;border-radius:0}
     var kv=p.split('=');if(kv[0])q[kv[0]]=decodeURIComponent(kv[1]||'');});
   var frames=[].slice.call(document.querySelectorAll('.framewrap'));
   function setMode(m){[].slice.call(document.querySelectorAll('[data-wl-mode]')).forEach(function(el){el.setAttribute('data-wl-mode',m);});}
-  setMode('dark'); /* R-41.74: the cockpit is Graphite only; the light arm is never exercised */
+  /* R-41.112 — THE COCKPIT HAS A LIGHT ARM NOW. Until this ruling the script pinned
+     'dark' here and the arm's mode hash was ignored, which was right under R-41.74 and
+     is wrong under R-41.112: the founder can flip the cockpit, so he must be able to
+     veto what he will see when he does. The three frames the E1 veto ratified carry
+     data-shot-modes="dark light"; every other frame stays dark-only, because a mock
+     that shoots twelve pictures twice buys nothing the founder reads. */
+  setMode(q.mode === 'light' ? 'light' : 'dark');
   if(q.solo){
     document.body.classList.add('solo');
     frames.forEach(function(f){f.classList.toggle('on',f.getAttribute('data-frame')===q.solo);});

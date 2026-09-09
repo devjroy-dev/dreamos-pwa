@@ -42,6 +42,7 @@ import { hasAdminSession, clearAdminSession } from '@/lib/admin-api/_base';
 // app/admin is a var() emitted by lib/worklist/theme.ts, the same emitter the vendor
 // rooms mount. No alias file — 34 names for 33 tokens is F-40.143's class.
 import { scopeCss, typeCss, GRAPHITE } from '@/lib/worklist/theme';
+import { ModeProvider, useMode } from '@/lib/worklist/ModeContext';
 import { BRIDGE, DOMAINS, type Domain, type Section } from './_components/adminNav';
 import { adminGet } from '@/lib/admin-api/_base';
 import CommandPalette from './_components/CommandPalette';
@@ -374,7 +375,41 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
   );
 }
 
+// R-41.112 — THE SCOPE AND THE MODE, IN ONE SMALL COMPONENT.
+// It lives inside the provider so it can read the cockpit's mode; the provider itself
+// has to sit above the layout's tree, which is why the export below is a thin wrapper
+// and the old body moved into AdminLayoutInner.
+//
+// ONE FRAME OF DARK ON A COLD LOAD, ACCEPTED (ruled). /w seeds its provider from the
+// cookie the SERVER read off the request; this file is a client component by
+// construction — it holds the session gate — so there is no server read to seed from.
+// The gate renders null until authed, which puts that frame behind a redirect, and the
+// alternative is an inline <head> script nobody asked for.
+function AdmScope() {
+  const { mode } = useMode();
+  useEffect(() => {
+    const el = document.documentElement;
+    el.classList.add('adm');
+    el.setAttribute('data-wl-mode', mode);
+    // Removed on unmount: /admin shares an SPA with the bride's wine and the vendor's
+    // Graphite, and a class left on <html> follows the founder out of the cockpit.
+    return () => { el.classList.remove('adm'); el.removeAttribute('data-wl-mode'); };
+  }, [mode]);
+  return null;
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  // `initial` is only the server-render seed; the provider's lazy initialiser re-reads
+  // the cockpit's own cookie on the client before the first client frame.
+  return (
+    <ModeProvider initial="dark" lane="admin">
+      <AdmScope />
+      <AdminLayoutInner>{children}</AdminLayoutInner>
+    </ModeProvider>
+  );
+}
+
+function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [authed, setAuthed] = useState(false);
@@ -388,12 +423,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // as the bride's wine and the vendor's Graphite, and a class left behind on the
   // document element would follow the founder out of the cockpit and re-token
   // whatever he opened next. R-41.74 pins the arm; nothing writes 'light'.
-  useEffect(() => {
-    const el = document.documentElement;
-    el.classList.add('adm');
-    el.setAttribute('data-wl-mode', 'dark');
-    return () => { el.classList.remove('adm'); el.removeAttribute('data-wl-mode'); };
-  }, []);
+
 
   useEffect(() => {
     // ── F-07.84 CURED — THE BOOLEAN OPENS NOTHING ────────────────────────────
