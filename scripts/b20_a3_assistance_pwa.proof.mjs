@@ -524,5 +524,35 @@ function listTsx(dir = ROOT, out = []) {
      !/\{COPY\.advisorThreadNote\}/.test(adv));
 }
 
+// ═══ F-41.106 — no useT() consumer outside a provider, in the advisor room ═══
+{
+  const adv = strip(read('app/vendor/(shell)/advisor/page.tsx'));
+
+  ok('F-41.106: the room is wrapped in the estate\'s own ThemeProvider',
+     /import \{ ThemeProvider \} from '@\/lib\/vendor\/ThemeContext'/.test(adv)
+     && /<ThemeProvider pinned=\{mode\}>/.test(adv) && /<\/ThemeProvider>/.test(adv));
+
+  // F-38.41: READ, NEVER HELD. A local useState resets on every navigation and loses
+  // Chalk — the defect F-38.41 exists to record.
+  ok('F-41.106: the mode is read from the layout provider, never held here',
+     /const \{ mode \} = useMode\(\)/.test(adv) && !/useState[^\n]*mode/.test(adv));
+
+  // THE WHOLE ROOM, NOT THE BAR. Every useT() consumer this page mounts must sit
+  // inside the provider — wrapping only InputBar would cure the one symptom Graphite
+  // happened to show and leave the bubbles defaulting for Chalk to reveal.
+  ok('F-41.106: every useT consumer the page mounts is inside the provider',
+     (() => {
+       const open = adv.indexOf('<ThemeProvider');
+       const close = adv.indexOf('</ThemeProvider>');
+       if (open === -1 || close === -1) return 'no provider';
+       const inside = adv.slice(open, close);
+       const outside = adv.slice(0, open) + adv.slice(close);
+       const consumers = ['<ChatThread', '<InputBar', '<MessageBubble'];
+       const stray = consumers.filter((c) => outside.includes(c));
+       const held = consumers.filter((c) => inside.includes(c));
+       return stray.length === 0 && held.length >= 2 ? true : `stray: ${stray.join(', ')}`;
+     })() === true);
+}
+
 console.log(`\n${fail ? 'RED' : 'GREEN'} — b20_a3_assistance_pwa ${pass}/${pass + fail}`);
 process.exit(fail ? 1 : 0);

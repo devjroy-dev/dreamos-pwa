@@ -1,0 +1,26 @@
+CE-41 · SEAT D · F-41.106 (dreamos-pwa) · FLOOR MANIFEST
+base: 852b6d58238eb33631ab0a1a33925cf01800a6b1
+
+b20_a3_assistance_pwa.proof.mjs   GREEN  144/144   was 141/141 — +3
+tsc --noEmit                      exit 0
+BOTH WAYS: cured GREEN 144/144 · uncured RED 141/144
+BUILD: exit 1, 16 font-fetch failures, ZERO type errors — F-40.134, the founder's gate.
+
+F-41.106 — MINE, FROM THE R-41.139 CUT, AND F-41.105's CLASS.
+  ChatThread, MessageBubble and InputBar all call useT(). ThemeContext's default is
+  DARK (ThemeContext.tsx:6). AskSheet wraps them in <ThemeProvider pinned={mode}>
+  (AskSheet.tsx:84); the advisor page composed the same three and did NOT, so they
+  fell through to the default.
+  INVISIBLE ON GRAPHITE — the default IS dark, so only the bar's border and send
+  button gave it away, which is what the founder saw. IN CHALK every bubble would
+  have been dark-on-light.
+  Same shape as F-41.105: composing pieces without carrying what the thing AROUND
+  them supplied. There a palette, here a provider.
+
+THE WHOLE ROOM, NOT THE BAR. Wrapping only InputBar would have cured the one symptom
+Graphite happened to show and left the bubbles defaulting for Chalk to reveal. A cell
+asserts every useT consumer the page mounts sits inside the provider and none outside.
+
+F-38.41 — THE MODE IS READ, NEVER HELD. Taken from useMode(), the same layout provider
+WorklistShell reads at :64. A local useState would reset on every navigation and lose
+Chalk, which is the defect F-38.41 exists to record. A cell asserts no local mode state.

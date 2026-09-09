@@ -35,6 +35,24 @@ import { ChatThread } from '@/components/vendor/ChatThread';
 import { InputBar } from '@/components/vendor/InputBar';
 import { useChat } from '@/hooks/vendor/useChat';
 import { getVendorSession } from '@/lib/vendor/session';
+// ── F-41.106 · THE ROOM NEEDS ITS PROVIDER ───────────────────────────────────
+// ChatThread, MessageBubble and InputBar all call useT(), and ThemeContext's
+// default is DARK (ThemeContext.tsx:6). R-41.139 composed the three WITHOUT the
+// provider AskSheet wraps them in (AskSheet.tsx:84), so on this page they fell
+// through to that default: the bar rendered with the raw dark tokens instead of
+// the worklist's, which is why it read wrong beside every other bar.
+//
+// INVISIBLE ON GRAPHITE, LOUD IN CHALK. The default IS dark, so on the dark arm
+// the thread looks nearly right and only the bar's border and send button give it
+// away. In Chalk every bubble would have been dark-on-light.
+//
+// SAME CLASS AS F-41.105: composing pieces without carrying what the thing around
+// them supplied. There the palette, here the provider.
+import { ThemeProvider } from '@/lib/vendor/ThemeContext';
+// F-38.41 — THE MODE IS READ, NEVER HELD. WorklistShell reads it from this same
+// provider (WorklistShell.tsx:64); a local useState here would reset on every
+// navigation and lose Chalk exactly as F-38.41 records.
+import { useMode } from '@/lib/worklist/ModeContext';
 import { reportGlitch } from '@/lib/vendor/api/vendor';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { COPY } from '@/lib/worklist/copy';
@@ -80,6 +98,7 @@ export default function AdvisorPage() {
   // concludes the shared sheet may assert a room, and the shared sheet staying
   // business on every page is a founder's ruling rather than a default.
   const vendorId = getVendorSession()?.id || '';   // `.id`, as AiDock:35 reads it
+  const { mode } = useMode();   // F-38.41: read from the layout's provider, never held here
   const { messages, loading, send, meta } = useChat({ vendorId, room: 'advisor' });
   const scrollRef = useRef<HTMLDivElement>(null);
   const started = messages.length > 0;
@@ -92,6 +111,11 @@ export default function AdvisorPage() {
     // THE HEADER AND INTRO ARE UNCHANGED — the founder ratified them at 06:12 and
     // R-41.139 proposes no word of them. Only the shape moves.
     <WorklistShell title={COPY.advisorTitle}>
+      {/* F-41.106 — THE WHOLE ROOM, not just the bar. All three of ChatThread,
+          MessageBubble and InputBar consume useT(); wrapping only the bar would have
+          cured the one symptom that happened to be visible on Graphite and left the
+          bubbles defaulting, which Chalk would have shown at once. */}
+      <ThemeProvider pinned={mode}>
       <div className="wl-advroom" aria-busy={!ready}>
         {/* R-41.142 — the mode chip, from THE CURRENT ASSERTION. This page always
             asserts advisor, so the chip is constant here; it reads from the same
@@ -133,6 +157,7 @@ export default function AdvisorPage() {
         )}
         <div className="wl-advbar"><InputBar onSend={send} /></div>
       </div>
+      </ThemeProvider>
       <style>{`
 .wl-advroom{display:flex;flex-direction:column;height:100%;min-height:0}
 .wl-advchip{align-self:flex-start;font:var(--wl-t5);letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-accent-text);border:1px solid var(--atelier-accent-text);border-radius:999px;padding:4px 10px;margin:8px 0 2px}
