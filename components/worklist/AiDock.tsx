@@ -19,11 +19,10 @@ import { AskSheet } from '@/components/worklist/AskSheet';
 import { getVendorSession } from '@/lib/vendor/session';
 import { fetchVictorMode, setVictorMode } from '@/lib/vendor/api/vendor';
 
-export function AiDock({ mode, room }: {
+export function AiDock({ mode }: {
   mode: 'dark' | 'light';   // THEME — never the chat body's `room` (see AskSheet)
-  // F-41.98 — undefined on the shell's shared mount. Only a surface that means to
-  // assert a room passes one, and the only one that does is /vendor/advisor.
-  room?: string;
+  // R-41.139: `room` removed. The one surface that asserts a room composes its own
+  // conversation and never mounts this dock.
 }) {
   // ── CE-39 S2/6 · THE DOCK NO LONGER OWNS `open` ───────────────────────────
   // It was `useState(false)` here, which made the dock the only door to the sheet. The
@@ -64,7 +63,7 @@ export function AiDock({ mode, room }: {
           <span className="wl-docksend" aria-hidden>&#8593;</span>
         </button>
       </div>
-      {open && vendorId && <AskSheet vendorId={vendorId} mode={mode} room={room} prefill={prefill} onClose={closeAsk} />}
+      {open && vendorId && <AskSheet vendorId={vendorId} mode={mode} prefill={prefill} onClose={closeAsk} />}
       <style>{DOCK_CSS}</style>
     </>
   );

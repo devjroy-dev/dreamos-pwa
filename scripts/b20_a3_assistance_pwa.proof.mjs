@@ -372,43 +372,57 @@ function listTsx(dir = ROOT, out = []) {
   const rte  = strip(read('app/r/[code]/route.ts'));
   const enq  = strip(read('app/e/[id]/route.ts'));
 
-  // ── F-41.98 / R-41.107 · one field, one legal value, opted into ───────────
-  ok('F-41.98: the body carries `room` conditionally, exactly as ai_primer does',
+  // ── R-41.139 · THE ROOM IS ASSERTED BY ONE CALL, IN ONE FILE ──────────────
+  // F-41.98's cells asserted a CHAIN — shell → dock → sheet → hook. R-41.139 removed
+  // the chain: /vendor/advisor composes its own conversation, so the three props had
+  // no caller left and are gone. These are those cells, moved to the shape that
+  // replaced them. The absence cell is STRICTER than before, as ruled.
+  ok('R-41.139: the body still carries `room` conditionally, exactly as ai_primer does',
      /if \(opts && opts\.room\) bodyPayload\.room = opts\.room;/.test(api));
-  ok('F-41.98: it rides an OPTIONS BAG, not an eighth bare positional beside onBeat',
-     /opts\?: \{ room\?: string \}/.test(api));
-  ok('F-41.98: the transport never validates or defaults the value (the door decides)',
+  ok('R-41.139: the transport still never validates or defaults it (the door decides)',
      !/room\s*===\s*['"]advisor['"]/.test(api) && !/room\s*\|\|\s*['"]/.test(api));
-  ok('F-41.98: nothing anywhere reads or sends `body.mode` for a room (G2 M31)',
-     !/bodyPayload\.mode/.test(api) && !/mode:\s*room/.test(sheet + dock + shell));
-  ok('F-41.98: the hook threads it and never infers it from the route',
+  ok('R-41.139: nothing anywhere reads or sends `body.mode` for a room (G2 M31)',
+     !/bodyPayload\.mode/.test(api) && !/mode:\s*room/.test(sheet + dock + shell + adv));
+  ok('R-41.139: the hook still threads it and never infers it from the route',
      /useChat\(\{ vendorId, room \}/.test(hook) && !/usePathname/.test(hook));
-  ok('F-41.98: the chain passes it through — shell → dock → sheet → hook',
-     /<AiDock mode=\{mode\} room=\{room\} \/>/.test(shell)
-     && /room=\{room\}/.test(dock)
-     && /useChat\(\{ vendorId, room \}\)/.test(sheet));
-  // THE ASSERTION IS THE MOUNT, AND THERE MUST BE EXACTLY ONE.
-  ok('F-41.98: /vendor/advisor is the ONE surface that asserts a room',
-     /room="advisor"/.test(adv));
-  // ⚠ `room` IS A THIRD LIVE WORD IN THIS TREE. `components/vendor/Header.tsx:338`
-  // passes `room="Discover"` to an unrelated component, and `AskSheet` takes a
-  // `mode` that is a THEME. The first cut of this cell matched any `room="` and
-  // convicted Header — a real absence cell reading a coincidence. It now scopes to
-  // THE CHAT CHAIN ONLY: a room handed to WorklistShell, AiDock or AskSheet. That
-  // is the assertion R-41.107 actually makes, and the narrower cell is the true one.
-  ok('F-41.98: no surface but /vendor/advisor passes a room INTO THE CHAT CHAIN',
+
+  // THE ONE CALL.
+  ok('R-41.139: /vendor/advisor asserts the room on its OWN useChat call',
+     /useChat\(\{ vendorId, room: 'advisor' \}\)/.test(adv));
+  ok('R-41.139: it composes the SHARED three — no new component, no sheet variant',
+     /<ChatThread /.test(adv) && /<InputBar /.test(adv)
+     && !/variant=['"]advisor['"]/.test(adv + sheet));
+
+  // THE THREE PROPS ARE GONE, NOT MERELY UNPASSED. An optional prop nothing passes
+  // is an invitation; the ruling was to remove them.
+  ok('R-41.139: WorklistShell, AiDock and AskSheet no longer DECLARE a room prop',
+     !/room\?: string/.test(shell) && !/room\?: string/.test(dock) && !/room\?: string/.test(sheet));
+
+  // NOT MOUNTED, NOT HIDDEN — and this cell exists because the first cut hid it with
+  // a CSS rule naming a class that does not exist.
+  ok('R-41.139: the dock is UNMOUNTED on /vendor/advisor, matched on the route',
+     /const isAdvisor = pathname\.startsWith\('\/vendor\/advisor'\)/.test(shell)
+     && /\{!isAdvisor && <AiDock /.test(shell));
+  ok('R-41.139: it is not merely display:none — no dock-hiding rule survives anywhere',
+     !/wl-aidock/.test(adv + shell) && !/\.wl-dock\s*\{[^}]*display:\s*none/.test(adv));
+
+  // THE ABSENCE CELL, STRICTER THAN F-41.98's: nothing passes a room to any of the
+  // three, and only the advisor page's useChat call carries one.
+  ok('R-41.139: nothing passes `room` to WorklistShell, AiDock or AskSheet, anywhere',
      (() => {
        const CHAIN = /<(WorklistShell|AiDock|AskSheet)\b[^>]*\broom=/;
-       const hits = [];
-       for (const f of listTsx()) {
-         if (f === 'app/vendor/(shell)/advisor/page.tsx') continue;
-         if (f.startsWith('components/worklist/')) continue;   // the chain itself, threading
-         if (CHAIN.test(strip(read(f)))) hits.push(f);
-       }
+       const hits = listTsx().filter((f) => CHAIN.test(strip(read(f))));
        return hits.length === 0 || hits.join(', ');
      })() === true);
-  ok('F-41.98: the advisor page hands it to a WorklistShell, not to something else',
-     /<WorklistShell[^>]*room="advisor"/.test(adv));
+  ok('R-41.139: exactly ONE file in the tree names a room on a useChat call',
+     (() => {
+       // `room:` WITH THE COLON. Bare `room` also matches useChat's OWN signature —
+       // `useChat({ vendorId, room })` is a destructuring parameter, not a caller
+       // passing a value. The colon is exactly the line between declaring and asserting.
+       const hits = listTsx().filter((f) => /useChat\(\{[^}]*room:\s*/.test(strip(read(f))));
+       return hits.length === 1 && hits[0] === 'app/vendor/(shell)/advisor/page.tsx'
+         ? true : hits.join(', ');
+     })() === true);
 
   // ── F-41.124 · an unknown code never borrows another's sentence ───────────
   ok('F-41.124: an unmapped code gets its own dull sentence, naming no mechanism',

@@ -27,8 +27,19 @@
 // business if the mode differs, so a vendor who wandered here and left does not find her
 // business assistant quietly answering as an advisor three days later.
 import { useEffect, useRef, useState } from 'react';
+// ── R-41.139 · THE PAGE COMPOSES ITS OWN CONVERSATION ────────────────────────
+// No new component and no sheet variant: the SAME three the shared sheet uses.
+// `variant='advisor'` was withdrawn precisely so there is one ChatThread and one
+// InputBar in the estate, and this page arranges them rather than forking them.
+import { ChatThread } from '@/components/vendor/ChatThread';
+import { InputBar } from '@/components/vendor/InputBar';
+import { useChat } from '@/hooks/vendor/useChat';
+import { getVendorSession } from '@/lib/vendor/session';
+import { reportGlitch } from '@/lib/vendor/api/vendor';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { COPY } from '@/lib/worklist/copy';
+import Link from 'next/link';
+import { roomHref } from '@/lib/worklist/rooms';
 import { fetchVictorMode, setVictorMode } from '@/lib/vendor/api/vendor';
 
 export default function AdvisorPage() {
@@ -63,25 +74,64 @@ export default function AdvisorPage() {
     return () => { live = false; };
   }, []);
 
+  // ── R-41.139 · THE ROOM IS ASSERTED HERE AND NOWHERE ELSE ──────────────────
+  // The whole estate's path to `room` is this one call. WorklistShell, AiDock and
+  // AskSheet no longer carry the prop — a prop nothing passes is how a later seat
+  // concludes the shared sheet may assert a room, and the shared sheet staying
+  // business on every page is a founder's ruling rather than a default.
+  const vendorId = getVendorSession()?.id || '';   // `.id`, as AiDock:35 reads it
+  const { messages, loading, send, meta } = useChat({ vendorId, room: 'advisor' });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const started = messages.length > 0;
+
   return (
-    // F-41.98 / R-41.107 — THE ONE SURFACE IN THE ESTATE THAT ASSERTS A ROOM.
-    // Its own mount, its own instance, `room="advisor"`. Nothing else passes one;
-    // the shared dock on every other page, and the shared sheet opened on top of
-    // THIS page, both send nothing and stay business (founder's ruling 2026-09-09).
-    // The page's shell, header and copy are unchanged — the founder ratified this
-    // frame at 06:12 and this packet proposes no byte of it.
-    <WorklistShell title={COPY.advisorTitle} room="advisor">
-      <div className="wl-adv" aria-busy={!ready}>
-        <h1 className="wl-advtitle">{COPY.advisorTitle}</h1>
-        <p className="wl-advbody">{COPY.advisorEmpty}</p>
-        {failed && <p className="wl-advnote">{COPY.advisorUnset}</p>}
-        <p className="wl-advnote">{COPY.advisorThreadNote}</p>
+    // The dock is NOT mounted on this route: WorklistShell renders it for every
+    // page, so this page opts out by rendering the conversation itself and hiding
+    // the dock in its own stylesheet below. Everywhere else the dock and the shared
+    // sheet stay exactly as today and remain business.
+    // THE HEADER AND INTRO ARE UNCHANGED — the founder ratified them at 06:12 and
+    // R-41.139 proposes no word of them. Only the shape moves.
+    <WorklistShell title={COPY.advisorTitle}>
+      <div className="wl-advroom" aria-busy={!ready}>
+        {/* Before the first message the ratified header and intro stand. Once a
+            turn exists they give way: at 374 the page cannot carry a header, an
+            intro, a note AND a thread without the conversation starting below the
+            fold. Ratified on the frame's read. */}
+        {!started && (
+          <div className="wl-adv">
+            <h1 className="wl-advtitle">{COPY.advisorTitle}</h1>
+            <p className="wl-advbody">{COPY.advisorEmpty}</p>
+            {failed && <p className="wl-advnote">{COPY.advisorUnset}</p>}
+            <p className="wl-advnote">{COPY.advisorThreadNote}</p>
+          </div>
+        )}
+        <div className="wl-advthread" ref={scrollRef}>
+          <ChatThread messages={messages} loading={loading} onChipTap={send} scrollRef={scrollRef}
+            /* onConfirm/onCancel are required by Props and no-op'd by every caller —
+               a contract that has drifted from its component. Matched here as AskSheet
+               matches it, rather than papered over; Phase 2 owns the cure. */
+            onConfirm={() => {}} onCancel={() => {}}
+            onReportGlitch={async () => { await reportGlitch(); }}
+            onRetryLast={() => { const last = [...messages].reverse().find((m) => m.role === 'user');
+                                 if (last?.text) send(last.text); }} />
+        </div>
+        {/* The cap door, the same gate AskSheet carries: the EXACT COMPLEMENT of
+            TierMeter's, not merely 'capped', so a vendor with a spent nonzero cap
+            is not handed two anchors. One state, one seat. */}
+        {meta?.state === 'capped' && !meta.turns_cap && (
+          <Link href={roomHref('billing')} className="wl-advcap">{COPY.capUpgradeCta}</Link>
+        )}
+        <div className="wl-advbar"><InputBar onSend={send} /></div>
       </div>
       <style>{`
-.wl-adv{padding-top:20px;padding-bottom:24px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.wl-advroom{display:flex;flex-direction:column;height:100%;min-height:0}
+.wl-adv{padding-top:20px;padding-bottom:8px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .wl-advtitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0}
 .wl-advbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
 .wl-advnote{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0;max-width:52ch}
+.wl-advthread{flex:1;min-height:0;overflow-y:auto;padding-top:12px}
+.wl-advcap{font:var(--wl-t5);color:var(--atelier-accent-text);margin:8px 0}
+.wl-advbar{flex-shrink:0;padding-top:8px;border-top:1px solid var(--atelier-card-border)}
       `}</style>
     </WorklistShell>
   );

@@ -39,19 +39,22 @@ const SCOPE = '.wl';
 // the row shapes now, and two row builders for one row set is exactly the duplication this
 // consolidation removed — leaving them behind as unused helpers would have been the
 // wl-plink disease in TypeScript.
-export function WorklistShell({ title, room, children }: {
+export function WorklistShell({ title, children }: {
   title: string;
-  // ── F-41.98 / R-41.107 · THE INSTANCE THE PAGE MOUNTS IS WHAT ASSERTS ──────
-  // Every /vendor route mounts its own shell, and the shell mounts the dock. So a
-  // page that means to assert a room passes it HERE, on its own instance, and every
-  // other page's instance passes nothing. That is how "the shared Ask TDW sheet
-  // sends nothing on any page" and "the Advisor page sends the field" are both true:
-  // it is not the component and not the route, it is THE MOUNT.
-  // Absent by default, deliberately — a room is opted into, never inherited.
-  room?: string;
+  // ── R-41.139 · THE ROOM NO LONGER TRAVELS THROUGH THE SHELL ────────────────
+  // `room` used to thread WorklistShell → AiDock → AskSheet → useChat so that
+  // /vendor/advisor could assert its room through the shared dock. That page now
+  // renders its own conversation and does not mount the dock at all, so this prop
+  // had no caller left. A PROP NOTHING PASSES IS HOW A LATER SEAT CONCLUDES THE
+  // SHARED SHEET MAY ASSERT A ROOM — the only path to `room` in the estate is now
+  // app/vendor/(shell)/advisor/page.tsx's own useChat call, which is a stricter
+  // reading of "the shared sheet sends nothing on any page" than the chain was.
   children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? '/vendor';
+  // R-41.139: the one route that composes its own conversation. Matched on the
+  // route, not on a prop, so no caller can turn the shared dock into a room.
+  const isAdvisor = pathname.startsWith('/vendor/advisor');
   // ── F-38.41 · THE MODE IS READ, NOT HELD ──────────────────────────────────
   // It used to be `useState('dark')` here with a localStorage read in an effect, and that
   // is why the founder's walk lost Chalk: every /w route mounts its own shell, so the
@@ -185,7 +188,15 @@ export function WorklistShell({ title, room, children }: {
 
       <main className="wl-main">{children}</main>
 
-      <AiDock mode={mode} room={room} />
+      {/* ── R-41.139 · THE DOCK IS NOT MOUNTED ON /vendor/advisor ────────────────
+          NOT MOUNTED, not hidden. A first cut of this hid it from the page's own
+          stylesheet, which was wrong twice: it named a class that does not exist
+          (`wl-aidock`; the dock's class is `wl-dock`), and even correct it would
+          have left the dock IN THE DOM with its sheet still reachable through the
+          hub primers' askContext. `display:none` is not an unmount.
+          The shell already reads `usePathname` above — no prop returns to carry
+          this, which is the whole point of R-41.139's three removals. */}
+      {!isAdvisor && <AiDock mode={mode} />}
 
       {/* R-37.75: ROOMS IS THE FIRST SEAT. The order here, the manifest's start_url and
           /w's redirect are three statements of one decision — if they ever disagree, the

@@ -1,0 +1,30 @@
+CE-41 · SEAT D · R-41.139 (dreamos-pwa) · FLOOR MANIFEST
+base: 256d3eb7fc14cafe274469340936891c1dd066d1
+
+b20_a3_assistance_pwa.proof.mjs   GREEN  129/129   was 127/127 — F-41.98's four cells
+                                                    REPLACED by nine for R-41.139's shape
+tsc --noEmit                      exit 0, ZERO errors
+BOTH WAYS: cured GREEN 129/129 · uncured RED 123/129
+
+BUILD GATE — DECLARED, NOT ABSORBED. `npm run build` fails in this container:
+next/font cannot fetch Italiana, Cormorant Garamond, Jost, DM Sans. F-40.134's known
+egress limit, and why R-40.66 makes `next build` THE FOUNDER'S GATE and tsc the
+seat's sweep. THE BUILD IS UNPROVEN FROM HERE.
+
+THREE DEFECTS CAUGHT BEFORE THE CUT, ALL MINE:
+  · The page hid the dock with `.wl-aidock{display:none}` — A CLASS THAT DOES NOT
+    EXIST (the dock's class is `wl-dock`), so the rule was a silent no-op. And even
+    correct, display:none IS NOT AN UNMOUNT: the dock would have stayed in the DOM
+    with its sheet reachable through the hub primers' askContext. The shell already
+    reads usePathname, so it now skips the mount on /vendor/advisor — not a prop,
+    which is the whole point of R-41.139's three removals.
+  · `getVendorSession()?.vendorId` — the field is `.id`, as AiDock:35 reads it. tsc
+    caught it.
+  · The absence cell matched useChat's OWN SIGNATURE. `useChat({ vendorId, room })`
+    is a destructuring parameter, not a caller passing a value; `room:` with the
+    colon is exactly the line between declaring and asserting.
+
+THE THREE PROPS ARE REMOVED, NOT MERELY UNPASSED. An optional prop nothing passes is
+an invitation, and the shared sheet staying business is a founder's ruling.
+
+tools/advisor_frame_emit.mjs rides as R-41.140's home — the estate's mock instrument.
