@@ -37,10 +37,21 @@ import { roomHref } from '@/lib/worklist/rooms';
 // did and invents no second seam. PREFILL-NOT-FIRE: nothing here sends it; the vendor reads
 // the stem and completes it (F-04.9). An empty string is 「no prefill」 and InputBar's own
 // guard treats it so.
-export function AskSheet({ vendorId, mode, prefill = '', onClose }: {
-  vendorId: string; mode: 'dark' | 'light'; prefill?: string; onClose: () => void;
+export function AskSheet({ vendorId, mode, room, prefill = '', onClose }: {
+  vendorId: string;
+  // ⚠ `mode` IS A THEME, NOT A ROOM. It is 'dark' | 'light' and feeds ThemeProvider
+  // below. It must never reach the chat request body: the engine door accepts and
+  // IGNORES a field called `mode`, and giving an ignored field a behaviour is how a
+  // caller that has passed it harmlessly for months starts changing rooms (G2's M31).
+  // The two words sit one line apart here on purpose — read them twice.
+  mode: 'dark' | 'light';
+  // F-41.98 / R-41.107 — the room this INSTANCE asserts. Undefined on the shared
+  // mount, which is why the shared Ask TDW sheet stays business on every page it
+  // opens on, /vendor/advisor included (founder's ruling, 2026-09-09).
+  room?: string;
+  prefill?: string; onClose: () => void;
 }) {
-  const { messages, loading, send, meta } = useChat({ vendorId });
+  const { messages, loading, send, meta } = useChat({ vendorId, room });
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragFrom = useRef<number | null>(null);
 

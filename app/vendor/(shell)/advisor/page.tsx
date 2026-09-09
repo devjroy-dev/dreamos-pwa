@@ -64,7 +64,13 @@ export default function AdvisorPage() {
   }, []);
 
   return (
-    <WorklistShell title={COPY.advisorTitle}>
+    // F-41.98 / R-41.107 — THE ONE SURFACE IN THE ESTATE THAT ASSERTS A ROOM.
+    // Its own mount, its own instance, `room="advisor"`. Nothing else passes one;
+    // the shared dock on every other page, and the shared sheet opened on top of
+    // THIS page, both send nothing and stay business (founder's ruling 2026-09-09).
+    // The page's shell, header and copy are unchanged — the founder ratified this
+    // frame at 06:12 and this packet proposes no byte of it.
+    <WorklistShell title={COPY.advisorTitle} room="advisor">
       <div className="wl-adv" aria-busy={!ready}>
         <h1 className="wl-advtitle">{COPY.advisorTitle}</h1>
         <p className="wl-advbody">{COPY.advisorEmpty}</p>

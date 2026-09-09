@@ -65,9 +65,17 @@ const FORWARD_STATUS_WORDS: Record<string, string> = {
 };
 // The one sentence a forward row shows. Code first (it is the specific fact),
 // then the status word, then the status verbatim so an unmapped word still reads.
+// ── F-41.124 · AN UNKNOWN CODE GETS ITS OWN SENTENCE, NEVER A BORROWED ONE ──
+// The map is keyed on the EXACT code and always was — but the `failed` fallback
+// below used to be absent, so a 131008 fell through to nothing and the row showed
+// the 131049 sentence from the line above it on the glass. A borrowed sentence is
+// worse than a blank one: it told the founder Meta's MARKETING LIMIT had blocked a
+// send that Meta had actually refused for a MISSING BUTTON PARAMETER, which is a
+// different problem with a different fix. The generic line is deliberately dull and
+// carries no mechanism, because naming the wrong mechanism is the defect.
 function forwardWords(f: { status: string; error_code: string | null }): string {
   if (f.error_code && FORWARD_CODE_WORDS[f.error_code]) return FORWARD_CODE_WORDS[f.error_code];
-  if (f.status === 'failed') return 'Not delivered. Forward someone else.';
+  if (f.error_code || f.status === 'failed') return 'Meta refused this send. Try again.';
   return FORWARD_STATUS_WORDS[f.status] || f.status;
 }
 
@@ -160,7 +168,7 @@ function Detail({ detail, fanout, onChanged, onToast, onClose }: {
             try { await closeAssistance(r.id); onToast({ msg: 'Closed.' }); await onChanged(); onClose(); }
             catch (e: any) { onToast({ msg: e?.message || 'Could not close', error: true }); }
           }} />
-          <span style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft }}>Closing tells her nothing. She hears from us only when a vendor is found.</span>
+          <span style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft }}>Closing tells her nothing.</span>
         </div>
       )}
     </div>

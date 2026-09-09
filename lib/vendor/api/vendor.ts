@@ -401,10 +401,30 @@ export function streamChat(
   onDone: (result: StreamDonePayload) => void,
   onError: (msg: string) => void,
   onBeat?: (beat: StreamBeat) => void,
+  // ── F-41.98 / R-41.107 · THE ROOM IS THE SURFACE'S ASSERTION ──────────────
+  // An OPTIONS BAG, not an eighth positional: `onBeat` is already optional and two
+  // bare optionals in a row is how a caller silently passes the wrong one.
+  // `useChat` is this function's ONLY caller (derived at 1d57dd9), so the shape is
+  // free to be the right one rather than the compatible one.
+  opts?: { room?: string },
 ): () => void {
   const controller = new AbortController();
   const bodyPayload: Record<string, unknown> = { vendor_id: vendorId, message, history: [] };
   if (aiPrimer) bodyPayload.ai_primer = aiPrimer;
+  // R-41.107, seat G's G2 §1: ONE FIELD, ONE LEGAL VALUE, and the door treats
+  // absent / empty / misspelled / anything-else as NO ASSERTION — fail-closed and
+  // silent, no 400, because a page sending a stale value must still be able to talk.
+  // So this rides EXACTLY as `ai_primer` does: conditional, one home, absent when
+  // unset. Nothing here validates the value; validating it in the client would put
+  // a second opinion beside the door's, and the door's is the one that decides.
+  //
+  // NOT `mode`. That word is live on this door with an existing meaning (accepted
+  // and ignored), and giving an ignored field a behaviour is how a caller that has
+  // been sending it harmlessly for months starts changing rooms. G2's M31 reds a
+  // door that reads `body.mode`. Note `AskSheet` takes a prop literally CALLED
+  // `mode` — it is a THEME (`'dark' | 'light'`, fed to ThemeProvider) and it must
+  // never reach this body. The two words are one letter of carelessness apart.
+  if (opts && opts.room) bodyPayload.room = opts.room;
   const bodyStr = JSON.stringify(bodyPayload);
 
   async function attemptStream(retried = false): Promise<void> {

@@ -1,0 +1,41 @@
+CE-41 · SEAT D · D2 (dreamos-pwa) · FLOOR MANIFEST
+base: d3a1df1cdfb080ac8208ed0825345766a143e6c1   (re-pinned from 1d57dd9; the brand family, public/brand/ binaries only, no overlap)
+
+b20_a3_assistance_pwa.proof.mjs   GREEN  119/119   was 102/102 — +17 (the D2 section)
+tsc --noEmit                      exit 0, ZERO errors
+
+BOTH WAYS, BY COMMAND:
+  cured    GREEN 119/119
+  uncured  RED   107/119   (12 cells convict at a clean origin tree)
+
+  ⚠ THE FIRST BOTH-WAYS RUN WAS WRONG AND IS RECORDED AS SUCH. It copied a tree
+  that ALREADY had the cure applied, so it compared cured against cured and
+  reported GREEN/GREEN. A both-ways proof that shows the same result twice is not
+  a proof, it is a copy error. Re-run against a fresh clone of origin: 12 reds.
+
+COLLISION (R-40.82), and it needed checking:
+  Seat E's E2 (ii)–(v) rewrote app/admin/_components/AdminUI.tsx by +160/-87 —
+  the file this seat put F-41.40's portal into at fc3cd72. VERIFIED AT THE NEW TIP:
+    import { createPortal } from 'react-dom'      line 7    PRESENT
+    const body = typeof document === 'undefined'  line 517  PRESENT
+    return body ? createPortal(sheet, body) : null line 579  PRESENT
+  and app/admin/assistance/page.tsx untouched (two-up grid 0, BottomSheet mounts 4,
+  FORWARD_CODE_WORDS present). R-41.101's sequencing held exactly.
+
+ONE CELL WAS TOO BROAD AND THE TREE SAID SO:
+  The F-41.98 absence cell matched any `room="` and convicted
+  components/vendor/Header.tsx:338 (`room="Discover"`) — A THIRD LIVE MEANING of the
+  word in this codebase, alongside AskSheet's `mode` which is a THEME. Narrowed to
+  the CHAT CHAIN only (a room handed to WorklistShell, AiDock or AskSheet), which is
+  the assertion R-41.107 actually makes.
+
+NOT SHIPPED, AND DECLARED:
+  /e/[id] DOES NOT SHOW THE ENQUIRY. No public read exists for an assistance item
+  anywhere in dream-os (derived at 417c9f8: nothing under src/api/ serves one).
+  Building that door is a dream-os packet this seat was not chartered for. The page
+  follows this repo's own precedent at app/r/[code]/route.ts — "a sentence beats a
+  404 and nothing more is built" — answers 200, carries NO phone, fetches nothing.
+  OWED: GET /api/v2/public/enquiry/:id (summary only, never the couple's number).
+
+NO MIGRATION. No dream-os byte.
+INHERITED, NOT TOUCHED: F-41.64, F-41.65 (seat C).

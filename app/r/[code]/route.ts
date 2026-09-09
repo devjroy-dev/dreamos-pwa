@@ -69,9 +69,31 @@ p{margin:0;max-width:34ch;text-align:center}</style></head>
   });
 }
 
+// ── R-41.119 · ONE PATH, TWO FAMILIES, DISAMBIGUATED BY AN EXPLICIT PREFIX ──
+// `tdw_assist_lead_outside_v2`'s URL button is fixed at this base until Meta's next
+// edit window, so the enquiry family has to share `/r/` with the review family for
+// now. It is disambiguated by a PREFIX THE SENDER WRITES (`enq-`), never by shape:
+// a guess at "what a review code looks like" would route on a coincidence, and the
+// day a review code happened to match, a vendor would land on someone's enquiry.
+//
+// THE BEND TO R-40.15 IS RECORDED WITH ITS RETIREMENT. At the next edit window the
+// button base moves to `/e/` and THIS BRANCH GOES WITH IT — the branch is temporary
+// by construction and the comment is the reminder.
+//
+// Every other code falls through untouched: the review family's behaviour is not
+// changed by a single byte, only preceded.
+const ENQUIRY_PREFIX = 'enq-';
+
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ code: string }> }) {
   const { code } = await ctx.params;
   if (!code) return page(UNSET_LINE);
+
+  if (code.startsWith(ENQUIRY_PREFIX)) {
+    const id = code.slice(ENQUIRY_PREFIX.length);
+    // A bare prefix with nothing after it is not an enquiry; it falls to the review
+    // family's own answer rather than redirecting to a page that cannot exist.
+    if (id) return Response.redirect(new URL(`/e/${encodeURIComponent(id)}`, _req.url), 302);
+  }
 
   // ── WITHHELD UNTIL P1, WITH THE UNCOMMENT STEP STATED ─────────────────────
   // Conditional-withheld rule. When P1's `vendor_integrations` lands and the

@@ -341,5 +341,94 @@ ok('typographic apostrophes in couple-facing bytes (R-40.19)', !/'[A-Za-z ]+'[^\
      !/#[0-9a-fA-F]{6}/.test(admS));
 }
 
+
+// Walks the tree once so an ABSENCE cell can name every file it checked, rather
+// than asserting over a list a seat wrote down and then forgot to update.
+function listTsx(dir = ROOT, out = []) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === 'node_modules' || e.name === '.next' || e.name === '.git') continue;
+    const full = path.join(dir, e.name);
+    if (e.isDirectory()) listTsx(full, out);
+    else if (/\.tsx?$/.test(e.name)) out.push(path.relative(ROOT, full));
+  }
+  return out;
+}
+
+// ═══ D2 pwa · CE-41 seat D — the room, the words, the enquiry address ═══════
+{
+  const adm  = read(ADMIN);
+  const admS = strip(adm);
+  const api  = strip(read('lib/vendor/api/vendor.ts'));
+  const hook = strip(read('hooks/vendor/useChat.ts'));
+  const sheet= strip(read('components/worklist/AskSheet.tsx'));
+  const dock = strip(read('components/worklist/AiDock.tsx'));
+  const shell= strip(read('components/worklist/WorklistShell.tsx'));
+  const adv  = strip(read('app/vendor/(shell)/advisor/page.tsx'));
+  const rte  = strip(read('app/r/[code]/route.ts'));
+  const enq  = strip(read('app/e/[id]/route.ts'));
+
+  // ── F-41.98 / R-41.107 · one field, one legal value, opted into ───────────
+  ok('F-41.98: the body carries `room` conditionally, exactly as ai_primer does',
+     /if \(opts && opts\.room\) bodyPayload\.room = opts\.room;/.test(api));
+  ok('F-41.98: it rides an OPTIONS BAG, not an eighth bare positional beside onBeat',
+     /opts\?: \{ room\?: string \}/.test(api));
+  ok('F-41.98: the transport never validates or defaults the value (the door decides)',
+     !/room\s*===\s*['"]advisor['"]/.test(api) && !/room\s*\|\|\s*['"]/.test(api));
+  ok('F-41.98: nothing anywhere reads or sends `body.mode` for a room (G2 M31)',
+     !/bodyPayload\.mode/.test(api) && !/mode:\s*room/.test(sheet + dock + shell));
+  ok('F-41.98: the hook threads it and never infers it from the route',
+     /useChat\(\{ vendorId, room \}/.test(hook) && !/usePathname/.test(hook));
+  ok('F-41.98: the chain passes it through — shell → dock → sheet → hook',
+     /<AiDock mode=\{mode\} room=\{room\} \/>/.test(shell)
+     && /room=\{room\}/.test(dock)
+     && /useChat\(\{ vendorId, room \}\)/.test(sheet));
+  // THE ASSERTION IS THE MOUNT, AND THERE MUST BE EXACTLY ONE.
+  ok('F-41.98: /vendor/advisor is the ONE surface that asserts a room',
+     /room="advisor"/.test(adv));
+  // ⚠ `room` IS A THIRD LIVE WORD IN THIS TREE. `components/vendor/Header.tsx:338`
+  // passes `room="Discover"` to an unrelated component, and `AskSheet` takes a
+  // `mode` that is a THEME. The first cut of this cell matched any `room="` and
+  // convicted Header — a real absence cell reading a coincidence. It now scopes to
+  // THE CHAT CHAIN ONLY: a room handed to WorklistShell, AiDock or AskSheet. That
+  // is the assertion R-41.107 actually makes, and the narrower cell is the true one.
+  ok('F-41.98: no surface but /vendor/advisor passes a room INTO THE CHAT CHAIN',
+     (() => {
+       const CHAIN = /<(WorklistShell|AiDock|AskSheet)\b[^>]*\broom=/;
+       const hits = [];
+       for (const f of listTsx()) {
+         if (f === 'app/vendor/(shell)/advisor/page.tsx') continue;
+         if (f.startsWith('components/worklist/')) continue;   // the chain itself, threading
+         if (CHAIN.test(strip(read(f)))) hits.push(f);
+       }
+       return hits.length === 0 || hits.join(', ');
+     })() === true);
+  ok('F-41.98: the advisor page hands it to a WorklistShell, not to something else',
+     /<WorklistShell[^>]*room="advisor"/.test(adv));
+
+  // ── F-41.124 · an unknown code never borrows another's sentence ───────────
+  ok('F-41.124: an unmapped code gets its own dull sentence, naming no mechanism',
+     /Meta refused this send\. Try again\./.test(adm)
+     && /if \(f\.error_code \|\| f\.status === 'failed'\)/.test(admS));
+  ok('F-41.124: the map is still keyed on the EXACT code, never a prefix or a range',
+     /FORWARD_CODE_WORDS\[f\.error_code\]/.test(admS) && !/startsWith\(f\.error_code/.test(admS));
+
+  // ── F-41.84 / S2-8 · the ratified byte, finally shipped ──────────────────
+  ok('F-41.84: S2-8 ships as ratified — the clause chain is gone',
+     /Closing tells her nothing\./.test(adm)
+     && !/She hears from us only when a vendor is found/.test(adm));
+
+  // ── R-41.119 · the prefix branch, and the address it opens ───────────────
+  ok('R-41.119: /r/ branches on an EXPLICIT prefix constant, never on shape',
+     /const ENQUIRY_PREFIX = 'enq-';/.test(rte) && /code\.startsWith\(ENQUIRY_PREFIX\)/.test(rte));
+  ok('R-41.119: it 302s to the enquiry family and leaves every other code untouched',
+     /Response\.redirect\(new URL\(`\/e\/\$\{encodeURIComponent\(id\)\}`/.test(rte));
+  ok('R-41.119: a bare prefix with no id does NOT redirect',
+     /if \(id\) return Response\.redirect/.test(rte));
+  ok('R-41.119: /e/[id] exists and answers 200 with a sentence, never a 404',
+     enq.length > 0 && /status: 200/.test(enq) && !/notFound\(\)/.test(enq));
+  ok('R-41.119: /e/[id] carries NO phone and fetches nothing (no public door exists yet)',
+     !/phone/i.test(enq) && !/fetch\(/.test(enq));
+}
+
 console.log(`\n${fail ? 'RED' : 'GREEN'} — b20_a3_assistance_pwa ${pass}/${pass + fail}`);
 process.exit(fail ? 1 : 0);

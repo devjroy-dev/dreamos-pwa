@@ -39,7 +39,18 @@ const SCOPE = '.wl';
 // the row shapes now, and two row builders for one row set is exactly the duplication this
 // consolidation removed — leaving them behind as unused helpers would have been the
 // wl-plink disease in TypeScript.
-export function WorklistShell({ title, children }: { title: string; children: React.ReactNode }) {
+export function WorklistShell({ title, room, children }: {
+  title: string;
+  // ── F-41.98 / R-41.107 · THE INSTANCE THE PAGE MOUNTS IS WHAT ASSERTS ──────
+  // Every /vendor route mounts its own shell, and the shell mounts the dock. So a
+  // page that means to assert a room passes it HERE, on its own instance, and every
+  // other page's instance passes nothing. That is how "the shared Ask TDW sheet
+  // sends nothing on any page" and "the Advisor page sends the field" are both true:
+  // it is not the component and not the route, it is THE MOUNT.
+  // Absent by default, deliberately — a room is opted into, never inherited.
+  room?: string;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname() ?? '/vendor';
   // ── F-38.41 · THE MODE IS READ, NOT HELD ──────────────────────────────────
   // It used to be `useState('dark')` here with a localStorage read in an effect, and that
@@ -174,7 +185,7 @@ export function WorklistShell({ title, children }: { title: string; children: Re
 
       <main className="wl-main">{children}</main>
 
-      <AiDock mode={mode} />
+      <AiDock mode={mode} room={room} />
 
       {/* R-37.75: ROOMS IS THE FIRST SEAT. The order here, the manifest's start_url and
           /w's redirect are three statements of one decision — if they ever disagree, the

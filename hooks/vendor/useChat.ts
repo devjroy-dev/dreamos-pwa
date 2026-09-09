@@ -34,7 +34,11 @@ export interface BackendHistoryMessage { role: 'user' | 'assistant'; content: st
 
 function nextId() { return `${Date.now()}-${Math.random().toString(36).slice(2,8)}`; }
 
-interface UseChatArgs { vendorId: string; }
+// F-41.98: `room` is threaded, never inferred. The hook does not read the route
+// and does not guess — the SURFACE THAT MOUNTS IT asserts, which is what makes
+// "the shared sheet sends nothing, on any page including /vendor/advisor" and
+// "the Advisor page sends the field" both true at once.
+interface UseChatArgs { vendorId: string; room?: string; }
 interface UseChatReturn {
   meta: { tier: string; turns_used: number; turns_cap: number; state: 'ok' | 'nearing' | 'capped'; upgrade?: { label: string; href: string } } | null; // TDW_02 P5
   messages:        ChatMessage[];
@@ -53,7 +57,7 @@ interface UseChatReturn {
   markFreshThread: () => void;
 }
 
-export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
+export function useChat({ vendorId, room }: UseChatArgs): UseChatReturn {
   const [messages,      setMessages]      = useState<ChatMessage[]>([]);
   const [loading,       setLoading]       = useState(false);
   const [context,       setContext]       = useState<VendorContextResponse | null>(null);
@@ -191,10 +195,12 @@ export function useChat({ vendorId }: UseChatArgs): UseChatReturn {
           m.id === aiMsgId ? { ...m, deliberation: [...(m.deliberation ?? []), beat] } : m
         ));
       },
+      // F-41.98 — undefined when the mounting surface asserts nothing.
+      { room },
     );
 
     abortRef.current = abort;
-  }, [vendorId, loading, refreshContext]);
+  }, [vendorId, room, loading, refreshContext]);
 
   // ── Fresh thread (TDW_06 D-7) ─────────────────────────────────────────
   // One endpoint call; on ok, a divider joins the on-screen thread so the
