@@ -56,29 +56,39 @@ export interface GateCopy {
 
 export const GATE_COPY: Readonly<Record<string, GateCopy>> = Object.freeze({
   // ── Features you switch on (flag.*) ──────────────────────────────────────
-  'flag.contract_sign_send':               { name: 'Contract signing link', spec: 'to the couple · vendor line · Utility', meta: 'tdw_contract_sign' },
-  'flag.contract_copy_send':               { name: 'Signed contract copy', spec: 'to the vendor and the couple · vendor line · Utility', meta: 'tdw_contract_copy' },
-  'flag.payment_reminder_send':            { name: 'Payment reminder', spec: 'to the client · couple line · Utility', meta: 'tdw_payment_reminder' },
-  'flag.referral_alert_send':              { name: 'Peer referral alert', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_referral_alert' },
-  'flag.wedding_credit_send':              { name: 'Wedding credit invite', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_wedding_credit' },
-  'flag.wedding_consent_send':             { name: 'Guest gallery consent ask', spec: 'to the couple · vendor line · Utility', meta: 'tdw_wedding_consent' },
-  'flag.review_ask_send':                  { name: 'Google review ask', spec: 'to the couple · couple line · Marketing', meta: 'tdw_review_request' },
-  'flag.wedding_reel':                     { name: 'Wedding reel', spec: 'no message · needs ffmpeg on the server · absent today' },
+  'flag.contract_sign_send':               { name: 'Send the contract for signing', spec: 'to the couple · vendor line · Utility', meta: 'tdw_contract_sign' },
+  'flag.contract_copy_send':               { name: 'Send the signed contract back', spec: 'to the vendor and the couple · vendor line · Utility', meta: 'tdw_contract_copy' },
+  'flag.payment_reminder_send':            { name: 'Send payment reminders', spec: 'to the client · couple line · Utility', meta: 'tdw_payment_reminder' },
+  'flag.referral_alert_send':              { name: 'Tell a peer vendor about a referral', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_referral_alert' },
+  'flag.wedding_credit_send':              { name: 'Invite a peer vendor to claim wedding credit', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_wedding_credit' },
+  'flag.wedding_consent_send':             { name: 'Ask the couple to allow the guest gallery', spec: 'to the couple · vendor line · Utility', meta: 'tdw_wedding_consent' },
+  'flag.review_ask_send':                  { name: 'Ask the couple for a Google review', spec: 'to the couple · couple line · Marketing', meta: 'tdw_review_request' },
+  'flag.wedding_reel':                     { name: 'Make the wedding reel', spec: 'no message · needs ffmpeg on the server · absent today' },
 
   // ── Message templates on Meta (template.*) — the words themselves ─────────
-  'template.tdw_contract_sign':            { name: 'Contract signing link — Meta\'s words', spec: 'to the couple · vendor line · Utility', meta: 'tdw_contract_sign' },
-  'template.tdw_contract_sign_otp':        { name: 'Contract signing code — Meta\'s words', spec: 'to the couple · vendor line · Authentication', meta: 'tdw_contract_sign_otp' },
-  'template.tdw_contract_copy':            { name: 'Signed contract copy — Meta\'s words', spec: 'to the vendor and the couple · vendor line · Utility', meta: 'tdw_contract_copy' },
-  'template.tdw_payment_reminder':         { name: 'Payment reminder — Meta\'s words', spec: 'to the client · couple line · Utility', meta: 'tdw_payment_reminder' },
-  'template.tdw_referral_alert':           { name: 'Peer referral alert — Meta\'s words', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_referral_alert' },
-  'template.tdw_wedding_credit':           { name: 'Wedding credit invite — Meta\'s words', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_wedding_credit' },
-  'template.tdw_wedding_consent':          { name: 'Guest gallery consent ask — Meta\'s words', spec: 'to the couple · vendor line · Utility', meta: 'tdw_wedding_consent' },
-  'template.tdw_review_request':           { name: 'Google review ask — Meta\'s words', spec: 'to the couple · couple line · Marketing', meta: 'tdw_review_request' },
+  'template.tdw_contract_sign':            { name: 'Contract signing link', spec: 'to the couple · vendor line · Utility', meta: 'tdw_contract_sign' },
+  'template.tdw_contract_sign_otp':        { name: 'Contract signing code', spec: 'to the couple · vendor line · Authentication', meta: 'tdw_contract_sign_otp' },
+  'template.tdw_contract_copy':            { name: 'Signed contract copy', spec: 'to the vendor and the couple · vendor line · Utility', meta: 'tdw_contract_copy' },
+  'template.tdw_payment_reminder':         { name: 'Payment reminder', spec: 'to the client · couple line · Utility', meta: 'tdw_payment_reminder' },
+  'template.tdw_referral_alert':           { name: 'Peer referral alert', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_referral_alert' },
+  'template.tdw_wedding_credit':           { name: 'Wedding credit invite', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_wedding_credit' },
+  'template.tdw_wedding_consent':          { name: 'Guest gallery consent ask', spec: 'to the couple · vendor line · Utility', meta: 'tdw_wedding_consent' },
+  'template.tdw_review_request':           { name: 'Google review ask', spec: 'to the couple · couple line · Marketing', meta: 'tdw_review_request' },
   // The concierge four — arms dark behind these rows until A10 wakes the send (R-41.20).
-  'template.tdw_assist_lead_outside':      { name: 'Outsider join alert', spec: 'to the outside vendor · marketing line · Marketing · dark until A10', meta: 'tdw_assist_lead_outside' },
-  'template.tdw_assist_found_vendor':      { name: 'Found her a vendor from The Dream Wedding', spec: 'to the couple · couple line · Utility · dark until A10', meta: 'tdw_assist_found_vendor' },
-  'template.tdw_assist_found_outside':     { name: 'Found her a vendor from outside The Dream Wedding', spec: 'to the couple · couple line · Utility · dark until seat D', meta: 'tdw_assist_found_outside' },
-  'template.tdw_introduction':             { name: 'Vendor introduction', spec: 'to the vendor · marketing line · Marketing · not sent before R9', meta: 'tdw_introduction' },
+  // F-41.122 · THE RELABEL. Retired by 0155 and replaced by the _v2 row below. The KEY
+  // does not move: gatePath, gateMatches and any capabilities row keyed on it all
+  // still resolve, and a founder who searches the old Meta name still finds this row
+  // and reads why it is off. A retired gate deleted from the copy home renders as a
+  // raw key, which is how F-41.122 looked this morning.
+  'template.tdw_assist_lead_outside':      { name: 'Outsider join alert (retired)', spec: 'replaced by the enquiry notice above', meta: 'tdw_assist_lead_outside', metaId: '1627376372249131' },
+  // F-41.122 · THREE ORPHAN TEMPLATES, THREE ROWS. No flag.* guards any of them, so under
+  // R-41.102 each keeps a row of its own with a verb rather than folding into a second line.
+  // The register has held all four since 0155; without these entries they rendered as raw
+  // keys on the founder's glass, which is the finding.
+  'template.tdw_assist_lead_outside_v2':   { name: 'Send an outside vendor the enquiry notice', spec: 'to the outside vendor · marketing line · Utility', meta: 'tdw_assist_lead_outside_v2', metaId: '2544506315978894' },
+  'template.tdw_assist_found_vendor':      { name: 'Tell the couple we found a TDW vendor', spec: 'to the couple · couple line · Utility', meta: 'tdw_assist_found_vendor', metaId: '3160852754105015' },
+  'template.tdw_assist_found_outside':     { name: 'Tell the couple we found an outside vendor', spec: 'to the couple · couple line · Utility', meta: 'tdw_assist_found_outside', metaId: '3115277355330375' },
+  'template.tdw_introduction':             { name: 'Introduce a vendor to The Dream Wedding', spec: 'to the vendor · marketing line · Marketing · not sent before R9', meta: 'tdw_introduction' },
   // F-41.69 — THE SPEC SAID `not yet filed at Meta` AND IT IS ACTIVE. A shipped byte
   // on the founder's glass asserting a false fact about Meta is worse than a blank
   // one: he plans around it. Filed and Active, ID 1063533856046167 — the ID rides
@@ -86,19 +96,19 @@ export const GATE_COPY: Readonly<Record<string, GateCopy>> = Object.freeze({
   'template.tdw_capability_armed':         { name: 'Tell me when a switch is ready', spec: 'to you · vendor line · Utility', meta: 'tdw_capability_armed', metaId: '1063533856046167' },
 
   // ── Meta app permissions (perm.*) ─────────────────────────────────────────
-  'perm.whatsapp_business_pair':           { name: 'WhatsApp business permissions', spec: 'Meta app · in review since 2 September' },
-  'perm.instagram_business_basic':         { name: 'Instagram: read the account', spec: 'Meta app · the first Instagram door · not filed' },
-  'perm.instagram_business_manage_messages': { name: 'Instagram: reply to DMs', spec: 'Meta app · bridges DMs to WhatsApp · not filed' },
-  'perm.instagram_business_manage_insights': { name: 'Instagram: read insights', spec: 'Meta app · feeds the Sunday brief · not filed' },
-  'perm.instagram_business_content_publish': { name: 'Instagram: publish', spec: 'Meta app · posts from the studio · not filed' },
-  'perm.instagram_business_manage_comments': { name: 'Instagram: reply to comments', spec: 'Meta app · not filed' },
-  'perm.ads_read':                         { name: 'Ads: read results', spec: 'Meta app · needs the second app · not created' },
-  'perm.business_management':              { name: 'Ads: manage the business', spec: 'Meta app · needs the second app · not created' },
+  'perm.whatsapp_business_pair':           { name: 'Use WhatsApp for every message below', spec: 'Meta app · in review since 2 September' },
+  'perm.instagram_business_basic':         { name: "Read a vendor's Instagram account", spec: 'Meta app · the first Instagram door · not filed' },
+  'perm.instagram_business_manage_messages': { name: 'Reply to Instagram DMs', spec: 'Meta app · bridges DMs to WhatsApp · not filed' },
+  'perm.instagram_business_manage_insights': { name: "Read a vendor's Instagram insights", spec: 'Meta app · feeds the Sunday brief · not filed' },
+  'perm.instagram_business_content_publish': { name: "Post to a vendor's Instagram", spec: 'Meta app · posts from the studio · not filed' },
+  'perm.instagram_business_manage_comments': { name: 'Reply to Instagram comments', spec: 'Meta app · not filed' },
+  'perm.ads_read':                         { name: "Read a vendor's ad results", spec: 'Meta app · needs the second app · not created' },
+  'perm.business_management':              { name: "Manage a vendor's ads account", spec: 'Meta app · needs the second app · not created' },
 
   // ── Google access (scope.*) ───────────────────────────────────────────────
-  'scope.google.siteverification':         { name: 'Google: verify site ownership', spec: 'house grant · every vendor\'s website · granted' },
-  'scope.google.webmasters.readonly':      { name: 'Google: read Search Console', spec: 'house grant · every vendor\'s website · granted' },
-  'scope.google.business.manage':          { name: 'Google: manage Business Profiles', spec: 'reviews and the profile claim · not requested until late October' },
+  'scope.google.siteverification':         { name: "Verify a vendor's website", spec: 'house grant · every vendor\'s website · granted' },
+  'scope.google.webmasters.readonly':      { name: "Read a vendor's Search Console", spec: 'house grant · every vendor\'s website · granted' },
+  'scope.google.business.manage':          { name: "Update a vendor's Google Business Profile", spec: 'reviews and the profile claim · not requested until late October' },
 });
 
 /** Line one: the short name, or a humanised key when no entry exists. */
@@ -129,6 +139,11 @@ export function gateMeta(key: string): string | undefined {
 }
 
 /** Where the palette jumps: the card, anchored on the row. */
+/** The Meta template ID, for the evidence disclosure. */
+export function gateMetaId(key: string): string | undefined {
+  return GATE_COPY[key]?.metaId;
+}
+
 export function gatePath(key: string): string {
   return `/admin/switchboard#${key}`;
 }
@@ -165,5 +180,93 @@ export const STATUS_WORD: Readonly<Record<string, string>> = Object.freeze({
   not_requested: 'Not requested',
   dark: 'Not sending yet',
 });
+
+// ── R-41.82 · THE ROOMS, AND WHICH ROOM A GATE BELONGS TO ────────────────────
+// The card is grouped by ROOM — the thing the founder is switching, not the register's
+// kind. `Features you switch on / Message templates / Meta app permissions / Google
+// access` were the register's four internal categories: true of the data, useless to a
+// founder deciding whether payment reminders are sending.
+//
+// The order is the chair's (R-41.82, amended: `Your notices` last). The standing row is
+// not a group — `perm.whatsapp_business_pair` gates every WhatsApp send on the card, so
+// filing it inside any one room makes a precondition look local (fork B, ruled).
+export const STANDING_KEY = 'perm.whatsapp_business_pair';
+
+export const ROOM_ORDER = [
+  'Payment reminders', 'Contracts', 'Concierge', 'Reviews', 'Google',
+  'Instagram', 'Ads', 'Introductions', 'Wedding reel', 'Model routes', 'Your notices',
+] as const;
+export type Room = typeof ROOM_ORDER[number];
+
+// Fork A, ruled: the referral alert and the wedding credit invite are Introductions —
+// both go to a peer vendor and both recruit. The guest gallery consent is Wedding reel,
+// because consent is what makes a reel publishable.
+const ROOM_OF: Readonly<Record<string, Room>> = Object.freeze({
+  'flag.payment_reminder_send': 'Payment reminders',
+  'template.tdw_payment_reminder': 'Payment reminders',
+
+  'flag.contract_sign_send': 'Contracts',
+  'template.tdw_contract_sign': 'Contracts',
+  'template.tdw_contract_sign_otp': 'Contracts',
+  'flag.contract_copy_send': 'Contracts',
+  'template.tdw_contract_copy': 'Contracts',
+
+  'template.tdw_assist_lead_outside': 'Concierge',
+  'template.tdw_assist_lead_outside_v2': 'Concierge',
+  'template.tdw_assist_found_vendor': 'Concierge',
+  'template.tdw_assist_found_outside': 'Concierge',
+
+  'flag.review_ask_send': 'Reviews',
+  'template.tdw_review_request': 'Reviews',
+
+  'scope.google.siteverification': 'Google',
+  'scope.google.webmasters.readonly': 'Google',
+  'scope.google.business.manage': 'Google',
+
+  'perm.instagram_business_basic': 'Instagram',
+  'perm.instagram_business_manage_messages': 'Instagram',
+  'perm.instagram_business_manage_insights': 'Instagram',
+  'perm.instagram_business_content_publish': 'Instagram',
+  'perm.instagram_business_manage_comments': 'Instagram',
+
+  'perm.ads_read': 'Ads',
+  'perm.business_management': 'Ads',
+
+  'flag.referral_alert_send': 'Introductions',
+  'template.tdw_referral_alert': 'Introductions',
+  'flag.wedding_credit_send': 'Introductions',
+  'template.tdw_wedding_credit': 'Introductions',
+  'template.tdw_introduction': 'Introductions',
+
+  'flag.wedding_consent_send': 'Wedding reel',
+  'template.tdw_wedding_consent': 'Wedding reel',
+  'flag.wedding_reel': 'Wedding reel',
+
+  'template.tdw_capability_armed': 'Your notices',
+});
+
+/** The room a gate belongs to. A gate with no room falls to `Your notices` rather than
+ *  vanishing: a row the founder cannot see is worse than a row in the wrong place, and
+ *  a gate added to the register without an entry here is exactly F-41.122 again. */
+export function roomOf(key: string): Room {
+  return ROOM_OF[key] ?? 'Your notices';
+}
+
+// ── R-41.102 · A TEMPLATE IS ITS FLAG'S SECOND LINE ──────────────────────────
+// A `template.*` guarded by a `flag.*` renders as that flag's second line, and a flag
+// carries EVERY template its door sends — the contract flag carries both the signing
+// link and the signing code. Only an ORPHAN template gets a row. The join is the `meta`
+// field already in GATE_COPY; this derives it rather than keeping a second list.
+export function templatesUnder(flagKey: string): string[] {
+  const meta = GATE_COPY[flagKey]?.meta;
+  if (!meta || !flagKey.startsWith('flag.')) return [];
+  return Object.keys(GATE_COPY).filter((k) => k === `template.${meta}`
+    || (k.startsWith('template.') && GATE_COPY[k]?.meta?.startsWith(meta + '_')));
+}
+
+/** Every template that some flag speaks for — these do NOT get rows of their own. */
+export const GUARDED_TEMPLATES: readonly string[] = Object.freeze(
+  Object.keys(GATE_COPY).filter((k) => k.startsWith('flag.')).flatMap((f) => templatesUnder(f)),
+);
 
 export const GATE_KEYS: readonly string[] = Object.freeze(Object.keys(GATE_COPY));

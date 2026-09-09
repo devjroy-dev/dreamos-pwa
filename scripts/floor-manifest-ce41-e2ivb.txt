@@ -1,0 +1,36 @@
+# scripts/floor-manifest-ce41-e2ivb.txt — CE-41 · SEAT E · E2 (iv-b), THE SWITCHBOARD RE-SHAPE.
+# FLOOR = NAMED BASE, no delta. One cell arrives; none moves.
+#
+# RE-BASED 96b3ac7 -> 9a8ee1bb. The guard refused the first cut: seat D's R-41.139 frame
+# landed between the cut and the apply — the second time in this seat's arc the base guard
+# has stood between a stale packet and a real regression. Collision derivation over this
+# rider's four files: empty; D's packet is docs only (two files under docs/mocks/ADVISOR).
+# Every cell re-run at the new base, all green.
+#
+#   IN  scripts/ce41_e2ivb_switchboard_shape.mjs — 12 cells, 12 pass / 0 RED cured.
+#
+#   ITS SUBJECT ARRIVES WITH IT, SO THE UNCURED RUN IS NOT A RED — IT IS A CRASH.
+#   The cell imports ROOM_ORDER, roomOf, templatesUnder, GUARDED_TEMPLATES and
+#   STANDING_KEY, none of which exist before this rider, so at 96b3ac7 it fails to
+#   import rather than failing an assertion. That is honest and it is not a proof, so
+#   the cell is proved NON-VACUOUS BY PRODUCTION MUTATION instead — three mutations of
+#   the copy home, each run by command:
+#     · delete flag.wedding_reel's room mapping          -> 11/1
+#     · revert its verb to the noun the register prints  -> 11/1
+#     · delete a concierge template's room mapping       -> 11/1
+#     · restore                                          -> 12/0
+#
+#   THE CELL WAS WRONG TWICE AND BOTH ARE RECORDED IN IT.
+#     · It redded perm.whatsapp_business_pair for having no room — which is fork B's
+#       RULING, not a defect. An assertion that cannot tell a ruled exception from a
+#       gate that slipped through reports the ruling as the defect.
+#     · It redded template.tdw_payment_reminder for a name that echoes its key — but a
+#       FOLDED template is not a row, it is its flag's second line, and there the
+#       ratified copy is the message's NOUN ('Payment reminder' under 'Send payment
+#       reminders'). Left alone it would have pushed the next seat to invent a verb for
+#       a line the veto ruled should be a noun.
+#
+# THE CARD'S ARITHMETIC, DERIVED NOT PREDICTED: 24 rows + 8 folded + 1 standing = 33
+# gates. The 33rd is tdw_assist_lead_outside_v2. This seat predicted 24 rows for 32
+# gates at E1a; the v2 row is the difference and the fold count is unchanged.
+scripts/ce41_e2ivb_switchboard_shape.mjs
