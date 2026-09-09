@@ -19,6 +19,11 @@ export interface AssistForward {
   sent_at: string | null; created_at: string;
   vendor: { id: string; business_name: string | null; routing_handle: string | null; city: string | null } | null;
   prospect: { id: string; name: string | null; ig_handle: string | null; phone: string; state: string } | null;
+  // R-41.135 — the writer's OWN reading, rendered as-is. The queue must never
+  // re-derive "is there a record" from consent_source: two opinions on one fact is
+  // how a row says one thing beside a record that says another (consentState's own
+  // comment in src/lib/couple/assistance.js).
+  consent?: { state: 'her_words' | 'founder_attested' | 'none'; limb: string | null } | null;
 }
 export interface AssistDetail {
   ok: true; request: Omit<AssistRequestRow, 'items'>; items: (AssistItem & { forwards: AssistForward[] })[]; fanout_default: number;
@@ -40,7 +45,15 @@ export function searchAssistVendors(q: { category?: string; city?: string; q?: s
 export function forwardToVendor(itemId: string, vendor_id: string) {
   return adminPost<{ ok: true; forward: AssistForward; lead: { id: string; source: string } }>(`/api/v2/admin/assistance/items/${itemId}/forward`, { kind: 'vendor', vendor_id });
 }
-export function forwardToProspect(itemId: string, body: { phone: string; ig_handle?: string; name?: string }) {
+// R-41.133 / R-41.135 — the tick's four fields ride the same call the forward does.
+// `consent_text` is TDW'S OWN SENTENCE IN THE THIRD PERSON and is written by the
+// client, not composed by the server, so the exact bytes the chair vetoed are the
+// exact bytes stored. `consent_source: 'founder_attested'` is what tells the writer
+// TDW is speaking rather than her — see 0157's comment on the column.
+export function forwardToProspect(itemId: string, body: {
+  phone: string; ig_handle?: string; name?: string;
+  consent_text?: string; consent_source?: string; consent_recorded_by?: string;
+}) {
   return adminPost<{ ok: true; forward: AssistForward; dark?: { reason: string } }>(`/api/v2/admin/assistance/items/${itemId}/forward`, { kind: 'prospect', ...body });
 }
 export function closeAssistance(id: string) { return adminPost<{ ok: true }>(`/api/v2/admin/assistance/${id}/close`); }

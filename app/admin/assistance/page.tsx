@@ -56,6 +56,25 @@ const FORWARD_CODE_WORDS: Record<string, string> = {
   no_vendor_phone: 'That vendor has no WhatsApp number on file.',
 };
 // A status word the founder should read as final, with no code to explain it.
+// ── R-41.133 / R-41.135 · THE TICK'S BYTES, CHAIR-VETOED 2026-09-09 ──────────
+// One home for all three. The LABEL is what the founder reads; the SENTENCE is what
+// Meta would read. They must say the same thing, which is why the chair vetoed them
+// together after the first draft's label promised only consent while the record
+// claimed both limbs. Both name limb (a) — she GAVE the number — and limb (b) — she
+// AGREED to be messaged.
+//
+// ⚠ THE SENTENCE IS TDW SPEAKING, IN THE THIRD PERSON, ON PURPOSE. It is never her
+// words from a tick: that was the boolean 0156 refused, wearing her name. The source
+// word `founder_attested` is what marks it as TDW's, and 0157 is what admits it.
+const CONSENT_TICK_LABEL = 'I asked her for this number and she said yes.';
+const CONSENT_ATTESTED_TEXT = 'Founder asked her for this number and she gave it and agreed to be messaged.';
+const CONSENT_ATTESTED_SOURCE = 'founder_attested';
+// R-41.135 — one word for any record at all. The founder does not need to know WHICH
+// kind he has; he needs to know whether one exists. The distinction between her words
+// and TDW's attestation is kept in the COLUMN, where Meta would read it, and is not
+// spent on the queue. Nothing renders when there is none: no caution ink, no refusal.
+const CONSENT_NOTED = 'Consent noted';
+
 const FORWARD_STATUS_WORDS: Record<string, string> = {
   dark:  'Recorded, not sent. The outsider join alert is off.',
   sent:  'Sent.',
@@ -185,6 +204,9 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
   const [handle, setHandle] = useState('');
   const [phone, setPhone] = useState('');
   const [oname, setOname] = useState('');
+  // R-41.135 — OPTIONAL. Unticked forwards still send (R-41.132: the record is
+  // evidence, not a precondition) and simply carry no record.
+  const [attested, setAttested] = useState(false);
   const [sheet, setSheet] = useState<null | 'vendor' | 'outsider'>(null);
   const closed = request.status === 'closed';
   const sentTo = useMemo(() => new Set(item.forwards.filter(f => f.vendor_id).map(f => f.vendor_id as string)), [item.forwards]);
@@ -211,7 +233,12 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
     if (!phone.trim()) { onToast({ msg: 'A WhatsApp number is needed.', error: true }); return; }
     setBusy('outsider');
     try {
-      const out = await forwardToProspect(item.id, { phone: phone.trim(), ig_handle: handle.trim() || undefined, name: oname.trim() || undefined });
+      const out = await forwardToProspect(item.id, {
+        phone: phone.trim(), ig_handle: handle.trim() || undefined, name: oname.trim() || undefined,
+        // Sent ONLY when he ticked it. An untouched box writes nothing at all —
+        // never an empty string, which would read as a record that says nothing.
+        ...(attested ? { consent_text: CONSENT_ATTESTED_TEXT, consent_source: CONSENT_ATTESTED_SOURCE } : {}),
+      });
       // F-41.62: the same words on the toast as on the row, from the one map.
       // `dark.reason` is the switchboard's register grammar and is for the log.
       onToast({ msg: forwardWords(out.forward), error: out.forward.status === 'failed' });
@@ -241,7 +268,7 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
                   under R-41.71 and this rider touches shape and words only. */}
               {f.target_kind === 'vendor'
                 ? <><b style={{ color: T.ink, fontWeight: 500 }}>{f.vendor?.routing_handle || f.vendor?.business_name || f.vendor_id}</b> · Lead created. {when(f.created_at)}</>
-                : <><b style={{ color: T.ink, fontWeight: 500 }}>{f.prospect?.ig_handle ? `@${f.prospect.ig_handle}` : f.prospect?.name || f.prospect?.phone || f.prospect_id}</b> · <span style={{ color: f.status === 'dark' ? T.warning : f.status === 'failed' ? T.danger : T.soft }}>{forwardWords(f)}</span> · {when(f.created_at)}</>}
+                : <><b style={{ color: T.ink, fontWeight: 500 }}>{f.prospect?.ig_handle ? `@${f.prospect.ig_handle}` : f.prospect?.name || f.prospect?.phone || f.prospect_id}</b> · <span style={{ color: f.status === 'dark' ? T.warning : f.status === 'failed' ? T.danger : T.soft }}>{forwardWords(f)}</span>{f.consent && f.consent.state !== 'none' ? <> · {CONSENT_NOTED}</> : null} · {when(f.created_at)}</>}
             </div>
           ))}
         </div>
@@ -287,7 +314,25 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
         <FieldInput label="Instagram handle" value={handle} onChange={setHandle} placeholder="@handle" />
         <FieldInput label="WhatsApp number" value={phone} onChange={setPhone} placeholder="10 digits" />
         <FieldInput label="Name" value={oname} onChange={setOname} placeholder="If you know it" />
+        {/* ── R-41.133 / R-41.135 · ONE OPTIONAL TICK ────────────────────────
+            Above Forward, because it is a thing he does BEFORE sending, not a
+            setting. Optional: an unticked forward still sends and simply carries no
+            record (R-41.132). The label and the stored sentence are one home apiece
+            at the top of this file and say the same thing — both limbs of Meta's
+            Messaging Policy §1, so the founder is never ticking something narrower
+            than what gets written under his name. */}
+        <button type="button" onClick={() => setAttested(v => !v)}
+          style={{ display: 'flex', alignItems: 'flex-start', gap: 10, width: '100%', background: 'none',
+                   border: 'none', padding: '4px 2px 10px', cursor: 'pointer', textAlign: 'left' }}>
+          <span style={{ width: 16, height: 16, flexShrink: 0, marginTop: 1, borderRadius: 3,
+                         border: `1px solid ${attested ? T.gold : T.muted}`,
+                         background: attested ? T.gold : 'transparent' }} />
+          <span style={{ fontFamily: T.ff.body, fontSize: 13, lineHeight: 1.45, color: attested ? T.ink : T.soft }}>
+            {CONSENT_TICK_LABEL}
+          </span>
+        </button>
         <GoldBtn label={busy === 'outsider' ? '…' : 'Forward'} disabled={!!busy} onClick={fwdOutsider} />
+        {/* S2-16, KEPT as drawn — the refusal, plain. */}
         {/* S2-16, KEPT as drawn — the refusal, plain. */}
         <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginTop: 10, lineHeight: 1.5, paddingBottom: ABOVE_ADMIN_BAR }}>
           They get one message to join. Her number stays with us until they do.

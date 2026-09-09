@@ -1,0 +1,19 @@
+CE-41 · SEAT D · D3 (dreamos-pwa) · FLOOR MANIFEST
+base: 7b76858c75c5c6217bb59abd0c3ce8df2e2607e6
+
+b20_a3_assistance_pwa.proof.mjs   GREEN  127/127   was 119/119 — +8 (the tick section)
+tsc --noEmit                      exit 0, ZERO errors
+BOTH WAYS: cured GREEN 127/127 · uncured RED 119/127
+
+⚠ THIS PACKET NEEDS D3a5 (dream-os) OR THE ROW NEVER APPEARS. The queue's rows come
+from the READ door, which hydrated prospects WITHOUT the consent columns, so
+`f.consent` would be undefined on every row and "Consent noted" could never render.
+That is F-41.104, cut as D3a5 at e660d0e. APPLY D3a5 FIRST.
+
+ONE SEAT A CELL RE-CUT: it pinned `forwardToProspect(item.id, { phone: phone.trim()`
+ON ONE LINE, and the call is multiline now that the tick adds conditional fields.
+A cell that breaks on a line-wrap asserts FORMATTING, not behaviour. Whitespace-
+tolerant now, still asserting the thing it means.
+
+c-41.72: every replace grep-proved, in the form matching the bytes written.
+No migration. No dream-os byte in this ZIP.

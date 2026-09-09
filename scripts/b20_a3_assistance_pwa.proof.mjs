@@ -190,7 +190,12 @@ section('§7 · THE ADMIN QUEUE');
 const adm = strip(read(ADMIN));
 ok('the page exists at /admin/assistance and reads through lib/admin-api/assistance.ts', exists(ADMIN) && /from '@\/lib\/admin-api\/assistance'/.test(adm) && !/fetch\(/.test(adm));
 ok('money via formatRs (c-41.2), no glyph', /import \{ formatRs \} from '@\/lib\/vendor\/format'/.test(adm) && !/\u20b9/.test(read(ADMIN)));
-ok('the per-item forward row: vendor search by trade + city, alphabetical from the server; outsider by handle + number', /searchAssistVendors\(\{ category: item\.category, city: request\.city/.test(adm) && /forwardToVendor\(item\.id, v\.id\)/.test(adm) && /forwardToProspect\(item\.id, \{ phone: phone\.trim\(\)/.test(adm));
+ok('the per-item forward row: vendor search by trade + city, alphabetical from the server; outsider by handle + number', /searchAssistVendors\(\{ category: item\.category, city: request\.city/.test(adm) && /forwardToVendor\(item\.id, v\.id\)/.test(adm) && // D3 pwa: this pinned `{ phone: phone.trim()` ON ONE LINE, and the call is now
+    // multiline because R-41.135 added the tick's conditional fields. A cell that
+    // breaks on a line-wrap is asserting FORMATTING, not behaviour. Whitespace-
+    // tolerant now, and still asserts the thing it means: the outsider forward
+    // passes the typed number.
+    /forwardToProspect\(item\.id, \{\s*[\s\S]{0,80}?phone: phone\.trim\(\)/.test(adm));
 // SEAT D, D0: the chair struck the verbatim register reason at the S2 veto (S2-6).
 // `dark.reason` reads `template.tdw_assist_lead_outside is off on the switchboard` —
 // register grammar on glass, F-41.17's class. The row now speaks words from the one
@@ -428,6 +433,35 @@ function listTsx(dir = ROOT, out = []) {
      enq.length > 0 && /status: 200/.test(enq) && !/notFound\(\)/.test(enq));
   ok('R-41.119: /e/[id] carries NO phone and fetches nothing (no public door exists yet)',
      !/phone/i.test(enq) && !/fetch\(/.test(enq));
+}
+
+// ═══ D3 pwa · R-41.133 / R-41.135 — the tick, and the one word for a record ══
+{
+  const adm  = read(ADMIN);
+  const admS = strip(adm);
+  const api  = strip(read('lib/admin-api/assistance.ts'));
+
+  ok('R-41.133: the tick\'s label and the stored sentence each have ONE home',
+     (admS.match(/const CONSENT_TICK_LABEL =/g) || []).length === 1
+     && (admS.match(/const CONSENT_ATTESTED_TEXT =/g) || []).length === 1);
+  ok('R-41.133: both name BOTH limbs — asked for the number, and she agreed',
+     /I asked her for this number and she said yes\./.test(adm)
+     && /Founder asked her for this number and she gave it and agreed to be messaged\./.test(adm));
+  ok('R-41.133: the sentence is TDW in the THIRD PERSON, never her voice from a tick',
+     /Founder asked her/.test(adm) && !/CONSENT_ATTESTED_TEXT = '(yes|Yes)/.test(admS));
+  ok('R-41.133: it writes under founder_attested, the source 0157 admits',
+     /CONSENT_ATTESTED_SOURCE = 'founder_attested'/.test(admS));
+  ok('R-41.135: the tick is OPTIONAL — an untouched box sends nothing at all',
+     /\.\.\.\(attested \? \{ consent_text: CONSENT_ATTESTED_TEXT, consent_source: CONSENT_ATTESTED_SOURCE \} : \{\}\)/.test(admS));
+  ok('R-41.135: the queue reads consentState and NEVER re-derives from consent_source',
+     /f\.consent && f\.consent\.state !== 'none'/.test(admS)
+     && !/consent_source ===/.test(admS));
+  ok('R-41.135: one word for any record; nothing renders when there is none',
+     /const CONSENT_NOTED = 'Consent noted';/.test(admS)
+     && !/caution|No consent on file/.test(admS));
+  ok('R-41.135: the client carries the four fields and the state comes back typed',
+     /consent_text\?: string; consent_source\?: string/.test(api)
+     && /'her_words' \| 'founder_attested' \| 'none'/.test(api));
 }
 
 console.log(`\n${fail ? 'RED' : 'GREEN'} — b20_a3_assistance_pwa ${pass}/${pass + fail}`);
