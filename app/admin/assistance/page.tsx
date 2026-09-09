@@ -44,7 +44,18 @@ const REFUSAL_WORDS: Record<string, string> = {
 };
 // F-41.151: the door's sentence NAMES THE HANDLE ("already on TDW as @DEV440") and
 // F-41.100's names the count, so for those two the server's words beat the local map.
-const SERVER_WORDS_WIN = new Set(['already_a_vendor', 'fanout_reached']);
+// F-42.64: `no_city` joins them. Its sentence is the FOUNDER'S vetoed byte and the
+// door is its one home; deliberately NOT copied into REFUSAL_WORDS above, because a
+// second copy is a second thing to keep in step and the day they disagree the local
+// one silently wins. Today it would render anyway — through the `e.message` fallback,
+// because the map has no entry — and rendering by an absence is not a rule.
+const SERVER_WORDS_WIN = new Set(['already_a_vendor', 'fanout_reached', 'no_city']);
+// R-42.7 / F-42.64 — vetoed 2026-09-10. The intake DOOR has its own refusal, for a
+// request being typed; this is the QUEUE's, for a request already on file. Different
+// acts, different bytes, and the door's is not restated here — a cell asserts that
+// this page holds no copy of it, and a quotation in a comment would defeat the cell.
+const NO_CITY_LINE = 'This request has no city. Add one before forwarding it outside TDW.';
+
 const refusalText = (e: any): string =>
   (e && e.code && SERVER_WORDS_WIN.has(e.code) && e.error) ||
   (e && e.code && REFUSAL_WORDS[e.code]) || (e && e.message) || 'Forward refused';
@@ -272,6 +283,10 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
     setBusy(null);
   };
 
+  // The door's own test, spelled the same way (src/lib/couple/assistance.js): a city
+  // of one space is not a city. Derived from the ROW, never from a form's state.
+  const hasCity = !!(request.city && request.city.trim());
+
   const fwdWord = item.forwarded_count > 0 ? T.gold : T.muted;
   return (
     <div style={{ border: `0.5px solid ${T.border}`, borderRadius: 8, marginBottom: 12, background: T.card }}>
@@ -307,10 +322,30 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
           full-width control that opens its own sheet. The 430 arm does NOT
           bring the grid back — a desk is not the surface this queue is walked on.
           COLOUR: every T.* read below is carried byte-unchanged (R-41.101). */}
+      {/* ── F-42.64 · A REFUSAL THE SCREEN ALREADY KNEW, MOVED TO WHERE IT IS READ ──
+          The door refuses a cityless outsider forward (F-42.58) and the founder never
+          saw the sentence: `Toast` lives three seconds at `bottom:76px`, which in a 374
+          frame lands on the outsider sheet's own link row. He walked it twice, read
+          nothing, and had to find the reason in a Railway log. A confirmation you must
+          catch inside three seconds, behind a sheet, is not a confirmation — F-10.55's
+          family, one screen over.
+          THE CURE IS NOT A LOUDER TOAST. The header two components up already prints
+          `city not given`: this screen KNOWS before he types a number, a consent tick
+          and a name. So the door does not open, and the reason sits still beneath it.
+          THE TOAST STAYS as the backstop for the race the disable cannot cover — the
+          city blanked between this load and this tap — with `no_city` in
+          SERVER_WORDS_WIN so the founder's own vetoed byte is what renders.
+          THE TDW ARM IS UNTOUCHED: F-42.58 gates the outsider arm only, and disabling
+          both here would put a rule on the glass the door does not hold. */}
       {!closed && (
         <div style={{ display: 'grid', gap: 8, padding: '11px 13px' }}>
           <GhostBtn label={`Forward to a TDW vendor`} small disabled={!!busy} onClick={() => setSheet('vendor')} />
-          <GhostBtn label="Forward to someone not on TDW" small disabled={!!busy} onClick={() => setSheet('outsider')} />
+          <GhostBtn label="Forward to someone not on TDW" small disabled={!!busy || !hasCity} onClick={() => setSheet('outsider')} />
+          {!hasCity && (
+            <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, lineHeight: 1.5 }}>
+              {NO_CITY_LINE}
+            </div>
+          )}
         </div>
       )}
 
@@ -367,7 +402,6 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
           </div>
         )}
         <GoldBtn label={busy === 'outsider' ? '…' : 'Forward'} disabled={!!busy} onClick={() => fwdOutsider()} />
-        {/* S2-16, KEPT as drawn — the refusal, plain. */}
         {/* S2-16, KEPT as drawn — the refusal, plain. */}
         <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginTop: 10, lineHeight: 1.5, paddingBottom: ABOVE_ADMIN_BAR }}>
           They get one message to join. Her number stays with us until they do.
@@ -436,7 +470,12 @@ function TypedIntake({ onDone, onToast }: { onDone: () => Promise<void>; onToast
     <div style={{ paddingBottom: ABOVE_ADMIN_BAR }}>
       <FieldInput label="WhatsApp number" value={phone} onChange={setPhone} placeholder="10 digits" />
       <FieldInput label="Name" value={name} onChange={setName} placeholder="As she gave it" />
-      <FieldInput label="City" value={city} onChange={setCity} placeholder="Delhi" />
+      {/* R-42.7, founder-ruled 2026-09-10: "just make city mandatory — don't take the
+          form without it when I'm creating." The hint is the whole marker; the estate
+          has no required-field convention and a lone asterisk would be a new one.
+          `.trim()` in the guard below, not truthiness: a city of one space is not a
+          city, which is the rule the door and the forward gate both already read by. */}
+      <FieldInput label="City" value={city} onChange={setCity} placeholder="Delhi" hint="Needed" />
       <FieldInput label="Area" value={area} onChange={setArea} placeholder="optional" />
       {/* F-41.39: the date the request will carry is shown beside the label, and a hand-typed
           DD/MM/YYYY is accepted — the picker's typed digits do not always commit at 374. */}
@@ -446,7 +485,7 @@ function TypedIntake({ onDone, onToast }: { onDone: () => Promise<void>; onToast
       {ASSIST_ROWS.map(r => (
         <FieldInput key={r.category} label={r.label} value={budgets[r.category] || ''} onChange={v => setBudgets(b => ({ ...b, [r.category]: v }))} placeholder="Rs" />
       ))}
-      <GoldBtn label={busy ? '…' : 'File the request'} disabled={busy || items.length === 0 || phone.replace(/\D/g, '').length < 10} onClick={async () => {
+      <GoldBtn label={busy ? '…' : 'File the request'} disabled={busy || items.length === 0 || phone.replace(/\D/g, '').length < 10 || !city.trim()} onClick={async () => {
         setBusy(true);
         try {
           await createAssistanceTyped({ phone, name: name || undefined, city: city || undefined, area: area || undefined, wedding_date: normaliseDate(date) || undefined, brief: brief || undefined, items });

@@ -744,5 +744,46 @@ function listTsx(dir = ROOT, out = []) {
      !/24 rows for 32 gates/.test(sbSrc) && !/8 flags \+ 5 orphan templates/.test(sbSrc));
 }
 
+// ═══ §10 · R-42.7 · F-42.64 — the city, asked for where it is typed ═════════
+{
+  const admSrc = read('app/admin/assistance/page.tsx');
+  const adm = strip(admSrc);
+
+  section('§10 · R-42.7 — the intake form will not file without a city');
+
+  ok('R-42.7: the submit guard refuses a blank city, by .trim() and not by truthiness',
+     /disabled=\{busy \|\| items\.length === 0 \|\| phone\.replace\(\/\\D\/g, ''\)\.length < 10 \|\| !city\.trim\(\)\}/.test(adm));
+  ok('R-42.7: the City field carries its marker, and it is the vetoed word',
+     /label="City"[^/]*hint="Needed"/.test(admSrc));
+  // The guard must gate the FILE call, not merely exist somewhere on the page.
+  ok('R-42.7: nothing else can file — createAssistanceTyped has exactly one caller, behind that button',
+     (adm.match(/createAssistanceTyped\(/g) || []).length === 1);
+
+  section('§10b · F-42.64 — the refusal is read, not caught in three seconds');
+
+  ok('F-42.64: the outsider door is CLOSED on a cityless request',
+     /disabled=\{!!busy \|\| !hasCity\}/.test(adm)
+     && /onClick=\{\(\) => setSheet\('outsider'\)\}/.test(adm));
+  ok('F-42.64: the TDW arm is NOT gated — the door holds no such rule and the glass invents none',
+     (() => {
+       const m = adm.match(/<GhostBtn label=\{`Forward to a TDW vendor`\} small disabled=\{([^}]*)\}/);
+       return m ? (m[1].trim() === '!!busy' ? true : `TDW arm reads ${m[1]}`) : 'TDW arm not found';
+     })() === true);
+  ok('F-42.64: the reason renders BESIDE the closed door, from one home, and only when it applies',
+     /\{!hasCity && \(/.test(adm) && /\{NO_CITY_LINE\}/.test(adm)
+     && (admSrc.match(/const NO_CITY_LINE = /g) || []).length === 1);
+  ok('F-42.64: `hasCity` is derived from the ROW and reads it the way the door does',
+     /const hasCity = !!\(request\.city && request\.city\.trim\(\)\);/.test(adm));
+  ok('F-42.64: the toast stays as the backstop — no_city in SERVER_WORDS_WIN, so the founder\'s byte wins by rule',
+     /SERVER_WORDS_WIN = new Set\(\[[^\]]*'no_city'[^\]]*\]\)/.test(adm));
+  // ⚠ NOT copied into the local map: two copies of one vetoed sentence is two things
+  // to keep in step, and the local one wins the day they disagree.
+  ok('F-42.64: the door\'s sentence has ONE home — no local copy of it on this page',
+     !/no_city:\s*'/.test(adm) && !/Add a city/.test(admSrc));
+
+  ok('the queue\'s own line and the door\'s are DIFFERENT acts, so they are different bytes',
+     /This request has no city\. Add one before forwarding it outside TDW\./.test(admSrc));
+}
+
 console.log(`\n${fail ? 'RED' : 'GREEN'} — b20_a3_assistance_pwa ${pass}/${pass + fail}`);
 process.exit(fail ? 1 : 0);
