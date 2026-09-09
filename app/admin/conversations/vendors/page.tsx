@@ -44,8 +44,8 @@ function MessageBubble({ msg }: { msg: Message }) {
   return (
     <div style={{ display: 'flex', justifyContent: isVendor ? 'flex-end' : 'flex-start', marginBottom: 8 }}>
       <div style={{ maxWidth: '80%', background: isVendor ? T.gold : 'rgba(255,255,255,0.06)', border: isVendor ? 'none' : `0.5px solid ${T.border}`, borderRadius: isVendor ? '16px 4px 16px 16px' : '4px 16px 16px 16px', padding: '10px 14px' }}>
-        <div style={{ fontFamily: T.ff.body, fontSize: 13, fontWeight: 400, color: isVendor ? T.ink : T.ink, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{msg.body}</div>
-        <div style={{ fontFamily: T.ff.label, fontSize: 7, color: isVendor ? 'rgba(240,234,224,0.6)' : T.muted, marginTop: 4, letterSpacing: '0.1em', textAlign: 'right' as const }}>{msg.channel} · {timeAgo(msg.created_at)}</div>
+        <div style={{ fontFamily: T.ff.body, fontSize: 13, fontWeight: 400, color: isVendor ? T.onAccent : T.ink, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{msg.body}</div>
+        <div style={{ fontFamily: T.ff.label, fontSize: 7, color: isVendor ? T.onAccent : T.muted, opacity: isVendor ? 0.7 : 1, marginTop: 4, letterSpacing: '0.1em', textAlign: 'right' as const }}>{msg.channel} · {timeAgo(msg.created_at)}</div>
       </div>
     </div>
   );

@@ -1,0 +1,14 @@
+# scripts/floor-manifest-ce41-e2ia.txt — CE-41 · SEAT E · E2 (ia), THE HOTFIX.
+# FLOOR = NAMED BASE, no delta. One cell arrives; none leaves.
+#
+#   IN  scripts/ce41_e2ia_accent_ink.mjs — 8 cells, one per accent ground on disk.
+#       Both ways, by command: 3 pass / 5 RED at the uncured tree (6698abc),
+#       8 pass / 0 RED cured. Non-vacuous: production code moves every one.
+#
+# THE CELL WAS WRONG ONCE AND THE RECORD SAYS SO. Its first cut read a window of
+# lines rather than an element, which (a) redded AdminUI's progress bar on a
+# sibling's `color:` and (b) GREEN-LIT conversations/vendors — the very site the
+# founder walked — because the bubble's ink is one <div> deeper than its ground.
+# It now walks the painted element's JSX subtree by tag depth. A cell that passes
+# the defect it was written for is worse than no cell, and this one did, once.
+scripts/ce41_e2ia_accent_ink.mjs

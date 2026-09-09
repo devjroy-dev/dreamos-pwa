@@ -477,7 +477,7 @@ export default function DemoAdminPage() {
                 {photos.map((p, i) => (
                   <div key={i} style={{ position: 'relative', width: 72, height: 72 }}>
                     <img src={p.url} alt="" onClick={() => setHero(i)} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: p.is_hero ? `2px solid ${T.gold}` : `0.5px solid ${T.border}`, cursor: 'pointer' }} />
-                    {p.is_hero && <div style={{ position: 'absolute', top: 3, left: 3, background: T.gold, borderRadius: 4, padding: '1px 5px', fontFamily: T.ff.label, fontSize: 7, color: T.ink }}>HERO</div>}
+                    {p.is_hero && <div style={{ position: 'absolute', top: 3, left: 3, background: T.gold, borderRadius: 4, padding: '1px 5px', fontFamily: T.ff.label, fontSize: 7, color: T.onAccent }}>HERO</div>}
                     <button onClick={() => removePhoto(i)} style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, background: T.danger, border: 'none', color: '#fff', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                   </div>
                 ))}
@@ -528,7 +528,7 @@ export default function DemoAdminPage() {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, padding: '0 24px 20px', flexWrap: 'wrap' as const }}>
         {(['board', 'funnel', 'leads', 'claims'] as Tab[]).map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? T.gold : T.card, border: `0.5px solid ${tab === t ? T.gold : T.border}`, borderRadius: 10, padding: '7px 16px', fontFamily: T.ff.label, fontWeight: 600, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: tab === t ? T.ink : T.soft, cursor: 'pointer' }}>
+          <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? T.gold : T.card, border: `0.5px solid ${tab === t ? T.gold : T.border}`, borderRadius: 10, padding: '7px 16px', fontFamily: T.ff.label, fontWeight: 600, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: tab === t ? T.onAccent : T.soft, cursor: 'pointer' }}>
             {t === 'board' ? `Board (${vendors.length})` : t === 'funnel' ? 'Funnel' : t === 'leads' ? `Leads (${leads.length})` : `Claims (${claims.length})`}
           </button>
         ))}

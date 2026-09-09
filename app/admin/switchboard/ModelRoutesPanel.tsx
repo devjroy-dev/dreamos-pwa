@@ -79,7 +79,7 @@ function TwoWay({ options, value, onPick, disabled, readOnly, label }: {
             style={{
               ...base,
               background: on ? T.gold : 'transparent',
-              color: on ? T.ink : T.muted,
+              color: on ? T.onAccent : T.muted,
               cursor: disabled ? 'not-allowed' : on ? 'default' : 'pointer',
               opacity: disabled ? 0.55 : 1,
             }}

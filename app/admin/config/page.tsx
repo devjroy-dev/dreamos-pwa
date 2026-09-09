@@ -155,7 +155,7 @@ export default function ConfigPage() {
                   <button
                     onClick={() => save(key)}
                     disabled={!dirty || saving === key}
-                    style={{ background: dirty ? T.gold : 'transparent', border: `0.5px solid ${dirty ? T.gold : T.border}`, borderRadius: 8, padding: '8px 14px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: dirty ? '#0A0908' : T.muted, minHeight: 44, minWidth: 52, cursor: dirty ? 'pointer' : 'default', transition: 'all 0.2s' }}
+                    style={{ background: dirty ? T.gold : 'transparent', border: `0.5px solid ${dirty ? T.gold : T.border}`, borderRadius: 8, padding: '8px 14px', fontFamily: T.ff.label, fontSize: 8, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: dirty ? T.onAccent : T.muted, minHeight: 44, minWidth: 52, cursor: dirty ? 'pointer' : 'default', transition: 'all 0.2s' }}
                   >
                     {saving === key ? '…' : 'Save'}
                   </button>
