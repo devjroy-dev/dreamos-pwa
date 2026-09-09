@@ -190,7 +190,7 @@ section('§7 · THE ADMIN QUEUE');
 const adm = strip(read(ADMIN));
 ok('the page exists at /admin/assistance and reads through lib/admin-api/assistance.ts', exists(ADMIN) && /from '@\/lib\/admin-api\/assistance'/.test(adm) && !/fetch\(/.test(adm));
 ok('money via formatRs (c-41.2), no glyph', /import \{ formatRs \} from '@\/lib\/vendor\/format'/.test(adm) && !/\u20b9/.test(read(ADMIN)));
-ok('the per-item forward row: vendor search by trade + city, alphabetical from the server; outsider by handle + number', /searchAssistVendors\(\{ category: item\.category, city: request\.city/.test(adm) && /forwardToVendor\(item\.id, v\.id\)/.test(adm) && // D3 pwa: this pinned `{ phone: phone.trim()` ON ONE LINE, and the call is now
+ok('the per-item forward row: vendor search by trade + city, alphabetical from the server; outsider by handle + number', /searchAssistVendors\(\{ category: item\.category, city: request\.city/.test(adm) && /forwardToVendor\(item\.id, v\.id(, confirm)?\)/.test(adm) && // D3 pwa: this pinned `{ phone: phone.trim()` ON ONE LINE, and the call is now
     // multiline because R-41.135 added the tick's conditional fields. A cell that
     // breaks on a line-wrap is asserting FORMATTING, not behaviour. Whitespace-
     // tolerant now, and still asserts the thing it means: the outsider forward
@@ -552,6 +552,34 @@ function listTsx(dir = ROOT, out = []) {
        const held = consumers.filter((c) => inside.includes(c));
        return stray.length === 0 && held.length >= 2 ? true : `stray: ${stray.join(', ')}`;
      })() === true);
+}
+
+// ═══ D3c pwa · the link, the cap's question, the two refusals ═══════════════
+{
+  const adm = strip(read('app/admin/assistance/page.tsx'));
+  const api = strip(read('lib/admin-api/assistance.ts'));
+
+  ok('R-41.131: the queue shows the link and copies it — it never builds one',
+     /item\.wa_link/.test(adm) && /Or send her this link/.test(read('app/admin/assistance/page.tsx'))
+     && !/wa\.me/.test(adm));
+  ok('R-41.131: wa_link is typed on the item, optional, from the server',
+     /wa_link\?: string \| null/.test(api));
+
+  // F-41.100 — one question, and `confirm` only on the retry he asked for.
+  ok('F-41.100: the cap asks before it passes, on BOTH arms',
+     /fwdVendor\(v, true\)/.test(adm) && /fwdOutsider\(true\)/.test(adm)
+     && /Forward anyway/.test(read('app/admin/assistance/page.tsx')));
+  ok('F-41.100: nothing sends confirm by default',
+     /const fwdVendor = async \(v: AssistVendorTarget, confirm = false\)/.test(adm)
+     && /const fwdOutsider = async \(confirm = false\)/.test(adm));
+
+  // F-41.153 / F-41.151 — both were a bare 409 with an unchanged sheet.
+  ok('F-41.153/.151: both refusals have words, in the ONE existing map',
+     /fanout_reached:/.test(adm) && /already_a_vendor:/.test(adm)
+     && (adm.match(/const REFUSAL_WORDS/g) || []).length === 1);
+  // The door's sentence names the handle and the count; the local map is the fallback.
+  ok('F-41.151: the server\'s richer sentence wins for those two',
+     /SERVER_WORDS_WIN/.test(adm) && /SERVER_WORDS_WIN\.has\(e\.code\) && e\.error/.test(adm));
 }
 
 console.log(`\n${fail ? 'RED' : 'GREEN'} — b20_a3_assistance_pwa ${pass}/${pass + fail}`);

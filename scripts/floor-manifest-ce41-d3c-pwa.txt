@@ -1,0 +1,21 @@
+CE-41 · SEAT D · D3c pwa · FLOOR MANIFEST
+base: 727090ad1947d2ccff643393c2f08ba2b263ef89
+
+b20_a3_assistance_pwa   GREEN  150/150   was 144/144 — +6
+tsc --noEmit            exit 0
+build                   exit 1, 16 font fetches, ZERO type errors (F-40.134, founder's gate)
+
+NEEDS D3c3 (dream-os) FIRST — wa_link is built server-side and the link line hides
+without it. Everything else works either way.
+
+NOT IN THIS PACKET, WITH REASONS:
+· The Switchboard restrictions row has NO DATA SOURCE. D3c3 logs account_update and
+  acts on nothing by design, so there is nothing for a row to read. It needs a store —
+  a migration, not a pwa byte. CE-42.
+· F-41.152 IS ALREADY BUILT. `TypedIntake` in a "Type a request" sheet, wired to
+  createAssistanceTyped. I filed it against a grep for the wrong symbol. Withdrawn.
+· F-41.144/.145 are on neither tree; one line from the chair and they ship next.
+
+TWO SEALED CELLS MOVED: the vendor-call cell pinned the old two-argument signature
+(now confirm-tolerant), and R-41.101's key-set cell caught `T.surface` as a new colour
+key in this file — dropped, the border carries the code block.

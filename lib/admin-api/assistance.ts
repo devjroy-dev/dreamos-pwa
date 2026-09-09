@@ -7,6 +7,8 @@ export type AssistStatus = 'open' | 'forwarded' | 'closed';
 
 export interface AssistItem {
   id: string; request_id: string; category: string; budget_rs: number | null; forwarded_count: number;
+  // R-41.131 — built server-side (the marketing number is a server env); the queue copies it.
+  wa_link?: string | null;
 }
 export interface AssistRequestRow {
   id: string; couple_id: string | null; phone: string; name: string | null; status: AssistStatus;
@@ -42,8 +44,8 @@ export function searchAssistVendors(q: { category?: string; city?: string; q?: s
   if (q.q) p.set('q', q.q);
   return adminGet<{ ok: true; vendors: AssistVendorTarget[] }>(`/api/v2/admin/assistance/vendors?${p.toString()}`);
 }
-export function forwardToVendor(itemId: string, vendor_id: string) {
-  return adminPost<{ ok: true; forward: AssistForward; lead: { id: string; source: string } }>(`/api/v2/admin/assistance/items/${itemId}/forward`, { kind: 'vendor', vendor_id });
+export function forwardToVendor(itemId: string, vendor_id: string, confirm = false) {   // F-41.100
+  return adminPost<{ ok: true; forward: AssistForward; lead: { id: string; source: string } }>(`/api/v2/admin/assistance/items/${itemId}/forward`, { kind: 'vendor', vendor_id, ...(confirm ? { confirm: true } : {}) });
 }
 // R-41.133 / R-41.135 — the tick's four fields ride the same call the forward does.
 // `consent_text` is TDW'S OWN SENTENCE IN THE THIRD PERSON and is written by the
@@ -53,6 +55,7 @@ export function forwardToVendor(itemId: string, vendor_id: string) {
 export function forwardToProspect(itemId: string, body: {
   phone: string; ig_handle?: string; name?: string;
   consent_text?: string; consent_source?: string; consent_recorded_by?: string;
+  confirm?: boolean;   // F-41.100: sent only on a deliberate retry past the cap
 }) {
   return adminPost<{ ok: true; forward: AssistForward; dark?: { reason: string } }>(`/api/v2/admin/assistance/items/${itemId}/forward`, { kind: 'prospect', ...body });
 }

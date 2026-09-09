@@ -36,8 +36,18 @@ const REFUSAL_WORDS: Record<string, string> = {
   no_phone:           'A ten-digit WhatsApp number is needed.',
   ambiguous_prospect: 'Two prospects share those ten digits \u2014 resolve in Prospects first.',
   not_found:          'That item no longer exists.',
+  // F-41.153 / F-41.151 — met on the glass as a bare 409 with an unchanged sheet.
+  // The door sent a sentence for each; nothing rendered it. `already_a_vendor`'s own
+  // error names the handle, so `refusalText` prefers the server's words over these.
+  fanout_reached:     'This category has had its three.',
+  already_a_vendor:   'This number is already on TDW.',
 };
-const refusalText = (e: any): string => (e && e.code && REFUSAL_WORDS[e.code]) || (e && e.message) || 'Forward refused';
+// F-41.151: the door's sentence NAMES THE HANDLE ("already on TDW as @DEV440") and
+// F-41.100's names the count, so for those two the server's words beat the local map.
+const SERVER_WORDS_WIN = new Set(['already_a_vendor', 'fanout_reached']);
+const refusalText = (e: any): string =>
+  (e && e.code && SERVER_WORDS_WIN.has(e.code) && e.error) ||
+  (e && e.code && REFUSAL_WORDS[e.code]) || (e && e.message) || 'Forward refused';
 
 // ── F-41.62 · A META CODE IS NOT A SENTENCE ────────────────────────────────────
 // The outsider send's synchronous refusal comes back on the SUCCESS shape, not as
@@ -219,17 +229,24 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
     return () => { live = false; };
   }, [item.category, request.city, q]);
 
-  const fwdVendor = async (v: AssistVendorTarget) => {
+  // F-41.100 — the cap refuses once and the founder decides. `confirm` is only ever
+  // true on the retry he asked for; nothing sends it by default.
+  const [confirmFanout, setConfirmFanout] = useState<null | { label: string; go: () => void }>(null);
+
+  const fwdVendor = async (v: AssistVendorTarget, confirm = false) => {
     setBusy(v.id);
     try {
-      const out = await forwardToVendor(item.id, v.id);
+      const out = await forwardToVendor(item.id, v.id, confirm);
       onToast({ msg: `Lead created for ${v.routing_handle || v.business_name}.` });
       setSheet(null);            // the row it wrote is behind this sheet
       await onChanged();
-    } catch (e: any) { onToast({ msg: refusalText(e), error: true }); }
+    } catch (e: any) {
+      if (e?.code === 'fanout_reached') { setConfirmFanout({ label: e.error, go: () => { setConfirmFanout(null); fwdVendor(v, true); } }); }
+      else onToast({ msg: refusalText(e), error: true });
+    }
     setBusy(null);
   };
-  const fwdOutsider = async () => {
+  const fwdOutsider = async (confirm = false) => {
     if (!phone.trim()) { onToast({ msg: 'A WhatsApp number is needed.', error: true }); return; }
     setBusy('outsider');
     try {
@@ -238,6 +255,7 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
         // Sent ONLY when he ticked it. An untouched box writes nothing at all —
         // never an empty string, which would read as a record that says nothing.
         ...(attested ? { consent_text: CONSENT_ATTESTED_TEXT, consent_source: CONSENT_ATTESTED_SOURCE } : {}),
+        ...(confirm ? { confirm: true } : {}),
       });
       // F-41.62: the same words on the toast as on the row, from the one map.
       // `dark.reason` is the switchboard's register grammar and is for the log.
@@ -245,7 +263,12 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
       setHandle(''); setPhone(''); setOname('');
       setSheet(null);            // the row it wrote is behind this sheet
       await onChanged();
-    } catch (e: any) { onToast({ msg: refusalText(e), error: true }); }
+    } catch (e: any) {
+      // F-41.100: the cap. F-41.151: already a vendor — a REDIRECT, so the sentence
+      // names the handle and the founder closes this sheet and uses the TDW list.
+      if (e?.code === 'fanout_reached') { setConfirmFanout({ label: e.error, go: () => { setConfirmFanout(null); fwdOutsider(true); } }); }
+      else onToast({ msg: refusalText(e), error: true });
+    }
     setBusy(null);
   };
 
@@ -331,12 +354,45 @@ function ItemRow({ item, request, fanout, onChanged, onToast }: {
             {CONSENT_TICK_LABEL}
           </span>
         </button>
-        <GoldBtn label={busy === 'outsider' ? '…' : 'Forward'} disabled={!!busy} onClick={fwdOutsider} />
+        {/* ── F-41.100 · THE CAP ASKS ────────────────────────────────────────
+            One question, his answer. The sentence is the door's — it names the count
+            and the trade — so the glass adds no arithmetic of its own. */}
+        {confirmFanout && (
+          <div style={{ border: `1px solid ${T.warning}`, borderRadius: 6, padding: '12px 14px', marginBottom: 12 }}>
+            <div style={{ fontFamily: T.ff.body, fontSize: 13, lineHeight: 1.5, color: T.ink }}>{confirmFanout.label}</div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+              <GoldBtn label="Forward anyway" disabled={!!busy} onClick={confirmFanout.go} />
+              <GhostBtn label="Not now" small onClick={() => setConfirmFanout(null)} />
+            </div>
+          </div>
+        )}
+        <GoldBtn label={busy === 'outsider' ? '…' : 'Forward'} disabled={!!busy} onClick={() => fwdOutsider()} />
         {/* S2-16, KEPT as drawn — the refusal, plain. */}
         {/* S2-16, KEPT as drawn — the refusal, plain. */}
         <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginTop: 10, lineHeight: 1.5, paddingBottom: ABOVE_ADMIN_BAR }}>
           They get one message to join. Her number stays with us until they do.
         </div>
+
+        {/* ── R-41.131 · OR SEND HER THIS ─────────────────────────────────────
+            She taps it, WhatsApp opens on our marketing line with the message
+            pre-typed, and her first send both opens the window and names the
+            enquiry. Built server-side; the queue only copies it. */}
+        {item.wa_link && (
+          <div style={{ marginTop: 14, borderTop: `0.5px solid ${T.border}`, paddingTop: 12 }}>
+            <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginBottom: 6 }}>Or send her this link</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <code style={{ flex: 1, fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 11, color: T.ink,
+                             border: `0.5px solid ${T.border}`, borderRadius: 4,
+                             padding: '8px 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {item.wa_link}
+              </code>
+              <GhostBtn label="Copy" small onClick={() => {
+                navigator.clipboard?.writeText(item.wa_link || '');
+                onToast({ msg: 'Link copied.' });
+              }} />
+            </div>
+          </div>
+        )}
       </BottomSheet>
     </div>
   );
