@@ -771,11 +771,18 @@ export default function Home() {
               {/* Brand row */}
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
                 <div>
-                  <p style={{
-                    fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic',
-                    fontWeight: 300, fontSize: 20, color: '#F8F7F5',
-                    margin: 0, lineHeight: 1.15, letterSpacing: '0.02em',
-                  }}>The Dream Wedding</p>
+                  {/* R-41.126 (c) — THE WORDMARK BECOMES THE LOCKUP, AT ITS OWN HEIGHT.
+                      The type it replaces was Cormorant italic 20/1.15, so the image is
+                      23px tall and the row's baseline alignment is untouched. `alt` carries
+                      the words the picture now says, because a header whose brand is an
+                      image says nothing to a screen reader or to a search crawler without
+                      it. The dark-ground lockup: this header sits on the landing's dark
+                      hero, which does not have a light arm. */}
+                  <img
+                    src="/brand/lockup-for-dark-ground.png"
+                    alt="The Dream Wedding"
+                    style={{ height: 23, width: 'auto', display: 'block' }}
+                  />
                   {/* F-09.14 resolves to ONE line, founder-ruled (R-O11): `The Wedding OS`
                       replaces BOTH `THE CURATED WEDDING OS` and `India's First Wedding OS`
                       at all three homes — here, the exploring sites, and the document

@@ -278,6 +278,9 @@ function DomainSections({ domain, onNavigate }: { domain: Domain; onNavigate: ()
 }
 
 function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: () => void }) {
+  // R-41.126 (d) — the masthead's arm. Read from the cockpit's own lane through the same
+  // provider the scope and the Bridge's control use; nothing here decides a mode.
+  const { mode: mastheadMode } = useMode();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -303,9 +306,22 @@ function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: (
             his ruling; aria-label carries the word. */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontWeight: 400, fontSize: 22, color: 'var(--role-metal)', letterSpacing: '-0.01em', lineHeight: 1 }}>
-              The Dream Wedding
-            </div>
+            {/* R-41.126 (d) — THE COCKPIT MASTHEAD IS THE LOCKUP.
+                Cormorant italic 22 became a 25px image: 22 × 1.15 is the line box the type
+                occupied, so the Control Room line beneath does not move.
+
+                TWO LOCKUPS, BECAUSE THE COCKPIT HAS TWO ARMS (R-41.112). The dark-ground
+                lockup is a gold seal drawn to sit on Graphite; on Chalk it is gold on white,
+                which is the case `lockup-for-light-ground.png` exists for. The mode is read
+                from the cockpit's own lane, the same `useMode()` the scope and the Bridge's
+                control read — one authority, not a third. THE SPEC NAMED ONLY THE DARK
+                LOCKUP; swapping by arm is this seat's reading of it and is flagged for the
+                founder's veto rather than presented as the ruling. */}
+            <img
+              src={mastheadMode === 'light' ? '/brand/lockup-for-light-ground.png' : '/brand/lockup-for-dark-ground.png'}
+              alt="The Dream Wedding"
+              style={{ height: 25, width: 'auto', display: 'block' }}
+            />
             <div style={{ fontFamily: '"Jost",sans-serif', fontWeight: 400, fontSize: 9, color: 'var(--atelier-ink-mute)', letterSpacing: '0.34em', textTransform: 'uppercase', marginTop: 6 }}>
               Control Room
             </div>

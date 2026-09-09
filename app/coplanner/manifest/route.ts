@@ -74,11 +74,13 @@ export async function GET(req: NextRequest) {
     // exception `app/admin/layout.tsx` carries, for the same reason.
     background_color: '#0C0A09',
     theme_color:      '#0C0A09',
+    // R-41.126 — A FIFTH MANIFEST, AND IT IS NOT A FILE. This one is generated per
+    // request, so it is invisible to any sweep that reads public/ and would have kept
+    // serving the retired icons after they left the tree.
     icons: [
-      { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: '/brand/icon-graphite-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/brand/icon-graphite-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/brand/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
     prefer_related_applications: false,
   };

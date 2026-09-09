@@ -1,0 +1,20 @@
+# scripts/floor-manifest-ce41-brand.txt — CE-41 · SEAT E · R-41.126, THE BRAND FAMILY.
+# FLOOR = NAMED BASE, no delta. One cell arrives; none moves.
+#
+#   IN  scripts/ce41_brand_family.mjs — 15 cells. Both ways, by command:
+#       6 RED at the uncured tree (6116627), 15 pass / 0 RED cured.
+#
+# THE SPEC SAID "THE MANIFEST" AND THE TREE HAD FIVE. Four json files (site, admin,
+# couple, worklist) and one GENERATED PER REQUEST at app/coplanner/manifest/route.ts,
+# which no sweep of public/ can see and which would have kept serving the retired icons
+# after they left the tree. public/sw.js names a sixth reader — a push notification's
+# icon and badge, the one surface that cannot be re-rendered, since whatever shipped
+# with the service worker is what Android draws until the file changes. The cell FINDS
+# its readers rather than listing them (R-41.121).
+#
+# UNREFERENCED IS NOT STRAY. public/brand/ holds fourteen files; this rider points at
+# nine. The two whatsapp-profile-* images belong to Meta business profiles and to no web
+# surface, and favicon-64 and the light lockup are held for surfaces that do not exist
+# yet. The stray test is by LOCATION — an icon outside public/brand/ — so the cell cannot
+# red on the family for being larger than one rider's needs.
+scripts/ce41_brand_family.mjs

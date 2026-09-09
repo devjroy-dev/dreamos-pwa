@@ -73,6 +73,17 @@ export default function RootLayout({
             /manifest.json; this line is one of exactly two edits this arc makes to a
             pre-existing file, and it never travels to main. */}
         <link rel="manifest" href="/worklist-manifest.json" />
+        {/* R-41.126 — THE BRAND FAMILY, AT ITS ONE HOME. Every icon this estate serves
+            lives under /brand and is named here; app/favicon.ico is the family's .ico,
+            served by Next's own convention. The three apple-touch sizes are all linked
+            rather than only 180: an iPad asks for 152 and an older iPhone for 120, and a
+            device that finds no size of its own scales the largest, which is how a seal
+            with a thin rule comes out muddy on the one screen nobody tests on. */}
+        <link rel="icon" href="/brand/favicon-32.png" sizes="32x32" type="image/png" />
+        <link rel="icon" href="/brand/favicon-16.png" sizes="16x16" type="image/png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/brand/icon-graphite-180.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/brand/icon-graphite-152.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/brand/icon-graphite-120.png" />
         <meta name="theme-color" content="#1E0A0E" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

@@ -181,8 +181,11 @@ self.addEventListener('push', event => {
   try { data = event.data.json(); } catch { data = { title: 'TDW', body: event.data.text() }; }
   const options = {
     body: data.body || '',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    // R-41.126 — the family. A push notification is the one surface the founder cannot
+    // re-render: whatever icon shipped with the last service worker is what Android draws
+    // until this file changes, so it is named here rather than left to the manifest.
+    icon: '/brand/icon-graphite-192.png',
+    badge: '/brand/icon-graphite-192.png',
     data: { url: data.url || '/' },
     vibrate: [100, 50, 100],
     requireInteraction: data.requireInteraction || false,
