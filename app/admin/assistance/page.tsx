@@ -456,6 +456,20 @@ function normaliseDate(raw: string): string | null {
 const ABOVE_ADMIN_BAR = 'calc(96px + env(safe-area-inset-bottom, 0px))';
 
 function TypedIntake({ onDone, onToast }: { onDone: () => Promise<void>; onToast: (t: { msg: string; error?: boolean }) => void }) {
+  // ── F-42.74 · F-42.64's CURE, ONE COMPONENT ALONG ──────────────────────────
+  // The founder typed a VENDOR's number here, pressed File three times, and read
+  // nothing: three red 400s in a console he only had open by chance, and the reason
+  // (F-42.73) in a Railway log. `onToast` is three seconds at `bottom:76px`, and this
+  // is the LONGEST sheet on the queue — eleven budget fields below the fold — so its
+  // toast fires somewhere he is not looking, every time.
+  //
+  // The reason sits still, directly above the button that caused it, and stays until
+  // he CHANGES SOMETHING. Not a timer: a refusal that clears itself while the form
+  // still holds the thing it refused is a refusal that lies. `refused` is cleared by
+  // every field's own setter through `edit`, so any edit dismisses it and no edit
+  // leaves it standing. The toast stays as the backstop for the scroll position that
+  // does happen to be looking.
+  const [refused, setRefused] = useState<string | null>(null);
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
@@ -463,34 +477,49 @@ function TypedIntake({ onDone, onToast }: { onDone: () => Promise<void>; onToast
   const [date, setDate] = useState('');
   const [brief, setBrief] = useState('');
   const [budgets, setBudgets] = useState<Record<string, string>>({});
+
+  // One wrapper for every field, so the twelfth field somebody adds cannot forget to
+  // clear a refusal that is no longer about the form on screen.
+  const edit = <T,>(set: (v: T) => void) => (v: T) => { setRefused(null); set(v); };
   const [busy, setBusy] = useState(false);
   const items = Object.entries(budgets).filter(([, v]) => v.trim() !== '').map(([category, v]) => ({ category, budget_rs: parseInt(v.replace(/\D/g, ''), 10) || null }));
 
   return (
     <div style={{ paddingBottom: ABOVE_ADMIN_BAR }}>
-      <FieldInput label="WhatsApp number" value={phone} onChange={setPhone} placeholder="10 digits" />
-      <FieldInput label="Name" value={name} onChange={setName} placeholder="As she gave it" />
+      <FieldInput label="WhatsApp number" value={phone} onChange={edit(setPhone)} placeholder="10 digits" />
+      <FieldInput label="Name" value={name} onChange={edit(setName)} placeholder="As she gave it" />
       {/* R-42.7, founder-ruled 2026-09-10: "just make city mandatory — don't take the
           form without it when I'm creating." The hint is the whole marker; the estate
           has no required-field convention and a lone asterisk would be a new one.
           `.trim()` in the guard below, not truthiness: a city of one space is not a
           city, which is the rule the door and the forward gate both already read by. */}
-      <FieldInput label="City" value={city} onChange={setCity} placeholder="Delhi" hint="Needed" />
-      <FieldInput label="Area" value={area} onChange={setArea} placeholder="optional" />
+      <FieldInput label="City" value={city} onChange={edit(setCity)} placeholder="Delhi" hint="Needed" />
+      <FieldInput label="Area" value={area} onChange={edit(setArea)} placeholder="optional" />
       {/* F-41.39: the date the request will carry is shown beside the label, and a hand-typed
           DD/MM/YYYY is accepted — the picker's typed digits do not always commit at 374. */}
-      <FieldInput label="Wedding date" value={date} onChange={setDate} placeholder="YYYY-MM-DD or DD/MM/YYYY" hint={normaliseDate(date) ? `files as ${dateWord(normaliseDate(date))}` : (date ? 'not a date yet' : 'no date')} />
-      <FieldInput label="The look" value={brief} onChange={setBrief} placeholder="Her words" />
+      <FieldInput label="Wedding date" value={date} onChange={edit(setDate)} placeholder="YYYY-MM-DD or DD/MM/YYYY" hint={normaliseDate(date) ? `files as ${dateWord(normaliseDate(date))}` : (date ? 'not a date yet' : 'no date')} />
+      <FieldInput label="The look" value={brief} onChange={edit(setBrief)} placeholder="Her words" />
       <SectionDivider label="Budget per category (whole rupees; blank = not asked)" />
       {ASSIST_ROWS.map(r => (
-        <FieldInput key={r.category} label={r.label} value={budgets[r.category] || ''} onChange={v => setBudgets(b => ({ ...b, [r.category]: v }))} placeholder="Rs" />
+        <FieldInput key={r.category} label={r.label} value={budgets[r.category] || ''} onChange={edit((v: string) => setBudgets(b => ({ ...b, [r.category]: v })))} placeholder="Rs" />
       ))}
+      {refused && (
+        <div style={{ border: `1px solid ${T.warning}`, borderRadius: 6, padding: '12px 14px', marginBottom: 12 }}>
+          <div style={{ fontFamily: T.ff.body, fontSize: 13, lineHeight: 1.5, color: T.ink }}>{refused}</div>
+        </div>
+      )}
       <GoldBtn label={busy ? '…' : 'File the request'} disabled={busy || items.length === 0 || phone.replace(/\D/g, '').length < 10 || !city.trim()} onClick={async () => {
-        setBusy(true);
+        setBusy(true); setRefused(null);
         try {
           await createAssistanceTyped({ phone, name: name || undefined, city: city || undefined, area: area || undefined, wedding_date: normaliseDate(date) || undefined, brief: brief || undefined, items });
           onToast({ msg: 'Filed.' }); await onDone();
-        } catch (e: any) { onToast({ msg: e?.message || 'Could not file', error: true }); }
+        } catch (e: any) {
+          // The DOOR's sentence, never a local rewrite of it: F-42.73 names a handle
+          // this page cannot know, and R-42.7's names the field. One home, the door.
+          const why = e?.message || 'Could not file';
+          setRefused(why);
+          onToast({ msg: why, error: true });
+        }
         setBusy(false);
       }} />
     </div>

@@ -703,13 +703,26 @@ function listTsx(dir = ROOT, out = []) {
   ok('noindex ships in BOTH homes — the page\'s meta and the estate\'s robots file',
      /name="robots" content="noindex"/.test(e) && /'\/e\/'/.test(strip(read('app/robots.ts'))));
 
+  // AMENDED BY LABEL AT D5c. This cell carried the hit's heading alongside the four
+  // labels, and the founder re-ruled the heading on 2026-09-10. The LABELS are what it
+  // was minted for and they are untouched; the heading is asserted in §11a, where it
+  // can move with its own ruling instead of dragging four unrelated bytes red.
   ok('the four vetoed labels, byte-exact',
-     /hitTitle:\s*'Your enquiry is with us'/.test(eSrc)
-     && /service:\s*'Service'/.test(eSrc) && /city:\s*'City'/.test(eSrc)
+     /service:\s*'Service'/.test(eSrc) && /city:\s*'City'/.test(eSrc)
      && /month:\s*'Month'/.test(eSrc) && /budget:\s*'Budget'/.test(eSrc));
-  ok('the hit\'s second line was replaced — it promised details it now shows',
-     /hitSub:\s*'Reply on WhatsApp to take it\.'/.test(eSrc)
-     && !/hitSub:.*we will send you the full details/.test(eSrc));
+  // AMENDED BY LABEL AT D5c. Its MEANING was: the hit's second line must not promise
+  // details the page is already showing. That still binds — and the byte it pinned has
+  // been re-ruled twice since, so the cell now asserts the meaning and lets §11a hold
+  // the current words (R-41.121: a cell asserts the meaning the law names, never a
+  // spelling). The `full details` promise is what must never come back to the HIT.
+  ok('the hit\'s second line never promises details the page is already showing',
+     (() => {
+       const hit = /hitSub[A-Za-z]*:\s*'([^']*)'/g;
+       const lines = [];
+       let m; while ((m = hit.exec(eSrc))) lines.push(m[1]);
+       if (lines.length === 0) return 'no hit sub line found';
+       return lines.every(l => !/full details/.test(l)) ? true : `hit sub promises: ${lines.join('|')}`;
+     })() === true);
   ok('the miss keeps both of its bytes, unchanged',
      /missSub:\s*'Reply on the WhatsApp message and we will send you the full details\.'/.test(eSrc)
      && /noIdSub:\s*'Reply on WhatsApp and we will send it again\.'/.test(eSrc));
@@ -783,6 +796,69 @@ function listTsx(dir = ROOT, out = []) {
 
   ok('the queue\'s own line and the door\'s are DIFFERENT acts, so they are different bytes',
      /This request has no city\. Add one before forwarding it outside TDW\./.test(admSrc));
+}
+
+// ═══ §11 · D5c — the outsider's page, and the intake's refusal ══════════════
+{
+  const eSrc = read('app/e/[id]/route.ts');
+  const e = strip(eSrc);
+  const admSrc = read('app/admin/assistance/page.tsx');
+  const adm = strip(admSrc);
+
+  section('§11a · the founder\'s two lines on /e/');
+
+  ok('the hit\'s heading is the founder\'s byte — the page holds a SUMMARY, and it says so',
+     /hitTitle:\s*'Your enquiry details are with us'/.test(eSrc)
+     && !/hitTitle:\s*'Your enquiry is with us'/.test(eSrc));
+  ok('the line beneath reads `Sign in to thedreamwedding.in`, in two halves so the address can be an anchor',
+     /hitSubLead:\s*'Sign in to '/.test(eSrc) && /hitSubLink:\s*'thedreamwedding\.in'/.test(eSrc));
+  ok('and it is a REAL link — a domain a stranger has to retype is a dead end',
+     /const HOME = 'https:\/\/thedreamwedding\.in';/.test(e)
+     && /<a href="\$\{esc\(subHref\)\}">\$\{esc\(subLink\)\}<\/a>/.test(e)
+     && /page\(S\.hitTitle, S\.hitSubLead, rows, HOME, S\.hitSubLink\)/.test(e));
+  ok('the anchor\'s href and text are escaped like every other interpolation (F-41.156\'s rule holds)',
+     !/<a href="\$\{subHref\}"/.test(e) && !/>\$\{subLink\}</.test(e));
+  ok('the miss and the no-id keep all four of their bytes, untouched',
+     /missTitle:\s*'Your enquiry is with us'/.test(eSrc)
+     && /missSub:\s*'Reply on the WhatsApp message and we will send you the full details\.'/.test(eSrc)
+     && /noIdTitle:\s*'Enquiry not found'/.test(eSrc)
+     && /noIdSub:\s*'Reply on WhatsApp and we will send it again\.'/.test(eSrc));
+  ok('the link wears the estate\'s one action colour — /v/\'s .pv-cta ink, not a new one',
+     /a\{color:#7A621C/.test(e));
+  ok('the retired line is gone from the hit path',
+     !/hitSub:\s*'Reply on WhatsApp to take it\.'/.test(eSrc));
+
+  section('§11b · F-42.74 — the intake\'s refusal sits still');
+
+  ok('F-42.74: the reason renders above the button, from the state the catch fills',
+     /\{refused && \(/.test(adm) && /\{refused\}<\/div>/.test(adm)
+     && /const \[refused, setRefused\] = useState<string \| null>\(null\);/.test(adm));
+  ok('F-42.74: it carries the DOOR\'s sentence — this page never rewrites a refusal it cannot author',
+     /const why = e\?\.message \|\| 'Could not file';/.test(adm)
+     && /setRefused\(why\);/.test(adm) && /onToast\(\{ msg: why, error: true \}\);/.test(adm));
+  ok('F-42.74: the toast STAYS — the disable cannot cover a scroll position that is looking',
+     (adm.match(/onToast\(\{ msg: why, error: true \}\)/g) || []).length === 1);
+  ok('F-42.74: a fresh attempt clears the old reason before it can read as this one',
+     /setBusy\(true\); setRefused\(null\);/.test(adm));
+  // ⚠ The clearing is the half a bench would skip, and it is the half that decides
+  // whether the sentence tells the truth thirty seconds later.
+  ok('F-42.74: EVERY field in the intake clears it, through one wrapper — no field can forget',
+     (() => {
+       const i = adm.indexOf('function TypedIntake(');
+       if (i < 0) return 'TypedIntake not found';
+       const body = adm.slice(i);
+       const inputs = (body.match(/<FieldInput /g) || []).length;
+       const wrapped = (body.match(/onChange=\{edit\(/g) || []).length;
+       if (!/const edit = /.test(adm)) return 'no edit wrapper';
+       return inputs === wrapped ? true : `${inputs} fields, ${wrapped} wrapped`;
+     })() === true);
+  ok('F-42.74: and the wrapper is TypedIntake\'s only — the outsider sheet\'s own phone field is untouched',
+     (() => {
+       const i = adm.indexOf('function TypedIntake(');
+       const before = adm.slice(0, i);
+       return /value=\{phone\} onChange=\{setPhone\}/.test(before) && !/onChange=\{edit\(/.test(before)
+         ? true : 'the edit wrapper leaked outside TypedIntake';
+     })() === true);
 }
 
 console.log(`\n${fail ? 'RED' : 'GREEN'} — b20_a3_assistance_pwa ${pass}/${pass + fail}`);

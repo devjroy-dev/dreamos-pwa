@@ -53,10 +53,22 @@
 // to a crawler that was told not to come, and robots.txt is advisory.
 //
 // ── COPY ─────────────────────────────────────────────────────────────────────
-// Under R-41.98: plain, short, direct. Chair's veto, 2026-09-10: the four labels
-// `Service · City · Month · Budget`; the hit's heading KEPT; the hit's second line
-// replaced, because "we will send you the full details" becomes false the moment
-// the details are on the page; the miss keeps both of its bytes unchanged.
+// Under R-41.98: plain, short, direct. The four labels `Service · City · Month ·
+// Budget` are the chair's veto of 2026-09-10; the miss keeps both of its bytes.
+//
+// THE HIT'S TWO LINES ARE THE FOUNDER'S OWN, ruled the same night after he read the
+// page as its actual reader. What this page shows is a SUMMARY — service, city,
+// month, band — and by roadmap §7 it must never show her phone, her name, the exact
+// date or the figure. So "your enquiry DETAILS are with us" is the true sentence:
+// the rest exists, and it is with us. The line beneath says where, and it is a LINK,
+// because a sentence a stranger has to retype into a browser is a dead end wearing a
+// CTA's clothes. This is the vendor-join door this file's header has owed since D2.
+//
+// "SIGN IN" AND NOT "JOIN", and the choice was examined rather than inherited: the
+// recipient of `tdw_assist_lead_outside_v2` is by definition not on TDW, and my own
+// read-first argued she has no key for that door. The front door offers Join and
+// Sign in side by side (F-41.1's rider), so the link lands her where both are. The
+// founder's word stands and the shape is what makes it true.
 
 import { NextRequest } from 'next/server';
 
@@ -73,9 +85,15 @@ const BUILD = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
   || 'unknown';
 
 // ── THE VETOED BYTES, ONE HOME EACH ─────────────────────────────────────────
+const HOME = 'https://thedreamwedding.in';
+
 const S = {
-  hitTitle:  'Your enquiry is with us',
-  hitSub:    'Reply on WhatsApp to take it.',
+  hitTitle:  'Your enquiry details are with us',
+  // Rendered as `Sign in to <a>thedreamwedding.in</a>` — the domain is the link text
+  // and the whole line is one vetoed byte, split here only so the anchor can wrap the
+  // half that is an address. `subLink` is escaped like everything else.
+  hitSubLead: 'Sign in to ',
+  hitSubLink: 'thedreamwedding.in',
   missTitle: 'Your enquiry is with us',
   missSub:   'Reply on the WhatsApp message and we will send you the full details.',
   noIdTitle: 'Enquiry not found',
@@ -100,7 +118,7 @@ function esc(s: string): string {
 
 type Row = { label: string; value: string };
 
-function page(line: string, sub: string, rows: Row[] = []): Response {
+function page(line: string, sub: string, rows: Row[] = [], subHref?: string, subLink?: string): Response {
   // A null value omits its whole ROW (chair's ruling) — never a dash, never an
   // empty cell. `category` is NOT NULL on `assistance_request_items`, so a found
   // enquiry always draws at least one row and the block is never an empty frame.
@@ -122,12 +140,18 @@ function page(line: string, sub: string, rows: Row[] = []): Response {
     `main{max-width:420px;width:100%;text-align:center}` +
     `h1{font:400 24px/1.3 Georgia,serif;font-style:italic;margin:0 0 14px;color:#0C0A09}` +
     `p{margin:0;color:rgba(12,10,9,0.62);font-size:15px}` +
+    // The one gold on this page, and it is the action — `.pv-cta`'s ink from
+    // app/v/[code]/page.tsx:970, so a link here and a button on the storefront are
+    // the same colour of "do this next". Underlined: it is prose, not a control.
+    `a{color:#7A621C;text-decoration:underline;text-underline-offset:2px}` +
     `dl{margin:22px 0 18px;padding:0;text-align:left;border-top:1px solid rgba(12,10,9,0.10)}` +
     `dt{margin:0;padding:12px 0 0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;` +
     `color:rgba(12,10,9,0.50)}` +
     `dd{margin:0;padding:2px 0 12px;font-size:16px;color:#0C0A09;` +
     `border-bottom:1px solid rgba(12,10,9,0.10)}` +
-    `</style></head><body><main><h1>${esc(line)}</h1>${table}<p>${esc(sub)}</p></main></body></html>`,
+    `</style></head><body><main><h1>${esc(line)}</h1>${table}<p>${esc(sub)}${
+      subHref && subLink ? `<a href="${esc(subHref)}">${esc(subLink)}</a>` : ''
+    }</p></main></body></html>`,
     { status: 200, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } },
   );
 }
@@ -183,5 +207,5 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   // and an empty framed box is not.
   if (rows.length === 0) return page(S.missTitle, S.missSub);
 
-  return page(S.hitTitle, S.hitSub, rows);
+  return page(S.hitTitle, S.hitSubLead, rows, HOME, S.hitSubLink);
 }
