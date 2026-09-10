@@ -1,0 +1,42 @@
+# scripts/floor-manifest-ce42-shell-pwa.txt — CE-42 · SEAT SHELL · R-42.12 amended (dreamos-pwa) [F-19.16].
+# Every path this ZIP writes, and nothing else. scripts/run-floor.sh rides it as the
+# CHAIR'S ACT (c-42.43), named in the handover — not this seat's authorship.
+app/vendor/(shell)/dates/page.tsx
+app/vendor/(shell)/number/page.tsx
+app/vendor/(shell)/support/page.tsx
+components/solutions/SolutionsPieces.tsx
+components/worklist/WlToast.tsx
+lib/solutions/copy.ts
+lib/solutions/routes.ts
+lib/worklist/openDates.ts
+lib/worklist/ownNumber.ts
+docs/COPY_REGISTER_TDW19.md
+docs/handovers/CE42_SHELL_HANDOVER.md
+docs/mocks/SHELL_VETO_SHEET.md
+docs/mocks/shell-screens-mock.html
+docs/mocks/shell-screens-mock__D1-dates__dark__374.png
+docs/mocks/shell-screens-mock__D1-dates__dark__390.png
+docs/mocks/shell-screens-mock__D1-dates__light__374.png
+docs/mocks/shell-screens-mock__D1-dates__light__390.png
+docs/mocks/shell-screens-mock__D2-dates-tap__dark__374.png
+docs/mocks/shell-screens-mock__D2-dates-tap__dark__390.png
+docs/mocks/shell-screens-mock__D2-dates-tap__light__374.png
+docs/mocks/shell-screens-mock__D2-dates-tap__light__390.png
+docs/mocks/shell-screens-mock__H1-hub__dark__374.png
+docs/mocks/shell-screens-mock__H1-hub__dark__390.png
+docs/mocks/shell-screens-mock__H1-hub__light__374.png
+docs/mocks/shell-screens-mock__H1-hub__light__390.png
+docs/mocks/shell-screens-mock__N1-number__dark__374.png
+docs/mocks/shell-screens-mock__N1-number__dark__390.png
+docs/mocks/shell-screens-mock__N1-number__light__374.png
+docs/mocks/shell-screens-mock__N1-number__light__390.png
+docs/mocks/shell-screens-mock__N2-number-tap__dark__374.png
+docs/mocks/shell-screens-mock__N2-number-tap__dark__390.png
+docs/mocks/shell-screens-mock__N2-number-tap__light__374.png
+docs/mocks/shell-screens-mock__N2-number-tap__light__390.png
+scripts/b40_worklist_shell_bench.js
+scripts/b42_g11_wedding_pages_bench.js
+scripts/b73_shell_screens_bench.js
+scripts/floor-manifest-ce42-shell-pwa.txt
+scripts/run-floor.sh
+tools/bs_audit.mjs

@@ -82,8 +82,16 @@ export function WlToast({ toast }: { toast: ToastState | null }) {
 // must NOT be `--atelier-ink`: in Chalk that resolves to #0E1112, and near-black on dark
 // red measured 1.5:1 against a 4.5 floor. The error ink is pinned to Graphite's own ink
 // literal, which is light in both modes by construction. Ratify-or-revert, named.
+// ── F-42.202 · A TRANSIENT NOTICE NEVER INTERCEPTS A TAP (chair-ruled 2026-09-10) ──
+// The toast sits at the centre of the viewport, and on /vendor/dates the centre is
+// the Storefront row: for three seconds the pill swallowed any tap on its footprint,
+// so the door under it did nothing and said nothing. The pill is now transparent to
+// the finger — pointer-events none on the container — and the ONE thing on it that
+// is a control, the action (Undo, Retry: SliceShell.tsx:552 and :1021,
+// BinderCard.tsx:202), takes pointer-events auto back. A blanket none would have
+// cured the defect and killed every Undo in the estate in the same line.
 const TOAST_CSS = `
-.wl-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;
+.wl-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;pointer-events:none;
   display:flex;align-items:center;gap:8px;max-width:calc(100vw - 40px);
   padding:10px 18px;border-radius:999px;
   background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);
@@ -97,7 +105,7 @@ const TOAST_CSS = `
 .wl-toastmsg{font:var(--wl-t3);color:var(--atelier-ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wl-toast.err .wl-toastmsg{color:var(--atelier-ink)}
-.wl-toastaction{background:transparent;border:none;cursor:pointer;padding:2px 4px;
+.wl-toastaction{pointer-events:auto;background:transparent;border:none;cursor:pointer;padding:2px 4px;
   font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;
   color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-toast.err .wl-toastaction{color:var(--atelier-accent-text)}

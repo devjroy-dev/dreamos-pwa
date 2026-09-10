@@ -1247,6 +1247,17 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   const psm = solRoutes.match(/export const POSTS_HREF\s*=\s*'([^']+)'/);
   if (!psm) return 'POSTS_HREF is not declared: the posts & ads room has no address home (R6, 4b-1)';
   declared.add(psm[1]);
+  // ── AMENDED BY LABEL — CE-42 SHELL, R-42.12 AMENDED. THE EIGHTH AND NINTH
+  // CONSTANTS, AND THE CELL STILL DOES NOT LOOSEN. `dates` and `number` were the
+  // last two hub rows without a destination; each now opens a shell screen, and
+  // neither is a registry room, so both addresses live in `routes.ts` on the
+  // not-a-room precedent and this READS the two declarations. The set grows by
+  // exactly two MEMBERS; an undeclared `/vendor/…` literal is still a stray.
+  for (const name of ['DATES_HREF', 'NUMBER_HREF']) {
+    const dm = solRoutes.match(new RegExp('export const ' + name + "\\s*=\\s*'([^']+)'"));
+    if (!dm) return name + ' is not declared: a shell screen has no address home (R-42.12 amended)';
+    declared.add(dm[1]);
+  }
   const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
   if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT

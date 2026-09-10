@@ -25,6 +25,15 @@ as they do, and a register that drops it leaves the next reader guessing.
 
 ### 1a · `Coming` — ✅ **APPROVED as the seventh chip.** Spec §9 amended by label; its six were authored before R-19.5's gates existed, and a gated-off phase needs a state name. The chip set is now seven, closed.
 
+**Amended by label, 2026-09-10 — F-42.200 (CE-42, seat SHELL).** Two facts this
+section did not carry. (i) Arm C (founder, on his walk of 2026-09-05) added `Open`,
+the chip on a row that goes somewhere, so the set is **eight**, closed. (ii) R-42.12
+as amended (S4(c)) adds **none**: a row that routes to a screen whose act cannot run
+yet reads `Coming`. The §4 table below had gone on saying *PROPOSED* for `Coming`,
+`lib/solutions/copy.ts` said it was not approved, and `bs_audit` C8 printed it as
+awaiting veto — four sites, one fact. This section is the home; the other three now
+point here.
+
 | Approved (spec §9) | Proposed addition |
 |---|---|
 | Not connected · Connected · Needs attention · Searching · Live · Expired | **`Coming`** |
@@ -107,7 +116,8 @@ well. A row that oversells is the first place that slips.
 | `CHIPS.searching` | Searching | spec §9 |
 | `CHIPS.live` | Live | spec §9 |
 | `CHIPS.expired` | Expired | spec §9 |
-| `CHIPS.coming` | Coming | ⚠ **PROPOSED — see 1a** |
+| `CHIPS.coming` | Coming | ✅ **APPROVED — see 1a** |
+| `CHIPS.open` | Open | ✅ **VETOED 2026-09-05 (Arm C)** — the row that goes somewhere; see 1a |
 
 ## 5 · BUTTONS
 
@@ -165,6 +175,7 @@ apologises.**
 | `docStale` | Needs redoing | Proof — a Couture change outran the document |
 | `medianLabel` | median | so she knows whose the second number is |
 | `googleQuotaPending` | Automatic updates start once Google approves our access. | spec §8 gates the SYNC separately from the grant |
+| `launchingSoon` | Launching soon. | R-42.12 amended — what every act that cannot run yet says on tap (T1, `docs/mocks/SHELL_VETO_SHEET.md`) |
 
 **On the two error lines:** neither says "something went wrong". That phrasing
 tells a vendor nothing she can act on. Each names what is missing and what still

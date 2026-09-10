@@ -283,3 +283,15 @@ export const INTRODUCTIONS_HREF = '/vendor/introductions';
 // Not a registry room (no tile), so the address lives HERE on the not-a-room
 // precedent, and `b40` C31 READS this declaration rather than retyping it.
 export const POSTS_HREF = '/vendor/posts';
+
+// ── CE-42 · SHELL · R-42.12 AMENDED · THE EIGHTH AND NINTH CONSTANTS ───────
+// `Open dates & rates` and `Your own number` were the two hub rows with no
+// destination once R6 opened `posts`. R-42.12 as amended: every Business
+// Solutions row NAVIGATES, the screen says what the capability is, and the act
+// that cannot run yet says `Launching soon.` on tap. Both are shell screens,
+// not registry rooms (no tile), so the addresses live HERE on the not-a-room
+// precedent the seven above use, and `b40` C31 READS these declarations.
+// When R8 and R9 land their real rooms they take these same addresses: the
+// row's `PREVIEW_KEYS` entry leaves and nothing here moves.
+export const DATES_HREF  = '/vendor/dates';
+export const NUMBER_HREF = '/vendor/number';

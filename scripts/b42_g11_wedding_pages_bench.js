@@ -199,15 +199,35 @@ sec('C3 \u00b7 the hub (R-40.23)');
   ok('the footer line is KEPT', /COPY\.footerLine/.test(hub));
 }
 
-// ── C4 · A ROW WITH NO DESTINATION IS A ROW, NOT A DISABLED LINK ────────────
-// s-G11.2's ruling: a refusal drawn as a control that looks tappable is worse
-// than no control. Eight of the nine are not built.
-sec('C4 \u00b7 the eight are not links');
+// ── C4 · EVERY ROW IS A LINK WITH AN HREF ──────────────────────────────────
+// ── AMENDED BY LABEL — R-42.12 AMENDED, S5(b) (chair, 2026-09-10) ──────────
+// This section read "a row with no destination is a row, not a disabled link"
+// and pinned RoomRow's `<div>` branch — s-G11.2's "absent, not greyed", the
+// ratified W5-hub shape. The founder ruled the opposite: every Business
+// Solutions row navigates to its own screen, and nothing on the hub is inert.
+// With no row left lacking a destination the `<div>` branch RETIRED (the chair's
+// S5(b)), and the guarantee moved into the type: `ROOM_HREFS` is total over
+// `RoomKey`, so a destination-less row fails `tsc`. What this section guards
+// now is the property that replaced it — EVERY ROW IS A LINK WITH AN HREF — and
+// it is asserted as hard as the old one was: a `<div>` branch, an optional
+// `href`, or a `Partial` map all red.
+sec('C4 \u00b7 every row is a Link with an href');
 {
   const pieces = read(PIECES);
+  const code = strip(pieces);
   ok('SurfaceRow is retired', !/export function SurfaceRow/.test(pieces));
-  ok('RoomRow renders a div when there is no href',
-    /href\s*\?\s*<Link[\s\S]*?:\s*<div className="sol-row">/.test(pieces), 'no href/div branch');
+  // The window is bound by the FUNCTION'S OWN CLOSE (a brace alone on its line
+  // followed by a newline). The first cut stopped at `\n}` and landed on the
+  // destructuring's closing brace, two lines in — measuring the parameter list
+  // and calling the body absent (R-40.94: a window bound by the statement).
+  const rr = code.match(/export function RoomRow\([\s\S]*?\n\}\n/);
+  ok('RoomRow renders a Link and nothing else',
+    !!rr && /<Link href=\{href\} className="sol-row">/.test(rr[0]) && !/<div className="sol-row"/.test(rr[0]),
+    rr ? 'a non-Link branch survives' : 'RoomRow not found');
+  ok('RoomRow\u2019s href is REQUIRED, never optional',
+    !!rr && /\{ href: string; label: string/.test(rr[0]) && !/href\?:/.test(rr[0]));
+  ok('the hub\u2019s map is total over RoomKey, never Partial',
+    /const ROOM_HREFS: Record<RoomKey, string> = \{/.test(strip(read(HUB))) && !/Partial<Record/.test(strip(read(HUB))));
   // COMMENTS STRIPPED FIRST. The first cut read this file raw and hit RoomRow's
   // own comment EXPLAINING why aria-disabled is refused — the prohibition
   // reported as the breach. Third sighting of that class in this arc.
@@ -221,10 +241,18 @@ sec('C4 \u00b7 the eight are not links');
   // The assertion is not weakened, it is re-aimed: it now pins that the chip
   // TRACKS the destination, so a row that goes nowhere can never wear `Open`.
   // That is the property worth guarding; "exactly one chip exists" never was.
-  ok('every row carries a chip, and its word tracks the destination',
-    /<StateChip state=\{href \? 'open' : 'coming'\} \/>/.test(pieces));
-  ok('a row with no destination can never wear Open',
-    !/state="open"/.test(pieces) && !/state=\{'open'\}/.test(pieces));
+  // ── AMENDED BY LABEL — R-42.12 AMENDED, S4(c). The chip's word tracked the
+  // HREF ("a row that goes nowhere can never wear Open"). Every row has an href
+  // now, so the href can no longer carry that meaning; the cell is RE-AIMED to
+  // the set that does — `PREVIEW_KEYS` in the hub. The guarantee survives in
+  // its new form: a row the set names can never wear `Open`, and a row it does
+  // not name can never wear `Coming`.
+  ok('every row carries a chip, and its word tracks the preview set',
+    /<StateChip state=\{preview \? 'coming' : 'open'\} \/>/.test(pieces));
+  ok('the hub hands the set to the row, never a literal',
+    /preview=\{PREVIEW_KEYS\.has\(r\.key\)\}/.test(strip(read(HUB))));
+  ok('no row is ever handed a literal chip state',
+    !/state="open"/.test(pieces) && !/state=\{'open'\}/.test(pieces) && !/state="coming"/.test(pieces));
   // ── F-40.42 · THE DIVIDER SURVIVES A MIXED-TAG ROW LIST ──────────────────
   // The eight rows are div elements and the live row is an anchor, so a rule
   // keyed on last-of-type silently drops the border under the ONE row that has

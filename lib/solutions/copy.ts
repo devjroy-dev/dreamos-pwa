@@ -30,13 +30,23 @@
 // every sentence below is marked in the register as such.
 
 /**
- * ⚠ `coming` IS NOT IN THE FOUNDER'S APPROVED CHIP SET, and is flagged rather
- * than slipped in. Spec §9 approves six chips: Not connected · Connected ·
- * Needs attention · Searching · Live · Expired. R-19.5 then requires a chip for
- * a row whose env gate is closed, and none of the six says that honestly —
- * `Not connected` would tell a vendor she could connect it, which is the one
- * thing she cannot do. So a seventh is proposed here, named in the register as
- * NEW, and it is the founder's to strike.
+ * `coming` IS APPROVED — `docs/COPY_REGISTER_TDW19.md` §1a, CE-38 consolidated
+ * relay, 2026-08-28. The register is the one home for that fact; this comment
+ * points at it rather than restating a status it can drift from.
+ *
+ * ── F-42.200 · THIS COMMENT SAID THE OPPOSITE FOR TWO WEEKS ─────────────────
+ * It read "NOT IN THE FOUNDER'S APPROVED CHIP SET … the founder's to strike"
+ * while §1a recorded the approval, the register's own table row said PROPOSED,
+ * and `bs_audit` C8 printed it as awaiting veto on every run. Four sites, one
+ * fact, three spellings of the wrong answer. Cured together, the register wins.
+ *
+ * Why it exists at all is unchanged: spec §9's six (Not connected · Connected ·
+ * Needs attention · Searching · Live · Expired) predate R-19.5's gates, and
+ * `Not connected` would tell a vendor she could connect something she cannot.
+ *
+ * R-42.12 AMENDED (S4(c)) gives it a second use without a second word: a row
+ * that ROUTES to a screen whose act cannot run yet still reads `Coming`, because
+ * the chip describes the capability and the row is only the door to hear it.
  */
 export const CHIPS = {
   not_connected:   'Not connected',
@@ -149,6 +159,14 @@ export const COPY = {
   // Each is here rather than inline in a component, because a word typed into a
   // surface is a word the founder's one pass never sees.
 
+  /**
+   * R-42.12 AMENDED · the one byte every act that cannot run yet says on tap —
+   * `/vendor/dates`' `Suggest rates` and `/vendor/number`'s `Connect` today.
+   * Founder-vetoed (T1, `docs/mocks/SHELL_VETO_SHEET.md`). ONE HOME: any screen
+   * that needs it imports it from here and never types it.
+   */
+  launchingSoon: 'Launching soon.',
+
   /** When a surface's own door fails. Same shape as `indexUnavailable`. */
   surfaceUnavailable: 'This could not be loaded just now.',
 
@@ -254,6 +272,19 @@ export const COPY = {
 } as const;
 
 export type ChipKey   = keyof typeof CHIPS;
+/**
+ * The ten keys as a LITERAL UNION, not `string`. `support/page.tsx` types
+ * `ROOM_HREFS` as `Record<RoomKey, string>`, so a row ruled into `ROOM_ROWS`
+ * without a destination is a `tsc` error rather than a row that renders and
+ * goes nowhere (R-42.12 amended, S5(b)). `ROOM_ROWS` is `as const`, which is
+ * what makes this a union at all.
+ */
+export type RoomKey   = (typeof ROOM_ROWS)[number]['key'];
+/** A row's label by its key — the screens' titles read this, never a literal. */
+export function roomLabel(key: RoomKey): string {
+  for (const r of ROOM_ROWS) if (r.key === key) return r.label;
+  return '';   // unreachable: `key` is typed to the ten
+}
 export type ButtonKey = keyof typeof BUTTONS;
 // `RowKey` retired with `ROWS` (R-40.23). The nine are an ordered array, not a
 // keyed record, because their ORDER is the ruling and a record's key order is

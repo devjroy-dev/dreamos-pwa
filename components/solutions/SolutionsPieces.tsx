@@ -56,41 +56,41 @@ export function StateChip({ state }: { state: ChipKey }) {
 // `RoomRow` below replaces it. Retire with the reader; no commented corpse.
 
 /**
- * One row of the Business Solutions index (R-40.1's nine).
+ * One row of the Business Solutions index — and, since R-42.12 amended, a door
+ * on any Solutions screen (`/vendor/dates` uses it for the Storefront row).
  *
- * ⚠ A ROW WITH NO DESTINATION RENDERS AS A ROW, NEVER AS A DISABLED LINK.
- * Eight of the nine are not built yet. A `<Link>` to nowhere, or an `<a>` with
- * `aria-disabled`, both put a control under the thumb that answers nothing —
- * the s-G11.2 correction in the mock sitting made exactly this call about the
- * publish button, and the ruling was ABSENT, NOT GREYED. The ratified `W5-hub`
- * frame draws these eight as plain rows with a `Coming` chip, so a `<div>` is
- * what they are.
+ * ⚠ EVERY ROW IS A LINK, AND `href` IS REQUIRED. R-42.12 AMENDED, S5(b).
+ * This component used to render a `<div>` when there was no destination, on
+ * s-G11.2's "absent, not greyed" reading of the ratified `W5-hub` frame. The
+ * founder ruled the opposite shape on 2026-09-10: a vendor joining today taps
+ * any row and lands on a screen that says what the capability is; nothing on
+ * this surface is inert. With no row left lacking a destination, the `<div>`
+ * branch retired rather than surviving as a guard — `support/page.tsx` types
+ * `ROOM_HREFS` as `Record<RoomKey, string>`, so a destination-less row is now a
+ * `tsc` error before it is ever a dead tap. A guard that lives in the type is a
+ * guard that cannot be skipped by a caller who forgets to pass something.
  *
- * ⚠ THE LIVE ROW CARRIES `Open`, AND THAT REVERSES THE MOCK — founder-ruled on
- * his walk, 2026-09-05. The frame drew it bare and the reasoning was sound on a
- * screenshot: a chip that says nothing is chrome. On glass it failed, because
- * beside eight `Coming` rows the one working row was the only one with nothing
- * on its right and read as a heading. The walk outranks the frame (R-39.15).
+ * ⚠ THE CHIP TRACKS `preview`, NOT THE HREF. S4(c): a row that routes to a
+ * screen whose act cannot run yet reads `Coming` (register §1a, approved), and
+ * every other row reads `Open` (Arm C, founder-vetoed 2026-09-05). The set that
+ * decides is `PREVIEW_KEYS` in the hub; an entry leaves when the real room
+ * lands. Defaulting to `false` means a new caller gets the honest `Open` for a
+ * door that works — the set has to NAME a row to call it Coming.
  *
  * The two chips differ by INK as well as word — `Open` takes the accent, the
- * ink every live control on this shell already wears; `Coming` stays dim. A
- * reader scanning the column sees one bright chip among eight quiet ones before
- * reading a single word.
+ * ink every live control on this shell already wears; `Coming` stays dim.
  */
 export function RoomRow({
-  href, label,
-}: { href?: string; label: string }) {
-  const body = (
-    <>
+  href, label, preview = false,
+}: { href: string; label: string; preview?: boolean }) {
+  return (
+    <Link href={href} className="sol-row">
       <span className="sol-rowtext">
         <span className="sol-rowlabel">{label}</span>
       </span>
-      <StateChip state={href ? 'open' : 'coming'} />
-    </>
+      <StateChip state={preview ? 'coming' : 'open'} />
+    </Link>
   );
-  return href
-    ? <Link href={href} className="sol-row">{body}</Link>
-    : <div className="sol-row">{body}</div>;
 }
 
 /**
@@ -153,8 +153,9 @@ export function SolutionsStyles() {
 /* ── F-40.42 · last-of-type COUNTS PER TAG NAME, AND THE ROWS ARE TWO TAGS ──
    This read last-of-type and the founder walked the consequence: no divider
    under Wedding pages, while every other pair had one.
-   The mechanism, exactly: eight rows are div elements and the live row is an
-   anchor (RoomRow renders a Link only when there is a destination).
+   The mechanism, exactly: eight rows were div elements and the live row was an
+   anchor (RoomRow rendered a Link only when there was a destination; since
+   R-42.12 amended every row is one, and the rule below is still the right one).
    last-of-type matches the last sibling OF EACH ELEMENT TYPE, so the single
    anchor is both the first AND the last of its type and lost its border. The
    rule was correct for as long as all nine were Links; the div/Link split that
@@ -226,6 +227,18 @@ export function SolutionsStyles() {
 .sol-footer{margin-top:28px;padding-top:20px;border-top:.5px solid var(--atelier-card-border);
   display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 .sol-footerbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
+
+/* R-42.12 AMENDED · the shell screens (vetoed on the frames, 2026-09-10).
+   .sol-can is the what-you-will-be-able-to-do list: a plain list with a dim mark,
+   NOT .sol-item rows, because a bordered row beside a CTA reads as a door (the
+   lesson of W5-hub facing the other way). .sol-aside is the line and the door beneath the
+   CTA on /vendor/dates. Tokens only (R-42.6). No backticks and no straight apostrophes in this comment: it is inside a
+   template literal, and b40 C102 reads that as a shipped byte. */
+.sol-can{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;max-width:46ch}
+.sol-can li{position:relative;padding-left:16px;font:var(--wl-t3);color:var(--atelier-ink)}
+.sol-can li::before{content:"";position:absolute;left:2px;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--atelier-ink-dim)}
+.sol-aside{display:flex;flex-direction:column;margin-top:28px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
+.sol-asideline{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
 
 @media (prefers-reduced-motion: reduce){.sol-row,.sol-btn{transition:none}}
     `}</style>

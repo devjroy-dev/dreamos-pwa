@@ -350,10 +350,14 @@ console.log('');
 }
 
 // ── C8 · chips: spec §9's six present, and any seventh NAMED not hidden ────
-// `coming` is proposed by this seat under R-19.5 and is NOT in the founder's
-// approved set. The cell passes with it present, because a proposal is a
-// legitimate thing to ship pending veto — but it prints it every run so it
-// cannot become approved by nobody noticing.
+// ── AMENDED BY LABEL — F-42.200 (CE-42 SHELL, 2026-09-10): THE REGISTER WINS.
+// This header said `coming` was NOT approved and the cell printed it as
+// "PROPOSED, awaiting veto" on every run — while COPY_REGISTER_TDW19.md §1a had
+// recorded the approval since CE-38's consolidated relay (2026-08-28). A cell
+// that prints a status must print the register's, or it teaches the founder to
+// read past its line. Both extras are now APPROVED beyond the set, each with the
+// act that approved it; a chip beyond the six that is in NEITHER list still
+// prints as PROPOSED, so an unruled chip still cannot hide.
 {
   const SPEC9 = ['Not connected', 'Connected', 'Needs attention', 'Searching', 'Live', 'Expired'];
   const block = copyCode.match(/export const CHIPS = \{([\s\S]*?)\} as const;/);
@@ -368,12 +372,14 @@ console.log('');
     // "awaiting veto" would have been false about one of them, and a line that
     // is false about a byte the founder already ruled is how a veto gets asked
     // for twice.
-    const VETOED_BEYOND = ['Open'];
+    // `Open` — Arm C, founder-vetoed 2026-09-05 · `Coming` — register §1a,
+    // APPROVED at the CE-38 consolidated relay (F-42.200 moved it here).
+    const VETOED_BEYOND = ['Open', 'Coming'];
     const vetoed   = beyond.filter((v) => VETOED_BEYOND.includes(v));
     const proposed = beyond.filter((v) => !VETOED_BEYOND.includes(v));
     if (missing.length) F('C8  chips cover spec \u00a79', 'missing: ' + missing.join(', '));
     else P('C8  chips cover spec \u00a79',
-           `all six present${vetoed.length ? ' \u00b7 VETOED beyond the set: ' + vetoed.join(', ') : ''}` +
+           `all six present${vetoed.length ? ' \u00b7 APPROVED beyond the set: ' + vetoed.join(', ') : ''}` +
            `${proposed.length ? ' \u00b7 PROPOSED, awaiting veto: ' + proposed.join(', ') : ''}`);
   }
 }
@@ -593,11 +599,20 @@ try {
       total++;
       // The source carries `\u2019` escapes; the register carries the character.
       const shipped = m[2].replace(/\\u2019/g, '\u2019').replace(/\\'/g, "'");
-      if (!reg.includes(shipped)) missing.push(m[1]);
+      // ── AMENDED BY LABEL, TIGHTENED — F-42.200 (CE-42 SHELL, 2026-09-10) ──
+      // This asked `reg.includes(shipped)` — CONTAINMENT anywhere in the file —
+      // and `CHIPS.open`'s `Open` passed on the prose at §10 (*Open photograph
+      // 3*) while the register carried NO row for it. Derived by command before
+      // the change: exactly one of 39 strings passed by substring alone. The
+      // property the cell names is "the register CARRIES the string", and a
+      // register carries a string in a table cell — so the string must appear
+      // as a whole cell, `| <string> |`. The one hollow pass is cured in the
+      // same edit (the `CHIPS.open` row), so this tightens without a red.
+      if (!reg.includes('| ' + shipped + ' |')) missing.push(m[1]);
     }
     if (total === 0) F('C24 the copy register carries every shipped string', 'no strings parsed from copy.ts — the cell had nothing to assert');
     else if (missing.length) F('C24 the copy register carries every shipped string', `${missing.length} absent or altered: ${missing.join(', ')}`);
-    else P('C24 the copy register carries every shipped string', `${total}/${total} verbatim`);
+    else P('C24 the copy register carries every shipped string', `${total}/${total} verbatim, each as a table cell`);
   }
 }
 

@@ -558,7 +558,20 @@ if [ "$CHECK" = "yes" ]; then
   # Nothing leaves, nothing reclassifies. A base that prints a delta on every
   # delivery teaches the founder to read past the STOP (F-41.10); this act ends
   # that. A red not on this list is that delivery's to explain.
-  printf 'RED: b40_worklist_shell_bench\nRED: b42_g11_wedding_pages_bench\nRED: run-assign-words-proof\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_hotfix\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p2_retint\nRED: tdw10_p3_deck\nRED: tdw13_d4_extraction\nRED: tdw37_leadgate_b_slot\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\nRED: tdw_f3942_census_guard\n' | sort > /tmp/base.txt
+  # ── BASE RE-BASED, LABELLED — CE-42 · THE CHAIR'S ACT (c-42.43, 2026-09-10) ──
+  # Carried in seat SHELL's ZIP by the chair's ruling; the act is the chair's.
+  # BY MEASUREMENT: seat R6's cut 2 (4b-1) found +13 RED against this base and one
+  # line gone, all fourteen exiting identically at the untouched a96e2e23 — the
+  # base had been written at 2916661, 269 commits back. Re-measured by seat SHELL on
+  # a clean worktree at 85f6f3c1 with dream-os at aa1f5ec (full clone): 40 RED,
+  # 0 REFUSED, and the set equals the ruled edit exactly — derived by set arithmetic,
+  # not counted. THIRTEEN JOIN: b05_f0589_pwa_name_wire_bench, b61_f2_model_routes_panel,
+  # ce41_e2ivb_switchboard_shape, f04_96_three_rail_session, run-mode-bridge-proof,
+  # tdw07_p1_discover, tdw09_landing, tdw10_p1_shell, tdw10_p2_bridge, tdw10_tier,
+  # tdw41_c3_switchboard_copy, tdw_m_bridename_gate, waDial. ONE LEAVES:
+  # tdw10_p2_retint (retired, exits 0). Nothing reclassifies. A red not on this list
+  # is that delivery's to explain.
+  printf 'RED: b05_f0589_pwa_name_wire_bench\nRED: b40_worklist_shell_bench\nRED: b42_g11_wedding_pages_bench\nRED: b61_f2_model_routes_panel\nRED: ce41_e2ivb_switchboard_shape\nRED: f04_96_three_rail_session\nRED: run-assign-words-proof\nRED: run-mode-bridge-proof\nRED: tdw07_p1_discover\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_hotfix\nRED: tdw09_landing\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p1_shell\nRED: tdw10_p2_bridge\nRED: tdw10_p3_deck\nRED: tdw10_tier\nRED: tdw13_d4_extraction\nRED: tdw37_leadgate_b_slot\nRED: tdw41_c3_switchboard_copy\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\nRED: tdw_f3942_census_guard\nRED: tdw_m_bridename_gate\nRED: waDial\n' | sort > /tmp/base.txt
   grep -v '^REFUSED: ' /tmp/floor.txt > /tmp/floor_fail.txt
   if grep -q '^REFUSED: ' /tmp/base.txt; then
     echo "STOP — the named base carries a REFUSED line. Bases hold failures only (c-39.57)."

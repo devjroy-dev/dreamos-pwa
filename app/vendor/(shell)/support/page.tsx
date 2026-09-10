@@ -34,9 +34,9 @@ import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { COPY as WL } from '@/lib/worklist/copy';
 import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
+import { COPY, ROOM_ROWS, type RoomKey } from '@/lib/solutions/copy';
 import { roomHref } from '@/lib/worklist/rooms';
-import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, PAYMENT_REMINDERS_HREF, WEBSITE_HREF, INTRODUCTIONS_HREF, POSTS_HREF } from '@/lib/solutions/routes';
+import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, PAYMENT_REMINDERS_HREF, WEBSITE_HREF, INTRODUCTIONS_HREF, POSTS_HREF, DATES_HREF, NUMBER_HREF } from '@/lib/solutions/routes';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
 export default function SolutionsIndexPage() {
@@ -48,12 +48,19 @@ export default function SolutionsIndexPage() {
 }
 
 /**
- * THE ONLY ROOMS WITH A DESTINATION, KEYED BY `ROOM_ROWS`' OWN KEYS.
+ * EVERY ROW'S DESTINATION, KEYED BY `ROOM_ROWS`' OWN KEYS — ALL TEN.
  * Every address is read from `lib/solutions/routes.ts`; not one is a literal
  * here, because `b40` C31 matches any `/vendor…` literal reachable from a shell
  * page against a declared set and this file is reachable from all of them.
+ *
+ * ⚠ A TOTAL `Record<RoomKey, string>`, NOT `Partial<Record<string, string>>`.
+ * R-42.12 AMENDED, S5(b): every row navigates, so the type now says so. A row
+ * ruled into `ROOM_ROWS` without an entry here fails `tsc` — the destination-
+ * less row is caught at the build, not on a vendor's thumb — and a key that is
+ * not a row fails the same way. The `Partial` this replaced let both through
+ * and rendered the first as a `Coming` row that answered nothing.
  */
-const ROOM_HREFS: Partial<Record<string, string>> = {
+const ROOM_HREFS: Record<RoomKey, string> = {
   wedding_pages: WEDDING_PAGES_HREF,
   google:        GOOGLE_REVIEWS_HREF,
   // G5.1 · R-G51.10 — the third of the nine opens. `RoomRow` renders a
@@ -107,7 +114,23 @@ const ROOM_HREFS: Partial<Record<string, string>> = {
   // gains its destination; the chip flips Coming → Open off the href alone. A
   // CONSTANT for the same not-a-registry-room reason as introductions above.
   posts:         POSTS_HREF,
+  // ── CE-42 · SHELL · R-42.12 AMENDED — THE LAST TWO ROWS GAIN SCREENS ──────
+  // Shell screens: what the capability is, and the one act that says
+  // `Launching soon.` on tap. Constants for the not-a-registry-room reason the
+  // five above give. Their chips stay `Coming` through `PREVIEW_KEYS` below.
+  dates:         DATES_HREF,
+  number:        NUMBER_HREF,
 };
+
+/**
+ * THE ROWS WHOSE SCREEN CANNOT ACT YET — R-42.12 AMENDED, S4(c).
+ * Each opens a screen (`ROOM_HREFS` above) whose one control says `Launching
+ * soon.`; the chip on its hub row reads `Coming` (register §1a) rather than
+ * `Open`, because `Open` on this list has meant "the thing works" since Arm C.
+ * An entry LEAVES this set in the same edit that lands the real room — R8 for
+ * `dates`, R9 for `number` — and the chip flips with it. No ninth chip.
+ */
+const PREVIEW_KEYS: ReadonlySet<RoomKey> = new Set<RoomKey>(['dates', 'number']);
 
 function SolutionsIndexScreen() {
   // ── R-40.23 · THE NINE REPLACE THE SIX, AND THE FETCH RETIRES WITH THEM ────
@@ -135,23 +158,19 @@ function SolutionsIndexScreen() {
           <RoomRow
             key={r.key}
             label={r.label}
-            // ── G2 · TWO OF THE NINE NOW OPEN ────────────────────────────
-            // The other seven pass no href and render as rows with a `Coming`
-            // chip — drawn, never disabled (see RoomRow). A row WITH an href
-            // takes `Open` in the accent ink, and that asymmetry is the
-            // founder's own ruling from his walk of 2026-09-05: `W5-hub` drew
-            // the live row with no chip at all, which read correctly on a
-            // screenshot and failed on glass — beside eight quiet rows the one
-            // WORKING row was the only one with nothing on its right, so it read
-            // as a heading rather than a door.
+            // ── R-42.12 AMENDED · EVERY ROW IS A DOOR ──────────────────────
+            // The href is never undefined now: `ROOM_HREFS` is total over
+            // `RoomKey`. What the chip says is `PREVIEW_KEYS`' decision, not the
+            // href's — `Open` in the accent ink for a row whose room works (the
+            // founder's walk of 2026-09-05, Arm C: beside quiet rows the working
+            // one must not read as a heading), `Coming` for a row whose screen
+            // cannot act yet.
             //
-            // ⚠ A MAP, NOT A GROWING TERNARY. The first cut of this was
-            // `r.key === 'wedding_pages' ? A : undefined`; a second room makes
-            // that a chain, and the third makes it unreadable. The map is
-            // exhaustive by construction — a key with no entry is `undefined`,
-            // which is exactly `Coming`, so a new room opens by adding one line
-            // here and nothing else changes.
+            // ⚠ A MAP, NOT A GROWING TERNARY — still. A new room opens by one
+            // line in `ROOM_HREFS`; a preview becomes a room by one entry
+            // leaving `PREVIEW_KEYS`. Neither edit touches this element.
             href={ROOM_HREFS[r.key]}
+            preview={PREVIEW_KEYS.has(r.key)}
           />
         ))}
       </nav>
