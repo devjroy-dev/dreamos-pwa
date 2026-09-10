@@ -1,0 +1,238 @@
+<!doctype html>
+<!--
+  docs/mocks/storefront-pulse-mock.html
+  TDW_19 · G4.4 · R8-2 — THE DEMAND PULSE, in the Storefront room.
+  Cut 2. Cut 1's card stands; its SURROUND and one label did not.
+
+  ── e-3 · R-42.6 · THE SURROUND CARRIED THREE COLOURS THE ESTATE
+  ── DOES NOT OWN, and a census by command is what found them, not a look:
+  ──
+  ──   for h in $(grep -oE '#[0-9A-Fa-f]{3,6}' <this file> | sort -u); do
+  ──     printf '%-9s %s\n' "$h" "$(cat app/globals.css lib/worklist/theme.ts \
+  ──       lib/vendor/theme.ts | grep -ioF -- "$h" | wc -l)"; done
+  ──
+  ── Cut 1 returned 0 for #2a2b2d (page surround), #8b8d90 (frame caption) and
+  ── #ddd (heading) — all three in the chrome AROUND the frames, none in the card.
+  ── D2's first frame is the same class: the card gets audited and the mounting
+  ── board does not, because the board "is only the mock". It is not. It is the
+  ── surface the founder judges the card against, and a colour invented there is
+  ── a colour the eye calibrates to. Every hex below now returns a non-zero count
+  ── against globals.css, heading and captions included:
+  ──
+  ──   #0E1112  9   light --atelier-ink      → the board
+  ──   #B9BCBF  8   dark  --atelier-label    → the heading and captions
+  ──   rgba(240,244,246,0.3)  dark --atelier-card-border → the frame hairline
+  ──
+  ── The board is the LIGHT theme's ink. A mock of a dark-capable room mounted on
+  ── a colour borrowed from the other theme's text is the one honest thing to do
+  ── with a value that has no surround of its own: it belongs to the estate, and
+  ── it is not pretending to be a page.
+
+  MOCK-FIRST. Copy vetoed by the founder at R8-2:
+    · label A ("This week on your page") STRUCK — the read is `checked_at >=
+      now - 7d`, a ROLLING seven days, and "this week" reads as a calendar week.
+      On a Monday morning the two differ by six days, so the card would have been
+      quietly wrong every Monday. F is the label.
+    · F "Last 7 days" · B · C · D as proposed · E kept verbatim.
+  No money byte: wallet law binds the rate nudge, which is not this sitting.
+
+  FRAMES, all at 374 (the narrow arm):
+    P1-pulse   · the card with rows          — light / dark
+    P2-zero    · nobody asked                — light / dark   (THE CARD IS ABSENT)
+    P3-plus    · the read hit its 1000 cap   — light
+
+  ⚠ THE SWITCH ROW ABOVE EACH CARD IS SHIPPED COPY, NOT DRAWN COPY.
+  `COPY.storefrontDateSwitch` — "Let couples check a date" — and the pill are the
+  room's own, at screen.tsx:470-497. Cut 1 invented "Check a date / On" for that
+  row, which is the public leaf's byte wearing the room's clothes. It is here so
+  the pulse is judged where it will actually sit: directly under the consent that
+  produced it, so cause and effect read top to bottom.
+
+  ⚠ THE PULSE IS A READOUT, NOT A CONTROL. No tap target. It opens nothing.
+-->
+<meta charset="utf-8">
+<title>Storefront · the demand pulse · R8-2 · cut 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=DM+Sans:wght@300;400;500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── DARK (globals.css :727-800) ───────────────────────────────────── */
+  .dark {
+    --atelier-page-bg:     #141516;
+    --atelier-ink:         #F0E6D2;
+    --atelier-ink-mute:    rgba(240,230,210,0.58);
+    --atelier-ink-fade:    rgba(240,230,210,0.37);
+    --atelier-card-bg:     linear-gradient(180deg, rgba(240,244,246,0.06) 0%, rgba(240,244,246,0.03) 100%);
+    --atelier-card-border: rgba(240,244,246,0.3);
+    --atelier-input-bg:    rgba(240,244,246,0.04);
+    --atelier-label:       #B9BCBF;
+    --atelier-accent-text: #C9A84C;
+    --role-ink-deep:       #141516;
+  }
+  /* ── LIGHT (globals.css :821-886) ──────────────────────────────────── */
+  .light {
+    --atelier-page-bg:     #F3F4F4;
+    --atelier-ink:         #0E1112;
+    --atelier-ink-mute:    rgba(23,25,26,0.70);
+    --atelier-ink-fade:    rgba(23,25,26,0.46);
+    --atelier-card-bg:     linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(245,242,238,0.65) 100%);
+    --atelier-card-border: rgba(23,25,26,0.18);
+    --atelier-input-bg:    rgba(23,25,26,0.04);
+    --atelier-label:       #0D6A5A;
+    --atelier-accent-text: #0D6A5A;
+    --role-ink-deep:       #F3F4F4;
+  }
+
+  /* ── THE BOARD. Estate values only — see the census in the header. ──── */
+  body { margin:0; background:#0E1112; font-family:'DM Sans',system-ui,sans-serif; padding:28px 18px 60px; }
+  h1   { color:#B9BCBF; font:400 15px 'Jost'; letter-spacing:.14em; text-transform:uppercase; margin:0 0 20px; }
+  .row { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; }
+  .cap { color:#B9BCBF; font:400 11px 'Jost'; letter-spacing:.10em; text-transform:uppercase; margin:0 0 8px; opacity:.72; }
+
+  /* THE FRAME. 374 is the narrow arm; the room's own inset is 24. */
+  .frame {
+    width:374px; background:var(--atelier-page-bg); color:var(--atelier-ink);
+    --slice-inset:24px; overflow:hidden; padding-bottom:26px;
+    border:.5px solid rgba(240,244,246,0.3);
+  }
+
+  /* SectionLabel — screen.tsx:94-104, byte for byte in shape. */
+  .sect { padding:24px var(--slice-inset) 14px; display:flex; align-items:center; gap:12px; }
+  .sect span { font:500 11px 'Jost'; letter-spacing:.16em; text-transform:uppercase; color:var(--atelier-label); white-space:nowrap; }
+  .sect i    { flex:1; height:.5px; background:var(--atelier-card-border); }
+
+  /* THE SWITCH — shipped, screen.tsx:470-497. Here as context, not as proposal. */
+  .sw     { margin:0 var(--slice-inset); display:flex; align-items:center; gap:14px; padding:20px 0 6px; }
+  .sw > b { flex:1; font:400 16px/1.4 'DM Sans'; color:var(--atelier-ink); }
+  .pill   { width:46px; min-width:46px; height:27px; border-radius:14px; position:relative; background:var(--atelier-accent-text); border:.5px solid var(--atelier-accent-text); }
+  .knob   { position:absolute; top:2px; right:2px; width:21px; height:21px; border-radius:50%; background:var(--role-ink-deep); }
+  .stand  { margin:0 var(--slice-inset); font:300 13px/1.55 'DM Sans'; color:var(--atelier-ink-mute); padding-bottom:4px; }
+
+  /* THE CARD. 0.5px border and the card gradient — the room's one card idiom. */
+  .card {
+    margin:0 var(--slice-inset); padding:16px 18px 14px;
+    background:var(--atelier-card-bg); border:.5px solid var(--atelier-card-border);
+  }
+  .pulse { display:flex; align-items:baseline; gap:10px; padding:9px 0; }
+  .pulse + .pulse { border-top:.5px solid var(--atelier-card-border); }
+  /* THE FIGURE IS THE ONE THING THAT CARRIES THE ACCENT. Nothing else in the
+     card competes with it, so the eye lands on the count and not on a label. */
+  .n    { font:400 26px 'Italiana',Georgia,serif; line-height:1; color:var(--atelier-accent-text); min-width:52px; }
+  .txt  { font:400 14px/1.45 'DM Sans'; color:var(--atelier-ink); }
+  .fine { font:400 11.5px/1.5 'DM Sans'; color:var(--atelier-ink-fade); margin:12px 0 0; padding-top:11px; border-top:.5px solid var(--atelier-card-border); }
+</style>
+
+<h1>R8-2 · the demand pulse · Storefront · 374 · cut 2</h1>
+
+<div class="row">
+
+  <!-- ═══ P1 · THE CARD WITH ROWS ═══════════════════════════════════════ -->
+  <div>
+    <p class="cap">P1-pulse · light · 374</p>
+    <div class="frame light">
+      <div class="sw"><b>Let couples check a date</b><span class="pill"><span class="knob"></span></span></div>
+      <div class="sect"><span>Last 7 days</span><i></i></div>
+      <div class="card">
+        <div class="pulse"><span class="n">3</span><span class="txt">checks on 4 December</span></div>
+        <div class="pulse"><span class="n">2</span><span class="txt">checks on 6 December</span></div>
+        <div class="pulse"><span class="n">1</span><span class="txt">check on 22 November</span></div>
+        <p class="fine">Each check is one look at one date, not one person.</p>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p class="cap">P1-pulse · dark · 374</p>
+    <div class="frame dark">
+      <div class="sw"><b>Let couples check a date</b><span class="pill"><span class="knob"></span></span></div>
+      <div class="sect"><span>Last 7 days</span><i></i></div>
+      <div class="card">
+        <div class="pulse"><span class="n">3</span><span class="txt">checks on 4 December</span></div>
+        <div class="pulse"><span class="n">2</span><span class="txt">checks on 6 December</span></div>
+        <div class="pulse"><span class="n">1</span><span class="txt">check on 22 November</span></div>
+        <p class="fine">Each check is one look at one date, not one person.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ P2 · ZERO — THE CARD IS ABSENT, NOT EMPTY ═════════════════════ -->
+  <div>
+    <p class="cap">P2-zero · light · 374 — no card, no label, no zero</p>
+    <div class="frame light">
+      <div class="sw"><b>Let couples check a date</b><span class="pill"><span class="knob"></span></span></div>
+      <p class="stand">Couples can ask if you are free on their date, straight from your page.</p>
+    </div>
+  </div>
+
+  <div>
+    <p class="cap">P2-zero · dark · 374</p>
+    <div class="frame dark">
+      <div class="sw"><b>Let couples check a date</b><span class="pill"><span class="knob"></span></span></div>
+      <p class="stand">Couples can ask if you are free on their date, straight from your page.</p>
+    </div>
+  </div>
+
+  <!-- ═══ P3 · THE CAP BIT — EVERY FIGURE WEARS THE + ═══════════════════ -->
+  <div>
+    <p class="cap">P3-plus · light · 374 — truncated:true</p>
+    <div class="frame light">
+      <div class="sw"><b>Let couples check a date</b><span class="pill"><span class="knob"></span></span></div>
+      <div class="sect"><span>Last 7 days</span><i></i></div>
+      <div class="card">
+        <div class="pulse"><span class="n">48+</span><span class="txt">checks on 4 December</span></div>
+        <div class="pulse"><span class="n">31+</span><span class="txt">checks on 6 December</span></div>
+        <p class="fine">Each check is one look at one date, not one person.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!--
+  ⚠ THE STANDING LINE IN P2 IS A PLACEHOLDER FOR SHAPE ONLY. The room's real
+  byte is `COPY.storefrontDateStanding` (copy.ts:493) and it is NOT reproduced
+  here, because a mock that retypes a shipped byte is a second home for it and
+  will drift on the first edit. P2 exists to show that the section CLOSES where
+  it closes today; the sentence that closes it is the room's, unchanged.
+
+═══════════════════════════════════════════════════════════════════════════
+  THE THREE DECISIONS — RULED AS DRAWN AT R8-2, RESTATED SO THE BUILD IS BOUND
+═══════════════════════════════════════════════════════════════════════════
+
+1 · ZERO RENDERS NOTHING — NOT AN EMPTY CARD. P2 draws no label, no shell, no
+    "0 checks". The switch's standing line closes the section exactly as it does
+    today, so the room a vendor with no demand opens is the room she already
+    knows — not a room with a hole in it saying nobody looked at you this week.
+
+2 · THE `+` IS ON EVERY FIGURE OR NONE. `truncated` is one flag for the whole
+    response, because the rows the 1000-cap cut off could have belonged to any
+    date. P3 shows BOTH rows wearing it. Never per-row.
+
+3 · THE DATE DROPS ITS YEAR INSIDE ELEVEN MONTHS. `4 December`, the leaf's own
+    en-GB rendering (app/v/[code]/date/page.tsx) minus a year that is noise on a
+    card about the last seven days. Outside eleven months the year returns, so a
+    2028 muhurat cannot read as this season.
+
+═══════════════════════════════════════════════════════════════════════════
+  COPY — AS VETOED. These five enter lib/worklist/copy.ts and nothing else does.
+  F-42.51 (checks, never brides) · no persona name · no money byte · U+2019
+  where an apostrophe is needed — none of the five needs one.
+═══════════════════════════════════════════════════════════════════════════
+
+  F · section label       11 B  0603deca4fcb660f  Last 7 days
+  B · row, singular       21 B  bf16f46c0914f814  1 check on 4 December
+  C · row, plural         22 B  cfcc98ece9dca0ea  3 checks on 4 December
+  D · row, truncated      24 B  6078c3b8c115639e  48+ checks on 4 December
+  E · fine line           51 B  38f6b4ff25aa42ac  Each check is one look at one date, not one person.
+
+  A · STRUCK               —    7c39c0adb1ac2544  This week on your page
+
+  ⚠ E CARRIES F-42.51 ON ITS OWN AND IS NOT DECORATION. `0160` has no asker key
+  by ruling, so three refreshes by one bride and three brides are the same three
+  rows and always will be. Without E the card reads as a headcount and she will
+  price against it.
+
+  ⚠ B AND C ARE ONE SENTENCE WITH A PIVOT, NOT TWO STRINGS. `check`/`checks`
+  turns on the count and the count is rendered as its own element, so the built
+  bytes are the noun and the preposition — never a whole line concatenated from
+  a number the room formatted itself. The `+` in D rides the FIGURE, not the
+  noun: `48+` then `checks on 4 December`, so D shares C's byte exactly.
+-->

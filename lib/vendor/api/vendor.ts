@@ -4,6 +4,7 @@
 
 import { API } from '@/lib/solutions/routes';
 import { getJson, postJson, patchJson, API_BASE, getAuthHeader, handleResponse } from './_base';
+import type { DatePulse } from '@/lib/worklist/pulse';
 import { getVendorSession, setVendorSession, clearVendorSession } from '@/lib/vendor/session';
 import type {
   MeResponse, VendorContextResponse, TodayResponse, WorklistTodayResponse,
@@ -1040,6 +1041,26 @@ export function reorderPortfolio(orderedIds: string[]): Promise<PortfolioListRes
 
 export function fetchDiscoverStatus(): Promise<DiscoverStatus | ApiErr> {
   return getJson<DiscoverStatus | ApiErr>('/api/v2/vendor/discover/status');
+}
+
+// ── TDW_19 G4.4 · R8-2 · THE DEMAND PULSE ──────────────────────────────────
+// The vendor comes from the JWT and there is NO id in this path — mode A on the
+// door (`src/api/vendor/availability.js`, dream-os @ 7a18bf6). These rows are a
+// private fact about who is interested in her, and a door that took an id in its
+// path is a door someone eventually calls with somebody else's.
+//
+// ⚠ THE ADDRESS IS `/availability/pulse` AND ITS ORDER IS LOAD-BEARING ON THE
+// SERVER. `/:vendorId` is declared in the same router and matches the literal
+// segment `pulse` perfectly happily; below it, this call would land in the
+// block-list door and 403 on her own pulse with nothing in any log. It is
+// declared above, and dream-os `b67` §8.1 pins that by source position.
+//
+// A FAILED READ IS AN `ApiErr`, NEVER `dates: []`. The door answers 500 rather
+// than an empty week for exactly this reason: «nobody asked» is a sentence the
+// room may draw and «we could not look» is not, and the caller must be able to
+// tell them apart. See the render arm in the Storefront screen.
+export function fetchDatePulse(): Promise<DatePulse | ApiErr> {
+  return getJson<DatePulse | ApiErr>('/api/v2/vendor/availability/pulse');
 }
 
 // TDW_07 P4b · F5 — "See your profile as couples do". The card is shaped SERVER-side by the

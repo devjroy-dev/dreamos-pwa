@@ -501,6 +501,30 @@ export const COPY = {
    *  ⚠ These two are NOT interchangeable, and that is why `capacity_reason`
    *  exists (R-G31.6) — one byte serving both would be right half the time. */
   storefrontDateUnmapped: 'Date checks aren\u2019t set up for your kind of work yet.',
+  // ── R8-2 · G4.4's DEMAND PULSE · FOUNDER-VETOED 2026-09-10 ───────────────
+  // Five bytes. `date_checks` (0160) accumulated from R8-1 and nothing read it;
+  // these are what the reading says. Proposal A — 「This week on your page」 —
+  // was STRUCK at the veto: the door's window is `checked_at >= now - 7d`, a
+  // ROLLING seven days, and 「this week」 reads as a calendar week. On a Monday
+  // morning the two differ by six days, so the label would have been quietly
+  // wrong every Monday. F is the label.
+  /** F · the SectionLabel over the card. Plain, and true to what was read. */
+  storefrontPulseLabel: 'Last 7 days',
+  /** B/C · the pivot. ⚠ THESE ARE THE NOUN AND ITS PREPOSITION, NOT WHOLE
+   *  LINES, because the figure is its own element in the display face and a
+   *  register that also owned the number would own a thing it cannot format.
+   *  Composed with the count and the date they are byte-identical to the two
+   *  vetoed lines — 「1 check on 4 December」 and 「3 checks on 4 December」 —
+   *  and `b70` §3.1 asserts that composition against the vetoed bytes
+   *  themselves, so a reworded fragment cannot quietly change the sentence. */
+  storefrontPulseOne:  'check on',
+  storefrontPulseMany: 'checks on',
+  /** E · under the rows, and the byte the whole card rests on. `0160` carries
+   *  NO asker key by ruling, so three refreshes by one bride and three
+   *  different brides are the same three rows and always will be. Without this
+   *  line the card reads as a headcount and she will price against it. It is
+   *  not a caveat; it is what the figure means. */
+  storefrontPulseFine: 'Each check is one look at one date, not one person.',
   /** D3 · the room's readout of what a stranger can see. `on your page`, not
    *  `your weddings` — a narrower set than what she has. */
   storefrontWeddingsLabel: 'Weddings on your page',

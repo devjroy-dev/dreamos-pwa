@@ -53,7 +53,8 @@ import { roomHref } from '@/lib/worklist/rooms';
 // this block LINKS /vendor/discover/profile, it does not absorb it.
 import { useState } from 'react';
 import { useSettings } from '@/hooks/vendor/useSettings';
-import { fetchDiscoverStatus, fetchPortfolio, updateMe } from '@/lib/vendor/api/vendor';
+import { fetchDatePulse, fetchDiscoverStatus, fetchPortfolio, updateMe } from '@/lib/vendor/api/vendor';
+import { pulseLines, type DatePulse } from '@/lib/worklist/pulse';
 // R-G31.7 · the SAME header every shell call sends. The revalidate route reads
 // it to ask dream-os who the caller is; the handle never comes from a body.
 import { getAuthHeader } from '@/lib/vendor/api/_base';
@@ -371,6 +372,47 @@ function PublicPageBand() {
     return () => { live = false; };
   }, [current.routing_handle]);
 
+  // ── TDW_19 G4.4 · R8-2 · THE DEMAND PULSE ────────────────────────────────
+  // `null` until the door answers. ONE read, on mount, and never re-run when the
+  // switch moves: flipping the switch OFF does not delete the week's rows and
+  // flipping it ON does not create any, so a refetch on toggle would redraw the
+  // same card and tie a readout to a control it does not depend on.
+  const [pulse, setPulse] = useState<DatePulse | null>(null);
+  // ⚠ A FAILED READ IS TRACKED SEPARATELY FROM AN EMPTY WEEK EVEN THOUGH BOTH
+  // DRAW NOTHING TODAY, and the separation is the point rather than dead state.
+  // F-42.53 is open against this very room for the opposite habit — the date
+  // switch draws OFF on a failed `/me` with no tell, because the screen keeps
+  // only `current` and throws the hook's `error` away, so a permission she holds
+  // reads as one she does not. Collapsing «could not look» into «nobody asked»
+  // here would be the same defect wearing a smaller coat. The two states are
+  // held apart in the component, so the day a tell is vetoed the cure is one
+  // render line and not a refactor. THE OPEN QUESTION IS RELAYED, NOT DECIDED:
+  // absence currently carries two meanings, and only the chair may author the
+  // byte that separates them on screen.
+  const [pulseFailed, setPulseFailed] = useState(false);
+
+  useEffect(() => {
+    // Gated on `capacity_reason === null` — F-40.172's law, the same gate the
+    // switch itself sits behind. A trade whose occupancy is ruled off or
+    // unmapped has no date checks by construction, so asking would be a call
+    // whose only possible answer is an empty week.
+    if (current.capacity_reason !== null) return;
+    let alive = true;
+    (async () => {
+      const r = await fetchDatePulse();
+      if (!alive) return;
+      if ('ok' in r && r.ok === true) { setPulse(r as DatePulse); return; }
+      setPulseFailed(true);
+    })();
+    return () => { alive = false; };
+  }, [current.capacity_reason]);
+
+  // The card's lines are DECIDED in lib/worklist/pulse.ts and only rendered
+  // here. The `+`, the singular/plural pivot and the date's year all live there
+  // so `b70` drives the shipped rule; this screen must not grow an opinion about
+  // any of them. §2.4 asserts it has not.
+  const pulseRows = pulseLines(pulse, { one: COPY.storefrontPulseOne, many: COPY.storefrontPulseMany });
+
   async function toggle() {
     if (busy) return;
     const next = !live;
@@ -500,6 +542,55 @@ function PublicPageBand() {
               fontFamily: F.script, fontWeight: 300, fontSize: 13, lineHeight: 1.55,
               color: A.inkMute, margin: 0, maxWidth: '34ch',
             }}>{COPY.storefrontDateStanding}</p>
+
+            {/* ── R8-2 · THE PULSE ─────────────────────────────────────────
+                ⚠ IT RENDERS NOTHING AT ZERO — no label, no shell, no 「0
+                checks」 (ruled at R8-2). The section closes exactly where it
+                closes today, so the room a vendor with no demand opens is the
+                room she already knows rather than one with a hole in it saying
+                nobody looked at you this week. `pulseRows.length` is the whole
+                gate: an empty week, a failed read and a trade with no rows all
+                produce no lines and therefore no card.
+
+                ⚠ AND IT IS A READOUT, NOT A CONTROL. No tap target, no href.
+                The one thing she can act on in this block is the switch above
+                it; this is what that switch produced. */}
+            {pulseRows.length > 0 && (
+              <>
+                <p style={{
+                  fontFamily: F.label, fontWeight: 500, fontSize: 11,
+                  letterSpacing: '.16em', textTransform: 'uppercase',
+                  color: A.brassWarm, margin: '20px 0 10px',
+                }}>{COPY.storefrontPulseLabel}</p>
+                <div style={{
+                  border: '.5px solid var(--atelier-card-border)',
+                  background: 'var(--atelier-card-bg)',
+                  padding: '4px 16px 12px',
+                }}>
+                  {pulseRows.map((r, i) => (
+                    <div key={r.key} style={{
+                      display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0',
+                      borderTop: i === 0 ? undefined : '.5px solid var(--atelier-card-border)',
+                    }}>
+                      {/* The figure is the ONE thing carrying the accent, so the
+                          eye lands on the count and not on a label. */}
+                      <span style={{
+                        fontFamily: F.display, fontSize: 26, lineHeight: 1,
+                        color: A.brass, minWidth: 52,
+                      }}>{r.figure}</span>
+                      <span style={{
+                        fontFamily: F.script, fontSize: 14, lineHeight: 1.45, color: A.ink,
+                      }}>{r.text}</span>
+                    </div>
+                  ))}
+                  <p style={{
+                    fontFamily: F.script, fontSize: 11.5, lineHeight: 1.5,
+                    color: 'var(--atelier-ink-fade)', margin: '12px 0 0', paddingTop: 11,
+                    borderTop: '.5px solid var(--atelier-card-border)',
+                  }}>{COPY.storefrontPulseFine}</p>
+                </div>
+              </>
+            )}
           </>
         ) : (
           <p style={{
