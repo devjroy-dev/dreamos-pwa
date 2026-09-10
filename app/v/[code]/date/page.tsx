@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { stripMetaPlaceholder } from '@/lib/public/metaPlaceholder';
 import { PUBLIC_MISS, PUBLIC_ENQUIRE_LABEL, PUBLIC_COLOPHON_LEAD, PUBLIC_DATE_CHECK, PUBLIC_DATE_CHECK_OFF, publicBackTo } from '@/lib/public/copy';
 
 /**
@@ -136,7 +137,12 @@ export default async function PublicDateCheckPage(
     searchParams: Promise<{ d?: string }>;
   },
 ) {
-  const { code } = await params;
+  const { code: raw } = await params;
+  // F-42.128 — Meta's stored base ends in a literal `{{1}}` and APPENDS to it, so
+  // the handle arrives as `{{1}}<handle>` and the card door has no such vendor.
+  // Stripped ONCE, here, and every use below is the stripped value — including
+  // any link this surface emits, which would otherwise carry the bend onward.
+  const code = stripMetaPlaceholder(raw);
   const q = await searchParams;
   const date = typeof q.d === 'string' ? q.d : '';
 

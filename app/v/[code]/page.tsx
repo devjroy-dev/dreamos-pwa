@@ -51,6 +51,7 @@
 
 import VendorProfileContent, { PROFILE_PALETTE, HERO_PALETTE } from '@/components/shared/VendorProfileContent';
 import { heroSelectRules } from '@/lib/public/heroSelectRules.mjs';
+import { stripMetaPlaceholder } from '@/lib/public/metaPlaceholder';
 // R-G11.15 · the two bytes this leaf shares with the wedding page now live in
 // one home. Nothing is re-voiced; these read exactly as they read before.
 import { PUBLIC_MISS, PUBLIC_COLOPHON, PUBLIC_COLOPHON_LEAD, PUBLIC_ENQUIRE_LABEL, PUBLIC_DATE_CHECK, PUBLIC_WEDDINGS_LABEL } from '@/lib/public/copy';
@@ -293,7 +294,12 @@ function heroOf(card: Card): Photo | null {
 export async function generateMetadata(
   { params }: { params: Promise<{ code: string }> },
 ) {
-  const { code } = await params;
+  const { code: raw } = await params;
+  // F-42.128 — Meta's stored base ends in a literal `{{1}}` and APPENDS to it, so
+  // the handle arrives as `{{1}}<handle>` and the card door has no such vendor.
+  // Stripped ONCE, here, and every use below is the stripped value — including
+  // any link this surface emits, which would otherwise carry the bend onward.
+  const code = stripMetaPlaceholder(raw);
   const card = await fetchCard(code);
 
   if (!card) {
@@ -341,7 +347,12 @@ export async function generateMetadata(
 export default async function PublicVendorPage(
   { params }: { params: Promise<{ code: string }> },
 ) {
-  const { code } = await params;
+  const { code: raw } = await params;
+  // F-42.128 — Meta's stored base ends in a literal `{{1}}` and APPENDS to it, so
+  // the handle arrives as `{{1}}<handle>` and the card door has no such vendor.
+  // Stripped ONCE, here, and every use below is the stripped value — including
+  // any link this surface emits, which would otherwise carry the bend onward.
+  const code = stripMetaPlaceholder(raw);
   const card = await fetchCard(code);
 
   // ── F-19.19 · THE NEUTRAL PAGE IS RENDERED, NOT DELEGATED ────────────────

@@ -38,6 +38,7 @@
 // static and the photographs are anchors. Same refusal the card leaf makes.
 
 import type { Metadata } from 'next';
+import { stripMetaPlaceholder } from '@/lib/public/metaPlaceholder';
 import { PUBLIC_MISS, PUBLIC_COLOPHON_LEAD, PUBLIC_COLOPHON_HREF,
          PUBLIC_GALLERY_LABEL, PUBLIC_DOWNLOAD, PUBLIC_TEAM,
          PUBLIC_ENQUIRE_LABEL } from '@/lib/public/copy';
@@ -142,7 +143,12 @@ function metaLine(w: WeddingPayload['wedding']): string {
 export async function generateMetadata(
   { params }: { params: Promise<{ code: string; slug: string }> },
 ): Promise<Metadata> {
-  const { code, slug } = await params;
+  const { code: raw, slug } = await params;
+  // F-42.128 — Meta's stored base ends in a literal `{{1}}` and APPENDS to it, so
+  // the handle arrives as `{{1}}<handle>` and the card door has no such vendor.
+  // Stripped ONCE, here, and every use below is the stripped value — including
+  // any link this surface emits, which would otherwise carry the bend onward.
+  const code = stripMetaPlaceholder(raw);
   const data = await fetchWedding(code, slug);
   // ⚠ A MISS GETS NO DESCRIPTIVE TAGS AND `noindex`. Leaking a wedding's title
   // into an OG card for a page that does not serve would defeat the consent gate
@@ -191,7 +197,12 @@ export default async function PublicWeddingPage(
     searchParams: Promise<{ sent?: string; dl?: string; team?: string }>;
   },
 ) {
-  const { code, slug } = await params;
+  const { code: raw, slug } = await params;
+  // F-42.128 — Meta's stored base ends in a literal `{{1}}` and APPENDS to it, so
+  // the handle arrives as `{{1}}<handle>` and the card door has no such vendor.
+  // Stripped ONCE, here, and every use below is the stripped value — including
+  // any link this surface emits, which would otherwise carry the bend onward.
+  const code = stripMetaPlaceholder(raw);
   const q = await searchParams;
   const data = await fetchWedding(code, slug);
 
