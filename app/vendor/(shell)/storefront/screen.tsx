@@ -569,18 +569,25 @@ function PublicPageBand() {
                 }}>
                   {pulseRows.map((r, i) => (
                     <div key={r.key} style={{
-                      display: 'flex', alignItems: 'baseline', gap: 10, padding: '9px 0',
+                      padding: '9px 0',
                       borderTop: i === 0 ? undefined : '.5px solid var(--atelier-card-border)',
                     }}>
-                      {/* The figure is the ONE thing carrying the accent, so the
-                          eye lands on the count and not on a label. */}
+                      {/* ── R-42.11 · ONE SENTENCE, ONE TEXT NODE ───────────
+                          This was two spans: the count in the display face and
+                          the brass accent at 26px with a 52px min-width, the
+                          words in body sans beside it. The founder walked it and
+                          the number read as a stray bar — a numeral column is a
+                          table, and a table with one column beside a sentence is
+                          neither. The count is the SUBJECT of this sentence, not
+                          a figure being aligned against other figures, and there
+                          is no second row for it to line up with.
+
+                          ⚠ ONE FACE AND ONE INK, DELIBERATELY. Styling only the
+                          number would put the emphasis back in a smaller form
+                          and re-open the same reading. The row is prose. */}
                       <span style={{
-                        fontFamily: F.display, fontSize: 26, lineHeight: 1,
-                        color: A.brass, minWidth: 52,
-                      }}>{r.figure}</span>
-                      <span style={{
-                        fontFamily: F.script, fontSize: 14, lineHeight: 1.45, color: A.ink,
-                      }}>{r.text}</span>
+                        fontFamily: F.script, fontSize: 15, lineHeight: 1.5, color: A.ink,
+                      }}>{r.line}</span>
                     </div>
                   ))}
                   <p style={{

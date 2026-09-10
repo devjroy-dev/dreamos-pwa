@@ -84,17 +84,18 @@ cell('§1.1 the fold pluralises on the count', () => {
   if (P.refused) return 'REFUSED — ' + P.refused;
   const L = P.pulseLines({ dates: [{ date: '2026-12-04', checks: 1 }, { date: '2026-12-06', checks: 3 }], truncated: false }, NOUNS, NOW);
   if (L.length !== 2) return 'expected two lines, got ' + L.length;
-  if (L[0].figure !== '1' || L[0].text !== 'check on 4 December') return 'singular: ' + JSON.stringify(L[0]);
-  if (L[1].figure !== '3' || L[1].text !== 'checks on 6 December') return 'plural: ' + JSON.stringify(L[1]);
+  // R-42.11 — asserted as ONE string, because that is what the row now is.
+  if (L[0].line !== '1 check on 4 December')  return 'singular: ' + JSON.stringify(L[0]);
+  if (L[1].line !== '3 checks on 6 December') return 'plural: ' + JSON.stringify(L[1]);
   return null;
 });
 
 cell('§1.2 the `+` rides EVERY figure or none, never per-row', () => {
   if (P.refused) return 'REFUSED — ' + P.refused;
   const L = P.pulseLines({ dates: [{ date: '2026-12-04', checks: 48 }, { date: '2026-12-06', checks: 31 }], truncated: true }, NOUNS, NOW);
-  if (!L.every((l) => l.figure.endsWith('+'))) return 'a row escaped the +: ' + JSON.stringify(L.map((l) => l.figure));
+  if (!L.every((l) => /^\d+\+ /.test(l.line))) return 'a row escaped the +: ' + JSON.stringify(L.map((l) => l.line));
   const F = P.pulseLines({ dates: [{ date: '2026-12-04', checks: 48 }], truncated: false }, NOUNS, NOW);
-  if (F[0].figure !== '48') return 'a + appeared on an untruncated read: ' + F[0].figure;
+  if (!/^48 /.test(F[0].line)) return 'a + appeared on an untruncated read: ' + F[0].line;
   return null;
 });
 
@@ -102,7 +103,7 @@ cell('§1.3 a truncated ONE pluralises — `1+ check` is false', () => {
   if (P.refused) return 'REFUSED — ' + P.refused;
   const L = P.pulseLines({ dates: [{ date: '2026-12-04', checks: 1 }], truncated: true }, NOUNS, NOW);
   // The figure means «at least one», so the noun follows the ceiling, not the floor.
-  if (L[0].figure !== '1+' || L[0].text !== 'checks on 4 December') return JSON.stringify(L[0]);
+  if (L[0].line !== '1+ checks on 4 December') return JSON.stringify(L[0]);
   return null;
 });
 
@@ -222,6 +223,49 @@ cell('§2.6 the tell is the vetoed byte, typographic apostrophe (R-40.57)', () =
   return null;
 });
 
+cell('§1.8 R-42.11 — the fold emits exactly `key` and `line`, nothing else', () => {
+  if (P.refused) return 'REFUSED — ' + P.refused;
+  // ⚠ ADDED BECAUSE A MUTATION WALKED THROUGH. Putting `figure` back on the
+  // emitted object reddened NOTHING: §2.7 guards the RENDER, so a resurrected
+  // field sat unused and invisible until someone drew it — and a spare field
+  // named `figure` sitting on the object is the first step back to the numeral
+  // column, offered to the next author as though it were meant to be used.
+  // Retire-with-the-reader: the fields went, and the shape is what says so.
+  const L = P.pulseLines({ dates: [{ date: '2026-12-04', checks: 3 }], truncated: false }, NOUNS, NOW);
+  const keys = Object.keys(L[0]).sort().join(',');
+  if (keys !== 'key,line') return 'the emitted line carries: ' + keys;
+  return null;
+});
+
+cell('§2.7 R-42.11 — the row renders ONE text node, one face, one ink', () => {
+  const s = strip(read(SCREEN));
+  const i = s.indexOf('pulseRows.map(');
+  if (i === -1) return 'the row map could not be located';
+  const j = s.indexOf('COPY.storefrontPulseFine');
+  const row = s.slice(i, j);
+  // The founder walked the two-element version: the count in the display face
+  // and the brass accent, the words in body sans beside it. The number read as a
+  // stray bar — a numeral column is a table, and a table with one column beside a
+  // sentence is neither. The count is the SUBJECT of the sentence it opens.
+  // ⚠ `key={r.key}` IS NOT A TEXT NODE, and the first cut of this cell counted
+  // it as one and reddened on correct code. A cell that fails on the shipped
+  // tree for a reason that is not the code's teaches its reader to skim it.
+  const nodes = (row.replace(/key=\{r\.key\}/g, '').match(/\{r\.\w+\}/g) || []);
+  if (nodes.length !== 1 || nodes[0] !== '{r.line}') {
+    return 'the row renders ' + nodes.length + ' text node(s): ' + nodes.join(', ');
+  }
+  // The retired fields must not come back by another name.
+  if (/r\.figure|r\.text/.test(row)) return 'the retired figure/text fields survive in the row';
+  // One face and one ink. Styling only the number would put the emphasis back
+  // in a smaller form and re-open exactly the reading the founder rejected.
+  if (/F\.display/.test(row)) return 'the display face is back in the row';
+  if (/A\.brass\b/.test(row)) return 'the accent ink is back in the row';
+  // A flex row with a gap and a min-width IS the column. It cannot return
+  // wearing the same geometry with one child.
+  if (/minWidth/.test(row)) return 'a fixed-width slot survives — that is the numeral column';
+  return null;
+});
+
 cell('§2.4 the screen DECIDES nothing — the rule has one home', () => {
   const s = strip(read(SCREEN));
   if (!/pulseLines\(/.test(s)) return 'the screen does not call the shipped fold';
@@ -247,7 +291,7 @@ cell('§2.5 the read is gated on capacity_reason and runs once', () => {
 
 // ═══ §3 · THE REGISTER ════════════════════════════════════════════════════
 
-cell('§3.1 the composed line is byte-identical to the VETOED byte', () => {
+cell('§3.1 the fold emits the VETOED byte, whole', () => {
   if (P.refused) return 'REFUSED — ' + P.refused;
   const reg = read('lib/worklist/copy.ts');
   const grab = (k) => { const m = reg.match(new RegExp(k + ":\\s*'((?:[^'\\\\]|\\\\.)*)'")); return m && m[1]; };
@@ -260,11 +304,11 @@ cell('§3.1 the composed line is byte-identical to the VETOED byte', () => {
   const L = P.pulseLines({ dates: [{ date: '2026-12-04', checks: 1 }], truncated: false }, { one, many }, NOW);
   const M = P.pulseLines({ dates: [{ date: '2026-12-04', checks: 3 }], truncated: false }, { one, many }, NOW);
   const T = P.pulseLines({ dates: [{ date: '2026-12-04', checks: 48 }], truncated: true }, { one, many }, NOW);
-  const got = [
-    `${L[0].figure} ${L[0].text}`,
-    `${M[0].figure} ${M[0].text}`,
-    `${T[0].figure} ${T[0].text}`,
-  ];
+  // ⚠ NOTHING IS COMPOSED HERE — R-42.11. Before the row became one string this
+  // cell joined the two fields itself to compare against the vetoed sentence,
+  // which meant the bench held its own copy of the join the screen was doing.
+  // The subject now emits the sentence and this cell only reads it.
+  const got = [L[0].line, M[0].line, T[0].line];
   const want = [VETOED.one, VETOED.many, VETOED.plus];
   for (let i = 0; i < 3; i++) if (got[i] !== want[i]) return `composed 「${got[i]}」, vetoed 「${want[i]}」`;
   return null;

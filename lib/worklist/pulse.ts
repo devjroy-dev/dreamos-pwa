@@ -26,16 +26,30 @@ export type DatePulse = {
   total: number;
 };
 
-/** What the card draws: a figure and the words beside it, already decided. */
+/** What the card draws: ONE sentence, already decided. */
 export type PulseLine = {
   /** React key. The date, which is unique in the fold by construction. */
   key: string;
-  /** `3`, or `48+` when the read was capped. Rendered in the display face. */
-  figure: string;
-  /** `checks on 4 December`. The vetoed noun, then the vetoed preposition, then
-   *  the date. Never a whole line concatenated from a number this file
-   *  formatted, so the register's bytes stay the register's. */
-  text: string;
+  /**
+   * `3 checks on 4 December`, `1 check on 4 December`, `48+ checks on 4 December`.
+   *
+   * ── R-42.11 · ONE STRING, AND IT WAS TWO ─────────────────────────────────
+   * This shipped as a `figure` and a `text`, and the screen drew them as two
+   * elements: the count in the display face and the brass accent, the words in
+   * body sans. The founder walked it and the number read as a stray bar beside
+   * the sentence — 「1 check on 4 December」 rendered as a teal numeral column
+   * and a separate line of prose, which is a table with one column, not a
+   * sentence. The count is not a datum being tabulated; it is the subject of the
+   * sentence it opens, and there is no second row for it to align with.
+   *
+   * ⚠ SO THE JOIN MOVED HERE, WHERE THE REST OF THE SENTENCE ALREADY LIVED.
+   * The obvious cure was to concatenate in the screen, which would have left the
+   * vetoed sentence assembled in two places — the parts here, the join there —
+   * and `b70` §3.1 doing the SAME join a third time to check them, which is a
+   * bench re-implementing its subject. One field means the bench compares this
+   * string to the founder's byte and composes nothing.
+   */
+  line: string;
 };
 
 // ── HOW MANY ROWS THE CARD SHOWS ──────────────────────────────────────────
@@ -110,7 +124,9 @@ export function pulseLines(
     .slice(0, rows)
     .map((d) => ({
       key: d.date,
-      figure: `${d.checks}${trunc ? '+' : ''}`,
-      text: `${d.checks === 1 && !trunc ? copy.one : copy.many} ${pulseDateLabel(d.date, now)}`,
+      // R-42.11 — one string. The figure opens the sentence it belongs to; the
+      // register still owns the noun and the preposition, and this file owns
+      // only the count and the date, which are not copy.
+      line: `${d.checks}${trunc ? '+' : ''} ${d.checks === 1 && !trunc ? copy.one : copy.many} ${pulseDateLabel(d.date, now)}`,
     }));
 }
