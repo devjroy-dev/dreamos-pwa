@@ -36,7 +36,7 @@ import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
 import { roomHref } from '@/lib/worklist/rooms';
-import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, PAYMENT_REMINDERS_HREF, WEBSITE_HREF } from '@/lib/solutions/routes';
+import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, PAYMENT_REMINDERS_HREF, WEBSITE_HREF, INTRODUCTIONS_HREF } from '@/lib/solutions/routes';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
 export default function SolutionsIndexPage() {
@@ -95,6 +95,14 @@ const ROOM_HREFS: Partial<Record<string, string>> = {
   // unreachable-by-declaration. Same asymmetry the four above document, and the
   // same reason `website` goes the other way.
   reminders:     PAYMENT_REMINDERS_HREF,
+  // ── CE-42 4a/3b · R-42.8 — THE SEVENTH ROW WITH A DESTINATION, AND IT IS
+  // THE TENTH ROW OF THE LIST. One line, no ternary, no second string, and
+  // `RoomRow`'s chip flips from `Coming` to `Open` off the presence of an href
+  // alone. A CONSTANT rather than `roomHref()`: introductions is not a registry
+  // room, so `b40` C31's declared set would not contain `/vendor/introductions`
+  // and the address would be unreachable-by-declaration — the same asymmetry
+  // `website` documents from the other direction.
+  introductions: INTRODUCTIONS_HREF,
 };
 
 function SolutionsIndexScreen() {

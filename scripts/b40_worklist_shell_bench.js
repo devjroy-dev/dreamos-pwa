@@ -1224,6 +1224,20 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   const wsm = solRoutes.match(/export const WEBSITE_HREF\s*=\s*'([^']+)'/);
   if (!wsm) return 'WEBSITE_HREF is not declared: the Your website & SEO page has no address home (R-40.132)';
   declared.add(wsm[1]);
+  // ── AMENDED BY LABEL — CE-42 4a/3b, R-42.8. THE SIXTH CONSTANT, AND THE CELL
+  // STILL DOES NOT LOOSEN. Introductions is the TENTH hub row and is NOT a
+  // registry room, so its address lives in `lib/solutions/routes.ts` on the same
+  // not-a-room precedent the five above use, and this READS THAT DECLARATION
+  // rather than retyping the literal. The set grows by exactly one MEMBER; an
+  // undeclared `/vendor/…` literal anywhere in the graph is still a stray.
+  //
+  // ⚠ `INTRODUCTIONS_API_PATH` TAKES NO ENTRY. It is `/api/v2/vendor/…`, and
+  // the matcher above wants a string that BEGINS `/vendor` — so this cell never
+  // sees it, and adding it would loosen the set for a literal it cannot match.
+  // Same reasoning the G5.1 block records for the forward door.
+  const itm = solRoutes.match(/export const INTRODUCTIONS_HREF\s*=\s*'([^']+)'/);
+  if (!itm) return 'INTRODUCTIONS_HREF is not declared: the introductions room has no address home (R-42.8)';
+  declared.add(itm[1]);
   const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
   if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT

@@ -162,13 +162,24 @@ sec('C3 \u00b7 the hub (R-40.23)');
   ok('the Open chip is declared (Arm C, founder-vetoed 2026-09-05)', /open:\s*'Open'/.test(copy));
   const rm = copy.match(/ROOM_ROWS = \[([\s\S]*?)\] as const;/);
   const labels = rm ? [...rm[1].matchAll(/label: '([^']+)'/g)].map((x) => x[1]) : [];
-  ok('nine rows', labels.length === 9, String(labels.length));
-  ok('the nine are R-40.1\'s, in order',
+  // ── AMENDED, LABELLED — R-42.8 (chair, 2026-09-10): THE TENTH ROW OPENS.
+  // `{ key: 'introductions', label: 'Introductions' }`, LAST, after `number`.
+  //
+  // ⚠ THE COUNT IS THE GUARANTEE AND IT IS NAMED UP, NOT LOOSENED. This cell
+  // and the ordered join below are a PAIR: together they make a row nobody
+  // ruled impossible to add quietly. `>= 9` would have bought one edit and
+  // retired that property for this row and every row after it. Precedent:
+  // `b06_forkc` §5.8d, whose replyText census went 5 -> 6 with writer 6 named.
+  // Both halves move in the SAME edit, exactly as C2 does for the registry's
+  // three numbers — a list retyped here and a list in the copy home are two
+  // places to spell one ruling.
+  ok('ten rows', labels.length === 10, String(labels.length));
+  ok('the ten are R-40.1\'s and R-42.8\'s, in order',
     // AMENDED, LABELLED — R-40.26 (founder, 2026-09-05): R3 alone becomes
     // `Your website & SEO`; the other eight stand. Both homes move in one edit,
     // exactly as C2 does for the registry's three numbers — a list retyped here
     // and a list in the copy home are two places to spell one ruling.
-    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Open dates & rates|Your own number",
+    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Open dates & rates|Your own number|Introductions",
     labels.join('|'));
   ok('ROWS is gone', !/export const ROWS\b/.test(copy));
   ok('ROW_EYEBROWS is gone', !/export const ROW_EYEBROWS\b/.test(copy));

@@ -113,6 +113,17 @@ export const ROOM_ROWS = [
   { key: 'referrals',     label: 'Referrals & partners' },
   { key: 'dates',         label: 'Open dates & rates' },
   { key: 'number',        label: 'Your own number' },
+  // ── R-42.8 · THE TENTH ROW. CHAIR-RULED 2026-09-10, THE FOUNDER'S COPY ACT
+  // EXECUTED BY THE CHAIR. It goes LAST, after `number`, by that ruling.
+  //
+  // ⚠ THE NINE BECOME TEN AND `b42` C3 IS AMENDED BY NAME, NOT LOOSENED. That
+  // cell is a PAIR — `labels.length === 9` and an exact ordered join of all
+  // nine — and the count IS the guarantee: it is what makes a row nobody ruled
+  // impossible to add quietly. Both halves move to ten with this label in this
+  // position, on `b06_forkc` §5.8d's precedent (its census went 5 -> 6 with
+  // writer 6 NAMED). Relaxing it to `>= 9` would have retired the
+  // exhaustiveness permanently, for this row and every row after it.
+  { key: 'introductions', label: 'Introductions' },
 ] as const;
 
 // ── ROW_EYEBROWS · RETIRED WITH ITS READERS (R-40.23) ──────────────────────

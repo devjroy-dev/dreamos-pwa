@@ -135,6 +135,15 @@ export const WEDDINGS_API_PATH = '/api/v2/vendor/studio/weddings';
 export const REMINDERS_API_PATH = '/api/v2/vendor/reminders';
 
 export const REFERRALS_API_PATH = '/api/v2/vendor/referrals';
+
+// ── CE-42 · 4a PACKET 3b · R9-J1 · THE THREE INTRODUCTION DOORS ────────────
+// DERIVED, NOT ASSUMED: `src/index.js:137` mounts the api router at `/api/v2`,
+// `src/api/router.js:59` mounts `./vendor/core` at `/vendor`, and
+// `src/api/vendor/core.js:82` mounts `./introductions` at `/introductions`.
+// Read at dream-os 876cef2, three files, not from the charter's prose — the
+// wedding-pages seat's e-8 is what happens when an address is written from a
+// kickoff instead of from the mount line.
+export const INTRODUCTIONS_API_PATH = '/api/v2/vendor/introductions';
 export const LEADS_API_PATH     = '/api/v2/vendor/leads';
 
 export const API = {
@@ -204,6 +213,15 @@ export const API = {
   reminderSend:        (milestoneId: string) =>
     `${REMINDERS_API_PATH}/${encodeURIComponent(milestoneId)}/send`,
   reminderSettings:    () => `${REMINDERS_API_PATH}/settings`,
+  // ── R9-J1 · THE THREE DOORS ─────────────────────────────────────────────
+  // GET the list, POST to stage, POST /:id/send to approve. The SEND takes the
+  // staged row's id and the door checks the name against ITS OWN ROW — E3 is on
+  // the server, so this address carries no name and the screen re-implements no
+  // guard. `encodeURIComponent` on the id for the same reason every sibling
+  // above does it: it is a uuid today and an address should not care.
+  introductions:       () => INTRODUCTIONS_API_PATH,
+  introductionSend:    (id: string) =>
+    `${INTRODUCTIONS_API_PATH}/${encodeURIComponent(id)}/send`,
 } as const;
 
 // ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS — RETIRED, F-40.170 ─────
@@ -231,3 +249,18 @@ export const API = {
 // ROOM_HREFS gains `reminders: PAYMENT_REMINDERS_HREF` and the row's chip flips
 // from Coming to Open. `ROOM_ROWS`' label is R-40.1's byte and is not touched.
 export const PAYMENT_REMINDERS_HREF = '/vendor/payment-reminders';
+
+// ── CE-42 · 4a PACKET 3b · INTRODUCTIONS — THE SIXTH CONSTANT ──────────────
+// R-42.8's screen, and the TENTH row of the hub. Introductions is NOT a
+// registry room — `lib/worklist/rooms.ts` has no entry for it and the tile grid
+// gains nothing, because the room is reached from Business Solutions and not
+// from a tile. So its address lives here, on the not-a-room precedent this file
+// was written for and the five constants above use, and `b40` C31 READS THIS
+// DECLARATION rather than carrying a literal of its own. Delete this line and
+// that cell reddens on the missing declaration rather than passing quietly.
+//
+// ⚠ THE API PATH TAKES NO ENTRY IN C31'S SET. `INTRODUCTIONS_API_PATH` is
+// `/api/v2/vendor/introductions`, and C31 matches strings that BEGIN `/vendor`
+// — which that does not. Adding it there would loosen the cell for a literal it
+// never sees, exactly as the G5.1 block in that cell says of the forward door.
+export const INTRODUCTIONS_HREF = '/vendor/introductions';
