@@ -1,0 +1,15 @@
+# scripts/floor-manifest-ce42-r4216-pwa.txt — CE-42 R-42.16, the eleventh row (dreamos-pwa), seat R7 [F-19.16].
+# base: b5b7dfc2 (F-42.209 + R-42.15, verified by `git fetch -q origin && git rev-parse` at the cut)
+# Every path this ZIP writes, and nothing else. Derived by `git status --porcelain` at the cut.
+# THREE OTHER SEATS' BENCHES AMENDED BY NAME, each with its reason at its own site (R-41.121):
+#   scripts/b42_g11_wedding_pages_bench.js  C3's pair 10 -> 11, the label in position
+#   scripts/b69_j1_introductions_bench.js   :263 ten -> eleven; Introductions LAST at index 10
+#   scripts/b73_shell_screens_bench.js      :227 two Coming / eight Open -> two Coming / nine Open
+# NO carve-out added to b42 C7 (c-42.51: it reads WPCOPY, not ROOM_ROWS).
+lib/solutions/copy.ts
+app/vendor/(shell)/support/page.tsx
+scripts/b42_g11_wedding_pages_bench.js
+scripts/b69_j1_introductions_bench.js
+scripts/b73_shell_screens_bench.js
+scripts/floor-manifest-ce42-r4216-pwa.txt
+docs/handovers/CE42_R4216_COLLABS_ROW_HANDOVER.md

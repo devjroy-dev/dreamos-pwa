@@ -68,6 +68,16 @@ const ROOM_HREFS: Record<RoomKey, string> = {
   // the whole change: the row gains a destination and its chip flips to `Open`.
   // The key is `ROOM_ROWS`' own, not a new string.
   referrals:     REFERRALS_HREF,
+  // ── R-42.16 · THE ELEVENTH ROW, AND IT COSTS NO CONSTANT. Derived at the cut,
+  // not chosen: `collab` IS a registry room — `lib/worklist/rooms.ts:181`,
+  // `{ id: 'collab', band: 'business', href: '/vendor/collab' }` — so its address
+  // comes from `roomHref` for exactly the reason `contracts` above does.
+  // `lib/solutions/routes.ts` is the home for rooms the registry does NOT own,
+  // and a `COLLAB_HREF` for one it does would be a second home for one address.
+  //
+  // The row is LIVE, so it is absent from `PREVIEW_KEYS` below and its chip reads
+  // `Open` — which on this list has meant "the thing works" since Arm C.
+  collabs:       roomHref('collab'),
   // ── G3.2 · R-G32.16, AMENDED BY F-40.170 — THE FOURTH OF THE NINE, AND IT
   // COSTS NO CONSTANT EITHER. Contracts is a REGISTRY room (`rooms.ts:168`), so
   // its address comes from `roomHref` for exactly the reason `website` below

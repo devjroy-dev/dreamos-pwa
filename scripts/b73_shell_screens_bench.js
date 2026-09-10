@@ -224,7 +224,12 @@ sec('\u00a73 \u00b7 the hub\u2019s chips');
   ok('the hub hands each row its set membership', /preview=\{PREVIEW_KEYS\.has\(r\.key\)\}/.test(hub));
   const rows = copy.ROOM_ROWS.map((r) => html({ href: '/h', label: r.label, preview: set.includes(r.key) }));
   const coming = rows.filter((h) => /data-state="coming"/.test(h)).length;
-  ok('driven through the real row: two read Coming, eight read Open', coming === 2 && rows.length - coming === 8, coming + ' Coming');
+  // ── AMENDED, LABELLED — R-42.16 (founder, 2026-09-10). The eleventh row is
+  // LIVE (`collab` is a registry room with a working address), so it is absent
+  // from PREVIEW_KEYS and reads Open: two Coming stands, eight Open becomes
+  // NINE. Named up rather than loosened — the pair of numbers is what makes a
+  // row arriving with the wrong chip visible here.
+  ok('driven through the real row: two read Coming, nine read Open', coming === 2 && rows.length - coming === 9, coming + ' Coming / ' + (rows.length - coming) + ' Open');
   ok('the hub mounts no toast: no row taps into one (S5(b))', !/WlToast|useToast|launchingSoon/.test(hub));
 }
 

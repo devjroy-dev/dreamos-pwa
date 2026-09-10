@@ -121,6 +121,24 @@ export const ROOM_ROWS = [
   { key: 'reminders',     label: 'Payment reminders' },
   { key: 'posts',         label: 'Posts & ads' },
   { key: 'referrals',     label: 'Referrals & partners' },
+  // ── R-42.16 · THE ELEVENTH ROW. FOUNDER-RULED 2026-09-10.
+  // The Collab room is a REGISTRY room (`lib/worklist/rooms.ts:181`, band
+  // business) and has never appeared on this hub, so a vendor browsing what TDW
+  // does for her saw no word for the thing she is most likely to reach for on a
+  // quiet week. Barter and collaboration are a POSITIONING CLAIM, and a claim
+  // with no row on the hub is not made.
+  //
+  // ⚠ IT SITS HERE, IMMEDIATELY AFTER `referrals`, BY THAT RULING — the two peer
+  // rows belong together — and `introductions` STAYS LAST, which is R-42.8's
+  // ruling and is untouched by this one.
+  //
+  // ⚠ THE TEN BECOME ELEVEN AND FOUR CELLS MOVE BY NAME, NONE LOOSENED. `b42` C3
+  // is a PAIR (count + exact ordered join) and `b42` C7 pins every byte against
+  // the ratified mock; `b69`:263 and `b73`:227 carry the same guarantee from
+  // their own seats. The count IS the guarantee — it is what makes a row nobody
+  // ruled impossible to add quietly — so every one of them is amended to eleven
+  // with this label in this position, on R-42.8's own precedent.
+  { key: 'collabs',       label: 'Collabs & barter' },
   { key: 'dates',         label: 'Open dates & rates' },
   { key: 'number',        label: 'Your own number' },
   // ── R-42.8 · THE TENTH ROW. CHAIR-RULED 2026-09-10, THE FOUNDER'S COPY ACT

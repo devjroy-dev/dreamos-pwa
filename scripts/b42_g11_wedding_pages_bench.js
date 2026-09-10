@@ -173,13 +173,19 @@ sec('C3 \u00b7 the hub (R-40.23)');
   // Both halves move in the SAME edit, exactly as C2 does for the registry's
   // three numbers — a list retyped here and a list in the copy home are two
   // places to spell one ruling.
-  ok('ten rows', labels.length === 10, String(labels.length));
-  ok('the ten are R-40.1\'s and R-42.8\'s, in order',
+  // ── AMENDED, LABELLED — R-42.16 (founder, 2026-09-10): THE ELEVENTH ROW.
+  // `{ key: 'collabs', label: 'Collabs & barter' }`, IMMEDIATELY AFTER
+  // `referrals`; `Introductions` STAYS LAST (R-42.8 untouched). Both halves of
+  // this pair move in the SAME edit, to eleven, with the label in position —
+  // NOT loosened to `>= 10`. That this cell fired at all is the guarantee
+  // working: an eleventh row could not be added quietly, which is what it is for.
+  ok('eleven rows', labels.length === 11, String(labels.length));
+  ok('the eleven are R-40.1\'s, R-42.8\'s and R-42.16\'s, in order',
     // AMENDED, LABELLED — R-40.26 (founder, 2026-09-05): R3 alone becomes
     // `Your website & SEO`; the other eight stand. Both homes move in one edit,
     // exactly as C2 does for the registry's three numbers — a list retyped here
     // and a list in the copy home are two places to spell one ruling.
-    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Open dates & rates|Your own number|Introductions",
+    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Collabs & barter|Open dates & rates|Your own number|Introductions",
     labels.join('|'));
   ok('ROWS is gone', !/export const ROWS\b/.test(copy));
   ok('ROW_EYEBROWS is gone', !/export const ROW_EYEBROWS\b/.test(copy));

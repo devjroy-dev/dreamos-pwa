@@ -260,9 +260,15 @@ sec('C9 \u00b7 the hub row and its address');
   const sol = read(SOLCOPY);
   const rm  = sol.match(/ROOM_ROWS = \[([\s\S]*?)\] as const;/);
   const labels = rm ? [...rm[1].matchAll(/label: '([^']+)'/g)].map((x) => x[1]) : [];
-  ok('ROOM_ROWS carries ten rows', labels.length === 10, String(labels.length));
+  // ── AMENDED, LABELLED — R-42.16 (founder, 2026-09-10), ANOTHER SEAT'S RULING
+  // MOVING THIS SEAT'S CELL. The eleventh row (`Collabs & barter`) lands after
+  // `referrals`, so the count moves 10 -> 11 and `Introductions` moves from
+  // index 9 to index 10. WHAT THIS CELL GUARDS IS UNCHANGED and is the whole
+  // reason it is amended rather than loosened: R-42.8 ruled Introductions LAST,
+  // and it is still last — now with one more row above it, not beside it.
+  ok('ROOM_ROWS carries eleven rows', labels.length === 11, String(labels.length));
   ok('Introductions is LAST, after Your own number',
-    labels[9] === 'Introductions' && labels[8] === 'Your own number', labels.slice(8).join('|'));
+    labels[10] === 'Introductions' && labels[9] === 'Your own number', labels.slice(9).join('|'));
   const routes = strip(read(ROUTES));
   ok('INTRODUCTIONS_HREF is declared in the not-a-room home',
     /export const INTRODUCTIONS_HREF = '\/vendor\/introductions'/.test(routes));
