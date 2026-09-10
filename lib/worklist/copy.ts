@@ -525,6 +525,17 @@ export const COPY = {
    *  line the card reads as a headcount and she will price against it. It is
    *  not a caveat; it is what the figure means. */
   storefrontPulseFine: 'Each check is one look at one date, not one person.',
+  /** THE TELL · FOUNDER-VETOED 2026-09-10, shipped as its own micro after the
+   *  card. R8-2 shipped with absence carrying TWO meanings: an empty week and a
+   *  failed read both drew nothing, so a vendor with three checks who hit a
+   *  network error read it as nobody looked. That is F-42.53's defect one size
+   *  smaller — this same room already draws the date switch OFF on a failed
+   *  `/me` with no tell — and a readout that reports a silence it did not
+   *  verify is worse than one that says it could not look.
+   *  ⚠ 「your checks」, not 「the pulse」 — the register never names an internal
+   *  noun at her. And it says READ, not the count: the figure is not wrong, it
+   *  is absent, and claiming a wrong number would be the opposite lie. */
+  storefrontPulseFailed: 'Couldn\u2019t read your checks just now.',
   /** D3 · the room's readout of what a stranger can see. `on your page`, not
    *  `your weddings` — a narrower set than what she has. */
   storefrontWeddingsLabel: 'Weddings on your page',

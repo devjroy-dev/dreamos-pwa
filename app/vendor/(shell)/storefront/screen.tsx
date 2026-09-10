@@ -591,6 +591,28 @@ function PublicPageBand() {
                 </div>
               </>
             )}
+
+            {/* ── THE TELL · FOUNDER-VETOED, shipped as its own micro ───────
+                R8-2 shipped with absence carrying TWO meanings: an empty week
+                and a failed read both drew nothing, so a vendor with three
+                checks who hit a network error read it as nobody looked. The
+                two states were already held apart in this component for
+                exactly this line (b70 §2.3); this is the one render line that
+                cashes it.
+
+                ⚠ GATED ON `pulseFailed` ALONE, NEVER ON EMPTINESS. Zero still
+                draws NOTHING — that is ruled and unchanged. `pulseFailed` is
+                set only where the door refused or the fetch threw; an honest
+                empty week leaves it false and this line never appears. The two
+                gates are deliberately not one expression, because a single
+                `pulseRows.length === 0 &&` would have said 「couldn't read」 to
+                every vendor whose week was genuinely quiet. */}
+            {pulseFailed && (
+              <p style={{
+                fontFamily: F.script, fontWeight: 300, fontSize: 13, lineHeight: 1.55,
+                color: 'var(--atelier-ink-fade)', margin: '20px 0 0', maxWidth: '34ch',
+              }}>{COPY.storefrontPulseFailed}</p>
+            )}
           </>
         ) : (
           <p style={{

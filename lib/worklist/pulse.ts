@@ -39,10 +39,11 @@ export type PulseLine = {
 };
 
 // ── HOW MANY ROWS THE CARD SHOWS ──────────────────────────────────────────
-// PROPOSED, NOT RULED — the chair ruled the READ's cap (1000 rows) and not the
-// CARD's depth. Three is the number the frame was vetoed at. It is named here
-// rather than spelled in the screen so a ruling to change it is one edit in one
-// file, and so `b70` can drive it.
+// PROPOSED AT THE FRAME, **RULED AT R8-2's CLOSE**. The chair ruled the READ's
+// cap (1000 rows) first and this second, so for one packet the card's depth was
+// the only unruled number on the surface. It is three: the number the frame was
+// vetoed at. Named here rather than spelled in the screen so a later ruling is
+// one edit in one file, and so `b70` §1.7 can drive it.
 //
 // ⚠ THE WIRE IS NOT CAPPED TO THREE AND MUST NOT BE. The door returns every date
 // in the window, sorted, because the briefing rider (γ, ruled) reads the SAME

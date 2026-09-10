@@ -193,15 +193,32 @@ cell('§2.2 the pulse is a READOUT — no tap target, no href', () => {
   return null;
 });
 
-cell('§2.3 a FAILED read is held apart from an empty week (F-42.53 class)', () => {
+cell('§2.3 a FAILED read SAYS SO, and an empty week still says nothing', () => {
   const s = strip(read(SCREEN));
-  // Both draw nothing today. The states are kept distinct in the component so
-  // the day a tell is vetoed the cure is one render line — and so this room
-  // does not repeat, in miniature, the very defect F-42.53 is open against it
-  // for: drawing a state on a failed read with no way to tell.
+  // ⚠ AMENDED BY LABEL, NOT REPLACED. R8-2 shipped with both states drawing
+  // nothing and this cell guarding only that they were held APART in the
+  // component — written so the cure would be one render line. The line landed;
+  // the cell now guards the line as well as the separation, at the same site.
   if (!/setPulseFailed\(true\)/.test(s)) return 'a failed pulse read is not recorded';
-  if (!/pulseFailed/.test(s)) return 'there is no failure state at all';
   if (/setPulse\(\s*\{[^}]*dates:\s*\[\]/.test(s)) return 'a failed read is being collapsed into an empty week';
+  if (!/\{pulseFailed && \(/.test(s)) return 'a failed read still draws nothing — absence carries two meanings';
+  if (!/COPY\.storefrontPulseFailed/.test(s)) return 'the tell is not the register byte';
+  // THE GATE IS THE FAILURE AND NEVER THE EMPTINESS. One expression covering
+  // both would say 「couldn't read」 to every vendor whose week was quiet — the
+  // opposite lie, and a louder one.
+  const i = s.indexOf('{pulseFailed && (');
+  const gate = s.slice(i, i + 40);
+  if (/pulseRows|length/.test(gate)) return 'the tell is gated on emptiness rather than on failure: ' + gate;
+  return null;
+});
+
+cell('§2.6 the tell is the vetoed byte, typographic apostrophe (R-40.57)', () => {
+  const reg = read('lib/worklist/copy.ts');
+  const want = "storefrontPulseFailed: 'Couldn\\u2019t read your checks just now.',";
+  if (!reg.includes(want)) return 'the tell is not the vetoed byte, or spells a straight apostrophe';
+  // b40 C102's class, asserted at the byte rather than waiting for the census.
+  const m = reg.match(/storefrontPulseFailed:\s*'([^']*)'/);
+  if (m && /'/.test(m[1])) return 'a straight apostrophe survives in the tell';
   return null;
 });
 
