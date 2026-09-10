@@ -119,6 +119,9 @@ export interface MeResponse {
     // the field yet has a vendor who IS listed, and reading her as hidden would
     // draw her switch OFF while the search still finds her.
     peer_discoverable?: boolean;
+    /** CE-42 4c-3b · G5.3, 0166 §1. Defaults FALSE at the column, and the reader
+     *  coerces with `=== true` for that reason. */
+    exchange_discoverable?: boolean;
     // ── G3.1 · R-G31.6 — WHY capacity does not apply, when it does not ──────
     // `null` when it applies. Computed backend-side from `occupancy.js`'s ONE
     // ladder (`capacityVerdict`) — the PWA carries no copy of the rule, the same
@@ -171,6 +174,10 @@ export interface UpdateMeRequest {
   // it is the only flag in that list whose default is TRUE, so a value the driver
   // had to guess at would fail OPEN — a vendor listed who asked not to be.
   peer_discoverable?: boolean;
+  /** CE-42 4c-3b · G5.3 ruling (i). On dream-os's ALLOWED_FIELDS and BOOLEAN_FIELDS
+   *  from 4c-3b-1s; the OPPOSITE default to its neighbour above, so a guessed value
+   *  fails CLOSED — she is listed on the exchange only by her own tap. */
+  exchange_discoverable?: boolean;
   /** G3.1 s2 · what Google shows (0147 §4); null = derive at the card door. */
   seo_title?:        string | null;
   seo_description?:  string | null;
@@ -207,6 +214,9 @@ export interface UpdateMeResponse {
     // switch settles its optimistic state on THIS value — the door's own answer,
     // never the one we hoped for.
     peer_discoverable: boolean;
+    /** CE-42 4c-3b · the echo the exchange row settles on. Optional until
+     *  4c-3b-1s ships the field on the PATCH response. */
+    exchange_discoverable?: boolean;
   };
 }
 

@@ -28,6 +28,7 @@ import { useRouter } from 'next/navigation';
 import { useSettings } from '@/hooks/vendor/useSettings';
 import { updateMe } from '@/lib/vendor/api/vendor';
 import { RF } from '@/lib/worklist/referrals';
+import { EXCHANGE } from '@/lib/worklist/exchange';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { WlToast } from '@/components/worklist/WlToast';
 import { SettingsScreen } from '@/components/vendor/SettingsScreen';
@@ -117,6 +118,76 @@ function PeerDiscoverySwitch() {
   );
 }
 
+/**
+ * ── THE EXCHANGE OPT-IN · CE-42 4c-3b-1p, ruling (i) ─────────────────────────
+ *
+ * ⚠ TRANSCRIBED FROM `PeerDiscoverySwitch` ABOVE, PROPERTY FOR PROPERTY, and for
+ * the reason that block gives: a consent flag is written by the tap that granted
+ * it, not carried by an unrelated Save. Same hook read, same optimistic-then-echo
+ * settle, same revert on refusal.
+ *
+ * ⚠ THREE THINGS DIFFER, EACH DELIBERATE.
+ *   1. IT DEFAULTS OFF. `exchange_discoverable` is 0166's `DEFAULT false` — the
+ *      opt-in exposes a NEW fact about her (her audience, her openness to being
+ *      approached) to every vendor on the platform. Silence never means yes, so
+ *      `=== true`, and the hook's own default is false.
+ *   2. IT IS DRAWN ONLY FOR A `content_creator`. The exchange lists creators; a
+ *      photographer toggling it would be listed by nothing, because the browse
+ *      predicate reads category too. A control that cannot change an outcome does
+ *      not belong on her settings screen.
+ *   3. IT SETTLES ON THE ECHO ONLY IF THE ECHO IS THERE. 4c-3b-1s adds the field
+ *      to the PATCH response; until then `undefined` means "the door did not say",
+ *      and the row keeps the value the tap asked for rather than reading absence
+ *      as a NO and flipping itself back under her finger.
+ */
+function ExchangeOptInSwitch() {
+  const { current, loading } = useSettings();
+  const [on, setOn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const live = on ?? current.exchange_discoverable;
+
+  async function toggle() {
+    if (busy) return;
+    const next = !live;
+    setOn(next);
+    setBusy(true);
+    try {
+      const r = await updateMe({ exchange_discoverable: next });
+      if (!('ok' in r) || !r.ok) { setOn(!next); return; }
+      const echo = r.vendor.exchange_discoverable;
+      setOn(echo === undefined ? next : echo === true);
+    } catch {
+      setOn(!next);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (loading) return null;
+  if (current.category !== 'content_creator') return null;
+
+  return (
+    <div className="wl-set">
+      <div
+        role="switch"
+        aria-checked={live}
+        aria-label={EXCHANGE.optInLabel}
+        tabIndex={0}
+        onClick={toggle}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
+        className="wl-swrow"
+        style={{ opacity: busy ? 0.6 : 1 }}
+      >
+        <span className="wl-swtext">
+          <span className="wl-swlabel">{EXCHANGE.optInLabel}</span>
+          <span className="wl-swline">{EXCHANGE.optInLine}</span>
+        </span>
+        <span className={`wl-sw${live ? ' on' : ''}`} aria-hidden><span /></span>
+      </div>
+    </div>
+  );
+}
+
 export default function ShellSettingsPage() {
   const router = useRouter();
   const { session, loading } = useVendorSession();
@@ -141,6 +212,7 @@ export default function ShellSettingsPage() {
         </Link>
       </div>
       <PeerDiscoverySwitch />
+      <ExchangeOptInSwitch />
       <SettingsScreen chrome={false} ToastView={WlToast} />
       <style>{`
 .wl-set{padding-top:16px}

@@ -79,6 +79,16 @@ export interface SettingsState {
   // by a Save button — see the room.
   date_check_enabled:  boolean;
   peer_discoverable:   boolean;
+  // CE-42 4c-3b-1p · G5.3. TWO fields, both read-only to this hook's form half.
+  // `category` is here so the exchange row can be drawn for a content_creator
+  // WITHOUT a second /me read — the peer switch's law (settings/page.tsx:64),
+  // and the door does not accept it anyway (me.js ALLOWED_FIELDS).
+  category:            string;
+  // `=== true`, `date_check_enabled`'s side: 0166 defaults the column FALSE, so a
+  // field the door did not send is a consent NOT given. Fail-closed here means
+  // never overstating her exposure — the opposite coercion to its neighbour above,
+  // for the opposite default.
+  exchange_discoverable: boolean;
 }
 
 const EMPTY: SettingsState = {
@@ -111,6 +121,7 @@ const EMPTY: SettingsState = {
   // draw her switch OFF and tell her a lie about her own exposure. Fail-closed
   // means "never overstate her privacy", and here that is `true`.
   peer_discoverable: true,
+  category: '', exchange_discoverable: false,
 };
 
 export function useSettings() {
@@ -197,6 +208,8 @@ export function useSettings() {
         // above, for the reason its default paragraph gives. dream-os `me.js`
         // reads it the same way on both the GET shape and the PATCH echo.
         peer_discoverable:   v.peer_discoverable !== false,
+        category:            v.category ?? '',
+        exchange_discoverable: v.exchange_discoverable === true,
       };
       setSaved(s);
       setCurrent(s);

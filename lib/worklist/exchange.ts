@@ -9,6 +9,21 @@
 //
 // NO MONEY WORD, NO MONEY FIELD, EVER — master §7: TDW never brokers payment between
 // a vendor and an influencer. b76 asserts the absence.
+// ═══ EXCHANGE_PREVIEW — ONE FLAG, ONE HOME, ONE BRANCH (SUNDAY_PREVIEW's idiom,
+// lib/worklist/sunday.ts:8) ══════════════════════════════════════════════════
+// While true: every row on this room comes from lib/mocks/exchange.ts, NO door is
+// called, and every act toasts COPY.launchingSoon. 4c-3b-1s flips it to false in a
+// one-line rider once the doors exist; that flip is the whole of the wiring, and
+// b76 pins that this is the only branch. The client in lib/vendor/api/exchange.ts
+// is compiled either way — a call shape that only type-checks on the day it is
+// first used is a shape nobody has read.
+export const EXCHANGE_PREVIEW = true;
+
+// Preview-only: `/vendor/exchange?as=creator` draws the inbox from the fixture so
+// the creator's glass can be walked before a second test vendor exists. INERT when
+// the flag is false — the door decides the role and this param is never read (b76 C9).
+export const PREVIEW_ROLE_PARAM = 'as';
+
 export const EXCHANGE = {
   rowLabel:   'Influencer exchange',            // the row under Shoots AND the screen title — one string
   banner:     'Requests open once Instagram approves our access. You can look around.',
@@ -35,7 +50,17 @@ export const EXCHANGE = {
   send:       'Send',
   withdraw:   'Withdraw',
   complete:   'Mark completed',
-  states:     { sent: 'Sent', accepted: 'Accepted', declined: 'Declined', completed: 'Completed' } as const,
+  // ⚠ `withdrawn` IS A SIXTH BYTE AND IT IS NOT VETOED. The shell drew four states;
+  // 0166 has five, because Withdraw now has somewhere to land. It CANNOT REACH GLASS
+  // while EXCHANGE_PREVIEW is true — no fixture row carries it and no act can move a
+  // row — and 4c-3b-1s MUST NOT FLIP THE FLAG until the founder has vetoed or replaced
+  // it. Filed on the veto sheet as №6, not minted quietly.
+  states:     { sent: 'Sent', accepted: 'Accepted', declined: 'Declined', withdrawn: 'Withdrawn', completed: 'Completed' } as const,
+  headInbox:  'Requests to you',                // VETOED 2026-09-10 (sheet 1)
+  accept:     'Accept',                         // VETOED (sheet 2)
+  decline:    'Decline',                        // VETOED (sheet 3)
+  optInLabel: 'Open to requests from vendors',  // VETOED (sheet 4) — the settings row
+  optInLine:  'Vendors on The Dream Wedding can see your audience and send you a request.',  // VETOED (sheet 5)
   emptyList:  'No influencers on The Dream Wedding yet.',
   emptyMine:  'No requests yet.',
   followers:  'followers',

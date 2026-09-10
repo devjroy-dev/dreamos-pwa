@@ -9,6 +9,15 @@
 // cannot run yet, R-42.12). 4c-3b lands the plane and the arms behind these same
 // controls — the control inventory here IS the real feature's, by charter.
 //
+// ── 4c-3b-1p · WHAT THIS SITTING ADDED ───────────────────────────────────────
+// The creator's seat (Y1/Y2) and ONE FLAG. `EXCHANGE_PREVIEW` (lib/worklist/
+// exchange.ts) is the only branch between the fixture and the doors: true → every
+// row is a mock and every act toasts; false → the client in lib/vendor/api/
+// exchange.ts is called and the acts are real. The control inventory does not
+// change across the flip, which is the point of shipping it flag-on.
+// THE DOOR DECIDES THE ROLE (shape ruling, 2026-09-10): a content_creator with the
+// opt-in opens on her inbox and never sees the browse list — she is not a sender.
+//
 // ── THE RULINGS IT DRAWS ─────────────────────────────────────────────────────
 //   S1 the banner is static — the switchboard row is `pending` (0149:87).
 //   S2 audience fit, never follower bands: sorted by audience-city match to the
@@ -22,7 +31,8 @@
 //
 // Tokens only (R-42.6); rungs only (R-38.4); dates full-month (R-42.13, via
 // collabFormat.fmtDate — one home).
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { WlToast } from '@/components/worklist/WlToast';
@@ -30,8 +40,17 @@ import { useToast } from '@/hooks/vendor/useToast';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Sheet, SHEET_CSS } from '@/components/worklist/StudioSheets';
 import { COPY } from '@/lib/solutions/copy';
-import { EXCHANGE, fitLine, requestLine, subLine } from '@/lib/worklist/exchange';
-import { EXCHANGE_INFLUENCERS, EXCHANGE_REQUESTS, type ExchangeInfluencer } from '@/lib/mocks/exchange';
+import { EXCHANGE, EXCHANGE_PREVIEW, PREVIEW_ROLE_PARAM, fitLine, requestLine, subLine } from '@/lib/worklist/exchange';
+import {
+  EXCHANGE_INFLUENCERS, EXCHANGE_REQUESTS, EXCHANGE_INBOX, FIXTURE_ROLE,
+  type ExchangeInfluencer,
+} from '@/lib/mocks/exchange';
+import {
+  fetchExchangeHome, fetchCreators, fetchMyRequests, fetchInbox,
+  sendRequest, withdrawRequest, completeRequest, acceptRequest, declineRequest,
+  type ExchangeRole, type RequestRow, type RequestState, type AskKind, type CreatorRow,
+  type SendRequestBody,
+} from '@/lib/vendor/api/exchange';
 import { CITIES } from '@/lib/vendor/cityMatch';
 import { labelFor, CAT_LABEL } from '@/lib/frost/categoryLabels';
 import { fmtDate } from '@/lib/vendor/collabFormat';
@@ -41,26 +60,204 @@ export default function ExchangePage() {
   const { session, loading } = useVendorSession();
   useEffect(() => { if (!loading && !session) router.replace('/'); }, [loading, session, router]);
   if (loading || !session) return <div style={{ flex: 1 }} aria-busy="true" />;
-  return <ExchangeScreen />;
+  return <ExchangeRoom />;
 }
+
+// ── THE ROLE GATE ────────────────────────────────────────────────────────────
+// One read decides which glass mounts. Under the flag it is the fixture (with the
+// preview param); live it is GET /api/v2/vendor/exchange. NOTHING IS DRAWN UNTIL
+// IT HAS ANSWERED — mounting the sender's browse list for a creator and swapping
+// it a moment later would show her a room she is not in (F-40.209's lesson, one
+// surface over: a control drawn from a default asserts a fact it has not read).
+function ExchangeRoom() {
+  const params = useSearchParams();
+  const [role, setRole] = useState<ExchangeRole | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    if (EXCHANGE_PREVIEW) {
+      const asked = params.get(PREVIEW_ROLE_PARAM);
+      setRole(asked === 'creator' ? 'creator' : asked === 'sender' ? 'sender' : FIXTURE_ROLE);
+      return () => { live = false; };
+    }
+    fetchExchangeHome()
+      .then(h => { if (live) { if (h && h.ok) setRole(h.role); else setFailed(true); } })
+      .catch(() => { if (live) setFailed(true); });
+    return () => { live = false; };
+  }, [params]);
+
+  // A door that did not answer is not a sender. The room says so and stops, rather
+  // than guessing a role and drawing someone else's glass.
+  if (failed) return <WorklistShell title={EXCHANGE.rowLabel}><p className="xc-none xc-pad">{EXCHANGE.emptyList}</p><style>{XC_CSS}</style></WorklistShell>;
+  if (!role)  return <div style={{ flex: 1 }} aria-busy="true" />;
+  return role === 'creator' ? <InboxScreen /> : <ExchangeScreen />;
+}
+
+// ── THE CREATOR'S SEAT (Y1/Y2) ───────────────────────────────────────────────
+// Accept and Decline on `sent` only; the other states read their label and carry
+// no act. The sender's note is HERS to read and ours only to render.
+function InboxScreen() {
+  const { toast, show } = useToast();
+  const [rows, setRows]   = useState<RequestRow[] | null>(EXCHANGE_PREVIEW ? inboxFromFixture() : null);
+  const [busy, setBusy]   = useState<string | null>(null);
+
+  useEffect(() => {
+    if (EXCHANGE_PREVIEW) return;
+    let live = true;
+    fetchInbox().then(r => { if (live) setRows(r && r.ok ? r.requests : []); }).catch(() => { if (live) setRows([]); });
+    return () => { live = false; };
+  }, []);
+
+  // ONE ACT PATH FOR BOTH VERBS, and it settles on the DOOR'S OWN ECHO rather than
+  // on the state we hoped for — the peer switch's law (settings/page.tsx:77), which
+  // matters more here: the door refuses a second Accept with NOT_IN_STATE, and a
+  // room that had already painted `accepted` would be lying about a row it lost.
+  const act = useCallback(async (id: string, verb: 'accept' | 'decline') => {
+    if (EXCHANGE_PREVIEW) { show(COPY.launchingSoon); return; }
+    if (busy) return;
+    setBusy(id);
+    try {
+      const r = await (verb === 'accept' ? acceptRequest(id) : declineRequest(id));
+      if (r && r.ok && r.request) {
+        const next = r.request;
+        setRows(prev => (prev ?? []).map(x => (x.id === next.id ? next : x)));
+      } else if (r && r.error) {
+        show(r.error);
+      }
+    } catch {
+      /* the row stays as the door last said it was */
+    } finally {
+      setBusy(null);
+    }
+  }, [busy, show]);
+
+  return (
+    <WorklistShell title={EXCHANGE.rowLabel}>
+      <div className="xc-room">
+        <div className="xc-sec xc-first">{EXCHANGE.headInbox}{rows && rows.length ? <span>{rows.length}</span> : null}</div>
+        {rows === null ? <div aria-busy="true" style={{ minHeight: 40 }} />
+          : rows.length === 0 ? <p className="xc-none">{EXCHANGE.emptyMine}</p>
+          : rows.map(r => (
+            <div className="xc-card" key={r.id} style={{ opacity: busy === r.id ? 0.6 : 1 }}>
+              <div className="xc-hd">
+                <span>
+                  <span className="xc-name">{r.counterpart_name}</span>
+                  <span className="xc-line">{requestLine(labelFor(r.offer_kind), r.ask_count, r.ask_kind)} {'\u00B7'} {fmtDate(r.date_from)} {'\u2013'} {fmtDate(r.date_to)}</span>
+                </span>
+                <span className={stateClass(r.state)}>{EXCHANGE.states[r.state]}</span>
+              </div>
+              {r.offer_note ? <span className="xc-note">{r.offer_note}</span> : null}
+              {r.state === 'sent' ? (
+                <div className="xc-acts">
+                  <button type="button" className="xc-go" disabled={busy === r.id} onClick={() => act(r.id, 'accept')}>{EXCHANGE.accept}</button>
+                  <button type="button" className="xc-no" disabled={busy === r.id} onClick={() => act(r.id, 'decline')}>{EXCHANGE.decline}</button>
+                </div>
+              ) : null}
+            </div>
+          ))}
+      </div>
+      <WlToast toast={toast} />
+      <style>{SHEET_CSS + XC_CSS}</style>
+    </WorklistShell>
+  );
+}
+
+/** The fixture in the DOOR'S shape, so the glass above never learns two row shapes. */
+function inboxFromFixture(): RequestRow[] {
+  return EXCHANGE_INBOX.map(r => ({
+    id: r.id, counterpart_name: r.from_name, offer_kind: r.offer.craft, offer_note: r.offer.note,
+    ask_kind: r.ask.kind.toLowerCase() as AskKind, ask_count: r.ask.count,
+    date_from: r.dates.from, date_to: r.dates.to, state: r.state as RequestState,
+  }));
+}
+
+function stateClass(s: RequestState): string {
+  return 'xc-state' + (s === 'accepted' ? ' ok' : s === 'sent' ? '' : ' no');
+}
+
+// ── THE SENDER'S SEAT (X2-X7), NOW SOURCED THROUGH THE FLAG ──────────────────
+// One row shape on the glass either way: the fixtures are mapped INTO the door's
+// shape below rather than the glass learning two of them (the flip must change
+// where rows come from, never what they look like).
+type CreatorView = CreatorRow & { posts?: { id: string; kind: 'Post' | 'Reel' }[] };
 
 function ExchangeScreen() {
   const { toast, show } = useToast();
-  const soon = () => show(COPY.launchingSoon);
   const [city, setCity]   = useState<string>('Delhi NCR');
   const [craft, setCraft] = useState<string>('');
-  const [open, setOpen]   = useState<ExchangeInfluencer | null>(null);
+  const [open, setOpen]   = useState<CreatorView | null>(null);
   const [offering, setOffering] = useState(false);
+  const [busy, setBusy]   = useState<string | null>(null);
 
-  // S2(b): audience-city match to the filter first, then engagement. The follower
-  // count never enters this comparator.
-  const list = useMemo(() => {
-    const pct = (i: ExchangeInfluencer) => i.audience.cities.find(c => c.city === city)?.pct ?? 0;
-    return [...EXCHANGE_INFLUENCERS]
-      .filter(i => !craft || i.craft === craft)
-      .sort((a, b) => pct(b) - pct(a) || b.engagement_pct - a.engagement_pct);
+  const [creators, setCreators] = useState<CreatorView[] | null>(EXCHANGE_PREVIEW ? creatorsFromFixture() : null);
+  const [mine, setMine]         = useState<RequestRow[] | null>(EXCHANGE_PREVIEW ? mineFromFixture() : null);
+
+  // ⚠ THE FILTERS ARE THE DOOR'S ARGUMENTS WHEN THE DOOR EXISTS, and the preview's
+  // own comparator when it does not — S2(b) either way: audience-city match first,
+  // then engagement, and the follower count never enters the sort.
+  useEffect(() => {
+    if (EXCHANGE_PREVIEW) return;
+    let live = true;
+    fetchCreators({ city, craft: craft || undefined })
+      .then(r => { if (live) setCreators(r && r.ok ? r.creators : []); })
+      .catch(() => { if (live) setCreators([]); });
+    return () => { live = false; };
   }, [city, craft]);
-  const byId = (id: string) => EXCHANGE_INFLUENCERS.find(i => i.id === id);
+
+  useEffect(() => {
+    if (EXCHANGE_PREVIEW) return;
+    let live = true;
+    fetchMyRequests()
+      .then(r => { if (live) setMine(r && r.ok ? r.requests : []); })
+      .catch(() => { if (live) setMine([]); });
+    return () => { live = false; };
+  }, []);
+
+  const list = useMemo(() => {
+    const rows = creators ?? [];
+    if (!EXCHANGE_PREVIEW) return rows;          // the door sorted and filtered
+    const pct = (c: CreatorView) => c.reach?.cities.find(x => x.city === city)?.pct ?? 0;
+    return [...rows].sort((a, b) => pct(b) - pct(a) || (b.reach?.engagement_pct ?? 0) - (a.reach?.engagement_pct ?? 0));
+  }, [creators, city]);
+
+  // Withdraw (sent only) and Mark completed (accepted only). The verb is posted;
+  // the STATE comes back from the door and nothing else writes it here.
+  const move = useCallback(async (id: string, verb: 'withdraw' | 'complete') => {
+    if (EXCHANGE_PREVIEW) { show(COPY.launchingSoon); return; }
+    if (busy) return;
+    setBusy(id);
+    try {
+      const r = await (verb === 'withdraw' ? withdrawRequest(id) : completeRequest(id));
+      if (r && r.ok && r.request) {
+        const next = r.request;
+        setMine(prev => (prev ?? []).map(x => (x.id === next.id ? next : x)));
+      } else if (r && r.error) {
+        show(r.error);
+      }
+    } catch {
+      /* the row stays as the door last said it was */
+    } finally {
+      setBusy(null);
+    }
+  }, [busy, show]);
+
+  const send = useCallback(async (creatorId: string, body: SendRequestBody) => {
+    setOffering(false);
+    if (EXCHANGE_PREVIEW) { show(COPY.launchingSoon); return; }
+    try {
+      const r = await sendRequest(creatorId, body);
+      if (r && r.ok && r.request) {
+        const made = r.request;
+        setMine(prev => [made, ...(prev ?? [])]);
+        setOpen(null);
+      } else if (r && r.error) {
+        show(r.error);
+      }
+    } catch {
+      /* nothing was sent; the sheet is closed and her requests are unchanged */
+    }
+  }, [show]);
 
   return (
     <WorklistShell title={EXCHANGE.rowLabel}>
@@ -68,18 +265,26 @@ function ExchangeScreen() {
         {open ? (
           <>
             <button type="button" className="xc-back" onClick={() => setOpen(null)}>{EXCHANGE.back}</button>
-            <Card i={open} fitCity={city} />
-            <div className="xc-sec">{EXCHANGE.audience}</div>
-            <div className="xc-sub">{EXCHANGE.byCity}</div>
-            <Bars rows={open.audience.cities.map(c => [c.city, c.pct])} />
-            <div className="xc-sub">{EXCHANGE.byAge}</div>
-            <Bars rows={open.audience.age.map(a => [a.band, a.pct])} />
-            <div className="xc-sub">{EXCHANGE.byGender}</div>
-            <Bars rows={open.audience.gender.map(g => [g.k, g.pct])} />
-            <div className="xc-sec">{EXCHANGE.engagement}</div>
-            <span className="xc-name">{open.engagement_pct}%</span>
-            <div className="xc-sec">{EXCHANGE.posts}</div>
-            <div className="xc-posts">{open.posts.map(p => <div key={p.id} className="xc-post">{p.kind}</div>)}</div>
+            <Card c={open} fitCity={city} />
+            {open.reach ? (
+              <>
+                <div className="xc-sec">{EXCHANGE.audience}</div>
+                <div className="xc-sub">{EXCHANGE.byCity}</div>
+                <Bars rows={open.reach.cities.map(c => [c.city, c.pct])} />
+                <div className="xc-sub">{EXCHANGE.byAge}</div>
+                <Bars rows={open.reach.age.map(a => [a.band, a.pct])} />
+                <div className="xc-sub">{EXCHANGE.byGender}</div>
+                <Bars rows={open.reach.gender.map(g => [g.k, g.pct])} />
+                <div className="xc-sec">{EXCHANGE.engagement}</div>
+                <span className="xc-name">{open.reach.engagement_pct}%</span>
+              </>
+            ) : null}
+            {open.posts && open.posts.length ? (
+              <>
+                <div className="xc-sec">{EXCHANGE.posts}</div>
+                <div className="xc-posts">{open.posts.map(p => <div key={p.id} className="xc-post">{p.kind}</div>)}</div>
+              </>
+            ) : null}
             <div className="xc-cta"><button type="button" className="wl-btn pri" onClick={() => setOffering(true)}>{EXCHANGE.sendReq}</button></div>
           </>
         ) : (
@@ -95,44 +300,73 @@ function ExchangeScreen() {
               </select>
             </div>
             <div className="xc-sec xc-first">{EXCHANGE.headList}{list.length ? <span>{list.length}</span> : null}</div>
-            {list.length === 0 ? <p className="xc-none">{EXCHANGE.emptyList}</p>
-              : list.map(i => <Card key={i.id} i={i} fitCity={city} onOpen={() => setOpen(i)} />)}
+            {creators === null ? <div aria-busy="true" style={{ minHeight: 40 }} />
+              : list.length === 0 ? <p className="xc-none">{EXCHANGE.emptyList}</p>
+              : list.map(c => <Card key={c.id} c={c} fitCity={city} onOpen={() => setOpen(c)} />)}
 
-            <div className="xc-sec">{EXCHANGE.headMine}{EXCHANGE_REQUESTS.length ? <span>{EXCHANGE_REQUESTS.length}</span> : null}</div>
-            {EXCHANGE_REQUESTS.length === 0 ? <p className="xc-none">{EXCHANGE.emptyMine}</p>
-              : EXCHANGE_REQUESTS.map(r => (
-                <div className="xc-card" key={r.id}>
+            <div className="xc-sec">{EXCHANGE.headMine}{mine && mine.length ? <span>{mine.length}</span> : null}</div>
+            {mine === null ? <div aria-busy="true" style={{ minHeight: 40 }} />
+              : mine.length === 0 ? <p className="xc-none">{EXCHANGE.emptyMine}</p>
+              : mine.map(r => (
+                <div className="xc-card" key={r.id} style={{ opacity: busy === r.id ? 0.6 : 1 }}>
                   <div className="xc-hd">
                     <span>
-                      <span className="xc-name">{byId(r.influencer_id)?.name ?? '\u2014'}</span>
-                      <span className="xc-line">{requestLine(labelFor(r.offer.craft), r.ask.count, r.ask.kind)} {'\u00B7'} {fmtDate(r.dates.from)} {'\u2013'} {fmtDate(r.dates.to)}</span>
+                      <span className="xc-name">{r.counterpart_name}</span>
+                      <span className="xc-line">{requestLine(labelFor(r.offer_kind), r.ask_count, r.ask_kind)} {'\u00B7'} {fmtDate(r.date_from)} {'\u2013'} {fmtDate(r.date_to)}</span>
                     </span>
-                    <span className={'xc-state' + (r.state === 'accepted' ? ' ok' : r.state === 'sent' ? '' : ' no')}>{EXCHANGE.states[r.state]}</span>
+                    <span className={stateClass(r.state)}>{EXCHANGE.states[r.state]}</span>
                   </div>
-                  {r.state === 'sent'     ? <button type="button" className="xc-ghost" onClick={soon}>{EXCHANGE.withdraw}</button> : null}
-                  {r.state === 'accepted' ? <button type="button" className="xc-ghost" onClick={soon}>{EXCHANGE.complete}</button> : null}
+                  {r.state === 'sent'     ? <button type="button" className="xc-ghost" disabled={busy === r.id} onClick={() => move(r.id, 'withdraw')}>{EXCHANGE.withdraw}</button> : null}
+                  {r.state === 'accepted' ? <button type="button" className="xc-ghost" disabled={busy === r.id} onClick={() => move(r.id, 'complete')}>{EXCHANGE.complete}</button> : null}
                 </div>
               ))}
           </>
         )}
       </div>
 
-      {offering && open ? <OfferSheet i={open} onClose={() => setOffering(false)} onSend={() => { setOffering(false); soon(); }} /> : null}
+      {offering && open ? <OfferSheet c={open} onClose={() => setOffering(false)} onSend={body => { void send(open.id, body); }} /> : null}
       <WlToast toast={toast} />
       <style>{SHEET_CSS + XC_CSS}</style>
     </WorklistShell>
   );
 }
 
-function Card({ i, fitCity, onOpen }: { i: ExchangeInfluencer; fitCity: string; onOpen?: () => void }) {
-  const pct = i.audience.cities.find(c => c.city === fitCity)?.pct ?? 0;
+/** The fixtures in the DOOR'S shapes. `posts` has no door in this packet — the
+ *  tiles are fixture-only and the card omits the section when a row carries none
+ *  (open question for 4c-3b-1s: serve them from R6's /posts/cards, or drop them). */
+function creatorsFromFixture(): CreatorView[] {
+  return EXCHANGE_INFLUENCERS.map(i => ({
+    id: i.id, business_name: i.name, city: i.city, handle: i.handle,
+    reach: {
+      follower_count: i.followers, engagement_pct: i.engagement_pct, verified: i.verified,
+      cities: i.audience.cities, age: i.audience.age, gender: i.audience.gender,
+    },
+    posts: i.posts.map(p => ({ id: p.id, kind: p.kind })),
+  }));
+}
+function mineFromFixture(): RequestRow[] {
+  const name = (id: string) => EXCHANGE_INFLUENCERS.find(i => i.id === id)?.name ?? '\u2014';
+  return EXCHANGE_REQUESTS.map(r => ({
+    id: r.id, counterpart_name: name(r.influencer_id), offer_kind: r.offer.craft, offer_note: r.offer.note,
+    ask_kind: r.ask.kind.toLowerCase() as AskKind, ask_count: r.ask.count,
+    date_from: r.dates.from, date_to: r.dates.to, state: r.state as RequestState,
+  }));
+}
+
+function Card({ c, fitCity, onOpen }: { c: CreatorView; fitCity: string; onOpen?: () => void }) {
+  const pct = c.reach?.cities.find(x => x.city === fitCity)?.pct ?? 0;
   const body = (
     <>
       <div className="xc-hd">
-        <span><span className="xc-name">{i.name}</span><span className="xc-meta">{subLine(i.handle, i.city, i.followers)}</span></span>
-        <span className={'xc-badge' + (i.verified ? '' : ' pend')}>{i.verified ? EXCHANGE.badgeOn : EXCHANGE.badgeOff}</span>
+        <span>
+          <span className="xc-name">{c.business_name}</span>
+          <span className="xc-meta">{subLine(c.handle ?? '', c.city, c.reach?.follower_count ?? 0)}</span>
+        </span>
+        {/* S6 · the badge is the DOOR'S `verified`, never a date this room judged.
+            No reach at all reads Pending — the honest word for "not measured". */}
+        <span className={'xc-badge' + (c.reach?.verified ? '' : ' pend')}>{c.reach?.verified ? EXCHANGE.badgeOn : EXCHANGE.badgeOff}</span>
       </div>
-      {onOpen ? <span className="xc-fit">{fitLine(pct, fitCity)} {'\u00B7'} {i.engagement_pct}% {EXCHANGE.engagement.toLowerCase()}</span> : null}
+      {onOpen ? <span className="xc-fit">{fitLine(pct, fitCity)} {'\u00B7'} {c.reach?.engagement_pct ?? 0}% {EXCHANGE.engagement.toLowerCase()}</span> : null}
     </>
   );
   return onOpen
@@ -150,16 +384,26 @@ function Bars({ rows }: { rows: [string, number][] }) {
   );
 }
 
-function OfferSheet({ i, onClose, onSend }: { i: ExchangeInfluencer; onClose: () => void; onSend: () => void }) {
+function OfferSheet({ c, onClose, onSend }: { c: CreatorView; onClose: () => void; onSend: (body: SendRequestBody) => void }) {
   const [craft, setCraft] = useState('makeup');
   const [note, setNote]   = useState('');
   const [kind, setKind]   = useState<'Post' | 'Reel' | 'Story'>('Reel');
   const [count, setCount] = useState('2');
   const [from, setFrom]   = useState('');
   const [to, setTo]       = useState('');
+  // The sheet hands UP a typed body; it never posts. One writer for the send, and
+  // it is the screen that owns the list the new row lands in.
+  const submit = () => onSend({
+    offer_kind: craft,
+    offer_note: note,
+    ask_kind: kind.toLowerCase() as AskKind,
+    ask_count: Number(count) || 1,
+    date_from: from,
+    date_to: to,
+  });
   return (
     <Sheet title={EXCHANGE.sendReq} onClose={onClose}>
-      <div className="wl-fld"><span className="wl-fl">{EXCHANGE.to}</span><div className="wl-fi">{i.name} {'\u00B7'} {i.handle}</div></div>
+      <div className="wl-fld"><span className="wl-fl">{EXCHANGE.to}</span><div className="wl-fi">{c.business_name}{c.handle ? ' \u00B7 ' + c.handle : ''}</div></div>
       <div className="wl-fld">
         <span className="wl-fl">{EXCHANGE.offer}</span>
         <div className="xc-chips">{Object.keys(CAT_LABEL).map(t => (
@@ -180,7 +424,7 @@ function OfferSheet({ i, onClose, onSend }: { i: ExchangeInfluencer; onClose: ()
         <label className="wl-fld"><span className="wl-fl">{EXCHANGE.from}</span><input className="wl-fi" type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>
         <label className="wl-fld"><span className="wl-fl">{EXCHANGE.until}</span><input className="wl-fi" type="date" value={to} onChange={e => setTo(e.target.value)} /></label>
       </div>
-      <div className="wl-brow"><button type="button" className="wl-btn pri" onClick={onSend}>{EXCHANGE.send}</button></div>
+      <div className="wl-brow"><button type="button" className="wl-btn pri" onClick={submit}>{EXCHANGE.send}</button></div>
     </Sheet>
   );
 }
@@ -224,4 +468,11 @@ const XC_CSS = `
 .xc-area{resize:none}
 .xc-two3{display:grid;grid-template-columns:2fr 1fr;column-gap:10px;align-items:start}
 .xc-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.xc-pad{padding:20px var(--wl-gutter)}
+.xc-note{font:var(--wl-t3);color:var(--atelier-ink-soft);margin-top:8px;display:block}
+.xc-acts{display:flex;gap:8px;margin-top:12px}
+.xc-go,.xc-no{flex:1;min-height:40px;display:flex;align-items:center;justify-content:center;border-radius:3px;background:transparent;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.xc-go{border:.5px solid var(--atelier-input-border);color:var(--atelier-accent-text)}
+.xc-no{border:.5px solid var(--atelier-card-border);color:var(--atelier-ink-mute)}
+.xc-go:focus-visible,.xc-no:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 `;

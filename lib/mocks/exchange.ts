@@ -34,3 +34,26 @@ export const EXCHANGE_REQUESTS: readonly ExchangeRequest[] = [
   { id: 'req-3', influencer_id: 'inf-3', offer: { craft: 'designer',    note: '' }, ask: { kind: 'Story', count: 3 }, dates: { from: '2026-09-04', to: '2026-09-20' }, state: 'declined' },
   { id: 'req-4', influencer_id: 'inf-1', offer: { craft: 'photography', note: '' }, ask: { kind: 'Reel',  count: 1 }, dates: { from: '2026-08-12', to: '2026-08-30' }, state: 'completed' },
 ];
+
+// ── 4c-3b-1p · THE CREATOR'S SIDE ────────────────────────────────────────────
+// The inbox fixture (Y1). Every SENDER here is INVENTED — these are business
+// names, never real vendors, and they ship only while EXCHANGE_PREVIEW is true.
+// NO ROW CARRIES `withdrawn`: that byte is not vetoed (lib/worklist/exchange.ts),
+// so the fixture cannot put it on glass.
+export interface ExchangeInboxRow {
+  id: string; from_name: string; offer: { craft: string; note: string };
+  ask: { kind: 'Post' | 'Reel' | 'Story'; count: number }; dates: { from: string; to: string };
+  state: 'sent' | 'accepted' | 'declined' | 'completed';
+}
+export const EXCHANGE_INBOX: readonly ExchangeInboxRow[] = [
+  { id: 'inb-1', from_name: 'DEV440 Studio',   offer: { craft: 'makeup',      note: 'Bridal look for one styled shoot, trial included.' }, ask: { kind: 'Reel',  count: 2 }, dates: { from: '2026-10-18', to: '2026-11-18' }, state: 'sent' },
+  { id: 'inb-2', from_name: 'Frames by Kabir', offer: { craft: 'photography', note: '' }, ask: { kind: 'Reel',  count: 1 }, dates: { from: '2026-11-02', to: '2026-11-30' }, state: 'accepted' },
+  { id: 'inb-3', from_name: 'Noor Couture',    offer: { craft: 'designer',    note: '' }, ask: { kind: 'Story', count: 3 }, dates: { from: '2026-09-04', to: '2026-09-20' }, state: 'declined' },
+];
+
+/** The role the preview opens on. `?as=creator` overrides it while the flag is
+ *  true; live, the door answers and this constant is dead (b76 C9). */
+export const FIXTURE_ROLE: 'sender' | 'creator' = 'sender';
+/** The creator's opt-in as the preview draws it — 0166 defaults the column FALSE,
+ *  and the fixture shows the row ON so the walk sees the state that matters. */
+export const FIXTURE_OPTED_IN = true;

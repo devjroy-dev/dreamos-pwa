@@ -1,6 +1,15 @@
 #!/usr/bin/env node
 'use strict';
 // scripts/b76_4c3a_exchange_shell_bench.js — CE-42 4c-3a · R7 G5.3 THE INFLUENCER EXCHANGE SHELL (pwa).
+// EXTENDED at 4c-3b-1p (seat R7, base a9b5e0cd): C2 and C7 AMENDED BY LABEL, C8-C14 new.
+//   C2 said "the shell has no network" and asserted no `fetch(`/`getJson` appears at all.
+//   4c-3b-1p wires the client, so that byte is now false BY CHARTER rather than by drift —
+//   the chair's split ruled the fetches in, behind one flag. The cell keeps its number and
+//   asserts the thing that now matters: EVERY call site sits behind an EXCHANGE_PREVIEW
+//   guard, so nothing reaches the wire while the flag is true.
+//   C7 asserted `fmtDate(r.dates.from)` — the fixture's field name. The glass now reads the
+//   DOOR's shape (`date_from`) with the fixtures mapped into it, so the cell follows the
+//   field and keeps asserting the one home.
 // Seat R7. Base dreamos-pwa 948176dcc440cd074ece8f02fa39fbbb364693ce.
 // NUMBERED b76 across both repos (b69's rule): pwa tails at b75, dream-os at b73.
 //
@@ -53,27 +62,46 @@ cell('C1 the vetoed strings, byte for byte (incl. the one changed byte: "their a
   if (EX.requestLine('Designer', 2, 'Reel') !== 'Designer for 2 reels') return `plural → ${EX.requestLine('Designer', 2, 'Reel')}`;
 });
 
-// MUTATION → RED: in page.tsx, replace `EXCHANGE_INFLUENCERS` with a getJson(...) read.
-cell('C2 the fixture rows are consts no door reads — the shell has no network', () => {
-  if (/getJson|postJson|fetch\(/.test(page)) return 'the shell calls a door';
-  if (!/EXCHANGE_INFLUENCERS/.test(page) || !/EXCHANGE_REQUESTS/.test(page)) return 'the shell does not read the fixture consts';
-  if (MK.EXCHANGE_INFLUENCERS.length !== 3 || MK.EXCHANGE_REQUESTS.length !== 4) return 'fixture counts moved';
-  if (!MK.EXCHANGE_INFLUENCERS.every(i => /\.tdw$/.test(i.handle))) return 'a fixture handle lacks the .tdw suffix (a live handle risk)';
-  if (!MK.EXCHANGE_INFLUENCERS.every(i => i.craft === 'content_creator')) return 'an influencer is not a content_creator (ruling (ii))';
+// MUTATION → RED: delete any one `if (EXCHANGE_PREVIEW) return;` guard, or flip the flag.
+cell('C2 (AMENDED 4c-3b-1p) one flag, one branch: every door call sits behind EXCHANGE_PREVIEW', () => {
+  if (EX.EXCHANGE_PREVIEW !== true) return 'the flag shipped flipped — nothing may be called before the doors exist';
+  const lines = page.split('\n');
+  const CALLS = ['fetchExchangeHome(', 'fetchCreators(', 'fetchMyRequests(', 'fetchInbox(',
+                 'sendRequest(', 'withdrawRequest(', 'completeRequest(', 'acceptRequest(', 'declineRequest('];
+  let seen = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const hits = CALLS.filter((c) => lines[i].includes(c)).length;   // a ternary holds TWO verbs on one line
+    if (!hits) continue;
+    if (/^import|from '@\/lib\/vendor\/api\/exchange'/.test(lines[i])) continue;
+    seen += hits;
+    // The guard is the nearest EXCHANGE_PREVIEW above, within the same function body.
+    // ⚠ THE GUARD FORM, NOT THE WORD. The first cut of this cell scanned for
+    // /EXCHANGE_PREVIEW/ and passed on the `useState(EXCHANGE_PREVIEW ? ... )` seed
+    // four lines above the call — a HOLLOW GREEN that survived deleting the real
+    // guard. It must be an `if (EXCHANGE_PREVIEW)` statement.
+    let guarded = false;
+    for (let j = i; j >= 0 && j > i - 20; j--) if (/if \(EXCHANGE_PREVIEW\)/.test(lines[j])) { guarded = true; break; }
+    if (!guarded) return `unguarded call at line ${i + 1}: ${lines[i].trim().slice(0, 60)}`;
+  }
+  if (seen < 9) return `only ${seen} call sites found — the client is not fully wired`;
+  if (MK.EXCHANGE_INFLUENCERS.length !== 3 || MK.EXCHANGE_REQUESTS.length !== 4 || MK.EXCHANGE_INBOX.length !== 3) return 'fixture counts moved';
 });
 
-// MUTATION → RED: in page.tsx, change one `onClick={soon}` to `onClick={() => {}}`.
-cell('C3 every act toasts COPY.launchingSoon — imported, never typed; Withdraw on sent only', () => {
-  if (/Launching soon/.test(page)) return 'the byte is typed on the screen';
-  if (!/COPY\.launchingSoon/.test(page)) return 'launchingSoon is not imported';
-  const acts = (page.match(/onClick=\{soon\}/g) || []).length + (page.match(/onSend=\{\(\) => \{ setOffering\(false\); soon\(\); \}\}/g) || []).length;
-  if (acts < 3) return `only ${acts} acts toast`;
-  if (!/r\.state === 'sent'\s*\? <button[^>]*onClick=\{soon\}>\{EXCHANGE\.withdraw\}/.test(page)) return 'Withdraw is not gated to sent';
-  if (!/r\.state === 'accepted'\s*\? <button[^>]*onClick=\{soon\}>\{EXCHANGE\.complete\}/.test(page)) return 'Mark completed is not gated to accepted';
+cell('C3 (AMENDED 4c-3b-1p) while the flag is true EVERY act toasts COPY.launchingSoon and returns', () => {
+  // 4c-3a's C3 read `onClick={soon}` on each control. The controls now call real
+  // handlers, so the assertion moves to where the branch is: each act's FIRST
+  // statement is the preview toast, and it RETURNS — an act that toasted and then
+  // fell through to a door would be the worst of both.
+  if (!/import \{ COPY \} from '@\/lib\/solutions\/copy'/.test(page)) return 'the byte is not imported';
+  if (/launching soon/i.test(page.replace(/COPY\.launchingSoon/g, ''))) return 'the byte is typed, not imported';
+  const acts = (page.match(/if \(EXCHANGE_PREVIEW\) \{ show\(COPY\.launchingSoon\); return; \}/g) || []).length;
+  if (acts !== 3) return `${acts} act paths toast — expected 3 (inbox accept/decline, withdraw/complete, send)`;
+  // ...and the acts are still gated by state on both seats.
+  if (!/r\.state === 'sent'     \? <button/.test(page)) return 'Withdraw is not on sent only';
+  if (!/r\.state === 'accepted' \? <button/.test(page)) return 'Mark completed is not on accepted only';
 });
 
-// MUTATION → RED: add `<input type="number" placeholder="Rs" />` to OfferSheet.
-cell('C4 NO money on the exchange — no Rs, no formatRs, no budget/price/fee field (master §7)', () => {
+cell('C4 (EXTENDED 4c-3b-1p) NO money on the exchange — no Rs, no formatRs, no budget/price/fee field (master §7)', () => {
   for (const [n, src] of [['page.tsx', page], ['exchange.ts', strip(read('lib/worklist/exchange.ts'))], ['mocks', strip(mocksRaw)]]) {
     if (/\bRs\b|formatRs|budget|price|fee|payment|₹/i.test(src)) return `${n} carries a money word`;
   }
@@ -98,13 +126,107 @@ cell('C6 the row: RoomRow with the hub\'s Coming chip, EXCHANGE_HREF, under Shoo
 });
 
 // MUTATION → RED: put `color:#68C9B4` into XC_CSS.
-cell('C7 R-42.6: zero colour literals; dates through fmtDate (R-42.13); title is the row label', () => {
+cell('C7 (AMENDED 4c-3b-1p) R-42.6: zero colour literals; dates through fmtDate (R-42.13); title is the row label', () => {
   const lit = /#[0-9A-Fa-f]{3,8}\b|rgba?\(|hsla?\(/;
   for (const f of ['app/vendor/(shell)/exchange/page.tsx', 'lib/worklist/exchange.ts', 'lib/mocks/exchange.ts']) {
     const hit = strip(read(f)).split('\n').find((l) => lit.test(l)); if (hit) return `${f}: ${hit.trim().slice(0, 60)}`;
   }
-  if (!/fmtDate\(r\.dates\.from\)/.test(page) || /toLocaleDateString/.test(page)) return 'dates do not go through the one home';
+  if (!/fmtDate\(r\.date_from\)/.test(page) || /toLocaleDateString/.test(page)) return 'dates do not go through the one home';
   if (!/<WorklistShell title=\{EXCHANGE\.rowLabel\}>/.test(page)) return 'the title is not the row label';
+});
+
+
+// ═══ 4c-3b-1p · C8-C14 ══════════════════════════════════════════════════════
+const rawEx   = read('lib/worklist/exchange.ts');
+const client  = strip(read('lib/vendor/api/exchange.ts'));
+const setPage = strip(read('app/vendor/(shell)/settings/page.tsx'));
+
+// MUTATION → RED: change 'Requests to you' to 'Your inbox'.
+cell('C8 the five vetoed bytes, and the sixth declared unvetoed rather than minted quietly', () => {
+  const want = { headInbox: 'Requests to you', accept: 'Accept', decline: 'Decline',
+                 optInLabel: 'Open to requests from vendors',
+                 optInLine: 'Vendors on The Dream Wedding can see your audience and send you a request.' };
+  for (const [k, v] of Object.entries(want)) if (EX.EXCHANGE[k] !== v) return `${k} = "${EX.EXCHANGE[k]}"`;
+  // The fifth state exists (0166 has five) and its byte is flagged as AWAITING VETO in
+  // the source. Strip the warning without a veto and this cell goes red.
+  if (EX.EXCHANGE.states.withdrawn !== 'Withdrawn') return 'the withdrawn label moved';
+  if (!/AWAITING VETO|IS A SIXTH BYTE AND IT IS NOT VETOED/.test(rawEx)) return 'the unvetoed byte lost its warning';
+  // ...and it cannot reach glass: no fixture row carries it.
+  const states = [...MK.EXCHANGE_REQUESTS, ...MK.EXCHANGE_INBOX].map((r) => r.state);
+  if (states.includes('withdrawn')) return 'a fixture row puts the unvetoed byte on glass';
+});
+
+// MUTATION → RED: move the `params.get` read outside the EXCHANGE_PREVIEW branch.
+cell('C9 the preview role param is INERT when the flag is false', () => {
+  const lines = page.split('\n');
+  const at = lines.findIndex((l) => l.includes('params.get(PREVIEW_ROLE_PARAM)'));
+  if (at < 0) return 'the preview param is not read at all';
+  let guarded = false;
+  for (let j = at; j >= 0 && j > at - 8; j--) if (/if \(EXCHANGE_PREVIEW\)/.test(lines[j])) { guarded = true; break; }
+  if (!guarded) return 'the param is read outside the preview branch — it would override the door';
+  if (!/fetchExchangeHome\(\)/.test(page)) return 'the live role is not read from the door';
+});
+
+// MUTATION → RED: render <ExchangeScreen /> for a creator too.
+cell('C10 the door decides the role; a creator never sees the browse list', () => {
+  if (!/role === 'creator' \? <InboxScreen \/> : <ExchangeScreen \/>/.test(page)) return 'the role gate is not the one branch';
+  if (!/if \(!role\)\s+return <div style=\{\{ flex: 1 \}\} aria-busy="true" \/>;/.test(page)) return 'the room draws before the role is known';
+  const inbox = page.slice(page.indexOf('function InboxScreen()'), page.indexOf('function inboxFromFixture'));
+  if (/EXCHANGE\.headList|EXCHANGE\.filterCity|OfferSheet/.test(inbox)) return 'the creator seat carries the sender\'s controls';
+  if (!/EXCHANGE\.headInbox/.test(inbox)) return 'the creator seat is not the inbox';
+});
+
+// MUTATION → RED: draw Accept on an accepted row.
+cell('C11 Accept/Decline on `sent` only; the verb is posted, the state comes back', () => {
+  const inbox = page.slice(page.indexOf('function InboxScreen()'), page.indexOf('function inboxFromFixture'));
+  if (!/r\.state === 'sent' \? \(/.test(inbox)) return 'the acts are not gated on sent';
+  if (/state: 'accepted'|state: 'declined'/.test(inbox)) return 'the room names a state on the wire';
+  if (!/setRows\(prev => \(prev \?\? \[\]\)\.map\(x => \(x\.id === next\.id \? next : x\)\)\)/.test(inbox)) return 'the row does not settle on the door\'s echo';
+  // The client posts VERBS, never a state.
+  // Every transition posts an EMPTY body to a verb path. A `state` reaching postJson
+  // is the failure this cell exists for; `state:` inside an interface is not.
+  const posts = client.split('\n').filter((l) => /postJson\(/.test(l));
+  if (posts.some((l) => /state/.test(l))) return 'a posted body names a state';
+  if (posts.filter((l) => /\/(accept|decline|withdraw|complete)'/.test(l)).length !== 4) return 'the four verbs do not post empty bodies';
+  for (const verb of ['/accept', '/decline', '/withdraw', '/complete']) if (!client.includes(verb)) return `the ${verb} verb has no call`;
+});
+
+// MUTATION → RED: drop the category test from the opt-in row.
+cell('C12 the opt-in: content_creator only, fails CLOSED, written by the tap alone', () => {
+  if (!/current\.category !== 'content_creator'/.test(setPage)) return 'the row is drawn for every category';
+  if (!/updateMe\(\{ exchange_discoverable: next \}\)/.test(setPage)) return 'the opt-in is not written through the one door';
+  if (/update\(\{ exchange_discoverable|isDirty/.test(setPage.slice(setPage.indexOf('function ExchangeOptInSwitch')))) return 'the consent flag rides the form hook';
+  const hook = strip(read('hooks/vendor/useSettings.ts'));
+  if (!/exchange_discoverable: v\.exchange_discoverable === true/.test(hook)) return 'the reader does not fail closed';
+  if (!/category: '', exchange_discoverable: false/.test(hook)) return 'the hook default is not closed';
+});
+
+// MUTATION → RED: make InboxScreen read r.from_name instead of r.counterpart_name.
+cell('C13 one row shape on the glass — the fixtures are mapped INTO the door shape', () => {
+  if (!/function inboxFromFixture\(\): RequestRow\[\]/.test(page)) return 'the inbox fixture is not mapped';
+  if (!/function mineFromFixture\(\): RequestRow\[\]/.test(page)) return 'the requests fixture is not mapped';
+  if (!/function creatorsFromFixture\(\): CreatorView\[\]/.test(page)) return 'the creators fixture is not mapped';
+  // THE MAPPERS ARE WHERE FIXTURE FIELDS BELONG — they are the seam. The sweep is
+  // the RENDERING half only, with the three mapper bodies cut out of it.
+  let glass = page.slice(page.indexOf('function ExchangeRoom'));
+  for (const fn of ['function inboxFromFixture', 'function mineFromFixture', 'function creatorsFromFixture']) {
+    const a = glass.indexOf(fn); if (a < 0) continue;
+    const b = glass.indexOf('\n}', a); glass = glass.slice(0, a) + glass.slice(b);
+  }
+  if (/r\.from_name|r\.dates\.|i\.followers/.test(glass)) return 'the glass reads a fixture-only field';
+  const c = (page.match(/counterpart_name/g) || []).length;
+  if (c < 4) return `the door's row field appears ${c} times — the glass has two shapes`;
+});
+
+// MUTATION → RED: add `follower_count` to the sort comparator.
+cell('C14 S2(b) holds through the flip: the count is a fact, never a key; no identity on the wire', () => {
+  const sortLine = page.split('\n').find((l) => l.includes('.sort((a, b)'));
+  if (!sortLine) return 'no comparator';
+  if (/follower/.test(sortLine)) return `the count entered the sort: ${sortLine.trim().slice(0, 70)}`;
+  if (!/engagement_pct/.test(sortLine)) return 'engagement left the comparator';
+  // The client's reach shape has NO column for a follower identity, and neither does 0166.
+  if (/follower_name|follower_handle|followers\s*:\s*\{/.test(client)) return 'the client shape carries a follower identity';
+  if (!/aggregates/.test(read('lib/vendor/api/exchange.ts'))) return 'the client lost its no-identity declaration';
 });
 
 console.log(`\nb76 · ${pass} GREEN · ${reds.length} RED${reds.length ? ' — ' + reds.join(' | ') : ''}`);
