@@ -144,5 +144,13 @@ cell('C10 Referrals & partners mounts the block; the forwards keep their zero co
   if (/<button|onClick=/.test(own)) return 'the room grew a control of its own';
 });
 
+// MUTATION → RED: in CollabPostForm, drop the `kind === 'shoot' &&` guard on the note input.
+cell('C11 F-42.205: the per-role note renders ONLY for kind=shoot, with the vetoed placeholder', () => {
+  if (!/\{kind === 'shoot' && \(\s*<input className="wl-fi cp-note"/.test(form)) return 'the note input is not gated to kind=shoot';
+  if (!formRaw.includes("const NOTE_PLACEHOLDER = 'Who you need \\u2014 e.g. Model, 22\\u201330';")) return 'the vetoed placeholder bytes are not the constant';
+  if (!/placeholder=\{NOTE_PLACEHOLDER\}/.test(form)) return 'the input does not read the constant';
+  if ((form.match(/cp-note"/g) || []).length !== 1) return 'a second note input exists';
+});
+
 console.log(`\nb75 · ${pass} GREEN · ${reds.length} RED${reds.length ? ' — ' + reds.join(' | ') : ''}`);
 process.exit(reds.length ? 1 : 0);

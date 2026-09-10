@@ -20,8 +20,12 @@
 //   · REMOVED-BY-RULING: the eyebrow `New Requirement`; and, for kind=collab, the
 //     shoot pair from the event types (under 2(a)+3(ii) they would post into the
 //     other room). kind=shoot offers ONLY the pair, as `Shoot type`, one always on.
-//   · NEW CONTROL: a note per requirement — `collab_post_items.note` (0096), never
-//     exposed before. It is how a shoot names its model ("Content Creator · Model").
+//   · NEW CONTROL, SHOOTS ONLY: a note per requirement — `collab_post_items.note` (0096),
+//     never exposed before. It is how a shoot names its model ("Content Creator · Model").
+//     F-42.205 (ruled (a)): it rendered on kind=collab too, where NO surface reads a note —
+//     a write with no reader (F-40.109's class) — and it had no placeholder, so the founder
+//     read the empty box as "what is this for?". It now renders only for kind=shoot, with
+//     the vetoed placeholder; its accessible name stays the craft's own label.
 //   · Event-type labels: sentence case from collabFormat.fmtType (departures 1 & 2).
 //
 // ⚠ F-42.190, FILED, NOT CURED HERE: the first-look line says 12 hours; the window
@@ -42,6 +46,8 @@ interface Types { requirement_types: string[]; shoot_event_types: string[] }
 interface Item { requirement_type: string; note: string }
 
 const MAX_ITEMS = 8;
+// F-42.205 — the founder's byte, vetoed by the chair 2026-09-10. Shoots only.
+const NOTE_PLACEHOLDER = 'Who you need \u2014 e.g. Model, 22\u201330';
 
 export function CollabPostForm({ kind, prefill, onClose, onSuccess }: {
   kind: CollabKind;
@@ -139,8 +145,10 @@ export function CollabPostForm({ kind, prefill, onClose, onSuccess }: {
                 <div className="cp-row">
                   {/* Tapping the chosen craft reopens the eleven — the pill it replaced was a toggle. */}
                   <button type="button" className="cp-rlabel" onClick={() => setItem(i, { requirement_type: '' })}>{labelFor(item.requirement_type)}</button>
-                  <input className="wl-fi cp-note" value={item.note} maxLength={200} aria-label={labelFor(item.requirement_type)}
-                    onChange={e => setItem(i, { note: e.target.value.slice(0, 200) })} />
+                  {kind === 'shoot' && (
+                    <input className="wl-fi cp-note" value={item.note} maxLength={200} aria-label={labelFor(item.requirement_type)}
+                      placeholder={NOTE_PLACEHOLDER} onChange={e => setItem(i, { note: e.target.value.slice(0, 200) })} />
+                  )}
                 </div>
               ) : (
                 <div className="cp-chips">

@@ -1,0 +1,7 @@
+# scripts/floor-manifest-ce42-f42205-pwa.txt — CE-42 F-42.205 micro (dreamos-pwa), seat R7 [F-19.16].
+# base: 92416015c13be560d13b64e432f9bbeb80ea7b28   (re-pinned from 6d6823a8 after R6 4b-2 pwa; no shared path)
+# Every path this ZIP writes, and nothing else. Derived by `git status --porcelain` at the cut.
+components/vendor/CollabPostForm.tsx
+docs/handovers/CE42_F42205_MICRO_HANDOVER.md
+scripts/b75_4c1_shoot_board_pwa_bench.js
+scripts/floor-manifest-ce42-f42205-pwa.txt
