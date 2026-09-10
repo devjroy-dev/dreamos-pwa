@@ -142,6 +142,12 @@ export interface AssistanceSheetProps {
   // was built with. A caller that needs a different one owes a fresh instance — a
   // `key` that changes with the screen is how `/plan` pays it.
   initialSent?: { categories: string[]; city: string; date: string } | null;
+  // The sent screen's forward action, and it is OPTIONAL BY DESIGN. The bride lane
+  // passes none: she is already inside the app and the sent state is where she stops,
+  // so a Continue there would be a button to nowhere. `/plan` passes one because a
+  // stranger has somewhere to be sent next and, until she taps it, this screen is the
+  // only acknowledgement her request landed (Fork 2, amended at the walk).
+  sentAction?: { label: string; onTap: () => void };
 }
 
 function digitsOnly(s: string): string { return s.replace(/\D/g, '').slice(0, 9); }
@@ -150,7 +156,7 @@ type Row = { category: AssistCategory; label: string; on: boolean; rs: string };
 
 export default function AssistanceSheet({
   palette, copy, signedIn, submit, chrome,
-  requireCity = false, prefill, initialSent = null,
+  requireCity = false, prefill, initialSent = null, sentAction,
 }: AssistanceSheetProps) {
   const S = SHEET_BYTES;
   const { bg, ink, inkSoft, inkMute, line, rowBg, rowBdr } = palette;
@@ -305,6 +311,13 @@ export default function AssistanceSheet({
                   )}
                 </React.Fragment>
               ))}
+            </div>
+          )}
+          {sentAction && (
+            <div role="button" onClick={sentAction.onTap}
+              onPointerDown={() => setPressed(true)} onPointerUp={() => setPressed(false)} onPointerLeave={() => setPressed(false)}
+              style={{ ...palette.cta, ...(pressed ? palette.ctaPress : null) }}>
+              {sentAction.label}
             </div>
           )}
           <div style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: inkMute, textAlign: 'center', marginTop: 22, lineHeight: 1.5 }}>{S.changeIt}</div>

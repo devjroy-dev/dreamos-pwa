@@ -70,6 +70,7 @@ const P = {
   codeLabel:  '6-digit code',
   verify:     'Verify',
   resend:     'Resend the code',
+  cont:       'Continue',
   back:       'Back',
   dial:       '+91',
 };
@@ -134,18 +135,35 @@ const LIGHT: SheetPalette = {
 // FORK D, ruled: `?city=` and `?date=YYYY-MM-DD` ONLY, malformed ignored. `area` and
 // `brief` are REFUSED — a link that pre-writes a stranger's own words back at her can
 // be forged to put words in her request, and she would sign her name under them.
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+// ⚠ F-42.153 · THE DATE IS A STRING FROM THE LINK TO THE WIRE AND NEVER A `Date`.
+// The first cut validated by ROUND-TRIP — `new Date(s + 'T00:00:00')` compared against
+// `toISOString()` — which parses LOCAL and serialises UTC. East of Greenwich those are
+// different days: on an Indian device `2027-02-14` came back `2027-02-13`, the equality
+// failed, and every dated link silently arrived with an empty date field. The founder's
+// very first walk showed City filled and the date blank, and it was read past.
+//
+// This is `b70 §1.5`'s lesson facing the other way — that one renders 3 December for a
+// reader west of Greenwich; this one discards a valid day for one east of it. THE CURE
+// IS NOT A UTC PARSE. A `Date` here has no work to do at all: the wire wants
+// `YYYY-MM-DD`, the input wants `YYYY-MM-DD`, and the only question is whether the
+// three numbers name a real day. Arithmetic answers that, and arithmetic has no zone.
+function isCalendarDay(y: number, m: number, d: number): boolean {
+  if (m < 1 || m > 12 || d < 1) return false;
+  const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  return d <= [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+}
+
 function readPrefill(get: (k: string) => string | null): { city?: string; date?: string } {
   const out: { city?: string; date?: string } = {};
   const city = (get('city') || '').trim();
   if (city) out.city = city.slice(0, 80);
   const date = (get('date') || '').trim();
-  // Shape AND value: `2027-02-31` matches the shape and is not a day, and a native
-  // date control fed one silently renders empty, which reads as a link that did nothing.
-  if (ISO_DATE.test(date)) {
-    const d = new Date(date + 'T00:00:00');
-    if (!isNaN(d.getTime()) && date === d.toISOString().slice(0, 10)) out.date = date;
-  }
+  // Shape AND value: `2027-02-31` matches the shape and is not a day, and a native date
+  // control fed one silently renders empty, which reads as a link that did nothing.
+  const m = ISO_DATE.exec(date);
+  if (m && isCalendarDay(+m[1], +m[2], +m[3])) out.date = date;
   return out;
 }
 
@@ -230,9 +248,15 @@ function PlanInner() {
       // the couple's own word, and this side does not keep a second copy of that map.
       setSentCats((body?.items || []).map(i => ASSIST_ROWS.find(r => r.category === i.category)?.label || i.category));
       setScreen('sent');
-      // FORK 2, ruled: she reads the confirmation for a beat, then the mint's own
-      // destination. N = 1500ms, founder-ruled and overruled on the walk if it reads fast.
-      window.setTimeout(() => router.push(href), 1500);
+      // ── FORK 2 AMENDED AT THE WALK: THE TAP, NOT THE TIMER ──────────────────
+      // A 1500ms beat shipped first and the founder, walking it deliberately and
+      // watching for it, could not report having seen the screen at all. That is the
+      // evidence: a confirmation nobody can be sure they saw is not a confirmation.
+      // It matters more here than anywhere else on the estate — a stranger from a
+      // public link has no app, no account she knows about and no inbox to check, so
+      // this screen is the ONLY acknowledgement her request landed. It now stays until
+      // she taps. The destination is still the mint's, held on the ref, and `Continue`
+      // runs the identical push the timer used to.
     } finally { setBusy(false); }
   }
 
@@ -298,6 +322,7 @@ function PlanInner() {
         requireCity
         prefill={prefill}
         initialSent={isSent ? { categories: sentCats, city: body?.city || '', date: body?.wedding_date || '' } : null}
+        sentAction={isSent ? { label: P.cont, onTap: () => { const href = destination.current; if (href) router.push(href); } } : undefined}
         submit={async (b) => { setBody(b); setScreen('phone'); return 'held'; }}
         chrome={column}
       />

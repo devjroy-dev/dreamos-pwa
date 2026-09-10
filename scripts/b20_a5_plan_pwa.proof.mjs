@@ -15,6 +15,7 @@
 // §13 F-42.143 · nothing in a flex row can refuse to shrink (the mechanism; the walk owns the measure)
 // §14 F-42.144 · the sent screen is a FRESH instance, so initialSent means initial
 // §15 the mint sends the SAME body from both doors — driven, not read
+// F-42.153 · the date is a string end to end, driven under UTC, IST and UTC+14 (§7)
 // §12 NON-VACUITY · production source mutated, each cell shown to red, one no-op control
 //
 // BOTH WAYS: at e81d703c `app/plan/page.tsx` is absent → the run REFUSES (exit 1).
@@ -26,6 +27,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const P = (rel) => path.join(ROOT, rel);
@@ -134,6 +136,9 @@ const planSrc  = strip(read(PLAN));
 const sheetSrc = strip(read(SHEET));
 const brideSrc = strip(read(BRIDE));
 const apiSrc   = strip(read(API));
+
+// The typographic apostrophe travels as the escape in source; resolve before comparing.
+const resolvedP4 = (src) => src.split('\\u2019').join('\u2019').includes("'Sent. We\u2019ll message you on WhatsApp.'");
 
 // ═══════════════════════════════════════════════════════════════════════════════
 section('§1 · the extraction is real, and the bride page keeps no second copy');
@@ -307,6 +312,41 @@ async function loadPrefill(srcOverride) {
   ok('a malformed date is ignored, not passed on', readPrefill(q({ date: '14/02/2027' })).date === undefined);
   // Shape is not enough: this one matches the regex and is not a day.
   ok('a date of the right shape that is not a day is ignored', readPrefill(q({ date: '2027-02-31' })).date === undefined);
+  ok('the leap rule is arithmetic, and it is the real one', readPrefill(q({ date: '2028-02-29' })).date === '2028-02-29' &&
+    readPrefill(q({ date: '2027-02-29' })).date === undefined &&
+    readPrefill(q({ date: '2100-02-29' })).date === undefined &&
+    readPrefill(q({ date: '2000-02-29' })).date === '2000-02-29');
+  ok('month and day bounds hold at both ends', readPrefill(q({ date: '2027-13-01' })).date === undefined &&
+    readPrefill(q({ date: '2027-00-10' })).date === undefined &&
+    readPrefill(q({ date: '2027-04-31' })).date === undefined &&
+    readPrefill(q({ date: '2027-12-31' })).date === '2027-12-31');
+  // ⚠ F-42.153 · THE ZONE IS THE SUBJECT, AND ONE PROCESS CANNOT BE THE WITNESS.
+  // The first cut of these cells ran in this container, which is UTC, where a local
+  // parse and a UTC serialisation agree — so a round-trip that DISCARDS every dated
+  // link on an Indian device read GREEN here. `TZ` is fixed when the process starts,
+  // so the only honest instrument is a second process: the same slice is driven under
+  // UTC and under Asia/Kolkata and the two must emit the same bytes.
+  ok('the date validator names no Date at all', !/new Date/.test(planSrc.slice(planSrc.indexOf('function isCalendarDay'), planSrc.indexOf('type Screen'))));
+  {
+    const src = read(PLAN);
+    const slice = src.slice(src.indexOf('const ISO_DATE'), src.indexOf('type Screen'))
+      .replace('function readPrefill', 'export function readPrefill');
+    const ts = (await import('typescript')).default;
+    const js = ts.transpileModule(slice, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
+    const modPath = P('app/plan/.tmp_b20a5_tz_' + Math.random().toString(36).slice(2) + '.mjs');
+    const probe = modPath.replace('.mjs', '_probe.mjs');
+    const CASES = ['2027-02-14', '2027-12-31', '2028-02-29', '2027-02-29', '2027-02-31', '2027-01-01', '2026-06-15'];
+    fs.writeFileSync(modPath, js);
+    fs.writeFileSync(probe, `import { readPrefill } from ${JSON.stringify(pathToFileURL(modPath).href)};\n` +
+      `const CASES = ${JSON.stringify(CASES)};\n` +
+      `process.stdout.write(JSON.stringify(CASES.map(d => readPrefill(k => (k === 'date' ? d : null)).date ?? null)));\n`);
+    const run = (tz) => execFileSync(process.execPath, [probe], { env: { ...process.env, TZ: tz } }).toString();
+    let utc = '', ist = '', ahead = '';
+    try { utc = run('UTC'); ist = run('Asia/Kolkata'); ahead = run('Pacific/Kiritimati'); }
+    finally { fs.unlinkSync(modPath); fs.unlinkSync(probe); }
+    ok('UTC and Asia/Kolkata and UTC+14 all emit the SAME bytes', utc === ist && ist === ahead, `${utc} | ${ist} | ${ahead}`);
+    ok('and the bytes are the days themselves, unshifted', utc === JSON.stringify(['2027-02-14', '2027-12-31', '2028-02-29', null, null, '2027-01-01', '2026-06-15']), utc);
+  }
   ok('area is REFUSED', !('area' in readPrefill(q({ area: 'Vasant Kunj' }))));
   ok('brief is REFUSED', !('brief' in readPrefill(q({ brief: 'gold and ivory' }))));
   ok('an empty query yields nothing at all', JSON.stringify(readPrefill(q({}))) === '{}');
@@ -351,15 +391,31 @@ ok('lib/auth/otpSignup.ts is not touched by this packet', /router\.push\('\/coup
   const iVerify = fn.indexOf('await verifyOtp()');
   const iHref   = fn.indexOf('const href = destination.current;');
   const iFile   = fn.indexOf('await fileIt()');
-  const iPush   = fn.indexOf('router.push(href)');
+  const iSent   = fn.indexOf("setScreen('sent')");
   // The reset must come BEFORE the verify or a second attempt would read the first
   // attempt's destination and file on a session that was never minted.
   ok('the recorded destination is cleared before each attempt', iClear > 0 && iClear < iVerify);
-  ok('verify → recorded href → file → push, in that order',
-    iVerify > 0 && iHref > iVerify && iFile > iHref && iPush > iFile);
+  // AMENDED BY LABEL (R-41.121). The GUARANTEE is the same one the cell was written for
+  // — the filing lands after the session is written and before she is moved on — and
+  // only the last term changed: the move is her tap now, not a timer, so it has left
+  // this function entirely. The cell asserts the order it can still see AND that the
+  // navigation is genuinely absent from here rather than merely further down.
+  ok('verify → recorded href → file → the confirmation, in that order',
+    iVerify > 0 && iHref > iVerify && iFile > iHref && iSent > iFile);
+  ok('and the navigation has left this function — nothing here pushes her anywhere', !/router\.push/.test(fn));
   ok('a refused verify files nothing', /if \(!href\) return;/.test(fn));
-  ok('the beat before the push is the ruled 1500ms', /setTimeout\(\(\) => router\.push\(href\), 1500\)/.test(fn));
-  ok('a failed file does not navigate and does not claim she sent', /setLost\(true\)/.test(fn) && iPush > fn.indexOf('setLost(true)'));
+  // AMENDED BY LABEL (R-41.121). The GUARANTEE is unchanged — she is not moved off the
+  // confirmation until it has been read — and only the mechanism the chair ruled for it
+  // changed, from a 1500ms beat to her own tap, after the founder walked the beat and
+  // could not report seeing the screen. The cell follows the meaning: nothing may move
+  // her automatically, and the forward action must run the mint's own recorded href.
+  ok('nothing moves her off the confirmation on a timer', !/setTimeout|setInterval/.test(planSrc));
+  ok('the forward action is a TAP, and it pushes the mint\u2019s own destination',
+    /sentAction=\{isSent \? \{ label: P\.cont, onTap: \(\) => \{ const href = destination\.current; if \(href\) router\.push\(href\); \} \} : undefined\}/.test(planSrc));
+  ok('a failed file does not claim she sent — the confirmation is never reached', (() => {
+    const iLost = fn.indexOf('setLost(true)');
+    return iLost > 0 && iLost < iSent && /setLost\(true\); setRefusal\(SHEET_BYTES\.failure\); return;/.test(fn);
+  })());
 }
 ok('the sheet returns the body rather than posting it, on this lane', /return 'held'/.test(planSrc));
 ok("and 'held' never paints the sent card", /out === 'held'/.test(sheetSrc) && /setState\('idle'\)/.test(sheetSrc));
@@ -489,6 +545,17 @@ section('\u00a714 · F-42.144 · the sent screen is a FRESH instance');
     /useState<[^>]*>\(initialSent \? \{ categories: initialSent\.categories \} : null\)/.test(sheetSrc));
   ok('the component names the initial-value contract where a caller will read it',
     /INITIAL MEANS INITIAL/.test(read(SHEET)));
+  // Fork 2 amended: the sent screen keeps its heading and its card AND gains one action.
+  ok('the sent block draws the caller\u2019s action when it is given one', /sentAction && \(/.test(sheetSrc) &&
+    /\{sentAction\.label\}/.test(sheetSrc) && /onClick=\{sentAction\.onTap\}/.test(sheetSrc));
+  ok('it wears the screen\u2019s one gold — the same cta the caller passes', (() => {
+    const at = sheetSrc.indexOf('{sentAction && (');
+    return /\.\.\.palette\.cta/.test(sheetSrc.slice(at, at + 500));
+  })());
+  ok('the bride lane passes none, so her sent screen is byte-unchanged', !/sentAction/.test(brideSrc));
+  ok('and the prop is optional, so a caller that says nothing draws nothing', /sentAction\?: \{ label: string; onTap: \(\) => void \}/.test(sheetSrc));
+  ok('P4 and the vetoed Continue are both on the page, byte-exact',
+    planSrc.includes("cont:       'Continue'") && resolvedP4(planSrc));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -600,8 +667,8 @@ await mutate('origin smuggled onto the shared body — ruling (ii) broken',
   'return apiPost<AssistRequestResponse>(\'/api/v2/couple/assistance/public\', { ...body, origin: \'public\' });',
   async (m) => { const p = await drivePost('submitPublicAssistanceRequest', m); return p && p.body && !('origin' in p.body); });
 
-await mutate('the date\u2019s value check dropped, so 2027-02-31 rides the link',
-  PLAN, "if (!isNaN(d.getTime()) && date === d.toISOString().slice(0, 10)) out.date = date;", 'out.date = date;',
+await mutate('the day check dropped, so 2027-02-31 rides the link',
+  PLAN, 'if (m && isCalendarDay(+m[1], +m[2], +m[3])) out.date = date;', 'if (m) out.date = date;',
   async (m) => { const f = await loadPrefill(m); return f(((o) => (k) => (k in o ? o[k] : null))({ date: '2027-02-31' })).date === undefined; });
 
 await mutate('area admitted to the pre-fill — a forged link writes her words',
@@ -664,6 +731,29 @@ await mutate('the key dropped — the sent screen would silently redraw the empt
     const at = src.indexOf('<AssistanceSheet');
     return /key=\{screen\}/.test(src.slice(at, src.indexOf('/>', at)));
   });
+
+await mutate('the date validated by round-trip again \u2014 every dated link dies east of Greenwich',
+  PLAN, 'if (m && isCalendarDay(+m[1], +m[2], +m[3])) out.date = date;',
+  "if (m) { const d = new Date(date + 'T00:00:00'); if (!isNaN(d.getTime()) && date === d.toISOString().slice(0, 10)) out.date = date; }",
+  async (m) => {
+    const slice = m.slice(m.indexOf('const ISO_DATE'), m.indexOf('type Screen')).replace('function readPrefill', 'export function readPrefill');
+    const ts = (await import('typescript')).default;
+    const js = ts.transpileModule(slice, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
+    const modPath = P('app/plan/.tmp_b20a5_mut_' + Math.random().toString(36).slice(2) + '.mjs');
+    const probe = modPath.replace('.mjs', '_probe.mjs');
+    fs.writeFileSync(modPath, js);
+    fs.writeFileSync(probe, `import { readPrefill } from ${JSON.stringify(pathToFileURL(modPath).href)};\n` +
+      `process.stdout.write(String(readPrefill(k => (k === 'date' ? '2027-02-14' : null)).date ?? null));\n`);
+    try {
+      const utc = execFileSync(process.execPath, [probe], { env: { ...process.env, TZ: 'UTC' } }).toString();
+      const ist = execFileSync(process.execPath, [probe], { env: { ...process.env, TZ: 'Asia/Kolkata' } }).toString();
+      return utc === ist;
+    } finally { fs.unlinkSync(modPath); fs.unlinkSync(probe); }
+  });
+
+await mutate('the tap replaced by a timer again \u2014 a confirmation nobody can be sure they saw',
+  PLAN, "sentAction={isSent ? { label: P.cont,", "sentActionX={isSent ? { label: P.cont,",
+  async (m) => /sentAction=\{isSent \? \{ label: P\.cont,/.test(strip(m)));
 
 // The control: an edit through the identical path that changes no behaviour must
 // leave the cells green, so a mutation cell cannot be passing because the harness
