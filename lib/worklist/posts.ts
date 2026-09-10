@@ -45,7 +45,56 @@ export const PO = {
 
   notOnYet:       'Not switched on yet.',
   sundayPending:  'This opens once Instagram approves our access.',
+
+  // ── 4b-2 · BROADCAST (4b veto sheet + frame veto, 2026-09-10) ─────────────
+  referralLabel:  'Referral message',
+  noCouples:      'No past couples with a number yet.',
 } as const;
+
+/** "6 couples" — the vetoed `{n} couples`. */
+export const couplesCount = (n: number) => `${n} couples`;
+/** "Meta charges up to Rs 6.12 for this send." — the figure is formatRs's, never a literal. */
+export const feeLine = (rs: string) => `Meta charges up to ${rs} for this send.`;
+/** "Send to 6" — the button and the confirm's action, one byte. */
+export const sendTo = (n: number) => `Send to ${n}`;
+/** "Send to 6 couples? Meta charges up to Rs 6.12." — the confirm sheet. */
+export const confirmLine = (n: number, rs: string) => `Send to ${n} couples? Meta charges up to ${rs}.`;
+/** "Sent to 6. 1 not delivered." — the sent line, verbatim as vetoed. */
+export const sentLine = (n: number, m: number) => `Sent to ${n}. ${m} not delivered.`;
+/**
+ * "Your referral message goes once a year. Next: 1 January 2027." — FULL month
+ * (F-42.112's rule, estate-wide). The next date is the next IST calendar year's
+ * first day: 0164's unique index keys the IST year, so that is when the database
+ * next accepts one.
+ */
+export const referralNextLine = (iso: string) => `Your referral message goes once a year. Next: ${fullDate(iso)}.`;
+export function fullDate(iso: string): string {
+  const d = new Date(`${String(iso).slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+}
+
+/** `GET /api/v2/vendor/posts/broadcast` — re-derived from src/lib/vendor/broadcasts.js `preview`. */
+export type BroadcastPreview = {
+  ok?: boolean;
+  error?: string;
+  code?: string;
+  count?: number;
+  couples?: { name: string | null; last4: string; source: string }[];
+  stopped_count?: number;
+  fee_paise?: number | null;
+  bodies?: { couple: string; referral: string };
+  button_label?: string;
+  page_url?: string | null;
+  on?: { couple: boolean; referral: boolean };
+  referral_next?: string | null;
+};
+/** `POST /api/v2/vendor/posts/broadcast` — ok, or a refusal CODE (never cap.reason()). */
+export type BroadcastSent = {
+  ok?: boolean; error?: string; code?: string;
+  broadcast_id?: string; sent?: number; not_delivered?: number; refused_stopped?: number;
+};
+export type BroadcastKind = 'couple' | 'referral';
 
 /** The three kinds, in the door's own KIND_ORDER (src/lib/vendor/postCards.js). */
 export const KINDS = [

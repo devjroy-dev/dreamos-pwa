@@ -21,6 +21,18 @@ import { CURRENCY_PREFIX } from './tokens';
 export function formatRs(value: number | string | null | undefined): string {
   const n = typeof value === 'string' ? parseFloat(value) : (value ?? 0);
   if (!isFinite(n as number)) return `${CURRENCY_PREFIX} 0`;
+  // ── F-42.170 · THE PAISE ARM (CE-42 4b-2, chair-ruled) ─────────────────────
+  // The wallet law is "never paise unless paise exist" — and when they DO exist,
+  // two digits, always. `toLocaleString('en-IN')` with its defaults printed 6.1 as
+  // "Rs 6.1" and 1.025 as "Rs 1.025" (0–3 fraction digits). A figure is rounded to
+  // the paisa first; a figure with paise prints exactly two ("Rs 6.10", "Rs 1.02");
+  // a whole-rupee figure goes down today's line ("Rs 1,25,000").
+  // The whole-rupee path is TODAY'S LINE, untouched, so every existing figure keeps
+  // its bytes (and tdw09_money's pin on that line still reads it).
+  const paise = Math.round(Number(n) * 100);
+  if (paise % 100 !== 0) {
+    return `${CURRENCY_PREFIX} ${(paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
   return `${CURRENCY_PREFIX} ${Number(n).toLocaleString('en-IN')}`;
 }
 

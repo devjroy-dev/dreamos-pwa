@@ -1,0 +1,8 @@
+# scripts/floor-manifest-ce42-4b2-pwa.txt — CE-42 4b-2 (dreamos-pwa), seat R6 [F-19.16]. Every path this ZIP writes.
+app/vendor/(shell)/posts/page.tsx
+lib/solutions/routes.ts
+lib/vendor/format.ts
+lib/worklist/posts.ts
+scripts/b74_r6_posts_room_bench.js
+scripts/floor-manifest-ce42-4b2-pwa.txt
+docs/handovers/CE42_4B2_BROADCAST_SECTION_HANDOVER.md

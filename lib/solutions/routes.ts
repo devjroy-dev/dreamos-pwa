@@ -247,6 +247,9 @@ export const API = {
   collabMyPosts:       (kind?: 'shoot') => kind ? `${COLLAB_API_PATH}/my-posts?kind=${kind}` : `${COLLAB_API_PATH}/my-posts`,
   collabCreate:        () => COLLAB_API_PATH,
   collabRespond:       (postId: string) => `${COLLAB_API_PATH}/${encodeURIComponent(postId)}/respond`,
+  // ── R6 · 4b-2 · THE BROADCAST ────────────────────────────────────────────
+  // GET the preview (count, list, fee, bodies, gates); POST { kind } to send.
+  postBroadcast:       () => `${POSTS_API_PATH}/broadcast`,
 } as const;
 
 // ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS — RETIRED, F-40.170 ─────

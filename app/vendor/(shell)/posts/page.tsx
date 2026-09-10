@@ -29,11 +29,18 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { getJson } from '@/lib/vendor/api/_base';
+import { getJson, postJson } from '@/lib/vendor/api/_base';
 import { API } from '@/lib/solutions/routes';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
-import { PO, KINDS, cardFileName } from '@/lib/worklist/posts';
-import type { CardKind, CardsBody } from '@/lib/worklist/posts';
+import { formatRs } from '@/lib/vendor/format';
+import {
+  PO, KINDS, cardFileName, couplesCount, feeLine, sendTo, confirmLine, sentLine, referralNextLine,
+} from '@/lib/worklist/posts';
+import type { CardKind, CardsBody, BroadcastPreview, BroadcastSent, BroadcastKind } from '@/lib/worklist/posts';
+// CARRIED, not retyped: "They will receive" and "Back" are the Introductions room's vetoed bytes.
+import { IN } from '@/lib/worklist/introductions';
+const COPY_PREVIEW_EYEBROW = IN.previewEyebrow;
+const COPY_BACK = IN.back;
 
 // THE TITLE IS THE HUB ROW'S OWN LABEL, read by key — one byte, one home.
 const TITLE = ROOM_ROWS.find((r) => r.key === 'posts')?.label ?? '';
@@ -145,10 +152,10 @@ function PostsScreen() {
           <div className="pst-card" aria-busy="true" />
         )}
 
-        {/* ── BROADCAST (4b-2 builds it; pending until then) ──────────────── */}
+        {/* ── BROADCAST (4b-2) ───────────────────────────────────────────────── */}
         <div className="pst-sec pst-secgap">{PO.sectionBroadcast}</div>
         <p className="pst-lede">{PO.ledeBroadcast}</p>
-        <div className="pst-card"><p className="pst-state">{PO.notOnYet}</p></div>
+        <BroadcastSection />
 
         {/* ── SUNDAY (4b-3 builds it, dark; pending until then) ────────────── */}
         <div className="pst-sec pst-secgap">{PO.sectionSunday}</div>
@@ -186,7 +193,134 @@ function PostsScreen() {
 .pst-ghost:active{background:var(--atelier-row-hover)}
 .pst-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .pst-two{display:flex;gap:9px;margin-top:9px}
+.pst-lbl0{margin-top:0}
+.pst-body{font:var(--wl-t3);color:var(--atelier-ink);line-height:1.55;margin:0}
+.pst-btnchip{margin-top:12px;text-align:center;padding:9px;border:.5px solid var(--atelier-card-border);border-radius:2px;color:var(--atelier-accent-text);font:var(--wl-t4)}
+.pst-link{margin-top:6px;font:var(--wl-t5);color:var(--atelier-ink-fade);text-align:center;word-break:break-all}
+.pst-fee{font:var(--wl-t4);color:var(--atelier-ink-soft);margin:12px 0 0}
+.pst-gap{margin-top:12px}
+.pst-foot{font:var(--wl-t5);color:var(--atelier-ink-dim);margin:12px 0 0;line-height:1.5}
+.pst-count{font:var(--wl-t2);color:var(--atelier-ink)}
+.pst-list{margin-top:8px}
+.pst-row{font:var(--wl-t3);color:var(--atelier-ink);padding:9px 0;border-top:.5px solid var(--atelier-card-border)}
+.pst-row:first-child{border-top:0}
+.pst-over{position:fixed;inset:0;background:var(--atelier-overlay);display:flex;align-items:flex-end;z-index:50}
+.pst-sheet{width:100%;padding:20px 16px 26px;background:linear-gradient(180deg,var(--atelier-sheet-top),var(--atelier-sheet-bot));border-top:.5px solid var(--atelier-sheet-border)}
+.pst-q{font:var(--wl-t2);color:var(--atelier-ink);line-height:1.4;margin:0 0 16px}
       `}</style>
     </WorklistShell>
+  );
+}
+
+// ═══ 4b-2 · THE BROADCAST SECTION ═══════════════════════════════════════════
+// The door decides (src/lib/vendor/broadcasts.js); this draws. Every refusal is a
+// CODE and each code maps to its vetoed byte here — `dark` to "Not switched on
+// yet.", never cap.reason()'s sentence (F-42.193). The fee is formatRs over the
+// door's whole paise; the screen holds no rate and does no arithmetic but /100.
+// A gate that is off shows its sentence IN PLACE of the Send button: a real dark,
+// a real sentence, and no control that can only refuse (the chair's CTA ruling:
+// Send is live infrastructure, not a preview).
+function BroadcastSection() {
+  const [pv, setPv] = useState<BroadcastPreview | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [confirm, setConfirm] = useState<BroadcastKind | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<{ kind: BroadcastKind; line: string } | null>(null);
+  const [refusal, setRefusal] = useState<{ kind: BroadcastKind; line: string } | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const b = await getJson<BroadcastPreview>(API.postBroadcast());
+      if (b?.ok) { setPv(b); setFailed(false); } else { setFailed(true); }
+    } catch { setFailed(true); }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+
+  if (failed) return <div className="pst-card"><p className="pst-state">{COPY.surfaceUnavailable}</p></div>;
+  if (!pv) return <div className="pst-card" aria-busy="true" />;
+  const n = pv.count ?? 0;
+  if (n === 0) return <div className="pst-card"><p className="pst-state">{PO.noCouples}</p></div>;
+  // WHOLE OR NOT AT ALL (the wallet law, frame 5): the space inside "Rs 6.12" becomes a
+  // no-break space so the figure can never split across a line in the sheet or the card.
+  const fee = typeof pv.fee_paise === 'number' ? formatRs(pv.fee_paise / 100).replace(' ', '\u00a0') : null;
+
+  function refusalLine(code: string | undefined, error: string | undefined): string {
+    if (code === 'dark') return PO.notOnYet;
+    if (code === 'no_couples') return PO.noCouples;
+    if (code === 'already_this_year' && pv?.referral_next) return referralNextLine(pv.referral_next);
+    if (code === 'no_address' && error) return error;           // the tent-card door's carried byte
+    return COPY.surfaceUnavailable;
+  }
+
+  async function onSend(kind: BroadcastKind) {
+    setBusy(true); setRefusal(null);
+    try {
+      const r = await postJson<BroadcastSent>(API.postBroadcast(), { kind });
+      if (r?.ok) {
+        setDone({ kind, line: sentLine(r.sent ?? 0, r.not_delivered ?? 0) });
+        await load();
+      } else {
+        setRefusal({ kind, line: refusalLine(r?.code, r?.error) });
+      }
+    } catch {
+      setRefusal({ kind, line: COPY.surfaceUnavailable });
+    } finally {
+      setBusy(false); setConfirm(null);
+    }
+  }
+
+  const card = (kind: BroadcastKind) => {
+    const on = !!pv.on?.[kind];
+    const spent = kind === 'referral' && !!pv.referral_next;
+    return (
+      <div className="pst-card" key={kind}>
+        <span className="pst-lbl pst-lbl0">{kind === 'couple' ? COPY_PREVIEW_EYEBROW : PO.referralLabel}</span>
+        <p className="pst-body">{pv.bodies?.[kind]}</p>
+        {pv.button_label ? <div className="pst-btnchip">{pv.button_label}</div> : null}
+        {pv.page_url ? <div className="pst-link">{pv.page_url.replace(/^https?:\/\//, '')}</div> : null}
+        {fee ? <p className="pst-fee">{feeLine(fee)}</p> : null}
+        {done?.kind === kind ? <p className="pst-state pst-gap">{done.line}</p> : null}
+        {refusal?.kind === kind ? <p className="pst-state pst-gap">{refusal.line}</p> : null}
+        {spent ? (
+          <p className="pst-foot">{referralNextLine(pv.referral_next as string)}</p>
+        ) : !on ? (
+          <p className="pst-state pst-gap">{PO.notOnYet}</p>
+        ) : fee ? (
+          <button type="button" className="pst-btn pst-primary pst-gap" disabled={busy} onClick={() => setConfirm(kind)}>
+            {sendTo(n)}
+          </button>
+        ) : null}
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <div className="pst-card">
+        <div className="pst-count">{couplesCount(n)}</div>
+        <div className="pst-list">
+          {(pv.couples ?? []).map((c, i) => (
+            <div className="pst-row" key={`${c.last4}-${i}`}>
+              {/* A list is not a phonebook: her book's name, else the last four. */}
+              {c.name || `\u2022\u2022\u2022\u2022 ${c.last4}`}
+            </div>
+          ))}
+        </div>
+      </div>
+      {card('couple')}
+      {card('referral')}
+
+      {confirm && fee ? (
+        <div className="pst-over" role="dialog" aria-modal="true">
+          <div className="pst-sheet">
+            <p className="pst-q">{confirmLine(n, fee)}</p>
+            <div className="pst-two">
+              <button type="button" className="pst-btn pst-ghost" disabled={busy} onClick={() => setConfirm(null)}>{COPY_BACK}</button>
+              <button type="button" className="pst-btn pst-primary" disabled={busy} onClick={() => void onSend(confirm)}>{sendTo(n)}</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

@@ -21,6 +21,12 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const SIB = path.resolve(ROOT, '../dream-os');
+// C12 transpiles the REAL format.ts with the repo's own typescript. Without node_modules the
+// bench cannot READ its subject — a refusal (F-39.47), never a red that looks like a defect.
+if (!fs.existsSync(path.join(ROOT, 'node_modules/typescript'))) {
+  console.log('REFUSED — node_modules/typescript is absent (run npm ci); C12 cannot transpile lib/vendor/format.ts.');
+  process.exit(3);
+}
 if (!fs.existsSync(path.join(SIB, 'src/api/vendor/posts.js'))) {
   console.log('REFUSED — ../dream-os/src/api/vendor/posts.js not present; the ⇄ cells cannot see the door.');
   process.exit(3);
@@ -65,7 +71,9 @@ cell('C3 ⇄ the page renders body.error for EXACTLY the arm-written refusals, t
   const s = page.match(/ARM_REFUSALS = new Set\(\[([^\]]*)\]\)/);
   if (!s) return 'ARM_REFUSALS not found';
   const mine = s[1].match(/'([a-z_]+)'/g).map((x) => x.slice(1, -1)).sort().join(',');
-  const theirs = [...door.matchAll(/^\s*([a-z_]+):\s*(\d{3}),/gm)].filter((m) => Number(m[2]) < 500).map((m) => m[1]).sort().join(',');
+  // 4b-2: the door file now holds TWO status maps; the CARDS refusals are STATUS_FOR's, read from its own block.
+  const block = (door.match(/const STATUS_FOR = Object\.freeze\(\{([\s\S]*?)\}\)/) || [])[1] || '';
+  const theirs = [...block.matchAll(/([a-z_]+):\s*(\d{3})/g)].filter((m) => Number(m[2]) < 500).map((m) => m[1]).sort().join(',');
   if (mine !== theirs) return `page renders [${mine}] as the arm's words; the door's 4xx codes are [${theirs}]`;
   if (!/COPY\.surfaceUnavailable/.test(page)) return 'no generic byte for a 5xx or a network failure';
 });
@@ -108,9 +116,51 @@ cell('C7 ⇄ the three kinds render in the arm\'s own order (KIND_ORDER)', () =>
   if (mine !== 'post,status,story' || mine !== t) return `pwa [${mine}] vs arm [${t}]`;
 });
 
-cell('C8 Broadcast and Sunday render their pending state ONLY at 4b-1 — neither calls a door yet', () => {
-  if (/broadcast|sunday|insights/i.test(routes.replace(/POSTS_API_PATH/g, ''))) return 'a broadcast/Sunday address was declared ahead of its packet';
-  if (!/PO\.notOnYet/.test(page) || !/PO\.sundayPending/.test(page)) return 'a pending state is not drawn';
+cell('C8 4b-2: Broadcast calls its door; Sunday still draws its pending state only (4b-3 is its packet)', () => {
+  if (!/API\.postBroadcast\(\)/.test(page)) return 'the Broadcast section does not call API.postBroadcast()';
+  if (/sunday|insights/i.test(routes.replace(/POSTS_API_PATH/g, ''))) return 'a Sunday/insights address was declared ahead of 4b-3';
+  if (!/PO\.sundayPending/.test(page)) return 'the Sunday pending state is not drawn';
+});
+
+cell('C9 4b-2 · every broadcast refusal is a CODE mapped to a vetoed byte — dark reads "Not switched on yet.", never the door\'s text', () => {
+  const fn = (page.match(/function refusalLine[\s\S]*?\n  \}/) || [''])[0];
+  if (!/code === 'dark'\) return PO\.notOnYet/.test(fn)) return 'dark is not mapped to PO.notOnYet';
+  if (/return error;/.test(fn) && !/code === 'no_address' && error\) return error;/.test(fn)) return 'a door string other than no_address reaches the glass';
+  if (!/COPY\.surfaceUnavailable/.test(fn)) return 'no generic byte for an unmapped code';
+});
+
+cell('C10 4b-2 · the fee is formatRs over the door\'s whole paise, with the figure never split (no-break space)', () => {
+  if (!/formatRs\(pv\.fee_paise \/ 100\)\.replace\(' ', '\\u00a0'\)/.test(page)) return 'the fee is not formatRs(fee_paise / 100) with a no-break space';
+  if (/86\.31|\b18\b\s*%|1\.18/.test(page)) return 'a rate literal is on the page';
+});
+
+cell('C11 4b-2 · the broadcast copy carries the vetoed bytes verbatim', () => {
+  const fns = {
+    couplesCount: /couplesCount = \(n: number\) => `\$\{n\} couples`/,
+    feeLine: /feeLine = \(rs: string\) => `Meta charges up to \$\{rs\} for this send\.`/,
+    sendTo: /sendTo = \(n: number\) => `Send to \$\{n\}`/,
+    confirmLine: /confirmLine = \(n: number, rs: string\) => `Send to \$\{n\} couples\? Meta charges up to \$\{rs\}\.`/,
+    sentLine: /sentLine = \(n: number, m: number\) => `Sent to \$\{n\}\. \$\{m\} not delivered\.`/,
+    referralNextLine: /referralNextLine = \(iso: string\) => `Your referral message goes once a year\. Next: \$\{fullDate\(iso\)\}\.`/,
+  };
+  for (const [k, re] of Object.entries(fns)) if (!re.test(copyHome)) return `${k} is not the vetoed byte`;
+  if (!/referralLabel:\s*'Referral message'/.test(copyHome) || !/noCouples:\s*'No past couples with a number yet\.'/.test(copyHome)) return 'a label/empty byte drifted';
+  if (!/month: 'long'/.test(copyHome)) return 'the next date is not a full month (F-42.112)';
+});
+
+cell('C12 F-42.170 · formatRs\'s paise arm, driven through the REAL lib/vendor/format.ts (transpiled, not copied)', () => {
+  const ts = require(path.join(ROOT, 'node_modules/typescript'));
+  const load = (rel, deps) => {
+    const src = read(path.join(ROOT, rel));
+    const js = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2019 } }).outputText;
+    const mod = { exports: {} };
+    new Function('require', 'module', 'exports', js)((id) => { if (deps[id]) return deps[id]; throw new Error('unexpected import ' + id); }, mod, mod.exports);
+    return mod.exports;
+  };
+  const tokens = load('lib/vendor/tokens.ts', {});
+  const { formatRs } = load('lib/vendor/format.ts', { './tokens': tokens });
+  const want = [[6.12, 'Rs 6.12'], [6.1, 'Rs 6.10'], [1.02, 'Rs 1.02'], [125000, 'Rs 1,25,000'], ['125000', 'Rs 1,25,000'], [1234.5, 'Rs 1,234.50'], [0, 'Rs 0']];
+  for (const [v, w] of want) { const got = formatRs(v); if (got !== w) return `formatRs(${JSON.stringify(v)}) = "${got}", ruled "${w}"`; }
 });
 
 console.log(`\nb74 · ${pass} GREEN · ${reds.length} RED${reds.length ? ' — ' + reds.join(' | ') : ''}`);
