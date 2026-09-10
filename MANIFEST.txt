@@ -1,7 +1,5 @@
-# repo: dreamos-pwa @ f538d98410cc339aaac1699023c34dce585e5582
+# repo: dreamos-pwa @ 7e2f1b45f3d80c401dc163ea6875a03162948600
 deploy/MANIFEST.txt
 deploy/app/(landing)/page.tsx
-deploy/scripts/b20_a4_otpsignup_pwa.proof.mjs
 deploy/scripts/b72_r4210_plan_entry_bench.js
-deploy/docs/TDW_CE42_R4210_HANDOVER.md
 deploy/docs/handovers/TDW_CE42_D3_S2_R4210_RELEASE_HANDOVER.md

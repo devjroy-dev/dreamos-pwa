@@ -186,10 +186,27 @@ const ROW_LINE_HEIGHT = 1.5;
 // ⚠ NO ANGLE-BRACKETED ELEMENT NAME IN THIS COMMENT EITHER. `b20_a4`'s element
 // census counts raw text and does not strip comments; see the note at the /plan
 // line for the cut where that took the count to 34 and split the open/close pair.
+// ⚠ THE 16 MOVED OUT OF THE SENTENCE AND ONTO THE PAIR — FOUNDER-WALKED
+// 2026-09-10, and the number itself is untouched. When both lines carried
+// `margin-top: 16` the gap BETWEEN them was 16 plus two half-leadings on 13/1.5,
+// which reads as roughly twenty-two pixels between two thirteen-pixel lines: the
+// founder walked it and called it odd, and he was right — the ladder ran 16 / 16
+// / 12 and the widest gap sat between the two lines that belong together.
+//
+// THE FIX IS NOT A SMALLER MARGIN ON THE SECOND LINE, and that distinction is the
+// whole of it. A second value on one of the two would break the parity R-42.10 was
+// ruled for and that C3 guards — two lines differing in something other than their
+// words. The 16 is `Sign up`'s own and it is still exactly 16 from the gold door
+// above; it now sits on the PAIR, and the space between them is one new named
+// value on the stack. Parity is stronger after this than before: the two sentence
+// objects are now byte-identical in every property, margin included.
+const ENTRY_STACK: React.CSSProperties = {
+  marginTop: 16, display: 'flex', flexDirection: 'column', gap: 6,
+};
 const ENTRY_LINE: React.CSSProperties = {
   fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: 13,
   color: 'rgba(248,247,245,0.5)', textAlign: 'center',
-  margin: '16px 0 0', lineHeight: 1.5,
+  margin: 0, lineHeight: 1.5,
 };
 const ENTRY_LINE_VERB: React.CSSProperties = {
   background: 'none', border: 'none', padding: 0,
@@ -718,6 +735,7 @@ export default function Home() {
                     to see the way out. S3 vetoed. The R-O3 role toggle retired with the OLD
                     line, which entered `signin_phone` with `setRole(null)`; after L-1 no entry
                     leaves the role unset, so the toggle has nothing to choose. */}
+                <div style={ENTRY_STACK}>
                 <p style={ENTRY_LINE}>
                   New here?{' '}
                   <button
@@ -764,6 +782,7 @@ export default function Home() {
                   Not ready to sign up?{' '}
                   <a href="/plan" style={ENTRY_LINE_VERB}>Tell us what you need &#8594;</a>
                 </p>
+                </div>
 
                 {/* A4 · R-41.50 (chair-ruled placement, founder-delegated): the privacy link
                     Google requires on the homepage, byte-identical to the consent screen's

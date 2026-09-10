@@ -96,9 +96,33 @@ sec('C3 \u00b7 the two lines share one style object');
   ok('the verb style is named exactly twice',
     (src.match(/style=\{ENTRY_LINE_VERB\}/g) || []).length === 2,
     String((src.match(/style=\{ENTRY_LINE_VERB\}/g) || []).length));
-  // The values, at their one home. margin-top 16 is founder-ruled and is the
-  // Sign-up line's own — this is the number that was almost 14.
-  ok('margin-top is 16, the Sign-up line\u2019s own', /margin: '16px 0 0'/.test(src));
+  // ── AMENDED BY LABEL — the founder's walk, 2026-09-10 (R-41.121) ──────────
+  // THE GUARANTEE IS UNCHANGED: the pair sits 16 below the door above it, and that
+  // 16 is `Sign up`'s own — the number that was almost 14. What moved is WHERE it
+  // is declared. With the 16 on each sentence, the gap BETWEEN the two lines was
+  // also 16 plus two half-leadings, and the founder walked it and called it odd.
+  // A smaller margin on the second line would have cured the look and broken the
+  // thing this section exists to guard, so the 16 moved onto the PAIR instead.
+  // The cell follows the meaning: 16 above the pair, one named gap inside it, and
+  // — newly assertable, because it is now true — the two sentence objects are
+  // byte-identical in EVERY property rather than merely sharing a name.
+  ok('the pair sits 16 below the door above it \u2014 the Sign-up line\u2019s own number',
+    /const ENTRY_STACK: React\.CSSProperties = \{\s*marginTop: 16,/.test(src));
+  // ⚠ BOUND TO THE STACK'S OWN DECLARATION, NOT TO THE FILE. The first cut of this
+  // cell asked whether `flexDirection: 'column', gap: N` appeared ANYWHERE in the
+  // source and stayed green when the mutation stripped the gap — this file holds
+  // other column stacks with gaps of their own, and the cell was reading one of
+  // them. A window bound by the statement is the difference between measuring the
+  // subject and measuring the neighbourhood.
+  ok('the space between the two lines is ONE named value on the stack', (() => {
+    const at = src.indexOf('const ENTRY_STACK: React.CSSProperties = {');
+    return at >= 0 && /flexDirection: 'column', gap: \d+/.test(src.slice(at, src.indexOf('};', at)));
+  })());
+  ok('and neither sentence carries a margin of its own any more',
+    /margin: 0, lineHeight: 1\.5,/.test(src) && !/margin: '\d+px 0 0', lineHeight: 1\.5,\n\};/.test(src));
+  ok('the stack wraps BOTH lines and nothing else \u2014 the legal row is outside it',
+    (src.match(/style=\{ENTRY_STACK\}/g) || []).length === 1 &&
+    /style=\{ENTRY_STACK\}>\s*<p style=\{ENTRY_LINE\}>\s*New here\?/.test(src));
   ok('the sentence ink and type are unchanged',
     /fontWeight: 300, fontSize: 13/.test(src) && /rgba\(248,247,245,0\.5\)/.test(src));
   ok('the verb ink and weight are unchanged',
@@ -158,8 +182,14 @@ if (process.argv.includes('--mutate')) {
       '<a href="/plan" style={{ ...ENTRY_LINE_VERB, fontWeight: 300 }}>'],
 
     [LAND, 'the ruled margin becomes 14 again',
-      "margin: '16px 0 0', lineHeight: 1.5,\n};",
-      "margin: '14px 0 0', lineHeight: 1.5,\n};"],
+      'marginTop: 16, display:', 'marginTop: 14, display:'],
+
+    [LAND, 'the second line gets a margin of its own \u2014 the cure that breaks parity',
+      '  margin: 0, lineHeight: 1.5,\n};',
+      "  margin: '6px 0 0', lineHeight: 1.5,\n};"],
+
+    [LAND, 'the stack loses its gap \u2014 the two lines run together',
+      "flexDirection: 'column', gap: 6,", "flexDirection: 'column',"],
 
     [LAND, 'the line moves to seat B, above Sign up',
       '                <p style={ENTRY_LINE}>\n                  New here?',
