@@ -85,7 +85,13 @@ cell('C4 F-42.193 — no switchboard key, and no cap.reason(), reaches vendor gl
 });
 
 cell('C5 every vendor-facing byte on the page comes from the copy home — no literal text between tags', () => {
-  const jsx = page.slice(page.indexOf('return ('));
+  // AMENDED BY LABEL (R-41.121, CE-42 4b-3b seat R6): the scan runs over
+  // everything after the page's first `return (`, which now includes SIBLING
+  // COMPONENT CODE — and the arrow token `=>` is not a JSX tag close, so
+  // `=> setBusy(false)); }` read as literal text between tags. The cell's
+  // MEANING is unchanged (no vendor-facing byte typed into JSX); the arrows are
+  // blanked before the match so the cell measures markup and not JavaScript.
+  const jsx = page.slice(page.indexOf('return (')).replace(/=>/g, '==');
   const literal = jsx.replace(/<style>[\s\S]*?<\/style>/, '').match(/>\s*[A-Za-z][^<{]*</g);
   if (literal) return `literal text in JSX: ${literal.slice(0, 3).join(' | ')}`;
   if (/'Posts & ads'|"Posts & ads"/.test(page)) return 'the title is typed on the page instead of read from ROOM_ROWS';
@@ -116,9 +122,13 @@ cell('C7 ⇄ the three kinds render in the arm\'s own order (KIND_ORDER)', () =>
   if (mine !== 'post,status,story' || mine !== t) return `pwa [${mine}] vs arm [${t}]`;
 });
 
-cell('C8 4b-2: Broadcast calls its door; Sunday still draws its pending state only (4b-3 is its packet)', () => {
+cell('C8 4b-3b: Broadcast calls its door and Sunday calls its own; the pending byte still has a home (AMENDED BY LABEL, R-41.121 — the cell said "4b-3 is its packet" and this is that packet)', () => {
   if (!/API\.postBroadcast\(\)/.test(page)) return 'the Broadcast section does not call API.postBroadcast()';
-  if (/sunday|insights/i.test(routes.replace(/POSTS_API_PATH/g, ''))) return 'a Sunday/insights address was declared ahead of 4b-3';
+  // The clause below read "a Sunday/insights address was declared ahead of 4b-3".
+  // 4b-3b declares it BY RULING; what the cell was guarding — a room wired before
+  // its packet — is now spelled as: the address exists AND the page reads it.
+  if (!/postSunday:/.test(routes)) return 'the Sunday address is not declared';
+  if (!/API\.postSunday\(\)/.test(page)) return 'the page does not call the Sunday door';
   // 4b-3a moved the Sunday section to components/worklist/SundaySection.tsx (a page may export only the page).
   const sunday = fs.existsSync(path.join(ROOT, 'components/worklist/SundaySection.tsx')) ? strip(read(path.join(ROOT, 'components/worklist/SundaySection.tsx'))) : '';
   if (!/PO\.sundayPending/.test(page + sunday)) return 'the Sunday pending state is not drawn';

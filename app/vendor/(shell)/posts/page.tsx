@@ -40,6 +40,7 @@ import type { CardKind, CardsBody, BroadcastPreview, BroadcastSent, BroadcastKin
 // CARRIED, not retyped: "They will receive" and "Back" are the Introductions room's vetoed bytes.
 import { IN } from '@/lib/worklist/introductions';
 import { SUNDAY_PREVIEW, FIXTURE_BRIEF, SU } from '@/lib/worklist/sunday';
+import type { SundayDoor, SundayActions } from '@/lib/worklist/sunday';
 import { SundaySection } from '@/components/worklist/SundaySection';
 const COPY_PREVIEW_EYEBROW = IN.previewEyebrow;
 const COPY_BACK = IN.back;
@@ -159,11 +160,11 @@ function PostsScreen() {
         <p className="pst-lede">{PO.ledeBroadcast}</p>
         <BroadcastSection />
 
-        {/* ── SUNDAY (4b-3a: the shell, behind SUNDAY_PREVIEW; 4b-3b wires the door) ── */}
+        {/* ── SUNDAY (4b-3a: the shell; 4b-3b: the door, SUNDAY_PREVIEW false) ── */}
         <div className="pst-sec pst-secgap">{PO.sectionSunday}</div>
         {SUNDAY_PREVIEW ? <div className="pst-eyebrow">{SU.eyebrow}</div> : null}
         <p className="pst-lede">{PO.ledeSunday}</p>
-        <SundaySection state={SUNDAY_PREVIEW ? 'live' : 'pending'} brief={SUNDAY_PREVIEW ? FIXTURE_BRIEF : null} />
+        {SUNDAY_PREVIEW ? <SundaySection state="live" brief={FIXTURE_BRIEF} /> : <SundayLive />}
       </div>
 
       <style>{`
@@ -230,6 +231,77 @@ function PostsScreen() {
       `}</style>
     </WorklistShell>
   );
+}
+
+// ═══ 4b-3b · THE SUNDAY BRIEF, LIVE ═════════════════════════════════════════
+// The door decides (src/lib/vendor/sundayBrief.js readForDoor) — one of the
+// shell's codes, the accepted Brief, the signed share card. This component
+// draws nothing: it hands SundaySection the door's answer and the real actions,
+// so the chrome is 4b-3a's byte for byte (R-42.14). The Connect anchor is
+// PRE-MINTED the moment the door says she must connect (portfolio/screen.tsx's
+// law — no await between her finger and the navigation), re-minted every 8
+// minutes while this tab is visible (the server state lives 10). "Check again"
+// POSTs refresh (generate now, throttled server-side) and re-reads.
+function SundayLive() {
+  const [door, setDoor] = useState<SundayDoor | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [connectHref, setConnectHref] = useState<string | null>(null);
+
+  const load = useCallback(async (refresh = false) => {
+    try {
+      const d = refresh
+        ? await postJson<SundayDoor>(API.postSundayRefresh(), {})
+        : await getJson<SundayDoor>(API.postSunday());
+      setDoor(d); setFailed(false);
+    } catch { setFailed(true); }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+
+  const needsConnect = !!door && (door.state === 'connect' || door.state === 'notconnected' || door.state === 'expired');
+  const mint = useCallback(async () => {
+    try {
+      const r = await getJson<{ ok: boolean; authorize_url?: string }>(API.igAuthorizeInsights());
+      setConnectHref(r && r.authorize_url ? r.authorize_url : null);
+    } catch { setConnectHref(null); }
+  }, []);
+  useEffect(() => {
+    if (!needsConnect) { setConnectHref(null); return; }
+    void mint();
+    const MINT_REFRESH_MS = 8 * 60 * 1000;
+    const t = window.setInterval(() => { if (document.visibilityState === 'visible') void mint(); }, MINT_REFRESH_MS);
+    return () => window.clearInterval(t);
+  }, [needsConnect, mint]);
+
+  const cardUrl = door?.share_card_url ?? null;
+  async function onDownload() {
+    if (!cardUrl) return;
+    try {
+      const r = await fetch(cardUrl);
+      if (!r.ok) throw new Error(String(r.status));
+      const obj = URL.createObjectURL(await r.blob());
+      const a = document.createElement('a');
+      a.href = obj; a.download = 'my-week-on-instagram.jpg'; a.click();
+      window.setTimeout(() => URL.revokeObjectURL(obj), 10_000);
+    } catch {
+      window.open(cardUrl, '_blank', 'noopener');
+    }
+  }
+  function onShare() {
+    if (!cardUrl) return;
+    if (typeof navigator.share === 'function') { navigator.share({ url: cardUrl }).catch(() => { /* she closed the sheet */ }); return; }
+    window.open(`https://wa.me/?text=${encodeURIComponent(cardUrl)}`, '_blank', 'noopener');
+  }
+  const actions: SundayActions = {
+    connectHref,
+    onConnectMint: () => { void mint(); },
+    onCheckAgain: () => { if (busy) return; setBusy(true); void load(true).finally(() => setBusy(false)); },
+    onShare, onDownload, shareCardUrl: cardUrl, busy,
+  };
+
+  if (!door && !failed) return <div className="pst-card" aria-busy="true" />;
+  const state = failed || !door ? 'error' : door.state;
+  return <SundaySection state={state} brief={door ? door.brief : null} actions={actions} />;
 }
 
 // ═══ 4b-2 · THE BROADCAST SECTION ═══════════════════════════════════════════

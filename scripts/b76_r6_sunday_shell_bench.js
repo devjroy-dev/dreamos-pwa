@@ -30,23 +30,35 @@ const SEC = 'components/worklist/SundaySection.tsx';
 const page = strip(read(PAGE)) + '\n' + strip(read(SEC));
 const home = strip(read('lib/worklist/sunday.ts'));
 
-console.log('§1 · ONE FLAG, ONE HOME, NO DOOR');
-cell('1.1 SUNDAY_PREVIEW is declared once, in lib/worklist/sunday.ts, and is the only preview branch on the page', () => {
-  if (!/export const SUNDAY_PREVIEW = true;/.test(home)) return 'the flag is not `true` in its home';
+// ═══ AMENDED BY LABEL AT 4b-3b (R-41.121, seat R6) ═══════════════════════════
+// §1.1–1.3 and §2.12 pinned the 4b-3a SHELL: flag true, no door, every CTA a
+// toast, the fixture on the glass. 4b-3b is the edit those pins were written to
+// be retired by (sunday.ts:4–11 said so). Each keeps its number and its MEANING
+// inverted to the wired state: one flag still the only branch (now false), the
+// door declared and read, every CTA real, no fixture on the live glass.
+console.log('§1 · ONE FLAG, ONE HOME, THE DOOR');
+cell('1.1 SUNDAY_PREVIEW is declared once, in lib/worklist/sunday.ts, is FALSE (4b-3b), and is the only preview branch on the page', () => {
+  if (!/export const SUNDAY_PREVIEW = false;/.test(home)) return 'the flag is not `false` in its home';
   const decls = [...page.matchAll(/SUNDAY_PREVIEW\s*=/g)].length; if (decls) return 'the page re-declares the flag';
   const uses = (page.match(/SUNDAY_PREVIEW/g) || []).length; if (uses < 2) return `the page reads the flag ${uses} times`;
 });
-cell('1.2 no Sunday/insights door is called: no such address in routes.ts, no fetch of one on the page', () => {
+cell('1.2 the Sunday door is declared once in routes.ts and read by the PAGE (never by the section): GET sunday, POST sunday/refresh, the insights authorize', () => {
   const routes = strip(read('lib/solutions/routes.ts'));
-  if (/sunday|insights|brief/i.test(routes.replace(/POSTS_API_PATH|postBroadcast|postCards/g, ''))) return 'a Sunday address is declared';
+  if (!/postSunday:\s*\(\) => `\$\{POSTS_API_PATH\}\/sunday`/.test(routes)) return 'no GET /sunday address';
+  if (!/postSundayRefresh:\s*\(\) => `\$\{POSTS_API_PATH\}\/sunday\/refresh`/.test(routes)) return 'no refresh address';
+  if (!/igAuthorizeInsights:\s*\(\) => '\/api\/v2\/vendor\/ig\/authorize\?scope=insights'/.test(routes)) return 'no insights authorize address';
   const sec = strip(read(SEC));
   if (/getJson|postJson|fetch\(/.test(sec)) return 'the section calls a door';
+  const pg = strip(read(PAGE));
+  if (!/getJson<SundayDoor>\(API\.postSunday\(\)\)/.test(pg) || !/postJson<SundayDoor>\(API\.postSundayRefresh\(\), \{\}\)/.test(pg) || !/API\.igAuthorizeInsights\(\)/.test(pg)) return 'the page does not read the three addresses';
 });
-cell('1.3 every CTA in the section toasts COPY.launchingSoon and nothing else', () => {
+cell('1.3 WITH actions every CTA is real (Connect = a pre-minted <a href>, the rest handlers) and nothing toasts; WITHOUT actions every CTA still toasts COPY.launchingSoon', () => {
   const sec = strip(read(SEC));
   if (!/const soon = \(\) => \{ show\(COPY\.launchingSoon\); \};/.test(sec)) return 'no single launchingSoon handler';
+  if (!/<a className="pst-btn pst-primary pst-gap" href=\{actions\.connectHref\}>\{SU\.connectCta\}<\/a>/.test(sec)) return 'Connect is not the pre-minted anchor';
+  if (!/href=\{brief\.best_post\.permalink\} target="_blank" rel="noopener noreferrer"/.test(sec)) return 'the best-post row does not open its permalink';
   const clicks = sec.match(/onClick=\{[^}]*\}/g) || [];
-  const bad = clicks.filter((c) => !/onClick=\{soon\}/.test(c));
+  const bad = clicks.filter((c) => !/onClick=\{(soon|onClick)\}/.test(c));
   if (bad.length) return `a CTA does something else: ${bad.join(' ')}`;
   if (!/COPY\.launchingSoon/.test(read('lib/solutions/copy.ts').replace(/launchingSoon:/, 'X'))) { /* the byte's home is copy.ts */ }
   if (!/launchingSoon:\s*'Launching soon\.'/.test(read('lib/solutions/copy.ts'))) return 'the byte moved';
@@ -115,9 +127,22 @@ for (const [name, state, brief, must, mustNot] of cases) {
     const n = lacks(h, ...mustNot); if (n) return `leaked "${n}"`;
   });
 }
-cell('2.12 the live glass at 4b-3a is S5 under the eyebrow: the page hands the section state=live with the fixture', () => {
-  if (!/<SundaySection state=\{SUNDAY_PREVIEW \? 'live' : 'pending'\} brief=\{SUNDAY_PREVIEW \? FIXTURE_BRIEF : null\} \/>/.test(page)) return 'the page does not render live+fixture under PREVIEW';
+cell('2.12 the live glass at 4b-3b is the DOOR: the page renders <SundayLive /> with PREVIEW false, the fixture and the eyebrow only inside the PREVIEW branch', () => {
+  if (!/\{SUNDAY_PREVIEW \? <SundaySection state="live" brief=\{FIXTURE_BRIEF\} \/> : <SundayLive \/>\}/.test(page)) return 'the page does not branch PREVIEW → fixture, else the door';
   if (!/\{SUNDAY_PREVIEW \? <div className="pst-eyebrow">\{SU\.eyebrow\}<\/div> : null\}/.test(page)) return 'the eyebrow is not gated on PREVIEW';
+  const fixtureUses = (strip(read(PAGE)).match(/FIXTURE_BRIEF/g) || []).length;
+  if (fixtureUses !== 2) return `FIXTURE_BRIEF appears ${fixtureUses} times on the page (import + the PREVIEW branch = 2)`;
+});
+cell('2.14 (4b-3b) with actions: Connect carries the minted href, the best post opens its permalink, Share this opens the card with the signed image', () => {
+  const actions = { connectHref: 'https://www.instagram.com/oauth/authorize?scope=x', onConnectMint() {}, onCheckAgain() {}, onShare() {}, onDownload() {}, shareCardUrl: 'https://res.cloudinary.com/c/brief.jpg', busy: false };
+  const h1 = renderToStaticMarkup(React.createElement(mod.SundaySection, { state: 'connect', brief: null, actions }));
+  if (!/<a class="pst-btn pst-primary pst-gap" href="https:\/\/www\.instagram\.com\/oauth\/authorize\?scope=x">Connect Instagram<\/a>/.test(h1)) return 'no minted anchor';
+  const withLink = { ...B, best_post: { ...B.best_post, permalink: 'https://instagram.com/p/two' } };
+  const h2 = renderToStaticMarkup(React.createElement(mod.SundaySection, { state: 'live', brief: withLink, actions }));
+  if (!/<a class="pst-best" href="https:\/\/instagram\.com\/p\/two" target="_blank" rel="noopener noreferrer">/.test(h2)) return 'the best post is not a link';
+  const h3 = renderToStaticMarkup(React.createElement(mod.SundaySection, { state: 'share', brief: B, actions }));
+  if (!/<img class="pst-render pst-tall" src="https:\/\/res\.cloudinary\.com\/c\/brief\.jpg"/.test(h3)) return 'the share card does not draw the signed image';
+  if (toasts.length) return 'a real action toasted';
 });
 cell('2.13 weekLine and arrow: full month, same-month elision, — on prev 0, null on prev null', () => {
   if (sunday.weekLine('2026-09-07', '2026-09-13') !== '7\u201313 September') return sunday.weekLine('2026-09-07', '2026-09-13');

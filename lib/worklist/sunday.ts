@@ -3,9 +3,31 @@
 //
 // ═══ SUNDAY_PREVIEW — ONE FLAG, ONE HOME, ONE BRANCH ═════════════════════════
 // While true, the section renders FIXTURE_BRIEF below under the vetoed eyebrow,
-// every CTA toasts COPY.launchingSoon, and no door is called. 4b-3b flips it to
-// false in the edit that wires the door; b76 pins that this is the only branch.
-export const SUNDAY_PREVIEW = true;
+// every CTA toasts COPY.launchingSoon, and no door is called. FLIPPED TO FALSE
+// at 4b-3b (dream-os c5de470 → the door), in the same edit that wired
+// GET /api/v2/vendor/posts/sunday: the page now hands the section the door's
+// answer and real actions; b76 pins that this is still the only branch and
+// that no fixture literal reaches the live glass. The fixture stays for b76's
+// eleven renders — it is never imported by the page.
+export const SUNDAY_PREVIEW = false;
+
+/** What the door answers (src/lib/vendor/sundayBrief.js readForDoor): one code, the brief, the card. */
+export type SundayDoor = {
+  state: Exclude<SundayState, 'arrows' | 'under100' | 'share'>;   // arrows/under100 are payload shapes; share is the tap
+  brief: Brief | null;
+  share_card_url: string | null;
+};
+
+/** The real controls (4b-3b). Absent → the shell's PREVIEW toasts (b76's renders). */
+export type SundayActions = {
+  connectHref: string | null;       // pre-minted /ig/authorize?scope=insights URL (the portfolio's anchor law)
+  onConnectMint: () => void;        // when the anchor has no href yet
+  onCheckAgain: () => void;
+  onShare: () => void;
+  onDownload: () => void;
+  shareCardUrl: string | null;
+  busy: boolean;
+};
 
 // ═══ THE ELEVEN STATES (chair-ruled 2026-09-10) — the frames are the spec ════
 // docs/mocks/sunday-brief-mock.html, one frame each. The door at 4b-3b answers

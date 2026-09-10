@@ -250,6 +250,13 @@ export const API = {
   // ── R6 · 4b-2 · THE BROADCAST ────────────────────────────────────────────
   // GET the preview (count, list, fee, bodies, gates); POST { kind } to send.
   postBroadcast:       () => `${POSTS_API_PATH}/broadcast`,
+  // ── R6 · 4b-3b · THE SUNDAY BRIEF ────────────────────────────────────────
+  // GET the stored brief as one of the shell's codes; POST refresh = "Check
+  // again" (generate now, throttled server-side). The insights authorize is the
+  // ig door's own with ?scope=insights (ruling 13(b)); it returns to /vendor/posts.
+  postSunday:          () => `${POSTS_API_PATH}/sunday`,
+  postSundayRefresh:   () => `${POSTS_API_PATH}/sunday/refresh`,
+  igAuthorizeInsights: () => '/api/v2/vendor/ig/authorize?scope=insights',
 } as const;
 
 // ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS — RETIRED, F-40.170 ─────
