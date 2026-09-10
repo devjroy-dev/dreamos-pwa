@@ -6,17 +6,14 @@ import { getCoupleSession } from '@/lib/frost-api/_base';
 import { getVendorSession } from '@/lib/vendor/session'; // F-41.18 / R-41.53b: the SHELL's read, so `/` and `/vendor/rooms` cannot disagree
 import { API_BASE } from '../../lib/api';
 import { rowBaseline, rowGlyphSlot } from '@/lib/vendor/controls';
+// FORK B (D3 sitting 1): `sendOtp` / `verifyOtp` and the two storage helpers left this
+// file for `lib/auth/otpSignup.ts` so `/plan` (R-41.94) mints through the same path.
+// BOTH ROLES moved; the vendor lane is touched by the extraction and by nothing else.
+import { useOtpSignup, persistSession } from '@/lib/auth/otpSignup';
 // F-05.9: signup + returning-no-PIN moved off the dead Supabase Phone-OTP (Twilio) onto
 // the backend Meta OTP endpoints (send-otp / verify-otp / provision). No browser Supabase
 // client is needed on this screen anymore.
 
-// iOS Safari (normal browsing, installed PWA, or ITP-restricted contexts) can
-// throw on localStorage.setItem even when the network is fine. The login flow
-// previously did raw setItem inside the same try/catch as the fetch, so a
-// storage throw surfaced as a misleading "Could not connect" toast and aborted
-// sign-in. These helpers isolate storage writes and mirror the session to a
-// first-party cookie, which works in contexts where localStorage throws — so
-// login completes regardless of localStorage state.
 // ── TDW_09 O-1 · R-O6 · THIS FILE'S NEAR-WHITE LITERALS ARE HELD, AND HERE IS WHY ──
 // The theme-blind surface census (scripts/tdw09_surface_census.mjs) finds 50 sites on
 // this page in its species — near-white ink and low-alpha white tint — and holds every
@@ -42,24 +39,6 @@ import { rowBaseline, rowGlyphSlot } from '@/lib/vendor/controls';
 // applied to the CONTENT INSIDE each panel while the panel's own blurred bar keeps the
 // full width. Photography full-bleed, controls at a readable measure.
 const COLUMN = 520;
-const SESSION_COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days
-
-function safeSetItem(key: string, value: string): void {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(key, value);
-    }
-  } catch { /* iOS storage blocked/quota — cookie fallback covers it */ }
-}
-
-function mirrorSessionToCookie(isVendor: boolean, session: unknown): void {
-  if (typeof document === 'undefined') return;
-  try {
-    const name = isVendor ? 'tdw_vendor_session' : 'tdw_couple_session';
-    const val  = encodeURIComponent(JSON.stringify(session));
-    document.cookie = `${name}=${val}; max-age=${SESSION_COOKIE_MAX_AGE}; path=/; SameSite=Lax; Secure`;
-  } catch { /* ignore */ }
-}
 
 const FALLBACK_SLIDES: string[] = [
   'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
@@ -464,150 +443,19 @@ export default function Home() {
     if (e.key === 'Backspace' && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus();
   };
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // F-05.89 [R-37.1] — THE NAME TRAVELS WITH THE SEND-CODE REQUEST
-  // ═══════════════════════════════════════════════════════════════════════════
-  // The join door has made the first name COMPULSORY since 89e03eb (:879), and
-  // this function then posted the phone ALONE — the typed name sat in component
-  // state until `verifyOtp` reached /provision at :489, which only runs after a
-  // successful OTP. Every abandon in between minted a permanent NAMELESS row.
-  // The founder's census of 2026-08-25 measured 31 of them. His word: "the
-  // first name that's entered must not be discarded. it defeats the entire
-  // purpose of getting their name altogether."
+  // ── FORK B · THE OTP MINT IS NOT THIS FILE'S BUSINESS ANY MORE ───────────
+  // `sendOtp` and `verifyOtp` stood here, whole, since F-05.9. They now live in
+  // `lib/auth/otpSignup.ts` because `/plan` (R-41.94) is a second door onto the
+  // same mint and two copies would be two homes for the endpoint choice, the
+  // session shape, the cookie mirror and the post-verify destination.
   //
-  // THE NAME IS AN ARGUMENT, NOT READ STATE, AND THAT IS THE WHOLE OF R-37.15.
-  // `joinName` is one `useState` on a component that renders EVERY screen, so
-  // it survives every screen transition. This function has FOUR callers — the
-  // join door (:879), two sign-in paths (:577, :589) and Resend (:909) — and if
-  // it read `joinName` off state, a visitor who typed "Priya" at the join door,
-  // backed out to Sign in, and entered A DIFFERENT NUMBER would ship "Priya" to
-  // the fresh mint of a stranger's phone. Server-side never-clobber would then
-  // protect that error permanently. The door that COLLECTED the name is the
-  // only door that spends it; every other caller passes nothing, deliberately,
-  // and a bench cell asserts the sign-in path ships no name.
-  //
-  // The server owns the coercion (textPresent + an 80-cap at both send-otp
-  // doors) — this side sends what was typed and does not second-guess it.
-  const sendOtp = async (phoneNum: string, nameArg?: string) => {
-    const isVendor = role === 'Maker';
-    const digits = phoneNum.replace(/\D/g, '');
-    const e164 = country.dialCode + digits;
-
-    // F-05.9: the backend delivers the OTP over Meta (WhatsApp) and self-mints
-    // public.users + the role row — open signup, any number. The dead Supabase
-    // Phone-OTP (Twilio) path is gone; the auth identity is created at verify time.
-    const endpoint = isVendor
-      ? `${API_BASE}/api/v2/vendor/auth/send-otp`
-      : `${API_BASE}/api/v2/couple/auth/send-otp`;
-    try {
-      const r = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: e164, name: nameArg?.trim() || undefined }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok || d.error) { showToast(d.error || 'Could not send code. Try again.'); return; }
-      setScreen(screen === 'signin_phone' ? 'signin_otp' : 'join_otp');
-    } catch { showToast('Could not send code. Try again.'); }
-  };
-
-  const verifyOtp = async () => {
-    const isVendor = role === 'Maker';
-    const digits = phone.replace(/\D/g, '');
-    const e164 = country.dialCode + digits;
-    try {
-      // 1 — Backend verifies the Meta OTP, creates-or-heals the auth identity, and mints
-      //     the session (F-05.9). Returns ids + tokens directly.
-      const vRes = await fetch(`${API_BASE}/api/v2/${isVendor ? 'vendor' : 'couple'}/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: e164, otp: otp.join(''), purpose: 'login' }),
-      });
-      const v = await vRes.json().catch(() => ({}));
-      if (!vRes.ok || !v.ok || !v.access_token) { showToast(v.error || 'Incorrect code.'); return; }
-      const accessToken  = v.access_token;
-      const refreshToken = v.refresh_token;
-
-      // 2 — Provision the vendor|couple row for this Supabase identity (idempotent;
-      //     phone-fallback re-binds a legacy account). Returns ids + pin_set, no tokens.
-      const provEndpoint = isVendor
-        ? `${API_BASE}/api/v2/vendor/auth/provision`
-        : `${API_BASE}/api/v2/couple/auth/provision`;
-      const pRes = await fetch(provEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ phone: e164, name: joinName.trim() || undefined, category: isVendor ? (joinCategory || undefined) : undefined }),
-      });
-      const d = await pRes.json();
-      if (!d.ok) { showToast(d.error || 'Could not complete sign-in.'); return; }
-
-      const roleId = isVendor ? d.vendor_id : d.couple_id;
-      const userId = d.user_id;
-      const pinSet = !!d.pin_set;
-
-      // R-X10 arm (a): there is no ceremony to divert into. Provision self-mints
-      // `public.users` and the role row at verify time, so a number this estate has
-      // never seen is admitted like any other. If ids are still missing the write
-      // genuinely failed, and it is reported as the failure it is — never dressed as
-      // an exclusivity gate. The byte below already exists on this screen's other
-      // failure path; no new copy is minted here.
-      if (!userId || !roleId) { showToast('Could not complete sign-in.'); return; }
-
-      if (accessToken)  safeSetItem('access_token', accessToken);
-      if (refreshToken) safeSetItem('refresh_token', refreshToken);
-
-      const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
-      const sessionData = {
-        id: roleId, userId, vendorId: roleId,
-        phone: e164,
-        pin_set: pinSet,
-        name: v.name || d.name || null,
-        vendorName: v.name || d.name || null,
-        category: v.category || d.category || null,
-        tier: v.tier || d.tier || null,
-        dreamer_type: d.dreamer_type || 'basic',
-        access_token:  accessToken  || null,
-        refresh_token: refreshToken || null,
-        _v: 2,
-      };
-      safeSetItem(sessionKey, JSON.stringify(sessionData));
-      safeSetItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sessionData));
-      mirrorSessionToCookie(isVendor, sessionData);
-
-      // ── F-OB.14 · ARM 3b [R-35.12] ──────────────────────────────────────────
-      // `d.name` is the POST-WRITE witness that dream-os `/provision` began
-      // returning on 2026-08-18 (src/api/couple/auth.js). Until it existed the
-      // read was ALWAYS `undefined`, so `!d.name` was permanently true and this
-      // whole line collapsed to `!isVendor && !pinSet` — the name half was dead
-      // on arrival and had never once decided anything.
-      //
-      // WHY `||` AND NOT `&&`, which is the entire ruling. Two brides must reach
-      // the form and the old shape caught only one of them:
-      //   · PINLESS, any name — the term `!pinSet` alone. Preserved BYTE-EXACT,
-      //     deliberately: today every pinless couple routes here, and swapping to
-      //     `&& !d.name` would send a NAMED pinless bride to `/couple/pin`
-      //     instead. That is a regression, and §8 SCOPE LAW ranks a regression
-      //     worse than a missing feature.
-      //   · PINNED AND NAMELESS — the term `!d.name`. This is the case F-OB.14
-      //     was minted for: a returning bride from the nameless stock logs in,
-      //     `!pinSet` is false, and under the old shape the expression
-      //     short-circuited before her missing name was ever consulted. She went
-      //     to pin-login and never met the form. Now she does.
-      //
-      // The budget half of `brideComplete` is deliberately NOT consulted here
-      // [R-35.12]: a signup-door decision does not drag a second field into
-      // itself when the frost guard (app/(frost)/layout.tsx) already owns the
-      // whole verdict in-app.
-      const coupleNeedsOnboarding = !isVendor && (!pinSet || !d.name);
-      if (coupleNeedsOnboarding) {
-        router.push('/couple/onboarding');
-      } else if (isVendor) {
-        router.push(pinSet ? '/vendor/pin-login' : '/vendor/pin');
-      } else {
-        router.push(pinSet ? '/couple/pin-login' : '/couple/pin');
-      }
-    } catch { showToast('Verification failed.'); }
-  };
+  // NOTHING ON THE GLASS MOVED. The four call sites below still call `sendOtp`
+  // and `verifyOtp` by those names with those arguments; the thirty controls on
+  // this page are unchanged, every one of them KEPT.
+  const { sendOtp, verifyOtp } = useOtpSignup({
+    role, country, phone, otp, screen, joinName, joinCategory,
+    showToast, setScreen, router, apiBase: API_BASE,
+  });
 
   // ── Sign in (returning member) ────────────────────────────────────────────
   const handleSignIn = async () => {
@@ -635,11 +483,13 @@ export default function Home() {
       if (!d.ok || !d.exists) { sendOtp(phone); return; }
 
       if (d.pin_set) {
-        const sessionKey = isVendor ? 'vendor_web_session' : 'couple_web_session';
+        // B-3, chair-ruled: the three lines that stood here were identical to the
+        // three at the end of `verifyOtp`. They are one act — write the session,
+        // mirror it to the cookie — so they are one function, and the extraction
+        // that moved `verifyOtp` out of this file takes them with it rather than
+        // leaving the pair in two files. One-home law over "pure extraction".
         const sd = {           id: d.role_id, userId: d.user_id, vendorId: d.role_id,           phone: e164, pin_set: true,         };
-        safeSetItem(sessionKey, JSON.stringify(sd));
-        safeSetItem(isVendor ? 'vendor_session' : 'couple_session', JSON.stringify(sd));
-        mirrorSessionToCookie(isVendor, sd);
+        persistSession(isVendor, sd);
         router.push(isVendor ? '/vendor/pin-login' : '/couple/pin-login'); // pin screens → /vendor or /frost
         return;
       }
