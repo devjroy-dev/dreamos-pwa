@@ -164,6 +164,40 @@ const INPUT: React.CSSProperties = {
 // alignment rule can reach it.
 const ROW_LINE_HEIGHT = 1.5;
 
+// ── R-42.10 · THE ENTRY SCREEN'S TWO STANDING LINES SHARE ONE STYLE ─────────
+// FOUNDER-RULED 2026-09-10: the /plan line is the SAME element shape and the SAME
+// values as `New here? Sign up`, and the ONLY difference between the two lines is
+// the bytes of the words. That could have been two matching inline blocks and a
+// bench cell comparing them; it is one object instead, because parity asserted by
+// a cell is parity that can drift for a day, and parity by construction cannot
+// drift at all. The cell that reads this asks whether both sites name the SAME
+// identifier, which is a question a copy-paste can never pass.
+//
+// The values are `Sign up`'s own, moved and not retyped — margin-top 16 included.
+// Nothing here is new ink: this surface predates the token layer and its literals
+// are HELD by R-O6 (there is no ThemeProvider in this route group, so no light
+// theme can reach them). Hoisting moves them; it mints none.
+//
+// ⚠ THE VERB OBJECT CARRIES `background`/`border`/`padding`/`cursor` BECAUSE THE
+// SIGN-UP VERB IS A BUTTON ELEMENT. The /plan verb is an anchor and needs none of
+// them — they are inert there, and that is cheaper than a second object whose whole
+// purpose would be to be almost identical to this one.
+//
+// ⚠ NO ANGLE-BRACKETED ELEMENT NAME IN THIS COMMENT EITHER. `b20_a4`'s element
+// census counts raw text and does not strip comments; see the note at the /plan
+// line for the cut where that took the count to 34 and split the open/close pair.
+const ENTRY_LINE: React.CSSProperties = {
+  fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: 13,
+  color: 'rgba(248,247,245,0.5)', textAlign: 'center',
+  margin: '16px 0 0', lineHeight: 1.5,
+};
+const ENTRY_LINE_VERB: React.CSSProperties = {
+  background: 'none', border: 'none', padding: 0,
+  cursor: 'pointer', touchAction: 'manipulation',
+  fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: 13,
+  lineHeight: 1.5, color: '#C9A84C', textDecoration: 'none',
+};
+
 function FlagSlot({ flag }: { flag: string }) {
   return (
     // TDW_09 P2C · L3 — RETIREMENT, NOT ADOPTION. O-1 hand-rolled R-X24's entire
@@ -684,21 +718,51 @@ export default function Home() {
                     to see the way out. S3 vetoed. The R-O3 role toggle retired with the OLD
                     line, which entered `signin_phone` with `setRole(null)`; after L-1 no entry
                     leaves the role unset, so the toggle has nothing to choose. */}
-                <p style={{
-                  fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: 13,
-                  color: 'rgba(248,247,245,0.5)', textAlign: 'center',
-                  margin: '16px 0 0', lineHeight: 1.5,
-                }}>
+                <p style={ENTRY_LINE}>
                   New here?{' '}
                   <button
                     onClick={() => setScreen('chooser')}
-                    style={{
-                      background: 'none', border: 'none', padding: 0,
-                      cursor: 'pointer', touchAction: 'manipulation',
-                      fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: 13,
-                      lineHeight: 1.5, color: '#C9A84C', textDecoration: 'none',
-                    }}
+                    style={ENTRY_LINE_VERB}
                   >Sign up</button>
+                </p>
+
+                {/* ── R-42.10 · THE /plan ENTRY. FOUNDER-RULED 2026-09-10 ──────────
+                    A public intake nobody can find is a door in a wall. Seat A of
+                    the two the chair was shown: doors -> Sign up -> here -> legal.
+                    A descending ladder — sign in, then sign up, then the person who
+                    is ready for neither and wants to say what she needs.
+
+                    ⚠ THE OPENING WORDS ARE THE SECOND VETO, AND THE FIRST ONES WERE
+                    A RESURRECTION. `Planning a wedding` is entry 11 of
+                    `tdw09_landing` §8.1's DEATH ROSTER — the bytes killed at TDW_09,
+                    with a cell that reds by name if one returns. It died as the
+                    invite-era role label, against `A wedding professional` at entry
+                    12. Re-vetoed rather than struck from the roster: all thirty-nine
+                    entries still hold, and the new byte was run against every one of
+                    them before it was written.
+
+                    ⚠ A TEXT LINK, NOT A THIRD DOOR, AND THAT IS STRUCTURAL AS WELL
+                    AS COPY. The doors are sign-IN; this is for someone not signing
+                    in at all. It is also an ANCHOR, so the element census moves 30
+                    to 31 on anchors and the button count stays 17/17 — `b20_a4`'s
+                    method-A cell and its both-roles cell are untouched. A third
+                    BUTTON element would have moved 17 and forced that cell open.
+
+                    ⚠ NO ANGLE-BRACKETED ELEMENT NAME APPEARS IN THIS COMMENT, AND
+                    THAT IS A RULE ON THIS FILE. `b20_a4`'s census counts raw text
+                    and does NOT strip comments — deliberately, on its own e-8
+                    lineage — so a comment that spells an element the way the source
+                    spells it is counted as one. The first cut of this block said it
+                    in brackets and took the census to 34 with the open/close pair
+                    disagreeing 19/17, which is precisely the failure e-8 exists to
+                    catch, arriving from the one direction nobody watches.
+
+                    ⚠ IT IS A REAL HREF, NOT A ROUTER PUSH. Nothing on this screen
+                    has a session yet, and a plain link is what a crawler follows
+                    and what a long-press can copy. */}
+                <p style={ENTRY_LINE}>
+                  Not ready to sign up?{' '}
+                  <a href="/plan" style={ENTRY_LINE_VERB}>Tell us what you need &#8594;</a>
                 </p>
 
                 {/* A4 · R-41.50 (chair-ruled placement, founder-delegated): the privacy link

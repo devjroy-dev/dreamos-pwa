@@ -283,8 +283,17 @@ section('§6 · THE THIRTY CONTROLS, ALL KEPT — CE-115');
   const inputs = count(/<input/g), anchors = count(/<a /g);
   const backs = count(/<BackBtn/g), golds = count(/<GoldBtn/g);
   ok('method A — every <button> that opens also closes', opens === closes && opens === 17, `${opens}/${closes}`);
-  ok('method B — the element census still totals 30', opens + inputs + anchors + backs + golds === 30,
+  // ── AMENDED BY LABEL — R-42.10 (founder-ruled 2026-09-10): THE /plan ENTRY.
+  // 30 -> 31, and the arithmetic is NAMED rather than loosened: the new control is
+  // an ANCHOR, so `anchors` moves 2 -> 3 and every other term stands. Method A
+  // above is untouched BY CONSTRUCTION — a link is not a button, so 17/17 holds
+  // and the both-roles cell never had to be opened. Had this been a third button
+  // element the two methods would have had to move together, which is the whole
+  // reason the ruling says text link and not third door.
+  ok('method B — the element census still totals 31 (R-42.10)', opens + inputs + anchors + backs + golds === 31,
     `button ${opens} · input ${inputs} · a ${anchors} · BackBtn ${backs} · GoldBtn ${golds}`);
+  ok('and the delta is on ANCHORS alone — method A is untouched', anchors === 3 && opens === 17,
+    `a ${anchors} · button ${opens}`);
   ok('e-8 is not inherited: the two methods agree on the button count', opens === 17 && closes === 17);
   ok('sendOtp still has its four call sites on the glass', (raw.match(/sendOtp\(/g) || []).length === 4);
   ok('verifyOtp is still the Verify control\'s handler', /onClick=\{verifyOtp\}/.test(raw));

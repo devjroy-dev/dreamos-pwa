@@ -1,6 +1,7 @@
-# repo: dreamos-pwa @ 09280bb60217f9bc2f28b0b4d3b329f29d735484
+# repo: dreamos-pwa @ f538d98410cc339aaac1699023c34dce585e5582
 deploy/MANIFEST.txt
-deploy/app/plan/page.tsx
-deploy/app/components/couple/AssistanceSheet.tsx
-deploy/scripts/b20_a5_plan_pwa.proof.mjs
-deploy/docs/handovers/TDW_CE42_D3_S2_PLAN_RIDER2_HANDOVER.md
+deploy/app/(landing)/page.tsx
+deploy/scripts/b20_a4_otpsignup_pwa.proof.mjs
+deploy/scripts/b72_r4210_plan_entry_bench.js
+deploy/docs/TDW_CE42_R4210_HANDOVER.md
+deploy/docs/handovers/TDW_CE42_D3_S2_R4210_RELEASE_HANDOVER.md
