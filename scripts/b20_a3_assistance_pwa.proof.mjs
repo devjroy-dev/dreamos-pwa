@@ -61,7 +61,18 @@ const DISC  = 'components/frost/blooms/discover.tsx';
 const MUSER = 'app/components/couple/MuseRow.tsx';
 const MERID = 'components/frost/blooms/meridian.tsx';
 const SETT  = 'components/frost/blooms/settings.tsx';
+// ── AMENDED BY LABEL · CE-42 D3 s2 (R-41.121) ──────────────────────────────────
+// THE SHEET IS TWO FILES FROM THIS CUT AND THE CELLS BELOW ARE NOT RE-AIMED AT ONE
+// OF THEM. Fork A(a) moved the form itself to a component so `/plan` (R-41.94) can
+// mount it too; the path below is now the BRIDE CALLER, which holds the Wine palette,
+// the CanvasShell and nothing else. Every cell in §4 and §A9 was written about "the
+// sheet", and the sheet is the union — so the union is what they read. Not one label,
+// not one assertion and not one byte of any expectation changed: had a cell been
+// re-pinned to whichever half currently happens to satisfy it, this bench would have
+// stopped guaranteeing that the OTHER half cannot quietly grow a second copy.
 const SHEET = 'app/(frost)/frost/canvas/assistance/page.tsx';
+const SHEET_C = 'app/components/couple/AssistanceSheet.tsx';
+const readSheet = () => read(SHEET) + '\n' + read(SHEET_C);
 const POPUP = 'components/frost/AssistPopup.tsx';
 const RULE  = 'lib/frost/assistPopup.ts';
 const ENTRY = 'lib/frost/entryRedirect.ts';
@@ -91,7 +102,7 @@ const mer = strip(read(MERID));
 ok('no fetch to /concierge/request remains in the room', !/concierge\/request/.test(mer) && !/fetch\(/.test(mer.slice(0, mer.indexOf('MERIDIAN ROOM') > 0 ? mer.indexOf('MERIDIAN ROOM') : 0)));
 ok('the old button is gone; the card exists and navigates to the sheet', !/MeridianConciergeBtn/.test(mer) && /function MeridianConciergeCard/.test(mer) && /router\.push\(ASSIST_SHEET_PATH\)/.test(mer) && /'\/frost\/canvas\/assistance'/.test(mer));
 ok('#36 #37 #38 as ruled (the founder\'s phrase kept)', mer.includes("title: 'Want a personal concierge?'") && mer.includes("body:  'The Dream Wedding finds and books your vendors \u2014 photography, makeup, d\u00e9cor, planning, all of it. One sheet.'") && mer.includes("link:  'Ask a Personal Concierge \u2192'"));
-ok('the STRUCK sentence is gone from the plane', !/Our concierge will reach you at the earliest/.test(read(MERID)) && !/Our concierge will reach you/.test(read(SHEET)));
+ok('the STRUCK sentence is gone from the plane', !/Our concierge will reach you at the earliest/.test(read(MERID)) && !/Our concierge will reach you/.test(readSheet()));
 ok('the chat surface is untouched: input, send, history, Clear all present', /onClick=\{\(\)=>send\(input\)\}/.test(mer) && /Clear\s*<\/button>/.test(mer) && /msgs\.map\(/.test(mer));
 ok('both render sites (full + compact) point at the card', (mer.match(/<MeridianConciergeCard /g) || []).length === 2);
 
@@ -101,14 +112,14 @@ ok('the row exists with the two vetoed bytes', set.includes("ASSIST_ROW_LABEL = 
 ok('every existing settings control is still there (date, budget, publish switch, WA link, sign out)', /Wedding date/.test(set) && /Total budget/.test(set) && /togglePublish/.test(set) && /DREAMAI_WA_LINK/.test(set) && /Sign out/.test(set));
 
 section('§4 · THE SHEET');
-const sheet = strip(read(SHEET));
-ok('the sheet exists under /frost/canvas/assistance', exists(SHEET));
+const sheet = strip(readSheet());
+ok('the sheet exists under /frost/canvas/assistance, and its form in one component', exists(SHEET) && exists(SHEET_C));
 for (const [n, str] of [['#7', "'Your wedding assistant'"], ['#8', "'One sheet. We do the rest.'"], ['#13', "'What you need, and roughly how much for each'"], ['#17', "'Colours, style, anything you\\u2019ve saved in your Muse'"], ['#19', "'We share your request only with the vendors we choose for you.'"], ['#20', "'Pick at least one and tell us roughly how much.'"], ['#22', "'Sent. We\\u2019re on it.'"], ['#23', "'We\\u2019ll message you on WhatsApp as we find each vendor.'"], ['#33', "'Message The Dream Wedding'"]]) {
   ok(`${n} byte-exact`, sheet.includes(str));
 }
 // (A7 re-aim: #25 `Found so far` is KEPT at the veto and now built — F-41.29; only #30/#31 are struck.)
 ok('#30/#31 STRUCK — no `Asked` chip, no count of who was asked', !/'Asked'|Two more|photographers'/.test(sheet));
-ok('money renders through formatRs, never a glyph or a local formatter', /import \{ formatRs \} from '@\/lib\/vendor\/format'/.test(sheet) && /formatRs\(parseInt\(r\.rs/.test(sheet) && !/\u20b9/.test(read(SHEET)) && !/toLocaleString\('en-IN'\)/.test(sheet));
+ok('money renders through formatRs, never a glyph or a local formatter', /import \{ formatRs \} from '@\/lib\/vendor\/format'/.test(sheet) && /formatRs\(parseInt\(r\.rs/.test(sheet) && !/\u20b9/.test(readSheet()) && !/toLocaleString\('en-IN'\)/.test(sheet));
 ok('the eleven canonical rows, in the veto order, mehendi under `other` (R-41.27)', (() => { const api = strip(read(CAPI)); const cats = [...api.matchAll(/category: '([a-z_]+)',\s+label: '([^']+)'/g)].map(m => m[1]); return cats.length === 11 && cats[0] === 'photography' && cats[7] === 'other' && /label: 'Mehendi & anything else'/.test(api); })());
 ok('the sheet POSTs through the one client, never a raw fetch, and never writes to couples (R-41.25)', /submitAssistanceRequest\(/.test(sheet) && !/fetch\(/.test(sheet) && !/couple\/me['"][\s\S]*?method:\s*'P/.test(sheet) && /apiPost<AssistRequestResponse>\('\/api\/v2\/couple\/assistance'/.test(strip(read(CAPI))));
 ok('the sheet marks her first request for the popup rule', /markAssistRequested\(\)/.test(sheet));
@@ -251,7 +262,7 @@ section('§A7 · THE WALK\'S PWA RIDER — F-41.25 / .27 / .28 / .29 · Open: N'
   // F-41.28
   ok('F-41.28: no `Rs ${rs(` or `Rs {rs(` remains — formatRs carries the prefix', !/Rs \$\{rs\(|Rs \{rs\(/.test(adm2) && /formatRs already carries/.test(read(ADMIN)));
   // F-41.29 — the sheet reads her latest on mount and opens on S2
-  const sheet2 = strip(read(SHEET));
+  const sheet2 = strip(readSheet());
   ok('F-41.29: the sheet fetches her latest request on mount and enters the sent state when one exists', /fetchMyAssistance\(\)/.test(sheet2) && /setState\('sent'\)/.test(sheet2) && /apiGet<AssistMine>\('\/api\/v2\/couple\/assistance'\)/.test(strip(read(CAPI))));
   ok('F-41.29: S2 names TDW vendors found (#25/#27) with a /v/ link and shows outsiders as an unnamed row (#28/#29); no count of who was asked (#30/#31 struck)', /\/v\/\$\{f\.routing_handle\}/.test(sheet2) && sheet2.includes("foundSoFar: 'Found so far'") && sheet2.includes("notOnTdw:   'Not on TDW yet'") && !/Two more|'Asked'/.test(sheet2));
   // Open: N
@@ -283,20 +294,36 @@ section('§A9 · F-41.38 / .39 / .40 / .41');
   // as b20_a2:404, struck under c-41.39 — the third specimen this sitting.
   // The padding is no longer THE cure: F-41.40's portal is. It stays because a sheet
   // still needs its last control clear of the bar once it is out of the trap.
-  const sheet9 = strip(read(SHEET));
-  ok('F-41.41: the sheet draws a quiet frame until the read settles, then S1 or S2 once', /const \[settled, setSettled\] = useState\(false\)/.test(sheet9) && /\.finally\(\(\) => \{ if \(live\) setSettled\(true\); \}\)/.test(sheet9) && /\{!settled \? \(/.test(sheet9) && /\{!settled \? '' : state === 'sent' \? S\.sentLede : S\.lede\}/.test(sheet9));
+  const sheet9 = strip(readSheet());
+  // AMENDED BY LABEL (R-41.121). The GUARANTEE is unchanged: nothing is drawn until
+  // the read has settled. The initial value stopped being the literal `false` because
+  // on `/plan` there IS no read — `signedIn` is false and both fetches are skipped, so
+  // a hard `false` would hold the quiet frame open forever on a public page. The cell
+  // therefore BINDS the file's own initialiser and drives it, rather than asserting a
+  // spelling: on a lane with a read it must still start closed, and only a lane with
+  // no read may start open. Retyping the expression beside it would have re-implemented
+  // the subject, which is the trap this bench's own §8 exists to catch.
+  const initExpr = (sheet9.match(/const \[settled, setSettled\] = useState\(([^;]*)\);/) || [])[1];
+  let settledAt = null;
+  if (initExpr) { try { settledAt = new Function('signedIn', 'initialSent', `return (${initExpr});`); } catch { settledAt = null; } }
+  ok('F-41.41: the quiet frame still starts closed wherever there is a read to wait for',
+    !!settledAt && settledAt(true, null) === false && settledAt(false, null) === true);
+  ok('F-41.41: the sheet draws a quiet frame until the read settles, then S1 or S2 once', /\.finally\(\(\) => \{ if \(live\) setSettled\(true\); \}\)/.test(sheet9) && /\{!settled \? \(/.test(sheet9) && /!settled \? '' : state === 'sent'/.test(sheet9));
 }
 
 section('§8 · COPY LAW · WALLET LAW');
-const chrome = [POPUP, SHEET, ADMIN, MERID, SETT, CAPI, AAPI].map(f => strip(read(f))).join('\n');
+const chrome = [POPUP, SHEET, SHEET_C, ADMIN, MERID, SETT, CAPI, AAPI].map(f => strip(read(f))).join('\n');
 ok('no persona name in any new chrome string (Meridian only as the existing room title)', !/Victor|Donna|Harvey|Mira\b|Eliza/.test(chrome) && (mer.match(/>Meridian</g) || []).length === 1);
 {
   // Scoped to STRING LITERALS in the NEW files (SVG path data in the existing rooms
   // carries `2L11`-shaped runs that are not money; the first cut convicted them).
-  const lits = [POPUP, SHEET, ADMIN, CAPI, AAPI].map(f => (strip(read(f)).match(/'[^'\n]*'|"[^"\n]*"/g) || []).join('\n')).join('\n');
+  const lits = [POPUP, SHEET, SHEET_C, ADMIN, CAPI, AAPI].map(f => (strip(read(f)).match(/'[^'\n]*'|"[^"\n]*"/g) || []).join('\n')).join('\n');
   ok('no rupee glyph, no K/L/Cr shorthand in any new rendered string', !/\u20b9|\b\d+\s*[KkLl]\b|\bCr\b/.test(lits) && !/\u20b9/.test(chrome));
 }
-ok('typographic apostrophes in couple-facing bytes (R-40.19)', !/'[A-Za-z ]+'[^\\]*[a-z]'[a-z]/.test(sheet.match(/const S = \{[\s\S]*?\};/)?.[0] || "x'y") );
+// AMENDED BY LABEL: the byte map kept its every member and gained a name when it left
+// the page — `const S` became the exported `SHEET_BYTES`, because a map that two files
+// read cannot stay anonymous. The cell matches either heading and still measures the map.
+ok('typographic apostrophes in couple-facing bytes (R-40.19)', !/'[A-Za-z ]+'[^\\]*[a-z]'[a-z]/.test(sheet.match(/const (?:S|SHEET_BYTES) = \{[\s\S]*?\n\};/)?.[0] || "x'y") );
 
 // ═══ D0 · CE-41 seat D — the residue built ══════════════════════════════════
 {

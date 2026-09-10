@@ -46,15 +46,33 @@ export const ASSIST_ROWS: { category: AssistCategory; label: string }[] = [
   { category: 'content_creator', label: 'Content' },
 ];
 
+function mockSubmit(body: AssistRequestBody) {
+  return mockDelay({
+    ok: true as const, request_id: 'mock-request', message: 'Sent. We’re on it.',
+    items: body.items.map((i, k) => ({ id: `mock-item-${k}`, category: i.category, budget_rs: i.budget_rs })),
+    admin_notified: false, admin_notify_refusal: 'mock',
+  }, 600);
+}
+
 export async function submitAssistanceRequest(body: AssistRequestBody): Promise<AssistRequestResponse> {
-  if (USE_MOCKS || isBrideDemoMode()) {
-    return mockDelay({
-      ok: true as const, request_id: 'mock-request', message: 'Sent. We’re on it.',
-      items: body.items.map((i, k) => ({ id: `mock-item-${k}`, category: i.category, budget_rs: i.budget_rs })),
-      admin_notified: false, admin_notify_refusal: 'mock',
-    }, 600);
-  }
+  if (USE_MOCKS || isBrideDemoMode()) return mockSubmit(body);
   return apiPost<AssistRequestResponse>('/api/v2/couple/assistance', body);
+}
+
+// ── THE SECOND DOOR · R-41.94 (D5 ruling ii) ────────────────────────────────
+// POST /api/v2/couple/assistance/public (dream-os src/api/couple/assistance.js:128
+// @ 6164472). The SAME body type, deliberately: `AssistRequestBody` gained no
+// `origin` field and never will. `origin` is a provenance fact chosen by the route
+// that was matched, on the server, because a body field would let any signed-in
+// bride label her own request `public`.
+//
+// BOTH DOORS SIT UNDER requireCoupleAuth. This one is not an anonymous mount — by
+// the time /plan calls it the caller has been through the bride-line OTP and holds
+// a session, so `getAuthHeader()` finds the token `persistSession` just wrote and
+// her couple_id comes from the session, never from a phone in the body.
+export async function submitPublicAssistanceRequest(body: AssistRequestBody): Promise<AssistRequestResponse> {
+  if (USE_MOCKS || isBrideDemoMode()) return mockSubmit(body);
+  return apiPost<AssistRequestResponse>('/api/v2/couple/assistance/public', body);
 }
 
 // F-41.29 · her own read: GET /api/v2/couple/assistance (dream-os 534059f,

@@ -1,8 +1,11 @@
-# repo: dreamos-pwa @ c1fd389
+# repo: dreamos-pwa @ e81d703c170c867d0306bbc59ef288aff8759e6e
 deploy/MANIFEST.txt
-deploy/app/vendor/settings/page.tsx
-deploy/components/vendor/SubscriptionCard.tsx
-deploy/docs/TDW_10_STATUSLINE_PWA_HANDOVER.md
-deploy/lib/vendor/billing/statusLine.ts
-deploy/scripts/tdw10_billing_tab.proof.mjs
-deploy/scripts/tdw10_tier.proof.mjs
+deploy/app/plan/page.tsx
+deploy/app/components/couple/AssistanceSheet.tsx
+deploy/app/(frost)/frost/canvas/assistance/page.tsx
+deploy/app/layout.tsx
+deploy/app/sitemap.ts
+deploy/lib/frost-api/assistance.ts
+deploy/scripts/b20_a5_plan_pwa.proof.mjs
+deploy/scripts/b20_a3_assistance_pwa.proof.mjs
+deploy/docs/handovers/TDW_CE42_D3_S2_PLAN_HANDOVER.md

@@ -118,7 +118,15 @@ export default function RootLayout({
   // near-black in the browser chrome, from a link a stranger was sent.
   // The name stays isPublicStorefront rather than growing a second flag: one
   // predicate, one question — is this path outside the app.
-  var isPublicStorefront=path.indexOf('/v/')===0||path.indexOf('/r/')===0||path.indexOf('/credits/')===0;
+  // CE-42 D3 s2 (R-41.94). THE FOURTH PUBLIC LANE, /plan — and it is the first
+  // member that is a WHOLE URL rather than a prefix, which is why it is spelled
+  // twice. The three above are all trailing-slash prefixes, so the shape they
+  // teach — indexOf('/plan/')===0 — matches /plan/anything and MISSES /plan, the
+  // only address a stranger is ever sent. Both terms ship: the equality for the
+  // page, the prefix for anything that ever hangs beneath it. A stranger arriving
+  // from a link is exactly the arrival this branch exists for, and getting it
+  // wrong here paints the app’s near-black above a cream intake.
+  var isPublicStorefront=path.indexOf('/v/')===0||path.indexOf('/r/')===0||path.indexOf('/credits/')===0||path==='/plan'||path.indexOf('/plan/')===0;
   var bg=null;
   if(isFrost){
     var stored=null, manual=null;

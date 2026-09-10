@@ -35,6 +35,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const rows = await publicPages();
   const statics: MetadataRoute.Sitemap = [
     { url: `${SITE_BASE}/`,        changeFrequency: 'weekly',  priority: 1 },
+    // R-41.94 · the public intake. Reachable is the point: `app/robots.ts` is
+    // UNCHANGED and carries no `/plan` disallow, so the allow at its `:17` serves
+    // it. A page a stranger is meant to find from a link and from search is listed
+    // here rather than left to be discovered by whoever already had the URL.
+    { url: `${SITE_BASE}/plan`,    changeFrequency: 'monthly', priority: 0.5 },
     { url: `${SITE_BASE}/privacy`, changeFrequency: 'yearly',  priority: 0.2 },
     { url: `${SITE_BASE}/terms`,   changeFrequency: 'yearly',  priority: 0.2 },
   ];
