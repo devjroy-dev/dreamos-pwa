@@ -2,6 +2,8 @@
 'use strict';
 // scripts/b76_4c3a_exchange_shell_bench.js — CE-42 4c-3a · R7 G5.3 THE INFLUENCER EXCHANGE SHELL (pwa).
 // EXTENDED at 4c-3b-1p (seat R7, base a9b5e0cd): C2 and C7 AMENDED BY LABEL, C8-C14 new.
+// AMENDED A THIRD TIME at the F-42.209 chip micro (base 7a0ed7b6): C6 by label (the chip
+// reads Open now), C16-C17 new (R-42.15, the seventh onboarding row).
 // AMENDED AGAIN at 4c-3b-1p-r, the flip rider (base d644a3c6): C2, C3 and C8 by label —
 // EXCHANGE_PREVIEW is FALSE now, so "nothing may be called" and "every act toasts" are the
 // wrong assertions and their replacements are stated at each cell. C15 new (F-42.208).
@@ -126,8 +128,14 @@ cell('C5 S2(b): the sort is audience-city match then engagement; followers never
 });
 
 // MUTATION → RED: in referrals/page.tsx, replace `preview` with nothing on the RoomRow.
-cell('C6 the row: RoomRow with the hub\'s Coming chip, EXCHANGE_HREF, under Shoots; the forwards keep zero controls', () => {
-  if (!/<RoomRow href=\{EXCHANGE_HREF\} label=\{EXCHANGE\.rowLabel\} preview \/>/.test(room)) return 'the row is not the hub RoomRow with preview';
+cell('C6 (AMENDED at the chip micro) the row: RoomRow reading OPEN, EXCHANGE_HREF, under Shoots; the forwards keep zero controls', () => {
+  // F-42.209: it asserted `preview /` — the Coming chip — which was right while the acts
+  // toasted. They are live (dream-os 50781af, flag false at 7a0ed7b6), so `Coming` had
+  // become a FALSE BYTE ON LIVE GLASS. `preview` is DROPPED rather than set false:
+  // RoomRow defaults it, so a working door gets `Open` without being named. The cell now
+  // pins the absence, which is what the chip's honesty rests on.
+  if (!/<RoomRow href=\{EXCHANGE_HREF\} label=\{EXCHANGE\.rowLabel\} \/>/.test(room)) return 'the row is not the hub RoomRow';
+  if (/EXCHANGE_HREF\} label=\{EXCHANGE\.rowLabel\} preview/.test(room)) return 'the row still claims Coming on a live room';
   if (room.indexOf('<ShootsBlock />') > room.indexOf('<RoomRow href={EXCHANGE_HREF}')) return 'the row sits above Shoots';
   if (!/export const EXCHANGE_HREF = '\/vendor\/exchange'/.test(routes)) return 'EXCHANGE_HREF undeclared';
   if (!fs.existsSync(path.join(ROOT, 'app/vendor/(shell)/exchange/page.tsx'))) return 'no screen at the address';
@@ -257,6 +265,39 @@ cell('C15 (F-42.208) the reach card carries NO post tiles — audience, engageme
   if (!/F-42\.208/.test(rawEx)) return 'the byte is parked with no finding named';
   // What the card DOES show.
   for (const k of ['audience', 'byCity', 'byAge', 'byGender', 'engagement']) if (!card.includes('EXCHANGE.' + k)) return `the card lost ${k}`;
+});
+
+// MUTATION → RED: drop the Content Creator row, or give it a value the normaliser misses.
+cell('C16 (R-42.15) Content Creator is the SEVENTH onboarding field, last, and its value normalises', () => {
+  const landing = strip(read('app/(landing)/page.tsx'));
+  const block = /const VENDOR_FIELDS = \[([\s\S]*?)\];/.exec(landing);
+  if (!block) return 'VENDOR_FIELDS is gone';
+  const rows = block[1].split('\n').filter((l) => /\{\s*label:/.test(l));
+  if (rows.length !== 7) return `${rows.length} fields — expected 7`;
+  if (!/label: 'Content Creator'/.test(rows[6])) return `the seventh is: ${rows[6].trim().slice(0, 50)}`;
+  if (!/label: 'Jewellery'/.test(rows[5])) return 'Content Creator is not after Jewellery';
+  // THE VALUE MUST REACH `content_creator` THROUGH THE ESTATE'S OWN NORMALISER. Witnessed
+  // at the cut: otpSignup.ts sends `category` RAW; dream-os /vendor/auth/provision calls
+  // normaliseCategory; categoryFraming.js aliases the spaced form. Both forms resolve, and
+  // this cell pins that the shipped one is one of them.
+  const val = /value: '([^']+)'/.exec(rows[6]);
+  if (!val) return 'the seventh row has no value';
+  if (!['content creator', 'content_creator'].includes(val[1])) return `value '${val[1]}' does not normalise to content_creator`;
+  // The exchange's browse door reads the canonical token; the two must not drift apart.
+  if (MK.EXCHANGE_INFLUENCERS.some((i) => i.craft !== 'content_creator')) return 'the fixture craft token drifted';
+});
+
+// MUTATION → RED: add or remove a control on the landing's join screen.
+cell('C17 the control inventory is UNCHANGED — one more option inside an existing control', () => {
+  const landing = read('app/(landing)/page.tsx');
+  // R-42.15 item 3: the census moves by one OPTION, never by a control. The category
+  // picker is ONE control that maps over VENDOR_FIELDS; adding a row does not add a
+  // control, and this cell is what says so out loud rather than assuming it.
+  const maps = (landing.match(/VENDOR_FIELDS\.map\(/g) || []).length;
+  if (maps !== 1) return `${maps} controls render VENDOR_FIELDS — the picker is not one control`;
+  if (!/setJoinCategory\(f\.value\)/.test(landing)) return 'the option no longer sets the category';
+  // ...and the gate that needs a category before Send code is untouched.
+  if (!/role === 'Maker' && !joinCategory/.test(landing)) return 'the category gate on Send code moved';
 });
 
 console.log(`\nb76 · ${pass} GREEN · ${reds.length} RED${reds.length ? ' — ' + reds.join(' | ') : ''}`);

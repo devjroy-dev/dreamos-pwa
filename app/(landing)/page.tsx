@@ -555,8 +555,18 @@ export default function Home() {
   const ease = 'cubic-bezier(0.22,1,0.36,1)';
 
 
-  // The six fields that map to a preset/Codex (categoryPreset.js keys). Value sent
+  // The SEVEN fields that map to a preset/Codex (categoryPreset.js keys). Value sent
   // to provision is the exact key; label is what the vendor taps.
+  //
+  // ⚠ THE SEVENTH'S VALUE IS THE SPACED FORM, AND THAT IS DERIVED RATHER THAN
+  // COPIED. `otpSignup.ts:184` sends `category` RAW to POST /vendor/auth/provision;
+  // that door (`src/api/vendor/auth.js`) calls `normaliseCategory(rawCategory)`
+  // before it writes, and `src/lib/vendor/categoryFraming.js:138` aliases
+  // 'content creator' → 'content_creator'. Run at the cut, not assumed: both
+  // 'content creator' and 'content_creator' normalise to `content_creator`, so the
+  // browse door's literal matches either way. The spaced form is kept because it
+  // reads as words in the payload and the normaliser is the estate's one home for
+  // this mapping — the alias exists precisely so the glass need not know the token.
   // F-09.44 · FOUNDER'S WALK — 「 sign in again shows dreamer and maker 」.
   // The sign-in toggle rendered the internal `Role` union DIRECTLY as user-facing bytes,
   // so this surface spoke two vocabularies for one distinction: the doors said
@@ -582,6 +592,9 @@ export default function Home() {
     { label: 'Designer',      value: 'designer' },
     { label: 'Venue & Décor', value: 'venue & decor' },
     { label: 'Jewellery',     value: 'jewellery' },
+    // R-42.15 — SEVENTH, LAST. Founder-ruled 2026-09-10; the exchange (G5.3) lists
+    // vendors of this category and there was no way to become one.
+    { label: 'Content Creator', value: 'content creator' },
   ];
 
   // F-41.38: the blank first frame — same ground as the hero, nothing else, until the

@@ -48,8 +48,15 @@ import type { ReferralsRoom } from '@/lib/solutions/types';
 // action (Post a shoot) and reads the Collab doors through ?kind=shoot.
 import { ShootsBlock } from '@/components/vendor/ShootsBlock';
 // CE-42 4c-3a (R-42.14, ruling F1(b)): the influencer exchange SHELL opens from ONE row
-// under Shoots — the hub's own RoomRow with its Coming chip, never a new chip. The
-// forwards above still carry zero controls; a Link is a door, not a control.
+// under Shoots — the hub's own RoomRow, never a new chip. The forwards above still
+// carry zero controls; a Link is a door, not a control.
+//
+// ⚠ THE CHIP READS `Open` FROM F-42.209 (ruled 2026-09-10). It read `Coming` while the
+// room's acts toasted; they are live against dream-os 50781af, so the byte had become
+// false on live glass. `preview` is DROPPED rather than set false — RoomRow defaults it
+// to false precisely so a working door gets the honest word without being named. That
+// verification is still pending is a STATE INSIDE the room (the Pending badge and the
+// vetoed banner both say so), not a reason to call the room unbuilt.
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 import { EXCHANGE_HREF } from '@/lib/solutions/routes';
 import { EXCHANGE } from '@/lib/worklist/exchange';
@@ -151,7 +158,7 @@ function ReferralsScreen() {
           )}
 
           <ShootsBlock />
-          <div className="rf-xrow"><RoomRow href={EXCHANGE_HREF} label={EXCHANGE.rowLabel} preview /></div>
+          <div className="rf-xrow"><RoomRow href={EXCHANGE_HREF} label={EXCHANGE.rowLabel} /></div>
         </div>
       ) : null}
 
