@@ -185,7 +185,12 @@ sec('C3 \u00b7 the hub (R-40.23)');
     // `Your website & SEO`; the other eight stand. Both homes move in one edit,
     // exactly as C2 does for the registry's three numbers — a list retyped here
     // and a list in the copy home are two places to spell one ruling.
-    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Collabs & barter|Open dates & rates|Your own number|Introductions",
+    // AMENDED BY NAME — R-42.16's label re-ruled by the founder (2026-09-10), carried
+    // in CE-42 SHELL-2's packet: the eighth label `Collabs & barter` becomes
+    // `Hire, collab & barter` (the room takes requirement posts — hiring). The join
+    // fired on the new byte, which is the pin working; the count stays eleven and
+    // every other label and position is unchanged. R-41.121: amended, not loosened.
+    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Hire, collab & barter|Open dates & rates|Your own number|Introductions",
     labels.join('|'));
   ok('ROWS is gone', !/export const ROWS\b/.test(copy));
   ok('ROW_EYEBROWS is gone', !/export const ROW_EYEBROWS\b/.test(copy));

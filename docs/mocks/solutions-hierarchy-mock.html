@@ -1,0 +1,147 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CE-42 · Business Solutions sub-room hierarchy · the chair's mock, amended to the tree</title>
+<!--
+  CE-42 · R-42.17 · THE CHAIR'S MOCK, AMENDED TO THE TREE (c-42.52, c-42.53). dreamos-pwa b5b7dfc2 + SHELL-2.
+
+  DIAGNOSIS (the chair's, derived at b5b7dfc2 and re-derived by the seat): on every Business
+  Solutions sub-room the lede (.sol-empty), every can-do line (.sol-can li) and the aside line
+  (.sol-asideline) were all font: var(--wl-t3). No heading, no eyebrow, no sub-head; the screen
+  read as one paragraph with a button in it.
+
+  WHERE MOCK AND TREE DISAGREE, THE TREE WINS. This file is that rule's specimen. As first handed,
+  it carried a Chalk --label of #52585B (theme.ts: #3A3F42), a header seat reading
+  "Business Solutions" (ruled A1: the seat is the room, as the ratified D1/N1 frames draw it), an
+  aside eyebrow "Already working" (D7, STRUCK at the veto, R-40.60), and a "before" panel that
+  misdrew seven shipped values (actions margin, button geometry and tracking, aside-line margin,
+  chip tracking, chip padding and border, seat ink, the missing Beta mark). None of those shipped.
+
+  SO NOTHING BELOW IS TYPED. It is RE-CUT FROM THE TREE:
+    tokens   scopeCss('.wl') + typeCss('.wl') from lib/worklist/theme.ts, both arms, verbatim;
+             --font-cormorant / --font-dm-sans stand in for next/font so this opens in a browser.
+    header   the seven WorklistShell.tsx rules the header and gutter draw from, verbatim.
+    surface  the SolutionsStyles literal from components/solutions/SolutionsPieces.tsx, comments
+             stripped, verbatim — except ONE scoped line marked below, which draws the "before"
+             panel's .sol-can margin as b5b7dfc2 shipped it.
+    bytes    roomLabel(), DATES, NUMBER, CHIPS, COPY.canHead, BUTTONS.connect, COPY.beta, ROOMS.
+  scripts/b77_shell2_hierarchy_bench.js holds this file to the tree rule-for-rule; if either moves
+  without the other, it reds.
+
+  THE HIERARCHY — four existing rungs doing the work theme.ts defines them for:
+    .sol-kicker   t5 uppercase .08em ink-dim   the room eyebrow, reading CHIPS.coming (C2, carried)
+    .sol-title    t1                           the one title, reading roomLabel(key) — the seat's byte
+    .sol-empty    t3 ink-soft                  the lede, unchanged
+    .sol-subhead  t5 uppercase .08em ink-dim   the sub-head, reading COPY.canHead (T2, VETOED)
+    .sol-can li   t3 ink                       the can-do lines, unchanged
+    .sol-aside    rule line + .sol-asideline   unchanged
+  Zero new rungs, zero new colours, zero controls changed.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── presentation only: the board and the phone outline ─────────────────── */
+body{margin:0;background:#2a2b2d;padding:24px 12px 60px;font-family:'DM Sans',sans-serif}
+.board{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start}
+.cap{color:#8b8d90;font:500 11px/1.3 'DM Sans',sans-serif;letter-spacing:.10em;text-transform:uppercase;margin:0 0 8px;max-width:374px}
+.phone{width:374px;background:var(--atelier-page-bg);color:var(--atelier-ink);border:1px solid rgba(255,255,255,.08)}
+.wl{--font-cormorant:'Cormorant Garamond';--font-dm-sans:'DM Sans'}
+/* ── tokens: theme.ts scopeCss + typeCss, verbatim ──────────────────────── */
+.wl[data-wl-mode="dark"]{--atelier-bg:#0F1011;--atelier-page-bg:#141516;--atelier-header-bg:#1A1B1D;--atelier-section-bg:#171819;--atelier-sheet-bg:#1D1E20;--atelier-overlay-bg:#0A0B0C;--atelier-card-bg:linear-gradient(180deg, rgba(240,244,246,0.060) 0%, rgba(240,244,246,0.030) 100%);--atelier-card-border:rgba(240,244,246,0.11);--atelier-card-shadow:rgba(0,0,0,0.50);--atelier-row-hover:rgba(240,244,246,0.14);--atelier-grain:rgba(255,255,255,0.012);--atelier-input-bg:rgba(240,244,246,0.040);--atelier-input-border:rgba(104,201,180,0.58);--atelier-sheet-top:#232527;--atelier-sheet-bot:#191A1C;--atelier-sheet-border:rgba(240,244,246,0.14);--atelier-overlay:rgba(10,11,12,0.74);--atelier-ink:#EDEEEF;--atelier-ink-soft:#C8CACC;--atelier-ink-dim:#A3A6A9;--atelier-ink-mute:#888B8E;--atelier-ink-fade:#585B5E;--atelier-label:#B9BCBF;--atelier-accent-text:#68C9B4;--role-metal:#C9A84C;--role-ink-on-metal:#141516;--role-ink-deep:#0F1011;--role-positive:#6FC98C;--role-caution:#DFAE6C;--role-critical:#E8836B;--role-scrim:rgba(10,11,12,0.62);--role-sheet:#1D1E20;--role-today-coin-ink:#141516;}.wl[data-wl-mode="light"]{--atelier-bg:#EDEEEF;--atelier-page-bg:#F3F4F4;--atelier-header-bg:#FFFFFF;--atelier-section-bg:#E7E9EA;--atelier-sheet-bg:#FFFFFF;--atelier-overlay-bg:#17191A;--atelier-card-bg:linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,249,249,0.72) 100%);--atelier-card-border:rgba(23,25,26,0.13);--atelier-card-shadow:rgba(23,25,26,0.09);--atelier-row-hover:rgba(23,25,26,0.11);--atelier-grain:rgba(23,25,26,0.012);--atelier-input-bg:rgba(23,25,26,0.035);--atelier-input-border:rgba(13,106,90,0.68);--atelier-sheet-top:#F8F9F9;--atelier-sheet-bot:#EDEFEF;--atelier-sheet-border:rgba(23,25,26,0.16);--atelier-overlay:rgba(23,25,26,0.44);--atelier-ink:#0E1112;--atelier-ink-soft:#272B2D;--atelier-ink-dim:#3D4245;--atelier-ink-mute:#52585B;--atelier-ink-fade:#767C80;--atelier-label:#3A3F42;--atelier-accent-text:#0D6A5A;--role-metal:#8A6F2A;--role-ink-on-metal:#FFFFFF;--role-ink-deep:#17191A;--role-positive:#2C7343;--role-caution:#8A5A18;--role-critical:#AE3A22;--role-scrim:rgba(23,25,26,0.38);--role-sheet:#FFFFFF;--role-today-coin-ink:#FFFFFF;}
+.wl{--wl-t0:500 46px/0.95 var(--font-cormorant), Georgia, serif;--wl-t1:500 24px/1.2 var(--font-cormorant), Georgia, serif;--wl-t2:500 17px/1.3 var(--font-dm-sans), system-ui, sans-serif;--wl-t3:400 14px/1.45 var(--font-dm-sans), system-ui, sans-serif;--wl-t4:500 12px/1.4 var(--font-dm-sans), system-ui, sans-serif;--wl-t5:500 11px/1.3 var(--font-dm-sans), system-ui, sans-serif;--wl-gutter:16px;--wl-step:8px;--wl-tile:64px;--wl-row:52px;--wl-fab:56px;--wl-fab-bottom:136px;}
+/* ── WorklistShell.tsx, verbatim ────────────────────────────────────────── */
+.wl{font:var(--wl-t3);touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
+.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:16px var(--wl-gutter);display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
+.wl-hstack{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wl-house{font:var(--wl-t2);color:var(--atelier-ink)}
+.wl-lbl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-lblrow{display:flex;align-items:baseline;gap:8px;min-width:0}
+.wl-beta{font:var(--wl-t5);letter-spacing:.12em;text-transform:uppercase;color:var(--atelier-accent-text);flex-shrink:0}
+.wl-main > *{padding-left:var(--wl-gutter);padding-right:var(--wl-gutter)}
+/* ── SolutionsPieces.tsx SolutionsStyles, verbatim ──────────────────────── */
+.sol-rows{display:flex;flex-direction:column;padding-top:8px}
+.sol-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:56px;padding:12px 0;text-decoration:none;
+  border-bottom:.5px solid var(--atelier-card-border);touch-action:manipulation}
+.sol-row:last-child{border-bottom:none}
+.sol-row:active{background:var(--atelier-row-hover)}
+.sol-row:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+.sol-rowtext{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.sol-rowlabel{font:var(--wl-t3);color:var(--atelier-ink)}
+.sol-roweyebrow{font:var(--wl-t5);color:var(--atelier-ink-mute);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sol-chip{font:var(--wl-t5);letter-spacing:.06em;text-transform:uppercase;
+  white-space:nowrap;color:var(--atelier-ink-soft);flex:0 0 auto;
+  border:.5px solid var(--atelier-input-border);border-radius:2px;padding:3px 7px}
+.sol-chip--connected{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
+.sol-chip--live{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
+.sol-chip--needs_attention{color:var(--role-caution);border-color:var(--role-caution)}
+.sol-chip--expired{color:var(--role-critical);border-color:var(--role-critical)}
+.sol-chip--coming{color:var(--atelier-ink-dim);border-color:var(--atelier-card-border)}
+.sol-chip--open{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
+.sol-surface{display:flex;flex-direction:column;padding-top:16px;padding-bottom:28px}
+.sol-eyebrow{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--atelier-ink-mute);margin:0 0 6px}
+.sol-heading{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 12px}
+.sol-err{font:var(--wl-t3);color:var(--role-critical);margin:0 0 12px}
+.sol-empty{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
+.sol-stats{display:flex;flex-wrap:wrap;gap:24px;margin:16px 0 0}
+.sol-stat{display:flex;flex-direction:column;gap:2px}
+.sol-statvalue{font:var(--wl-t2);color:var(--atelier-ink)}
+.sol-statlabel{font:var(--wl-t5);letter-spacing:.06em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.sol-list{display:flex;flex-direction:column;margin:16px 0 0}
+.sol-item{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:48px;padding:10px 0;border-bottom:.5px solid var(--atelier-card-border)}
+.sol-item:last-child{border-bottom:none}
+.sol-itemlabel{font:var(--wl-t3);color:var(--atelier-ink)}
+.sol-itemnote{font:var(--wl-t5);color:var(--atelier-ink-mute)}
+.sol-actions{display:flex;gap:10px;margin:20px 0 0;flex-wrap:wrap}
+.sol-btn{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;
+  cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);
+  color:var(--atelier-accent-text);touch-action:manipulation}
+.sol-btn:active{background:var(--atelier-row-hover)}
+.sol-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+.sol-btn[disabled]{color:var(--atelier-ink-dim);border-color:var(--atelier-card-border);
+  cursor:not-allowed;opacity:.55}
+.sol-btn[disabled]:active{background:transparent}
+.sol-addr{font:var(--wl-t3);color:var(--atelier-ink);margin:16px 0 0;word-break:break-all}
+.sol-reserved{font:var(--wl-t3);color:var(--atelier-ink-mute);margin:14px 0 0;word-break:break-all}
+.sol-note{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0;max-width:52ch}
+.sol-footer{margin-top:28px;padding-top:20px;border-top:.5px solid var(--atelier-card-border);
+  display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.sol-footerbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
+.sol-kicker{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:0 0 6px}
+.sol-title{font:var(--wl-t1);color:var(--atelier-ink);margin:0 0 10px}
+.sol-subhead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:24px 0 10px}
+.sol-can{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;max-width:46ch}
+.sol-can li{position:relative;padding-left:16px;font:var(--wl-t3);color:var(--atelier-ink)}
+.sol-can li::before{content:"";position:absolute;left:2px;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--atelier-ink-dim)}
+.sol-aside{display:flex;flex-direction:column;margin-top:28px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
+.sol-asideline{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
+@media (prefers-reduced-motion: reduce){.sol-row,.sol-btn{transition:none}}
+/* ── THE ONE SCOPED LINE: b5b7dfc2's .sol-can margin, before panel only ──── */
+[data-frame="H0-before"] .sol-can{margin:16px 0 0}
+</style>
+
+<div class="board">
+  <div class="framewrap" data-frame="H0-before">
+    <p class="cap">1 · before — /vendor/dates as b5b7dfc2 ships it</p>
+    <div class="wl phone" data-wl-mode="dark">
+      <header class="wl-hdr"><div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lblrow"><span class="wl-lbl">Open dates &amp; rates</span><span class="wl-beta">Beta</span></span></div></header>
+      <main class="wl-main"><section class="sol-surface"><p class="sol-empty">See which of your dates are in demand, and price them to match.</p><ul class="sol-can"><li>See how often each date was checked on your page.</li><li>Offer your open dates to couples who already asked.</li><li>Get a suggested rate when a date is in demand.</li></ul><div class="sol-actions"><button type="button" class="sol-btn">Suggest rates</button></div><div class="sol-aside"><p class="sol-asideline">Date checks already work on your page.</p><a class="sol-row" href="#"><span class="sol-rowtext"><span class="sol-rowlabel">Storefront</span></span><span class="sol-chip sol-chip--open" data-state="open">Open</span></a></div></section></main>
+    </div>
+  </div>
+  <div class="framewrap" data-frame="H1-dates">
+    <p class="cap">2 · after — Graphite · same bytes, four rungs</p>
+    <div class="wl phone" data-wl-mode="dark">
+      <header class="wl-hdr"><div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lblrow"><span class="wl-lbl">Open dates &amp; rates</span><span class="wl-beta">Beta</span></span></div></header>
+      <main class="wl-main"><section class="sol-surface"><p class="sol-kicker">Coming</p><h1 class="sol-title">Open dates &amp; rates</h1><p class="sol-empty">See which of your dates are in demand, and price them to match.</p><p class="sol-subhead">What this will do</p><ul class="sol-can"><li>See how often each date was checked on your page.</li><li>Offer your open dates to couples who already asked.</li><li>Get a suggested rate when a date is in demand.</li></ul><div class="sol-actions"><button type="button" class="sol-btn">Suggest rates</button></div><div class="sol-aside"><p class="sol-asideline">Date checks already work on your page.</p><a class="sol-row" href="#"><span class="sol-rowtext"><span class="sol-rowlabel">Storefront</span></span><span class="sol-chip sol-chip--open" data-state="open">Open</span></a></div></section></main>
+    </div>
+  </div>
+  <div class="framewrap" data-frame="H2-number">
+    <p class="cap">3 · after — Chalk</p>
+    <div class="wl phone" data-wl-mode="light">
+      <header class="wl-hdr"><div class="wl-hstack"><span class="wl-house">The Dream Wedding</span><span class="wl-lblrow"><span class="wl-lbl">Your own number</span><span class="wl-beta">Beta</span></span></div></header>
+      <main class="wl-main"><section class="sol-surface"><p class="sol-kicker">Coming</p><h1 class="sol-title">Your own number</h1><p class="sol-empty">Enquiries come to your own WhatsApp number, answered even when you’re busy.</p><p class="sol-subhead">What this will do</p><ul class="sol-can"><li>Put your own number on your page instead of ours.</li><li>Have enquiries answered in your voice while you work.</li><li>Turn a missed call into a WhatsApp reply.</li></ul><div class="sol-actions"><button type="button" class="sol-btn">Connect</button></div></section></main>
+    </div>
+  </div>
+</div>

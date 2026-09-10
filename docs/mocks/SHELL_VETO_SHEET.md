@@ -20,6 +20,8 @@ string against this table by value; a byte that is not here does not ship.
 | N5 | /vendor/number · CTA | `BUTTONS.connect` | Connect — **carried, zero new byte** (spec §9) | 7 | — |
 | T1 | both CTAs, on tap · `COPY.launchingSoon` | — | Launching soon. | 15 | 2b687c5eae064560 |
 | C1 | hub chip on `dates` and `number` · `CHIPS.coming` | `CHIPS.coming` | Coming — **carried, zero new byte** (register 1a) | 6 | — |
+| T2 | both screens · sub-head above the can-do list · `COPY.canHead` (R-42.17) | — | What this will do | 17 | 122c31df7aa78aad |
+| C2 | both screens · the room eyebrow · `CHIPS.coming` (R-42.17) | `CHIPS.coming` | Coming — **carried, zero new byte** (register 1a) | 6 | — |
 
 **Carried, not authored:** screen titles are `ROOM_ROWS`' own labels (R-40.1); the Storefront row's
 label is `lib/worklist/rooms.ts`'s registry byte; the `Open` chip on that row is `CHIPS.open` (Arm C).
@@ -29,3 +31,8 @@ label is `lib/worklist/rooms.ts`'s registry byte; the `Open` chip on that row is
 routed-but-unbuilt row" reading by ruling · S5(b) · N1 is the vetoed ALTERNATIVE, not the first draft.
 
 No persona name appears in any row (b40 C32 walks the shell tree). U+2019 in N1 (R-40.57, b40 C102).
+
+**R-42.17 (CE-42 SHELL-2).** T2 and C2 join the sheet for the typographic hierarchy on both screens.
+T2 is founder-vetoed. C2 is a carried byte in a second role, the room eyebrow, and authors nothing.
+**D7 `Already working` was proposed for the aside's eyebrow and STRUCK** (R-40.60): an eyebrow that
+repeats the sentence beneath it (D5) is decoration. The aside ships as it did — its rule line and D5.

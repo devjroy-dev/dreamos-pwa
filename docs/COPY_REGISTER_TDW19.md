@@ -176,6 +176,7 @@ apologises.**
 | `medianLabel` | median | so she knows whose the second number is |
 | `googleQuotaPending` | Automatic updates start once Google approves our access. | spec §8 gates the SYNC separately from the grant |
 | `launchingSoon` | Launching soon. | R-42.12 amended — what every act that cannot run yet says on tap (T1, `docs/mocks/SHELL_VETO_SHEET.md`) |
+| `canHead` | What this will do | R-42.17 — the sub-head above the can-do list on `/vendor/dates` and `/vendor/number`, one home, shared (T2, `docs/mocks/SHELL_VETO_SHEET.md`) |
 
 **On the two error lines:** neither says "something went wrong". That phrasing
 tells a vendor nothing she can act on. Each names what is missing and what still

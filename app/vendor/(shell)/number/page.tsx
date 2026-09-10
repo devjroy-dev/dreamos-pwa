@@ -12,6 +12,14 @@
 // approved long before this screen, so the screen authors no button word.
 // Plus the shell's own chrome, unchanged.
 //
+// ── R-42.17 · THE HIERARCHY (CE-42 SHELL-2) ─────────────────────────────────
+// Three NON-interactive elements join the surface; the control inventory above
+// does not move. The eyebrow reads `CHIPS.coming` (C2, carried — the hub reads
+// this row Coming through `PREVIEW_KEYS`; the room's own sitting removes both in
+// one edit). The h1 reads `roomLabel(...)`, the SAME byte the shell seat shows
+// (A1, the Advisor precedent) — the seat is not changed, so report-issue keeps
+// the room. The sub-head reads `COPY.canHead` (T2). No byte is typed here.
+//
 // ⚠ NO PERSONA NAME ANYWHERE ON THIS SCREEN. The capability is the assistant
 // answering on her own number; the chrome says what happens, never who does it
 // (R-37.70 as amended; b40 C32).
@@ -21,7 +29,7 @@ import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { WlToast } from '@/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { BUTTONS, COPY, roomLabel } from '@/lib/solutions/copy';
+import { BUTTONS, CHIPS, COPY, roomLabel } from '@/lib/solutions/copy';
 import { NUMBER } from '@/lib/worklist/ownNumber';
 import { SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
@@ -39,7 +47,10 @@ function OwnNumberScreen() {
   return (
     <WorklistShell title={roomLabel('number')}>
       <section className="sol-surface">
+        <p className="sol-kicker">{CHIPS.coming}</p>
+        <h1 className="sol-title">{roomLabel('number')}</h1>
         <p className="sol-empty">{NUMBER.lede}</p>
+        <p className="sol-subhead">{COPY.canHead}</p>
         <ul className="sol-can">
           {NUMBER.can.map((line) => <li key={line}>{line}</li>)}
         </ul>

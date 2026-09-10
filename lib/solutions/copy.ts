@@ -138,7 +138,12 @@ export const ROOM_ROWS = [
   // their own seats. The count IS the guarantee — it is what makes a row nobody
   // ruled impossible to add quietly — so every one of them is amended to eleven
   // with this label in this position, on R-42.8's own precedent.
-  { key: 'collabs',       label: 'Collabs & barter' },
+  // ── R-42.16's LABEL, FOUNDER-RE-RULED 2026-09-10 (folded into CE-42 SHELL-2's
+  // packet: one file, one apply). `Collabs & barter` under-claimed the room: it
+  // takes requirement posts, which is HIRING. Key, position and href unchanged;
+  // the ampersand matches its six neighbours. `b42` C3's ordered join fired on
+  // the new byte and was amended by name at its own site, count still eleven.
+  { key: 'collabs',       label: 'Hire, collab & barter' },
   { key: 'dates',         label: 'Open dates & rates' },
   { key: 'number',        label: 'Your own number' },
   // ── R-42.8 · THE TENTH ROW. CHAIR-RULED 2026-09-10, THE FOUNDER'S COPY ACT
@@ -184,6 +189,15 @@ export const COPY = {
    * that needs it imports it from here and never types it.
    */
   launchingSoon: 'Launching soon.',
+
+  /**
+   * R-42.17 · the sub-head above the can-do list on `/vendor/dates` and
+   * `/vendor/number` — the second of the four rungs the chair's hierarchy mock
+   * puts to work (`docs/mocks/solutions-hierarchy-mock.html`). Founder-vetoed
+   * (T2, `docs/mocks/SHELL_VETO_SHEET.md`). ONE HOME, SHARED: both screens read
+   * it from here. Sentence case; `.sol-subhead` uppercases it on the glass.
+   */
+  canHead: 'What this will do',
 
   /** When a surface's own door fails. Same shape as `indexUnavailable`. */
   surfaceUnavailable: 'This could not be loaded just now.',

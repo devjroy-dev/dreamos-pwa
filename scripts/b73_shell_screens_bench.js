@@ -270,11 +270,16 @@ sec('\u00a75 \u00b7 every byte is the sheet\u2019s, both ways');
 {
   const D = load(DCOPY).DATES, N = load(NCOPY).NUMBER;
   const shipped = { D1: D.lede, D2: D.can[0], D3: D.can[1], D4: D.can[2], D5: D.already, D6: D.cta,
-                    N1: N.lede, N2: N.can[0], N3: N.can[1], N4: N.can[2], T1: copy.COPY.launchingSoon };
+                    N1: N.lede, N2: N.can[0], N3: N.can[1], N4: N.can[2], T1: copy.COPY.launchingSoon,
+                    // AMENDED BY LABEL — R-42.17 (CE-42 SHELL-2): T2, the vetoed sub-head, one home in
+                    // copy.ts beside T1. D7 was struck at the veto and has no row and no byte.
+                    T2: copy.COPY.canHead };
   const rows = [...read(SHEET).matchAll(/^\| ([A-Z]\d) \| [^|]+ \| [^|]+ \| ([^|]+) \| (\d+) \| ([0-9a-f]{16}|—) \|$/gm)]
     .map((m) => ({ id: m[1], text: m[2].trim(), bytes: Number(m[3]), sha: m[4] }));
   const pinned = rows.filter((r) => r.sha !== '\u2014');
-  ok('the sheet carries eleven authored rows and two carried ones', pinned.length === 11 && rows.length === 13, rows.length + ' rows, ' + pinned.length + ' pinned');
+  // AMENDED BY LABEL — R-42.17 (CE-42 SHELL-2): was eleven authored and two carried (13). T2
+  // joins the authored, C2 (CHIPS.coming as the room eyebrow) the carried. Exact counts, not floors.
+  ok('the sheet carries twelve authored rows and three carried ones', pinned.length === 12 && rows.length === 15, rows.length + ' rows, ' + pinned.length + ' pinned');
   for (const r of pinned) {
     const s = shipped[r.id];
     const h = s === undefined ? '' : crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);

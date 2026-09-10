@@ -20,11 +20,17 @@
 // ── THE RUNGS, RE-DERIVED AT `7142cbf` (lib/worklist/theme.ts:46-51) ───────
 //   t0  Cormorant  ONE ELEMENT PER APP — the Today masthead numeral.
 //                  ⚠ NO SURFACE IN THIS FILE MAY TOUCH IT.
-//   t1  Cormorant  page title, at most one per surface — owned by WorklistShell.
+//   t1  Cormorant  page title, at most one per surface  <- .sol-title
+//                  ⚠ CORRECTED AT R-42.17 (F-42.212). This line used to say the
+//                  t1 was OWNED BY WorklistShell. It was false when written: the
+//                  shell renders its `title` at t5 in the header seat
+//                  (WorklistShell.tsx `.wl-lbl`, since cebf47ab), and renders
+//                  no t1 at all. The surface's one t1 is `.sol-title`, declared
+//                  ONCE below; `bs_audit` C18 counts it.
 //   t2  DM Sans    section heading                    <- our headers
 //   t3  DM Sans    body, row primary
 //   t4  DM Sans    row secondary, buttons
-//   t5  DM Sans    captions, eyebrows                 <- our eyebrows
+//   t5  DM Sans    captions, eyebrows                 <- our eyebrows, .sol-kicker, .sol-subhead
 // Letter-spaced uppercase in TWO PLACES ONLY: nav seats (t4) and section
 // eyebrows (t5). Nothing here spends it anywhere else.
 
@@ -234,7 +240,19 @@ export function SolutionsStyles() {
    lesson of W5-hub facing the other way). .sol-aside is the line and the door beneath the
    CTA on /vendor/dates. Tokens only (R-42.6). No backticks and no straight apostrophes in this comment: it is inside a
    template literal, and b40 C102 reads that as a shipped byte. */
-.sol-can{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;max-width:46ch}
+/* R-42.17 · THE HIERARCHY (chair mock docs/mocks/solutions-hierarchy-mock.html, amended to the tree).
+   The lede, the can-do lines and the aside line were all t3 and nothing on the surface was a
+   heading, so the screen read as one paragraph with a button in it. Four existing rungs now do
+   the work theme.ts defines them for, and the three t3 roles keep their bytes:
+   .sol-kicker is the room eyebrow, t5 uppercase at .08em in ink-dim (theme.ts: section eyebrows).
+   .sol-title is the one t1 on the surface, reading the same byte the shell seat shows (A1, the
+   Advisor precedent). .sol-subhead heads the can-do list, and now carries the space above the
+   list, so .sol-can margin goes 16px 0 0 to 0. The hub eyebrow .sol-eyebrow stays at ink-mute,
+   untouched (B1). No backticks and no straight apostrophes here: b40 C102 reads this literal. */
+.sol-kicker{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:0 0 6px}
+.sol-title{font:var(--wl-t1);color:var(--atelier-ink);margin:0 0 10px}
+.sol-subhead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:24px 0 10px}
+.sol-can{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;max-width:46ch}
 .sol-can li{position:relative;padding-left:16px;font:var(--wl-t3);color:var(--atelier-ink)}
 .sol-can li::before{content:"";position:absolute;left:2px;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--atelier-ink-dim)}
 .sol-aside{display:flex;flex-direction:column;margin-top:28px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}

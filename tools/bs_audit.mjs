@@ -520,13 +520,51 @@ try {
     : F('C17 no surface spends t0', 'found in: ' + offenders.join(', '));
 }
 
-// ── C18 · AT MOST ONE t1 PER SURFACE, AND IT IS THE SHELL'S ───────────────
+// ── C18 · AT MOST ONE t1 PER SURFACE ──────────────────────────────────────
+// ── AMENDED BY LABEL — R-42.17 / F-42.212 (CE-42 SHELL-2, 2026-09-10) ────
+// This cell read "no surface declares its own t1 — the shell owns the page
+// title", and asserted ZERO t1 anywhere in the six surfaces, the hub and
+// Pieces. Its premise was false on the day it was written (9a868c88,
+// 2026-08-28): the seat had moved to t5 the day before (cebf47ab,
+// WorklistShell.tsx `.wl-lbl`), so the shell rendered no t1 and no surface
+// had one — the cell guarded an owner that did not exist. R-42.17 gives the
+// Solutions sub-rooms their one title, and the cell now asks the question its
+// header always named, TIGHTER than "none": EXACTLY ONE t1 rule in Pieces, on
+// `.sol-title` and nowhere else; the six surfaces and the hub declare none;
+// every page that mounts the stylesheet renders `.sol-title` at most once and
+// declares no t1 of its own. Comment-stripped (R-40.105).
 {
-  const offenders = Object.entries({ ...surfaceSrc, index: indexSrc, pieces: piecesSrc })
-    .filter(([, src]) => src && /var\(--wl-t1\)/.test(src)).map(([n]) => n);
+  const offenders = [];
+  for (const [n, src] of Object.entries({ ...surfaceSrc, index: indexSrc })) {
+    if (src && /var\(--wl-t1\)/.test(strip(src))) offenders.push(n + ' declares a t1');
+  }
+  const pc = piecesSrc ? strip(piecesSrc) : '';
+  const t1Rules = [...pc.matchAll(/([^{}]+)\{[^{}]*var\(--wl-t1\)[^{}]*\}/g)].map((m) => m[1].trim());
+  if (t1Rules.length !== 1 || t1Rules[0] !== '.sol-title') {
+    offenders.push('Pieces carries ' + t1Rules.length + ' t1 rule(s) [' + t1Rules.join(', ') + '], ruled exactly one, on .sol-title');
+  }
+  // THE READER SET IS DERIVED, never listed (R-40.94): every file under app/
+  // that mounts <SolutionsStyles />. At R-42.17 that is dates, number,
+  // referrals and support; a fifth joins the count by mounting it.
+  const readers = [];
+  const walk = (dir) => {
+    for (const e of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
+      const rel = dir + '/' + e.name;
+      if (e.isDirectory()) walk(rel);
+      else if (/\.tsx$/.test(e.name) && /<SolutionsStyles \/>/.test(strip(readFileSync(join(ROOT, rel), 'utf8')))) readers.push(rel);
+    }
+  };
+  walk('app');
+  if (readers.length === 0) offenders.push('no reader mounts the stylesheet — the derivation found nothing to assert');
+  for (const rel of readers) {
+    const src = strip(readFileSync(join(ROOT, rel), 'utf8'));
+    const n = (src.match(/className="sol-title"/g) || []).length;
+    if (n > 1) offenders.push(rel + ' renders .sol-title ' + n + ' times');
+    if (/var\(--wl-t1\)/.test(src)) offenders.push(rel + ' declares its own t1');
+  }
   offenders.length === 0
-    ? P('C18 no surface declares its own t1', 'the shell owns the page title')
-    : F('C18 no surface declares its own t1', 'found in: ' + offenders.join(', '));
+    ? P('C18 at most one t1 per surface, and it is .sol-title', 'one t1 rule in Pieces; ' + readers.length + ' readers, none renders it twice, none declares its own')
+    : F('C18 at most one t1 per surface, and it is .sol-title', offenders.join('; '));
 }
 
 // ── C20 · NO MONEY STRING, NO PERSONA NAME ───────────────────────────────

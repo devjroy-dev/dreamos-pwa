@@ -17,6 +17,14 @@
 //     linking to it is one home where extracting the card would have been two.
 // Plus the shell's own chrome (coin, dock, nav), unchanged.
 //
+// ── R-42.17 · THE HIERARCHY (CE-42 SHELL-2) ─────────────────────────────────
+// Three NON-interactive elements join the surface; the control inventory above
+// does not move. The eyebrow reads `CHIPS.coming` (C2, carried — the hub reads
+// this row Coming through `PREVIEW_KEYS`; the room's own sitting removes both in
+// one edit). The h1 reads `roomLabel(...)`, the SAME byte the shell seat shows
+// (A1, the Advisor precedent) — the seat is not changed, so report-issue keeps
+// the room. The sub-head reads `COPY.canHead` (T2). No byte is typed here.
+//
 // ── S3(i) · STATIC, ON PURPOSE ──────────────────────────────────────────────
 // No `/me` read. A trade for which date checks are ruled off still sees D2 and
 // D5; the Storefront room tells her the truth where it already does
@@ -27,7 +35,7 @@ import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { WlToast } from '@/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { COPY, roomLabel } from '@/lib/solutions/copy';
+import { CHIPS, COPY, roomLabel } from '@/lib/solutions/copy';
 import { DATES } from '@/lib/worklist/openDates';
 import { ROOMS, roomHref } from '@/lib/worklist/rooms';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
@@ -51,7 +59,10 @@ function OpenDatesScreen() {
   return (
     <WorklistShell title={roomLabel('dates')}>
       <section className="sol-surface">
+        <p className="sol-kicker">{CHIPS.coming}</p>
+        <h1 className="sol-title">{roomLabel('dates')}</h1>
         <p className="sol-empty">{DATES.lede}</p>
+        <p className="sol-subhead">{COPY.canHead}</p>
         <ul className="sol-can">
           {DATES.can.map((line) => <li key={line}>{line}</li>)}
         </ul>

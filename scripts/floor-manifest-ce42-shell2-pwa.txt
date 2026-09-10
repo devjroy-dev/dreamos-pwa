@@ -1,0 +1,15 @@
+# scripts/floor-manifest-ce42-shell2-pwa.txt — CE-42 · SEAT SHELL-2 · R-42.17 (dreamos-pwa) [F-19.16].
+# Every path this ZIP writes, and nothing else.
+app/vendor/(shell)/dates/page.tsx
+app/vendor/(shell)/number/page.tsx
+components/solutions/SolutionsPieces.tsx
+lib/solutions/copy.ts
+docs/COPY_REGISTER_TDW19.md
+docs/mocks/SHELL_VETO_SHEET.md
+docs/mocks/solutions-hierarchy-mock.html
+docs/handovers/CE42_SHELL2_HANDOVER.md
+scripts/b42_g11_wedding_pages_bench.js
+scripts/b73_shell_screens_bench.js
+scripts/b77_shell2_hierarchy_bench.js
+scripts/floor-manifest-ce42-shell2-pwa.txt
+tools/bs_audit.mjs
