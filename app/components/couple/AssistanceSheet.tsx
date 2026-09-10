@@ -136,6 +136,11 @@ export interface AssistanceSheetProps {
   chrome:       (inner: React.ReactNode) => React.ReactNode;
   requireCity?: boolean;
   prefill?:     { city?: string; date?: string };
+  // ⚠ INITIAL MEANS INITIAL — F-42.144, and it cost a walk. Both of these are read by
+  // `useState` initialisers, which run ONCE PER INSTANCE. Handing a live component a
+  // new value changes nothing and throws nothing; the screen simply keeps whatever it
+  // was built with. A caller that needs a different one owes a fresh instance — a
+  // `key` that changes with the screen is how `/plan` pays it.
   initialSent?: { categories: string[]; city: string; date: string } | null;
 }
 

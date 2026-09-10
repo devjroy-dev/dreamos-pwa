@@ -278,7 +278,14 @@ function PlanInner() {
   if (screen === 'sheet' || screen === 'sent') {
     const isSent = screen === 'sent';
     return (
+      // ⚠ F-42.144 · THE KEY IS THE FIX AND IT IS NOT COSMETIC. Both branches return
+      // the same element type at the same position, so without a key React REUSES the
+      // instance across the flip — and `initialSent` is read by `useState` initialisers,
+      // which run once per instance and never again. She would have watched the empty
+      // form redraw where the confirmation belongs, and nothing would have thrown.
+      // `initialSent` means INITIAL; a caller that changes it owes a fresh instance.
       <AssistanceSheet
+        key={screen}
         palette={LIGHT}
         copy={{
           title:       P.p1,              // Q1: P1 takes #7's slot on /plan ONLY
@@ -306,13 +313,13 @@ function PlanInner() {
           <div style={LEDE}>{P.p2}</div>
         </div>
         <div style={LBL}>{P.nameLabel}</div>
-        <input value={name} onChange={e => { clear(); setName(e.target.value.slice(0, 80)); }} placeholder={P.namePh} autoComplete="given-name" style={FIELD} />
+        <input value={name} onChange={e => { clear(); setName(e.target.value.slice(0, 80)); }} placeholder={P.namePh} autoComplete="given-name" style={{ ...FIELD, minWidth: 0 }} />
 
         <div style={LBL}>{P.phoneLabel}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ ...FIELD, width: 'auto', flex: '0 0 auto', color: INK_2 }}>{P.dial}</div>
           <input value={phone} onChange={e => { clear(); setPhone(e.target.value.replace(/\D/g, '').slice(0, 10)); }}
-            placeholder={P.phonePh} inputMode="numeric" autoComplete="tel-national" aria-label={P.phoneLabel} style={FIELD} />
+            placeholder={P.phonePh} inputMode="numeric" autoComplete="tel-national" aria-label={P.phoneLabel} style={{ ...FIELD, minWidth: 0 }} />
         </div>
 
         {cta(P.sendCode, onSendCode, canSendCode, 'send')}
@@ -331,12 +338,22 @@ function PlanInner() {
         <div style={LEDE}>{P.p3}</div>
       </div>
       <div style={LBL}>{P.codeLabel}</div>
+      {/* F-42.143 · `minWidth: 0` IS LOAD-BEARING AND `flex: 1` ALONE IS NOT. A flex
+          item's `min-width` defaults to `auto`, which floors it at the item's INTRINSIC
+          width — and an input with no `size` is about 170px, so six of these demand
+          roughly a thousand pixels inside a 374 column. The document then scrolls
+          sideways and the cream page slides off the screen, which is what the founder
+          walked and read as a crash.
+          EVERY input on this page carries the floor, not only the two that need it
+          today. A rule that asks which parent is a flex row has to be re-derived every
+          time a field moves, and the field that moves is exactly the one nobody
+          re-checks; a floor on an input that is not in a row costs nothing at all. */}
       <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
         {otp.map((d, i) => (
           <input key={i} ref={el => { otpRefs.current[i] = el; }} value={d}
             onChange={e => setOtpAt(i, e.target.value)} onKeyDown={e => otpKey(i, e)}
             inputMode="numeric" aria-label={`${P.codeLabel} ${i + 1}`}
-            style={{ ...FIELD, flex: 1, width: 'auto', textAlign: 'center', fontSize: 20, padding: '13px 0' }} />
+            style={{ ...FIELD, flex: 1, minWidth: 0, width: 'auto', textAlign: 'center', fontSize: 20, padding: '13px 0' }} />
         ))}
       </div>
 

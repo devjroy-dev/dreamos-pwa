@@ -12,7 +12,10 @@
 // §9  FORK 1 · the router shim, and the POST between persistSession and the push
 // §10 R-42.6 · every colour on the new page has a home; the seven retired values appear nowhere
 // §11 the vetoed bytes, byte-exact, one home each
-// §12 NON-VACUITY · production source mutated seven ways, each cell shown to red, one no-op control
+// §13 F-42.143 · nothing in a flex row can refuse to shrink (the mechanism; the walk owns the measure)
+// §14 F-42.144 · the sent screen is a FRESH instance, so initialSent means initial
+// §15 the mint sends the SAME body from both doors — driven, not read
+// §12 NON-VACUITY · production source mutated, each cell shown to red, one no-op control
 //
 // BOTH WAYS: at e81d703c `app/plan/page.tsx` is absent → the run REFUSES (exit 1).
 // Cured → exit 0. §12 mutates the shipped source and requires green cells to red,
@@ -431,6 +434,139 @@ section('§11 · the vetoed bytes');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+section('\u00a713 · F-42.143 · nothing in a horizontal row can refuse to shrink');
+
+// ⚠ WHAT THIS CELL IS, STATED HONESTLY (CE-115, the provable-equivalent doctrine).
+// The chair asked for a cell that the /plan document width equals the viewport at 374.
+// THIS CONTAINER HAS NO LAYOUT ENGINE: Chrome cannot be fetched here (the puppeteer
+// download host is outside the allowed domains), so nothing in this file can MEASURE a
+// rendered page. What it can prove end-to-end is the MECHANISM — every input that sits
+// in a flex row declares `minWidth: 0` — and that is the whole of the defect: a flex
+// item's `min-width` defaults to `auto`, which floors it at the item's intrinsic width,
+// and an input with no `size` is about 170px. The absence of horizontal scroll at 374
+// is named in the founder's card as a truth only his device witnesses.
+{
+  // The set is DERIVED, never listed: every `<input` in the file. The rule is BLANKET
+  // rather than conditional on the parent being a flex row — a conditional rule has to
+  // be re-derived every time a field moves, and this bench's first cut proved the point
+  // by walking back to the nearest `<div style={{`, landing on the `+91` box instead of
+  // the row that holds it, and passing the phone field VACUOUSLY. The mutation caught it.
+  const inputs = [];
+  let at = planSrc.indexOf('<input');
+  while (at >= 0) {
+    inputs.push(planSrc.slice(at, planSrc.indexOf('/>', at) + 2));
+    at = planSrc.indexOf('<input', at + 1);
+  }
+  ok('there are inputs to check — the cell is not empty', inputs.length >= 3, `${inputs.length} inputs`);
+  const unfloored = inputs.filter(t => !/minWidth: 0/.test(t));
+  ok('every input on the page declares minWidth: 0', unfloored.length === 0, `${unfloored.length} without it`);
+  ok('the six code boxes are among them', (() => {
+    const rowAt = planSrc.indexOf('{otp.map(');
+    const row = planSrc.slice(rowAt, planSrc.indexOf('))}', rowAt));
+    return /flex: 1, minWidth: 0/.test(row);
+  })());
+  // The other half of a sideways document: a fixed width wider than the column.
+  const widths = [...planSrc.matchAll(/(?:minWidth|width|maxWidth): (\d+)/g)].map(m => parseInt(m[1], 10));
+  ok('no fixed width on the page exceeds the 430 column', widths.every(w => w <= 430), widths.join(' '));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+section('\u00a714 · F-42.144 · the sent screen is a FRESH instance');
+
+{
+  // Both branches return the same element type at the same position, so React reuses
+  // the instance and every useState initialiser is skipped. The key is what makes
+  // `initialSent` mean initial. Nothing throws when it is missing, which is why this
+  // is a cell and not a crash.
+  const at = planSrc.indexOf('<AssistanceSheet');
+  const el = planSrc.slice(at, planSrc.indexOf('/>', at));
+  ok('the sheet carries a key', /key=\{/.test(el));
+  ok('and the key is the SCREEN, so the flip to sent remounts it', /key=\{screen\}/.test(el));
+  ok('exactly one AssistanceSheet element is rendered from this file — one position, one instance',
+    (planSrc.match(/<AssistanceSheet/g) || []).length === 1);
+  ok('initialSent is still what feeds the two initialisers',
+    /useState<[^>]*>\(initialSent \? 'sent' : 'idle'\)/.test(sheetSrc) &&
+    /useState<[^>]*>\(initialSent \? \{ categories: initialSent\.categories \} : null\)/.test(sheetSrc));
+  ok('the component names the initial-value contract where a caller will read it',
+    /INITIAL MEANS INITIAL/.test(read(SHEET)));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+section('\u00a715 · the mint sends the SAME body from both doors');
+
+// The chair's question, answered by driving rather than by reading: if /plan's request
+// shape differed from the landing's, the 500 would have been ours. Both callers reach
+// the SAME two functions in the same file, so the bodies can only differ through the
+// deps — and this drives the real module twice, once with each caller's values.
+const OTPMOD = 'lib/auth/otpSignup.ts';
+async function drivePair(deps) {
+  const posts = [];
+  globalThis.window = { localStorage: { setItem: () => {} } };
+  globalThis.document = { set cookie(v) {}, get cookie() { return ''; } };
+  globalThis.fetch = async (url, init) => {
+    posts.push({ url: String(url), body: init && init.body });
+    const u = String(url);
+    if (u.includes('verify-otp')) return { ok: true, json: async () => ({ ok: true, access_token: 'a', refresh_token: 'r', name: null }) };
+    if (u.includes('provision'))  return { ok: true, json: async () => ({ ok: true, couple_id: 'c', user_id: 'u', pin_set: false, name: null }) };
+    return { ok: true, json: async () => ({ ok: true }) };
+  };
+  const mod = await loadTs(OTPMOD);
+  const pair = mod.useOtpSignup(deps);
+  await pair.sendOtp(deps.phone.replace(/\D/g, ''), deps.joinName);
+  await pair.verifyOtp();
+  return posts;
+}
+{
+  const common = {
+    role: 'Dreamer', country: { dialCode: '+91' },
+    otp: ['4', '1', '7', '2', '8', '9'], screen: 'join_phone',
+    joinName: 'Dev', joinCategory: '',
+    showToast: () => {}, setScreen: () => {}, router: { push: () => {} },
+    apiBase: 'https://api.invalid',
+  };
+  // /plan holds digits only; the landing holds what she typed, spaces and all.
+  const fromPlan    = await drivePair({ ...common, phone: '9625759924' });
+  const fromLanding = await drivePair({ ...common, phone: '96257 59924' });
+  const shape = (posts) => posts.map(x => x.url.replace(/^https:\/\/api\.invalid/, '') + ' ' + x.body).join('\n');
+  ok('send-otp and verify-otp and provision all fired on both runs', fromPlan.length === 3 && fromLanding.length === 3);
+  ok('every URL and every BODY is byte-identical between the two doors', shape(fromPlan) === shape(fromLanding),
+    shape(fromPlan) + ' | ' + shape(fromLanding));
+  ok('the verify body is the couple door, phone as E.164, the six digits joined, purpose login', (() => {
+    const v = fromPlan.find(x => x.url.includes('verify-otp'));
+    return v && v.url.endsWith('/api/v2/couple/auth/verify-otp') &&
+      JSON.parse(v.body).phone === '+919625759924' && JSON.parse(v.body).otp === '417289' && JSON.parse(v.body).purpose === 'login';
+  })());
+  ok('and /plan hands the mint the same dep KEYS the landing does, no more and no fewer', (() => {
+    // TOP-LEVEL KEYS ONLY, AND KEYS ONLY — NOT VALUES. Two cuts of this extractor were
+    // wrong in two different ways and each looked right: the first read every identifier
+    // before a colon and counted `dialCode` and `push` out of /plan's nested literals;
+    // the second stopped descending but still counted the VALUE side, so `joinName: name`
+    // contributed `name` on one call and nothing on the other. Both would have reported
+    // two identical dep sets as different, for a reason belonging to the instrument.
+    // Key position opens after every top-level comma: a `:` closes it and the token is a
+    // key; a `,` while still open means the shorthand, and the token is a key too.
+    const keysOf = (src) => {
+      const a = src.indexOf('useOtpSignup({');
+      const call = src.slice(a + 'useOtpSignup({'.length, src.indexOf('});', a));
+      const keys = []; let depth = 0, tok = '', inKey = true;
+      const take = () => { const t = tok.trim(); if (/^[a-zA-Z][a-zA-Z0-9_]*$/.test(t)) keys.push(t); tok = ''; };
+      for (let i = 0; i < call.length; i++) {
+        const c = call[i];
+        if (c === '{' || c === '(' || c === '[') { depth++; continue; }
+        if (c === '}' || c === ')' || c === ']') { depth--; continue; }
+        if (depth !== 0) continue;
+        if (c === ':') { if (inKey) { take(); inKey = false; } tok = ''; continue; }
+        if (c === ',') { if (inKey) take(); tok = ''; inKey = true; continue; }
+        tok += c;
+      }
+      if (inKey) take();
+      return [...new Set(keys)].sort().join(',');
+    };
+    return keysOf(planSrc) === keysOf(strip(read('app/(landing)/page.tsx')));
+  })());
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 section('§12 · NON-VACUITY — the production source mutated, each cell shown to red');
 
 async function mutate(label, rel, from, to, cell) {
@@ -476,6 +612,58 @@ await mutate('area admitted to the pre-fill — a forged link writes her words',
 await mutate('the signedIn guard removed from the authed read',
   SHEET, 'if (!signedIn) return;\n    let live = true;\n    fetchMyAssistance()', 'let live = true;\n    fetchMyAssistance()',
   async (m) => effectGuarded(strip(m), 'fetchMyAssistance()'));
+
+await mutate('the floor removed from the code boxes — six inputs demand a thousand pixels in a 374 column',
+  PLAN, 'flex: 1, minWidth: 0, width', 'flex: 1, width',
+  async (m) => {
+    const src = strip(m);
+    const rowAt = src.indexOf('{otp.map(');
+    return /flex: 1, minWidth: 0/.test(src.slice(rowAt, src.indexOf('))}', rowAt)));
+  });
+
+await mutate('the floor removed from the name and phone fields — the same class, the other rows',
+  PLAN, '{ ...FIELD, minWidth: 0 }', '{ ...FIELD }',
+  async (m) => {
+    const src = strip(m);
+    let at = src.indexOf('<input'), bad = 0;
+    while (at >= 0) {
+      if (!/minWidth: 0/.test(src.slice(at, src.indexOf('/>', at) + 2))) bad++;
+      at = src.indexOf('<input', at + 1);
+    }
+    return bad === 0;
+  });
+
+await mutate('a dep dropped from /plan\u2019s call \u2014 the two doors would stop agreeing on the shape',
+  PLAN, 'joinCategory: \'\',', '',
+  async (m) => {
+    const src = strip(m);
+    const keysOf = (x) => {
+      const a = x.indexOf('useOtpSignup({');
+      const call = x.slice(a + 'useOtpSignup({'.length, x.indexOf('});', a));
+      const keys = []; let depth = 0, tok = '', inKey = true;
+      const take = () => { const t = tok.trim(); if (/^[a-zA-Z][a-zA-Z0-9_]*$/.test(t)) keys.push(t); tok = ''; };
+      for (let i = 0; i < call.length; i++) {
+        const c = call[i];
+        if (c === '{' || c === '(' || c === '[') { depth++; continue; }
+        if (c === '}' || c === ')' || c === ']') { depth--; continue; }
+        if (depth !== 0) continue;
+        if (c === ':') { if (inKey) { take(); inKey = false; } tok = ''; continue; }
+        if (c === ',') { if (inKey) take(); tok = ''; inKey = true; continue; }
+        tok += c;
+      }
+      if (inKey) take();
+      return [...new Set(keys)].sort().join(',');
+    };
+    return keysOf(src) === keysOf(strip(read('app/(landing)/page.tsx')));
+  });
+
+await mutate('the key dropped — the sent screen would silently redraw the empty form',
+  PLAN, 'key={screen}', 'data-screen={screen}',
+  async (m) => {
+    const src = strip(m);
+    const at = src.indexOf('<AssistanceSheet');
+    return /key=\{screen\}/.test(src.slice(at, src.indexOf('/>', at)));
+  });
 
 // The control: an edit through the identical path that changes no behaviour must
 // leave the cells green, so a mutation cell cannot be passing because the harness
