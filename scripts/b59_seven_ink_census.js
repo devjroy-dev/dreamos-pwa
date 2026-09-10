@@ -225,7 +225,12 @@ outOfFamily.length === 0
 //
 // So the debt is PINNED rather than passed over. The count cannot grow without
 // this cell reddening, which is the difference between a declared gap and a hole.
-const RESTATED_PINNED = 124;
+// CE-42 4c-1 · RE-PINNED 124 -> 114, THE DEBT SHRANK BY TEN (F-42.186, ruling J: "the
+// brass literals go when the screen is touched"). app/vendor/(shell)/collab/screen.tsx
+// lost its ten gold-at-alpha literals; NO alpha-bearing gold was minted — each became an
+// EXISTING token (hairlines -> --atelier-card-border, the active/outline edges ->
+// --atelier-input-border), so the ruling above this line still stands for the rest.
+const RESTATED_PINNED = 114;
 console.log('\n\u00a71b  the restated-token debt is pinned, not passed over');
 restated.length === RESTATED_PINNED
   ? ok(`${RESTATED_PINNED} in-family literals`, 'the ruled debt — awaiting an alpha-bearing token ruling')

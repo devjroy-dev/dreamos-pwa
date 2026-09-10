@@ -43,6 +43,10 @@ import { API } from '@/lib/solutions/routes';
 import { ROOM_ROWS } from '@/lib/solutions/copy';
 import { RF, peerFigure } from '@/lib/worklist/referrals';
 import type { ReferralsRoom } from '@/lib/solutions/types';
+// CE-42 4c-1 (G5.2, R-42.8 ruling F): the shoot board lives INSIDE this room. The
+// forwards above keep their zero controls; the Shoots block carries the room's only
+// action (Post a shoot) and reads the Collab doors through ?kind=shoot.
+import { ShootsBlock } from '@/components/vendor/ShootsBlock';
 
 export default function ReferralsPage() {
   const router = useRouter();
@@ -139,6 +143,8 @@ function ReferralsScreen() {
               <span className="rf-ep">{RF.emptyBody}</span>
             </div>
           )}
+
+          <ShootsBlock />
         </div>
       ) : null}
 
@@ -171,9 +177,11 @@ function ReferralsScreen() {
 .rf-rdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:3px;text-transform:uppercase;letter-spacing:.08em}
 .rf-rstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap;padding-top:2px;font-variant-numeric:lining-nums tabular-nums}
 .rf-note{font:var(--wl-t5);color:var(--atelier-ink-fade);line-height:1.5;text-transform:none;letter-spacing:0;margin:2px 0 0;max-width:40ch}
-.rf-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:56px 0 30px}
+/* CE-42 4c-1 · MOVED, NOT REWORDED (frame S1-empty, vetoed): the pair is left-set so the
+   Shoots block can sit beneath it. Both strings are byte-kept. */
+.rf-empty{display:flex;flex-direction:column;gap:4px;padding:0 0 4px}
 .rf-eh{font:var(--wl-t2);color:var(--atelier-ink)}
-.rf-ep{font:var(--wl-t3);color:var(--atelier-ink-mute);max-width:250px}
+.rf-ep{font:var(--wl-t3);color:var(--atelier-ink-mute)}
       `}</style>
     </WorklistShell>
   );

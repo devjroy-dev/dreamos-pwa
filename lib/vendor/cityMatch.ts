@@ -11,6 +11,13 @@
 // an alias is meaningless except as a pointer INTO the list. Split across two
 // files they drift; here a bad alias is visible on the same screen.
 //
+// ── A DECLARED TWIN LIVES IN dream-os (CE-42 4c-1, ruling §4(a), F-42.187) ────
+// dream-os `src/lib/vendor/cityMatch.js` carries CITIES, the CITY_ALIASES body and
+// matchCity's body BYTE-IDENTICAL to this file's, so the server's feed can resolve
+// both a post's city and a profile's city the way this composer does. dream-os
+// `scripts/b4c1_shoot_board_bench.js` §1 reads BOTH repos and reddens on any
+// difference. Edit one, edit the other in the same pair of deliveries.
+//
 // This is a lib, not page-local, for a reason the mutation test proved: a proof
 // that carries its own copy of the ladder is a proof of the copy. Framework-free
 // and browser-free, so the proof drives the REAL function in plain node — the

@@ -153,6 +153,13 @@ export const LEADS_API_PATH     = '/api/v2/vendor/leads';
 // 4b-1; broadcast (4b-2) and the Sunday brief (4b-3) join the same file.
 export const POSTS_API_PATH = '/api/v2/vendor/posts';
 
+// ── CE-42 · SEAT R7 · 4c-1 · THE COLLAB DOORS, FOR THE SHOOT BOARD ───────────
+// DERIVED, NOT ASSUMED: dream-os `src/api/vendor/core.js` mounts `./collab` at
+// `/collab` under `/vendor`. The Shoots block in Referrals & partners reads the
+// SAME doors the Collab room reads, through `?kind=shoot` (ruling 3(ii)); the one
+// composer reads `/requirement-types` (ruling 4(b), F-42.184's cure).
+export const COLLAB_API_PATH = '/api/v2/vendor/collab';
+
 export const API = {
   // ── RETIRED WITH THEIR READERS (R-40.23) ─────────────────────────────────
   // The six per-surface members and `index` are gone. `GET /api/v2/vendor/
@@ -233,6 +240,13 @@ export const API = {
   // One GET: her last gallery's three cards and the caption. The door decides;
   // the screen draws (src/api/vendor/posts.js).
   postCards:           () => `${POSTS_API_PATH}/cards`,
+  // ── CE-42 4c-1 · the collab doors (see COLLAB_API_PATH). `kind` is the room:
+  // absent = the Collab room, 'shoot' = the shoot board. Never both.
+  collabRequirementTypes: () => `${COLLAB_API_PATH}/requirement-types`,
+  collabFeed:          (kind?: 'shoot') => kind ? `${COLLAB_API_PATH}/feed?kind=${kind}` : `${COLLAB_API_PATH}/feed`,
+  collabMyPosts:       (kind?: 'shoot') => kind ? `${COLLAB_API_PATH}/my-posts?kind=${kind}` : `${COLLAB_API_PATH}/my-posts`,
+  collabCreate:        () => COLLAB_API_PATH,
+  collabRespond:       (postId: string) => `${COLLAB_API_PATH}/${encodeURIComponent(postId)}/respond`,
 } as const;
 
 // ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS — RETIRED, F-40.170 ─────

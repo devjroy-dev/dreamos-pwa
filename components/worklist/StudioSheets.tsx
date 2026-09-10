@@ -126,7 +126,9 @@ const PAID_VIA: readonly Opt[] = [
     `Cancel` as well: two ways out of a form is not a defect, and removing a byte
     the founder already vetoed to buy symmetry would be trading his ruling for
     tidiness. */
-function Sheet({ title, onClose, children }: {
+// CE-42 4c-1: EXPORTED so the one collab composer (components/vendor/CollabPostForm.tsx)
+// sits on the shell's standing sheet rather than drawing a third one. Byte-unchanged.
+export function Sheet({ title, onClose, children }: {
   title: string; onClose: () => void; children: React.ReactNode;
 }) {
   return (

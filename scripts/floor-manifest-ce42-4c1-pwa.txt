@@ -1,0 +1,27 @@
+# scripts/floor-manifest-ce42-4c1-pwa.txt — CE-42 4c-1 (dreamos-pwa), seat R7 [F-19.16].
+# base: 59b23451f7e32fc99c14e3b7240ee04db1d6aa02   (re-pinned from 85f6f3c1 after SHELL; routes.ts merged onto SHELL's, no shared hunk)
+# Every path this ZIP writes, and nothing else. Derived by `git status --porcelain`
+# at the cut. scripts/b59_seven_ink_census.js is another arc's bench: its ratchet
+# re-pins 124 -> 114 because F-42.186 removed ten gold-at-alpha literals (one line).
+app/vendor/(shell)/collab/screen.tsx
+app/vendor/(shell)/referrals/page.tsx
+components/vendor/CollabPostForm.tsx
+components/vendor/ShootsBlock.tsx
+components/worklist/StudioSheets.tsx
+docs/handovers/CE42_4C1_SHOOT_BOARD_PWA_HANDOVER.md
+docs/mocks/shoot-board-mock.html
+docs/mocks/shoot-board-mock__C1-sheet__dark__374.png
+docs/mocks/shoot-board-mock__C1-sheet__light__374.png
+docs/mocks/shoot-board-mock__S1-empty__dark__374.png
+docs/mocks/shoot-board-mock__S1-empty__light__374.png
+docs/mocks/shoot-board-mock__S1-room__dark__374.png
+docs/mocks/shoot-board-mock__S1-room__light__374.png
+docs/mocks/shoot-board-mock__S2-sheet__dark__374.png
+docs/mocks/shoot-board-mock__S2-sheet__light__374.png
+lib/solutions/routes.ts
+lib/vendor/cityMatch.ts
+lib/vendor/collabFormat.ts
+lib/worklist/shoots.ts
+scripts/b59_seven_ink_census.js
+scripts/b75_4c1_shoot_board_pwa_bench.js
+scripts/floor-manifest-ce42-4c1-pwa.txt

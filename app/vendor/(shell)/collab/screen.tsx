@@ -32,15 +32,20 @@
 
 import { useEffect, useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
-import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getJson, postJson, patchJson } from '@/lib/vendor/api/_base';
 import { fetchRoster, addRosterEntry, bridgeRosterEntry, RosterEntry } from '@/lib/vendor/api/roster';
 import { mintCrewIdentity, MINT_ACTION_LABEL, MINT_DONE_LABEL } from '@/lib/vendor/rosterMint';
 import { canViewResponses, cardIsTappable } from '@/lib/vendor/postAccess';
 // D2 — the option list, its alias map and the match ladder have ONE home.
-import { CITIES, matchCity } from '@/lib/vendor/cityMatch';
-import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
+import { matchCity } from '@/lib/vendor/cityMatch';
+// CE-42 4c-1: the post's words moved to one home the shoot board also reads, and the
+// composer moved to one exported form (kind prop). F-42.184: the requirement list is
+// the server's eleven, read off GET /requirement-types, labelled by the founder-signed map.
+import { fmtDate, fmtBudget, fmtType, postedBy } from '@/lib/vendor/collabFormat';
+import { CollabPostForm } from '@/components/vendor/CollabPostForm';
+import { labelFor } from '@/lib/frost/categoryLabels';
+import { API } from '@/lib/solutions/routes';
 
 const A = {
   // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
@@ -52,7 +57,6 @@ const A = {
   inkMute:   'var(--atelier-ink-mute)',
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
-  brassLine: 'rgba(201,168,76,0.18)',
   green:     'var(--role-positive)',
   red:       'var(--role-critical)',
 } as const;
@@ -95,37 +99,9 @@ interface CollabPost {
   total_responses?:  number;
 }
 
-function fmtDate(iso: string): string {
-  try { return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
-  catch { return iso; }
-}
-function fmtBudget(amount?: number, period?: string): string {
-  if (!amount) return 'Budget TBD';
-  // TDW_09 R-U28: one branch, one home — the 1L threshold was the shorthand's only
-  // reason to exist. List row, so it reflows.
-  const f = formatRs(amount);
-  if (period === 'per_day')   return `${f}/day`;
-  if (period === 'per_shoot') return `${f}/shoot`;
-  return f;
-}
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const hrs  = Math.floor(diff / 3600000);
-  if (hrs < 1)  return 'Just now';
-  if (hrs < 24) return `${hrs}hr ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
-function fmtType(t: string): string {
-  return t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
-const REQUIREMENT_TYPES = [
-  'photography','videography','makeup','mehendi','decor','catering',
-  'venue','music_dj','music_live','choreography','planning','transport',
-  'invitations','jewellery','attire','other',
-];
-const EVENT_TYPES     = ['wedding','pre_wedding','engagement','editorial','brand_shoot','portrait','other'];
-const PAYMENT_PERIODS = ['per_day','per_shoot','total','tbd'];
+// fmtDate · fmtBudget · timeAgo · fmtType and the type lists MOVED to lib/vendor/collabFormat.ts
+// (CE-42 4c-1) — one home, read by this room and the shoot board. fmtDate is now the
+// full month with the year (R-42.13): the en-IN short form rendered `18 Sept 2026`.
 // ── F-38.62 · THE TAB ORDER IS THE FOUNDER'S, AND IT IS NOT THIS TYPE'S ───
 // Founder walk, 2026-08-29: 「my post should be first, opportunities be second — which means
 // collab should open on my posts」. The union's spelling order is not a render order and never
@@ -250,7 +226,7 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
             fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: 9,
             color: tab === t ? A.interactiveWarm : A.inkMute,
             letterSpacing: '0.32em', textTransform: 'uppercase',
-            borderBottom: tab === t ? `0.5px solid ${A.interactive}` : '0.5px solid rgba(201,168,76,0.10)',
+            borderBottom: tab === t ? `0.5px solid ${A.interactive}` : '0.5px solid var(--atelier-card-border)',
             transition: `all 200ms ${EASE}`,
           }}>{t === 'opportunities' ? 'Opportunities' : t === 'my_posts' ? 'My Posts' : 'Roster'}</button>
         ))}
@@ -274,8 +250,9 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
       </div>
 
       {showForm && (
-        <PostCollabForm
-          prefill={prefill}
+        <CollabPostForm
+          kind="collab"
+          prefill={{ date: prefill.date, city: prefill.city, type: prefill.type }}
           onClose={() => setShowForm(false)}
           onSuccess={() => { setShowForm(false); fetchMyPosts(); setTab('my_posts'); }}
         />
@@ -359,7 +336,7 @@ function OpportunityCard({ post, onRespond }: {
             <span key={it.id ?? n} style={{
               fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
               letterSpacing: '0.28em', textTransform: 'uppercase',
-              border: `0.5px solid rgba(201,168,76,0.28)`, borderRadius: 2, padding: '3px 8px',
+              border: '0.5px solid var(--atelier-card-border)', borderRadius: 2, padding: '3px 8px',
             }}>{it.requirement_type.replace(/_/g, ' ')}</span>
           ))}
         </div>
@@ -375,7 +352,7 @@ function OpportunityCard({ post, onRespond }: {
       )}
 
       <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 16 }}>
-        Posted by a {post.poster_category} · {timeAgo(post.posted_ago ?? '')}
+        {postedBy(post.poster_category, post.posted_ago ?? '')}
       </div>
 
       <div style={{ display: 'flex', gap: 8 }}>
@@ -467,7 +444,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                       fontFamily: F.label, fontWeight: 300, fontSize: 8,
                       color: done ? A.inkMute : A.brassWarm,
                       letterSpacing: '0.28em', textTransform: 'uppercase',
-                      border: `0.5px solid ${done ? 'var(--atelier-sheet-border)' : 'rgba(201,168,76,0.28)'}`,
+                      border: `0.5px solid ${done ? 'var(--atelier-sheet-border)' : 'var(--atelier-card-border)'}`,
                       borderRadius: 2, padding: '3px 8px',
                       textDecoration: done ? 'line-through' : 'none',
                     }}>{it.requirement_type.replace(/_/g, ' ')}</span>
@@ -518,8 +495,8 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                   onClick={e => { e.stopPropagation(); onViewResponses(post.id); }}
                   style={{
                     flex: 1, padding: '10px 0',
-                    background: 'rgba(201,168,76,0.10)',
-                    border: '0.5px solid rgba(201,168,76,0.4)', borderRadius: 2, cursor: 'pointer',
+                    background: 'transparent',
+                    border: '0.5px solid var(--atelier-input-border)', borderRadius: 2, cursor: 'pointer',
                     fontFamily: F.label, fontWeight: 400, fontSize: 10, color: A.interactiveWarm,
                     letterSpacing: '0.32em', textTransform: 'uppercase',
                   }}>View Responses</button>
@@ -603,7 +580,7 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
                 <span style={{
                   fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.brass,
                   letterSpacing: '0.28em', textTransform: 'uppercase',
-                  border: `0.5px solid rgba(201,168,76,0.4)`, borderRadius: 2, padding: '3px 8px', flexShrink: 0,
+                  border: '0.5px solid var(--atelier-card-border)', borderRadius: 2, padding: '3px 8px', flexShrink: 0,
                 }}>Collab</span>
               )}
               {/* MINT ONLY. This gives the external an identity on your plane;
@@ -646,6 +623,14 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
   const [category, setCategory] = useState('');
   const [error, setError]       = useState('');
   const [saving, setSaving]     = useState(false);
+  // F-42.184's other reader (ruling 4(b)): the roster's craft chips are the same
+  // eleven off the same door, never a list typed here.
+  const [crafts, setCrafts]     = useState<string[]>([]);
+  useEffect(() => {
+    getJson<{ ok: boolean; requirement_types: string[] }>(API.collabRequirementTypes())
+      .then(d => { if (d.ok) setCrafts(d.requirement_types); })
+      .catch(() => { /* the chips stay absent; category is optional on this sheet */ });
+  }, []);
 
   async function submit() {
     if (!name.trim() || !phone.trim()) { setError('Name and phone are required.'); return; }
@@ -677,9 +662,9 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
           <input value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" style={{ ...inputStyle, marginBottom: 18 }} />
           <Label>Category</Label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 22 }}>
-            {REQUIREMENT_TYPES.map(t => (
+            {crafts.map(t => (
               <Pill key={t} active={category === t} onClick={() => setCategory(category === t ? '' : t)}>
-                {t.replace(/_/g, ' ')}
+                {labelFor(t)}
               </Pill>
             ))}
           </div>
@@ -696,232 +681,8 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
 }
 
 // ── Post form sheet ─────────────────────────────────────────────
-function PostCollabForm({ prefill, onClose, onSuccess }: {
-  prefill: Prefill;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  // ── canPost RETIRED WHOLE — FOUNDER RULING, 2026-08-04 ───────────────────────
-  //   「 collab will be open to everyone including essential 」
-  //
-  // This was a CLIENT-SIDE DUPLICATE of the server allowlist at
-  // src/api/vendor/collab.js, which retired in the same act. It had FOUR sites,
-  // not the two the server's vocabulary made visible: this declaration, the
-  // submit short-circuit below, the `upgrade_required` error mapping, and the
-  // rendered upgrade block. Retiring only the two that named the server's words
-  // would have left an OPEN SERVER BEHIND A CLOSED UI — the compose form still
-  // hidden, the submit still returning before a request left the browser.
-  // The `vendorTier` prop retired with it (zero other readers, derived by
-  // command). Posting a collab requirement is now offered at every tier.
+// PostCollabForm RETIRED (CE-42 4c-1): the one composer is components/vendor/CollabPostForm.tsx.
 
-  // 1–8 requirements per post (spec §P4.1). Always at least one row, so the
-  // form has one shape whether the vendor needs a florist or a whole crew.
-  // The prefill seeds items[0] only — the gap pip knows about one gap.
-  const [items, setItems] = useState<{ requirement_type: string; note: string }[]>(
-    [{ requirement_type: prefill.type, note: '' }]
-  );
-  const [form, setForm] = useState({
-    requirement_type: '', event_date: prefill.date, city: prefill.city,
-    budget_inr: '', payment_period: 'per_shoot',
-    event_type: '', details: '', open_to_other_cities: false,
-  });
-
-  function setItem(i: number, patch: Partial<{ requirement_type: string; note: string }>) {
-    setItems(prev => prev.map((it, n) => (n === i ? { ...it, ...patch } : it)));
-  }
-  function addItem()      { setItems(prev => (prev.length >= 8 ? prev : [...prev, { requirement_type: '', note: '' }])); }
-  function removeItem(i: number) { setItems(prev => (prev.length <= 1 ? prev : prev.filter((_, n) => n !== i))); }
-  const [submitting, setSubmitting] = useState(false);
-  const [error,      setError]      = useState('');
-
-  function set<K extends keyof typeof form>(key: K, value: typeof form[K]) {
-    setForm(f => ({ ...f, [key]: value }));
-  }
-
-  async function handleSubmit() {
-    const chosen = items.filter(i => i.requirement_type);
-    if (chosen.length === 0 || !form.event_date || !form.city) {
-      setError('Please fill in what you need, the date, and the city.'); return;
-    }
-    // F10(b)'s two in-sheet refusals — REFUSED HERE, IN WORDS, never by a
-    // disabled button the vendor can't interpret. The server refuses a past
-    // date too; this one exists so the vendor is told why before a round trip.
-    if (new Date(form.event_date) < new Date(new Date().toDateString())) {
-      setError('This date has passed. Collab posts need a future date.'); return;
-    }
-    if (!form.city.trim()) {
-      setError('Add a city to your profile before posting.'); return;
-    }
-    setSubmitting(true); setError('');
-    try {
-      const payload: Record<string, unknown> = {
-        items: items
-          .filter(i => i.requirement_type)
-          .map(i => ({ requirement_type: i.requirement_type, note: i.note || undefined })),
-        event_date:           form.event_date,
-        city:                 form.city,
-        open_to_other_cities: form.open_to_other_cities,
-        payment_period:       form.payment_period || undefined,
-        event_type:           form.event_type     || undefined,
-        details:              form.details         || undefined,
-      };
-      if (form.budget_inr) payload.budget_inr = parseInt(form.budget_inr);
-
-      const data = await postJson<{ ok: boolean; error?: string; message?: string }>(
-        '/api/v2/vendor/collab', payload
-      );
-
-      if (data.ok) onSuccess();
-      // F-04.110's second half: the server's refusal sentence travels in
-      // `error` (src/lib/response.js's envelope), not `message`. Reading only
-      // `message` swallowed every real sentence into the generic fallback —
-      // the founder's screenshot showed "Something went wrong. Try again."
-      // where a specific, actionable refusal had been written and shipped.
-      else setError(data.message || data.error || 'Something went wrong. Try again.');
-    } catch { setError('Something went wrong. Try again.'); }
-    finally { setSubmitting(false); }
-  }
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'var(--atelier-overlay)',
-      backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
-      display: 'flex', alignItems: 'flex-end',
-    }}>
-      <div style={{
-        width: '100%', maxHeight: '92dvh', overflowY: 'auto',
-        background: 'var(--atelier-sheet-bg)',
-        backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
-        borderTop: '0.5px solid var(--atelier-sheet-border)',
-        padding: '0 0 calc(32px + env(safe-area-inset-bottom))',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 8px' }}>
-          <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
-        </div>
-
-        <div style={{ padding: '0 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 6 }}>
-              New Requirement
-            </div>
-            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>
-              Post a requirement
-            </div>
-          </div>
-          <button type="button" onClick={onClose} style={{
-            background: 'none', border: 'none', color: A.interactiveWarm,
-            fontFamily: F.display, fontSize: 25, lineHeight: 1, cursor: 'pointer', padding: 4, flexShrink: 0,
-          }}>×</button>
-        </div>
-
-        <div style={{ padding: '0 24px' }}>
-          <>
-              <Label>What you need</Label>
-              {items.map((item, i) => (
-                <div key={i} style={{ marginBottom: 14 }}>
-                  {items.length > 1 && (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
-                        {i + 1} of {items.length}
-                      </span>
-                      <button type="button" onClick={() => removeItem(i)} style={{
-                        background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
-                        fontFamily: F.display, fontSize: 16, lineHeight: 1, color: A.interactiveWarm,
-                      }}>×</button>
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {REQUIREMENT_TYPES.map(type => (
-                      <Pill key={type} active={item.requirement_type === type}
-                        onClick={() => setItem(i, { requirement_type: item.requirement_type === type ? '' : type })}>
-                        {type.replace(/_/g, ' ')}
-                      </Pill>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              {items.length < 8 && (
-                <button type="button" onClick={addItem} style={{
-                  background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', marginBottom: 22,
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
-                  letterSpacing: '0.32em', textTransform: 'uppercase',
-                }}>Add another</button>
-              )}
-              {items.length >= 8 && <div style={{ marginBottom: 22 }} />}
-
-              {/* First look — stated before the post exists, not discovered
-                  afterwards. The window is server-owned; this line describes it. */}
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginBottom: 22 }}>
-                Your roster sees this first. Open to everyone in 12 hours.
-              </div>
-
-              <Label>Date needed</Label>
-              <input type="date" value={form.event_date} onChange={e => set('event_date', e.target.value)}
-                style={{ ...inputStyle, marginBottom: 22 }} />
-
-              <Label>City</Label>
-              <select value={form.city} onChange={e => set('city', e.target.value)}
-                style={{ ...selectStyle(inputStyle), marginBottom: 10 }}>
-                <option value="">Select city</option>
-                {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22, cursor: 'pointer' }}>
-                <input type="checkbox" checked={form.open_to_other_cities}
-                  onChange={e => set('open_to_other_cities', e.target.checked)}
-                  style={{ accentColor: A.interactive, width: 16, height: 16 }} />
-                <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
-                  Also open to vendors who travel
-                </span>
-              </label>
-
-              <Label>Budget offered (optional)</Label>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 22 }}>
-                <input type="number" placeholder="Rs" value={form.budget_inr}
-                  onChange={e => set('budget_inr', e.target.value)}
-                  style={{ ...inputStyle, flex: 2 }} />
-                <select value={form.payment_period} onChange={e => set('payment_period', e.target.value)}
-                  style={{ ...selectStyle(inputStyle), flex: 1 }}>
-                  {PAYMENT_PERIODS.map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
-                </select>
-              </div>
-
-              <Label>Event type (optional)</Label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 22 }}>
-                {EVENT_TYPES.map(type => (
-                  <Pill key={type} active={form.event_type === type}
-                    onClick={() => set('event_type', form.event_type === type ? '' : type)}>
-                    {type.replace(/_/g, ' ')}
-                  </Pill>
-                ))}
-              </div>
-
-              <Label>Details (optional · {200 - form.details.length} left)</Label>
-              <textarea value={form.details}
-                onChange={e => set('details', e.target.value.slice(0, 200))}
-                placeholder="Describe what you’re looking for…"
-                rows={3}
-                style={{ ...inputStyle, resize: 'none', marginBottom: 22 }} />
-
-              {error && (
-                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, marginBottom: 14 }}>{error}</div>
-              )}
-
-              <button type="button" onClick={handleSubmit} disabled={submitting} className="atelier-fab" style={{
-                width: '100%', padding: '14px 0', borderRadius: 2,
-                border: '0.5px solid var(--atelier-label)', cursor: submitting ? 'default' : 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
-                letterSpacing: '0.5em', textTransform: 'uppercase',
-                opacity: submitting ? 0.6 : 1,
-              }}>{submitting ? 'Posting…' : 'Post'}</button>
-          </>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Shared sub-components ───────────────────────────────────────
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.inkMute, marginBottom: 10 }}>
@@ -934,8 +695,8 @@ function Pill({ children, active, onClick }: { children: React.ReactNode; active
   return (
     <button type="button" onClick={onClick} style={{
       padding: '7px 13px', borderRadius: 2, cursor: 'pointer',
-      background: active ? 'rgba(201,168,76,0.18)' : 'transparent',
-      border: `0.5px solid ${active ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
+      background: 'transparent',
+      border: `0.5px solid ${active ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
       fontFamily: F.label, fontWeight: 300, fontSize: 9,
       color: active ? A.interactiveWarm : A.inkMute,
       letterSpacing: '0.28em', textTransform: 'uppercase',
