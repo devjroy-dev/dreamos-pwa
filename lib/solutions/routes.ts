@@ -146,6 +146,13 @@ export const REFERRALS_API_PATH = '/api/v2/vendor/referrals';
 export const INTRODUCTIONS_API_PATH = '/api/v2/vendor/introductions';
 export const LEADS_API_PATH     = '/api/v2/vendor/leads';
 
+// ── CE-42 · 4b-1 · R6 · THE "POSTS & ADS" ROOM'S DOORS ─────────────────────
+// DERIVED, NOT ASSUMED: `src/api/router.js:59` mounts `./vendor/core` at
+// `/vendor`, and `src/api/vendor/core.js` mounts `./posts` at `/posts` — the line
+// 4b-1 adds directly beneath `/introductions`. `GET /cards` is the only door at
+// 4b-1; broadcast (4b-2) and the Sunday brief (4b-3) join the same file.
+export const POSTS_API_PATH = '/api/v2/vendor/posts';
+
 export const API = {
   // ── RETIRED WITH THEIR READERS (R-40.23) ─────────────────────────────────
   // The six per-surface members and `index` are gone. `GET /api/v2/vendor/
@@ -222,6 +229,10 @@ export const API = {
   introductions:       () => INTRODUCTIONS_API_PATH,
   introductionSend:    (id: string) =>
     `${INTRODUCTIONS_API_PATH}/${encodeURIComponent(id)}/send`,
+  // ── R6 · 4b-1 · THE CARDS ─────────────────────────────────────────────────
+  // One GET: her last gallery's three cards and the caption. The door decides;
+  // the screen draws (src/api/vendor/posts.js).
+  postCards:           () => `${POSTS_API_PATH}/cards`,
 } as const;
 
 // ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS — RETIRED, F-40.170 ─────
@@ -264,3 +275,11 @@ export const PAYMENT_REMINDERS_HREF = '/vendor/payment-reminders';
 // — which that does not. Adding it there would loosen the cell for a literal it
 // never sees, exactly as the G5.1 block in that cell says of the forward door.
 export const INTRODUCTIONS_HREF = '/vendor/introductions';
+
+// ── CE-42 · 4b-1 · R6 · POSTS & ADS — THE SEVENTH CONSTANT ─────────────────
+// `ROOM_ROWS`' `posts` row (R-40.1's R6, label "Posts & ads") has stood since the
+// nine with no destination and a Coming chip. Ruling 1(a): that row opens, one
+// screen, three sections — no new row, so `b42` C3's count pair is untouched.
+// Not a registry room (no tile), so the address lives HERE on the not-a-room
+// precedent, and `b40` C31 READS this declaration rather than retyping it.
+export const POSTS_HREF = '/vendor/posts';

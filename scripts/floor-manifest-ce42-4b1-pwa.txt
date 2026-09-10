@@ -1,0 +1,31 @@
+# scripts/floor-manifest-ce42-4b1-pwa.txt — CE-42 4b-1 (dreamos-pwa), seat R6 [F-19.16].
+# Every path this ZIP writes, and nothing else. CUT 2 (chair-ruled (a)) adds
+# scripts/tdw10_p3_deck.proof.mjs — another seat's bench, one line, F-42.173.
+app/vendor/(shell)/posts/page.tsx
+app/vendor/(shell)/support/page.tsx
+lib/solutions/routes.ts
+lib/worklist/posts.ts
+scripts/b40_worklist_shell_bench.js
+scripts/b74_r6_posts_room_bench.js
+scripts/tdw10_p3_deck.proof.mjs
+scripts/floor-manifest-ce42-4b1-pwa.txt
+docs/handovers/CE42_4B1_POSTS_ROOM_HANDOVER.md
+docs/mocks/posts-ads-mock.html
+docs/mocks/posts-ads-mock__posts-broadcast__dark__374.png
+docs/mocks/posts-ads-mock__posts-broadcast__light__374.png
+docs/mocks/posts-ads-mock__posts-cards__dark__374.png
+docs/mocks/posts-ads-mock__posts-cards__dark__390.png
+docs/mocks/posts-ads-mock__posts-cards__light__374.png
+docs/mocks/posts-ads-mock__posts-cards__light__390.png
+docs/mocks/posts-ads-mock__posts-confirm__dark__374.png
+docs/mocks/posts-ads-mock__posts-confirm__light__374.png
+docs/mocks/posts-ads-mock__posts-states__dark__374.png
+docs/mocks/posts-ads-mock__posts-states__light__374.png
+docs/mocks/posts-ads-mock__posts-status__dark__374.png
+docs/mocks/posts-ads-mock__posts-status__light__374.png
+docs/mocks/posts-ads-mock__posts-story__dark__374.png
+docs/mocks/posts-ads-mock__posts-story__light__374.png
+docs/mocks/posts-ads-mock__posts-sunday-pending__dark__374.png
+docs/mocks/posts-ads-mock__posts-sunday-pending__light__374.png
+docs/mocks/posts-ads-mock__posts-sunday__dark__374.png
+docs/mocks/posts-ads-mock__posts-sunday__light__374.png

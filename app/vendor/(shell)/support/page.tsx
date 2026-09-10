@@ -36,7 +36,7 @@ import { supportWaNumber } from '@/lib/waNumbers';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
 import { roomHref } from '@/lib/worklist/rooms';
-import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, PAYMENT_REMINDERS_HREF, WEBSITE_HREF, INTRODUCTIONS_HREF } from '@/lib/solutions/routes';
+import { WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF, PAYMENT_REMINDERS_HREF, WEBSITE_HREF, INTRODUCTIONS_HREF, POSTS_HREF } from '@/lib/solutions/routes';
 import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 
 export default function SolutionsIndexPage() {
@@ -103,6 +103,10 @@ const ROOM_HREFS: Partial<Record<string, string>> = {
   // and the address would be unreachable-by-declaration — the same asymmetry
   // `website` documents from the other direction.
   introductions: INTRODUCTIONS_HREF,
+  // ── CE-42 4b-1 · R6 · ruling 1(a) — `posts` ("Posts & ads", R-40.1's own row)
+  // gains its destination; the chip flips Coming → Open off the href alone. A
+  // CONSTANT for the same not-a-registry-room reason as introductions above.
+  posts:         POSTS_HREF,
 };
 
 function SolutionsIndexScreen() {

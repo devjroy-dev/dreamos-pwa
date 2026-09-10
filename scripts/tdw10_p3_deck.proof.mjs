@@ -506,6 +506,7 @@ section('§8  MUTATION — every cure cell proven able to REDDEN');
 {
   const originals = new Map();
   const mutate = (p, from, to) => {
+    if (!fs.existsSync(path.join(ROOT, p))) return false; // F-42.173 (CE-42 4b-1 cut 2, R-41.121): an absent file is no original — restore() would write it back
     const src = readOr(p);
     if (!originals.has(p)) originals.set(p, src);
     if (!src.includes(from)) return false;

@@ -1238,6 +1238,15 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   const itm = solRoutes.match(/export const INTRODUCTIONS_HREF\s*=\s*'([^']+)'/);
   if (!itm) return 'INTRODUCTIONS_HREF is not declared: the introductions room has no address home (R-42.8)';
   declared.add(itm[1]);
+  // ── AMENDED BY LABEL — CE-42 4b-1, R6 ruling 1(a). THE SEVENTH CONSTANT, AND
+  // THE CELL STILL DOES NOT LOOSEN. `posts` ("Posts & ads") is R-40.1's own hub
+  // row, opened in place — not a registry room — so its address lives in
+  // `lib/solutions/routes.ts` on the same not-a-room precedent, and this READS
+  // that declaration. The set grows by exactly one MEMBER. `POSTS_API_PATH`
+  // (`/api/v2/vendor/posts`) takes no entry for the reason given above.
+  const psm = solRoutes.match(/export const POSTS_HREF\s*=\s*'([^']+)'/);
+  if (!psm) return 'POSTS_HREF is not declared: the posts & ads room has no address home (R6, 4b-1)';
+  declared.add(psm[1]);
   const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
   if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT
