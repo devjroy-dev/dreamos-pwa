@@ -39,6 +39,8 @@ import {
 import type { CardKind, CardsBody, BroadcastPreview, BroadcastSent, BroadcastKind } from '@/lib/worklist/posts';
 // CARRIED, not retyped: "They will receive" and "Back" are the Introductions room's vetoed bytes.
 import { IN } from '@/lib/worklist/introductions';
+import { SUNDAY_PREVIEW, FIXTURE_BRIEF, SU } from '@/lib/worklist/sunday';
+import { SundaySection } from '@/components/worklist/SundaySection';
 const COPY_PREVIEW_EYEBROW = IN.previewEyebrow;
 const COPY_BACK = IN.back;
 
@@ -157,10 +159,11 @@ function PostsScreen() {
         <p className="pst-lede">{PO.ledeBroadcast}</p>
         <BroadcastSection />
 
-        {/* ── SUNDAY (4b-3 builds it, dark; pending until then) ────────────── */}
+        {/* ── SUNDAY (4b-3a: the shell, behind SUNDAY_PREVIEW; 4b-3b wires the door) ── */}
         <div className="pst-sec pst-secgap">{PO.sectionSunday}</div>
+        {SUNDAY_PREVIEW ? <div className="pst-eyebrow">{SU.eyebrow}</div> : null}
         <p className="pst-lede">{PO.ledeSunday}</p>
-        <div className="pst-card"><p className="pst-state">{PO.sundayPending}</p></div>
+        <SundaySection state={SUNDAY_PREVIEW ? 'live' : 'pending'} brief={SUNDAY_PREVIEW ? FIXTURE_BRIEF : null} />
       </div>
 
       <style>{`
@@ -193,6 +196,23 @@ function PostsScreen() {
 .pst-ghost:active{background:var(--atelier-row-hover)}
 .pst-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .pst-two{display:flex;gap:9px;margin-top:9px}
+.pst-eyebrow{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--role-caution);margin:0 0 8px}
+.pst-week{font:var(--wl-t3);color:var(--atelier-ink);margin:0 0 10px}
+.pst-tiles{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+.pst-tile{border:.5px solid var(--atelier-card-border);border-radius:3px;padding:11px;background:var(--atelier-section-bg)}
+.pst-n{font:var(--wl-t1);color:var(--atelier-ink);margin-top:4px}
+.pst-note{font:var(--wl-t5);color:var(--atelier-ink-dim);margin-top:4px;line-height:1.4}
+.pst-arrow{font:var(--wl-t5);margin-top:3px}
+.pst-up{color:var(--role-positive)}.pst-down{color:var(--role-critical)}.pst-flat{color:var(--atelier-ink-mute)}
+.pst-held{grid-column:1/3;opacity:.55}
+.pst-chip{font:var(--wl-t5);padding:3px 8px;border:.5px solid var(--atelier-card-border);border-radius:2px;color:var(--atelier-ink-mute);margin-left:6px;text-transform:none;letter-spacing:0}
+.pst-best{display:flex;gap:11px;align-items:center;width:100%;margin-top:8px;padding:0;background:transparent;border:none;cursor:pointer;text-align:left;min-height:44px}
+.pst-thumb{width:64px;height:64px;flex:none;object-fit:cover;background:linear-gradient(160deg,var(--atelier-sheet-top),var(--atelier-overlay-bg))}
+.pst-who{font:var(--wl-t3);color:var(--atelier-ink)}
+.pst-sharecard{background:var(--atelier-section-bg);position:relative}
+.pst-sharetxt{position:absolute;left:8%;right:8%;bottom:9%}
+.pst-sharet{font:500 19px/1.15 var(--font-cormorant),Georgia,serif;color:var(--atelier-ink)}
+.pst-sharen{font:500 9.5px/1.6 var(--font-dm-sans),system-ui,sans-serif;color:var(--role-metal);margin-top:6px}
 .pst-lbl0{margin-top:0}
 .pst-body{font:var(--wl-t3);color:var(--atelier-ink);line-height:1.55;margin:0}
 .pst-btnchip{margin-top:12px;text-align:center;padding:9px;border:.5px solid var(--atelier-card-border);border-radius:2px;color:var(--atelier-accent-text);font:var(--wl-t4)}

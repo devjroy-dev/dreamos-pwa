@@ -119,7 +119,9 @@ cell('C7 ⇄ the three kinds render in the arm\'s own order (KIND_ORDER)', () =>
 cell('C8 4b-2: Broadcast calls its door; Sunday still draws its pending state only (4b-3 is its packet)', () => {
   if (!/API\.postBroadcast\(\)/.test(page)) return 'the Broadcast section does not call API.postBroadcast()';
   if (/sunday|insights/i.test(routes.replace(/POSTS_API_PATH/g, ''))) return 'a Sunday/insights address was declared ahead of 4b-3';
-  if (!/PO\.sundayPending/.test(page)) return 'the Sunday pending state is not drawn';
+  // 4b-3a moved the Sunday section to components/worklist/SundaySection.tsx (a page may export only the page).
+  const sunday = fs.existsSync(path.join(ROOT, 'components/worklist/SundaySection.tsx')) ? strip(read(path.join(ROOT, 'components/worklist/SundaySection.tsx'))) : '';
+  if (!/PO\.sundayPending/.test(page + sunday)) return 'the Sunday pending state is not drawn';
 });
 
 cell('C9 4b-2 · every broadcast refusal is a CODE mapped to a vetoed byte — dark reads "Not switched on yet.", never the door\'s text', () => {
