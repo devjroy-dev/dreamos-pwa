@@ -1258,6 +1258,15 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
     if (!dm) return name + ' is not declared: a shell screen has no address home (R-42.12 amended)';
     declared.add(dm[1]);
   }
+  // ── AMENDED BY LABEL — CE-42 4c-3a, R-42.14. THE TENTH CONSTANT: the influencer
+  // exchange SHELL at `/vendor/exchange`, opened from one row inside Referrals &
+  // partners (ruling F1(b)) — not a hub row, not a registry room, same not-a-room
+  // precedent. The set grows by exactly one MEMBER; a stray is still a stray.
+  {
+    const xm = solRoutes.match(/export const EXCHANGE_HREF\s*=\s*'([^']+)'/);
+    if (!xm) return 'EXCHANGE_HREF is not declared: the exchange shell has no address home (R-42.14)';
+    declared.add(xm[1]);
+  }
   const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
   if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT

@@ -312,3 +312,9 @@ export const POSTS_HREF = '/vendor/posts';
 // row's `PREVIEW_KEYS` entry leaves and nothing here moves.
 export const DATES_HREF  = '/vendor/dates';
 export const NUMBER_HREF = '/vendor/number';
+
+// ── CE-42 · 4c-3a · THE TENTH CONSTANT — the influencer exchange SHELL (R-42.14) ──
+// Not a registry room and not a hub row: it opens from ONE row under Shoots inside
+// Referrals & partners (ruling F1(b)). Same not-a-room precedent as the nine above,
+// so `b40` C31 reads this declaration. 4c-3b changes nothing here.
+export const EXCHANGE_HREF = '/vendor/exchange';

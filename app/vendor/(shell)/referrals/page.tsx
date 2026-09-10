@@ -47,6 +47,12 @@ import type { ReferralsRoom } from '@/lib/solutions/types';
 // forwards above keep their zero controls; the Shoots block carries the room's only
 // action (Post a shoot) and reads the Collab doors through ?kind=shoot.
 import { ShootsBlock } from '@/components/vendor/ShootsBlock';
+// CE-42 4c-3a (R-42.14, ruling F1(b)): the influencer exchange SHELL opens from ONE row
+// under Shoots — the hub's own RoomRow with its Coming chip, never a new chip. The
+// forwards above still carry zero controls; a Link is a door, not a control.
+import { RoomRow, SolutionsStyles } from '@/components/solutions/SolutionsPieces';
+import { EXCHANGE_HREF } from '@/lib/solutions/routes';
+import { EXCHANGE } from '@/lib/worklist/exchange';
 
 export default function ReferralsPage() {
   const router = useRouter();
@@ -145,10 +151,13 @@ function ReferralsScreen() {
           )}
 
           <ShootsBlock />
+          <div className="rf-xrow"><RoomRow href={EXCHANGE_HREF} label={EXCHANGE.rowLabel} preview /></div>
         </div>
       ) : null}
 
+      <SolutionsStyles />
       <style>{`
+.rf-xrow{margin-top:14px}
 /* THE LEADS-CARD IDIOM, SHARED WITH THE WEDDING-PAGES AND GOOGLE REVIEWS ROOMS.
    Every rule below is transcribed from those rooms' own blocks, property for
    property — the Block 19 rooms are the same room with different rows, and a

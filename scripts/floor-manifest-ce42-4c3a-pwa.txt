@@ -1,0 +1,28 @@
+# scripts/floor-manifest-ce42-4c3a-pwa.txt — CE-42 4c-3a (dreamos-pwa), seat R7 [F-19.16].
+# base: 948176dcc440cd074ece8f02fa39fbbb364693ce
+# Every path this ZIP writes, and nothing else. Derived by `git status --porcelain` at the cut.
+# scripts/b40_worklist_shell_bench.js: C31's declared set gains EXCHANGE_HREF by label (one member).
+app/vendor/(shell)/exchange/page.tsx
+app/vendor/(shell)/referrals/page.tsx
+docs/handovers/CE42_4C3A_EXCHANGE_SHELL_HANDOVER.md
+docs/mocks/exchange-mock.html
+docs/mocks/exchange-mock__X1-room__dark__374.png
+docs/mocks/exchange-mock__X1-room__light__374.png
+docs/mocks/exchange-mock__X2-browse__dark__374.png
+docs/mocks/exchange-mock__X2-browse__light__374.png
+docs/mocks/exchange-mock__X3-card__dark__374.png
+docs/mocks/exchange-mock__X3-card__light__374.png
+docs/mocks/exchange-mock__X4-offer__dark__374.png
+docs/mocks/exchange-mock__X4-offer__light__374.png
+docs/mocks/exchange-mock__X5-requests__dark__374.png
+docs/mocks/exchange-mock__X5-requests__light__374.png
+docs/mocks/exchange-mock__X6-empty__dark__374.png
+docs/mocks/exchange-mock__X6-empty__light__374.png
+docs/mocks/exchange-mock__X7-toast__dark__374.png
+docs/mocks/exchange-mock__X7-toast__light__374.png
+lib/mocks/exchange.ts
+lib/solutions/routes.ts
+lib/worklist/exchange.ts
+scripts/b40_worklist_shell_bench.js
+scripts/b76_4c3a_exchange_shell_bench.js
+scripts/floor-manifest-ce42-4c3a-pwa.txt
