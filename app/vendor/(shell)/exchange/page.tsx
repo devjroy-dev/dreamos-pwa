@@ -13,7 +13,8 @@
 // The creator's seat (Y1/Y2) and ONE FLAG. `EXCHANGE_PREVIEW` (lib/worklist/
 // exchange.ts) is the only branch between the fixture and the doors: true → every
 // row is a mock and every act toasts; false → the client in lib/vendor/api/
-// exchange.ts is called and the acts are real. The control inventory does not
+// exchange.ts is called and the acts are real. IT IS FALSE FROM 4c-3b-1p-r: the
+// doors landed at dream-os 50781af and the acts are live. The control inventory does not
 // change across the flip, which is the point of shipping it flag-on.
 // THE DOOR DECIDES THE ROLE (shape ruling, 2026-09-10): a content_creator with the
 // opt-in opens on her inbox and never sees the browse list — she is not a sender.
@@ -180,7 +181,8 @@ function stateClass(s: RequestState): string {
 // One row shape on the glass either way: the fixtures are mapped INTO the door's
 // shape below rather than the glass learning two of them (the flip must change
 // where rows come from, never what they look like).
-type CreatorView = CreatorRow & { posts?: { id: string; kind: 'Post' | 'Reel' }[] };
+// No local widening any more: the card shows exactly what the door serves (F-42.208).
+type CreatorView = CreatorRow;
 
 function ExchangeScreen() {
   const { toast, show } = useToast();
@@ -279,12 +281,11 @@ function ExchangeScreen() {
                 <span className="xc-name">{open.reach.engagement_pct}%</span>
               </>
             ) : null}
-            {open.posts && open.posts.length ? (
-              <>
-                <div className="xc-sec">{EXCHANGE.posts}</div>
-                <div className="xc-posts">{open.posts.map(p => <div key={p.id} className="xc-post">{p.kind}</div>)}</div>
-              </>
-            ) : null}
+            {/* THE POST TILES ARE DROPPED (F-42.208, ruled 2026-09-10). The shell drew
+                them from a fixture and no door serves them: R6's /posts/cards renders HER
+                cards from HER wedding pages, which is a different read entirely. The card
+                is audience, engagement and verified state. 4c-3b-2 lands recent posts
+                beside the demographics reader, or nothing does. */}
             <div className="xc-cta"><button type="button" className="wl-btn pri" onClick={() => setOffering(true)}>{EXCHANGE.sendReq}</button></div>
           </>
         ) : (
@@ -331,9 +332,9 @@ function ExchangeScreen() {
   );
 }
 
-/** The fixtures in the DOOR'S shapes. `posts` has no door in this packet — the
- *  tiles are fixture-only and the card omits the section when a row carries none
- *  (open question for 4c-3b-1s: serve them from R6's /posts/cards, or drop them). */
+/** The fixtures in the DOOR'S shapes. Kept past the flip on purpose: they are the
+ *  seed for the preview branches, which are the way back if a door misbehaves on
+ *  the walk. Nothing reads them while EXCHANGE_PREVIEW is false. */
 function creatorsFromFixture(): CreatorView[] {
   return EXCHANGE_INFLUENCERS.map(i => ({
     id: i.id, business_name: i.name, city: i.city, handle: i.handle,
@@ -341,7 +342,6 @@ function creatorsFromFixture(): CreatorView[] {
       follower_count: i.followers, engagement_pct: i.engagement_pct, verified: i.verified,
       cities: i.audience.cities, age: i.audience.age, gender: i.audience.gender,
     },
-    posts: i.posts.map(p => ({ id: p.id, kind: p.kind })),
   }));
 }
 function mineFromFixture(): RequestRow[] {
@@ -458,8 +458,6 @@ const XC_CSS = `
 .xc-bar u{display:block;height:6px;background:var(--atelier-input-bg);border-radius:3px;overflow:hidden}
 .xc-bar u b{display:block;height:100%;background:var(--atelier-accent-text)}
 .xc-bar span:last-child{text-align:right;font-variant-numeric:lining-nums tabular-nums}
-.xc-posts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.xc-post{aspect-ratio:1.4;background:var(--atelier-section-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;display:flex;align-items:flex-end;padding:6px;font:var(--wl-t5);color:var(--atelier-ink-fade)}
 .xc-cta{margin-top:18px;display:flex}
 .xc-none{font:var(--wl-t3);color:var(--atelier-ink-mute);margin:0}
 .xc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}

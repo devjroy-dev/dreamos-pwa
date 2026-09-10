@@ -1,0 +1,11 @@
+# scripts/floor-manifest-ce42-4c3b1pr-pwa.txt — CE-42 4c-3b-1p-r, the flip rider (dreamos-pwa), seat R7 [F-19.16].
+# base: d644a3c6 (4b-3b pwa, verified by `git fetch -q origin && git rev-parse` at the cut)
+# Every path this ZIP writes, and nothing else. Derived by `git status --porcelain` at the cut.
+# scripts/b76_4c3a_exchange_shell_bench.js: C2, C3, C8 AMENDED BY LABEL (the flag is false now);
+#   C15 new (F-42.208, the tiles are gone).
+lib/worklist/exchange.ts
+lib/vendor/api/exchange.ts
+app/vendor/(shell)/exchange/page.tsx
+scripts/b76_4c3a_exchange_shell_bench.js
+scripts/floor-manifest-ce42-4c3b1pr-pwa.txt
+docs/handovers/CE42_4C3B1PR_FLIP_HANDOVER.md

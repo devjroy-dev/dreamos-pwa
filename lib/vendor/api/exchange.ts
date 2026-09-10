@@ -1,7 +1,10 @@
 // lib/vendor/api/exchange.ts
 // CE-42 · SEAT R7 · 4c-3b-1p — G5.3 THE INFLUENCER EXCHANGE, THE CLIENT.
 //
-// ⚠ THESE SHAPES ARE THIS HALF'S PROPOSAL, NOT A READ OF A DOOR THAT EXISTS.
+// ⚠ ANSWERED 2026-09-10. These shapes were this half's PROPOSAL when the pwa landed
+// first; dream-os 50781af (4c-3b-1s) implements every path and payload below, compared
+// field by field before the flag was flipped. The paragraph that follows is kept as the
+// record of how the two halves were sequenced, not as a live warning.
 // The pwa lands FIRST (chair's split, 2026-09-10): dream-os 4c-3b-1s has no doors
 // at `c5de470` and nothing here has ever been called. So this file is a CONTRACT
 // OFFERED, and it says so rather than pretending to describe something live:

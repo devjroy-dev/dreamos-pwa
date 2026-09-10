@@ -17,7 +17,14 @@
 // b76 pins that this is the only branch. The client in lib/vendor/api/exchange.ts
 // is compiled either way — a call shape that only type-checks on the day it is
 // first used is a shape nobody has read.
-export const EXCHANGE_PREVIEW = true;
+//
+// ⚠ FLIPPED FALSE at 4c-3b-1p-r (the rider), 2026-09-10. dream-os 50781af answered the
+// contract: the ten doors exist, `b78` 22/22 with 21 both-ways mutations, and the shapes
+// were compared field by field before this line moved. THE CONSTANT STAYS rather than
+// being deleted with its branches — the fixture path is the way back if a door misbehaves
+// on the walk, and one line is a cheaper revert than a re-cut. `b76` C2 pins that the
+// branches are still there and that nothing is called outside them.
+export const EXCHANGE_PREVIEW = false;
 
 // Preview-only: `/vendor/exchange?as=creator` draws the inbox from the fixture so
 // the creator's glass can be walked before a second test vendor exists. INERT when
@@ -39,6 +46,10 @@ export const EXCHANGE = {
   byAge:      'By age',
   byGender:   'By gender',
   engagement: 'Engagement',
+  // ⚠ NOT DRAWN THIS PACKET (F-42.208). The tiles are dropped from the reach card —
+  // R6's /posts/cards renders HER cards from HER wedding pages, and a creator's recent
+  // Instagram posts are a different read that does not exist. The byte is VETOED and
+  // kept here for 4c-3b-2, which lands it beside the demographics reader.
   posts:      'Recent posts',
   sendReq:    'Send request',
   to:         'To',
@@ -50,11 +61,8 @@ export const EXCHANGE = {
   send:       'Send',
   withdraw:   'Withdraw',
   complete:   'Mark completed',
-  // ⚠ `withdrawn` IS A SIXTH BYTE AND IT IS NOT VETOED. The shell drew four states;
-  // 0166 has five, because Withdraw now has somewhere to land. It CANNOT REACH GLASS
-  // while EXCHANGE_PREVIEW is true — no fixture row carries it and no act can move a
-  // row — and 4c-3b-1s MUST NOT FLIP THE FLAG until the founder has vetoed or replaced
-  // it. Filed on the veto sheet as №6, not minted quietly.
+  // `withdrawn` — VETOED 2026-09-10 (sheet №6). It was authored unvetoed and held off
+  // glass by the flag until the founder ruled; the flag could not flip before it did.
   states:     { sent: 'Sent', accepted: 'Accepted', declined: 'Declined', withdrawn: 'Withdrawn', completed: 'Completed' } as const,
   headInbox:  'Requests to you',                // VETOED 2026-09-10 (sheet 1)
   accept:     'Accept',                         // VETOED (sheet 2)

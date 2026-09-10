@@ -2,6 +2,9 @@
 'use strict';
 // scripts/b76_4c3a_exchange_shell_bench.js — CE-42 4c-3a · R7 G5.3 THE INFLUENCER EXCHANGE SHELL (pwa).
 // EXTENDED at 4c-3b-1p (seat R7, base a9b5e0cd): C2 and C7 AMENDED BY LABEL, C8-C14 new.
+// AMENDED AGAIN at 4c-3b-1p-r, the flip rider (base d644a3c6): C2, C3 and C8 by label —
+// EXCHANGE_PREVIEW is FALSE now, so "nothing may be called" and "every act toasts" are the
+// wrong assertions and their replacements are stated at each cell. C15 new (F-42.208).
 //   C2 said "the shell has no network" and asserted no `fetch(`/`getJson` appears at all.
 //   4c-3b-1p wires the client, so that byte is now false BY CHARTER rather than by drift —
 //   the chair's split ruled the fetches in, behind one flag. The cell keeps its number and
@@ -64,7 +67,11 @@ cell('C1 the vetoed strings, byte for byte (incl. the one changed byte: "their a
 
 // MUTATION → RED: delete any one `if (EXCHANGE_PREVIEW) return;` guard, or flip the flag.
 cell('C2 (AMENDED 4c-3b-1p) one flag, one branch: every door call sits behind EXCHANGE_PREVIEW', () => {
-  if (EX.EXCHANGE_PREVIEW !== true) return 'the flag shipped flipped — nothing may be called before the doors exist';
+  // AMENDED at the rider: the cell used to demand the flag be TRUE, because the doors did
+  // not exist. They do (dream-os 50781af). What it must pin now is that the flip did not
+  // take the branches with it — the fixture path is the way back — and that every call is
+  // still inside one.
+  if (EX.EXCHANGE_PREVIEW !== false) return 'the flag is still true — the doors landed and the acts are owed';
   const lines = page.split('\n');
   const CALLS = ['fetchExchangeHome(', 'fetchCreators(', 'fetchMyRequests(', 'fetchInbox(',
                  'sendRequest(', 'withdrawRequest(', 'completeRequest(', 'acceptRequest(', 'declineRequest('];
@@ -87,16 +94,19 @@ cell('C2 (AMENDED 4c-3b-1p) one flag, one branch: every door call sits behind EX
   if (MK.EXCHANGE_INFLUENCERS.length !== 3 || MK.EXCHANGE_REQUESTS.length !== 4 || MK.EXCHANGE_INBOX.length !== 3) return 'fixture counts moved';
 });
 
-cell('C3 (AMENDED 4c-3b-1p) while the flag is true EVERY act toasts COPY.launchingSoon and returns', () => {
-  // 4c-3a's C3 read `onClick={soon}` on each control. The controls now call real
-  // handlers, so the assertion moves to where the branch is: each act's FIRST
-  // statement is the preview toast, and it RETURNS — an act that toasted and then
-  // fell through to a door would be the worst of both.
+cell('C3 (AMENDED at the rider) the acts are LIVE, and the toast branch survives intact as the way back', () => {
+  // 4c-3a asserted `onClick={soon}`; 4c-3b-1p asserted three preview toast branches.
+  // Both were right for a flag that was true. With it false the acts call the doors, and
+  // what this cell must pin is that the branches were not deleted in the flip — a rider
+  // that removed them would make the revert a re-cut instead of one line.
   if (!/import \{ COPY \} from '@\/lib\/solutions\/copy'/.test(page)) return 'the byte is not imported';
   if (/launching soon/i.test(page.replace(/COPY\.launchingSoon/g, ''))) return 'the byte is typed, not imported';
   const acts = (page.match(/if \(EXCHANGE_PREVIEW\) \{ show\(COPY\.launchingSoon\); return; \}/g) || []).length;
-  if (acts !== 3) return `${acts} act paths toast — expected 3 (inbox accept/decline, withdraw/complete, send)`;
-  // ...and the acts are still gated by state on both seats.
+  if (acts !== 3) return `${acts} preview branches survive — expected 3 (inbox accept/decline, withdraw/complete, send)`;
+  // ...and each act now has a real door behind that branch.
+  for (const call of ['acceptRequest(id)', 'declineRequest(id)', 'withdrawRequest(id)', 'completeRequest(id)', 'sendRequest(creatorId, body)']) {
+    if (!page.includes(call)) return `no live call for ${call}`;
+  }
   if (!/r\.state === 'sent'     \? <button/.test(page)) return 'Withdraw is not on sent only';
   if (!/r\.state === 'accepted' \? <button/.test(page)) return 'Mark completed is not on accepted only';
 });
@@ -142,18 +152,24 @@ const client  = strip(read('lib/vendor/api/exchange.ts'));
 const setPage = strip(read('app/vendor/(shell)/settings/page.tsx'));
 
 // MUTATION → RED: change 'Requests to you' to 'Your inbox'.
-cell('C8 the five vetoed bytes, and the sixth declared unvetoed rather than minted quietly', () => {
+cell('C8 (AMENDED at the rider) all six bytes vetoed — the sixth carries its veto date, not a warning', () => {
   const want = { headInbox: 'Requests to you', accept: 'Accept', decline: 'Decline',
                  optInLabel: 'Open to requests from vendors',
                  optInLine: 'Vendors on The Dream Wedding can see your audience and send you a request.' };
   for (const [k, v] of Object.entries(want)) if (EX.EXCHANGE[k] !== v) return `${k} = "${EX.EXCHANGE[k]}"`;
-  // The fifth state exists (0166 has five) and its byte is flagged as AWAITING VETO in
-  // the source. Strip the warning without a veto and this cell goes red.
+  // AMENDED at the rider: №6 was VETOED 2026-09-10, so the AWAITING-VETO warning is gone
+  // and with it the assertion that guarded it. The byte itself is now pinned like the
+  // other five, and the source must carry its veto date rather than a warning.
   if (EX.EXCHANGE.states.withdrawn !== 'Withdrawn') return 'the withdrawn label moved';
-  if (!/AWAITING VETO|IS A SIXTH BYTE AND IT IS NOT VETOED/.test(rawEx)) return 'the unvetoed byte lost its warning';
-  // ...and it cannot reach glass: no fixture row carries it.
-  const states = [...MK.EXCHANGE_REQUESTS, ...MK.EXCHANGE_INBOX].map((r) => r.state);
-  if (states.includes('withdrawn')) return 'a fixture row puts the unvetoed byte on glass';
+  if (/AWAITING VETO/.test(rawEx)) return 'the warning outlived the veto';
+  // ⚠ THE SIXTH BYTE'S OWN LINES, not "a veto mark somewhere in the file". The first cut
+  // of this amendment used an alternation whose second arm matched bytes 1-5's marks, so
+  // stripping the sixth's record left it GREEN. The record sits directly above `states:`.
+  const exLines = rawEx.split('\n');
+  const at = exLines.findIndex((l) => /^\s*states:/.test(l));
+  if (at < 1) return 'the states line moved';
+  if (!/VETOED/.test(exLines.slice(Math.max(0, at - 4), at).join('\n'))) return 'the sixth byte lost its veto record';
+  if (Object.keys(EX.EXCHANGE.states).length !== 5) return 'the five states are not all drawn';
 });
 
 // MUTATION → RED: move the `params.get` read outside the EXCHANGE_PREVIEW branch.
@@ -227,6 +243,20 @@ cell('C14 S2(b) holds through the flip: the count is a fact, never a key; no ide
   // The client's reach shape has NO column for a follower identity, and neither does 0166.
   if (/follower_name|follower_handle|followers\s*:\s*\{/.test(client)) return 'the client shape carries a follower identity';
   if (!/aggregates/.test(read('lib/vendor/api/exchange.ts'))) return 'the client lost its no-identity declaration';
+});
+
+// MUTATION → RED: put the tiles back on the card.
+cell('C15 (F-42.208) the reach card carries NO post tiles — audience, engagement, verified only', () => {
+  const card = page.slice(page.indexOf('{open ? ('), page.indexOf('<p className="xc-banner">'));
+  if (/EXCHANGE\.posts|xc-posts|xc-post\b/.test(card)) return 'the card still draws post tiles';
+  if (/\.posts/.test(page.slice(page.indexOf('function ExchangeRoom')))) return 'a post field survives on the glass';
+  // The two rungs went with them (R-38.4: a rung with nothing on it grows something).
+  if (/\.xc-posts\{|\.xc-post\{/.test(page)) return 'the tile rungs outlived the tiles';
+  // The BYTE stays — vetoed, and 4c-3b-2 lands it beside the demographics reader.
+  if (EX.EXCHANGE.posts !== 'Recent posts') return 'the vetoed byte was deleted rather than parked';
+  if (!/F-42\.208/.test(rawEx)) return 'the byte is parked with no finding named';
+  // What the card DOES show.
+  for (const k of ['audience', 'byCity', 'byAge', 'byGender', 'engagement']) if (!card.includes('EXCHANGE.' + k)) return `the card lost ${k}`;
 });
 
 console.log(`\nb76 · ${pass} GREEN · ${reds.length} RED${reds.length ? ' — ' + reds.join(' | ') : ''}`);
