@@ -115,6 +115,13 @@ export const ROOMS: readonly Room[] = [
   // symbol and cost a route, a redirect and every reader of both.
   { id: 'support',   label: 'Business Solutions', band: 'work', href: '/vendor/support', pinnable: false, headline: true },
   { id: 'leads',     label: 'Leads',     band: 'work', href: '/vendor/leads',     pinnable: true  },
+  // ── CE-43 · LC-2 · F18 · THE PACKAGES ROOM, BESIDE LEADS (chair-ruled 2026-09-17) ──
+  // A package is quoted to a lead, so the room sits next to the room it serves. An
+  // INSERTION, founder-worded through the chair: every id after it shifts one index, and
+  // the top band's grid moves 9 → 10, which brings back ONE ORPHAN TILE on the 3-wide
+  // grid R-37.87 and R-40.99 had removed (disclosed in the packet 1 handover for the
+  // founder's walk). The label is vetoed byte P1.
+  { id: 'packages',  label: 'Packages',  band: 'work', href: '/vendor/packages',  pinnable: true  },
   { id: 'clients',   label: 'Clients',   band: 'work', href: '/vendor/clients',   pinnable: true  },
   { id: 'invoices',  label: 'Invoices',  band: 'work', href: '/vendor/invoices',  pinnable: true  },
   { id: 'expenses',  label: 'Expenses',  band: 'work', href: '/vendor/expenses',  pinnable: true  },
@@ -240,15 +247,17 @@ export const ROOM_FOR_KIND: Readonly<Record<AttentionKind, string>> = {
 // a room left the GRID. GRID_TILE_COUNT_EXPECTED is what the vendor's thumb can
 // reach on Rooms: nineteen less the hosted one. Count history, every step worded
 // or derived: 11 → 15 → 16 → 17 → 18 → 19 directory, and 19 → 18 on the glass.
-export const ROOM_COUNT_EXPECTED = 19;
-export const GRID_TILE_COUNT_EXPECTED = 18;
+// CE-43 LC-2 (F18, F-43.68): Packages joins the WORK band. Directory 19 → 20, grid 18 → 19.
+export const ROOM_COUNT_EXPECTED = 20;
+export const GRID_TILE_COUNT_EXPECTED = 19;
 // R-40.20: Business Solutions crosses from business to work. 8\u21929 and 11\u219210.
 // R-40.99: Contracts is hosted by the hub, so the BOTTOM BAND'S GRID count falls
 // 10 → 9 while its DIRECTORY count holds at 10. Both bands now fall 3·3·3 and the
 // orphan row that has followed this grid since R-37.87 is gone from both.
 // ⚠ THESE TWO ARE GRID COUNTS, not directory counts — they are what `roomsInBand`
 // returns, because that is the function the constants exist to check.
-export const TOP_BAND_EXPECTED = 9;
+// CE-43 LC-2: Packages makes the top band's grid ten (one orphan tile, disclosed).
+export const TOP_BAND_EXPECTED = 10;
 export const BOTTOM_BAND_EXPECTED = 9;
 
 /**
@@ -272,7 +281,7 @@ export const HOSTED_TILES_EXPECTED: readonly string[] = ['contracts'] as const;
 /** The frozen order, by id. The cell compares against this and nothing else. */
 export const FROZEN_ORDER: readonly string[] = [
   'support',
-  'leads', 'clients', 'invoices', 'expenses', 'books', 'events', 'notes', 'calendar',
+  'leads', 'packages', 'clients', 'invoices', 'expenses', 'books', 'events', 'notes', 'calendar',
   'storefront', 'portfolio', 'couture', 'team', 'contracts', 'tds', 'billing', 'settings',
   'collab', 'advisor',
 ] as const;

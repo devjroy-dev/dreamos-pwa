@@ -1,0 +1,22 @@
+# scripts/floor-manifest-lc2-p1-pwa.txt
+# CE-43 · LC-2 packet 1 · the dreamos-pwa packet. F-19.16: a dirty path outside this list is a STOP.
+# Every path this ZIP writes, and nothing else. `app/vendor/(shell)/packages/` appears both as
+# the directory `git status --porcelain` prints for a new untracked folder and as its file
+# (F-43.71's lesson; the CE-42 4b-1 precedent in dream-os). `app/favicon.ico` joins at r2
+# (F-43.74, chair-ruled (a)): the same mark, re-encoded RGBA. `public/brand/favicon.ico` joins at r3
+# (F-43.75): the CE-41 one-family law holds the two copies to the same bytes.
+app/vendor/(shell)/packages/
+app/vendor/(shell)/packages/page.tsx
+app/vendor/(shell)/clients/body.tsx
+app/favicon.ico
+public/brand/favicon.ico
+components/vendor/ClientBookingSheet.tsx
+components/vendor/slices/SliceShell.tsx
+lib/vendor/api/vendor.ts
+lib/worklist/packages.ts
+lib/worklist/rooms.ts
+scripts/b40_worklist_shell_bench.js
+scripts/b42_g11_wedding_pages_bench.js
+scripts/b80_lc2_p1_shell_bench.js
+scripts/floor-manifest-lc2-p1-pwa.txt
+docs/handovers/TDW_CE43_LC2_P1_HANDOVER.md

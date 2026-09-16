@@ -66,17 +66,19 @@ sec('C1 \u00b7 the registry (R-40.20/.22)');
   // nineteen rooms, eighteen tiles, the business band 10 in the registry and 9 on
   // the glass. b40 C2 owns the full assertion; this cell reads the same four
   // constants so the two benches cannot drift apart on the numbers they share.
-  ok('19 / 18 / 9 / 9', num('ROOM_COUNT_EXPECTED') === 19 && num('GRID_TILE_COUNT_EXPECTED') === 18
-    && num('TOP_BAND_EXPECTED') === 9 && num('BOTTOM_BAND_EXPECTED') === 9,
+  // AMENDED BY LABEL — CE-43 LC-2 F18 (chair-ruled 2026-09-17, F-43.68): Packages joins
+  // the work band beside Leads. Directory 19 → 20, grid 18 → 19, top band 9 → 10.
+  ok('20 / 19 / 10 / 9', num('ROOM_COUNT_EXPECTED') === 20 && num('GRID_TILE_COUNT_EXPECTED') === 19
+    && num('TOP_BAND_EXPECTED') === 10 && num('BOTTOM_BAND_EXPECTED') === 9,
     [num('ROOM_COUNT_EXPECTED'), num('GRID_TILE_COUNT_EXPECTED'), num('TOP_BAND_EXPECTED'), num('BOTTOM_BAND_EXPECTED')].join('/'));
   const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
-  ok('nineteen rooms', ids.length === 19, String(ids.length));
+  ok('twenty rooms (CE-43 LC-2 F18, by label)', ids.length === 20, String(ids.length));
   ok('Business Solutions is index 0 of the work band (R-40.20)', ids[0] === 'support', ids[0]);
   const fb = src.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
   const frozen = fb ? (fb[1].match(/'([a-z]+)'/g) || []).map((s) => s.slice(1, -1)) : [];
   ok('FROZEN_ORDER equals the registry order', frozen.join(',') === ids.join(','));
   ok('the bands count to the declared constants',
-    (src.match(/band: 'work'/g) || []).length === 9 && (src.match(/band: 'business'/g) || []).length === 10);
+    (src.match(/band: 'work'/g) || []).length === 10 && (src.match(/band: 'business'/g) || []).length === 10); // work 9 → 10, CE-43 LC-2 F18, by label
   // AMENDED BY LABEL — R-40.98. The headline set is read from its DECLARATION and
   // compared to the actual flags. "Two tiles are headlines" would pass on the
   // wrong two. The two names did not move; `wide` became `headline` when the

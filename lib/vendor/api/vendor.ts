@@ -248,6 +248,37 @@ export function fetchWorklistToday(): Promise<WorklistTodayResponse> {
   return getJson<WorklistTodayResponse>('/api/v2/vendor/worklist/today');
 }
 
+// ── Packages · CE-43 LC-2 ─────────────────────────────────────────────────
+// The Packages room's read. dream-os src/api/vendor/packages.js (GET '/', mounted at
+// /api/v2/vendor/packages): the vendor is resolved from the session, the first read
+// seeds her category's options once (ensureSeeded), and `seeding` reports that.
+// Fields are the handler's PACKAGE_SELECT, read from the handler, not assumed.
+export interface PackageLineItem { label: string; detail: string }
+export interface VendorPackage {
+  id: string;
+  name: string;
+  description: string;
+  line_items: PackageLineItem[];
+  total: number | null;
+  deposit_pct: number;
+  middle_pct: number;
+  middle_enabled: boolean;
+  delivery_basis: 'on_the_day' | 'days' | 'handover';
+  delivery_days: number | null;
+  is_default: boolean;
+  seeded_from: string | null;
+  created_at: string;
+  updated_at: string;
+}
+export interface PackagesResponse {
+  ok: true;
+  packages: VendorPackage[];
+  seeding: { seeded: boolean; reason: string };
+}
+export function fetchPackages(): Promise<PackagesResponse | ApiErr> {
+  return getJson<PackagesResponse | ApiErr>('/api/v2/vendor/packages');
+}
+
 // ── Leads ─────────────────────────────────────────────────────────────────
 // TDW_03 (A) repoint, CE-ruled 2026-07-14: leads read the TYPED plane again.
 // LD-1: typed tables own leads. 02-P1 moved the writes to public.leads; the

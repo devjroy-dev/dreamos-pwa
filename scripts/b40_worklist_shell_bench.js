@@ -184,8 +184,10 @@ cell('C2 nineteen rooms in frozen order, eighteen tiles, 9 + 9 (R-37.75; R-37.87
   const num = (name) => { const m = src.match(new RegExp(name + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
   const EXP_ALL = num('ROOM_COUNT_EXPECTED'), EXP_GRID = num('GRID_TILE_COUNT_EXPECTED');
   const EXP_TOP = num('TOP_BAND_EXPECTED'), EXP_BOT = num('BOTTOM_BAND_EXPECTED');
-  if (EXP_ALL !== 19 || EXP_GRID !== 18 || EXP_TOP !== 9 || EXP_BOT !== 9)
-    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_GRID + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 19/18/9/9';
+  // AMENDED BY LABEL — CE-43 LC-2 F18 (chair-ruled 2026-09-17, F-43.68): Packages joins the
+  // work band beside Leads. 19/18/9/9 → 20/19/10/9. The title keeps its history.
+  if (EXP_ALL !== 20 || EXP_GRID !== 19 || EXP_TOP !== 10 || EXP_BOT !== 9)
+    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_GRID + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 20/19/10/9';
   const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   if (ids.length !== EXP_ALL) return 'registry has ' + ids.length + ' rooms, expected ' + EXP_ALL;
   const fb = src.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
@@ -199,7 +201,9 @@ cell('C2 nineteen rooms in frozen order, eighteen tiles, 9 + 9 (R-37.75; R-37.87
   // R-38.10's placement clause still stands; Books shifts one right behind the
   // insertion at index 0, which is what an insertion does and what the founder
   // worded when he placed it BESIDE Invoices and Expenses rather than at an index.
-  if (ids[5] !== 'books') return 'Books is at index ' + ids.indexOf('books') + ', ruled beside Invoices/Expenses';
+  // AMENDED BY LABEL — CE-43 LC-2 F18: Packages is inserted after Leads, so Books shifts one
+  // more to index 6. It is still beside Invoices and Expenses, which is the clause's ruling.
+  if (ids[6] !== 'books') return 'Books is at index ' + ids.indexOf('books') + ', ruled beside Invoices/Expenses';
   // R-40.98 · THE HEADLINE TILES, READ FROM THE REGISTRY'S OWN DECLARATION rather
   // than counted. A cell asserting "two tiles are headlines" passes on the wrong two.
   // AMENDED BY LABEL from the R-40.22 wide arm this replaces: same two names, same

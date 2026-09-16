@@ -46,6 +46,8 @@ import { roomHref } from '@/lib/worklist/rooms';
 // file, at the two call sites below; `Mark paid` was spelled twice more, once
 // for the swipe and once for the bulk bar. One home, four readers.
 import { COPY } from '@/lib/worklist/copy';
+import { COPY as SOL_COPY } from '@/lib/solutions/copy'; // CE-43 LC-2: the one `Launching soon.` home
+import { LEAD_PACKAGE } from '@/lib/worklist/packages'; // CE-43 LC-2: A1, A2
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, sendReminder, fetchMe, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
@@ -1234,6 +1236,26 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── CE-43 LC-2 · THE PACKAGE CARD ON THE LEAD (packet 1, the shell) ─────────
+          R-42.14: the card and its first control ship before the act behind it.
+          `Attach package` (A2) answers `Launching soon.` until packet 2 lands the
+          attach. A1 and A2 are founder-vetoed bytes (lib/worklist/packages.ts); the
+          act byte is the one home in lib/solutions/copy.ts. Tokens only (R-42.6). */}
+      {slice === 'leads' && sel && (
+        <div data-lc2="lead-package" style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid var(--atelier-card-border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brass, letterSpacing: '0.42em', textTransform: 'uppercase' }}>{LEAD_PACKAGE.eyebrow}</span>
+            <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-card-border)' }} />
+            <button type="button" onClick={() => showToast(SOL_COPY.launchingSoon)} style={{
+              padding: '5px 10px', background: 'transparent',
+              border: '0.5px solid var(--atelier-input-border)', borderRadius: 2, cursor: 'pointer',
+              fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
+              letterSpacing: '0.28em', textTransform: 'uppercase',
+            }}>{LEAD_PACKAGE.attach}</button>
+          </div>
         </div>
       )}
 

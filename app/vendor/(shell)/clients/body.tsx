@@ -18,7 +18,7 @@ import { BinderCard } from '@/components/vendor/slices/BinderCard';
 import { Masthead } from '@/components/vendor/slices/Masthead'; // TDW_04 A3
 import { deriveClients } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { A, F } from '@/components/vendor/slices/SliceRow';
-import { AddSheet } from '@/components/vendor/AddSheet';
+import { ClientBookingSheet } from '@/components/vendor/ClientBookingSheet'; // CE-43 LC-2 (R-43.5)
 import { WlToast } from '@/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
@@ -101,13 +101,13 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
       }
     >
       <ToastView toast={toast} />
-      <AddSheet
+      {/* CE-43 LC-2 · R-43.5: Add opens the booking sheet (a lead born booked), not the
+          public.clients create (F-43.46). AddSheet is untouched; its clients schema stays for
+          the demo route. Packet 1: the sheet's act answers Launching soon. */}
+      <ClientBookingSheet
         open={addOpen}
-        slice="clients"
         onClose={() => setAddOpen(false)}
         onToast={(msg: string, kind?: ToastKind) => showToast(msg, kind)}
-        existing={null}
-        existingId={undefined}
       />
     </SliceShell>
   );
