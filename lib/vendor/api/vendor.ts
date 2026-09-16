@@ -253,8 +253,46 @@ export function fetchWorklistToday(): Promise<WorklistTodayResponse> {
 // LD-1: typed tables own leads. 02-P1 moved the writes to public.leads; the
 // Piece 4-A binder adapter kept the reads on cabinet.leads — retired as drift.
 // The typed route carries the full P3 wire (draft + wishbone) per row.
-export function fetchLeads(vendorId: string, state = 'all'): Promise<LeadsResponse> {
-  return getJson<LeadsResponse>(`/api/v2/vendor/leads/${vendorId}?state=${state}`);
+export function fetchLeads(
+  vendorId: string,
+  state = 'all',
+  page?: { limit: number; offset: number },
+): Promise<LeadsResponse> {
+  const paging = page ? `&limit=${page.limit}&offset=${page.offset}` : '';
+  return getJson<LeadsResponse>(`/api/v2/vendor/leads/${vendorId}?state=${state}${paging}`);
+}
+
+// ── CE-43 · LC-1 · F-43.4, ruled F4(d): THE WHOLE LIST, NO CONTROL ──────────
+// The list route defaults to 20 rows and clamps any `limit` to 100
+// (dream-os src/api/vendor/leads.js, GET /:vendorId), and it returns `total`.
+// A caller that sent no limit saw 20 of DEV440's 26 live leads. This reads pages
+// of the server's own ceiling until `total` is reached, so every reader of the
+// leads hook (Leads, and the Invoices and Clients cross-chips) sees the whole
+// list, and Leads' search, filters and sort run over all of it. No control, no
+// copy. Rows are de-duplicated by id because a lead filed between two pages shifts
+// the newest-first order by one. A failed page returns that failure whole; the
+// hook shows its error rather than a silently short list.
+export const LEADS_PAGE_SIZE = 100;
+const LEADS_MAX_PAGES = 50;
+export async function fetchLeadsWhole(vendorId: string, state = 'all'): Promise<LeadsResponse> {
+  const first = await fetchLeads(vendorId, state, { limit: LEADS_PAGE_SIZE, offset: 0 });
+  if (!first || !first.ok || !Array.isArray(first.leads)) return first;
+  const total = typeof first.total === 'number' ? first.total : first.leads.length;
+  const seen = new Set<string>();
+  const leads: LeadsResponse['leads'] = [];
+  const take = (rows: LeadsResponse['leads']) => {
+    for (const r of rows) if (!seen.has(r.id)) { seen.add(r.id); leads.push(r); }
+  };
+  take(first.leads);
+  let offset = first.leads.length;
+  for (let n = 1; n < LEADS_MAX_PAGES && offset < total; n++) {
+    const next = await fetchLeads(vendorId, state, { limit: LEADS_PAGE_SIZE, offset });
+    if (!next || !next.ok || !Array.isArray(next.leads)) return next;
+    if (!next.leads.length) break;
+    take(next.leads);
+    offset += next.leads.length;
+  }
+  return { ...first, leads, total };
 }
 
 export function patchLeadState(leadId: string, state: string, reason?: string): Promise<LeadStateResponse> {

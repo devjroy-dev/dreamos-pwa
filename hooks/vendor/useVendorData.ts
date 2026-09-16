@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  fetchClients, fetchLeads, fetchInvoices,
+  fetchClients, fetchLeadsWhole, fetchInvoices,
   fetchExpenses, fetchEvents, fetchCabinet, fetchToday,
   type CabinetResponse,
 } from '@/lib/vendor/api/vendor';
@@ -113,7 +113,8 @@ export function useClientsData(vendorId: string | null): LoadState<Client[]> {
 export function useLeadsData(vendorId: string | null): LoadState<Lead[]> {
   return useLoader<Lead[]>(
     vendorId, 'leads',
-    (id) => fetchLeads(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
+    // CE-43 LC-1 (F4(d)): the whole list, paged at the server's ceiling until `total`.
+    (id) => fetchLeadsWhole(id) as unknown as Promise<{ ok: boolean; error?: string } & Record<string, unknown>>,
     (raw) => Array.isArray(raw.leads) ? (raw.leads as Lead[]) : null,
   );
 }

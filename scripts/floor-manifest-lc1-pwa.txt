@@ -1,0 +1,9 @@
+# scripts/floor-manifest-lc1-pwa.txt
+# CE-43 · LC-1 · the dreamos-pwa packet. F-14.16: a dirty file outside this list is a STOP.
+# Every path below was authored by the LC-1 seat on a clean clone at
+# 89f18af742b59662fa32085f203e471a05058082; nothing inherited.
+lib/vendor/api/vendor.ts
+hooks/vendor/useVendorData.ts
+scripts/b78_lc1_leads_whole_bench.js
+scripts/floor-manifest-lc1-pwa.txt
+docs/handovers/TDW_CE43_LC1_PWA_HANDOVER.md
