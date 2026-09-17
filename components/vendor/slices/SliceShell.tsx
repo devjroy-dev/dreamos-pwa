@@ -381,6 +381,42 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
   );
 }
 
+// ── CE-43 LC-2 packet 3i · F-43.112 · the lead detail's timing marks ─────────────
+// Chair-ruled: the founder's timing snippet measures the moment the package card and the detail
+// rows are stable, and the conversation's landing separately. Three User Timing marks, cleared at
+// each open so the entries always belong to the lead just opened:
+//   tdw:lead-detail:open          the detail's reads start (the tap's commit)
+//   tdw:lead-detail:card-rows     the frame after the card and rows render together
+//   tdw:lead-detail:conversation  the frame after the conversation lands
+// and two measures from the open mark (…:open→card-rows, …:open→conversation). Instrumentation only:
+// nothing on screen reads them, and a browser without the API skips them.
+const LEAD_MARK_PREFIX = 'tdw:lead-detail:';
+const LEAD_MARK_NAMES = ['open', 'card-rows', 'conversation'] as const;
+function perfOk(): boolean {
+  return typeof performance !== 'undefined' && typeof performance.mark === 'function' && typeof performance.measure === 'function';
+}
+function markLeadOpen(): void {
+  if (!perfOk()) return;
+  try {
+    for (const n of LEAD_MARK_NAMES) { performance.clearMarks(LEAD_MARK_PREFIX + n); performance.clearMeasures(`${LEAD_MARK_PREFIX}open→${n}`); }
+    performance.mark(LEAD_MARK_PREFIX + 'open');
+  } catch { /* instrumentation never breaks the sheet */ }
+}
+function markLead(name: 'card-rows' | 'conversation'): void {
+  if (!perfOk()) return;
+  try {
+    performance.mark(LEAD_MARK_PREFIX + name);
+    performance.measure(`${LEAD_MARK_PREFIX}open→${name}`, LEAD_MARK_PREFIX + 'open', LEAD_MARK_PREFIX + name);
+  } catch { /* instrumentation never breaks the sheet */ }
+}
+// Runs fn after the next frame has painted (two animation frames); returns a cancel.
+function afterPaint(fn: () => void): () => void {
+  if (typeof requestAnimationFrame !== 'function') { fn(); return () => {}; }
+  let inner = 0;
+  const outer = requestAnimationFrame(() => { inner = requestAnimationFrame(fn); });
+  return () => { cancelAnimationFrame(outer); if (inner) cancelAnimationFrame(inner); };
+}
+
 // ── SliceScreen · shared state assembly ──────────────────────────
 // The five modules parameterize this with their data hook, row mapper,
 // and delete route. State machine verbatim from the monofile.
@@ -439,6 +475,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // F-43.105: the lead detail and its package are read together when the sheet opens, and the body
   // renders once both are in (a still placeholder until then), so the package card never pops in.
   const [leadPkg, setLeadPkg] = useState<{ id: string; lp: LeadPackage | null } | null>(null);
+  // 3i · F-43.112: which lead the timing marks belong to, and whether its card-and-rows mark is made.
+  const leadMarks = useRef<{ id: string | null; ready: boolean }>({ id: null, ready: false });
   // 3g: the lead's date facts come from this room's own leads read (no extra request); the booking
   // and attach sheets use them to say what is missing before anything is sent.
   const leadFactsOf = (leadId: string | null | undefined): LeadFacts | null => {
@@ -458,6 +496,17 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // refetches after a payment, the open sheet takes the fresh row with the same id.
   useEffect(() => {
     if (slice !== 'invoices' || !sel) return;
+    const fresh = rawRows.find((r) => r.id === sel.id);
+    if (fresh && fresh !== sel) setSel(fresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawRows]);
+  // CE-43 LC-2 packet 3i · F-43.113 (chair-ruled): an open lead detail follows its row the same way.
+  // The chips, the Wedding date row and the booked badge are the row the sheet opened with; when the
+  // leads list refetches (a date filed from a chip, a booking made from the sheet), the open sheet takes
+  // the fresh row with the same id, so they update in place. The detail's own reads are keyed on the
+  // lead's id (below), so following the row re-reads nothing.
+  useEffect(() => {
+    if (slice !== 'leads' || !sel) return;
     const fresh = rawRows.find((r) => r.id === sel.id);
     if (fresh && fresh !== sel) setSel(fresh);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -741,12 +790,17 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   }, [slice, rows]);
 
   // Fetch lead detail when a lead row is selected
+  // 3i · F-43.113: keyed on the lead's id, not the row object, so a followed row (or the booked
+  // badge set on success) does not re-run the two reads or reset the timing marks.
+  const selId = sel ? sel.id : null;
   useEffect(() => {
     // The lead DETAIL fetch stays leads-only: it reads the lead conversation endpoint, which
     // the other slices have no twin for. Opening their record is the sheet; enriching it is not.
-    if (slice !== 'leads' || !sel) { setLeadDetail(null); setLeadPkg(null); return; }
+    if (slice !== 'leads' || !selId) { setLeadDetail(null); setLeadPkg(null); leadMarks.current = { id: null, ready: false }; return; }
     setLoadingDetail(true);
-    const id = sel.id;
+    const id = selId;
+    leadMarks.current = { id, ready: false };
+    markLeadOpen();
     // F-43.107 (the seat's cure, chair-ratified): the two reads run in parallel but do not wait for
     // each other. The rows and the package card render together the moment the package read is in;
     // the conversation fills below on its own read.
@@ -754,10 +808,29 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       .then((pk) => setLeadPkg({ id, lp: pk && pk.ok ? pk.lead_package : null }))
       .catch(() => setLeadPkg({ id, lp: null }));
     void fetchLeadDetail(id)
-      .then((res) => { if (res && res.ok) setLeadDetail({ vendor_summary: res.vendor_summary, conversation: res.conversation, name: (res.lead && res.lead.name) || null }); })
+      .then((res) => { if (res && res.ok) setLeadDetail({ vendor_summary: res.vendor_summary, conversation: res.conversation, name: (res.lead && res.lead.name) || null });
+        // 3i · F-43.112: the conversation's landing, measured on its own.
+        if (res && res.ok && leadMarks.current.id === id) afterPaint(() => { if (leadMarks.current.id === id) markLead('conversation'); });
+      })
       .catch(() => {})
       .finally(() => setLoadingDetail(false));
-  }, [sel, slice]);
+  }, [selId, slice]);
+
+  // 3i · F-43.112 (chair-ruled): the card and the rows are stable once the package read for this
+  // lead is in (bodyLoading turns false and they render together, F-43.107). The mark lands after
+  // that frame is painted, once per open, so the founder's snippet measures that moment and not the
+  // conversation filling in below.
+  const readyLeadId = slice === 'leads' && sel && leadPkg && leadPkg.id === sel.id ? sel.id : null;
+  useEffect(() => {
+    if (!readyLeadId) return;
+    const m = leadMarks.current;
+    if (m.id !== readyLeadId || m.ready) return;
+    return afterPaint(() => {
+      if (leadMarks.current.id !== readyLeadId || leadMarks.current.ready) return;
+      leadMarks.current.ready = true;
+      markLead('card-rows');
+    });
+  }, [readyLeadId]);
 
   // TDW_04 A1 — the leads-plane wishbone. DetailSheet's own P3 comment named
   // this injection; the sheet itself is a module (tenancy law: machinery

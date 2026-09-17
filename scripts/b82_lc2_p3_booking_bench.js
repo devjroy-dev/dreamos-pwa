@@ -45,6 +45,10 @@
 // placeholder); §13.8 re-aimed at the start-aware prefill; M40 re-aimed. §14 added.
 // AMENDED BY LABEL AT PACKET 3h (CE-43 LC-2r): §15 added for F-43.110 (the vetoed `Package attached.`)
 // and F-43.111 (the lead detail opens at full height); M46, M47. No existing cell changed.
+// AMENDED BY LABEL AT PACKET 3i (CE-43 LC-2s, chair-ruled): §16 added for F-43.113 (the open lead detail
+// follows its refetched row; its reads keyed on the lead's id) and F-43.112 (the User Timing marks for the
+// card-and-rows moment and the conversation's landing, the helpers DRIVEN over a timing double); M48 to
+// M53. No existing cell changed.
 // NOT PROVEN HERE (declared): rendering on a device, both themes on glass, the gesture under a thumb,
 // `next build`, and the database. The founder's walk (card P3) and provisional floor are their witnesses.
 const fs = require('fs');
@@ -690,6 +694,97 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     ok(m46 !== null && !/onToast\(LEAD_PACKAGE\.attached/.test(m46), '§9 M46 F-43.110: a silent attach → §15.2 RED');
     const m47 = mut(src.shell, "        fullHeight={slice === 'leads'}\n", '');
     ok(m47 !== null && !/fullHeight=\{slice === 'leads'\}/.test(strip(m47)), '§9 M47 F-43.111: the lead detail back to content height → §15.3 RED');
+  }
+
+  sec('§16 · packet 3i');
+  const leadCells = (code) => {
+    const t = strip(code);
+    return {
+      follows: /if \(slice !== 'leads' \|\| !sel\) return;\s*const fresh = rawRows\.find\(\(r\) => r\.id === sel\.id\);\s*if \(fresh && fresh !== sel\) setSel\(fresh\);\s*\}, \[rawRows\]\);/.test(t),
+      keyed: /const selId = sel \? sel\.id : null;/.test(t) && /if \(slice !== 'leads' \|\| !selId\) \{/.test(t)
+        && /const id = selId;/.test(t) && /\}, \[selId, slice\]\);/.test(t)
+        && !/setLoadingDetail\(true\);[\s\S]*?\}, \[sel, slice\]\);[\s\S]*?const readyLeadId/.test(t),
+      readyGate: /const readyLeadId = slice === 'leads' && sel && leadPkg && leadPkg\.id === sel\.id \? sel\.id : null;/.test(t)
+        && /if \(leadMarks\.current\.id !== readyLeadId \|\| leadMarks\.current\.ready\) return;\s*leadMarks\.current\.ready = true;\s*markLead\('card-rows'\);/.test(t)
+        && /\}, \[readyLeadId\]\);/.test(t)
+        && (t.match(/markLead\('card-rows'\)/g) || []).length === 1,
+      openMark: /const id = selId;\s*leadMarks\.current = \{ id, ready: false \};\s*markLeadOpen\(\);/.test(t),
+      threadMark: /setLeadDetail\(\{[^;]*\}\);\s*if \(res && res\.ok && leadMarks\.current\.id === id\) afterPaint\(\(\) => \{ if \(leadMarks\.current\.id === id\) markLead\('conversation'\); \}\);/.test(t)
+        && (t.match(/markLead\('conversation'\)/g) || []).length === 1,
+    };
+  };
+  // The helpers, DRIVEN: the block between the prefix and the SliceScreen banner is transpiled on its
+  // own and run over a User Timing double and a frame double.
+  const timingDrive = (code) => {
+    const a = code.indexOf('const LEAD_MARK_PREFIX');
+    const b = code.indexOf('// ── SliceScreen · shared state assembly');
+    if (a < 0 || b < a) return {};
+    const body = code.slice(a, b) + '\nmodule.exports = { markLeadOpen, markLead, afterPaint };\n';
+    const TS = require('typescript'); // `ts` is shadowed in this scope by §11.7's local
+    const js = TS.transpileModule(body, { compilerOptions: { module: TS.ModuleKind.CommonJS, target: TS.ScriptTarget.ES2020 } }).outputText;
+    const make = (withApi) => {
+      let now = 0; const entries = []; let frames = []; let fid = 0;
+      const perf = withApi ? {
+        mark: (n) => { entries.push({ type: 'mark', name: n, t: ++now }); },
+        measure: (n, s, e) => {
+          const ms = entries.filter((x) => x.type === 'mark' && x.name === s).pop();
+          const me = entries.filter((x) => x.type === 'mark' && x.name === e).pop();
+          if (!ms || !me) throw new Error('SyntaxError: mark missing');
+          entries.push({ type: 'measure', name: n, d: me.t - ms.t });
+        },
+        clearMarks: (n) => { for (let i = entries.length - 1; i >= 0; i--) if (entries[i].type === 'mark' && entries[i].name === n) entries.splice(i, 1); },
+        clearMeasures: (n) => { for (let i = entries.length - 1; i >= 0; i--) if (entries[i].type === 'measure' && entries[i].name === n) entries.splice(i, 1); },
+      } : undefined;
+      const raf = (cb) => { const id = ++fid; frames.push({ id, cb }); return id; };
+      const caf = (id) => { frames = frames.filter((f) => f.id !== id); };
+      const tick = () => { const run = frames; frames = []; run.forEach((f) => f.cb()); };
+      const mod = { exports: {} };
+      new Function('module', 'exports', 'performance', 'requestAnimationFrame', 'cancelAnimationFrame', js)(mod, mod.exports, perf, raf, caf);
+      return { m: mod.exports, entries, tick };
+    };
+    const r = {};
+    try {
+      const x = make(true);
+      x.m.markLeadOpen(); x.m.markLead('card-rows'); x.m.markLead('conversation');
+      x.m.markLeadOpen();                       // a second open clears the first's entries
+      x.m.markLead('card-rows');
+      const names = x.entries.map((e) => `${e.type}:${e.name}`);
+      r.marks = names.join('|') === 'mark:tdw:lead-detail:open|mark:tdw:lead-detail:card-rows|measure:tdw:lead-detail:open→card-rows';
+      r.measure = x.entries.some((e) => e.type === 'measure' && e.name === 'tdw:lead-detail:open→card-rows' && e.d > 0);
+      let ran = 0;
+      x.m.afterPaint(() => { ran++; });
+      x.tick(); const afterOne = ran; x.tick();
+      const cancel = x.m.afterPaint(() => { ran += 10; }); x.tick(); cancel(); x.tick();
+      r.paint = afterOne === 0 && ran === 1;
+      const y = make(false);
+      y.m.markLeadOpen(); y.m.markLead('conversation');
+      r.noApi = true;
+    } catch { return r; }
+    return r;
+  };
+  const lc = leadCells(src.shell);
+  ok(lc.follows, '§16.1 F-43.113: the open lead detail follows its refetched row (chips, Wedding date row, booked badge in place)');
+  ok(lc.keyed, '§16.2 F-43.113: the detail\'s two reads are keyed on the lead\'s id, so a followed row re-reads nothing');
+  const td = timingDrive(src.shell);
+  ok(!!td.marks && !!td.measure && !!td.paint && !!td.noApi,
+    '§16.3 F-43.112 DRIVEN: open, card-rows and conversation marks, a measure from open, cleared per open; after two frames, cancellable; skipped with no API');
+  ok(lc.readyGate && lc.openMark && lc.threadMark,
+    '§16.4 F-43.112: card-rows marks once per open only when the package read for this lead is in; the conversation\'s landing is its own mark');
+  {
+    const m48 = mut(src.shell, "    if (slice !== 'leads' || !sel) return;\n    const fresh = rawRows.find((r) => r.id === sel.id);\n    if (fresh && fresh !== sel) setSel(fresh);", "    if (slice !== 'leads' || !sel) return;\n    const fresh = rawRows.find((r) => r.id === sel.id);");
+    ok(m48 !== null && !leadCells(m48).follows, '§9 M48 F-43.113: the lead detail keeps its stale row → §16.1 RED');
+    const m49 = mut(src.shell, '  }, [selId, slice]);', '  }, [sel, slice]);');
+    ok(m49 !== null && !leadCells(m49).keyed, '§9 M49 F-43.113: the reads re-run on every followed row → §16.2 RED');
+    const m50 = mut(src.shell, "    performance.measure(`${LEAD_MARK_PREFIX}open→${name}`, LEAD_MARK_PREFIX + 'open', LEAD_MARK_PREFIX + name);", '');
+    const d50 = m50 === null ? { measure: true } : timingDrive(m50);
+    ok(m50 !== null && !d50.measure, '§9 M50 F-43.112: no measure from the open mark → §16.3 RED');
+    const m51 = mut(src.shell, "  const outer = requestAnimationFrame(() => { inner = requestAnimationFrame(fn); });", "  const outer = requestAnimationFrame(fn);");
+    const d51 = m51 === null ? { paint: true } : timingDrive(m51);
+    ok(m51 !== null && !d51.paint, '§9 M51 F-43.112: the mark before the frame is painted → §16.3 RED');
+    const m52 = mut(src.shell, "const readyLeadId = slice === 'leads' && sel && leadPkg && leadPkg.id === sel.id ? sel.id : null;", "const readyLeadId = slice === 'leads' && sel ? sel.id : null;");
+    ok(m52 !== null && !leadCells(m52).readyGate, '§9 M52 F-43.112: card-rows marked before the package read → §16.4 RED');
+    const m53 = mut(src.shell, "if (leadMarks.current.id === id) markLead('conversation');", "if (leadMarks.current.id === id) markLead('card-rows');");
+    ok(m53 !== null && !(leadCells(m53).readyGate && leadCells(m53).threadMark), '§9 M53 F-43.112: the conversation\'s landing folded into card-rows → §16.4 RED');
   }
 
   sec('§9 · mutations of production source');

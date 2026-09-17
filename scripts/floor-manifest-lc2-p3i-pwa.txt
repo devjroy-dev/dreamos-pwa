@@ -1,0 +1,7 @@
+# CE-43 · LC-2 packet 3i · dreamos-pwa only. F-19.16: a dirty path outside this list is a STOP.
+# No new directory.
+components/vendor/slices/SliceShell.tsx
+scripts/b82_lc2_p3_booking_bench.js
+scripts/verify-lc2-p3i-pwa.sh
+scripts/floor-manifest-lc2-p3i-pwa.txt
+docs/handovers/TDW_CE43_LC2_P3I_HANDOVER.md
