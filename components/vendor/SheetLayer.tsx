@@ -70,20 +70,15 @@ function watchViewport(): () => void {
 const serverStack: readonly string[] = [];
 const noSubscribe = () => () => {};
 
-/** The shell's theme, so a portaled sheet renders in the room's palette and type. */
+/** The room itself: sheets mount INSIDE it, so they wear its palette and type whatever sets them
+    (the `.wl[data-wl-mode]` scope, `html.theme-light`, or the vendor lane's own tokens), while still
+    escaping the record sheet's transformed panel, which was the anchor defect. */
 function shellNode(): HTMLElement | null {
-  return typeof document === 'undefined' ? null : document.querySelector<HTMLElement>('.wl[data-wl-mode]');
+  return typeof document === 'undefined' ? null : document.querySelector<HTMLElement>('.wl');
 }
-function subscribeMode(fn: () => void): () => void {
-  const el = shellNode();
-  if (!el || typeof MutationObserver === 'undefined') return () => {};
-  const mo = new MutationObserver(fn);
-  mo.observe(el, { attributes: true, attributeFilter: ['data-wl-mode'] });
-  return () => mo.disconnect();
-}
-function readMode(): string {
-  const el = shellNode();
-  return (el && el.getAttribute('data-wl-mode')) || 'dark';
+function mountNode(): HTMLElement | null {
+  if (typeof document === 'undefined') return null;
+  return shellNode() || document.body;
 }
 
 export function SheetLayer({ open, children, testId }: {
@@ -103,13 +98,13 @@ export function SheetLayer({ open, children, testId }: {
   }, [open, id]);
   // Re-render when the stack changes, so depth and `inert` follow the sheets above.
   useSyncExternalStore(subscribeLayers, openLayers, () => serverStack);
-  const mode = useSyncExternalStore(subscribeMode, readMode, () => 'dark');
-  if (!mounted) return null;
+  const host = mounted ? mountNode() : null;
+  if (!mounted || !host) return null;
   const z = layerZ(depthOf(id));
   return createPortal(
-    <div className="wl" data-wl-mode={mode} data-sheet-layer={testId || ''} inert={isBeneath(id)}
+    <div data-sheet-layer={testId || ''} inert={isBeneath(id)}
       style={{ position: 'relative', zIndex: z.panel, background: 'none' }}>{children(z)}</div>,
-    document.body,
+    host,
   );
 }
 
