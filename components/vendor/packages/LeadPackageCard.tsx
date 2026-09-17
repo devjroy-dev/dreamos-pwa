@@ -15,13 +15,16 @@
 //   · refusals are A9's four lines by code; any other failure is `attachFailed` (vetoed YES, C-43.16).
 //   · packet 3: A2's `Booking confirmed` and `Advance paid` hand their kind to `onBook`; the shell
 //     opens the one booking sheet (BookingSheet.tsx, A12). Nothing is written from this card.
-//   · packet 3c · 3(a)/4(a) (chair-ruled): the two booking controls are ALWAYS present on a lead
-//     that is not booked. With no package attached, each opens the attach sheet first and, once
-//     the package is attached, hands its kind on to the booking sheet. No guessing game.
+//   · packet 3c: the two booking controls are ALWAYS present on a lead that is not booked.
+//   · packet 3f · R-43.16: they always open the booking sheet (3c's attach-first redirect is removed,
+//     F-43.104); a missing package is fixed from the booking sheet's own refusal line.
+//   · packet 3f · F-43.105: the card can take its package read from the detail's own open
+//     (`initial`), so it renders with the detail instead of popping in after it.
 //   · C-43.16: the attach sheet's Cancel is outlined in the muted ink.
 //   · the empty package option reads `Select…`, AddSheet's existing byte (as ClientBookingSheet).
 // Tokens only (R-42.6). Full-month dates (R-42.13) through packageDate.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { NeedFirst } from '@/components/vendor/NeedFirst';
 import {
   fetchLeadPackage, attachLeadPackage, fetchPackages,
   type LeadPackage, type VendorPackage, type PackageLineItem, type AttachInput,
@@ -40,23 +43,23 @@ import {
 type RefusalCode = keyof typeof LEAD_PACKAGE.refusals;
 const isRefusal = (c: unknown): c is RefusalCode => typeof c === 'string' && c in LEAD_PACKAGE.refusals;
 
-export function LeadPackageCard({ leadId, booked = false, onBook, onToast }: {
+export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNeedWeddingDate, initial }: {
   leadId: string;
   booked?: boolean;
   onBook?: (kind: BookingKind) => void;
   onToast: (msg: string, kind?: ToastKind) => void;
+  /** R-43.16: the fix the attach sheet offers for `Add the wedding date first.` */
+  onNeedWeddingDate: () => void;
+  /** F-43.105: the package read the detail made with its own open. `undefined` means the card reads
+   *  it itself (the pre-3f path); `null` or a row means it is already in, and the card renders at once. */
+  initial?: LeadPackage | null;
 }) {
-  const [lp, setLp] = useState<LeadPackage | null | undefined>(undefined);
+  const [lp, setLp] = useState<LeadPackage | null | undefined>(initial);
   const [sheetOpen, setSheetOpen] = useState(false);
-  // 3(a): the booking the vendor asked for while no package was attached; it continues once
-  // the attach lands, and is dropped if the attach sheet is closed.
-  const [pendingKind, setPendingKind] = useState<BookingKind | null>(null);
-  const book = (k: BookingKind) => {
-    if (!onBook) return;
-    if (lp) { onBook(k); return; }
-    setPendingKind(k);
-    setSheetOpen(true);
-  };
+  // Packet 3f · R-43.16 (chair-ruled, F-43.104 the seat's): no redirect. The booking pair always
+  // hands its kind to the booking sheet; a missing package is fixed from the booking sheet's own
+  // refusal line, and `Attach package` above stays this card's own control.
+  const book = (k: BookingKind) => { if (onBook) onBook(k); };
 
   const load = useCallback(async () => {
     try {
@@ -64,7 +67,10 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast }: {
       setLp(r && r.ok ? r.lead_package : null);
     } catch { setLp(null); }
   }, [leadId]);
-  useEffect(() => { setLp(undefined); void load(); }, [load]);
+  useEffect(() => {
+    if (initial !== undefined) { setLp(initial); return; }
+    setLp(undefined); void load();
+  }, [load, initial]);
 
   const eyebrow = (
     <span style={{ fontFamily: T.label, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.mute }}>
@@ -118,37 +124,46 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast }: {
         open={sheetOpen}
         leadId={leadId}
         current={lp || null}
-        onClose={() => { setSheetOpen(false); setPendingKind(null); }}
-        onAttached={(row) => {
-          setLp(row); setSheetOpen(false);
-          if (pendingKind && onBook) onBook(pendingKind);
-          setPendingKind(null);
-        }}
+        onClose={() => setSheetOpen(false)}
+        onAttached={(row) => { setLp(row); setSheetOpen(false); }}
         onToast={onToast}
+        onNeedWeddingDate={onNeedWeddingDate}
       />
     </div>
   );
 }
 
-// CE-43 LC-2 packet 3e · F-43.102: exported so the no-package swipe (SliceShell) and the booking
-// sheet's no_package refusal (BookingSheet) open this same sheet.
-export function AttachSheet({ open, leadId, current, onClose, onAttached, onToast }: {
+// CE-43 LC-2 packet 3e · F-43.102: exported so the booking sheet opens this same sheet.
+// Packet 3f · R-43.16: every refusal line here is a NeedFirst control. A missing package, fee or
+// handover date focuses its own field in this sheet; a missing wedding date asks the caller to
+// open the lead's wedding-date completion (`onNeedWeddingDate`), and this sheet stays open under
+// it. `focus` opens the sheet on the fee or handover field. F-43.105: while the vendor's packages
+// load, the sheet shows a still placeholder, never an empty form that fills in later.
+export function AttachSheet({ open, leadId, current, onClose, onAttached, onToast, onNeedWeddingDate, focus = null }: {
   open: boolean; leadId: string; current: LeadPackage | null;
   onClose: () => void; onAttached: (row: LeadPackage) => void;
   onToast: (msg: string, kind?: ToastKind) => void;
+  /** R-43.16: the fix for `Add the wedding date first.` Required wherever this sheet can refuse it. */
+  onNeedWeddingDate: () => void;
+  focus?: 'fee' | 'handover' | null;
 }) {
-  const [packages, setPackages] = useState<VendorPackage[]>([]);
+  const [packages, setPackages] = useState<VendorPackage[] | null>(null);
   const [packageId, setPackageId] = useState('');
   const [fee, setFee] = useState('');
   const [handover, setHandover] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [items, setItems] = useState<PackageLineItem[]>([]);
-  const [message, setMessage] = useState<string | null>(null);
+  const [need, setNeed] = useState<{ text: string; fix: () => void } | null>(null);
   const [bad, setBad] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+  const focusOn = useCallback((id: string) => {
+    const el = bodyRef.current ? bodyRef.current.querySelector<HTMLElement>(`#${id}`) : null;
+    if (el) el.focus();
+  }, []);
 
-  const chosen = useMemo(() => packages.find((p) => p.id === packageId) || null, [packages, packageId]);
+  const chosen = useMemo(() => (packages || []).find((p) => p.id === packageId) || null, [packages, packageId]);
 
   const fillFrom = useCallback((p: VendorPackage | null) => {
     setFee(p && p.total != null ? String(p.total) : '');
@@ -160,22 +175,42 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
 
   useEffect(() => {
     if (!open) return;
-    setMessage(null); setBad(null); setBusy(false);
+    setNeed(null); setBad(null); setBusy(false); setPackages(null);
     let alive = true;
     void fetchPackages().then((r) => {
-      if (!alive || !r || !r.ok) return;
+      if (!alive) return;
+      if (!r || !r.ok) { setPackages([]); return; }
       setPackages(r.packages);
       const pick = (current && r.packages.find((p) => p.id === current.package_id))
         || r.packages.find((p) => p.is_default) || null;
       setPackageId(pick ? pick.id : '');
       fillFrom(pick);
-    }).catch(() => { /* the select stays empty; submit then refuses with A9's first line */ });
+    }).catch(() => { if (alive) setPackages([]); /* the select stays empty; submit then shows A9's first line */ });
     return () => { alive = false; };
   }, [open, current, fillFrom]);
 
+  // `focus` opens the sheet on the field the booking sheet's refusal named, once the form exists.
+  useEffect(() => {
+    if (!open || packages === null || !focus) return;
+    focusOn(focus === 'fee' ? 'att-fee' : 'att-handover');
+  }, [open, packages, focus, focusOn]);
+
+  // R-43.16: each refusal code names its own fix.
+  const needFor = (code: RefusalCode) => ({
+    text: LEAD_PACKAGE.refusals[code],
+    fix: code === 'no_wedding_date' ? onNeedWeddingDate
+      : code === 'no_fee' ? () => focusOn('att-fee')
+      : code === 'no_handover_date' ? () => focusOn('att-handover')
+      : () => focusOn('att-pkg'),
+  });
+  const needForField = (field: string) => ({
+    text: field === 'name' ? PACKAGE_FAILURES.nameGate : PACKAGE_FAILURES.fieldGate,
+    fix: () => focusOn(field === 'name' ? 'pkg-name' : field === 'description' ? 'pkg-desc' : field === 'total' ? 'att-fee' : field === 'delivery_on' ? 'att-handover' : 'att-pkg'),
+  });
+
   async function submit() {
     if (busy) return;
-    if (!chosen) { setMessage(LEAD_PACKAGE.refusals.no_package); setBad('package_id'); return; }
+    if (!chosen) { setNeed(needFor('no_package')); setBad('package_id'); return; }
     const body: AttachInput = { package_id: chosen.id };
     const total = wholeRupees(fee);
     if (total != null && total !== chosen.total) body.total = total;
@@ -184,18 +219,18 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
     const tidy = tidyItems(items);
     if (JSON.stringify(tidy) !== JSON.stringify(chosen.line_items)) body.line_items = tidy;
     if (chosen.delivery_basis === 'handover' && handover) body.delivery_on = handover;
-    setBusy(true); setMessage(null); setBad(null);
+    setBusy(true); setNeed(null); setBad(null);
     try {
       const r = await attachLeadPackage(leadId, body);
       if (r && r.ok && 'lead_package' in r) { onAttached(r.lead_package); return; }
       const code = r && !r.ok && 'code' in r ? r.code : undefined;
       const field = r && !r.ok && 'field' in r ? r.field : undefined;
       if (isRefusal(code)) {
-        setMessage(LEAD_PACKAGE.refusals[code]);
+        setNeed(needFor(code));
         setBad(code === 'no_fee' ? 'total' : code === 'no_handover_date' ? 'delivery_on' : null);
       } else if (field) {
         setBad(field);
-        setMessage(field === 'name' ? PACKAGE_FAILURES.nameGate : PACKAGE_FAILURES.fieldGate);
+        setNeed(needForField(field));
       } else onToast(PACKAGE_FAILURES.attachFailed, 'error');
     } catch {
       onToast(PACKAGE_FAILURES.attachFailed, 'error');
@@ -217,11 +252,17 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
         </>
       )}
     >
-      {message && <p role="alert" style={{ margin: 0, fontFamily: T.body, fontSize: 14, color: T.accent }}>{message}</p>}
+      <div ref={bodyRef} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {need && <NeedFirst text={need.text} onFix={need.fix} testId="attach" />}
+      {packages === null ? (
+        <div data-lc2="attach-skeleton" aria-busy="true" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {[0, 1].map((k) => <div key={k} style={{ height: 70, borderRadius: 2, border: `0.5px solid ${T.card}` }} />)}
+        </div>
+      ) : (<>
       <div>
         <FieldLabel text={LEAD_PACKAGE.fPackage} htmlFor="att-pkg" />
         <select id="att-pkg" style={{ ...inputStyle, ...(bad === 'package_id' ? flagged : {}) }} value={packageId}
-          onChange={(e) => { setPackageId(e.target.value); fillFrom(packages.find((p) => p.id === e.target.value) || null); }}>
+          onChange={(e) => { setPackageId(e.target.value); fillFrom(packages.find((p) => p.id === e.target.value) || null); setNeed(null); }}>
           <option value="" disabled>Select…</option>
           {packages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
@@ -242,6 +283,8 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
         <IdentityFields name={name} description={description} items={items}
           onName={setName} onDescription={setDescription} onItems={setItems} badField={bad} />
       )}
+      </>)}
+      </div>
     </Sheet>
   );
 }

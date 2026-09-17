@@ -9,6 +9,7 @@
 // remainder. Everything else is the door's refusal (422 `invalid` + field), which flags the
 // field and says `fieldGate`. A network or 500 failure says `saveFailed`. The money shown
 // anywhere else is the server's; this sheet only collects whole-rupee input.
+import { NeedFirst } from '@/components/vendor/NeedFirst';
 import { useEffect, useRef, useState } from 'react';
 import {
   createPackage, updatePackage,
@@ -22,6 +23,12 @@ import {
 } from './PackageFields';
 
 type Basis = 'on_the_day' | 'days' | 'handover';
+
+// R-43.16: which field each gate's line focuses.
+const GATE_FIELD: Record<string, string> = {
+  name: 'pkg-name', description: 'pkg-desc', total: 'pkg-fee', remainder: 'pkg-dep',
+  deposit_pct: 'pkg-dep', middle_pct: 'pkg-mid', delivery_basis: 'pkg-basis', delivery_days: 'pkg-days',
+};
 
 export function PackageEditSheet({ open, pkg, focusFee, onClose, onSaved, onToast }: {
   open: boolean;
@@ -119,7 +126,14 @@ export function PackageEditSheet({ open, pkg, focusFee, onClose, onSaved, onToas
         </>
       )}
     >
-      {gate && <p role="alert" style={{ margin: 0, fontFamily: T.body, fontSize: 14, color: T.accent }}>{gate}</p>}
+      {/* Packet 3f · R-43.16: the gate line focuses the field that fixes it (scoped to this sheet). */}
+      {gate && (
+        <NeedFirst text={gate} testId="package-edit" onFix={() => {
+          const id = GATE_FIELD[bad || ''] || 'pkg-name';
+          const el = document.querySelector<HTMLElement>(`[data-lc2="package-edit-sheet"] #${id}`);
+          if (el) el.focus();
+        }} />
+      )}
       <IdentityFields name={name} description={description} items={items}
         onName={setName} onDescription={setDescription} onItems={setItems} badField={bad} />
       <div>

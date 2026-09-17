@@ -32,6 +32,9 @@ interface DetailSheetProps {
   /** CE-43 LC-2 packet 3c · 1(a): per-slice content rendered at the TOP of the scroll area,
       above the detail fields (the lead's package card and its booking controls). */
   detailTop?: ReactNode;
+  /** CE-43 LC-2 packet 3f · F-43.105: while the record's own reads are out, the body shows a still
+      placeholder and renders whole once they are in, so nothing shifts under the thumb. */
+  bodyLoading?: boolean;
   /** Per-slice content rendered at the top of the footer actions
       (leads WhatsApp/Call row). */
   footerExtra?: ReactNode;
@@ -40,7 +43,7 @@ interface DetailSheetProps {
 export function DetailSheet({
   slice, sel, onClose, onEditHere,
   confirmDel, setConfirmDel, deleting, deleteMsg, setDeleteMsg, confirmDelete,
-  detailExtra, detailTop, footerExtra,
+  detailExtra, detailTop, footerExtra, bodyLoading = false,
 }: DetailSheetProps) {
   return (
     <>
@@ -66,6 +69,13 @@ export function DetailSheet({
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px 24px' }}>
+          {bodyLoading ? (
+            <div data-lc2="detail-skeleton" aria-busy="true" style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 6 }}>
+              {[96, 44, 44, 44, 44].map((h, k) => (
+                <div key={k} style={{ height: h, borderRadius: 2, border: '0.5px solid var(--atelier-card-border)' }} />
+              ))}
+            </div>
+          ) : (<>
           {detailTop}
           {(sel?.detail ?? []).map((f, ii) => (
             <div key={ii} style={{
@@ -79,6 +89,7 @@ export function DetailSheet({
           ))}
 
           {detailExtra}
+          </>)}
         </div>
 
         {/* Footer actions */}

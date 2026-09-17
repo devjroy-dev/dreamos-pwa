@@ -389,6 +389,9 @@ export interface UpdateLeadRequest {
   phone?:        string;
   email?:        string;
   wedding_date?: string;
+  /** CE-43 LC-2 packet 3f · F-43.76: the date-completion stores the date at day precision
+   *  (dream-os updateLead's EDITABLE carries it). */
+  wedding_date_precision?: 'day' | 'month' | 'year';
   wedding_city?: string;
   budget_min?:   number;
   budget_max?:   number;

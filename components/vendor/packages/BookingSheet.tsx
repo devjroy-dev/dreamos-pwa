@@ -17,10 +17,14 @@
 // code (`no_package`, `no_fee`); a bad or missing date flags the field with the packet 2 byte
 // `Check the highlighted field.`; F29 inline for anything else, the sheet stays open.
 // C-43.16: Cancel is outlined in the muted ink; Confirm booking keeps the full-width outline.
-// Packet 3e · F-43.102 (b): on a `no_package` refusal the sheet offers A2's `Attach package`, which
-// opens the attach sheet over it; once attached, the refusal clears and Confirm booking can run.
+// Packet 3f · R-43.16 (founder's rule; F-43.104 the seat's, c-43.17 the chair's): every refusal line
+// is a NeedFirst control and nothing redirects. `Attach a package first.` opens the attach sheet over
+// this one; `Set the fee first.` opens it on the fee; `Add the handover date first.` on the handover
+// field; `Add the wedding date first.` opens the lead's wedding-date completion. After the fix the
+// vendor is back here and taps Confirm booking herself. 3e's separate Attach package button is gone.
 // Tokens only (R-42.6).
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { NeedFirst } from '@/components/vendor/NeedFirst';
 import { promoteLead, type BookingKind } from '@/lib/vendor/api/vendor';
 import { LEAD_PACKAGE, PACKAGES, PACKAGE_FAILURES, BOOKING } from '@/lib/worklist/packages';
 import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
@@ -41,34 +45,45 @@ export function refreshAfterBooking() {
   invalidateSlice('invoices');
 }
 
-export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onToast }: {
+export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onToast, onNeedWeddingDate }: {
   open: boolean;
   leadId: string | null;
   initialKind: BookingKind;
   onClose: () => void;
   onBooked: () => void;
   onToast: (msg: string, kind?: ToastKind) => void;
+  /** R-43.16: opens the lead's wedding-date completion over this sheet; this sheet stays open. */
+  onNeedWeddingDate: (leadId: string) => void;
 }) {
   const [kind, setKind] = useState<BookingKind>(initialKind);
   const [receivedOn, setReceivedOn] = useState('');
-  const [message, setMessage] = useState<string | null>(null);
-  const [bad, setBad] = useState(false);
+  // Packet 3f · R-43.16: a refusal is a control. `need` is a line with its fix; `failed` is F29,
+  // which is a failure, not a thing to add, and stays a plain line.
+  const [need, setNeed] = useState<{ code: RefusalCode | 'received_on' } | null>(null);
+  const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [needsPackage, setNeedsPackage] = useState(false);
-  const [attachOpen, setAttachOpen] = useState(false);
+  const [attach, setAttach] = useState<{ focus: 'fee' | 'handover' | null } | null>(null);
+  const dateRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setKind(initialKind);
     setReceivedOn(istTodayISO());
-    setMessage(null); setBad(false); setBusy(false);
-    setNeedsPackage(false); setAttachOpen(false);
+    setNeed(null); setFailed(false); setBusy(false); setAttach(null);
   }, [open, initialKind]);
+
+  const fixFor = (code: RefusalCode | 'received_on') => () => {
+    if (code === 'received_on') { if (dateRef.current) dateRef.current.focus(); return; }
+    if (code === 'no_wedding_date') { if (leadId) onNeedWeddingDate(leadId); return; }
+    setAttach({ focus: code === 'no_fee' ? 'fee' : code === 'no_handover_date' ? 'handover' : null });
+  };
+  const needText = (code: RefusalCode | 'received_on') =>
+    code === 'received_on' ? PACKAGE_FAILURES.fieldGate : LEAD_PACKAGE.refusals[code];
 
   async function confirm() {
     if (busy || !leadId) return;
-    if (kind === 'advance_paid' && !/^\d{4}-\d{2}-\d{2}$/.test(receivedOn)) { setBad(true); setMessage(PACKAGE_FAILURES.fieldGate); return; }
-    setBusy(true); setMessage(null); setBad(false);
+    if (kind === 'advance_paid' && !/^\d{4}-\d{2}-\d{2}$/.test(receivedOn)) { setNeed({ code: 'received_on' }); setFailed(false); return; }
+    setBusy(true); setNeed(null); setFailed(false);
     try {
       const r = await promoteLead(leadId, kind === 'advance_paid' ? { kind, advance_received_on: receivedOn } : { kind });
       if (r && r.ok) {
@@ -78,14 +93,12 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
         return;
       }
       const code = r && !r.ok && 'code' in r ? r.code : undefined;
-      if (isRefusal(code)) { setMessage(LEAD_PACKAGE.refusals[code]); setNeedsPackage(code === 'no_package'); }
-      else {
-        const field = r && !r.ok && 'field' in r ? r.field : undefined;
-        if (field === 'advance_received_on') { setBad(true); setMessage(PACKAGE_FAILURES.fieldGate); }
-        else setMessage(BOOKING.failed);
-      }
+      const field = r && !r.ok && 'field' in r ? r.field : undefined;
+      if (isRefusal(code)) setNeed({ code });
+      else if (field === 'advance_received_on') setNeed({ code: 'received_on' });
+      else setFailed(true);
     } catch {
-      setMessage(BOOKING.failed);
+      setFailed(true);
     } finally {
       setBusy(false);
     }
@@ -94,7 +107,7 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
   const kindButton = (k: BookingKind, text: string) => (
     <button type="button" data-lc2-kind={k} aria-pressed={kind === k}
       style={{ ...actionButton(kind === k ? 'accent' : 'mute'), flex: 1 }}
-      onClick={() => { setKind(k); setMessage(null); setBad(false); }}>
+      onClick={() => { setKind(k); setNeed(null); setFailed(false); }}>
       {text}
     </button>
   );
@@ -113,10 +126,8 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
         </>
       )}
     >
-      {message && <p role="alert" style={{ margin: 0, fontFamily: T.body, fontSize: 14, color: T.accent }}>{message}</p>}
-      {needsPackage && (
-        <button type="button" data-lc2="booking-attach" style={actionButton()} onClick={() => setAttachOpen(true)}>{LEAD_PACKAGE.attach}</button>
-      )}
+      {need && <NeedFirst text={needText(need.code)} onFix={fixFor(need.code)} testId="booking" />}
+      {failed && <p role="alert" style={{ margin: 0, fontFamily: T.body, fontSize: 14, color: T.accent }}>{BOOKING.failed}</p>}
       <div style={{ display: 'flex', gap: 10 }}>
         {kindButton('booking_confirmed', LEAD_PACKAGE.bookingConfirmed)}
         {kindButton('advance_paid', LEAD_PACKAGE.advancePaid)}
@@ -124,18 +135,20 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
       {kind === 'advance_paid' && (
         <div>
           <FieldLabel text={BOOKING.receivedOn} htmlFor="booking-received-on" />
-          <input id="booking-received-on" type="date" style={{ ...inputStyle, ...(bad ? flagged : {}) }}
-            value={receivedOn} onChange={(e) => setReceivedOn(e.target.value)} />
+          <input id="booking-received-on" ref={dateRef} type="date" style={{ ...inputStyle, ...(need && need.code === 'received_on' ? flagged : {}) }}
+            value={receivedOn} onChange={(e) => { setReceivedOn(e.target.value); if (need && need.code === 'received_on') setNeed(null); }} />
         </div>
       )}
     </Sheet>
     <AttachSheet
-      open={attachOpen}
+      open={!!attach}
       leadId={leadId || ''}
       current={null}
-      onClose={() => setAttachOpen(false)}
-      onAttached={() => { setAttachOpen(false); setNeedsPackage(false); setMessage(null); }}
+      focus={attach ? attach.focus : null}
+      onClose={() => setAttach(null)}
+      onAttached={() => { setAttach(null); setNeed(null); }}
       onToast={onToast}
+      onNeedWeddingDate={() => { if (leadId) onNeedWeddingDate(leadId); }}
     />
     </>
   );

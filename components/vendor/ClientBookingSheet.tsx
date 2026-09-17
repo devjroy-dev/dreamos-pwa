@@ -42,6 +42,7 @@ import { fetchPackages, createDirectClient, type VendorPackage, type DirectClien
 import { CLIENT_BOOKING, BOOKING, PACKAGE_FAILURES } from '@/lib/worklist/packages';
 import { refreshAfterBooking } from '@/components/vendor/packages/BookingSheet';
 import { istTodayISO } from '@/lib/vendor/istDay';
+import { NeedFirst } from '@/components/vendor/NeedFirst';
 import { selectStyle } from '@/lib/vendor/controls';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 
@@ -184,25 +185,28 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
           </h2>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {message && <p role="alert" style={{ margin: 0, fontFamily: F.body, fontSize: 14, color: D.accent }}>{message}</p>}
+          {/* Packet 3f · R-43.16: the field gate is a control that focuses the flagged field; F29 is
+              a failure and stays a plain line. */}
+          {message && bad && <NeedFirst text={message} onFix={() => { const el = document.getElementById(`cbs-${bad}`); if (el) el.focus(); }} testId="client" />}
+          {message && !bad && <p role="alert" style={{ margin: 0, fontFamily: F.body, fontSize: 14, color: D.accent }}>{message}</p>}
           <div>{label(CLIENT_BOOKING.name)}
-            <input style={{ ...input, ...flag('name') }} value={values.name} onChange={(e) => set('name', e.target.value)} autoComplete="off" />
+            <input id="cbs-name" style={{ ...input, ...flag('name') }} value={values.name} onChange={(e) => set('name', e.target.value)} autoComplete="off" />
           </div>
           <div>{label(CLIENT_BOOKING.phone)}
             <input style={input} type="tel" inputMode="tel" value={values.phone} onChange={(e) => set('phone', e.target.value)} />
           </div>
           <div>{label(CLIENT_BOOKING.weddingDate)}
-            <input style={{ ...input, ...flag('weddingDate') }} type="date" value={values.weddingDate} onChange={(e) => set('weddingDate', e.target.value)} />
+            <input id="cbs-weddingDate" style={{ ...input, ...flag('weddingDate') }} type="date" value={values.weddingDate} onChange={(e) => set('weddingDate', e.target.value)} />
           </div>
           <div>{label(CLIENT_BOOKING.pkg)}
-            <select style={selectStyle({ ...input, ...flag('packageId') })} value={values.packageId} onChange={(e) => set('packageId', e.target.value)}>
+            <select id="cbs-packageId" style={selectStyle({ ...input, ...flag('packageId') })} value={values.packageId} onChange={(e) => set('packageId', e.target.value)}>
               <option value="">Select…</option>
               {(packages || []).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           {needsFee && (
             <div>{label(CLIENT_BOOKING.fee)}
-              <input style={{ ...input, ...flag('fee') }} inputMode="numeric" value={values.fee} onChange={(e) => set('fee', e.target.value.replace(/[^\d]/g, ''))} />
+              <input id="cbs-fee" style={{ ...input, ...flag('fee') }} inputMode="numeric" value={values.fee} onChange={(e) => set('fee', e.target.value.replace(/[^\d]/g, ''))} />
             </div>
           )}
           <label data-lc2="advance-switch" style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: F.body, fontSize: 15, color: D.ink, minHeight: 44 }}>
@@ -211,7 +215,7 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
           </label>
           {advance && (
             <div>{label(CLIENT_BOOKING.receivedOn)}
-              <input style={{ ...input, ...flag('receivedOn') }} type="date" value={values.receivedOn} onChange={(e) => set('receivedOn', e.target.value)} />
+              <input id="cbs-receivedOn" style={{ ...input, ...flag('receivedOn') }} type="date" value={values.receivedOn} onChange={(e) => set('receivedOn', e.target.value)} />
             </div>
           )}
         </div>

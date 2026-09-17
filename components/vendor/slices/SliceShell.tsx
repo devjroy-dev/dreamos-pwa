@@ -46,11 +46,12 @@ import { roomHref } from '@/lib/worklist/rooms';
 // file, at the two call sites below; `Mark paid` was spelled twice more, once
 // for the swipe and once for the bulk bar. One home, four readers.
 import { COPY } from '@/lib/worklist/copy';
-import { LeadPackageCard, AttachSheet } from '@/components/vendor/packages/LeadPackageCard'; // CE-43 LC-2 packet 2; AttachSheet 3e
+import { LeadPackageCard } from '@/components/vendor/packages/LeadPackageCard'; // CE-43 LC-2 packet 2
 import { BookingSheet } from '@/components/vendor/packages/BookingSheet'; // CE-43 LC-2 packet 3: A12, F15(a)
 import { paymentMarked, packageDate, istDateOf } from '@/lib/worklist/packages'; // CE-43 LC-2 packet 3: D3/D4 (F17)
 import { formatRs } from '@/lib/vendor/format';
-import { fetchLeadPackage, type BookingKind } from '@/lib/vendor/api/vendor';
+import { fetchLeadPackage, type BookingKind, type LeadPackage } from '@/lib/vendor/api/vendor';
+import { NeedFirst } from '@/components/vendor/NeedFirst'; // CE-43 LC-2 packet 3f · R-43.16
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, sendReminder, fetchMe, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
@@ -419,15 +420,21 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const [sel, setSel]         = useState<Row|null>(null);
   // CE-43 LC-2 packet 3: the one booking sheet, opened by the lead card and by the swipe (F15(a)).
   const [booking, setBooking] = useState<{ leadId: string; kind: BookingKind } | null>(null);
-  // CE-43 LC-2 packet 3e · F-43.102 (a): a swipe on a lead with no package opens the attach sheet
-  // first; the booking sheet follows once the package is attached.
-  const [attachFirst, setAttachFirst] = useState<{ leadId: string; kind: BookingKind } | null>(null);
-  const openBookingFromSwipe = (leadId: string) => {
-    void fetchLeadPackage(leadId).then((r) => {
-      if (r && r.ok && r.lead_package === null) setAttachFirst({ leadId, kind: 'booking_confirmed' });
-      else setBooking({ leadId, kind: 'booking_confirmed' });
-    }).catch(() => setBooking({ leadId, kind: 'booking_confirmed' }));
+  // CE-43 LC-2 packet 3f · R-43.16: the wedding-date completion a refusal line opens (the
+  // WishboneSheet `wedding_date` cell, the walked surface). A month- or year-precision date is
+  // pre-filled so the vendor makes it exact without retyping it (F-43.76, pulled into 3f); saving
+  // stores it at day precision. The sheet she came from stays open under it.
+  const [dateFix, setDateFix] = useState<{ leadId: string; name: string; value: string } | null>(null);
+  const openDateFix = (leadId: string) => {
+    void fetchLeadDetail(leadId).then((res) => {
+      const lead = res && res.ok ? res.lead : null;
+      const stored = lead && lead.wedding_date ? String(lead.wedding_date).slice(0, 10) : '';
+      setDateFix({ leadId, name: (lead && lead.name) || 'Lead', value: stored });
+    }).catch(() => setDateFix({ leadId, name: 'Lead', value: '' }));
   };
+  // F-43.105: the lead detail and its package are read together when the sheet opens, and the body
+  // renders once both are in (a still placeholder until then), so the package card never pops in.
+  const [leadPkg, setLeadPkg] = useState<{ id: string; lp: LeadPackage | null } | null>(null);
   // CE-43 LC-2 packet 3e · F-43.101 (chair-ruled): an open invoice detail follows its row. The
   // detail rows (Paid, Owed, State, Due) are the row the sheet opened with; when the list
   // refetches after a payment, the open sheet takes the fresh row with the same id.
@@ -719,11 +726,17 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   useEffect(() => {
     // The lead DETAIL fetch stays leads-only: it reads the lead conversation endpoint, which
     // the other slices have no twin for. Opening their record is the sheet; enriching it is not.
-    if (slice !== 'leads' || !sel) { setLeadDetail(null); return; }
+    if (slice !== 'leads' || !sel) { setLeadDetail(null); setLeadPkg(null); return; }
     setLoadingDetail(true);
-    fetchLeadDetail(sel.id).then(res => {
-      if (res.ok) setLeadDetail({ vendor_summary: res.vendor_summary, conversation: res.conversation, name: (res.lead && res.lead.name) || null });
-    }).catch(() => {}).finally(() => setLoadingDetail(false));
+    const id = sel.id;
+    // F-43.105: one await for both reads, in parallel.
+    void Promise.all([
+      fetchLeadDetail(id).catch(() => null),
+      fetchLeadPackage(id).catch(() => null),
+    ]).then(([res, pk]) => {
+      if (res && res.ok) setLeadDetail({ vendor_summary: res.vendor_summary, conversation: res.conversation, name: (res.lead && res.lead.name) || null });
+      setLeadPkg({ id, lp: pk && pk.ok ? pk.lead_package : null });
+    }).finally(() => setLoadingDetail(false));
   }, [sel, slice]);
 
   // TDW_04 A1 — the leads-plane wishbone. DetailSheet's own P3 comment named
@@ -818,7 +831,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       // withholds its booking controls there. No re-run path.
       right: (row.badge ?? '').toLowerCase() === 'booked'
         ? undefined
-        : { label: 'Booked', onTrigger: () => openBookingFromSwipe(row.id) },
+        : { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },
       // ── R-37.22 · THE LEFT SIDE SUPPRESSES ON A REDACTED ROW ──────────────
       // THE INCIDENT THIS CLOSES, written down because it was live: Seat A′'s
       // recut withholds `phone` from a basic vendor's leads wire (R-36.13 — the
@@ -1102,6 +1115,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       booked={(sel.badge ?? '').toLowerCase() === 'booked'}
       onBook={(k) => setBooking({ leadId: sel.id, kind: k })}
       onToast={(m, k) => showToast(m, k)}
+      onNeedWeddingDate={() => openDateFix(sel.id)}
+      initial={leadPkg && leadPkg.id === sel.id ? leadPkg.lp : undefined}
     />
   ) : null;
 
@@ -1891,10 +1906,20 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               const canSave = Math.abs(total - 100) < 0.01 && milestones.every(m => m.label.trim());
               return (
                 <>
+                  {/* CE-43 LC-2 packet 3f · R-43.16: the gate line focuses the field that fixes it. */}
                   {!canSave && (
-                    <div style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>
-                      {Math.abs(total - 100) > 0.01 ? `Percentages must sum to 100% (currently ${total}%)` : 'All milestones need a label'}
-                    </div>
+                    <NeedFirst
+                      testId="schedule"
+                      text={Math.abs(total - 100) > 0.01 ? `Percentages must sum to 100% (currently ${total}%)` : 'All milestones need a label'}
+                      onFix={() => {
+                        const unlabelled = milestones.findIndex((m) => !m.label.trim());
+                        const target = Math.abs(total - 100) > 0.01
+                          ? 'input[aria-label="Milestone 1 share, percent"]'
+                          : `input[aria-label="Milestone ${unlabelled + 1} name"]`;
+                        const el = document.querySelector<HTMLInputElement>(target);
+                        if (el) el.focus();
+                      }}
+                    />
                   )}
                   <button type="button" onClick={doCreateSchedule} disabled={!canSave || scheduleSaving}
                     className={canSave && !scheduleSaving ? 'atelier-fab' : undefined}
@@ -1932,6 +1957,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         confirmDelete={confirmDelete}
         detailExtra={detailExtra}
         detailTop={detailTop}
+        bodyLoading={slice === 'leads' && !!sel && !(leadPkg && leadPkg.id === sel.id)}
         footerExtra={footerExtra}
       />
 
@@ -1972,22 +1998,23 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));
           }}
           onToast={(m, k) => showToast(m, k)}
+          onNeedWeddingDate={openDateFix}
         />
       )}
 
-      {/* CE-43 LC-2 packet 3e · F-43.102 (a): the attach sheet a no-package swipe opens first. */}
-      {slice === 'leads' && (
-        <AttachSheet
-          open={!!attachFirst}
-          leadId={attachFirst ? attachFirst.leadId : ''}
-          current={null}
-          onClose={() => setAttachFirst(null)}
-          onAttached={() => {
-            const next = attachFirst;
-            setAttachFirst(null);
-            if (next) setBooking({ leadId: next.leadId, kind: next.kind });
+      {/* CE-43 LC-2 packet 3f · R-43.16: the wedding-date completion a refusal line opens. */}
+      {dateFix && (
+        <WishboneSheet
+          missing={['wedding_date']}
+          personLabel={dateFix.name}
+          initialValues={{ wedding_date: dateFix.value }}
+          onComplete={async (_cell, value) => {
+            const res = await updateLead(dateFix.leadId, { wedding_date: value, wedding_date_precision: 'day' });
+            if (!res.ok) return ('error' in res && res.error) || 'Could not file it — try again.';
+            invalidateSlice('leads');
+            return null;
           }}
-          onToast={(m, k) => showToast(m, k)}
+          onDone={() => setDateFix(null)}
         />
       )}
 

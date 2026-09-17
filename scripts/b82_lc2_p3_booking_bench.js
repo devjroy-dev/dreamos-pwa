@@ -34,6 +34,11 @@
 // refusal), §4.1 and M7 (F-43.102 (a): the swipe opens through openBookingFromSwipe); §12 added for
 // F-43.100 (the four-line toast, measured in DM Sans from dream-os tools/card_fonts), F-43.101,
 // F-43.102 and point 5.
+// AMENDED BY LABEL AT PACKET 3f (CE-43 LC-2r; R-43.16, F-43.104 the seat's, c-43.17 the chair's): the
+// redirect cells are RETIRED and restated as their opposite, since the founder's rule forbids what they
+// asserted: §5.3 (the booking pair only books), §5.8 (no pending booking after an attach), §12.4 (the
+// refusal line itself is the control), §12.5 (the swipe opens the booking sheet, never the attach sheet);
+// §3.6, §3.7, §4.1, M7, M20, M21, M34, M35 re-aimed. §13 added: R-43.16's sweep, F-43.76, F-43.105.
 // NOT PROVEN HERE (declared): rendering on a device, both themes on glass, the gesture under a thumb,
 // `next build`, and the database. The founder's walk (card P3) and provisional floor are their witnesses.
 const fs = require('fs');
@@ -137,13 +142,21 @@ function bookingCells(code) {
     dateOnlyAdvance: /\{kind === 'advance_paid' && \(\s*<div>\s*<FieldLabel text=\{BOOKING\.receivedOn\}/.test(s),
     todayDefault: /setReceivedOn\(istTodayISO\(\)\)/.test(s),
     // [amended, 3e] the refusal also marks no_package, so the sheet can offer Attach package.
-    a9: /if \(isRefusal\(code\)\) \{ setMessage\(LEAD_PACKAGE\.refusals\[code\]\); setNeedsPackage\(code === 'no_package'\); \}/.test(s),
+    // [amended, 3f] the refusal is kept as a code and rendered as a NeedFirst control.
+    a9: /if \(isRefusal\(code\)\) setNeed\(\{ code \}\);/.test(s),
     // 3e · F-43.102 (b)
-    attachOffer: /\{needsPackage && \(\s*<button type="button" data-lc2="booking-attach" style=\{actionButton\(\)\} onClick=\{\(\) => setAttachOpen\(true\)\}>\{LEAD_PACKAGE\.attach\}<\/button>/.test(s)
-      && /<\/Sheet>\s*<AttachSheet\s*open=\{attachOpen\}/.test(s)
-      && /onAttached=\{\(\) => \{ setAttachOpen\(false\); setNeedsPackage\(false\); setMessage\(null\); \}\}/.test(s)
-      && /setNeedsPackage\(false\); setAttachOpen\(false\);/.test(s),
-    f29: /else setMessage\(BOOKING\.failed\);/.test(s) && /catch \{\s*setMessage\(BOOKING\.failed\);/.test(s),
+    // [restated, 3f · R-43.16] the refusal line itself is the control; no separate button.
+    attachOffer: /\{need && <NeedFirst text=\{needText\(need\.code\)\} onFix=\{fixFor\(need\.code\)\} testId="booking" \/>\}/.test(s)
+      && /<\/Sheet>\s*<AttachSheet\s*open=\{!!attach\}/.test(s)
+      && !/data-lc2="booking-attach"/.test(s) && !/needsPackage/.test(s),
+    fixMap: /if \(code === 'received_on'\) \{ if \(dateRef\.current\) dateRef\.current\.focus\(\); return; \}/.test(s)
+      && /if \(code === 'no_wedding_date'\) \{ if \(leadId\) onNeedWeddingDate\(leadId\); return; \}/.test(s)
+      && /setAttach\(\{ focus: code === 'no_fee' \? 'fee' : code === 'no_handover_date' \? 'handover' : null \}\);/.test(s)
+      && /focus=\{attach \? attach\.focus : null\}/.test(s)
+      && /onNeedWeddingDate: \(leadId: string\) => void;/.test(s),
+    // [amended, 3f] F29 is a failure, not a thing to add: a plain line, set by `failed`.
+    f29: /else setFailed\(true\);/.test(s) && /catch \{\s*setFailed\(true\);/.test(s)
+      && /\{failed && <p role="alert"[^>]*>\{BOOKING\.failed\}<\/p>\}/.test(s),
     a13: /if \(r && r\.ok\) \{\s*refreshAfterBooking\(\);\s*onToast\(BOOKING\.booked, 'success'\);/.test(s),
     fiveSlices: ['leads', 'cabinet', 'clients', 'events', 'invoices'].every((k) => new RegExp(`invalidateSlice\\('${k}'\\)`).test(s)),
     cancel: /<button type="button" style=\{actionButton\('mute'\)\} onClick=\{onClose\}>\{PACKAGES\.cancel\}<\/button>/.test(s),
@@ -156,11 +169,21 @@ function shellCells(code) {
   const s = strip(code);
   return {
     // [amended, 3d] F-43.95: the same opener, withheld on a booked lead.
-    swipe: /right: \(row\.badge \?\? ''\)\.toLowerCase\(\) === 'booked'\s*\?\s*undefined\s*:\s*\{ label: 'Booked', onTrigger: \(\) => openBookingFromSwipe\(row\.id\) \}/.test(s),
-    // 3e · F-43.102 (a)
-    swipeAttachFirst: /const openBookingFromSwipe = \(leadId: string\) => \{\s*void fetchLeadPackage\(leadId\)\.then\(\(r\) => \{\s*if \(r && r\.ok && r\.lead_package === null\) setAttachFirst\(\{ leadId, kind: 'booking_confirmed' \}\);\s*else setBooking\(\{ leadId, kind: 'booking_confirmed' \}\);/.test(s)
-      && /\{slice === 'leads' && \(\s*<AttachSheet\s*open=\{!!attachFirst\}/.test(s)
-      && /if \(next\) setBooking\(\{ leadId: next\.leadId, kind: next\.kind \}\);/.test(s),
+    swipe: /right: \(row\.badge \?\? ''\)\.toLowerCase\(\) === 'booked'\s*\?\s*undefined\s*:\s*\{ label: 'Booked', onTrigger: \(\) => setBooking\(\{ leadId: row\.id, kind: 'booking_confirmed' \}\) \}/.test(s),
+    // [restated, 3f · R-43.16] the swipe opens the booking sheet; no attach-first path survives.
+    swipeAttachFirst: !/openBookingFromSwipe|attachFirst|setAttachFirst/.test(s) && !/<AttachSheet\b/.test(s),
+    // 3f · F-43.76 / R-43.16
+    dateFix: /\{dateFix && \(\s*<WishboneSheet\s*missing=\{\['wedding_date'\]\}\s*personLabel=\{dateFix\.name\}\s*initialValues=\{\{ wedding_date: dateFix\.value \}\}/.test(s)
+      && /updateLead\(dateFix\.leadId, \{ wedding_date: value, wedding_date_precision: 'day' \}\)/.test(s)
+      && /onDone=\{\(\) => setDateFix\(null\)\}/.test(s)
+      && /onNeedWeddingDate=\{openDateFix\}/.test(s) && /onNeedWeddingDate=\{\(\) => openDateFix\(sel\.id\)\}/.test(s),
+    // 3f · F-43.105
+    together: /void Promise\.all\(\[\s*fetchLeadDetail\(id\)\.catch\(\(\) => null\),\s*fetchLeadPackage\(id\)\.catch\(\(\) => null\),\s*\]\)/.test(s)
+      && /setLeadPkg\(\{ id, lp: pk && pk\.ok \? pk\.lead_package : null \}\);/.test(s)
+      && /bodyLoading=\{slice === 'leads' && !!sel && !\(leadPkg && leadPkg\.id === sel\.id\)\}/.test(s)
+      && /initial=\{leadPkg && leadPkg\.id === sel\.id \? leadPkg\.lp : undefined\}/.test(s),
+    scheduleGate: /<NeedFirst\s*testId="schedule"/.test(s) && /input\[aria-label="Milestone \$\{unlabelled \+ 1\} name"\]/.test(s)
+      && !/<div[^>]*color: A\.red[^>]*>\s*\{Math\.abs\(total - 100\)/.test(s),
     // 3e · F-43.101
     detailFollows: /if \(slice !== 'invoices' \|\| !sel\) return;\s*const fresh = rawRows\.find\(\(r\) => r\.id === sel\.id\);\s*if \(fresh && fresh !== sel\) setSel\(fresh\);/.test(s)
       && /\}, \[rawRows\]\);/.test(s)
@@ -212,10 +235,20 @@ function cardCells(code, editCode) {
       && (s.match(/style=\{\{ \.\.\.actionButton\(\), width: '100%' \}\} onClick=\{\(\) => book\(/g) || []).length === 2,
     hairline: /data-lc2="lead-package" style=\{\{ paddingBottom: 18, marginBottom: 8, borderBottom: `0\.5px solid \$\{T\.card\}` \}\}/.test(s)
       && (s.match(/LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach/g) || []).length === 1,
+    // [restated, 3f · R-43.16] each A2 control only books; it never opens the attach sheet.
     both: /onClick=\{\(\) => book\('booking_confirmed'\)\}>\{LEAD_PACKAGE\.bookingConfirmed\}/.test(s) && /onClick=\{\(\) => book\('advance_paid'\)\}>\{LEAD_PACKAGE\.advancePaid\}/.test(s)
-      && /const book = \(k: BookingKind\) => \{\s*if \(!onBook\) return;\s*if \(lp\) \{ onBook\(k\); return; \}\s*setPendingKind\(k\);\s*setSheetOpen\(true\);\s*\};/.test(s),
-    continues: /if \(pendingKind && onBook\) onBook\(pendingKind\);\s*setPendingKind\(null\);/.test(s)
-      && /onClose=\{\(\) => \{ setSheetOpen\(false\); setPendingKind\(null\); \}\}/.test(s),
+      && /const book = \(k: BookingKind\) => \{ if \(onBook\) onBook\(k\); \};/.test(s),
+    // [restated, 3f] no pending booking survives an attach; the attach sheet only attaches.
+    continues: !/pendingKind/.test(s) && /onAttached=\{\(row\) => \{ setLp\(row\); setSheetOpen\(false\); \}\}/.test(s)
+      && /onNeedWeddingDate=\{onNeedWeddingDate\}/.test(s),
+    // 3f · the attach sheet's own refusals
+    attachNeeds: /fix: code === 'no_wedding_date' \? onNeedWeddingDate\s*: code === 'no_fee' \? \(\) => focusOn\('att-fee'\)\s*: code === 'no_handover_date' \? \(\) => focusOn\('att-handover'\)\s*: \(\) => focusOn\('att-pkg'\),/.test(s)
+      && /\{need && <NeedFirst text=\{need\.text\} onFix=\{need\.fix\} testId="attach" \/>\}/.test(s)
+      && /onNeedWeddingDate: \(\) => void;\s*focus\?: 'fee' \| 'handover' \| null;/.test(s)
+      && /focusOn\(focus === 'fee' \? 'att-fee' : 'att-handover'\);/.test(s),
+    initialRead: /if \(initial !== undefined\) \{ setLp\(initial\); return; \}/.test(s)
+      && /\{packages === null \? \(\s*<div data-lc2="attach-skeleton"/.test(s)
+      && /if \(!r \|\| !r\.ok\) \{ setPackages\(\[\]\); return; \}/.test(s),
     attachCancel: /<button type="button" style=\{actionButton\('mute'\)\} onClick=\{onClose\}>\{PACKAGES\.cancel\}<\/button>/.test(s),
     editCancel: /<button type="button" style=\{actionButton\('mute'\)\} onClick=\{onClose\}>\{PACKAGES\.cancel\}<\/button>/.test(e),
     noTextCancel: !/textButton\('mute'\)\} onClick=\{onClose\}/.test(s + e),
@@ -369,8 +402,8 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   const c5 = cardCells(src.card, src.edit);
   ok(c5.gated, '§5.1 [amended, 3d] the booking controls show on every lead that is not booked, in the control column');
   ok(c5.insideAttached, '§5.2 [amended, 3d] the column follows the attached block; the pair sits under Attach/Change');
-  ok(c5.both, '§5.3 [amended, 3c] each A2 control books at once with a package, or opens the attach sheet first');
-  ok(c5.continues, '§5.8 3(a): once the package is attached the chosen booking opens; closing the attach sheet drops it');
+  ok(c5.both, '§5.3 [restated, 3f] each A2 control opens the booking sheet, never the attach sheet (R-43.16)');
+  ok(c5.continues, '§5.8 [restated, 3f] an attach only attaches; no booking is carried across it');
   ok(c5.attachCancel, '§5.4 C-43.16: the attach sheet\'s Cancel is outlined in the muted ink');
   ok(c5.editCancel, '§5.5 C-43.16: the edit sheet\'s Cancel is outlined in the muted ink');
   ok(c5.noTextCancel, '§5.6 no text-button Cancel remains in either sheet');
@@ -489,14 +522,51 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     '§12.3 F-43.100: C4, A13, C5, D3 (every milestone label, the longest included) and D4 render whole in four lines at 374px; D3 needs more than two');
   // ── F-43.102, F-43.101, point 5 ────────────────────────────────────────────────────────────
   const bs = bookingCells(src.booking);
-  ok(bs.attachOffer, '§12.4 F-43.102 (b): a no_package refusal offers Attach package, opening the attach sheet beside the booking sheet');
-  ok(c4.swipeAttachFirst, '§12.5 F-43.102 (a): a swipe on a lead with no package opens the attach sheet first, then the booking sheet');
+  ok(bs.attachOffer, '§12.4 [restated, 3f] the booking sheet\'s refusal line is itself the control; no separate Attach package button');
+  ok(c4.swipeAttachFirst, '§12.5 [restated, 3f] the swipe opens the booking sheet; no attach-first path survives (R-43.16)');
   ok(/export function AttachSheet\(/.test(strip(src.card)), '§12.6 F-43.102: the one attach sheet is shared, not copied');
   ok(c4.detailFollows, '§12.7 F-43.101: the open invoice detail follows its refetched row; the schedule\'s Paid refetches the list');
   const binderSrc = strip(read('components/vendor/slices/BinderCard.tsx'));
   ok(/\) : binder\.booked_lead \? null : \(\s*<div[^>]*>\s*No story yet — it grows as you talk in chat\./.test(binderSrc)
     && /booked_lead\?: boolean;/.test(src.api), '§12.8 point 5 (a): "No story yet" is not shown on a client with a booked lead behind it');
   ok(!/Attach a package|Attach package'/.test(strip(src.booking)), '§12.9 no new byte: the sheet reuses A2\'s Attach package from the copy home');
+
+  sec('§13 · packet 3f (R-43.16, F-43.76, F-43.105)');
+  const nf = read('components/vendor/NeedFirst.tsx');
+  ok(/onFix: \(\) => void;/.test(nf) && !/onFix\?:/.test(nf) && /onClick=\{onFix\}/.test(nf) && tokensOnly(nf.replace(/var\(--[a-z-]+\)/g, '')),
+    '§13.1 R-43.16: NeedFirst requires its fix and carries only tokens');
+  // THE CELL (chair-ruled): no "needs X first" line in the named surfaces renders without a handler.
+  // The set is every vetted needs-first byte these surfaces render (A9's four, the packet 2 gates, the
+  // schedule gate); each file that renders one must render it through NeedFirst, and no plain alert
+  // element may carry it.
+  const NEED_KEYS = /LEAD_PACKAGE\.refusals|needText\(|needFor\(|PACKAGE_FAILURES\.(nameGate|remainderGate|fieldGate)|All milestones need a label|Percentages must sum/;
+  const surfaces = {
+    booking: src.booking, card: src.card, shell: src.shell, sheet: src.sheet, edit: src.edit,
+  };
+  const plainAlert = /<(p|div|span)[^>]*role="alert"[^>]*>\s*\{(message|gate|need[^}]*|LEAD_PACKAGE\.refusals[^}]*)\}/;
+  const offenders = Object.entries(surfaces).filter(([, code]) => {
+    const t = strip(code);
+    if (!NEED_KEYS.test(t) && !/setGate\(|fieldGate/.test(t)) return false;
+    if (!/<NeedFirst\b/.test(t)) return true;
+    const alerts = t.match(new RegExp(plainAlert.source, 'g')) || [];
+    return alerts.some((a) => !/\{message\}/.test(a)) || (/\{message\}/.test(alerts.join('')) && !/\{message && !bad && <p role="alert"/.test(t));
+  }).map(([k]) => k);
+  ok(Object.keys(surfaces).every((k) => surfaces[k].length > 0) && offenders.length === 0,
+    '§13.2 R-43.16 THE CELL: no needs-first line renders without a handler' + (offenders.length ? ` (offenders: ${offenders.join(', ')})` : ''));
+  ok(bs.fixMap, '§13.3 R-43.16: package → attach sheet; fee → attach on the fee; handover → attach on the handover field; wedding date → the date completion; a bad received-on focuses its field');
+  ok(c5b.attachNeeds, '§13.4 R-43.16: the attach sheet\'s own refusals focus their fields, and the date refusal opens the date completion');
+  ok(c4.dateFix, '§13.5 F-43.76: the date completion is the WishboneSheet cell, pre-filled with the stored date, saved at day precision, and it leaves the sheet beneath open');
+  ok(c4.together, '§13.6 F-43.105: the detail and its package are read together; the body waits for both; the card takes the read');
+  const detailSrc3 = strip(read('components/vendor/slices/DetailSheet.tsx'));
+  ok(c5b.initialRead && /\{bodyLoading \? \(\s*<div data-lc2="detail-skeleton"/.test(detailSrc3),
+    '§13.7 F-43.105: a still placeholder holds the body and the attach form until their reads are in');
+  const wb = strip(read('components/vendor/slices/WishboneSheet.tsx'));
+  ok(/useState\(\(initialValues && missing\[0\] && initialValues\[missing\[0\]\]\) \|\| ''\)/.test(wb) && /initialValues\?: Record<string, string>;/.test(wb),
+    '§13.8 F-43.76: the WishboneSheet pre-fills a value on file');
+  ok(c4.scheduleGate && /GATE_FIELD\[bad \|\| ''\]/.test(strip(src.edit)) && /\{message && bad && <NeedFirst text=\{message\} onFix=/.test(strip(src.sheet)),
+    '§13.9 R-43.16 sweep: the schedule gate, the package edit gates and the Clients sheet gate each focus their field');
+  ok(!/openBookingFromSwipe|setPendingKind|attachFirst/.test(strip(src.shell) + strip(src.card)) && !/data-lc2="booking-attach"/.test(strip(src.booking)),
+    '§13.10 R-43.16: no redirect survives (no attach-first path, no pending booking, no extra attach button)');
 
   sec('§9 · mutations of production source');
   const M = [
@@ -506,7 +576,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     [F.booking, "kind === 'advance_paid' ? { kind, advance_received_on: receivedOn } : { kind }", '{ kind, advance_received_on: receivedOn }', (m) => !bookingCells(m).act, 'M4 the date sent on every booking → §3.2 RED'],
     [F.booking, "        refreshAfterBooking();\n        onToast(BOOKING.booked, 'success');", "        onToast(BOOKING.booked, 'success');", (m) => !bookingCells(m).a13, 'M5 A13 without the refresh → §3.8 RED'],
     [F.booking, "style={actionButton('mute')} onClick={onClose}", "style={textButton('mute')} onClick={onClose}", (m) => !bookingCells(m).cancel, 'M6 the Cancel back to text → §3.10 RED'],
-    [F.shell, ": { label: 'Booked', onTrigger: () => openBookingFromSwipe(row.id) },", ": { label: 'Booked', onTrigger: () => { void patchLeadState(row.id, 'booked'); } },", (m) => { const c = shellCells(m); return !c.swipe && !c.noBareBooked; }, 'M7 [re-aimed, 3e] the swipe writes booked directly → §4.1 and §4.2 RED'],
+    [F.shell, ": { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },", ": { label: 'Booked', onTrigger: () => { void patchLeadState(row.id, 'booked'); } },", (m) => { const c = shellCells(m); return !c.swipe && !c.noBareBooked; }, 'M7 [re-aimed, 3f] the swipe writes booked directly → §4.1 and §4.2 RED'],
     [F.shell, "right: (row.badge ?? '').toLowerCase() === 'booked'\n        ? undefined\n        :", 'right:', (m) => !shellCells(m).swipe, 'M25 F-43.95: the swipe offered on a booked lead → §4.1 RED'],
     [F.shell, '!removeSchedule && !sel.isPackage && (', '!removeSchedule && (', (m) => !shellCells(m).f16, 'M8 Remove drawn on a booking\'s invoice → §4.6 RED'],
     [F.shell, "res.code === 'PACKAGE_SCHEDULE' ? COPY.studioScheduleRemoveFailed : (res.error ?? COPY.studioScheduleRemoveFailed)", 'res.error ?? COPY.studioScheduleRemoveFailed', (m) => !shellCells(m).b1, 'M9 the door\'s text reaches the toast → §4.7 RED'],
@@ -516,8 +586,12 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     [F.card, "gridTemplateColumns: '1fr 1fr'", "gridTemplateColumns: '2fr 1fr'", (m) => !cardCells(m, src.edit).pair, 'M26 F-43.97: the pair unequal → §11.2 RED'],
     [F.card, 'borderBottom: `0.5px solid ${T.card}`', 'borderTop: `0.5px solid ${T.card}`', (m) => !cardCells(m, src.edit).hairline, 'M27 F-43.97: no hairline before the detail rows → §11.3 RED'],
     [F.card, "onClick={() => book('advance_paid')}", "onClick={() => book('booking_confirmed')}", (m) => !cardCells(m, src.edit).both, 'M13 [re-aimed, 3c] Advance paid hands the wrong kind → §5.3 RED'],
-    [F.card, '    if (lp) { onBook(k); return; }', '    onBook(k); return;', (m) => !cardCells(m, src.edit).both, 'M20 3(a): no package, no attach first → §5.3 RED'],
-    [F.card, '          if (pendingKind && onBook) onBook(pendingKind);', '', (m) => !cardCells(m, src.edit).continues, 'M21 3(a): the booking lost after the attach → §5.8 RED'],
+    [F.card, 'const book = (k: BookingKind) => { if (onBook) onBook(k); };', 'const book = (k: BookingKind) => { if (onBook) { setSheetOpen(true); onBook(k); } };', (m) => !cardCells(m, src.edit).both, 'M20 [re-aimed, 3f] a booking control that opens the attach sheet → §5.3 RED'],
+    [F.card, "onAttached={(row) => { setLp(row); setSheetOpen(false); }}", "onAttached={(row) => { setLp(row); setSheetOpen(false); const pendingKind = 'x'; void pendingKind; }}", (m) => !cardCells(m, src.edit).continues, 'M21 [re-aimed, 3f] a booking carried across an attach → §5.8 RED'],
+    [F.card, "fix: code === 'no_wedding_date' ? onNeedWeddingDate", "fix: code === 'no_wedding_date' ? () => focusOn('att-pkg')", (m) => !cardCells(m, src.edit).attachNeeds, 'M38 R-43.16: the date refusal without its date fix → §13.4 RED'],
+    [F.card, "if (initial !== undefined) { setLp(initial); return; }", '', (m) => !cardCells(m, src.edit).initialRead, 'M39 F-43.105: the card ignores the detail\'s read → §13.7 RED'],
+    [F.shell, "fetchLeadPackage(id).catch(() => null),", '', (m) => !shellCells(m).together, 'M40 F-43.105: the package read leaves the detail\'s open → §13.6 RED'],
+    [F.shell, "wedding_date_precision: 'day' }", '}', (m) => !shellCells(m).dateFix, 'M41 F-43.76: the fixed date is not stored exact → §13.5 RED'],
     [F.shell, '          if (packagePayBlocked(row)) return;', '', (m) => !shellCells(m).guardOnce, 'M22 F-43.88: a second tap slips through → §10.1 RED'],
     [F.shell, 'right: packagePayBlocked(row) ? undefined : { label: COPY.studioMarkPaid', 'right: { label: COPY.studioMarkPaid', (m) => !shellCells(m).hidden, 'M23 F-43.88: swipe offered on a settled booking invoice → §10.4 RED'],
     [F.shell, '        detailTop={detailTop}\n', '', (m) => !shellCells(m).detailTop, 'M24 1(a): the card never reaches the top slot → §10.8 RED'],
@@ -549,10 +623,23 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     ok(!!tc && !/-webkit-line-clamp:4/.test(tc), '§9 M32 F-43.100: the clamp back at two → §12.1 RED');
     const two = measure ? vetoed.map((t) => linesAt(t, 284)).filter((n) => n > 2).length : 0;
     ok(two > 0, '§9 M33 F-43.100: at two lines the measured D3 would be cut → §12.3 bites');
-    const b1 = mut(src.booking, "setNeedsPackage(code === 'no_package');", '');
-    ok(b1 !== null && !bookingCells(b1).a9, '§9 M34 F-43.102 (b): the refusal no longer offers Attach package → §3.6 RED');
-    const s1 = mut(src.shell, "if (r && r.ok && r.lead_package === null) setAttachFirst({ leadId, kind: 'booking_confirmed' });", '');
-    ok(s1 !== null && !shellCells(s1).swipeAttachFirst, '§9 M35 F-43.102 (a): the swipe skips the attach sheet → §12.5 RED');
+    const b1 = mut(src.booking, "{need && <NeedFirst text={needText(need.code)} onFix={fixFor(need.code)} testId=\"booking\" />}", "{need && <p role=\"alert\">{needText(need.code)}</p>}");
+    ok(b1 !== null && !bookingCells(b1).attachOffer, '§9 M34 [re-aimed, 3f] the refusal as a dead line → §12.4 RED');
+    const s1 = mut(src.shell, "{/* CE-43 LC-2 packet 3f · R-43.16: the wedding-date completion a refusal line opens. */}", "<AttachSheet open={false} leadId=\"\" current={null} onClose={() => {}} onAttached={() => {}} onToast={() => {}} onNeedWeddingDate={() => {}} />");
+    ok(s1 !== null && !shellCells(s1).swipeAttachFirst, '§9 M35 [re-aimed, 3f] an attach-first sheet back in the shell → §12.5 RED');
+    // M43 · §13.2 bites: the package edit sheet's gate back to a dead line.
+    {
+      const e1 = mut(src.edit, '      {gate && (\n        <NeedFirst text={gate}', '      {gate && <p role="alert">{gate}</p>}{false && (\n        <NeedFirst text={gate}');
+      const surfaces2 = { booking: src.booking, card: src.card, shell: src.shell, sheet: src.sheet, edit: e1 || '' };
+      const bad2 = Object.entries(surfaces2).filter(([, code]) => {
+        const t = strip(code);
+        const alerts = t.match(/<(p|div|span)[^>]*role="alert"[^>]*>\s*\{(message|gate|need[^}]*|LEAD_PACKAGE\.refusals[^}]*)\}/g) || [];
+        return alerts.some((a) => !/\{message\}/.test(a));
+      });
+      ok(e1 !== null && bad2.length === 1 && bad2[0][0] === 'edit', '§9 M43 R-43.16: a needs-first line rendered dead → §13.2 RED');
+    }
+    const b3 = mut(src.booking, "if (code === 'no_wedding_date') { if (leadId) onNeedWeddingDate(leadId); return; }", '');
+    ok(b3 !== null && !bookingCells(b3).fixMap, '§9 M42 R-43.16: the booking sheet\'s date refusal without its fix → §13.3 RED');
     const s2 = mut(src.shell, 'if (fresh && fresh !== sel) setSel(fresh);', '');
     ok(s2 !== null && !shellCells(s2).detailFollows, '§9 M36 F-43.101: the open detail keeps its stale row → §12.7 RED');
     const b2 = mut(read('components/vendor/slices/BinderCard.tsx'), ') : binder.booked_lead ? null : (', ') : (');

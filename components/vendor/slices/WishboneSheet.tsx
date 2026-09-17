@@ -44,7 +44,7 @@ function chipLabel(cell: string): string {
   return FIELD_META[cell]?.label ?? cap(cell.replace(/_/g, ' '));
 }
 
-export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
+export function WishboneSheet({ missing, personLabel, onComplete, onDone, initialValues }: {
   /** The wire's missing cells, in the wire's order. */
   missing: string[];
   /** The person the primer names ("this lead"/"this binder" fallback upstream). */
@@ -54,11 +54,14 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
   onComplete: (cell: string, value: string) => Promise<string | null>;
   /** Called after the last cell completes, or on explicit close. */
   onDone: () => void;
+  /** CE-43 LC-2 packet 3f · F-43.76: a value already on file for a cell (a month-precision wedding
+      date), pre-filled so the vendor makes it exact without retyping. Absent for every other caller. */
+  initialValues?: Record<string, string>;
 }) {
   const { openAsk } = useAsk();
   const [remaining, setRemaining] = useState<string[]>(missing);
   const [active, setActive] = useState<string | null>(missing[0] ?? null);
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState((initialValues && missing[0] && initialValues[missing[0]]) || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -128,7 +131,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone }: {
         {/* The chips — the same render truth the cards carry, now tappable */}
         <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
           {remaining.map(c => (
-            <button key={c} type="button" onClick={() => { setActive(c); setValue(''); setError(null); }} style={{
+            <button key={c} type="button" onClick={() => { setActive(c); setValue((initialValues && initialValues[c]) || ''); setError(null); }} style={{
               fontFamily: F.label, fontWeight: c === active ? 400 : 300, fontSize: 16, lineHeight: 1.5,
               color: c === active ? A.ink : A.inkMute, letterSpacing: '0.06em',
               border: `0.5px solid ${c === active ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-dim)'}`,

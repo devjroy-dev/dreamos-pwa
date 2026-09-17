@@ -16,6 +16,7 @@
 //   §8 mutations of production source, each turning its named cell RED.
 //   P2b: §3.14, §4.8, §5.10 to §5.12 and M15 to M18 (F-43.78 on the sheet, F-43.79's button form);
 //   §3.8 amended by label for the quiet button's border.
+//   Packet 3f (R-43.16, chair-ruled): §5.4 AMENDED BY LABEL, the refusal renders through NeedFirst.
 //   Packet 3c (1(a), chair-ruled): §5.8 AMENDED BY LABEL, the card mounts through the `detailTop`
 //   slot above the detail rows; the fact (the card on the leads detail) is unchanged.
 // NOT PROVEN HERE (declared): rendering on a device, the two-theme screenshots, `next build`,
@@ -171,8 +172,9 @@ function cardCells(src, shellSrc) {
     tells: /lp\.snapshot\.tells\.includes\('middle_folded'\) && \([\s\S]*?\{LEAD_PACKAGE\.folded\}/.test(s)
       && /lp\.snapshot\.tells\.includes\('counted_from_wedding'\) && \([\s\S]*?\{LEAD_PACKAGE\.counted\}/.test(s),
     delivery: /\{LEAD_PACKAGE\.delivery\(packageDate\(lp\.delivery_on\)\)\}/.test(s),
-    refusals: /if \(isRefusal\(code\)\) \{\s*setMessage\(LEAD_PACKAGE\.refusals\[code\]\);/.test(s) && /onToast\(PACKAGE_FAILURES\.attachFailed, 'error'\)/.test(s)
-      && /if \(!chosen\) \{ setMessage\(LEAD_PACKAGE\.refusals\.no_package\);/.test(s),
+    // [amended, packet 3f · R-43.16] the A9 line is a NeedFirst control built by needFor(code).
+    refusals: /if \(isRefusal\(code\)\) \{\s*setNeed\(needFor\(code\)\);/.test(s) && /onToast\(PACKAGE_FAILURES\.attachFailed, 'error'\)/.test(s)
+      && /if \(!chosen\) \{ setNeed\(needFor\('no_package'\)\);/.test(s),
     handoverOnly: /\{chosen && chosen\.delivery_basis === 'handover' && \(\s*<div>\s*<FieldLabel text=\{LEAD_PACKAGE\.fHandover\}/.test(s),
     defaultPick: /r\.packages\.find\(\(p\) => p\.is_default\)/.test(s),
     onlyChanged: /if \(total != null && total !== chosen\.total\) body\.total = total;/.test(s) && /if \(name\.trim\(\) !== chosen\.name\) body\.name = name\.trim\(\);/.test(s),
