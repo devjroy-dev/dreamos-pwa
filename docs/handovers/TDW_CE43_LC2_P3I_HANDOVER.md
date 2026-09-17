@@ -1,16 +1,17 @@
-# repo: dreamos-pwa @ fd4a77882531e5ef59526fa4e647d0a88389451c
+# repo: dreamos-pwa @ 45f6d906a41a6e76fa32091a9857b9bde3322d3f
 # TDW · CE-43 · SEAT LC-2s · PACKET 3i · HANDOVER (dreamos-pwa only) · 2026-09-17
 
 **Cut and provenance.**
-- Cut on dreamos-pwa `fd4a77882531e5ef59526fa4e647d0a88389451c` (3h), re-derived at origin by `git ls-remote` at the moment of cutting.
+- The code was cut on dreamos-pwa `fd4a77882531e5ef59526fa4e647d0a88389451c` (3h), re-derived at origin by `git ls-remote` at the moment of cutting.
+- This file was re-cut (docs only) on `45f6d906a41a6e76fa32091a9857b9bde3322d3f`, the 3i commit, re-derived at origin at the moment of re-cutting.
 - dream-os stands at `51399689e55bfb607bcc4d434a0c83abd2f689cb` (LC-2r's rest docs) and is untouched.
 - The seat is LC-2s, the re-seat of LC-2r, which rested at its image limit with 3 to 3h banked and walked. Status for the re-seat: dream-os `docs/handovers/TDW_CE43_LC2R_REST_HANDOVER.md` (c-43.18).
 
 **Scope and status.**
 - No new byte. No new file outside `scripts/` and this handover.
 - Rung unchanged (b82, by label).
-- Findings used: none. F-43.114 onward stay unspent; §4 names candidates for the chair.
-- Provisional under C-43.17 until the founder's floor on the applied tree is pasted.
+- Findings: F-43.114 and F-43.115, both chair-filed at the card's close (§6). F-43.116 onward stay unspent; §4 names candidates for the chair.
+- **Status: CARD 3i CLOSED** (chair's ruling, CE-43, 2026-09-17). The code landed at dreamos-pwa `45f6d906` (F-43.114). This file was re-cut, docs only, on that tip under R-43.17 (§5, §6).
 
 ## §1 · The ruling built (CE-43, the rest handover's line 2; confirmed at the LC-2s first-message ruling)
 
@@ -65,46 +66,95 @@
   - So since F-43.101, every refetch of the invoices list while a detail is open re-reads its schedule and redraws its loading state.
   - This predates 3i and is untouched. It is named because 3i's lead arm chose the other way.
 
-## §5 · Card 3i (the founder performs and pastes)
+## §5 · Card 3i, as walked (R-43.17 governs the fixtures)
 
-Start when Vercel reads Ready on this push. dream-os is unchanged.
+**R-43.17 (founder's rule, chair-recorded, CE-43):**
 
-**Q-3i-a · the fixture, read-only, run FIRST.** Paste the rows. The seat names the lead for step 1 from YOUR rows; do not take step 1 until it has.
+> "the only two accounts we can use for test is 9888294440 or 8595356978."
+
+Every walk fixture is a lead carrying one of those two numbers. Phoneless leads, and every other phone on DEV440, are excluded from any card, including simply opening them. This card first named Q-3i-a, a query over every undated lead with no package; that query is withdrawn and replaced by Q-3i-b.
+
+**Q-3i-b · the fixture, read-only, run FIRST.**
 
 Witness: `public.leads` (id 1, vendor_id 2, name 3, phone 4, wedding_date 6, state 13, created_at 16, deleted_at 20) and `public.lead_packages` (lead_id 3, deleted_at 13), dream-os `docs/db/PUBLIC_SCHEMA.md` at ladder 0168.
 
 ```sql
-select l.id, l.name, l.phone, l.state, l.created_at
+select l.id, l.name, l.phone, l.state, l.wedding_date, l.created_at,
+  exists (select 1 from public.lead_packages lp where lp.lead_id = l.id and lp.deleted_at is null) as has_package
 from public.leads l
 where l.vendor_id = '23165e38-6510-4639-ab6a-9f35bab93742'
   and l.deleted_at is null
-  and l.wedding_date is null
-  and l.state <> 'booked'
-  and not exists (select 1 from public.lead_packages lp where lp.lead_id = l.id and lp.deleted_at is null)
+  and l.phone in ('+919888294440', '+918595356978', '9888294440', '8595356978')
 order by l.created_at desc;
 ```
 
-Expect zero or more leads with no wedding date and no package. With zero rows, the seat says so and step 1 waits on a new lead added from Leads.
+- **A row that is not booked, has no wedding date and has no package** is the step 1 fixture.
+- **No such row:** step 1 opens by adding one on Leads → + with a test number and every other field empty. The Add door needs only a name (dream-os `src/api/vendor/leads.js`), and the pwa form normalises the phone to `+91…`.
+- The founder's paste returned zero rows. He added `Swati Test` (`7934e4b8…`, `+918595356978`), then `Dev Test 3i` (`2dfef288…`, `+919888294440`), then `Dev Test 3i b`.
+
+**Q-3i-c · after step 1, read-only.** Same witness, plus `wedding_date_precision` (24).
+
+```sql
+select l.id, l.name, l.phone, l.state, l.wedding_date, l.wedding_date_precision, l.created_at
+from public.leads l
+where l.vendor_id = '23165e38-6510-4639-ab6a-9f35bab93742'
+  and l.deleted_at is null
+  and l.phone in ('+919888294440', '+918595356978', '9888294440', '8595356978')
+order by l.created_at desc;
+```
+
+**The steps**
+
+Start only when Vercel reads Ready on the 3i commit and, with a lead open, this console line lists the marks:
+
+```js
+performance.getEntriesByType('mark').filter((e) => e.name.startsWith('tdw:lead-detail:')).map((e) => e.name)
+```
 
 1. **The chip clears in place (F-43.113).**
-   - Open Leads, then the lead the seat named from Q-3i-a. Its `Still missing — tap to complete:` chips include `Wedding date`.
-   - Keep the detail open. Tap `Booking confirmed`, then `Confirm booking`. The toast names what is missing, and the chips appear at the top of the booking sheet.
-   - Tap `+ Wedding date`, pick a date and file it. Then tap `Cancel` on the booking sheet.
-   - On the lead detail that stayed open beneath: the `Wedding date` chip is gone, and the Wedding date row shows the date. You did not close or reopen anything.
-   - 📸 Screenshot the detail before and after.
-2. **The badge in place (F-43.113), only if you want a booking.**
-   - On a lead with a package and a wedding date, tap `Advance paid`, then `Confirm booking`.
-   - The open detail reads booked at once, the booking pair goes, and it stays booked after the list refreshes.
-   - Skip this step if you do not want another booked fixture.
-3. **The timings (F-43.112).**
-   - Open DevTools on the phone view (Fast 4G, as before) and paste this into the console once:
+   - Open the test lead and keep the detail open.
+   - Tap `Booking confirmed`, then `Confirm booking`. Nothing is sent; the toast names what is missing, and the chips sit at the top of the booking sheet.
+   - Tap `+ Wedding date` **on the booking sheet**, not the chip on the detail above it. The one-cell date sheet opens; file a date, and it closes itself.
+   - Without closing anything, the detail beneath shows the date, with `+ Wedding Date` gone from its chips.
+2. **The timings (F-43.112).**
+   - Paste this into the console on each reload, then tap one test lead once and touch nothing until both lines print. Three runs.
+   - Target for the card-rows line: tap-to-stable ≤ 1274 ms and shift ≤ 0.051 on each run. The conversation line is recorded on its own.
 
 ```js
 (() => { let t0 = 0, cls = 0; addEventListener('pointerdown', (e) => { t0 = e.timeStamp; cls = 0; }, { capture: true }); new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) cls += e.value; }).observe({ type: 'layout-shift' }); new PerformanceObserver((l) => { for (const e of l.getEntries()) if (e.name.startsWith('tdw:lead-detail:') && e.name !== 'tdw:lead-detail:open' && t0) console.log('tap to ' + e.name.slice(16) + ': ' + Math.round(e.startTime - t0) + ' ms · shift so far ' + cls.toFixed(3)); }).observe({ type: 'mark' }); console.log('armed: tap one lead row'); })();
 ```
 
-   - Tap one lead row and wait. Two lines print: `tap to card-rows: … ms · shift so far …` and `tap to conversation: … ms · shift so far …`.
-   - Close the detail, reload the page, paste the snippet again, and tap. Do this **three** times in all, and paste the six lines.
-   - The card-rows line is the number the ruled targets read (**≤ 1274 ms**, shift **≤ 0.051**). The conversation line is recorded on its own.
+## §6 · The walk record and the close (CE-43, 2026-09-17)
+
+**The first attempts, disclosed (the seat's error).**
+- The card was first walked before any 3i push existed. The seat had said to start "on this push" while withholding the git line, so production still served `fd4a7788`.
+- Swati Test's date was filed through the detail's own chip (TDW_04's wishbone). The evidence: its sheet read "3 details missing", and the row stored `wedding_date_precision` NULL.
+- Dev Test 3i's date was filed through the booking sheet's fix (precision `day`). Its detail did not update in place, because 3i was not yet live.
+- The console check printed `[]` on the old build, and the three marks once `45f6d906` was Ready.
+
+**The close, on `45f6d906` (Vercel production Ready).**
+- **Step 1, green in place.** On `Dev Test 3i b`, a date filed from the booking sheet's chip made the open detail read `24 Apr 2027`, with `+ Wedding Date` gone from its chips. It updated while the booking sheet was still open, and the sheet was left with only `+ Package`.
+- **Step 2.** Three runs, read from the founder's console. Shift was 0.000 on every run.
+
+  | Run | Tap to card-rows | Tap to conversation |
+  |---|---|---|
+  | 1 | 1059 ms | 1275 ms |
+  | 2 | 931 ms | 1314 ms |
+  | 3 | 1317 ms | 1084 ms |
+
+  Run 3's 43 ms miss is accepted as the reading (chair): the network was throttled, and on that run the package read was slower than the conversation read.
+- **Fixture disclosure.** The timing runs were taken with Anjali open, a lead outside R-43.17. Opening writes nothing; the rule now excludes it from any card.
+
+**Filed by the chair.**
+- **F-43.114**, disclosed, no revert. The 3i push landed at `45f6d906` on the founder's own word, ahead of the chair's final call. The tree is byte-identical to the cut, which the seat checked by `git show origin/main:<path> | cmp` on all five files, and the floor was green. The fact is recorded, not undone.
+- **F-43.115 → Block 09.** The latency of the `/leads/:id/package` read on the detail open, to be measured with the Network panel beside the marks. No cure in LC-2.
+
+**Relayed to the chair verbatim, not ruled here:**
+
+> "after tapping file it, it gets filed and no place to click cancel. had to click outside the card area to dismiss the date got logged."
+
+This is the TDW_04 wishbone sheet. It has no close control, it moves on to the next missing cell after a filing, and on a lead its outside tap also closes the detail. The two date-completion paths also store precision differently: the wishbone leaves it NULL, the booking fix stores `day`.
+
+**Held.** Dev Test 23 (`5998610d…`) has no wedding date in Q-3i-a's rows. If the founder filed and saved on it at card 3f and no date landed, it is numbered and becomes the first item on packet 4's pre-cut note; otherwise it is dropped.
 
 Sequencing beyond this sitting is the founder's.
