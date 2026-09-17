@@ -73,16 +73,12 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast }: {
   );
 
   return (
-    <div data-lc2="lead-package" style={{ marginTop: 18, paddingTop: 18, borderTop: `0.5px solid ${T.card}` }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        {eyebrow}
-        <span style={{ flex: 1 }} />
-        {lp !== undefined && (
-          <button type="button" style={actionButton()} onClick={() => setSheetOpen(true)}>
-            {lp ? LEAD_PACKAGE.change : LEAD_PACKAGE.attach}
-          </button>
-        )}
-      </div>
+    // CE-43 LC-2 packet 3d · F-43.97 (a): the card leads the detail body (3c, 1(a)), so it closes
+    // with spacing and a hairline before the detail rows. One aligned control column follows the
+    // package: Attach package / Change package full width, then the two booking controls as an
+    // exactly equal pair (a two-column grid). Tokens only, so Chalk and Graphite both resolve.
+    <div data-lc2="lead-package" style={{ paddingBottom: 18, marginBottom: 8, borderBottom: `0.5px solid ${T.card}` }}>
+      <div>{eyebrow}</div>
       {lp && (
         <div data-lc2="lead-package-attached" style={{ marginTop: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
@@ -105,10 +101,17 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast }: {
           )}
         </div>
       )}
-      {lp !== undefined && !booked && onBook && (
-        <div data-lc2="lead-booking-controls" style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-          <button type="button" style={{ ...actionButton(), flex: 1 }} onClick={() => book('booking_confirmed')}>{LEAD_PACKAGE.bookingConfirmed}</button>
-          <button type="button" style={{ ...actionButton(), flex: 1 }} onClick={() => book('advance_paid')}>{LEAD_PACKAGE.advancePaid}</button>
+      {lp !== undefined && (
+        <div data-lc2="lead-package-controls" style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
+          <button type="button" style={actionButton()} onClick={() => setSheetOpen(true)}>
+            {lp ? LEAD_PACKAGE.change : LEAD_PACKAGE.attach}
+          </button>
+          {!booked && onBook && (
+            <div data-lc2="lead-booking-controls" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <button type="button" style={{ ...actionButton(), width: '100%' }} onClick={() => book('booking_confirmed')}>{LEAD_PACKAGE.bookingConfirmed}</button>
+              <button type="button" style={{ ...actionButton(), width: '100%' }} onClick={() => book('advance_paid')}>{LEAD_PACKAGE.advancePaid}</button>
+            </div>
+          )}
         </div>
       )}
       <AttachSheet

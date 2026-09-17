@@ -25,6 +25,9 @@
 // AMENDED BY LABEL AT PACKET 3c (CE-43 LC-2r, chair-ruled): §4.8 (F-43.88's guarded call), §5.1 to
 // §5.3 (3(a)/4(a): the booking controls always present, attach first when no package), M10, M12,
 // M13 re-aimed; §10 added for F-43.88, F-43.89, 1(a) and point 7.
+// AMENDED BY LABEL AT PACKET 3d (CE-43 LC-2r, chair-ruled): §4.1 and M7 (F-43.95: the swipe is withheld
+// on a booked lead), §5.1, §5.2 and M12 (F-43.97: the controls column), §10.9's stub (the thread now
+// imports the copy home); §11 added for F-43.93 point 6, F-43.94, F-43.95, F-43.96 and F-43.97.
 // NOT PROVEN HERE (declared): rendering on a device, both themes on glass, the gesture under a thumb,
 // `next build`, and the database. The founder's walk (card P3) and provisional floor are their witnesses.
 const fs = require('fs');
@@ -140,7 +143,8 @@ function bookingCells(code) {
 function shellCells(code) {
   const s = strip(code);
   return {
-    swipe: /right: \{ label: 'Booked', onTrigger: \(\) => setBooking\(\{ leadId: row\.id, kind: 'booking_confirmed' \}\) \}/.test(s),
+    // [amended, 3d] F-43.95: the same opener, withheld on a booked lead.
+    swipe: /right: \(row\.badge \?\? ''\)\.toLowerCase\(\) === 'booked'\s*\?\s*undefined\s*:\s*\{ label: 'Booked', onTrigger: \(\) => setBooking\(\{ leadId: row\.id, kind: 'booking_confirmed' \}\) \}/.test(s),
     noBareBooked: s.length > 0 && !/patchLeadState\([^)]*'booked'\)/.test(s),
     mountOnce: (s.match(/<BookingSheet\b/g) || []).length === 1 && /\{slice === 'leads' && \(\s*<BookingSheet/.test(s),
     cardProps: /<LeadPackageCard leadId=\{sel\.id\}\s*booked=\{\(sel\.badge \?\? ''\)\.toLowerCase\(\) === 'booked'\}\s*onBook=\{\(k\) => setBooking\(\{ leadId: sel\.id, kind: k \}\)\}/.test(s),
@@ -175,10 +179,19 @@ function cardCells(code, editCode) {
   return {
     // [amended, packet 3c · 3(a)/4(a)] always present on a lead that is not booked (once the card has
     // read), outside the attached block; with no package the control opens the attach sheet first.
-    gated: /\{lp !== undefined && !booked && onBook && \(\s*<div data-lc2="lead-booking-controls"/.test(s),
-    insideAttached: s.indexOf('data-lc2="lead-booking-controls"') > 0
-      && s.indexOf('data-lc2="lead-booking-controls"') > s.indexOf('data-lc2="lead-package-attached"')
-      && /\{lp && \([\s\S]*?data-lc2="lead-package-attached"[\s\S]*?\n      \)\}\n      \{lp !== undefined && !booked && onBook && \(/.test(s),
+    // [amended, 3d · F-43.97] inside the one control column, under Attach/Change, on every lead that
+    // is not booked (once the card has read), after the attached block.
+    gated: /\{!booked && onBook && \(\s*<div data-lc2="lead-booking-controls"/.test(s)
+      && /\{lp !== undefined && \(\s*<div data-lc2="lead-package-controls"/.test(s),
+    insideAttached: s.indexOf('data-lc2="lead-booking-controls"') > s.indexOf('data-lc2="lead-package-controls"')
+      && s.indexOf('data-lc2="lead-package-controls"') > s.indexOf('data-lc2="lead-package-attached"')
+      && s.indexOf('data-lc2="lead-package-attached"') > 0,
+    // 3d · F-43.97
+    column: /data-lc2="lead-package-controls" style=\{\{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 \}\}>\s*<button type="button" style=\{actionButton\(\)\} onClick=\{\(\) => setSheetOpen\(true\)\}>\s*\{lp \? LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach\}/.test(s),
+    pair: /data-lc2="lead-booking-controls" style=\{\{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 \}\}/.test(s)
+      && (s.match(/style=\{\{ \.\.\.actionButton\(\), width: '100%' \}\} onClick=\{\(\) => book\(/g) || []).length === 2,
+    hairline: /data-lc2="lead-package" style=\{\{ paddingBottom: 18, marginBottom: 8, borderBottom: `0\.5px solid \$\{T\.card\}` \}\}/.test(s)
+      && (s.match(/LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach/g) || []).length === 1,
     both: /onClick=\{\(\) => book\('booking_confirmed'\)\}>\{LEAD_PACKAGE\.bookingConfirmed\}/.test(s) && /onClick=\{\(\) => book\('advance_paid'\)\}>\{LEAD_PACKAGE\.advancePaid\}/.test(s)
       && /const book = \(k: BookingKind\) => \{\s*if \(!onBook\) return;\s*if \(lp\) \{ onBook\(k\); return; \}\s*setPendingKind\(k\);\s*setSheetOpen\(true\);\s*\};/.test(s),
     continues: /if \(pendingKind && onBook\) onBook\(pendingKind\);\s*setPendingKind\(null\);/.test(s)
@@ -274,8 +287,8 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
 
   sec('§5 · the lead card and the outlined Cancels');
   const c5 = cardCells(src.card, src.edit);
-  ok(c5.gated, '§5.1 [amended, 3c] the booking controls show on every lead that is not booked');
-  ok(c5.insideAttached, '§5.2 [amended, 3c] they sit after the attached block, not inside it (present with no package)');
+  ok(c5.gated, '§5.1 [amended, 3d] the booking controls show on every lead that is not booked, in the control column');
+  ok(c5.insideAttached, '§5.2 [amended, 3d] the column follows the attached block; the pair sits under Attach/Change');
   ok(c5.both, '§5.3 [amended, 3c] each A2 control books at once with a package, or opens the attach sheet first');
   ok(c5.continues, '§5.8 3(a): once the package is attached the chosen booking opens; closing the attach sheet drops it');
   ok(c5.attachCancel, '§5.4 C-43.16: the attach sheet\'s Cancel is outlined in the muted ink');
@@ -321,11 +334,42 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   ok(c4.detailTop, '§10.8 1(a): the lead card rides detailTop, and no longer detailExtra');
   const threadSrc = read('components/vendor/ConversationThread.tsx');
   let sender = null;
-  try { sender = loadModule(threadSrc.replace(/^'use client';/, ''), { react: {}, 'react/jsx-runtime': { jsx: () => null, jsxs: () => null, Fragment: null } }).inboundSender; } catch (e) { console.log('  (thread did not load: ' + e.message + ')'); }
+  // [amended, 3d] the thread imports the copy home and useState; both are stubbed from the real sources.
+  const threadStubs = () => ({ react: { useState: (v) => [v, () => {}] }, 'react/jsx-runtime': { jsx: () => null, jsxs: () => null, Fragment: null }, '@/lib/worklist/packages': loadModule(src.copy) });
+  let thread = null;
+  try { thread = loadModule(threadSrc.replace(/^'use client';/, ''), threadStubs()); sender = thread.inboundSender; } catch (e) { console.log('  (thread did not load: ' + e.message + ')'); }
   ok(typeof sender === 'function' && sender('Sarah') === 'Sarah' && sender('  Riya  ') === 'Riya' && sender('') === 'Lead' && sender(null) === 'Lead' && sender(undefined) === 'Lead',
     '§10.9 point 7: the inbound sender is the lead\'s name, else "Lead"');
   ok(!/'Bride'/.test(strip(threadSrc)) && /isIn \? inboundSender\(leadName\) : 'TDW'/.test(strip(threadSrc)), '§10.10 point 7: "Bride" has left the vendor\'s thread');
   ok(c4.leadName, '§10.11 point 7: the shell hands the lead\'s own name to the thread');
+
+  sec('§11 · packet 3d');
+  const c5b = cardCells(src.card, src.edit);
+  ok(c5b.column, '§11.1 F-43.97: one control column, Attach/Change full width first');
+  ok(c5b.pair, '§11.2 F-43.97: Booking confirmed and Advance paid as an exactly equal pair');
+  ok(c5b.hairline, '§11.3 F-43.97: spacing and a hairline before the detail rows; one Attach/Change control, not two');
+  ok(c4.swipe && /: \{ label: 'Booked'/.test(strip(src.shell)), '§11.4 F-43.95: the swipe is withheld on a booked lead');
+  const th = thread || {};
+  const msgs = [1, 2, 3, 4, 5].map((n) => ({ n }));
+  ok(typeof th.visibleMessages === 'function' && th.visibleMessages(msgs, false).map((m) => m.n).join() === '3,4,5'
+    && th.visibleMessages(msgs, true).length === 5 && th.visibleMessages(msgs.slice(0, 3), false).length === 3 && th.COLLAPSED_COUNT === 3,
+    '§11.5 F-43.93 point 6: collapsed to the last three; expanded shows all; three or fewer are never cut');
+  ok(!!th.THREAD && th.THREAD.showAll === 'Show all messages' && th.THREAD.showFewer === 'Show fewer', '§11.6 F-43.93 point 6: the two vetoed bytes');
+  const ts = strip(threadSrc);
+  ok(/const toggle = messages\.length > COLLAPSED_COUNT \? \(/.test(ts) && /\{!expanded && toggle\}\s*\{shown\.map\(/.test(ts) && /\{expanded && toggle\}/.test(ts)
+    && /\{expanded \? THREAD\.showFewer : THREAD\.showAll\}/.test(ts) && !/\{messages\.map\(/.test(ts),
+    '§11.7 F-43.93 point 6: one toggle, above the last three while collapsed, below the thread when expanded; the full list is never mapped directly');
+  ok(typeof th.stampOf === 'function' && th.stampOf('2026-09-17T07:07:00Z') === `17 September 2026 · ${new Date('2026-09-17T07:07:00Z').toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}`
+    && th.stampOf('2026-09-16T18:45:00Z').startsWith('17 September 2026 · '),
+    '§11.8 F-43.96: the stamp is the IST day in full month and the time');
+  ok(/\{isIn \? inboundSender\(leadName\) : 'TDW'\} · \{stampOf\(msg\.created_at\)\}/.test(ts)
+    && /data-lc2="thread-stamp" style=\{\{ fontFamily: F\.label, fontWeight: 300, fontSize: 8,/.test(ts) && !/fontSize: 16, lineHeight: 1\.5, color: D\.muted, letterSpacing: '0\.1em'/.test(ts),
+    '§11.9 F-43.96: the stamp renders at the label size, never a bare clock time');
+  const cbs = strip(src.sheet);
+  ok(/data-lc2="client-booking-sheet" inert=\{!open\}/.test(cbs) && !/aria-hidden=\{!open\}/.test(cbs), '§11.10 F-43.94: the Clients sheet is inert when closed, not aria-hidden');
+  // The thread carried three rgba literals before 3d (cf027b31: the summary block's two, the outbound
+  // bubble's one). 3d adds none, so the count stays three.
+  ok((strip(threadSrc).match(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/g) || []).length === 3, '§11.11 the thread adds no colour literal (its three pre-existing ones are carried)');
 
   sec('§9 · mutations of production source');
   const M = [
@@ -335,12 +379,15 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     [F.booking, "kind === 'advance_paid' ? { kind, advance_received_on: receivedOn } : { kind }", '{ kind, advance_received_on: receivedOn }', (m) => !bookingCells(m).act, 'M4 the date sent on every booking → §3.2 RED'],
     [F.booking, "        refreshAfterBooking();\n        onToast(BOOKING.booked, 'success');", "        onToast(BOOKING.booked, 'success');", (m) => !bookingCells(m).a13, 'M5 A13 without the refresh → §3.8 RED'],
     [F.booking, "style={actionButton('mute')} onClick={onClose}", "style={textButton('mute')} onClick={onClose}", (m) => !bookingCells(m).cancel, 'M6 the Cancel back to text → §3.10 RED'],
-    [F.shell, "right: { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },", "right: { label: 'Booked', onTrigger: () => { void patchLeadState(row.id, 'booked'); } },", (m) => { const c = shellCells(m); return !c.swipe && !c.noBareBooked; }, 'M7 the swipe writes booked directly → §4.1 and §4.2 RED'],
+    [F.shell, ": { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },", ": { label: 'Booked', onTrigger: () => { void patchLeadState(row.id, 'booked'); } },", (m) => { const c = shellCells(m); return !c.swipe && !c.noBareBooked; }, 'M7 [re-aimed, 3d] the swipe writes booked directly → §4.1 and §4.2 RED'],
+    [F.shell, "right: (row.badge ?? '').toLowerCase() === 'booked'\n        ? undefined\n        :", 'right:', (m) => !shellCells(m).swipe, 'M25 F-43.95: the swipe offered on a booked lead → §4.1 RED'],
     [F.shell, '!removeSchedule && !sel.isPackage && (', '!removeSchedule && (', (m) => !shellCells(m).f16, 'M8 Remove drawn on a booking\'s invoice → §4.6 RED'],
     [F.shell, "res.code === 'PACKAGE_SCHEDULE' ? COPY.studioScheduleRemoveFailed : (res.error ?? COPY.studioScheduleRemoveFailed)", 'res.error ?? COPY.studioScheduleRemoveFailed', (m) => !shellCells(m).b1, 'M9 the door\'s text reaches the toast → §4.7 RED'],
     [F.shell, "if (!('ok' in r) || !r.ok || !r.invoice) {", 'if (false) {', (m) => !shellCells(m).f17, 'M10 [re-aimed, 3c] D3 spoken without checking the answer → §4.8 RED'],
     [F.shell, "const paidInFull = r.invoice.state === 'paid' || !r.invoice.due_date;", 'const paidInFull = false;', (m) => !shellCells(m).f17Fields, 'M11 D4 never chosen → §4.9 RED'],
-    [F.card, '{lp !== undefined && !booked && onBook && (', '{lp !== undefined && onBook && (', (m) => !cardCells(m, src.edit).gated, 'M12 [re-aimed, 3c] booking offered on a booked lead → §5.1 RED'],
+    [F.card, '{!booked && onBook && (', '{onBook && (', (m) => !cardCells(m, src.edit).gated, 'M12 [re-aimed, 3d] booking offered on a booked lead → §5.1 RED'],
+    [F.card, "gridTemplateColumns: '1fr 1fr'", "gridTemplateColumns: '2fr 1fr'", (m) => !cardCells(m, src.edit).pair, 'M26 F-43.97: the pair unequal → §11.2 RED'],
+    [F.card, 'borderBottom: `0.5px solid ${T.card}`', 'borderTop: `0.5px solid ${T.card}`', (m) => !cardCells(m, src.edit).hairline, 'M27 F-43.97: no hairline before the detail rows → §11.3 RED'],
     [F.card, "onClick={() => book('advance_paid')}", "onClick={() => book('booking_confirmed')}", (m) => !cardCells(m, src.edit).both, 'M13 [re-aimed, 3c] Advance paid hands the wrong kind → §5.3 RED'],
     [F.card, '    if (lp) { onBook(k); return; }', '    onBook(k); return;', (m) => !cardCells(m, src.edit).both, 'M20 3(a): no package, no attach first → §5.3 RED'],
     [F.card, '          if (pendingKind && onBook) onBook(pendingKind);', '', (m) => !cardCells(m, src.edit).continues, 'M21 3(a): the booking lost after the attach → §5.8 RED'],
@@ -353,6 +400,22 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     [F.invoices, 'isPackage: !!inv.lead_package_id', 'isPackage: false', (m) => !rowCells(m, src.row, src.types).isPackage, 'M17 the row never a booking\'s → §7.1 RED'],
     [F.booking, "        onToast(BOOKING.booked, 'success');", "        onToast(BOOKING.booked, 'success');\n        style={{ color: '#C9A84C' }};", (m) => !tokensOnly(m), 'M18 a colour literal in the sheet → §8.1 RED'],
   ];
+  const threadCells = (code) => {
+    let t = null;
+    try { t = loadModule(code.replace(/^'use client';/, ''), threadStubs()); } catch { return {}; }
+    return {
+      collapse: t.visibleMessages([1, 2, 3, 4], false).length === 3,
+      stamp: /^17 September 2026 · /.test(t.stampOf('2026-09-17T07:07:00Z')),
+    };
+  };
+  {
+    const m1 = mut(threadSrc, 'messages.slice(-COLLAPSED_COUNT)', 'messages');
+    ok(m1 !== null && !threadCells(m1).collapse, '§9 M28 F-43.93: never collapses → §11.5 RED');
+    const m2 = mut(threadSrc, 'return day ? `${day} · ${time}` : time;', 'return time;');
+    ok(m2 !== null && !threadCells(m2).stamp, '§9 M29 F-43.96: a bare clock time → §11.8 RED');
+    const m3 = mut(src.sheet, 'data-lc2="client-booking-sheet" inert={!open}', 'data-lc2="client-booking-sheet" aria-hidden={!open}');
+    ok(m3 !== null && /aria-hidden=\{!open\}/.test(strip(m3)), '§9 M30 F-43.94: aria-hidden back on the Clients sheet → §11.10 RED');
+  }
   for (const [file, from, to, bites, name] of M) {
     const key = Object.keys(F).find((k) => F[k] === file);
     const m = mut(src[key], from, to);

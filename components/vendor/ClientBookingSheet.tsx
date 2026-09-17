@@ -165,7 +165,8 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
         <div onClick={onClose}
           style={{ position: 'fixed', inset: 0, zIndex: 40, backgroundColor: 'var(--atelier-overlay)' }} />
       )}
-      <div data-lc2="client-booking-sheet" aria-hidden={!open} style={{
+      {/* CE-43 LC-2 packet 3d · F-43.94 (chair YES): inert, not aria-hidden (F-43.89's cure). */}
+      <div data-lc2="client-booking-sheet" inert={!open} style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
         backgroundColor: D.card, borderTopLeftRadius: 20, borderTopRightRadius: 20,
         borderTop: `1px solid ${D.border}`,

@@ -796,7 +796,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       // CE-43 LC-2 packet 3 · F15(a): the label is KEPT and the act MOVED. The swipe opens the
       // booking sheet (A12); nothing is written until the vendor taps Confirm booking, and the
       // write is the promotion act, never a bare state change (R-43.5).
-      right: { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },
+      // CE-43 LC-2 packet 3d · F-43.95 (a): withheld on a lead that is already booked, as the card
+      // withholds its booking controls there. No re-run path.
+      right: (row.badge ?? '').toLowerCase() === 'booked'
+        ? undefined
+        : { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },
       // ── R-37.22 · THE LEFT SIDE SUPPRESSES ON A REDACTED ROW ──────────────
       // THE INCIDENT THIS CLOSES, written down because it was live: Seat A′'s
       // recut withholds `phone` from a basic vendor's leads wire (R-36.13 — the

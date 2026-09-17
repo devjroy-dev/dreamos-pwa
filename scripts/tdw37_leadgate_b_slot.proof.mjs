@@ -98,9 +98,14 @@ t('a NAMELESS-but-not-redacted row keeps Mark lost (an ordinary row is untouched
 t('the suppression keys on `redacted`, NEVER on an absent phone (R-37.23)', () =>
   /left: row\.redacted/.test(CODE(SHELL_P)) && !/left: !row\.phone/.test(CODE(SHELL_P))
     ? true : 'the swipe infers from absence — a lead that never had a number is not a withheld one');
+// AMENDED BY LABEL AT CE-43 LC-2 PACKET 3d (F-43.95 (a), chair-ruled). The right side is now withheld
+// on a lead that is already BOOKED. That is a state rule, not a row-shape rule: the cell's subject,
+// that redaction and an absent phone never change the right gesture, is kept and now asserted on the
+// right side's own expression.
 t('the RIGHT side (Booked) is untouched for every row shape', () => {
   const src = CODE(SHELL_P);
-  return /right: \{ label: 'Booked'/.test(src)
+  const m = src.match(/right: (\(row\.badge \?\? ''\)\.toLowerCase\(\) === 'booked'\s*\?\s*undefined\s*:\s*)?\{ label: 'Booked'[^\n]*\n/);
+  return m && !/redacted|phone/.test(m[0])
     ? true : 'the right gesture moved — out of this sitting\'s radius';
 });
 t('Mark lost stays reachable through the sheet\'s own control', () =>

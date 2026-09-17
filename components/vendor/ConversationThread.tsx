@@ -4,7 +4,9 @@
 // CE-43 LC-2 packet 3c: inbound messages are signed with the lead's name (fallback "Lead").
 // No reply input — vendor continues on WhatsApp.
 
+import { useState } from 'react';
 import type { ConversationMessage } from '@/lib/vendor/types/vendor';
+import { packageDate, istDateOf } from '@/lib/worklist/packages';
 
 const D = { card: 'var(--atelier-sheet-bg)', border: 'var(--atelier-sheet-border)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--role-metal)' };
 const F = { label: 'var(--font-jost), system-ui, sans-serif', body: 'var(--font-dm-sans), system-ui, sans-serif' };
@@ -23,6 +25,28 @@ interface Props {
   leadName?: string | null;
 }
 
+// CE-43 LC-2 packet 3d · F-43.93 point 6 (chair-ruled, two bytes vetoed under "go with your lean"):
+// the thread opens on its last three messages; one control shows all, one shows fewer.
+export const THREAD = {
+  showAll: 'Show all messages',
+  showFewer: 'Show fewer',
+} as const;
+export const COLLAPSED_COUNT = 3;
+
+/** The messages to render: the last three while collapsed, every one once expanded. */
+export function visibleMessages<T>(messages: T[], expanded: boolean): T[] {
+  return expanded || messages.length <= COLLAPSED_COUNT ? messages : messages.slice(-COLLAPSED_COUNT);
+}
+
+// CE-43 LC-2 packet 3d · F-43.96 (chair-ruled): the stamp is the IST day in full month
+// (R-42.13) and the clock time, never a bare time. Existing renderers only: istDateOf and
+// packageDate (lib/worklist/packages.ts), and this file's fmtTime.
+export function stampOf(iso: string): string {
+  const day = packageDate(istDateOf(iso));
+  const time = fmtTime(iso);
+  return day ? `${day} · ${time}` : time;
+}
+
 /** The inbound sender's label: the lead's name, else "Lead" (the one vetoed byte, CE-43). */
 export function inboundSender(leadName?: string | null): string {
   const n = (leadName ?? '').trim();
@@ -36,6 +60,15 @@ export function inboundSender(leadName?: string | null): string {
 // product refers to itself as TDW everywhere (R-37.72), and a console that used the old
 // name would be teaching the next reader a byte the estate has banned.
 export function ConversationThread({ messages, vendorSummary, leadName }: Props) {
+  const [expanded, setExpanded] = useState(false);
+  const shown = visibleMessages(messages, expanded);
+  const toggle = messages.length > COLLAPSED_COUNT ? (
+    <button type="button" data-lc2="thread-toggle" onClick={() => setExpanded((e) => !e)} style={{
+      alignSelf: 'flex-start', background: 'none', border: 'none', padding: '8px 0', minHeight: 36, cursor: 'pointer',
+      fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.25em', textTransform: 'uppercase',
+      color: 'var(--atelier-accent-text)',
+    }}>{expanded ? THREAD.showFewer : THREAD.showAll}</button>
+  ) : null;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* Summary card */}
@@ -54,7 +87,8 @@ export function ConversationThread({ messages, vendorSummary, leadName }: Props)
       {messages.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: D.muted, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 8 }}>Conversation</p>
-          {messages.map((msg, idx) => {
+          {!expanded && toggle}
+          {shown.map((msg, idx) => {
             const isIn = msg.direction === 'inbound';
             return (
               <div key={idx} style={{
@@ -72,12 +106,14 @@ export function ConversationThread({ messages, vendorSummary, leadName }: Props)
                 }}>
                   <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, lineHeight: 1.5, margin: 0 }}>{msg.body}</p>
                 </div>
-                <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, letterSpacing: '0.1em', marginTop: 2, paddingLeft: isIn ? 2 : 0, paddingRight: isIn ? 0 : 2 }}>
-                  {isIn ? inboundSender(leadName) : 'TDW'} · {fmtTime(msg.created_at)}
+                {/* F-43.96: the stamp at the thread's own label size (the `Conversation` label above). */}
+                <span data-lc2="thread-stamp" style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, lineHeight: 1.6, color: D.muted, letterSpacing: '0.25em', textTransform: 'uppercase', marginTop: 4, paddingLeft: isIn ? 2 : 0, paddingRight: isIn ? 0 : 2 }}>
+                  {isIn ? inboundSender(leadName) : 'TDW'} · {stampOf(msg.created_at)}
                 </span>
               </div>
             );
           })}
+          {expanded && toggle}
         </div>
       )}
 

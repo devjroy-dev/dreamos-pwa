@@ -143,8 +143,10 @@ const S = () => CODE(SHELL_P);
 // cell guards is unchanged in spirit: the gesture still does a real thing, and it no longer
 // fakes one. So it asserts the label, the sheet opener, and that no bare
 // patchLeadState(..., 'booked') survives anywhere in the shell.
+// AMENDED BY LABEL AT CE-43 LC-2 PACKET 3d (F-43.95 (a), chair-ruled): the same opener is withheld on
+// a lead that is already booked; the pattern admits that guard in front of it.
 t('leads RIGHT is still Booked, and opens the booking sheet (F15(a)); no bare booked write survives', () =>
-  /right: \{ label: 'Booked', onTrigger: \(\) => setBooking\(\{ leadId: row\.id, kind: 'booking_confirmed' \}\) \}/.test(S())
+  /right: (\(row\.badge \?\? ''\)\.toLowerCase\(\) === 'booked'\s*\?\s*undefined\s*:\s*)?\{ label: 'Booked', onTrigger: \(\) => setBooking\(\{ leadId: row\.id, kind: 'booking_confirmed' \}\) \}/.test(S())
   && !/patchLeadState\([^)]*'booked'\)/.test(S()));
 t('leads LEFT still carries R-37.22\'s suppression, keyed on `redacted`', () =>
   /left: row\.redacted/.test(S()) && /\? undefined/.test(S())
