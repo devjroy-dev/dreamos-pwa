@@ -263,7 +263,8 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
     setBusy(true); setNeed(null); setBad(null);
     try {
       const r = await attachLeadPackage(leadId, body);
-      if (r && r.ok && 'lead_package' in r) { onAttached(r.lead_package); return; }
+      // 3h · F-43.110: a successful attach (or change) says so.
+      if (r && r.ok && 'lead_package' in r) { onToast(LEAD_PACKAGE.attached, 'success'); onAttached(r.lead_package); return; }
       const code = r && !r.ok && 'code' in r ? r.code : undefined;
       const field = r && !r.ok && 'field' in r ? r.field : undefined;
       if (isRefusal(code)) {

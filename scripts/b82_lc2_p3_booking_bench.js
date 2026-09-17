@@ -43,6 +43,8 @@
 // §10.7 admits the chips slot between detailTop and the rows; §13.6 and §13.7 RESTATED as their
 // opposite (the seat's cure, ratified: the reads do not wait for each other, and no fixed-height
 // placeholder); §13.8 re-aimed at the start-aware prefill; M40 re-aimed. §14 added.
+// AMENDED BY LABEL AT PACKET 3h (CE-43 LC-2r): §15 added for F-43.110 (the vetoed `Package attached.`)
+// and F-43.111 (the lead detail opens at full height); M46, M47. No existing cell changed.
 // NOT PROVEN HERE (declared): rendering on a device, both themes on glass, the gesture under a thumb,
 // `next build`, and the database. The founder's walk (card P3) and provisional floor are their witnesses.
 const fs = require('fs');
@@ -671,6 +673,24 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     && tokensOnly(thread3.slice(thread3.indexOf('export function ConversationWaiting'), thread3.indexOf('export function inboundSender'))),
     '§14.9 F-43.107: the thread waits in the collapsed shape it becomes (three message outlines at the bubble and stamp geometry), tokens only');
   ok(c4.factsWired, '§14.10 the needs read the lead\'s date from the room\'s own leads read, for the card and the booking sheet');
+
+  sec('§15 · packet 3h');
+  const cm3 = c1.err ? null : loadModule(src.copy);
+  ok(!!cm3 && cm3.LEAD_PACKAGE.attached === 'Package attached.', '§15.1 F-43.110: the vetoed byte, in the copy home');
+  const cardS = strip(src.card);
+  ok(/if \(r && r\.ok && 'lead_package' in r\) \{ onToast\(LEAD_PACKAGE\.attached, 'success'\); onAttached\(r\.lead_package\); return; \}/.test(cardS)
+    && (cardS.match(/LEAD_PACKAGE\.attached/g) || []).length === 1,
+    '§15.2 F-43.110: a successful attach or change speaks it once, before the sheet hands the row back; a refusal never does');
+  const ds4 = strip(read('components/vendor/slices/DetailSheet.tsx'));
+  ok(/maxHeight: '88dvh', \.\.\.\(fullHeight \? \{ height: '88dvh' \} : \{\}\),/.test(ds4) && /fullHeight = false,/.test(ds4)
+    && /fullHeight=\{slice === 'leads'\}/.test(strip(src.shell)),
+    '§15.3 F-43.111: the lead detail opens at its full height from the first frame; other slices keep their content height');
+  {
+    const m46 = mut(src.card, "{ onToast(LEAD_PACKAGE.attached, 'success'); onAttached(r.lead_package); return; }", "{ onAttached(r.lead_package); return; }");
+    ok(m46 !== null && !/onToast\(LEAD_PACKAGE\.attached/.test(m46), '§9 M46 F-43.110: a silent attach → §15.2 RED');
+    const m47 = mut(src.shell, "        fullHeight={slice === 'leads'}\n", '');
+    ok(m47 !== null && !/fullHeight=\{slice === 'leads'\}/.test(strip(m47)), '§9 M47 F-43.111: the lead detail back to content height → §15.3 RED');
+  }
 
   sec('§9 · mutations of production source');
   const M = [

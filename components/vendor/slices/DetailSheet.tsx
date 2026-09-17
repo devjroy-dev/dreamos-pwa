@@ -38,6 +38,11 @@ interface DetailSheetProps {
   /** CE-43 LC-2 packet 3g · F-43.109: the "Still missing" chips, directly under `detailTop` and above
       the detail rows. Absent when nothing is missing. */
   detailMissing?: ReactNode;
+  /** CE-43 LC-2 packet 3h · F-43.111 (the seat's cure, chair-ratified): the sheet opens at its full
+      height from the first frame, so the body fills a sheet already in place and nothing on screen
+      moves when the record's read lands. The sheet is bottom-anchored; a content-sized sheet grows
+      upward and carries its header with it. */
+  fullHeight?: boolean;
   /** Per-slice content rendered at the top of the footer actions
       (leads WhatsApp/Call row). */
   footerExtra?: ReactNode;
@@ -46,7 +51,7 @@ interface DetailSheetProps {
 export function DetailSheet({
   slice, sel, onClose, onEditHere,
   confirmDel, setConfirmDel, deleting, deleteMsg, setDeleteMsg, confirmDelete,
-  detailExtra, detailTop, detailMissing, footerExtra, bodyLoading = false,
+  detailExtra, detailTop, detailMissing, footerExtra, bodyLoading = false, fullHeight = false,
 }: DetailSheetProps) {
   return (
     <>
@@ -59,7 +64,7 @@ export function DetailSheet({
         padding: `0 0 calc(20px + env(safe-area-inset-bottom))`,
         transform: sel ? 'translateY(0)' : 'translateY(100%)',
         transition: 'transform 320ms cubic-bezier(0.22,1,0.36,1)',
-        maxHeight: '88dvh', display: 'flex', flexDirection: 'column',
+        maxHeight: '88dvh', ...(fullHeight ? { height: '88dvh' } : {}), display: 'flex', flexDirection: 'column',
       }}>
         {/* Drag handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>

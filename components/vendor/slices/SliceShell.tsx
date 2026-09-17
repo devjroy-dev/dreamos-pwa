@@ -1973,6 +1973,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         detailTop={detailTop}
         detailMissing={missingTop}
         bodyLoading={slice === 'leads' && !!sel && !(leadPkg && leadPkg.id === sel.id)}
+        fullHeight={slice === 'leads'}
         footerExtra={footerExtra}
       />
 

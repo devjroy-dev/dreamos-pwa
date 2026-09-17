@@ -97,6 +97,9 @@ export const LEAD_PACKAGE = {
   counted: 'Counted from the wedding date.',
   /** A8 · the delivery line. */
   delivery: (date: string) => `Delivery · ${date}`,
+  /** 3h · F-43.110 (CE-43, VETOED under the founder's "go with your lean"): the toast a successful
+   *  attach speaks, on Attach package and on Change package alike. */
+  attached: 'Package attached.',
   /** 3g (CE-43 ruling, corrected on the founder's word): the toast an act says when the lead lacks
    *  what it needs, composed from the existing labels: `Still missing: Wedding date, Package`.
    *  The labels are A4's and the WishboneSheet's `Wedding date`; no new word. */
