@@ -47,6 +47,18 @@ export function textButton(tone: 'accent' | 'mute' = 'accent'): CSSProperties {
   };
 }
 
+/** F-43.79 (chair-approved under C-43.16, at the founder's request): a secondary action reads as
+ *  a button. Outlined, a thin border, 2px corners, 40px tap height; `accent` for the action,
+ *  `mute` for the quiet one (Delete). Tokens only. */
+export function actionButton(tone: 'accent' | 'mute' = 'accent'): CSSProperties {
+  const c = tone === 'accent' ? T.accent : T.mute;
+  return {
+    background: 'transparent', border: `0.5px solid ${c}`, borderRadius: 2,
+    minHeight: 40, padding: '0 14px', cursor: 'pointer',
+    fontFamily: T.body, fontSize: 14, color: c,
+  };
+}
+
 export function primaryButton(): CSSProperties {
   return {
     flex: 1, minHeight: 48, background: 'transparent', cursor: 'pointer',
@@ -113,7 +125,7 @@ export function IdentityFields({ name, description, items, onName, onDescription
               <input aria-label={PACKAGES.fDetail} placeholder={PACKAGES.fDetail} style={{ ...inputStyle, ...(badField === 'line_items' && !it.detail.trim() ? flagged : {}) }} value={it.detail} onChange={(e) => setItem(i, 'detail', e.target.value)} />
             </div>
           ))}
-          <button type="button" style={{ ...textButton(), alignSelf: 'flex-start' }} onClick={() => onItems([...items, { label: '', detail: '' }])}>{PACKAGES.fAddItem}</button>
+          <button type="button" style={{ ...actionButton(), alignSelf: 'flex-start' }} onClick={() => onItems([...items, { label: '', detail: '' }])}>{PACKAGES.fAddItem}</button>
         </div>
       </div>
     </>

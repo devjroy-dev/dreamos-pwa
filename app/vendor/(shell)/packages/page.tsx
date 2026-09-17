@@ -11,8 +11,9 @@
 //   · the payment bar draws the server's `split` (dream-os splitShares) with the accent and ink
 //     tokens at reduced opacity; two parts when the middle payment is off; the numerals beside it
 //     are shares until a fee is set and whole rupees after (F21). No date in the room.
-//   · actions are quiet text: Edit and Set as default left, Delete right in the muted ink, with
-//     P7's confirm unchanged. The default carries an accent rule and the chip under its name.
+//   · actions are outlined buttons (F-43.79, P2b, at the founder's request): Edit and Set as default
+//     left in the accent, Delete right in the muted ink, and P7's Cancel and Delete in the same form.
+//     The default carries an accent rule and the chip under its name.
 //   · Add package is a dashed tile at the end of the list.
 //   · tokens only (R-42.6): Chalk and Graphite both resolve through var(--atelier-*).
 //
@@ -205,9 +206,9 @@ function PackagesScreen() {
 .pkg-item{margin-top:10px}
 .pkg-item dt{font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:12px;color:var(--atelier-ink-mute)}
 .pkg-item dd{margin:1px 0 0;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--atelier-ink)}
-.pkg-actions{display:flex;align-items:center;gap:18px;margin-top:16px}
-.pkg-act{background:none;border:none;padding:8px 0;min-height:40px;cursor:pointer;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:14px;color:var(--atelier-accent-text)}
-.pkg-act--quiet{color:var(--atelier-ink-mute)}
+.pkg-actions{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+.pkg-act{background:transparent;border:.5px solid var(--atelier-accent-text);border-radius:2px;padding:0 14px;min-height:40px;cursor:pointer;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:14px;color:var(--atelier-accent-text)}
+.pkg-act--quiet{color:var(--atelier-ink-mute);border-color:var(--atelier-ink-mute)}
 .pkg-act--right{margin-left:auto}
 .pkg-confirm p{margin:14px 0 0;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:14px;line-height:1.5;color:var(--atelier-ink)}
 .pkg-add{display:block;width:100%;margin:12px 0 4px;padding:16px;min-height:52px;background:none;cursor:pointer;border:1px dashed var(--atelier-input-border);border-radius:2px;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:15px;color:var(--atelier-accent-text)}

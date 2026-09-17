@@ -26,7 +26,7 @@ import {
 import { formatRs } from '@/lib/vendor/format';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import {
-  Sheet, IdentityFields, FieldLabel, inputStyle, flagged, textButton, primaryButton,
+  Sheet, IdentityFields, FieldLabel, inputStyle, flagged, textButton, actionButton, primaryButton,
   wholeRupees, tidyItems, T,
 } from './PackageFields';
 
@@ -57,7 +57,7 @@ export function LeadPackageCard({ leadId, onToast }: { leadId: string; onToast: 
         {eyebrow}
         <span style={{ flex: 1 }} />
         {lp !== undefined && (
-          <button type="button" style={textButton()} onClick={() => setSheetOpen(true)}>
+          <button type="button" style={actionButton()} onClick={() => setSheetOpen(true)}>
             {lp ? LEAD_PACKAGE.change : LEAD_PACKAGE.attach}
           </button>
         )}

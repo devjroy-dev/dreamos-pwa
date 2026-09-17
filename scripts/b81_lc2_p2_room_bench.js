@@ -14,6 +14,8 @@
 //   §6 tokens only in every new or touched file (R-42.6), both themes by construction.
 //   §7 the icon: lucide-react is an existing dependency and ChevronDown ships in it.
 //   §8 mutations of production source, each turning its named cell RED.
+//   P2b: §3.14, §4.8, §5.10 to §5.12 and M15 to M18 (F-43.78 on the sheet, F-43.79's button form);
+//   §3.8 amended by label for the quiet button's border.
 // NOT PROVEN HERE (declared): rendering on a device, the two-theme screenshots, `next build`,
 // and the database. The founder's walk and provisional floor are their witnesses.
 const fs = require('fs');
@@ -131,7 +133,11 @@ function pageCells(src) {
     summary: /return p\.line_items\.slice\(0, 3\)\.map\(\(it\) => it\.detail\)\.join\(', '\);/.test(s),
     actions: /className="pkg-act pkg-act--quiet pkg-act--right" onClick=\{\(\) => setConfirming\(p\.id\)\}>\{PACKAGES\.del\}/.test(s)
       && /<p>\{PACKAGES\.deleteConfirm\}<\/p>/.test(s) && /onClick=\{\(\) => \{ void remove\(p\); \}\}>\{PACKAGES\.del\}/.test(s)
-      && /\.pkg-act--quiet\{color:var\(--atelier-ink-mute\)\}/.test(s),
+      // AMENDED BY LABEL at P2b (F-43.79): the quiet button carries the muted ink as colour and border.
+      && /\.pkg-act--quiet\{color:var\(--atelier-ink-mute\);border-color:var\(--atelier-ink-mute\)\}/.test(s),
+    buttonForm: /\.pkg-act\{background:transparent;border:\.5px solid var\(--atelier-accent-text\);border-radius:2px;padding:0 14px;min-height:40px;/.test(s)
+      && /className="pkg-act pkg-act--quiet" onClick=\{\(\) => setConfirming\(null\)\}>\{PACKAGES\.cancel\}/.test(s)
+      && /className="pkg-fee pkg-fee--unset"/.test(s) && /\.pkg-fee--unset\{background:none;border:none;/.test(s),
     defaultRule: /\.pkg-card--default\{border-left:2px solid var\(--atelier-accent-text\);border-radius:0\}/.test(s) && /\{p\.is_default && <span className="pkg-default">\{PACKAGES\.defaultMark\}<\/span>\}/.test(s),
     addTile: /className="pkg-add" onClick=\{\(\) => setSheet\(\{ pkg: null, focusFee: false \}\)\}>\{PACKAGES\.add\}/.test(s) && /\.pkg-add\{[^}]*border:1px dashed var\(--atelier-input-border\)/.test(s),
     chevron: /import \{ ChevronDown \} from 'lucide-react';/.test(s) && /<ChevronDown aria-hidden="true"/.test(s),
@@ -149,6 +155,7 @@ function editCells(src) {
     refusal: /setGate\(field === 'remainder' \? PACKAGE_FAILURES\.remainderGate : field === 'name' \? PACKAGE_FAILURES\.nameGate : PACKAGE_FAILURES\.fieldGate\)/.test(s),
     saved: /onToast\(PACKAGES\.saved\); onSaved\(r\.package\); onClose\(\);/.test(s) && /onToast\(PACKAGE_FAILURES\.saveFailed, 'error'\)/.test(s),
     writers: /pkg \? await updatePackage\(pkg\.id, body\) : await createPackage\(body\)/.test(s),
+    middleOmitted: /\.\.\.\(takeMiddle \? \{ middle_pct: m \} : \{\}\),/.test(s) && !/^\s*middle_pct: m,\s*$/m.test(s),
     basisOptions: /<option value="on_the_day">\{PACKAGES\.dOnTheDay\}<\/option>\s*<option value="days">\{PACKAGES\.dDays\}<\/option>\s*<option value="handover">\{PACKAGES\.dHandover\}<\/option>/.test(s),
   };
 }
@@ -169,6 +176,16 @@ function cardCells(src, shellSrc) {
     onlyChanged: /if \(total != null && total !== chosen\.total\) body\.total = total;/.test(s) && /if \(name\.trim\(\) !== chosen\.name\) body\.name = name\.trim\(\);/.test(s),
     mounted: /\{slice === 'leads' && sel && \(\s*<LeadPackageCard leadId=\{sel\.id\}/.test(sh),
     changeLabel: /\{lp \? LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach\}/.test(s),
+    cardButton: /<button type="button" style=\{actionButton\(\)\} onClick=\{\(\) => setSheetOpen\(true\)\}>/.test(s),
+  };
+}
+
+// F-43.79 (P2b): the shared button form and Add item.
+function fieldsCells(src) {
+  const s = strip(src);
+  return {
+    form: /export function actionButton\(tone: 'accent' \| 'mute' = 'accent'\): CSSProperties \{[\s\S]*?border: `0\.5px solid \$\{c\}`, borderRadius: 2,\s*minHeight: 40,/.test(s),
+    addItem: /style=\{\{ \.\.\.actionButton\(\), alignSelf: 'flex-start' \}\}[^>]*>\{PACKAGES\.fAddItem\}/.test(s) || /style=\{\{ \.\.\.actionButton\(\), alignSelf: 'flex-start' \}\} onClick=\{\(\) => onItems\(\[\.\.\.items, \{ label: '', detail: '' \}\]\)\}>\{PACKAGES\.fAddItem\}/.test(s),
   };
 }
 
@@ -212,6 +229,7 @@ function tokenCells(files) { return files.every((f) => f.length > 0 && !LITERAL.
   ok(p.chevron, '§3.11 the fold uses ChevronDown from lucide-react');
   ok(p.noSoon, '§3.12 the room no longer says Launching soon.');
   ok(p.raceReported, '§3.13 a default race is reported with its own line and the list reloads');
+  ok(p.buttonForm, '§3.14 F-43.79: the actions and P7 are outlined buttons (2px, 40px); the fee affordance stays dashed text');
 
   sec('§4 · the edit sheet');
   const e = editCells(src.edit);
@@ -222,6 +240,7 @@ function tokenCells(files) { return files.every((f) => f.length > 0 && !LITERAL.
   ok(e.saved, '§4.5 saved says P12 and closes; a failure says saveFailed');
   ok(e.writers, '§4.6 create for a new package, update for an existing one');
   ok(e.basisOptions, '§4.7 P10: the three delivery options in order');
+  ok(e.middleOmitted, '§4.8 F-43.78: with the middle payment off, the share is not sent');
 
   sec('§5 · the lead card and attach sheet');
   const k = cardCells(src.card, src.shell);
@@ -234,6 +253,12 @@ function tokenCells(files) { return files.every((f) => f.length > 0 && !LITERAL.
   ok(k.onlyChanged, "§5.7 F23: only the couple's changed edits are sent");
   ok(k.mounted, '§5.8 SliceShell mounts the card on the leads detail');
   ok(k.changeLabel, '§5.9 A2: Attach package when none, Change package when one is attached');
+  ok(k.cardButton, '§5.10 F-43.79: Attach package and Change package are outlined buttons');
+  {
+    const fc = fieldsCells(src.fields);
+    ok(fc.form, '§5.11 F-43.79: the shared button form is outlined, 2px corners, 40px tap height');
+    ok(fc.addItem, '§5.12 F-43.79: Add item is an outlined button');
+  }
 
   sec('§6 · tokens only (R-42.6)');
   ok(tokenCells([src.page, src.fields, src.edit, src.card, src.copy]), '§6.1 no colour literal in the room, the sheets, the card or the copy home');
@@ -265,6 +290,12 @@ function tokenCells(files) { return files.every((f) => f.length > 0 && !LITERAL.
     [src.card, "      {chosen && chosen.delivery_basis === 'handover' && (\n        <div>\n          <FieldLabel text={LEAD_PACKAGE.fHandover}", "      {chosen && (\n        <div>\n          <FieldLabel text={LEAD_PACKAGE.fHandover}", (m) => !cardCells(m, src.shell).handoverOnly, 'M13 the handover field on every package → §5.5 RED'],
     [src.card, "color: T.ink, whiteSpace: 'nowrap' }}>{formatRs(lp.total)}", "color: '#0E1112', whiteSpace: 'nowrap' }}>{formatRs(lp.total)}", (m) => !tokenCells([src.page, src.fields, src.edit, m, src.copy]), 'M14 a colour literal on the card → §6.1 RED'],
   ];
+  muts.push(
+    [src.page, '.pkg-act{background:transparent;border:.5px solid var(--atelier-accent-text);border-radius:2px;padding:0 14px;', '.pkg-act{background:none;border:none;padding:8px 0;', (m) => !pageCells(m).buttonForm, 'M15 the actions back to plain text → §3.14 RED (F-43.79)'],
+    [src.edit, '...(takeMiddle ? { middle_pct: m } : {}),', 'middle_pct: m,', (m) => !editCells(m).middleOmitted, 'M16 the share sent with the middle payment off → §4.8 RED (F-43.78)'],
+    [src.card, '<button type="button" style={actionButton()} onClick={() => setSheetOpen(true)}>', '<button type="button" style={textButton()} onClick={() => setSheetOpen(true)}>', (m) => !cardCells(m, src.shell).cardButton, 'M17 the card button back to text → §5.10 RED (F-43.79)'],
+    [src.fields, "style={{ ...actionButton(), alignSelf: 'flex-start' }}", "style={{ ...textButton(), alignSelf: 'flex-start' }}", (m) => !fieldsCells(m).addItem, 'M18 Add item back to text → §5.12 RED (F-43.79)'],
+  );
   for (const [base, x, y, bites, label] of muts) {
     const m = mut(base, x, y);
     let red = false;

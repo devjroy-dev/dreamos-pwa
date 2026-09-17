@@ -71,7 +71,7 @@ export function PackageEditSheet({ open, pkg, focusFee, onClose, onSaved, onToas
     const d = intOr(deposit);
     const m = intOr(middle);
     if (!name.trim()) { setBad('name'); setGate(PACKAGE_FAILURES.nameGate); return; }
-    if (Number.isInteger(d) && Number.isInteger(m) && d + (takeMiddle ? m : 0) >= 100) {
+    if (Number.isInteger(d) && (!takeMiddle || Number.isInteger(m)) && d + (takeMiddle ? m : 0) >= 100) {
       setBad('remainder'); setGate(PACKAGE_FAILURES.remainderGate); return;
     }
     const body: PackageInput = {
@@ -80,7 +80,9 @@ export function PackageEditSheet({ open, pkg, focusFee, onClose, onSaved, onToas
       line_items: tidyItems(items),
       total: wholeRupees(fee),
       deposit_pct: d,
-      middle_pct: m,
+      // F-43.78 (P2b): with the middle payment off, the share does not apply and is not sent;
+      // the door keeps the stored share.
+      ...(takeMiddle ? { middle_pct: m } : {}),
       middle_enabled: takeMiddle,
       delivery_basis: basis,
       delivery_days: basis === 'days' ? intOr(days) : null,

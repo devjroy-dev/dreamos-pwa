@@ -1,0 +1,10 @@
+# scripts/floor-manifest-lc2-p2b-pwa.txt
+# CE-43 · LC-2 P2b · the dreamos-pwa half. F-19.16: a dirty path outside this list is a STOP.
+# No new directory.
+app/vendor/(shell)/packages/page.tsx
+components/vendor/packages/PackageFields.tsx
+components/vendor/packages/PackageEditSheet.tsx
+components/vendor/packages/LeadPackageCard.tsx
+scripts/b81_lc2_p2_room_bench.js
+scripts/floor-manifest-lc2-p2b-pwa.txt
+docs/handovers/TDW_CE43_LC2_P2B_HANDOVER.md
