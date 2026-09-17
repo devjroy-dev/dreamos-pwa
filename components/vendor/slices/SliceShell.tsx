@@ -46,11 +46,11 @@ import { roomHref } from '@/lib/worklist/rooms';
 // file, at the two call sites below; `Mark paid` was spelled twice more, once
 // for the swipe and once for the bulk bar. One home, four readers.
 import { COPY } from '@/lib/worklist/copy';
-import { LeadPackageCard } from '@/components/vendor/packages/LeadPackageCard'; // CE-43 LC-2 packet 2
+import { LeadPackageCard, AttachSheet } from '@/components/vendor/packages/LeadPackageCard'; // CE-43 LC-2 packet 2; AttachSheet 3e
 import { BookingSheet } from '@/components/vendor/packages/BookingSheet'; // CE-43 LC-2 packet 3: A12, F15(a)
 import { paymentMarked, packageDate, istDateOf } from '@/lib/worklist/packages'; // CE-43 LC-2 packet 3: D3/D4 (F17)
 import { formatRs } from '@/lib/vendor/format';
-import type { BookingKind } from '@/lib/vendor/api/vendor';
+import { fetchLeadPackage, type BookingKind } from '@/lib/vendor/api/vendor';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, sendReminder, fetchMe, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
@@ -419,6 +419,24 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const [sel, setSel]         = useState<Row|null>(null);
   // CE-43 LC-2 packet 3: the one booking sheet, opened by the lead card and by the swipe (F15(a)).
   const [booking, setBooking] = useState<{ leadId: string; kind: BookingKind } | null>(null);
+  // CE-43 LC-2 packet 3e · F-43.102 (a): a swipe on a lead with no package opens the attach sheet
+  // first; the booking sheet follows once the package is attached.
+  const [attachFirst, setAttachFirst] = useState<{ leadId: string; kind: BookingKind } | null>(null);
+  const openBookingFromSwipe = (leadId: string) => {
+    void fetchLeadPackage(leadId).then((r) => {
+      if (r && r.ok && r.lead_package === null) setAttachFirst({ leadId, kind: 'booking_confirmed' });
+      else setBooking({ leadId, kind: 'booking_confirmed' });
+    }).catch(() => setBooking({ leadId, kind: 'booking_confirmed' }));
+  };
+  // CE-43 LC-2 packet 3e · F-43.101 (chair-ruled): an open invoice detail follows its row. The
+  // detail rows (Paid, Owed, State, Due) are the row the sheet opened with; when the list
+  // refetches after a payment, the open sheet takes the fresh row with the same id.
+  useEffect(() => {
+    if (slice !== 'invoices' || !sel) return;
+    const fresh = rawRows.find((r) => r.id === sel.id);
+    if (fresh && fresh !== sel) setSel(fresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawRows]);
   // CE-43 LC-2 packet 3c · F-43.88 (chair-ruled): a booking's invoice reads paid the instant
   // Mark paid is tapped, and further taps are ignored while the request is out (payingRef,
   // read synchronously, so a double tap cannot slip past a pending state update). Once the
@@ -800,7 +818,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       // withholds its booking controls there. No re-run path.
       right: (row.badge ?? '').toLowerCase() === 'booked'
         ? undefined
-        : { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },
+        : { label: 'Booked', onTrigger: () => openBookingFromSwipe(row.id) },
       // ── R-37.22 · THE LEFT SIDE SUPPRESSES ON A REDACTED ROW ──────────────
       // THE INCIDENT THIS CLOSES, written down because it was live: Seat A′'s
       // recut withholds `phone` from a basic vendor's leads wire (R-36.13 — the
@@ -1290,6 +1308,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     setScheduleSaving(true);
                     const res = await markMilestonePaid(ms.id, ms.amount_due);
                     if (res.ok) setSchedule(prev => prev ? prev.map(m => m.id === ms.id ? (res as { milestone: ScheduleMilestone }).milestone : m) : prev);
+                    // F-43.101: the list refetches, and the open detail follows its row.
+                    if (res.ok) invalidateSlice('invoices');
                     setScheduleSaving(false);
                   }} disabled={scheduleSaving} className="atelier-fab" style={{
                     padding: '5px 10px', borderRadius: 2, cursor: 'pointer',
@@ -1950,6 +1970,22 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             const id = booking ? booking.leadId : null;
             setBooking(null);
             if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));
+          }}
+          onToast={(m, k) => showToast(m, k)}
+        />
+      )}
+
+      {/* CE-43 LC-2 packet 3e · F-43.102 (a): the attach sheet a no-package swipe opens first. */}
+      {slice === 'leads' && (
+        <AttachSheet
+          open={!!attachFirst}
+          leadId={attachFirst ? attachFirst.leadId : ''}
+          current={null}
+          onClose={() => setAttachFirst(null)}
+          onAttached={() => {
+            const next = attachFirst;
+            setAttachFirst(null);
+            if (next) setBooking({ leadId: next.leadId, kind: next.kind });
           }}
           onToast={(m, k) => showToast(m, k)}
         />

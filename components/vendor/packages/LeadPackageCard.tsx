@@ -130,7 +130,9 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast }: {
   );
 }
 
-function AttachSheet({ open, leadId, current, onClose, onAttached, onToast }: {
+// CE-43 LC-2 packet 3e · F-43.102: exported so the no-package swipe (SliceShell) and the booking
+// sheet's no_package refusal (BookingSheet) open this same sheet.
+export function AttachSheet({ open, leadId, current, onClose, onAttached, onToast }: {
   open: boolean; leadId: string; current: LeadPackage | null;
   onClose: () => void; onAttached: (row: LeadPackage) => void;
   onToast: (msg: string, kind?: ToastKind) => void;

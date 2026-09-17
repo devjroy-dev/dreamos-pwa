@@ -90,6 +90,12 @@ export function WlToast({ toast }: { toast: ToastState | null }) {
 // is a control, the action (Undo, Retry: SliceShell.tsx:552 and :1021,
 // BinderCard.tsx:202), takes pointer-events auto back. A blanket none would have
 // cured the defect and killed every Undo in the estate in the same line.
+// ── CE-43 LC-2 · packet 3e · F-43.100 (chair-ruled, app-wide) ─────────────────────────
+// The message wraps and is clipped with an ellipsis only past the FOURTH line (the chair's
+// fork (a): D3 with the longest milestone label measures four lines at a 374px handset). It
+// was a single line (`white-space:nowrap; text-overflow:ellipsis`), which cut every long vetoed
+// sentence (C4, D3) on a phone. Nothing else sends a toast that long; one that does later is a
+// finding, not a truncation. The pill keeps its radius; a wrapped pill reads as a rounded card.
 const TOAST_CSS = `
 .wl-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;pointer-events:none;
   display:flex;align-items:center;gap:8px;max-width:calc(100vw - 40px);
@@ -103,7 +109,8 @@ const TOAST_CSS = `
 .wl-toastdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:var(--role-metal)}
 .wl-toast.err .wl-toastdot{background:var(--role-critical)}
 .wl-toastmsg{font:var(--wl-t3);color:var(--atelier-ink);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  white-space:normal;overflow-wrap:anywhere;overflow:hidden;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4}
 .wl-toast.err .wl-toastmsg{color:var(--atelier-ink)}
 .wl-toastaction{pointer-events:auto;background:transparent;border:none;cursor:pointer;padding:2px 4px;
   font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;

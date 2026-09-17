@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 // scripts/b80_lc2_p1_shell_bench.js — TDW CE-43 · LC-2 · packet 1 (dreamos-pwa) · THE SHELLS.
+// AMENDED BY LABEL AT PACKET 3e (CE-43 LC-2r): §5.4's import pattern admits AttachSheet beside the card
+// (F-43.102, chair-ruled). The fact (the live card is imported; the shell byte is not) is unchanged.
 // AMENDED BY LABEL AT PACKET 3c (CE-43 LC-2r, 1(a) chair-ruled): the card now mounts through
 // DetailSheet's `detailTop` slot (above the detail rows), so §5.1's block and M6's anchor read the
 // `detailTop` const and its hand-off to DetailSheet. The fact asserted (leads only) is unchanged.
@@ -155,7 +157,8 @@ function shellCells(src, cardSrc = read('components/vendor/packages/LeadPackageC
     leadsOnly: block.length > 0,
     bytes: card.length > 0 && /\{LEAD_PACKAGE\.eyebrow\}/.test(card) && /LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach/.test(card),
     soon: card.length > 0 && /onClick=\{\(\) => setSheetOpen\(true\)\}/.test(card) && !/launchingSoon/.test(card),
-    imports: /import \{ LeadPackageCard \} from '@\/components\/vendor\/packages\/LeadPackageCard'/.test(s) && !/SOL_COPY/.test(s),
+    // [amended, packet 3e] the same import also brings AttachSheet (F-43.102).
+    imports: /import \{ LeadPackageCard(, AttachSheet)? \} from '@\/components\/vendor\/packages\/LeadPackageCard'/.test(s) && !/SOL_COPY/.test(s),
     tokens: block.length > 0 && card.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(block + card),
   };
 }

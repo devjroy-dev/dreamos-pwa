@@ -17,6 +17,8 @@
 // code (`no_package`, `no_fee`); a bad or missing date flags the field with the packet 2 byte
 // `Check the highlighted field.`; F29 inline for anything else, the sheet stays open.
 // C-43.16: Cancel is outlined in the muted ink; Confirm booking keeps the full-width outline.
+// Packet 3e · F-43.102 (b): on a `no_package` refusal the sheet offers A2's `Attach package`, which
+// opens the attach sheet over it; once attached, the refusal clears and Confirm booking can run.
 // Tokens only (R-42.6).
 import { useEffect, useState } from 'react';
 import { promoteLead, type BookingKind } from '@/lib/vendor/api/vendor';
@@ -25,6 +27,7 @@ import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
 import { istTodayISO } from '@/lib/vendor/istDay';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { Sheet, FieldLabel, inputStyle, flagged, actionButton, primaryButton, T } from './PackageFields';
+import { AttachSheet } from './LeadPackageCard';
 
 type RefusalCode = keyof typeof LEAD_PACKAGE.refusals;
 const isRefusal = (c: unknown): c is RefusalCode => typeof c === 'string' && c in LEAD_PACKAGE.refusals;
@@ -51,12 +54,15 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
   const [message, setMessage] = useState<string | null>(null);
   const [bad, setBad] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [needsPackage, setNeedsPackage] = useState(false);
+  const [attachOpen, setAttachOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setKind(initialKind);
     setReceivedOn(istTodayISO());
     setMessage(null); setBad(false); setBusy(false);
+    setNeedsPackage(false); setAttachOpen(false);
   }, [open, initialKind]);
 
   async function confirm() {
@@ -72,7 +78,7 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
         return;
       }
       const code = r && !r.ok && 'code' in r ? r.code : undefined;
-      if (isRefusal(code)) setMessage(LEAD_PACKAGE.refusals[code]);
+      if (isRefusal(code)) { setMessage(LEAD_PACKAGE.refusals[code]); setNeedsPackage(code === 'no_package'); }
       else {
         const field = r && !r.ok && 'field' in r ? r.field : undefined;
         if (field === 'advance_received_on') { setBad(true); setMessage(PACKAGE_FAILURES.fieldGate); }
@@ -94,6 +100,7 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
   );
 
   return (
+    <>
     <Sheet
       open={open}
       testId="booking-sheet"
@@ -107,6 +114,9 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
       )}
     >
       {message && <p role="alert" style={{ margin: 0, fontFamily: T.body, fontSize: 14, color: T.accent }}>{message}</p>}
+      {needsPackage && (
+        <button type="button" data-lc2="booking-attach" style={actionButton()} onClick={() => setAttachOpen(true)}>{LEAD_PACKAGE.attach}</button>
+      )}
       <div style={{ display: 'flex', gap: 10 }}>
         {kindButton('booking_confirmed', LEAD_PACKAGE.bookingConfirmed)}
         {kindButton('advance_paid', LEAD_PACKAGE.advancePaid)}
@@ -119,5 +129,14 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
         </div>
       )}
     </Sheet>
+    <AttachSheet
+      open={attachOpen}
+      leadId={leadId || ''}
+      current={null}
+      onClose={() => setAttachOpen(false)}
+      onAttached={() => { setAttachOpen(false); setNeedsPackage(false); setMessage(null); }}
+      onToast={onToast}
+    />
+    </>
   );
 }

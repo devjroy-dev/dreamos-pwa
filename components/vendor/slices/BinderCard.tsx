@@ -315,7 +315,9 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
                 }}>{line}</div>
               ))}
             </div>
-          ) : (
+          ) : binder.booked_lead ? null : (
+            // CE-43 LC-2 packet 3e · point 5 (a): not shown on a client with a booked lead behind
+            // it; the booking summary on the client card lands in LC-3 (F-43.90).
             <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
               No story yet — it grows as you talk in chat.
             </div>

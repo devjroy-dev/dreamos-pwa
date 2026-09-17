@@ -57,6 +57,9 @@ export type CabinetBinder = {
   followup_on: string | null;
   followup_note: string | null;
   phone: string | null;
+  /** CE-43 LC-2 packet 3e · point 5 (a): on a Clients binder, true when a booked lead stands
+   *  behind it (dream-os cabinet read). Absent on every other slice. */
+  booked_lead?: boolean;
   created_at?: string | null;
   // TDW_03 P2: the rest of the live payload (vendor-engine/cabinet.js
   // RECORD_SELECT + the TDW_02 P3 completeness wire) — typed to code truth.

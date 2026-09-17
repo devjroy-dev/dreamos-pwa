@@ -22,12 +22,18 @@
 //   §7 the invoice row carries isPackage off lead_package_id; the types carry the two new fields.
 //   §8 tokens only in every new or touched component (R-42.6).
 //   §9 mutations of production source, each turning its named cell RED.
+//   §12 packet 3e. §12.3 reads the sibling ../dream-os/tools/card_fonts/DMSans-Medium.woff2 and REFUSES
+//   (exit 3) when it is absent, the b74/b75 conduct.
 // AMENDED BY LABEL AT PACKET 3c (CE-43 LC-2r, chair-ruled): §4.8 (F-43.88's guarded call), §5.1 to
 // §5.3 (3(a)/4(a): the booking controls always present, attach first when no package), M10, M12,
 // M13 re-aimed; §10 added for F-43.88, F-43.89, 1(a) and point 7.
 // AMENDED BY LABEL AT PACKET 3d (CE-43 LC-2r, chair-ruled): §4.1 and M7 (F-43.95: the swipe is withheld
 // on a booked lead), §5.1, §5.2 and M12 (F-43.97: the controls column), §10.9's stub (the thread now
 // imports the copy home); §11 added for F-43.93 point 6, F-43.94, F-43.95, F-43.96 and F-43.97.
+// AMENDED BY LABEL AT PACKET 3e (CE-43 LC-2r, chair-ruled): §3.6 (F-43.102 (b) marks the no_package
+// refusal), §4.1 and M7 (F-43.102 (a): the swipe opens through openBookingFromSwipe); §12 added for
+// F-43.100 (the four-line toast, measured in DM Sans from dream-os tools/card_fonts), F-43.101,
+// F-43.102 and point 5.
 // NOT PROVEN HERE (declared): rendering on a device, both themes on glass, the gesture under a thumb,
 // `next build`, and the database. The founder's walk (card P3) and provisional floor are their witnesses.
 const fs = require('fs');
@@ -130,7 +136,13 @@ function bookingCells(code) {
     kinds: /kindButton\('booking_confirmed', LEAD_PACKAGE\.bookingConfirmed\)/.test(s) && /kindButton\('advance_paid', LEAD_PACKAGE\.advancePaid\)/.test(s),
     dateOnlyAdvance: /\{kind === 'advance_paid' && \(\s*<div>\s*<FieldLabel text=\{BOOKING\.receivedOn\}/.test(s),
     todayDefault: /setReceivedOn\(istTodayISO\(\)\)/.test(s),
-    a9: /if \(isRefusal\(code\)\) setMessage\(LEAD_PACKAGE\.refusals\[code\]\);/.test(s),
+    // [amended, 3e] the refusal also marks no_package, so the sheet can offer Attach package.
+    a9: /if \(isRefusal\(code\)\) \{ setMessage\(LEAD_PACKAGE\.refusals\[code\]\); setNeedsPackage\(code === 'no_package'\); \}/.test(s),
+    // 3e · F-43.102 (b)
+    attachOffer: /\{needsPackage && \(\s*<button type="button" data-lc2="booking-attach" style=\{actionButton\(\)\} onClick=\{\(\) => setAttachOpen\(true\)\}>\{LEAD_PACKAGE\.attach\}<\/button>/.test(s)
+      && /<\/Sheet>\s*<AttachSheet\s*open=\{attachOpen\}/.test(s)
+      && /onAttached=\{\(\) => \{ setAttachOpen\(false\); setNeedsPackage\(false\); setMessage\(null\); \}\}/.test(s)
+      && /setNeedsPackage\(false\); setAttachOpen\(false\);/.test(s),
     f29: /else setMessage\(BOOKING\.failed\);/.test(s) && /catch \{\s*setMessage\(BOOKING\.failed\);/.test(s),
     a13: /if \(r && r\.ok\) \{\s*refreshAfterBooking\(\);\s*onToast\(BOOKING\.booked, 'success'\);/.test(s),
     fiveSlices: ['leads', 'cabinet', 'clients', 'events', 'invoices'].every((k) => new RegExp(`invalidateSlice\\('${k}'\\)`).test(s)),
@@ -144,7 +156,15 @@ function shellCells(code) {
   const s = strip(code);
   return {
     // [amended, 3d] F-43.95: the same opener, withheld on a booked lead.
-    swipe: /right: \(row\.badge \?\? ''\)\.toLowerCase\(\) === 'booked'\s*\?\s*undefined\s*:\s*\{ label: 'Booked', onTrigger: \(\) => setBooking\(\{ leadId: row\.id, kind: 'booking_confirmed' \}\) \}/.test(s),
+    swipe: /right: \(row\.badge \?\? ''\)\.toLowerCase\(\) === 'booked'\s*\?\s*undefined\s*:\s*\{ label: 'Booked', onTrigger: \(\) => openBookingFromSwipe\(row\.id\) \}/.test(s),
+    // 3e · F-43.102 (a)
+    swipeAttachFirst: /const openBookingFromSwipe = \(leadId: string\) => \{\s*void fetchLeadPackage\(leadId\)\.then\(\(r\) => \{\s*if \(r && r\.ok && r\.lead_package === null\) setAttachFirst\(\{ leadId, kind: 'booking_confirmed' \}\);\s*else setBooking\(\{ leadId, kind: 'booking_confirmed' \}\);/.test(s)
+      && /\{slice === 'leads' && \(\s*<AttachSheet\s*open=\{!!attachFirst\}/.test(s)
+      && /if \(next\) setBooking\(\{ leadId: next\.leadId, kind: next\.kind \}\);/.test(s),
+    // 3e · F-43.101
+    detailFollows: /if \(slice !== 'invoices' \|\| !sel\) return;\s*const fresh = rawRows\.find\(\(r\) => r\.id === sel\.id\);\s*if \(fresh && fresh !== sel\) setSel\(fresh\);/.test(s)
+      && /\}, \[rawRows\]\);/.test(s)
+      && /if \(res\.ok\) invalidateSlice\('invoices'\);/.test(s),
     noBareBooked: s.length > 0 && !/patchLeadState\([^)]*'booked'\)/.test(s),
     mountOnce: (s.match(/<BookingSheet\b/g) || []).length === 1 && /\{slice === 'leads' && \(\s*<BookingSheet/.test(s),
     cardProps: /<LeadPackageCard leadId=\{sel\.id\}\s*booked=\{\(sel\.badge \?\? ''\)\.toLowerCase\(\) === 'booked'\}\s*onBook=\{\(k\) => setBooking\(\{ leadId: sel\.id, kind: k \}\)\}/.test(s),
@@ -228,6 +248,66 @@ function rowCells(invCode, rowCode, typesCode) {
     invType: /lead_package_id\?: string \| null;/.test(typesCode),
     msType: /milestone\?: +PaidMilestone;/.test(typesCode) && /export interface PaidMilestone \{/.test(typesCode),
   };
+}
+
+// ── a minimal WOFF2 reader (cmap, head, hhea, hmtx) for §12.3's measurement ─────────────────
+// minimal WOFF2 reader: cmap, head, hhea, hmtx -> advance width per code point
+const KNOWN = ['cmap','head','hhea','hmtx','maxp','name','OS/2','post','cvt ','fpgm','glyf','loca','prep','CFF ','VORG','EBDT','EBLC','gasp','hdmx','kern','LTSH','PCLT','VDMX','vhea','vmtx','BASE','GDEF','GPOS','GSUB','EBSC','JSTF','MATH','CBDT','CBLC','COLR','CPAL','SVG ','sbix','acnt','avar','bdat','bloc','bsln','cvar','fdsc','feat','fmtx','fvar','gvar','hsty','just','lcar','mort','morx','opbd','prop','trak','Zapf','Silf','Glat','Gloc','Feat','Sill'];
+function readWoff2Advance(buf) {
+  const zlib = require('zlib');
+  if (buf.toString('ascii', 0, 4) !== 'wOF2') throw new Error('not woff2');
+  const numTables = buf.readUInt16BE(12);
+  const totalCompressed = buf.readUInt32BE(20);
+  let off = 48;
+  const b128 = () => { let v = 0; for (let i = 0; i < 5; i++) { const x = buf[off++]; v = v * 128 + (x & 0x7f); if (!(x & 0x80)) return v; } throw new Error('bad b128'); };
+  const dir = [];
+  for (let i = 0; i < numTables; i++) {
+    const flags = buf[off++];
+    let tag = KNOWN[flags & 0x3f];
+    if ((flags & 0x3f) === 0x3f) { tag = buf.toString('ascii', off, off + 4); off += 4; }
+    const version = (flags >> 6) & 3;
+    const orig = b128();
+    const transformed = (tag === 'glyf' || tag === 'loca') ? version === 0 : version !== 0;
+    const len = transformed ? b128() : orig;
+    dir.push({ tag, len, transformed });
+  }
+  const data = zlib.brotliDecompressSync(buf.subarray(off, off + totalCompressed));
+  const t = {}; let p = 0;
+  for (const d of dir) { t[d.tag] = { data: data.subarray(p, p + d.len), transformed: d.transformed }; p += d.len; }
+  const upm = t.head.data.readUInt16BE(18);
+  const nHM = t.hhea.data.readUInt16BE(34);
+  const hm = t.hmtx.data;
+  const adv = [];
+  if (t.hmtx.transformed) { for (let i = 0; i < nHM; i++) adv.push(hm.readUInt16BE(1 + 2 * i)); }
+  else { for (let i = 0; i < nHM; i++) adv.push(hm.readUInt16BE(4 * i)); }
+  const cm = t.cmap.data; const n = cm.readUInt16BE(2);
+  const map = new Map();
+  for (let i = 0; i < n; i++) {
+    const pid = cm.readUInt16BE(4 + 8 * i), eid = cm.readUInt16BE(6 + 8 * i), so = cm.readUInt32BE(8 + 8 * i);
+    const fmt = cm.readUInt16BE(so);
+    if (fmt === 4 && (pid === 3 || pid === 0)) {
+      const segX2 = cm.readUInt16BE(so + 6); const seg = segX2 / 2;
+      const ends = so + 14, starts = ends + segX2 + 2, deltas = starts + segX2, ros = deltas + segX2;
+      for (let s = 0; s < seg; s++) {
+        const end = cm.readUInt16BE(ends + 2 * s), start = cm.readUInt16BE(starts + 2 * s);
+        const delta = cm.readInt16BE(deltas + 2 * s), ro = cm.readUInt16BE(ros + 2 * s);
+        for (let c = start; c <= end && c !== 0xffff; c++) {
+          let g;
+          if (ro === 0) g = (c + delta) & 0xffff;
+          else { g = cm.readUInt16BE(ros + 2 * s + ro + 2 * (c - start)); if (g) g = (g + delta) & 0xffff; }
+          if (!map.has(c)) map.set(c, g);
+        }
+      }
+    } else if (fmt === 12) {
+      const ng = cm.readUInt32BE(so + 12);
+      for (let k = 0; k < ng; k++) {
+        const a = cm.readUInt32BE(so + 16 + 12 * k), z = cm.readUInt32BE(so + 20 + 12 * k), g0 = cm.readUInt32BE(so + 24 + 12 * k);
+        for (let c = a; c <= z; c++) if (!map.has(c)) map.set(c, g0 + (c - a));
+      }
+    }
+  }
+  const advOf = (g) => adv[Math.min(g, adv.length - 1)];
+  return (s, px) => [...s].reduce((sum, ch) => sum + advOf(map.has(ch.codePointAt(0)) ? map.get(ch.codePointAt(0)) : map.get(63)), 0) * px / upm;
 }
 
 const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/.test(strip(code));
@@ -371,6 +451,53 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   // bubble's one). 3d adds none, so the count stays three.
   ok((strip(threadSrc).match(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/g) || []).length === 3, '§11.11 the thread adds no colour literal (its three pre-existing ones are carried)');
 
+  sec('§12 · packet 3e');
+  // ── F-43.100 · the four-line toast, measured ───────────────────────────────────────────────
+  // METHOD (stated, as ruled): DM Sans MEDIUM advance widths from the sibling dream-os
+  // tools/card_fonts/DMSans-Medium.woff2 (the toast sets DM Sans 400 via --wl-t3, 14px; Medium is a
+  // touch wider, so the count is conservative), greedy word wrap into the toast's text width at a
+  // 374px handset. That width is derived from WlToast's own CSS (max-width calc(100vw - 40px),
+  // padding 18px each side, a 6px dot, an 8px gap): 374 - 40 - 36 - 6 - 8 = 284px. The method was
+  // cross-checked at the cut against fontTools on the same file (360, 803, 958 and 260 px, equal).
+  const toastSrc = read('components/worklist/WlToast.tsx');
+  const tcss = (toastSrc.match(/\.wl-toastmsg\{[^}]*\}/) || [''])[0];
+  ok(/-webkit-line-clamp:4/.test(tcss) && /white-space:normal/.test(tcss) && !/nowrap/.test(tcss) && /overflow:hidden/.test(tcss),
+    '§12.1 F-43.100: the message wraps and clips only past the fourth line');
+  const geom = /max-width:calc\(100vw - 40px\)/.test(toastSrc) && /\.wl-toast\{[^}]*padding:10px 18px/.test(toastSrc)
+    && /\.wl-toastdot\{width:6px;/.test(toastSrc) && /\.wl-toast\{[^}]*gap:8px/.test(toastSrc);
+  ok(geom, '§12.2 F-43.100: the 284px text width is the toast\'s own geometry at 374px');
+  let measure = null;
+  let fontRefused = null;
+  try {
+    const fontFile = path.join(ROOT, '..', 'dream-os', 'tools', 'card_fonts', 'DMSans-Medium.woff2');
+    measure = readWoff2Advance(fs.readFileSync(fontFile));
+  } catch (e) { fontRefused = e.message; console.log('  (font not read: ' + e.message + ' — the sibling dream-os must be present)'); }
+  const linesAt = (text, width) => { let n = 1, cur = ''; for (const wd of text.split(' ')) { const t = cur ? cur + ' ' + wd : wd; if (measure(t, 14) <= width) cur = t; else { n++; cur = wd; } } return n; };
+  const cm = c1.err ? null : loadModule(src.copy);
+  const vetoed = cm ? [
+    cm.CLIENT_BOOKING.added,
+    cm.BOOKING.booked,
+    cm.CLIENT_BOOKING.savedAsLead,
+    cm.paymentMarked({ client: 'Riya Test', label: cm.scheduleLabel('deposit', 30), amount: 'Rs 24,000', date: '17 September 2026', nextDue: '6 March 2027' }),
+    cm.paymentMarked({ client: 'Riya Test', label: cm.scheduleLabel('middle', 30), amount: 'Rs 24,000', date: '17 September 2026', nextDue: '6 March 2027' }),
+    cm.paymentMarked({ client: 'Riya Test', label: cm.scheduleLabel('final', 70), amount: 'Rs 56,000', date: '17 September 2026', nextDue: '6 March 2027' }),
+    cm.paymentMarked({ client: 'Riya Test', label: 'x', amount: 'Rs 56,000', date: '17 September 2026', nextDue: null }),
+  ] : [];
+  const counts = measure && geom ? vetoed.map((t) => linesAt(t, 374 - 40 - 36 - 6 - 8)) : [];
+  if (counts.length) console.log('  (measured lines: ' + counts.join(', ') + ')');
+  ok(counts.length === 7 && counts.every((n) => n <= 4) && counts[0] <= 2 && counts[5] > 2,
+    '§12.3 F-43.100: C4, A13, C5, D3 (every milestone label, the longest included) and D4 render whole in four lines at 374px; D3 needs more than two');
+  // ── F-43.102, F-43.101, point 5 ────────────────────────────────────────────────────────────
+  const bs = bookingCells(src.booking);
+  ok(bs.attachOffer, '§12.4 F-43.102 (b): a no_package refusal offers Attach package, opening the attach sheet beside the booking sheet');
+  ok(c4.swipeAttachFirst, '§12.5 F-43.102 (a): a swipe on a lead with no package opens the attach sheet first, then the booking sheet');
+  ok(/export function AttachSheet\(/.test(strip(src.card)), '§12.6 F-43.102: the one attach sheet is shared, not copied');
+  ok(c4.detailFollows, '§12.7 F-43.101: the open invoice detail follows its refetched row; the schedule\'s Paid refetches the list');
+  const binderSrc = strip(read('components/vendor/slices/BinderCard.tsx'));
+  ok(/\) : binder\.booked_lead \? null : \(\s*<div[^>]*>\s*No story yet — it grows as you talk in chat\./.test(binderSrc)
+    && /booked_lead\?: boolean;/.test(src.api), '§12.8 point 5 (a): "No story yet" is not shown on a client with a booked lead behind it');
+  ok(!/Attach a package|Attach package'/.test(strip(src.booking)), '§12.9 no new byte: the sheet reuses A2\'s Attach package from the copy home');
+
   sec('§9 · mutations of production source');
   const M = [
     [F.copy, "advancePaid: 'Advance paid',", "advancePaid: 'Advance received',", (m) => !copyCells(m).a2, 'M1 an A2 byte drifts → §1.1 RED'],
@@ -379,7 +506,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     [F.booking, "kind === 'advance_paid' ? { kind, advance_received_on: receivedOn } : { kind }", '{ kind, advance_received_on: receivedOn }', (m) => !bookingCells(m).act, 'M4 the date sent on every booking → §3.2 RED'],
     [F.booking, "        refreshAfterBooking();\n        onToast(BOOKING.booked, 'success');", "        onToast(BOOKING.booked, 'success');", (m) => !bookingCells(m).a13, 'M5 A13 without the refresh → §3.8 RED'],
     [F.booking, "style={actionButton('mute')} onClick={onClose}", "style={textButton('mute')} onClick={onClose}", (m) => !bookingCells(m).cancel, 'M6 the Cancel back to text → §3.10 RED'],
-    [F.shell, ": { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },", ": { label: 'Booked', onTrigger: () => { void patchLeadState(row.id, 'booked'); } },", (m) => { const c = shellCells(m); return !c.swipe && !c.noBareBooked; }, 'M7 [re-aimed, 3d] the swipe writes booked directly → §4.1 and §4.2 RED'],
+    [F.shell, ": { label: 'Booked', onTrigger: () => openBookingFromSwipe(row.id) },", ": { label: 'Booked', onTrigger: () => { void patchLeadState(row.id, 'booked'); } },", (m) => { const c = shellCells(m); return !c.swipe && !c.noBareBooked; }, 'M7 [re-aimed, 3e] the swipe writes booked directly → §4.1 and §4.2 RED'],
     [F.shell, "right: (row.badge ?? '').toLowerCase() === 'booked'\n        ? undefined\n        :", 'right:', (m) => !shellCells(m).swipe, 'M25 F-43.95: the swipe offered on a booked lead → §4.1 RED'],
     [F.shell, '!removeSchedule && !sel.isPackage && (', '!removeSchedule && (', (m) => !shellCells(m).f16, 'M8 Remove drawn on a booking\'s invoice → §4.6 RED'],
     [F.shell, "res.code === 'PACKAGE_SCHEDULE' ? COPY.studioScheduleRemoveFailed : (res.error ?? COPY.studioScheduleRemoveFailed)", 'res.error ?? COPY.studioScheduleRemoveFailed', (m) => !shellCells(m).b1, 'M9 the door\'s text reaches the toast → §4.7 RED'],
@@ -416,6 +543,21 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     const m3 = mut(src.sheet, 'data-lc2="client-booking-sheet" inert={!open}', 'data-lc2="client-booking-sheet" aria-hidden={!open}');
     ok(m3 !== null && /aria-hidden=\{!open\}/.test(strip(m3)), '§9 M30 F-43.94: aria-hidden back on the Clients sheet → §11.10 RED');
   }
+  {
+    const t1 = mut(toastSrc, '-webkit-line-clamp:4', '-webkit-line-clamp:2');
+    const tc = t1 && (t1.match(/\.wl-toastmsg\{[^}]*\}/) || [''])[0];
+    ok(!!tc && !/-webkit-line-clamp:4/.test(tc), '§9 M32 F-43.100: the clamp back at two → §12.1 RED');
+    const two = measure ? vetoed.map((t) => linesAt(t, 284)).filter((n) => n > 2).length : 0;
+    ok(two > 0, '§9 M33 F-43.100: at two lines the measured D3 would be cut → §12.3 bites');
+    const b1 = mut(src.booking, "setNeedsPackage(code === 'no_package');", '');
+    ok(b1 !== null && !bookingCells(b1).a9, '§9 M34 F-43.102 (b): the refusal no longer offers Attach package → §3.6 RED');
+    const s1 = mut(src.shell, "if (r && r.ok && r.lead_package === null) setAttachFirst({ leadId, kind: 'booking_confirmed' });", '');
+    ok(s1 !== null && !shellCells(s1).swipeAttachFirst, '§9 M35 F-43.102 (a): the swipe skips the attach sheet → §12.5 RED');
+    const s2 = mut(src.shell, 'if (fresh && fresh !== sel) setSel(fresh);', '');
+    ok(s2 !== null && !shellCells(s2).detailFollows, '§9 M36 F-43.101: the open detail keeps its stale row → §12.7 RED');
+    const b2 = mut(read('components/vendor/slices/BinderCard.tsx'), ') : binder.booked_lead ? null : (', ') : (');
+    ok(b2 !== null && !/binder\.booked_lead \? null/.test(b2), '§9 M37 point 5: the line shown on a booked client → §12.8 RED');
+  }
   for (const [file, from, to, bites, name] of M) {
     const key = Object.keys(F).find((k) => F[k] === file);
     const m = mut(src[key], from, to);
@@ -430,6 +572,9 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     ok(m !== null && !r.paths, '§9 M19 the lead id not encoded → §2.1 RED');
   }
 
+  // The b74/b75 conduct: a cross-repo cell whose sibling is absent REFUSES (exit 3) rather than
+  // reading as a defect in this tree.
+  if (fontRefused) { console.log(`REFUSED — ../dream-os/tools/card_fonts/DMSans-Medium.woff2 not readable (${fontRefused}); §12.3 cannot measure.`); process.exit(3); }
   console.log(`\n════════  b82_lc2_p3_booking_bench: ${pass} passed, ${fail} failed  ════════`);
   if (fail) { console.log('RED. Failing checks:'); for (const f of fails) console.log('   · ' + f); process.exit(1); }
   process.exit(0);
