@@ -32,9 +32,12 @@ interface DetailSheetProps {
   /** CE-43 LC-2 packet 3c · 1(a): per-slice content rendered at the TOP of the scroll area,
       above the detail fields (the lead's package card and its booking controls). */
   detailTop?: ReactNode;
-  /** CE-43 LC-2 packet 3f · F-43.105: while the record's own reads are out, the body shows a still
-      placeholder and renders whole once they are in, so nothing shifts under the thumb. */
+  /** CE-43 LC-2 packet 3f · F-43.105, amended 3g · F-43.107: while the record's first read is out the
+      body is empty (no placeholder), and it renders whole once the read is in. */
   bodyLoading?: boolean;
+  /** CE-43 LC-2 packet 3g · F-43.109: the "Still missing" chips, directly under `detailTop` and above
+      the detail rows. Absent when nothing is missing. */
+  detailMissing?: ReactNode;
   /** Per-slice content rendered at the top of the footer actions
       (leads WhatsApp/Call row). */
   footerExtra?: ReactNode;
@@ -43,7 +46,7 @@ interface DetailSheetProps {
 export function DetailSheet({
   slice, sel, onClose, onEditHere,
   confirmDel, setConfirmDel, deleting, deleteMsg, setDeleteMsg, confirmDelete,
-  detailExtra, detailTop, footerExtra, bodyLoading = false,
+  detailExtra, detailTop, detailMissing, footerExtra, bodyLoading = false,
 }: DetailSheetProps) {
   return (
     <>
@@ -69,14 +72,11 @@ export function DetailSheet({
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px 24px' }}>
-          {bodyLoading ? (
-            <div data-lc2="detail-skeleton" aria-busy="true" style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 6 }}>
-              {[96, 44, 44, 44, 44].map((h, k) => (
-                <div key={k} style={{ height: h, borderRadius: 2, border: '0.5px solid var(--atelier-card-border)' }} />
-              ))}
-            </div>
-          ) : (<>
+          {/* 3g · F-43.107: no fixed-height placeholder. Until the record's first read is in the body
+              is empty, and then it renders whole, so nothing already on screen moves. */}
+          {bodyLoading ? null : (<>
           {detailTop}
+          {detailMissing}
           {(sel?.detail ?? []).map((f, ii) => (
             <div key={ii} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',

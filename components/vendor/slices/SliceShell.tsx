@@ -47,6 +47,10 @@ import { roomHref } from '@/lib/worklist/rooms';
 // for the swipe and once for the bulk bar. One home, four readers.
 import { COPY } from '@/lib/worklist/copy';
 import { LeadPackageCard } from '@/components/vendor/packages/LeadPackageCard'; // CE-43 LC-2 packet 2
+import { resetPackagesCache, loadPackagesOnce } from '@/components/vendor/packages/LeadPackageCard'; // CE-43 LC-2 packet 3g · F-43.107
+import { MissingChips } from '@/components/vendor/MissingChips'; // CE-43 LC-2 packet 3g
+import { ConversationWaiting } from '@/components/vendor/ConversationThread'; // CE-43 LC-2 packet 3g · F-43.107
+import type { LeadFacts } from '@/lib/vendor/bookingNeeds';
 import { BookingSheet } from '@/components/vendor/packages/BookingSheet'; // CE-43 LC-2 packet 3: A12, F15(a)
 import { paymentMarked, packageDate, istDateOf } from '@/lib/worklist/packages'; // CE-43 LC-2 packet 3: D3/D4 (F17)
 import { formatRs } from '@/lib/vendor/format';
@@ -435,6 +439,20 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // F-43.105: the lead detail and its package are read together when the sheet opens, and the body
   // renders once both are in (a still placeholder until then), so the package card never pops in.
   const [leadPkg, setLeadPkg] = useState<{ id: string; lp: LeadPackage | null } | null>(null);
+  // 3g: the lead's date facts come from this room's own leads read (no extra request); the booking
+  // and attach sheets use them to say what is missing before anything is sent.
+  const leadFactsOf = (leadId: string | null | undefined): LeadFacts | null => {
+    if (slice !== 'leads' || !leadId) return null;
+    const l = (d.data ?? []).find((x) => x.id === leadId) as unknown as { wedding_date?: string | null; wedding_date_precision?: LeadFacts['wedding_date_precision'] } | undefined;
+    return l ? { wedding_date: l.wedding_date ?? null, wedding_date_precision: l.wedding_date_precision ?? null } : null;
+  };
+  // F-43.107: the vendor's packages are read once per visit to the Leads room.
+  useEffect(() => {
+    if (slice !== 'leads') return;
+    resetPackagesCache();
+    void loadPackagesOnce();
+    return () => resetPackagesCache();
+  }, [slice]);
   // CE-43 LC-2 packet 3e · F-43.101 (chair-ruled): an open invoice detail follows its row. The
   // detail rows (Paid, Owed, State, Due) are the row the sheet opened with; when the list
   // refetches after a payment, the open sheet takes the fresh row with the same id.
@@ -729,14 +747,16 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     if (slice !== 'leads' || !sel) { setLeadDetail(null); setLeadPkg(null); return; }
     setLoadingDetail(true);
     const id = sel.id;
-    // F-43.105: one await for both reads, in parallel.
-    void Promise.all([
-      fetchLeadDetail(id).catch(() => null),
-      fetchLeadPackage(id).catch(() => null),
-    ]).then(([res, pk]) => {
-      if (res && res.ok) setLeadDetail({ vendor_summary: res.vendor_summary, conversation: res.conversation, name: (res.lead && res.lead.name) || null });
-      setLeadPkg({ id, lp: pk && pk.ok ? pk.lead_package : null });
-    }).finally(() => setLoadingDetail(false));
+    // F-43.107 (the seat's cure, chair-ratified): the two reads run in parallel but do not wait for
+    // each other. The rows and the package card render together the moment the package read is in;
+    // the conversation fills below on its own read.
+    void fetchLeadPackage(id)
+      .then((pk) => setLeadPkg({ id, lp: pk && pk.ok ? pk.lead_package : null }))
+      .catch(() => setLeadPkg({ id, lp: null }));
+    void fetchLeadDetail(id)
+      .then((res) => { if (res && res.ok) setLeadDetail({ vendor_summary: res.vendor_summary, conversation: res.conversation, name: (res.lead && res.lead.name) || null }); })
+      .catch(() => {})
+      .finally(() => setLoadingDetail(false));
   }, [sel, slice]);
 
   // TDW_04 A1 — the leads-plane wishbone. DetailSheet's own P3 comment named
@@ -745,6 +765,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // the wire's complete_inline door, "one door, both callers" — and refetches
   // via the invalidation bus (the F2 lesson).
   const [wishboneRow, setWishboneRow] = useState<Row | null>(null);
+  // 3g · F-43.108: the chip the vendor tapped; the sheet opens on it.
+  const [wishboneStart, setWishboneStart] = useState<string | undefined>(undefined);
   // BLOCK 19 G5.1 — the forward sheet's own row, a sibling of the wishbone's.
   const [forwardRow, setForwardRow] = useState<Row | null>(null);
 
@@ -1117,32 +1139,24 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       onToast={(m, k) => showToast(m, k)}
       onNeedWeddingDate={() => openDateFix(sel.id)}
       initial={leadPkg && leadPkg.id === sel.id ? leadPkg.lp : undefined}
+      leadFacts={leadFactsOf(sel.id)}
     />
+  ) : null;
+  // 3g · F-43.109: the "Still missing" chips sit at the top of the body, directly under the package
+  // card and above the detail rows, and are absent when nothing is missing. F-43.108: a tapped chip
+  // opens its own cell. (TDW_04 A1's render truth: the wire's missing set.)
+  const missingTop = slice === 'leads' && sel && (sel.draftMissing?.length ?? 0) > 0 ? (
+    <div style={{ marginBottom: 14 }}>
+      <MissingChips heading testId="lead"
+        cells={sel.draftMissing!.map((c) => ({ key: c, label: cap(c.replace(/_/g, ' ')) }))}
+        onPick={(c) => { setWishboneStart(c); setWishboneRow(sel); }} />
+    </div>
   ) : null;
 
   // Per-slice detail extras — verbatim from the monofile; P2/P4/P5 migrate
   // these into their modules as those phases rebuild them.
   const detailExtra = (
     <>
-      {/* TDW_04 A1 — the wishbone chips, leads plane. Render truth (the wire's
-          missing set); tap opens the WishboneSheet. */}
-      {slice === 'leads' && sel && (sel.draftMissing?.length ?? 0) > 0 && (
-        <div style={{ marginTop: 14 }}>
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 8 }}>
-            Still missing — tap to complete:
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {sel.draftMissing!.map(c => (
-              <button key={c} type="button" onClick={() => setWishboneRow(sel)} style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
-                letterSpacing: '0.06em', border: '0.5px solid var(--atelier-ink-dim)',
-                borderRadius: 2, padding: '3px 8px', background: 'transparent', cursor: 'pointer',
-              }}>+ {cap(c.replace(/_/g, ' '))}</button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Invoice payment schedule */}
       {slice === 'invoices' && sel && (
         <div style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid var(--atelier-card-border)' }}>
@@ -1343,7 +1357,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       {slice === 'leads' && (leadDetail || loadingDetail) && (
         <div style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid var(--atelier-card-border)' }}>
           {loadingDetail && !leadDetail
-            ? <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>
+            ? <ConversationWaiting />
             : leadDetail && <ConversationThread vendorSummary={leadDetail.vendor_summary} messages={leadDetail.conversation} leadName={leadDetail.name} />
           }
         </div>
@@ -1957,6 +1971,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         confirmDelete={confirmDelete}
         detailExtra={detailExtra}
         detailTop={detailTop}
+        detailMissing={missingTop}
         bodyLoading={slice === 'leads' && !!sel && !(leadPkg && leadPkg.id === sel.id)}
         footerExtra={footerExtra}
       />
@@ -1999,6 +2014,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           }}
           onToast={(m, k) => showToast(m, k)}
           onNeedWeddingDate={openDateFix}
+          leadFacts={leadFactsOf(booking ? booking.leadId : null)}
         />
       )}
 
@@ -2023,6 +2039,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         <WishboneSheet
           missing={wishboneRow.draftMissing ?? []}
           personLabel={wishboneRow.primary}
+          start={wishboneStart}
           onComplete={async (cell, value) => {
             // Cells here ∈ LEAD_EXPECTED = name/phone/wedding_date/wedding_city/
             // budget_max — all UpdateLeadRequest keys; budget is numeric.
@@ -2032,7 +2049,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             invalidateSlice('leads');
             return null;
           }}
-          onDone={() => { setWishboneRow(null); setSel(null); }}
+          onDone={() => { setWishboneRow(null); setWishboneStart(undefined); setSel(null); }}
         />
       )}
     </SliceShell>

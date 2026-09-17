@@ -47,6 +47,31 @@ export function stampOf(iso: string): string {
   return day ? `${day} · ${time}` : time;
 }
 
+// CE-43 LC-2 packet 3g · F-43.107 (chair-ruled): while the thread's own read is out, it waits in the
+// shape it will become: the `Conversation` label and three message outlines, the collapsed thread's
+// geometry (a one-line bubble, its stamp line, the gap). No words, no fixed block, so nothing jumps
+// when the messages land.
+export function ConversationWaiting() {
+  const bubble = (isIn: boolean, k: number) => (
+    <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: isIn ? 'flex-start' : 'flex-end', marginBottom: 6 }}>
+      <div style={{
+        width: isIn ? '56%' : '68%', minHeight: 24, padding: '8px 12px', boxSizing: 'content-box',
+        border: `0.5px solid ${isIn ? 'var(--atelier-sheet-border)' : 'var(--atelier-card-border)'}`,
+        borderRadius: isIn ? '4px 12px 12px 12px' : '12px 4px 12px 12px',
+      }} />
+      <span style={{ fontSize: 8, lineHeight: 1.6, marginTop: 4 }}>&nbsp;</span>
+    </div>
+  );
+  return (
+    <div data-lc2="thread-waiting" aria-busy="true" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: D.muted, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 8 }}>Conversation</p>
+        {[true, false, true].map((isIn, k) => bubble(isIn, k))}
+      </div>
+    </div>
+  );
+}
+
 /** The inbound sender's label: the lead's name, else "Lead" (the one vetoed byte, CE-43). */
 export function inboundSender(leadName?: string | null): string {
   const n = (leadName ?? '').trim();

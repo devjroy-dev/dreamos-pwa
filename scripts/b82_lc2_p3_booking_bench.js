@@ -39,6 +39,10 @@
 // asserted: §5.3 (the booking pair only books), §5.8 (no pending booking after an attach), §12.4 (the
 // refusal line itself is the control), §12.5 (the swipe opens the booking sheet, never the attach sheet);
 // §3.6, §3.7, §4.1, M7, M20, M21, M34, M35 re-aimed. §13 added: R-43.16's sweep, F-43.76, F-43.105.
+// AMENDED BY LABEL AT PACKET 3g (CE-43 LC-2r; F-43.107, F-43.108, F-43.109 and the founder-corrected item 1):
+// §10.7 admits the chips slot between detailTop and the rows; §13.6 and §13.7 RESTATED as their
+// opposite (the seat's cure, ratified: the reads do not wait for each other, and no fixed-height
+// placeholder); §13.8 re-aimed at the start-aware prefill; M40 re-aimed. §14 added.
 // NOT PROVEN HERE (declared): rendering on a device, both themes on glass, the gesture under a thumb,
 // `next build`, and the database. The founder's walk (card P3) and provisional floor are their witnesses.
 const fs = require('fs');
@@ -149,6 +153,14 @@ function bookingCells(code) {
     attachOffer: /\{need && <NeedFirst text=\{needText\(need\.code\)\} onFix=\{fixFor\(need\.code\)\} testId="booking" \/>\}/.test(s)
       && /<\/Sheet>\s*<AttachSheet\s*open=\{!!attach\}/.test(s)
       && !/data-lc2="booking-attach"/.test(s) && !/needsPackage/.test(s),
+    // 3g · item 1 (corrected)
+    asks: /const needsNow: NeedCell\[\] = bookingNeeds\(lp, leadFacts\);/.test(s)
+      && /if \(needsNow\.length\) \{\s*setAsked\(true\); setNeed\(null\); setFailed\(false\);\s*onToast\(LEAD_PACKAGE\.stillMissing\(needsNow\.map\(\(c\) => LEAD_PACKAGE\.needLabel\[c\]\)\), 'error'\);\s*return;\s*\}/.test(s)
+      && s.indexOf('if (needsNow.length) {') < s.indexOf('const r = await promoteLead(')
+      && /\{asked && \(\s*<MissingChips testId="booking" onPick=\{pickNeed\}/.test(s)
+      && /if \(cell === 'wedding_date'\) \{ if \(leadId\) onNeedWeddingDate\(leadId\); return; \}\s*setAttach\(\{ focus: cell === 'fee' \? 'fee' : cell === 'handover' \? 'handover' : null \}\);/.test(s)
+      && /void fetchLeadPackage\(leadId\)/.test(s) && /onAttached=\{\(row\) => \{ setAttach\(null\); setNeed\(null\); setLp\(row\); \}\}/.test(s)
+      && !/disabled=/.test(s),
     fixMap: /if \(code === 'received_on'\) \{ if \(dateRef\.current\) dateRef\.current\.focus\(\); return; \}/.test(s)
       && /if \(code === 'no_wedding_date'\) \{ if \(leadId\) onNeedWeddingDate\(leadId\); return; \}/.test(s)
       && /setAttach\(\{ focus: code === 'no_fee' \? 'fee' : code === 'no_handover_date' \? 'handover' : null \}\);/.test(s)
@@ -178,10 +190,21 @@ function shellCells(code) {
       && /onDone=\{\(\) => setDateFix\(null\)\}/.test(s)
       && /onNeedWeddingDate=\{openDateFix\}/.test(s) && /onNeedWeddingDate=\{\(\) => openDateFix\(sel\.id\)\}/.test(s),
     // 3f · F-43.105
-    together: /void Promise\.all\(\[\s*fetchLeadDetail\(id\)\.catch\(\(\) => null\),\s*fetchLeadPackage\(id\)\.catch\(\(\) => null\),\s*\]\)/.test(s)
-      && /setLeadPkg\(\{ id, lp: pk && pk\.ok \? pk\.lead_package : null \}\);/.test(s)
+    // [restated, 3g · F-43.107] the two reads run side by side and neither waits for the other.
+    together: !/Promise\.all\(\[\s*fetchLeadDetail/.test(s)
+      && /void fetchLeadPackage\(id\)\s*\.then\(\(pk\) => setLeadPkg\(\{ id, lp: pk && pk\.ok \? pk\.lead_package : null \}\)\)/.test(s)
+      && /void fetchLeadDetail\(id\)\s*\.then\(\(res\) => \{ if \(res && res\.ok\) setLeadDetail\(/.test(s)
       && /bodyLoading=\{slice === 'leads' && !!sel && !\(leadPkg && leadPkg\.id === sel\.id\)\}/.test(s)
       && /initial=\{leadPkg && leadPkg\.id === sel\.id \? leadPkg\.lp : undefined\}/.test(s),
+    // 3g · F-43.108 / F-43.109 / F-43.107 / item 1
+    chipsTop: /const missingTop = slice === 'leads' && sel && \(sel\.draftMissing\?\.length \?\? 0\) > 0 \? \(/.test(s)
+      && /onPick=\{\(c\) => \{ setWishboneStart\(c\); setWishboneRow\(sel\); \}\}/.test(s)
+      && /detailMissing=\{missingTop\}/.test(s)
+      && !/Still missing — tap to complete:/.test(s.slice(s.indexOf('const detailExtra = ('), s.indexOf('const detailExtra = (') + 30000))
+      && /start=\{wishboneStart\}/.test(s),
+    primeOnce: /if \(slice !== 'leads'\) return;\s*resetPackagesCache\(\);\s*void loadPackagesOnce\(\);\s*return \(\) => resetPackagesCache\(\);/.test(s),
+    factsWired: /leadFacts=\{leadFactsOf\(sel\.id\)\}/.test(s) && /leadFacts=\{leadFactsOf\(booking \? booking\.leadId : null\)\}/.test(s)
+      && /const leadFactsOf = \(leadId: string \| null \| undefined\): LeadFacts \| null =>/.test(s),
     scheduleGate: /<NeedFirst\s*testId="schedule"/.test(s) && /input\[aria-label="Milestone \$\{unlabelled \+ 1\} name"\]/.test(s)
       && !/<div[^>]*color: A\.red[^>]*>\s*\{Math\.abs\(total - 100\)/.test(s),
     // 3e · F-43.101
@@ -246,9 +269,22 @@ function cardCells(code, editCode) {
       && /\{need && <NeedFirst text=\{need\.text\} onFix=\{need\.fix\} testId="attach" \/>\}/.test(s)
       && /onNeedWeddingDate: \(\) => void;\s*focus\?: 'fee' \| 'handover' \| null;/.test(s)
       && /focusOn\(focus === 'fee' \? 'att-fee' : 'att-handover'\);/.test(s),
+    // [restated, 3g · F-43.107] no placeholder: the form renders once the read-once list is in.
     initialRead: /if \(initial !== undefined\) \{ setLp\(initial\); return; \}/.test(s)
-      && /\{packages === null \? \(\s*<div data-lc2="attach-skeleton"/.test(s)
-      && /if \(!r \|\| !r\.ok\) \{ setPackages\(\[\]\); return; \}/.test(s),
+      && /\{packages !== null && \(<>/.test(s) && !/attach-skeleton/.test(s),
+    // 3g · F-43.107: the packages list is read once per room visit
+    readOnce: /let packagesCache: VendorPackage\[\] \| null = null;/.test(s)
+      && /export function loadPackagesOnce\(\): Promise<VendorPackage\[\]> \{\s*if \(packagesCache\) return Promise\.resolve\(packagesCache\);/.test(s)
+      && /useState<VendorPackage\[\] \| null>\(packagesCache\)/.test(s)
+      && /void loadPackagesOnce\(\)\.then\(\(list\) => \{/.test(s)
+      && (s.match(/fetchPackages\(\)/g) || []).length === 1
+      && /if \(r && r\.ok\) \{ packagesCache = r\.packages; return r\.packages; \}\s*packagesInflight = null;/.test(s),
+    // 3g · item 1 (corrected): the attach sheet says what is missing before it sends
+    attachAsks: /const needsNow: NeedCell\[\] = attachNeeds\(\{ chosen, fee: wholeRupees\(fee\), handover, lead: leadFacts \}\);/.test(s)
+      && /if \(needsNow\.length\) \{\s*setAsked\(true\); setNeed\(null\);\s*onToast\(LEAD_PACKAGE\.stillMissing\(needsNow\.map\(\(c\) => LEAD_PACKAGE\.needLabel\[c\]\)\), 'error'\);\s*return;\s*\}/.test(s)
+      && s.indexOf('if (needsNow.length) {') < s.indexOf('const r = await attachLeadPackage(')
+      && /\{asked && \(\s*<MissingChips testId="attach" onPick=\{pickNeed\}/.test(s)
+      && /if \(cell === 'wedding_date'\) onNeedWeddingDate\(\);\s*else focusOn\(cell === 'fee' \? 'att-fee' : cell === 'handover' \? 'att-handover' : 'att-pkg'\);/.test(s),
     attachCancel: /<button type="button" style=\{actionButton\('mute'\)\} onClick=\{onClose\}>\{PACKAGES\.cancel\}<\/button>/.test(s),
     editCancel: /<button type="button" style=\{actionButton\('mute'\)\} onClick=\{onClose\}>\{PACKAGES\.cancel\}<\/button>/.test(e),
     noTextCancel: !/textButton\('mute'\)\} onClick=\{onClose\}/.test(s + e),
@@ -443,7 +479,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   const sheetSrc = strip(read('components/vendor/packages/PackageFields.tsx'));
   ok(/role="dialog" aria-modal="true" inert=\{!open\}/.test(sheetSrc) && !/aria-hidden=\{!open\}/.test(sheetSrc), '§10.6 F-43.89: a closed shared sheet is inert, not aria-hidden');
   const detailSrc = strip(read('components/vendor/slices/DetailSheet.tsx'));
-  ok(/\{detailTop\}\s*\{\(sel\?\.detail \?\? \[\]\)\.map/.test(detailSrc), '§10.7 1(a): DetailSheet renders detailTop above the detail rows');
+  ok(/\{detailTop\}\s*(\{detailMissing\}\s*)?\{\(sel\?\.detail \?\? \[\]\)\.map/.test(detailSrc), '§10.7 [amended, 3g] 1(a): DetailSheet renders detailTop above the detail rows');
   ok(c4.detailTop, '§10.8 1(a): the lead card rides detailTop, and no longer detailExtra');
   const threadSrc = read('components/vendor/ConversationThread.tsx');
   let sender = null;
@@ -556,17 +592,85 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   ok(bs.fixMap, '§13.3 R-43.16: package → attach sheet; fee → attach on the fee; handover → attach on the handover field; wedding date → the date completion; a bad received-on focuses its field');
   ok(c5b.attachNeeds, '§13.4 R-43.16: the attach sheet\'s own refusals focus their fields, and the date refusal opens the date completion');
   ok(c4.dateFix, '§13.5 F-43.76: the date completion is the WishboneSheet cell, pre-filled with the stored date, saved at day precision, and it leaves the sheet beneath open');
-  ok(c4.together, '§13.6 F-43.105: the detail and its package are read together; the body waits for both; the card takes the read');
+  ok(c4.together, '§13.6 [restated, 3g] F-43.107: the detail\'s two reads run side by side; the body waits only for the package read');
   const detailSrc3 = strip(read('components/vendor/slices/DetailSheet.tsx'));
-  ok(c5b.initialRead && /\{bodyLoading \? \(\s*<div data-lc2="detail-skeleton"/.test(detailSrc3),
-    '§13.7 F-43.105: a still placeholder holds the body and the attach form until their reads are in');
+  ok(c5b.initialRead && /\{bodyLoading \? null : \(<>/.test(detailSrc3) && !/detail-skeleton/.test(detailSrc3)
+    && /\{loadingDetail && !leadDetail\s*\? <ConversationWaiting \/>/.test(strip(src.shell)),
+    '§13.7 [restated, 3g] F-43.107: no fixed-height placeholder; the body is empty until its first read, and the thread waits in its own shape');
   const wb = strip(read('components/vendor/slices/WishboneSheet.tsx'));
-  ok(/useState\(\(initialValues && missing\[0\] && initialValues\[missing\[0\]\]\) \|\| ''\)/.test(wb) && /initialValues\?: Record<string, string>;/.test(wb),
-    '§13.8 F-43.76: the WishboneSheet pre-fills a value on file');
+  ok(/useState\(\(initialValues && first && initialValues\[first\]\) \|\| ''\)/.test(wb) && /initialValues\?: Record<string, string>;/.test(wb),
+    '§13.8 [re-aimed, 3g] F-43.76: the WishboneSheet pre-fills a value on file');
   ok(c4.scheduleGate && /GATE_FIELD\[bad \|\| ''\]/.test(strip(src.edit)) && /\{message && bad && <NeedFirst text=\{message\} onFix=/.test(strip(src.sheet)),
     '§13.9 R-43.16 sweep: the schedule gate, the package edit gates and the Clients sheet gate each focus their field');
   ok(!/openBookingFromSwipe|setPendingKind|attachFirst/.test(strip(src.shell) + strip(src.card)) && !/data-lc2="booking-attach"/.test(strip(src.booking)),
     '§13.10 R-43.16: no redirect survives (no attach-first path, no pending booking, no extra attach button)');
+
+  sec('§14 · packet 3g');
+  // The needs, driven (lib/vendor/bookingNeeds.ts).
+  let needs = null;
+  try {
+    const m = loadModule(read('lib/vendor/bookingNeeds.ts'));
+    if (typeof m.bookingNeeds === 'function' && typeof m.attachNeeds === 'function') needs = m;
+  } catch (e) { console.log('  (needs did not load: ' + e.message + ')'); }
+  const N = needs || {};
+  const exact = { wedding_date: '2026-12-22', wedding_date_precision: 'day' };
+  const legacy = { wedding_date: '2026-12-22', wedding_date_precision: null };
+  const monthOnly = { wedding_date: '2026-12-01', wedding_date_precision: 'month' };
+  const none = { wedding_date: null, wedding_date_precision: null };
+  const J = (x) => JSON.stringify(x);
+  ok(!!needs
+    && J(N.bookingNeeds(null, none)) === J(['wedding_date', 'package'])
+    && J(N.bookingNeeds(null, monthOnly)) === J(['wedding_date', 'package'])
+    && J(N.bookingNeeds(null, exact)) === J(['package'])
+    && J(N.bookingNeeds(null, legacy)) === J(['package'])
+    && J(N.bookingNeeds(null, null)) === J(['package'])
+    && J(N.bookingNeeds({ total: null }, exact)) === J(['fee'])
+    && J(N.bookingNeeds({ total: 0 }, exact)) === J(['fee'])
+    && J(N.bookingNeeds({ total: 80000 }, none)) === J([])
+    && J(N.bookingNeeds(undefined, none)) === J([]),
+    '§14.1 a booking needs a package with a fee; with no package it also needs an exact date; an unknown read needs nothing');
+  const photo = { delivery_basis: 'days' };
+  const hand = { delivery_basis: 'handover' };
+  ok(!!needs
+    && J(N.attachNeeds({ chosen: photo, fee: 80000, handover: '', lead: exact })) === J([])
+    && J(N.attachNeeds({ chosen: photo, fee: 80000, handover: '', lead: none })) === J(['wedding_date'])
+    && J(N.attachNeeds({ chosen: photo, fee: null, handover: '', lead: exact })) === J(['fee'])
+    && J(N.attachNeeds({ chosen: null, fee: null, handover: '', lead: none })) === J(['wedding_date', 'package'])
+    && J(N.attachNeeds({ chosen: hand, fee: 80000, handover: '', lead: exact })) === J(['handover'])
+    && J(N.attachNeeds({ chosen: hand, fee: 80000, handover: '2027-02-05', lead: exact })) === J([])
+    && J(N.attachNeeds({ chosen: photo, fee: 80000, handover: '', lead: null })) === J([]),
+    '§14.2 an attach needs a package, a fee, an exact date and, on a handover package, its date (the server\'s computeSchedule rules)');
+  const cm2 = c1.err ? null : loadModule(src.copy);
+  ok(!!cm2 && typeof cm2.LEAD_PACKAGE.stillMissing === 'function' && !!cm2.LEAD_PACKAGE.needLabel && cm2.LEAD_PACKAGE.stillMissing([cm2.LEAD_PACKAGE.needLabel.wedding_date, cm2.LEAD_PACKAGE.needLabel.package]) === 'Still missing: Wedding date, Package'
+    && cm2.LEAD_PACKAGE.needLabel.package === cm2.LEAD_PACKAGE.fPackage && cm2.LEAD_PACKAGE.needLabel.fee === cm2.LEAD_PACKAGE.fFee
+    && cm2.LEAD_PACKAGE.needLabel.handover === cm2.LEAD_PACKAGE.fHandover
+    && /wedding_date:\s*\{ label: 'Wedding date'/.test(read('components/vendor/slices/WishboneSheet.tsx')),
+    '§14.3 the toast is composed from the existing labels: "Still missing: Wedding date, Package"');
+  ok(bs.asks && c5b.attachAsks,
+    '§14.4 item 1: Confirm booking and Attach package are never disabled; on a tap with something missing nothing is sent, the toast names it, and the chips at the top each open their own fix');
+  const mc = read('components/vendor/MissingChips.tsx');
+  ok(/onPick: \(key: string\) => void;/.test(mc) && !/onPick\?:/.test(mc) && /onClick=\{\(\) => onPick\(c\.key\)\}/.test(mc)
+    && /if \(cells\.length === 0\) return null;/.test(mc) && /Still missing — tap to complete:/.test(mc),
+    '§14.5 one chips component: each chip opens its own cell, and nothing renders when nothing is missing');
+  const binder = strip(read('components/vendor/slices/BinderCard.tsx'));
+  ok(c4.chipsTop && /const first = start && missing\.includes\(start\) \? start : \(missing\[0\] \?\? null\);/.test(wb)
+    && /onClick=\{e => \{ e\.stopPropagation\(\); setWishboneStart\(c\); setWishboneOpen\(true\); \}\}/.test(binder)
+    && /start=\{wishboneStart\}/.test(binder),
+    '§14.6 F-43.108: a tapped chip opens its own cell, on the lead detail and on the client card');
+  const dsrc = strip(read('components/vendor/slices/DetailSheet.tsx'));
+  const nameAt = binder.indexOf("{binder.client ?? 'Unnamed'}</div>");
+  const chipsAt = binder.indexOf('{chips.length > 0 && (');
+  const moneyAt = binder.indexOf('{hasMoney && (');
+  ok(c4.chipsTop && /\{detailTop\}\s*\{detailMissing\}\s*\{\(sel\?\.detail/.test(dsrc)
+    && nameAt > 0 && chipsAt > nameAt && moneyAt > chipsAt,
+    '§14.7 F-43.109: the chips sit at the top, under the package card on the lead detail and under the name on the client card');
+  ok(c5b.readOnce && c4.primeOnce, '§14.8 F-43.107: the packages list is read once per Leads visit (primed on entry, cleared on leaving; a failed read is not remembered)');
+  const thread3 = strip(read('components/vendor/ConversationThread.tsx'));
+  ok(/export function ConversationWaiting\(\)/.test(thread3) && /\[true, false, true\]\.map\(\(isIn, k\) => bubble\(isIn, k\)\)/.test(thread3)
+    && /minHeight: 24, padding: '8px 12px'/.test(thread3) && /fontSize: 8, lineHeight: 1\.6, marginTop: 4/.test(thread3)
+    && tokensOnly(thread3.slice(thread3.indexOf('export function ConversationWaiting'), thread3.indexOf('export function inboundSender'))),
+    '§14.9 F-43.107: the thread waits in the collapsed shape it becomes (three message outlines at the bubble and stamp geometry), tokens only');
+  ok(c4.factsWired, '§14.10 the needs read the lead\'s date from the room\'s own leads read, for the card and the booking sheet');
 
   sec('§9 · mutations of production source');
   const M = [
@@ -590,7 +694,9 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     [F.card, "onAttached={(row) => { setLp(row); setSheetOpen(false); }}", "onAttached={(row) => { setLp(row); setSheetOpen(false); const pendingKind = 'x'; void pendingKind; }}", (m) => !cardCells(m, src.edit).continues, 'M21 [re-aimed, 3f] a booking carried across an attach → §5.8 RED'],
     [F.card, "fix: code === 'no_wedding_date' ? onNeedWeddingDate", "fix: code === 'no_wedding_date' ? () => focusOn('att-pkg')", (m) => !cardCells(m, src.edit).attachNeeds, 'M38 R-43.16: the date refusal without its date fix → §13.4 RED'],
     [F.card, "if (initial !== undefined) { setLp(initial); return; }", '', (m) => !cardCells(m, src.edit).initialRead, 'M39 F-43.105: the card ignores the detail\'s read → §13.7 RED'],
-    [F.shell, "fetchLeadPackage(id).catch(() => null),", '', (m) => !shellCells(m).together, 'M40 F-43.105: the package read leaves the detail\'s open → §13.6 RED'],
+    [F.shell, "void fetchLeadPackage(id)\n      .then((pk) => setLeadPkg(", "void Promise.all([\n      fetchLeadDetail(id).catch(() => null), fetchLeadPackage(id)]).then(([, pk]) => setLeadPkg(", (m) => !shellCells(m).together, 'M40 [re-aimed, 3g] the reads made to wait on each other → §13.6 RED'],
+    [F.card, "if (packagesCache) return Promise.resolve(packagesCache);", '', (m) => !cardCells(m, src.edit).readOnce, 'M44 F-43.107: the packages read every open → §14.8 RED'],
+    [F.card, "    if (needsNow.length) {\n      setAsked(true); setNeed(null);", "    if (false) {\n      setAsked(true); setNeed(null);", (m) => !cardCells(m, src.edit).attachAsks, 'M45 item 1: the attach sends with something missing → §14.4 RED'],
     [F.shell, "wedding_date_precision: 'day' }", '}', (m) => !shellCells(m).dateFix, 'M41 F-43.76: the fixed date is not stored exact → §13.5 RED'],
     [F.shell, '          if (packagePayBlocked(row)) return;', '', (m) => !shellCells(m).guardOnce, 'M22 F-43.88: a second tap slips through → §10.1 RED'],
     [F.shell, 'right: packagePayBlocked(row) ? undefined : { label: COPY.studioMarkPaid', 'right: { label: COPY.studioMarkPaid', (m) => !shellCells(m).hidden, 'M23 F-43.88: swipe offered on a settled booking invoice → §10.4 RED'],

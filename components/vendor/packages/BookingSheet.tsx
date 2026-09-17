@@ -22,9 +22,15 @@
 // this one; `Set the fee first.` opens it on the fee; `Add the handover date first.` on the handover
 // field; `Add the wedding date first.` opens the lead's wedding-date completion. After the fix the
 // vendor is back here and taps Confirm booking herself. 3e's separate Attach package button is gone.
+// Packet 3g (CE-43, corrected on the founder's word): Confirm booking is never disabled. On a tap,
+// if the lead lacks what a booking needs (lib/vendor/bookingNeeds.ts), nothing is sent: a toast says
+// `Still missing: …` and the same chips the lead detail shows appear at the top, each opening its own
+// fix. She taps Confirm booking again when they are gone. The refusal lines stay as the last guard.
 // Tokens only (R-42.6).
 import { useEffect, useRef, useState } from 'react';
 import { NeedFirst } from '@/components/vendor/NeedFirst';
+import { MissingChips } from '@/components/vendor/MissingChips';
+import { bookingNeeds, type LeadFacts, type NeedCell } from '@/lib/vendor/bookingNeeds';
 import { promoteLead, type BookingKind } from '@/lib/vendor/api/vendor';
 import { LEAD_PACKAGE, PACKAGES, PACKAGE_FAILURES, BOOKING } from '@/lib/worklist/packages';
 import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
@@ -32,6 +38,7 @@ import { istTodayISO } from '@/lib/vendor/istDay';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { Sheet, FieldLabel, inputStyle, flagged, actionButton, primaryButton, T } from './PackageFields';
 import { AttachSheet } from './LeadPackageCard';
+import { fetchLeadPackage, type LeadPackage } from '@/lib/vendor/api/vendor';
 
 type RefusalCode = keyof typeof LEAD_PACKAGE.refusals;
 const isRefusal = (c: unknown): c is RefusalCode => typeof c === 'string' && c in LEAD_PACKAGE.refusals;
@@ -45,7 +52,7 @@ export function refreshAfterBooking() {
   invalidateSlice('invoices');
 }
 
-export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onToast, onNeedWeddingDate }: {
+export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onToast, onNeedWeddingDate, leadFacts }: {
   open: boolean;
   leadId: string | null;
   initialKind: BookingKind;
@@ -54,6 +61,8 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
   onToast: (msg: string, kind?: ToastKind) => void;
   /** R-43.16: opens the lead's wedding-date completion over this sheet; this sheet stays open. */
   onNeedWeddingDate: (leadId: string) => void;
+  /** 3g: the lead's date facts from the Leads room's own read; null when unknown. */
+  leadFacts: LeadFacts | null;
 }) {
   const [kind, setKind] = useState<BookingKind>(initialKind);
   const [receivedOn, setReceivedOn] = useState('');
@@ -64,13 +73,30 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
   const [busy, setBusy] = useState(false);
   const [attach, setAttach] = useState<{ focus: 'fee' | 'handover' | null } | null>(null);
   const dateRef = useRef<HTMLInputElement | null>(null);
+  // 3g: the lead's package, read when the sheet opens (undefined while out), and whether the vendor
+  // has tapped with something missing (the chips then track what is still missing).
+  const [lp, setLp] = useState<LeadPackage | null | undefined>(undefined);
+  const [asked, setAsked] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setKind(initialKind);
     setReceivedOn(istTodayISO());
-    setNeed(null); setFailed(false); setBusy(false); setAttach(null);
-  }, [open, initialKind]);
+    setNeed(null); setFailed(false); setBusy(false); setAttach(null); setAsked(false);
+    setLp(undefined);
+    if (!leadId) return;
+    let alive = true;
+    void fetchLeadPackage(leadId)
+      .then((r) => { if (alive) setLp(r && r.ok ? r.lead_package : undefined); })
+      .catch(() => { /* unknown: the server decides */ });
+    return () => { alive = false; };
+  }, [open, initialKind, leadId]);
+
+  const needsNow: NeedCell[] = bookingNeeds(lp, leadFacts);
+  const pickNeed = (cell: string) => {
+    if (cell === 'wedding_date') { if (leadId) onNeedWeddingDate(leadId); return; }
+    setAttach({ focus: cell === 'fee' ? 'fee' : cell === 'handover' ? 'handover' : null });
+  };
 
   const fixFor = (code: RefusalCode | 'received_on') => () => {
     if (code === 'received_on') { if (dateRef.current) dateRef.current.focus(); return; }
@@ -82,6 +108,13 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
 
   async function confirm() {
     if (busy || !leadId) return;
+    // 3g: nothing is sent while the lead lacks what a booking needs; the toast names it and the
+    // chips at the top fix it. The server's refusals below stay as the last guard.
+    if (needsNow.length) {
+      setAsked(true); setNeed(null); setFailed(false);
+      onToast(LEAD_PACKAGE.stillMissing(needsNow.map((c) => LEAD_PACKAGE.needLabel[c])), 'error');
+      return;
+    }
     if (kind === 'advance_paid' && !/^\d{4}-\d{2}-\d{2}$/.test(receivedOn)) { setNeed({ code: 'received_on' }); setFailed(false); return; }
     setBusy(true); setNeed(null); setFailed(false);
     try {
@@ -126,6 +159,10 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
         </>
       )}
     >
+      {asked && (
+        <MissingChips testId="booking" onPick={pickNeed}
+          cells={needsNow.map((c) => ({ key: c, label: LEAD_PACKAGE.needLabel[c] }))} />
+      )}
       {need && <NeedFirst text={needText(need.code)} onFix={fixFor(need.code)} testId="booking" />}
       {failed && <p role="alert" style={{ margin: 0, fontFamily: T.body, fontSize: 14, color: T.accent }}>{BOOKING.failed}</p>}
       <div style={{ display: 'flex', gap: 10 }}>
@@ -146,9 +183,10 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
       current={null}
       focus={attach ? attach.focus : null}
       onClose={() => setAttach(null)}
-      onAttached={() => { setAttach(null); setNeed(null); }}
+      onAttached={(row) => { setAttach(null); setNeed(null); setLp(row); }}
       onToast={onToast}
       onNeedWeddingDate={() => { if (leadId) onNeedWeddingDate(leadId); }}
+      leadFacts={leadFacts}
     />
     </>
   );

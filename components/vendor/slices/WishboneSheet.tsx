@@ -40,11 +40,11 @@ const FIELD_META: Record<string, { label: string; input: 'text' | 'tel' | 'date'
   amount:        { label: 'Amount',       input: 'number', placeholder: 'Rs', victorOnly: true },
 };
 
-function chipLabel(cell: string): string {
+export function chipLabel(cell: string): string {
   return FIELD_META[cell]?.label ?? cap(cell.replace(/_/g, ' '));
 }
 
-export function WishboneSheet({ missing, personLabel, onComplete, onDone, initialValues }: {
+export function WishboneSheet({ missing, personLabel, onComplete, onDone, initialValues, start }: {
   /** The wire's missing cells, in the wire's order. */
   missing: string[];
   /** The person the primer names ("this lead"/"this binder" fallback upstream). */
@@ -57,11 +57,15 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
   /** CE-43 LC-2 packet 3f · F-43.76: a value already on file for a cell (a month-precision wedding
       date), pre-filled so the vendor makes it exact without retyping. Absent for every other caller. */
   initialValues?: Record<string, string>;
+  /** CE-43 LC-2 packet 3g · F-43.108: the cell the vendor tapped. The sheet opens on it, not on the
+      first missing cell. Absent means the first. */
+  start?: string;
 }) {
   const { openAsk } = useAsk();
   const [remaining, setRemaining] = useState<string[]>(missing);
-  const [active, setActive] = useState<string | null>(missing[0] ?? null);
-  const [value, setValue] = useState((initialValues && missing[0] && initialValues[missing[0]]) || '');
+  const first = start && missing.includes(start) ? start : (missing[0] ?? null);
+  const [active, setActive] = useState<string | null>(first);
+  const [value, setValue] = useState((initialValues && first && initialValues[first]) || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

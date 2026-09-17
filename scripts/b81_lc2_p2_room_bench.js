@@ -16,6 +16,7 @@
 //   §8 mutations of production source, each turning its named cell RED.
 //   P2b: §3.14, §4.8, §5.10 to §5.12 and M15 to M18 (F-43.78 on the sheet, F-43.79's button form);
 //   §3.8 amended by label for the quiet button's border.
+//   Packet 3g (F-43.107, chair-ruled): §5.6 AMENDED BY LABEL, the default is picked from the read-once list.
 //   Packet 3f (R-43.16, chair-ruled): §5.4 AMENDED BY LABEL, the refusal renders through NeedFirst.
 //   Packet 3c (1(a), chair-ruled): §5.8 AMENDED BY LABEL, the card mounts through the `detailTop`
 //   slot above the detail rows; the fact (the card on the leads detail) is unchanged.
@@ -176,7 +177,8 @@ function cardCells(src, shellSrc) {
     refusals: /if \(isRefusal\(code\)\) \{\s*setNeed\(needFor\(code\)\);/.test(s) && /onToast\(PACKAGE_FAILURES\.attachFailed, 'error'\)/.test(s)
       && /if \(!chosen\) \{ setNeed\(needFor\('no_package'\)\);/.test(s),
     handoverOnly: /\{chosen && chosen\.delivery_basis === 'handover' && \(\s*<div>\s*<FieldLabel text=\{LEAD_PACKAGE\.fHandover\}/.test(s),
-    defaultPick: /r\.packages\.find\(\(p\) => p\.is_default\)/.test(s),
+    // [amended, packet 3g · F-43.107] the list comes from the room's read-once cache (`list`).
+    defaultPick: /(r\.packages|list)\.find\(\(p\) => p\.is_default\)/.test(s),
     onlyChanged: /if \(total != null && total !== chosen\.total\) body\.total = total;/.test(s) && /if \(name\.trim\(\) !== chosen\.name\) body\.name = name\.trim\(\);/.test(s),
     mounted: /const detailTop = slice === 'leads' && sel \? \(\s*<LeadPackageCard leadId=\{sel\.id\}/.test(sh) && /detailTop=\{detailTop\}/.test(sh),
     changeLabel: /\{lp \? LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach\}/.test(s),

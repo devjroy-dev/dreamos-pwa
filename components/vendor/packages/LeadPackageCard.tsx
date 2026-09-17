@@ -25,6 +25,9 @@
 // Tokens only (R-42.6). Full-month dates (R-42.13) through packageDate.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NeedFirst } from '@/components/vendor/NeedFirst';
+import { MissingChips } from '@/components/vendor/MissingChips';
+import { attachNeeds, type LeadFacts, type NeedCell } from '@/lib/vendor/bookingNeeds';
+
 import {
   fetchLeadPackage, attachLeadPackage, fetchPackages,
   type LeadPackage, type VendorPackage, type PackageLineItem, type AttachInput,
@@ -43,7 +46,27 @@ import {
 type RefusalCode = keyof typeof LEAD_PACKAGE.refusals;
 const isRefusal = (c: unknown): c is RefusalCode => typeof c === 'string' && c in LEAD_PACKAGE.refusals;
 
-export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNeedWeddingDate, initial }: {
+// ── CE-43 LC-2 packet 3g · F-43.107: the vendor's packages are read once per room visit ─────────
+// The Leads room primes this when it mounts and clears it when it leaves; every attach sheet opened
+// in between reads it synchronously, so the sheet never draws an empty form that fills in later.
+let packagesCache: VendorPackage[] | null = null;
+let packagesInflight: Promise<VendorPackage[]> | null = null;
+export function resetPackagesCache(): void { packagesCache = null; packagesInflight = null; }
+export function loadPackagesOnce(): Promise<VendorPackage[]> {
+  if (packagesCache) return Promise.resolve(packagesCache);
+  if (!packagesInflight) {
+    packagesInflight = fetchPackages()
+      .then((r) => {
+        if (r && r.ok) { packagesCache = r.packages; return r.packages; }
+        packagesInflight = null; // a failed read is not remembered; the next open reads again
+        return [] as VendorPackage[];
+      })
+      .catch(() => { packagesInflight = null; return [] as VendorPackage[]; });
+  }
+  return packagesInflight;
+}
+
+export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNeedWeddingDate, initial, leadFacts }: {
   leadId: string;
   booked?: boolean;
   onBook?: (kind: BookingKind) => void;
@@ -53,6 +76,8 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNee
   /** F-43.105: the package read the detail made with its own open. `undefined` means the card reads
    *  it itself (the pre-3f path); `null` or a row means it is already in, and the card renders at once. */
   initial?: LeadPackage | null;
+  /** 3g: the lead's date facts, for the attach sheet's needs. */
+  leadFacts: LeadFacts | null;
 }) {
   const [lp, setLp] = useState<LeadPackage | null | undefined>(initial);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -128,6 +153,7 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNee
         onAttached={(row) => { setLp(row); setSheetOpen(false); }}
         onToast={onToast}
         onNeedWeddingDate={onNeedWeddingDate}
+        leadFacts={leadFacts}
       />
     </div>
   );
@@ -139,15 +165,19 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNee
 // open the lead's wedding-date completion (`onNeedWeddingDate`), and this sheet stays open under
 // it. `focus` opens the sheet on the fee or handover field. F-43.105: while the vendor's packages
 // load, the sheet shows a still placeholder, never an empty form that fills in later.
-export function AttachSheet({ open, leadId, current, onClose, onAttached, onToast, onNeedWeddingDate, focus = null }: {
+export function AttachSheet({ open, leadId, current, onClose, onAttached, onToast, onNeedWeddingDate, focus = null, leadFacts }: {
   open: boolean; leadId: string; current: LeadPackage | null;
   onClose: () => void; onAttached: (row: LeadPackage) => void;
   onToast: (msg: string, kind?: ToastKind) => void;
   /** R-43.16: the fix for `Add the wedding date first.` Required wherever this sheet can refuse it. */
   onNeedWeddingDate: () => void;
   focus?: 'fee' | 'handover' | null;
+  /** 3g: the lead's date facts, from the Leads room's own read; null when unknown. */
+  leadFacts: LeadFacts | null;
 }) {
-  const [packages, setPackages] = useState<VendorPackage[] | null>(null);
+  const [packages, setPackages] = useState<VendorPackage[] | null>(packagesCache);
+  // 3g: set once the vendor taps Attach package with something missing; the chips then track it.
+  const [asked, setAsked] = useState(false);
   const [packageId, setPackageId] = useState('');
   const [fee, setFee] = useState('');
   const [handover, setHandover] = useState('');
@@ -175,17 +205,16 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
 
   useEffect(() => {
     if (!open) return;
-    setNeed(null); setBad(null); setBusy(false); setPackages(null);
+    setNeed(null); setBad(null); setBusy(false); setAsked(false);
     let alive = true;
-    void fetchPackages().then((r) => {
+    void loadPackagesOnce().then((list) => {
       if (!alive) return;
-      if (!r || !r.ok) { setPackages([]); return; }
-      setPackages(r.packages);
-      const pick = (current && r.packages.find((p) => p.id === current.package_id))
-        || r.packages.find((p) => p.is_default) || null;
+      setPackages(list);
+      const pick = (current && list.find((p) => p.id === current.package_id))
+        || list.find((p) => p.is_default) || null;
       setPackageId(pick ? pick.id : '');
       fillFrom(pick);
-    }).catch(() => { if (alive) setPackages([]); /* the select stays empty; submit then shows A9's first line */ });
+    });
     return () => { alive = false; };
   }, [open, current, fillFrom]);
 
@@ -208,8 +237,20 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
     fix: () => focusOn(field === 'name' ? 'pkg-name' : field === 'description' ? 'pkg-desc' : field === 'total' ? 'att-fee' : field === 'delivery_on' ? 'att-handover' : 'att-pkg'),
   });
 
+  // 3g: what this attach lacks right now, and each chip's own fix (R-43.16).
+  const needsNow: NeedCell[] = attachNeeds({ chosen, fee: wholeRupees(fee), handover, lead: leadFacts });
+  const pickNeed = (cell: string) => {
+    if (cell === 'wedding_date') onNeedWeddingDate();
+    else focusOn(cell === 'fee' ? 'att-fee' : cell === 'handover' ? 'att-handover' : 'att-pkg');
+  };
+
   async function submit() {
     if (busy) return;
+    if (needsNow.length) {
+      setAsked(true); setNeed(null);
+      onToast(LEAD_PACKAGE.stillMissing(needsNow.map((c) => LEAD_PACKAGE.needLabel[c])), 'error');
+      return;
+    }
     if (!chosen) { setNeed(needFor('no_package')); setBad('package_id'); return; }
     const body: AttachInput = { package_id: chosen.id };
     const total = wholeRupees(fee);
@@ -253,12 +294,14 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
       )}
     >
       <div ref={bodyRef} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {asked && (
+        <MissingChips testId="attach" onPick={pickNeed}
+          cells={needsNow.map((c) => ({ key: c, label: LEAD_PACKAGE.needLabel[c] }))} />
+      )}
       {need && <NeedFirst text={need.text} onFix={need.fix} testId="attach" />}
-      {packages === null ? (
-        <div data-lc2="attach-skeleton" aria-busy="true" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {[0, 1].map((k) => <div key={k} style={{ height: 70, borderRadius: 2, border: `0.5px solid ${T.card}` }} />)}
-        </div>
-      ) : (<>
+      {/* F-43.107: no still placeholder. The list is primed by the room, so this waits only on a
+          cold first open, and then shows nothing until the whole form can render at once. */}
+      {packages !== null && (<>
       <div>
         <FieldLabel text={LEAD_PACKAGE.fPackage} htmlFor="att-pkg" />
         <select id="att-pkg" style={{ ...inputStyle, ...(bad === 'package_id' ? flagged : {}) }} value={packageId}

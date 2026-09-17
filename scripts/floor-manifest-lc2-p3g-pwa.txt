@@ -1,0 +1,18 @@
+# scripts/floor-manifest-lc2-p3g-pwa.txt
+# CE-43 · LC-2 packet 3g · dreamos-pwa only. F-19.16: a dirty path outside this list is a STOP.
+# Two new files in existing directories (components/vendor, lib/vendor); no new directory.
+components/vendor/MissingChips.tsx
+lib/vendor/bookingNeeds.ts
+components/vendor/ConversationThread.tsx
+components/vendor/packages/BookingSheet.tsx
+components/vendor/packages/LeadPackageCard.tsx
+components/vendor/slices/BinderCard.tsx
+components/vendor/slices/DetailSheet.tsx
+components/vendor/slices/SliceShell.tsx
+components/vendor/slices/WishboneSheet.tsx
+lib/worklist/packages.ts
+scripts/b81_lc2_p2_room_bench.js
+scripts/b82_lc2_p3_booking_bench.js
+scripts/verify-lc2-p3g-pwa.sh
+scripts/floor-manifest-lc2-p3g-pwa.txt
+docs/handovers/TDW_CE43_LC2_P3G_HANDOVER.md

@@ -97,6 +97,16 @@ export const LEAD_PACKAGE = {
   counted: 'Counted from the wedding date.',
   /** A8 · the delivery line. */
   delivery: (date: string) => `Delivery · ${date}`,
+  /** 3g (CE-43 ruling, corrected on the founder's word): the toast an act says when the lead lacks
+   *  what it needs, composed from the existing labels: `Still missing: Wedding date, Package`.
+   *  The labels are A4's and the WishboneSheet's `Wedding date`; no new word. */
+  stillMissing: (labels: string[]) => `Still missing: ${labels.join(', ')}`,
+  needLabel: {
+    wedding_date: 'Wedding date',
+    package: 'Package',
+    fee: 'Fee for this couple',
+    handover: 'Handover date',
+  },
   /** A9 · the refusals; the fourth line is F25's, chair-approved. */
   refusals: {
     no_package: 'Attach a package first.',

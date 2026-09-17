@@ -137,6 +137,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [wishboneOpen, setWishboneOpen] = useState(false); // TDW_04 A1: the chips wake
+  const [wishboneStart, setWishboneStart] = useState<string | undefined>(undefined); // 3g · F-43.108
   const [hideConfirm, setHideConfirm] = useState(false);   // TDW_04 A2: hide w/ real-door undo
 
   const { recv, pend } = moneyOf(binder);
@@ -218,6 +219,35 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>{binder.client ?? 'Unnamed'}</div>
 
+        {/* Missing-cell chips — render truth; taps AWAKE (TDW_04 A1, the P3
+            charter landing). Tap → WishboneSheet: inline through the POST /edit
+            door for client/phone/date; `amount` routes to Victor only (the
+            witnessed-door law — donna_edit refuses money by design).
+            CE-43 LC-2 packet 3g: F-43.109 moves them directly under the name, above the money and
+            stage lines, and they are absent when nothing is missing. F-43.108: each chip opens its
+            own cell. They stay spans with role="button" because the whole card is a <button>. */}
+        {chips.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}
+            onClick={e => { e.stopPropagation(); setWishboneStart(undefined); setWishboneOpen(true); }}>
+            {chips.map(c => (
+              <span key={c} role="button" data-cell={c}
+                onClick={e => { e.stopPropagation(); setWishboneStart(c); setWishboneOpen(true); }}
+                style={{
+                fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
+                letterSpacing: '0.06em',
+                border: '0.5px solid var(--atelier-ink-dim)', borderRadius: 2,
+                padding: '3px 8px', cursor: 'pointer',
+              }}>+ {c}</span>
+            ))}
+            {overflow > 0 && (
+              <span style={{
+                fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
+                letterSpacing: '0.06em', padding: '3px 2px',
+              }}>+{overflow} more</span>
+            )}
+          </div>
+        )}
+
         {/* Line 2 — THE money story */}
         {hasMoney && (
           <div style={{ marginTop: 8 }}>
@@ -278,29 +308,6 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
           )}
         </div>
 
-        {/* Missing-cell chips — render truth; taps AWAKE (TDW_04 A1, the P3
-            charter landing). Tap → WishboneSheet: inline through the POST /edit
-            door for client/phone/date; `amount` routes to Victor only (the
-            witnessed-door law — donna_edit refuses money by design). */}
-        {chips.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}
-            onClick={e => { e.stopPropagation(); setWishboneOpen(true); }}>
-            {chips.map(c => (
-              <span key={c} role="button" style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
-                letterSpacing: '0.06em',
-                border: '0.5px solid var(--atelier-ink-dim)', borderRadius: 2,
-                padding: '3px 8px', cursor: 'pointer',
-              }}>+ {c}</span>
-            ))}
-            {overflow > 0 && (
-              <span style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
-                letterSpacing: '0.06em', padding: '3px 2px',
-              }}>+{overflow} more</span>
-            )}
-          </div>
-        )}
       </button>
       </SwipeRow>
 
@@ -370,6 +377,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
         <WishboneSheet
           missing={missing}
           personLabel={binder.client ?? 'this binder'}
+          start={wishboneStart}
           onComplete={async (cell, value) => {
             // Only client/phone/date reach inline completion (amount is
             // victorOnly in the sheet) — all three are BinderEditFields keys.
