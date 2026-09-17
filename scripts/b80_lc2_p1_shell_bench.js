@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 // scripts/b80_lc2_p1_shell_bench.js — TDW CE-43 · LC-2 · packet 1 (dreamos-pwa) · THE SHELLS.
+// AMENDED BY LABEL AT PACKET 3c (CE-43 LC-2r, 1(a) chair-ruled): the card now mounts through
+// DetailSheet's `detailTop` slot (above the detail rows), so §5.1's block and M6's anchor read the
+// `detailTop` const and its hand-off to DetailSheet. The fact asserted (leads only) is unchanged.
 // AMENDED BY LABEL AT PACKET 3 (CE-43 LC-2r): §6.2, §6.3 and §6.6 now hold packet 3's live facts
 // (the sheet books through createDirectClient; F28(b) makes Advance received a switch between
 // Fee and Received on; Add client submits). M8 re-aimed at the live submit. No other cell moved.
@@ -144,7 +147,10 @@ async function apiCells(src) {
 function shellCells(src, cardSrc = read('components/vendor/packages/LeadPackageCard.tsx')) {
   const s = strip(src);
   const card = strip(cardSrc || '');
-  const block = (s.match(/\{slice === 'leads' && sel && \(\s*<LeadPackageCard leadId=\{sel\.id\}[\s\S]*?\/>\s*\)\}/) || [''])[0];
+  // [amended, packet 3c] the card is the `detailTop` const, handed to DetailSheet.
+  const block = /detailTop=\{detailTop\}/.test(s)
+    ? ((s.match(/const detailTop = slice === 'leads' && sel \? \(\s*<LeadPackageCard leadId=\{sel\.id\}[\s\S]*?\/>\s*\) : null;/) || [''])[0])
+    : '';
   return {
     leadsOnly: block.length > 0,
     bytes: card.length > 0 && /\{LEAD_PACKAGE\.eyebrow\}/.test(card) && /LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach/.test(card),
@@ -298,8 +304,8 @@ function baseFile(rel) {
     ok(m !== null && c.path !== true, '§8 M5 the path drifts → §4.1 RED');
   }
   {
-    const m = mut(src.shell, "{slice === 'leads' && sel && (\n        <LeadPackageCard", "{sel && (\n        <LeadPackageCard");
-    ok(m !== null && !shellCells(m).leadsOnly, '§8 M6 the card shown on every slice → §5.1 RED');
+    const m = mut(src.shell, "const detailTop = slice === 'leads' && sel ? (", "const detailTop = sel ? (");
+    ok(m !== null && !shellCells(m).leadsOnly, '§8 M6 [re-aimed, packet 3c] the card shown on every slice → §5.1 RED');
   }
   {
     const m = mut(src.sheet, 'const needsFee = !!chosen && chosen.total == null;', 'const needsFee = true;');

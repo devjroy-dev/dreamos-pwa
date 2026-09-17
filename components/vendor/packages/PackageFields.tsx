@@ -74,7 +74,10 @@ export function Sheet({ open, title, onClose, children, footer, testId }: {
   return (
     <>
       {open && <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 40, backgroundColor: T.overlay }} />}
-      <div data-lc2={testId} role="dialog" aria-modal="true" aria-hidden={!open} style={{
+      {/* F-43.89 (packet 3c, chair-ruled): a closed sheet is `inert`, not `aria-hidden`. The
+          browser drops focus from an inert subtree, so a sheet that closes itself while its own
+          confirm button holds focus no longer hides a focused element from assistive tech. */}
+      <div data-lc2={testId} role="dialog" aria-modal="true" inert={!open} style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, backgroundColor: T.sheet,
         borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTop: `1px solid ${T.sheetBorder}`,
         transform: open ? 'translateY(0)' : 'translateY(100%)',

@@ -16,6 +16,8 @@
 //   §8 mutations of production source, each turning its named cell RED.
 //   P2b: §3.14, §4.8, §5.10 to §5.12 and M15 to M18 (F-43.78 on the sheet, F-43.79's button form);
 //   §3.8 amended by label for the quiet button's border.
+//   Packet 3c (1(a), chair-ruled): §5.8 AMENDED BY LABEL, the card mounts through the `detailTop`
+//   slot above the detail rows; the fact (the card on the leads detail) is unchanged.
 // NOT PROVEN HERE (declared): rendering on a device, the two-theme screenshots, `next build`,
 // and the database. The founder's walk and provisional floor are their witnesses.
 const fs = require('fs');
@@ -174,7 +176,7 @@ function cardCells(src, shellSrc) {
     handoverOnly: /\{chosen && chosen\.delivery_basis === 'handover' && \(\s*<div>\s*<FieldLabel text=\{LEAD_PACKAGE\.fHandover\}/.test(s),
     defaultPick: /r\.packages\.find\(\(p\) => p\.is_default\)/.test(s),
     onlyChanged: /if \(total != null && total !== chosen\.total\) body\.total = total;/.test(s) && /if \(name\.trim\(\) !== chosen\.name\) body\.name = name\.trim\(\);/.test(s),
-    mounted: /\{slice === 'leads' && sel && \(\s*<LeadPackageCard leadId=\{sel\.id\}/.test(sh),
+    mounted: /const detailTop = slice === 'leads' && sel \? \(\s*<LeadPackageCard leadId=\{sel\.id\}/.test(sh) && /detailTop=\{detailTop\}/.test(sh),
     changeLabel: /\{lp \? LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach\}/.test(s),
     cardButton: /<button type="button" style=\{actionButton\(\)\} onClick=\{\(\) => setSheetOpen\(true\)\}>/.test(s),
   };

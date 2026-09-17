@@ -177,8 +177,12 @@ t('leads LEFT still offers Call and Mark lost on their own row shapes', () =>
 //
 // COUNT PRESERVED: one cell before, one cell after. The file's total is
 // unchanged and its 20 is still 20.
+// ── AMENDED BY LABEL AT CE-43 LC-2 PACKET 3c (F-43.88, chair-ruled) ──────────
+// The label and the write are unchanged. The right side is now withheld on a booking's invoice
+// while its payment is out or once it is settled (`packagePayBlocked(row) ? undefined : …`), so
+// the pattern admits that guard in front of the same label.
 t('invoices RIGHT is still Mark paid, and still a real write (recordPayment)', () =>
-  /right: \{ label: COPY\.studioMarkPaid/.test(S())
+  /right: (packagePayBlocked\(row\) \? undefined : )?\{ label: COPY\.studioMarkPaid/.test(S())
   && /import \{ COPY \} from '@\/lib\/worklist\/copy'/.test(S())
   && /await recordPayment\(row\.id, \{ amount: owed \}\)/.test(S())
     ? true : 'the invoice swipe no longer reads COPY.studioMarkPaid from the register, or its write moved');
@@ -227,7 +231,9 @@ t('EXACTLY ONE `success` site remains reachable from a swipe verb, and it is the
   // the known early return and the answered one, in that order.
   const hits = body[0].match(/'success'/g) || [];
   const known = /showToast\('Already settled\.', 'success'\); return;/.test(body[0]);
-  const answered = /const r = await recordPayment\(row\.id, \{ amount: owed \}\);\s*if \(!\('ok' in r\) \|\| !r\.ok \|\| !r\.invoice\) \{ showToast\([^;]*'error'\); return; \}[\s\S]{0,900}?\}\), 'success'\);/.test(body[0]);
+  // [amended, packet 3c · F-43.88] the call is now wrapped (a thrown call reads as a refusal) and
+  // a refusal restores the row before its error toast; the answered site still follows an ok.
+  const answered = /try \{ r = await recordPayment\(row\.id, \{ amount: owed \}\); \}[\s\S]{0,200}?if \(!\('ok' in r\) \|\| !r\.ok \|\| !r\.invoice\) \{[\s\S]{0,200}?showToast\([^;]*'error'\); return;\s*\}[\s\S]{0,1200}?\}\), 'success'\);/.test(body[0]);
   return hits.length === 2 && known && answered
     ? true : `the swipe table now carries ${hits.length} success sites (known ${known}, answered ${answered}) — a new one is this delivery's to explain`;
 });

@@ -1,6 +1,7 @@
 'use client';
 // components/ConversationThread.tsx
 // Read-only couple conversation thread for lead detail view.
+// CE-43 LC-2 packet 3c: inbound messages are signed with the lead's name (fallback "Lead").
 // No reply input — vendor continues on WhatsApp.
 
 import type { ConversationMessage } from '@/lib/vendor/types/vendor';
@@ -17,6 +18,15 @@ function fmtTime(iso: string) {
 interface Props {
   messages: ConversationMessage[];
   vendorSummary?: string | null;
+  /** CE-43 LC-2 packet 3c · point 7 (chair-ruled): the inbound sender reads the lead's own
+   *  name, falling back to "Lead". "Bride" is not a word for every couple's messages. */
+  leadName?: string | null;
+}
+
+/** The inbound sender's label: the lead's name, else "Lead" (the one vetoed byte, CE-43). */
+export function inboundSender(leadName?: string | null): string {
+  const n = (leadName ?? '').trim();
+  return n || 'Lead';
 }
 
 // R-37.70 as amended at R-38.17 — the outbound speaker is 「TDW」, never a persona name.
@@ -25,7 +35,7 @@ interface Props {
 // word in the console that the vendor sees in a room. That is the correct direction: the
 // product refers to itself as TDW everywhere (R-37.72), and a console that used the old
 // name would be teaching the next reader a byte the estate has banned.
-export function ConversationThread({ messages, vendorSummary }: Props) {
+export function ConversationThread({ messages, vendorSummary, leadName }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {/* Summary card */}
@@ -63,7 +73,7 @@ export function ConversationThread({ messages, vendorSummary }: Props) {
                   <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, lineHeight: 1.5, margin: 0 }}>{msg.body}</p>
                 </div>
                 <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, letterSpacing: '0.1em', marginTop: 2, paddingLeft: isIn ? 2 : 0, paddingRight: isIn ? 0 : 2 }}>
-                  {isIn ? 'Bride' : 'TDW'} · {fmtTime(msg.created_at)}
+                  {isIn ? inboundSender(leadName) : 'TDW'} · {fmtTime(msg.created_at)}
                 </span>
               </div>
             );

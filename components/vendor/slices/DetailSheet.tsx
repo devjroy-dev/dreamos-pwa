@@ -29,6 +29,9 @@ interface DetailSheetProps {
   /** Per-slice content rendered inside the scroll area, after the detail fields
       (invoice schedule + PDF block; lead summary + conversation thread). */
   detailExtra?: ReactNode;
+  /** CE-43 LC-2 packet 3c · 1(a): per-slice content rendered at the TOP of the scroll area,
+      above the detail fields (the lead's package card and its booking controls). */
+  detailTop?: ReactNode;
   /** Per-slice content rendered at the top of the footer actions
       (leads WhatsApp/Call row). */
   footerExtra?: ReactNode;
@@ -37,7 +40,7 @@ interface DetailSheetProps {
 export function DetailSheet({
   slice, sel, onClose, onEditHere,
   confirmDel, setConfirmDel, deleting, deleteMsg, setDeleteMsg, confirmDelete,
-  detailExtra, footerExtra,
+  detailExtra, detailTop, footerExtra,
 }: DetailSheetProps) {
   return (
     <>
@@ -63,6 +66,7 @@ export function DetailSheet({
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px 24px' }}>
+          {detailTop}
           {(sel?.detail ?? []).map((f, ii) => (
             <div key={ii} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',

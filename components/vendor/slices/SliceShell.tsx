@@ -419,6 +419,15 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const [sel, setSel]         = useState<Row|null>(null);
   // CE-43 LC-2 packet 3: the one booking sheet, opened by the lead card and by the swipe (F15(a)).
   const [booking, setBooking] = useState<{ leadId: string; kind: BookingKind } | null>(null);
+  // CE-43 LC-2 packet 3c · F-43.88 (chair-ruled): a booking's invoice reads paid the instant
+  // Mark paid is tapped, and further taps are ignored while the request is out (payingRef,
+  // read synchronously, so a double tap cannot slip past a pending state update). Once the
+  // door says the invoice is fully paid, its mark-paid controls are gone (settledRef) until the
+  // list refetches with nothing owed.
+  const payingRef  = useRef<Set<string>>(new Set());
+  const settledRef = useRef<Set<string>>(new Set());
+  const [, setPayTick] = useState(0);
+  const packagePayBlocked = (row: Row) => !!row.isPackage && (payingRef.current.has(row.id) || settledRef.current.has(row.id));
   const [confirmDel, setConfirmDel] = useState(false);
   const [deleting,    setDeleting]    = useState(false);
   const [deleteMsg,   setDeleteMsg]   = useState<string | null>(null);
@@ -470,7 +479,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const [editRow,     setEditRow]     = useState<Record<string,unknown> | null>(null);
   const { toast, show: showToast, dismiss: dismissToast } = useToast();
   const [pdfBusy, setPdfBusy] = useState(false);
-  const [leadDetail, setLeadDetail] = useState<{ vendor_summary: string | null; conversation: ConversationMessage[] } | null>(null);
+  const [leadDetail, setLeadDetail] = useState<{ vendor_summary: string | null; conversation: ConversationMessage[]; name: string | null } | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   async function doCreateSchedule() {
@@ -695,7 +704,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     if (slice !== 'leads' || !sel) { setLeadDetail(null); return; }
     setLoadingDetail(true);
     fetchLeadDetail(sel.id).then(res => {
-      if (res.ok) setLeadDetail({ vendor_summary: res.vendor_summary, conversation: res.conversation });
+      if (res.ok) setLeadDetail({ vendor_summary: res.vendor_summary, conversation: res.conversation, name: (res.lead && res.lead.name) || null });
     }).catch(() => {}).finally(() => setLoadingDetail(false));
   }, [sel, slice]);
 
@@ -819,7 +828,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           : { label: 'Mark lost', destructive: true, onTrigger: () => { setSel(row); setMarkLostConfirm(true); } },
     };
     if (slice === 'invoices') return {
-      right: { label: COPY.studioMarkPaid, onTrigger: () => {
+      right: packagePayBlocked(row) ? undefined : { label: COPY.studioMarkPaid, onTrigger: () => {
         const owed = row.payAmount ?? 0;
         if (owed <= 0) { showToast('Already settled.', 'success'); return; }
         // CE-43 LC-2 packet 3 · F17, F-43.86 (c2): on a booking's invoice the door pays the NEXT
@@ -827,12 +836,24 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         // sentence needs the answer, so this path commits at once rather than through the undo
         // window; the row, the swipe and the Mark paid button all arrive here.
         if (row.isPackage) {
+          if (packagePayBlocked(row)) return;
+          payingRef.current.add(row.id);
+          setBadge(row.id, 'paid');
+          setPayTick((t) => t + 1);
           void (async () => {
-            const r = await recordPayment(row.id, { amount: owed });
-            if (!('ok' in r) || !r.ok || !r.invoice) { showToast(`Payment on ${row.secondary ?? row.primary} failed.`, 'error'); return; }
+            let r: Awaited<ReturnType<typeof recordPayment>>;
+            try { r = await recordPayment(row.id, { amount: owed }); }
+            catch { r = { ok: false, error: '' }; }
+            payingRef.current.delete(row.id);
+            if (!('ok' in r) || !r.ok || !r.invoice) {
+              setBadge(row.id, null); setPayTick((t) => t + 1);
+              showToast(`Payment on ${row.secondary ?? row.primary} failed.`, 'error'); return;
+            }
             invalidateSlice('invoices');
             const m = r.milestone;
             const paidInFull = r.invoice.state === 'paid' || !r.invoice.due_date;
+            if (paidInFull) settledRef.current.add(row.id); else setBadge(row.id, null);
+            setPayTick((t) => t + 1);
             showToast(paymentMarked({
               client: row.primary,
               label: m ? m.milestone_label : '',
@@ -989,7 +1010,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         <SwipeRow right={selectMode ? undefined : swipeSidesFor(row).right} left={selectMode ? undefined : swipeSidesFor(row).left}>
           <SliceRow row={row} slice={slice} onSelect={() => selectMode ? toggleSelected(row) : (setSel(row), setConfirmDel(false))} />
         </SwipeRow>
-        {slice === 'invoices' && !selectMode && (row.payAmount ?? 0) > 0 && (
+        {slice === 'invoices' && !selectMode && (row.payAmount ?? 0) > 0 && !packagePayBlocked(row) && (
           <div style={{ padding: '0 var(--slice-inset, 22px) 12px' }}>
             {/* ⚠ INLINE, NOT A `wl-` CLASS, AND THAT IS THE WHOLE REASON THIS
                 LOOKS UNLIKE `TeamTabs`' row button. `SliceShell` is mounted in
@@ -1036,7 +1057,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         let ok = false;
         if (slice === 'leads' && key === 'contacted') { const r = await patchLeadState(id, 'contacted'); ok = 'ok' in r && r.ok; }
         else if (slice === 'leads' && key === 'lose') { const r = await patchLeadState(id, 'lost'); ok = 'ok' in r && r.ok; }
-        else if (slice === 'invoices' && key === 'paid') { const owed = row?.payAmount ?? 0; if (owed <= 0) { ok = true; } else { const r = await recordPayment(id, { amount: owed }); ok = 'ok' in r && r.ok; } }
+        else if (slice === 'invoices' && key === 'paid') { const owed = row?.payAmount ?? 0; if (owed <= 0 || (row && packagePayBlocked(row))) { ok = true; } else { const r = await recordPayment(id, { amount: owed }); ok = 'ok' in r && r.ok; } }
         else if (slice === 'expenses' && key === 'delete') { const r = await deleteExpense(id); ok = 'ok' in r && r.ok === true; }
         else if (slice === 'events' && key === 'done') { const r = await updateEvent(id, { state: 'done' }); ok = 'ok' in r && r.ok; }
         if (!ok) failed.push(id);
@@ -1049,6 +1070,18 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     if (failed.length) showToast(`${done} done · ${failed.length} failed`, 'error', { action: { label: 'Retry', onAction: () => { void runBulk(key, failed); } }, durationMs: 8000 });
     else showToast(`${done} done.`, 'success');
   }
+
+  // ── CE-43 LC-2 · THE PACKAGE CARD ON THE LEAD ─────────────────────────────────
+  // Packet 2 made it live (components/vendor/packages/LeadPackageCard.tsx); packet 3 gave it
+  // the booking controls. Packet 3c · 1(a) (chair-ruled): it sits at the TOP of the detail
+  // body, above the detail rows, through DetailSheet's `detailTop` slot. Leads only.
+  const detailTop = slice === 'leads' && sel ? (
+    <LeadPackageCard leadId={sel.id}
+      booked={(sel.badge ?? '').toLowerCase() === 'booked'}
+      onBook={(k) => setBooking({ leadId: sel.id, kind: k })}
+      onToast={(m, k) => showToast(m, k)}
+    />
+  ) : null;
 
   // Per-slice detail extras — verbatim from the monofile; P2/P4/P5 migrate
   // these into their modules as those phases rebuild them.
@@ -1267,24 +1300,12 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         </div>
       )}
 
-      {/* ── CE-43 LC-2 · THE PACKAGE CARD ON THE LEAD (packet 2, live) ────────────
-          Packet 1's shell is replaced by the live card (components/vendor/packages/
-          LeadPackageCard.tsx): Attach package and Change package open the attach sheet;
-          the schedule, the tells and the delivery line render from the server. Leads only. */}
-      {slice === 'leads' && sel && (
-        <LeadPackageCard leadId={sel.id}
-          booked={(sel.badge ?? '').toLowerCase() === 'booked'}
-          onBook={(k) => setBooking({ leadId: sel.id, kind: k })}
-          onToast={(m, k) => showToast(m, k)}
-        />
-      )}
-
       {/* Lead vendor summary + conversation */}
       {slice === 'leads' && (leadDetail || loadingDetail) && (
         <div style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid var(--atelier-card-border)' }}>
           {loadingDetail && !leadDetail
             ? <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>
-            : leadDetail && <ConversationThread vendorSummary={leadDetail.vendor_summary} messages={leadDetail.conversation} />
+            : leadDetail && <ConversationThread vendorSummary={leadDetail.vendor_summary} messages={leadDetail.conversation} leadName={leadDetail.name} />
           }
         </div>
       )}
@@ -1886,6 +1907,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         setDeleteMsg={setDeleteMsg}
         confirmDelete={confirmDelete}
         detailExtra={detailExtra}
+        detailTop={detailTop}
         footerExtra={footerExtra}
       />
 

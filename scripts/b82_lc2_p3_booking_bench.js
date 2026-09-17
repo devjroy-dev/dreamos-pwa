@@ -22,6 +22,9 @@
 //   §7 the invoice row carries isPackage off lead_package_id; the types carry the two new fields.
 //   §8 tokens only in every new or touched component (R-42.6).
 //   §9 mutations of production source, each turning its named cell RED.
+// AMENDED BY LABEL AT PACKET 3c (CE-43 LC-2r, chair-ruled): §4.8 (F-43.88's guarded call), §5.1 to
+// §5.3 (3(a)/4(a): the booking controls always present, attach first when no package), M10, M12,
+// M13 re-aimed; §10 added for F-43.88, F-43.89, 1(a) and point 7.
 // NOT PROVEN HERE (declared): rendering on a device, both themes on glass, the gesture under a thumb,
 // `next build`, and the database. The founder's walk (card P3) and provisional floor are their witnesses.
 const fs = require('fs');
@@ -54,7 +57,7 @@ const F = {
 const src = Object.fromEntries(Object.entries(F).map(([k, v]) => [k, read(v)]));
 
 function loadModule(code, stubs = {}) {
-  const out = ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true } }).outputText;
+  const out = ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   const mod = { exports: {} };
   new Function('require', 'module', 'exports', out)((spec) => (spec in stubs ? stubs[spec] : require(spec)), mod, mod.exports);
   return mod.exports;
@@ -143,7 +146,21 @@ function shellCells(code) {
     cardProps: /<LeadPackageCard leadId=\{sel\.id\}\s*booked=\{\(sel\.badge \?\? ''\)\.toLowerCase\(\) === 'booked'\}\s*onBook=\{\(k\) => setBooking\(\{ leadId: sel\.id, kind: k \}\)\}/.test(s),
     f16: /schedule && schedule\.length > 0 && !removeSchedule && !sel\.isPackage && \(/.test(s),
     b1: /showToast\(res\.code === 'PACKAGE_SCHEDULE' \? COPY\.studioScheduleRemoveFailed : \(res\.error \?\? COPY\.studioScheduleRemoveFailed\), 'error'\)/.test(s),
-    f17: /if \(row\.isPackage\) \{[\s\S]{0,200}const r = await recordPayment\(row\.id, \{ amount: owed \}\);\s*if \(!\('ok' in r\) \|\| !r\.ok \|\| !r\.invoice\) \{ showToast\([^;]*'error'\); return; \}[\s\S]{0,200}invalidateSlice\('invoices'\);[\s\S]{0,200}showToast\(paymentMarked\(\{/.test(s),
+    f17: /if \(row\.isPackage\) \{[\s\S]{0,400}try \{ r = await recordPayment\(row\.id, \{ amount: owed \}\); \}[\s\S]{0,200}if \(!\('ok' in r\) \|\| !r\.ok \|\| !r\.invoice\) \{[\s\S]{0,200}showToast\([^;]*'error'\); return;\s*\}[\s\S]{0,120}invalidateSlice\('invoices'\);[\s\S]{0,400}showToast\(paymentMarked\(\{/.test(s),
+    // packet 3c · F-43.88
+    guardOnce: /if \(packagePayBlocked\(row\)\) return;\s*payingRef\.current\.add\(row\.id\);\s*setBadge\(row\.id, 'paid'\);/.test(s)
+      && /const packagePayBlocked = \(row: Row\) => !!row\.isPackage && \(payingRef\.current\.has\(row\.id\) \|\| settledRef\.current\.has\(row\.id\)\);/.test(s),
+    failRestores: /payingRef\.current\.delete\(row\.id\);\s*if \(!\('ok' in r\) \|\| !r\.ok \|\| !r\.invoice\) \{\s*setBadge\(row\.id, null\);/.test(s),
+    settles: /if \(paidInFull\) settledRef\.current\.add\(row\.id\); else setBadge\(row\.id, null\);/.test(s),
+    hidden: /right: packagePayBlocked\(row\) \? undefined : \{ label: COPY\.studioMarkPaid/.test(s)
+      && /\(row\.payAmount \?\? 0\) > 0 && !packagePayBlocked\(row\) && \(/.test(s)
+      && /if \(owed <= 0 \|\| \(row && packagePayBlocked\(row\)\)\) \{ ok = true; \}/.test(s),
+    noNewByte: !/Already settled\.[\s\S]{0,40}packagePayBlocked/.test(s),
+    // packet 3c · 1(a) and point 7
+    detailTop: /const detailTop = slice === 'leads' && sel \? \(\s*<LeadPackageCard leadId=\{sel\.id\}/.test(s) && /detailTop=\{detailTop\}/.test(s)
+      && !/detailExtra = \([\s\S]*?<LeadPackageCard/.test(s.slice(s.indexOf('const detailExtra = ('), s.indexOf('const detailExtra = (') + 20000)),
+    leadName: /<ConversationThread vendorSummary=\{leadDetail\.vendor_summary\} messages=\{leadDetail\.conversation\} leadName=\{leadDetail\.name\} \/>/.test(s)
+      && /name: \(res\.lead && res\.lead\.name\) \|\| null/.test(s),
     f17Fields: /nextDue: paidInFull \? null : packageDate\(r\.invoice\.due_date\)/.test(s) && /const paidInFull = r\.invoice\.state === 'paid' \|\| !r\.invoice\.due_date;/.test(s)
       && /date: packageDate\(m && m\.paid_at \? istDateOf\(m\.paid_at\) : null\)/.test(s) && /label: m \? m\.milestone_label : ''/.test(s),
     f17Returns: /\}\)\(\);\s*return;\s*\}\s*undoableMutation\(\{/.test(s),
@@ -156,9 +173,16 @@ function cardCells(code, editCode) {
   const s = strip(code);
   const e = strip(editCode);
   return {
-    gated: /\{!booked && onBook && \(\s*<div data-lc2="lead-booking-controls"/.test(s),
-    insideAttached: s.indexOf('data-lc2="lead-booking-controls"') > s.indexOf('data-lc2="lead-package-attached"') && s.indexOf('data-lc2="lead-package-attached"') > 0,
-    both: /onClick=\{\(\) => onBook\('booking_confirmed'\)\}>\{LEAD_PACKAGE\.bookingConfirmed\}/.test(s) && /onClick=\{\(\) => onBook\('advance_paid'\)\}>\{LEAD_PACKAGE\.advancePaid\}/.test(s),
+    // [amended, packet 3c · 3(a)/4(a)] always present on a lead that is not booked (once the card has
+    // read), outside the attached block; with no package the control opens the attach sheet first.
+    gated: /\{lp !== undefined && !booked && onBook && \(\s*<div data-lc2="lead-booking-controls"/.test(s),
+    insideAttached: s.indexOf('data-lc2="lead-booking-controls"') > 0
+      && s.indexOf('data-lc2="lead-booking-controls"') > s.indexOf('data-lc2="lead-package-attached"')
+      && /\{lp && \([\s\S]*?data-lc2="lead-package-attached"[\s\S]*?\n      \)\}\n      \{lp !== undefined && !booked && onBook && \(/.test(s),
+    both: /onClick=\{\(\) => book\('booking_confirmed'\)\}>\{LEAD_PACKAGE\.bookingConfirmed\}/.test(s) && /onClick=\{\(\) => book\('advance_paid'\)\}>\{LEAD_PACKAGE\.advancePaid\}/.test(s)
+      && /const book = \(k: BookingKind\) => \{\s*if \(!onBook\) return;\s*if \(lp\) \{ onBook\(k\); return; \}\s*setPendingKind\(k\);\s*setSheetOpen\(true\);\s*\};/.test(s),
+    continues: /if \(pendingKind && onBook\) onBook\(pendingKind\);\s*setPendingKind\(null\);/.test(s)
+      && /onClose=\{\(\) => \{ setSheetOpen\(false\); setPendingKind\(null\); \}\}/.test(s),
     attachCancel: /<button type="button" style=\{actionButton\('mute'\)\} onClick=\{onClose\}>\{PACKAGES\.cancel\}<\/button>/.test(s),
     editCancel: /<button type="button" style=\{actionButton\('mute'\)\} onClick=\{onClose\}>\{PACKAGES\.cancel\}<\/button>/.test(e),
     noTextCancel: !/textButton\('mute'\)\} onClick=\{onClose\}/.test(s + e),
@@ -250,9 +274,10 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
 
   sec('§5 · the lead card and the outlined Cancels');
   const c5 = cardCells(src.card, src.edit);
-  ok(c5.gated, '§5.1 the booking controls show only when not booked and onBook is given');
-  ok(c5.insideAttached, '§5.2 they sit inside the attached block (a package first)');
-  ok(c5.both, '§5.3 each A2 control hands its kind to onBook');
+  ok(c5.gated, '§5.1 [amended, 3c] the booking controls show on every lead that is not booked');
+  ok(c5.insideAttached, '§5.2 [amended, 3c] they sit after the attached block, not inside it (present with no package)');
+  ok(c5.both, '§5.3 [amended, 3c] each A2 control books at once with a package, or opens the attach sheet first');
+  ok(c5.continues, '§5.8 3(a): once the package is attached the chosen booking opens; closing the attach sheet drops it');
   ok(c5.attachCancel, '§5.4 C-43.16: the attach sheet\'s Cancel is outlined in the muted ink');
   ok(c5.editCancel, '§5.5 C-43.16: the edit sheet\'s Cancel is outlined in the muted ink');
   ok(c5.noTextCancel, '§5.6 no text-button Cancel remains in either sheet');
@@ -283,6 +308,25 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   ok(tokensOnly(src.card), '§8.2 LeadPackageCard.tsx');
   ok(tokensOnly(src.sheet), '§8.3 ClientBookingSheet.tsx');
 
+  sec('§10 · packet 3c');
+  ok(c4.guardOnce, '§10.1 F-43.88: a tap marks the row paid at once and a second tap while it is out is ignored');
+  ok(c4.failRestores, '§10.2 F-43.88: a refused call restores the row before the existing failure byte');
+  ok(c4.settles, '§10.3 F-43.88: a fully paid answer settles the row; a part payment clears the badge for the refetch');
+  ok(c4.hidden, '§10.4 F-43.88: a settled or in-flight booking invoice has no swipe, no button, and bulk skips it');
+  ok(c4.noNewByte, '§10.5 F-43.88: no "Already settled." is added for it');
+  const sheetSrc = strip(read('components/vendor/packages/PackageFields.tsx'));
+  ok(/role="dialog" aria-modal="true" inert=\{!open\}/.test(sheetSrc) && !/aria-hidden=\{!open\}/.test(sheetSrc), '§10.6 F-43.89: a closed shared sheet is inert, not aria-hidden');
+  const detailSrc = strip(read('components/vendor/slices/DetailSheet.tsx'));
+  ok(/\{detailTop\}\s*\{\(sel\?\.detail \?\? \[\]\)\.map/.test(detailSrc), '§10.7 1(a): DetailSheet renders detailTop above the detail rows');
+  ok(c4.detailTop, '§10.8 1(a): the lead card rides detailTop, and no longer detailExtra');
+  const threadSrc = read('components/vendor/ConversationThread.tsx');
+  let sender = null;
+  try { sender = loadModule(threadSrc.replace(/^'use client';/, ''), { react: {}, 'react/jsx-runtime': { jsx: () => null, jsxs: () => null, Fragment: null } }).inboundSender; } catch (e) { console.log('  (thread did not load: ' + e.message + ')'); }
+  ok(typeof sender === 'function' && sender('Sarah') === 'Sarah' && sender('  Riya  ') === 'Riya' && sender('') === 'Lead' && sender(null) === 'Lead' && sender(undefined) === 'Lead',
+    '§10.9 point 7: the inbound sender is the lead\'s name, else "Lead"');
+  ok(!/'Bride'/.test(strip(threadSrc)) && /isIn \? inboundSender\(leadName\) : 'TDW'/.test(strip(threadSrc)), '§10.10 point 7: "Bride" has left the vendor\'s thread');
+  ok(c4.leadName, '§10.11 point 7: the shell hands the lead\'s own name to the thread');
+
   sec('§9 · mutations of production source');
   const M = [
     [F.copy, "advancePaid: 'Advance paid',", "advancePaid: 'Advance received',", (m) => !copyCells(m).a2, 'M1 an A2 byte drifts → §1.1 RED'],
@@ -294,10 +338,15 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     [F.shell, "right: { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },", "right: { label: 'Booked', onTrigger: () => { void patchLeadState(row.id, 'booked'); } },", (m) => { const c = shellCells(m); return !c.swipe && !c.noBareBooked; }, 'M7 the swipe writes booked directly → §4.1 and §4.2 RED'],
     [F.shell, '!removeSchedule && !sel.isPackage && (', '!removeSchedule && (', (m) => !shellCells(m).f16, 'M8 Remove drawn on a booking\'s invoice → §4.6 RED'],
     [F.shell, "res.code === 'PACKAGE_SCHEDULE' ? COPY.studioScheduleRemoveFailed : (res.error ?? COPY.studioScheduleRemoveFailed)", 'res.error ?? COPY.studioScheduleRemoveFailed', (m) => !shellCells(m).b1, 'M9 the door\'s text reaches the toast → §4.7 RED'],
-    [F.shell, "if (!('ok' in r) || !r.ok || !r.invoice) { showToast(`Payment on ${row.secondary ?? row.primary} failed.`, 'error'); return; }", '', (m) => !shellCells(m).f17, 'M10 D3 spoken without checking the answer → §4.8 RED'],
+    [F.shell, "if (!('ok' in r) || !r.ok || !r.invoice) {", 'if (false) {', (m) => !shellCells(m).f17, 'M10 [re-aimed, 3c] D3 spoken without checking the answer → §4.8 RED'],
     [F.shell, "const paidInFull = r.invoice.state === 'paid' || !r.invoice.due_date;", 'const paidInFull = false;', (m) => !shellCells(m).f17Fields, 'M11 D4 never chosen → §4.9 RED'],
-    [F.card, '{!booked && onBook && (', '{onBook && (', (m) => !cardCells(m, src.edit).gated, 'M12 booking offered on a booked lead → §5.1 RED'],
-    [F.card, "onClick={() => onBook('advance_paid')}", "onClick={() => onBook('booking_confirmed')}", (m) => !cardCells(m, src.edit).both, 'M13 Advance paid hands the wrong kind → §5.3 RED'],
+    [F.card, '{lp !== undefined && !booked && onBook && (', '{lp !== undefined && onBook && (', (m) => !cardCells(m, src.edit).gated, 'M12 [re-aimed, 3c] booking offered on a booked lead → §5.1 RED'],
+    [F.card, "onClick={() => book('advance_paid')}", "onClick={() => book('booking_confirmed')}", (m) => !cardCells(m, src.edit).both, 'M13 [re-aimed, 3c] Advance paid hands the wrong kind → §5.3 RED'],
+    [F.card, '    if (lp) { onBook(k); return; }', '    onBook(k); return;', (m) => !cardCells(m, src.edit).both, 'M20 3(a): no package, no attach first → §5.3 RED'],
+    [F.card, '          if (pendingKind && onBook) onBook(pendingKind);', '', (m) => !cardCells(m, src.edit).continues, 'M21 3(a): the booking lost after the attach → §5.8 RED'],
+    [F.shell, '          if (packagePayBlocked(row)) return;', '', (m) => !shellCells(m).guardOnce, 'M22 F-43.88: a second tap slips through → §10.1 RED'],
+    [F.shell, 'right: packagePayBlocked(row) ? undefined : { label: COPY.studioMarkPaid', 'right: { label: COPY.studioMarkPaid', (m) => !shellCells(m).hidden, 'M23 F-43.88: swipe offered on a settled booking invoice → §10.4 RED'],
+    [F.shell, '        detailTop={detailTop}\n', '', (m) => !shellCells(m).detailTop, 'M24 1(a): the card never reaches the top slot → §10.8 RED'],
     [F.sheet, 'if (advance) body.received_on = values.receivedOn;', 'body.received_on = values.receivedOn;', (m) => !sheetCells(m, src.clients).receivedOnlyYes, 'M14 Received on sent on no → §6.3 RED'],
     [F.sheet, "if (err === 'saved_as_lead') {", "if (false) {", (m) => !sheetCells(m, src.clients).c5, 'M15 C5 never spoken → §6.7 RED'],
     [F.sheet, 'if (needsFee) body.fee = Number(values.fee);', 'body.fee = Number(values.fee);', (m) => !sheetCells(m, src.clients).feeOnlyWhenNeeded, 'M16 the fee always sent → §6.5 RED'],

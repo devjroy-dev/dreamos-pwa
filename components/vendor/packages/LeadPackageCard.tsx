@@ -13,9 +13,11 @@
 //     package), Handover date (only for a handover package, F25), and F23's per-couple edits
 //     (name, description, items) with P8's bytes. Submit is A2's `Attach package`.
 //   · refusals are A9's four lines by code; any other failure is `attachFailed` (vetoed YES, C-43.16).
-//   · packet 3: once a package is attached and the lead is not booked, A2's `Booking confirmed`
-//     and `Advance paid` sit under the schedule. Each hands its kind to `onBook`; the shell opens
-//     the one booking sheet (BookingSheet.tsx, A12). Nothing is written from this card.
+//   · packet 3: A2's `Booking confirmed` and `Advance paid` hand their kind to `onBook`; the shell
+//     opens the one booking sheet (BookingSheet.tsx, A12). Nothing is written from this card.
+//   · packet 3c · 3(a)/4(a) (chair-ruled): the two booking controls are ALWAYS present on a lead
+//     that is not booked. With no package attached, each opens the attach sheet first and, once
+//     the package is attached, hands its kind on to the booking sheet. No guessing game.
 //   · C-43.16: the attach sheet's Cancel is outlined in the muted ink.
 //   · the empty package option reads `Select…`, AddSheet's existing byte (as ClientBookingSheet).
 // Tokens only (R-42.6). Full-month dates (R-42.13) through packageDate.
@@ -46,6 +48,15 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast }: {
 }) {
   const [lp, setLp] = useState<LeadPackage | null | undefined>(undefined);
   const [sheetOpen, setSheetOpen] = useState(false);
+  // 3(a): the booking the vendor asked for while no package was attached; it continues once
+  // the attach lands, and is dropped if the attach sheet is closed.
+  const [pendingKind, setPendingKind] = useState<BookingKind | null>(null);
+  const book = (k: BookingKind) => {
+    if (!onBook) return;
+    if (lp) { onBook(k); return; }
+    setPendingKind(k);
+    setSheetOpen(true);
+  };
 
   const load = useCallback(async () => {
     try {
@@ -92,20 +103,24 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast }: {
           {lp.snapshot.tells.includes('counted_from_wedding') && (
             <p style={{ margin: '4px 0 0', fontFamily: T.body, fontSize: 13, color: T.mute }}>{LEAD_PACKAGE.counted}</p>
           )}
-          {!booked && onBook && (
-            <div data-lc2="lead-booking-controls" style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-              <button type="button" style={{ ...actionButton(), flex: 1 }} onClick={() => onBook('booking_confirmed')}>{LEAD_PACKAGE.bookingConfirmed}</button>
-              <button type="button" style={{ ...actionButton(), flex: 1 }} onClick={() => onBook('advance_paid')}>{LEAD_PACKAGE.advancePaid}</button>
-            </div>
-          )}
+        </div>
+      )}
+      {lp !== undefined && !booked && onBook && (
+        <div data-lc2="lead-booking-controls" style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+          <button type="button" style={{ ...actionButton(), flex: 1 }} onClick={() => book('booking_confirmed')}>{LEAD_PACKAGE.bookingConfirmed}</button>
+          <button type="button" style={{ ...actionButton(), flex: 1 }} onClick={() => book('advance_paid')}>{LEAD_PACKAGE.advancePaid}</button>
         </div>
       )}
       <AttachSheet
         open={sheetOpen}
         leadId={leadId}
         current={lp || null}
-        onClose={() => setSheetOpen(false)}
-        onAttached={(row) => { setLp(row); setSheetOpen(false); }}
+        onClose={() => { setSheetOpen(false); setPendingKind(null); }}
+        onAttached={(row) => {
+          setLp(row); setSheetOpen(false);
+          if (pendingKind && onBook) onBook(pendingKind);
+          setPendingKind(null);
+        }}
         onToast={onToast}
       />
     </div>
