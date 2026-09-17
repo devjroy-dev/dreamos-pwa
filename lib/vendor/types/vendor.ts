@@ -519,11 +519,19 @@ export interface RecordPaymentRequest {
   note?:  string;
 }
 
+/** CE-43 LC-2 packet 3 · F17: the milestone the door paid on a booking's invoice. */
+export interface PaidMilestone {
+  id: string; milestone_label: string; amount_due: number;
+  paid_amount: number | null; paid_at: string | null; state: string;
+}
+
 export interface RecordPaymentResponse {
   ok: true;
   invoice:          Invoice | null;
   payment_recorded: number;
   new_state:        InvoiceState;
+  /** Present only on a booking's invoice (F17). */
+  milestone?:       PaidMilestone;
 }
 
 // ── GET /api/v2/vendor/invoices/:invoiceId/pdf ────────────────────────────
@@ -990,6 +998,9 @@ export interface Invoice {
   state:          string;
   due_date:       string | null;
   created_at:     string;
+  /** CE-43 LC-2 packet 3b · F-43.86 (a1): set when this invoice is a booking's (the promotion
+   *  act minted it from the lead's package); null otherwise. F16 and F17 key on it. */
+  lead_package_id?: string | null;
 }
 
 export interface Expense {

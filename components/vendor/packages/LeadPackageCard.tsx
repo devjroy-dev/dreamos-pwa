@@ -12,7 +12,11 @@
 //   · the attach sheet: Package (the default preselected), Fee for this couple (prefilled from the
 //     package), Handover date (only for a handover package, F25), and F23's per-couple edits
 //     (name, description, items) with P8's bytes. Submit is A2's `Attach package`.
-//   · refusals are A9's four lines by code; any other failure is `attachFailed` (pending veto).
+//   · refusals are A9's four lines by code; any other failure is `attachFailed` (vetoed YES, C-43.16).
+//   · packet 3: once a package is attached and the lead is not booked, A2's `Booking confirmed`
+//     and `Advance paid` sit under the schedule. Each hands its kind to `onBook`; the shell opens
+//     the one booking sheet (BookingSheet.tsx, A12). Nothing is written from this card.
+//   · C-43.16: the attach sheet's Cancel is outlined in the muted ink.
 //   · the empty package option reads `Select…`, AddSheet's existing byte (as ClientBookingSheet).
 // Tokens only (R-42.6). Full-month dates (R-42.13) through packageDate.
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -25,15 +29,21 @@ import {
 } from '@/lib/worklist/packages';
 import { formatRs } from '@/lib/vendor/format';
 import type { ToastKind } from '@/hooks/vendor/useToast';
+import type { BookingKind } from '@/lib/vendor/api/vendor';
 import {
-  Sheet, IdentityFields, FieldLabel, inputStyle, flagged, textButton, actionButton, primaryButton,
+  Sheet, IdentityFields, FieldLabel, inputStyle, flagged, actionButton, primaryButton,
   wholeRupees, tidyItems, T,
 } from './PackageFields';
 
 type RefusalCode = keyof typeof LEAD_PACKAGE.refusals;
 const isRefusal = (c: unknown): c is RefusalCode => typeof c === 'string' && c in LEAD_PACKAGE.refusals;
 
-export function LeadPackageCard({ leadId, onToast }: { leadId: string; onToast: (msg: string, kind?: ToastKind) => void }) {
+export function LeadPackageCard({ leadId, booked = false, onBook, onToast }: {
+  leadId: string;
+  booked?: boolean;
+  onBook?: (kind: BookingKind) => void;
+  onToast: (msg: string, kind?: ToastKind) => void;
+}) {
   const [lp, setLp] = useState<LeadPackage | null | undefined>(undefined);
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -81,6 +91,12 @@ export function LeadPackageCard({ leadId, onToast }: { leadId: string; onToast: 
           <p style={{ margin: '8px 0 0', fontFamily: T.body, fontSize: 13, color: T.mute }}>{LEAD_PACKAGE.delivery(packageDate(lp.delivery_on))}</p>
           {lp.snapshot.tells.includes('counted_from_wedding') && (
             <p style={{ margin: '4px 0 0', fontFamily: T.body, fontSize: 13, color: T.mute }}>{LEAD_PACKAGE.counted}</p>
+          )}
+          {!booked && onBook && (
+            <div data-lc2="lead-booking-controls" style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+              <button type="button" style={{ ...actionButton(), flex: 1 }} onClick={() => onBook('booking_confirmed')}>{LEAD_PACKAGE.bookingConfirmed}</button>
+              <button type="button" style={{ ...actionButton(), flex: 1 }} onClick={() => onBook('advance_paid')}>{LEAD_PACKAGE.advancePaid}</button>
+            </div>
           )}
         </div>
       )}
@@ -176,7 +192,7 @@ function AttachSheet({ open, leadId, current, onClose, onAttached, onToast }: {
       onClose={onClose}
       footer={(
         <>
-          <button type="button" style={textButton('mute')} onClick={onClose}>{PACKAGES.cancel}</button>
+          <button type="button" style={actionButton('mute')} onClick={onClose}>{PACKAGES.cancel}</button>
           <button type="button" style={primaryButton()} onClick={() => { void submit(); }} aria-busy={busy}>{LEAD_PACKAGE.attach}</button>
         </>
       )}

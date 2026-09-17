@@ -101,6 +101,9 @@ export interface Row {
   draftMissing?: string[];
   /** TDW_04 A2: invoices stash — the outstanding amount the mark-paid swipe pays. */
   payAmount?: number;
+  /** CE-43 LC-2 packet 3 · F-43.86 (a1): this invoice is a booking's (lead_package_id set).
+   *  F16 hides Remove schedule on it; F17's mark-paid speaks D3/D4 for it. */
+  isPackage?: boolean;
   /** TDW_04 A3 masthead stashes — the RAW figures behind the row, filled by the
       slice module that fetched them. The shell derives mastheads from these,
       never by parsing the formatted strings above (a masthead that reads its own

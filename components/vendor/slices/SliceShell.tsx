@@ -47,6 +47,10 @@ import { roomHref } from '@/lib/worklist/rooms';
 // for the swipe and once for the bulk bar. One home, four readers.
 import { COPY } from '@/lib/worklist/copy';
 import { LeadPackageCard } from '@/components/vendor/packages/LeadPackageCard'; // CE-43 LC-2 packet 2
+import { BookingSheet } from '@/components/vendor/packages/BookingSheet'; // CE-43 LC-2 packet 3: A12, F15(a)
+import { paymentMarked, packageDate, istDateOf } from '@/lib/worklist/packages'; // CE-43 LC-2 packet 3: D3/D4 (F17)
+import { formatRs } from '@/lib/vendor/format';
+import type { BookingKind } from '@/lib/vendor/api/vendor';
 import { useToast } from '@/hooks/vendor/useToast';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, sendReminder, fetchMe, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/lib/vendor/api/vendor';
@@ -413,6 +417,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
 
   const [query, setQuery]     = useState('');
   const [sel, setSel]         = useState<Row|null>(null);
+  // CE-43 LC-2 packet 3: the one booking sheet, opened by the lead card and by the swipe (F15(a)).
+  const [booking, setBooking] = useState<{ leadId: string; kind: BookingKind } | null>(null);
   const [confirmDel, setConfirmDel] = useState(false);
   const [deleting,    setDeleting]    = useState(false);
   const [deleteMsg,   setDeleteMsg]   = useState<string | null>(null);
@@ -778,10 +784,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // the standing confirm sheet (whose confirm is itself undoable now).
   function swipeSidesFor(row: Row): { right?: SwipeSide; left?: SwipeSide } {
     if (slice === 'leads') return {
-      right: { label: 'Booked', onTrigger: () => undoableMutation({
-        apply: () => setBadge(row.id, 'booked'), revert: () => setBadge(row.id, null),
-        commit: async () => { const r = await patchLeadState(row.id, 'booked'); setBadge(row.id, null); if (!('ok' in r) || !r.ok) showToast(`Could not book ${row.primary}.`, 'error'); },
-        toastMsg: `${row.primary} → booked.` }) },
+      // CE-43 LC-2 packet 3 · F15(a): the label is KEPT and the act MOVED. The swipe opens the
+      // booking sheet (A12); nothing is written until the vendor taps Confirm booking, and the
+      // write is the promotion act, never a bare state change (R-43.5).
+      right: { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },
       // ── R-37.22 · THE LEFT SIDE SUPPRESSES ON A REDACTED ROW ──────────────
       // THE INCIDENT THIS CLOSES, written down because it was live: Seat A′'s
       // recut withholds `phone` from a basic vendor's leads wire (R-36.13 — the
@@ -816,6 +822,27 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       right: { label: COPY.studioMarkPaid, onTrigger: () => {
         const owed = row.payAmount ?? 0;
         if (owed <= 0) { showToast('Already settled.', 'success'); return; }
+        // CE-43 LC-2 packet 3 · F17, F-43.86 (c2): on a booking's invoice the door pays the NEXT
+        // milestone, and the toast is D3 (D4 after the last), built from the door's answer. The
+        // sentence needs the answer, so this path commits at once rather than through the undo
+        // window; the row, the swipe and the Mark paid button all arrive here.
+        if (row.isPackage) {
+          void (async () => {
+            const r = await recordPayment(row.id, { amount: owed });
+            if (!('ok' in r) || !r.ok || !r.invoice) { showToast(`Payment on ${row.secondary ?? row.primary} failed.`, 'error'); return; }
+            invalidateSlice('invoices');
+            const m = r.milestone;
+            const paidInFull = r.invoice.state === 'paid' || !r.invoice.due_date;
+            showToast(paymentMarked({
+              client: row.primary,
+              label: m ? m.milestone_label : '',
+              amount: formatRs(m ? (m.paid_amount ?? m.amount_due) : r.payment_recorded),
+              date: packageDate(m && m.paid_at ? istDateOf(m.paid_at) : null),
+              nextDue: paidInFull ? null : packageDate(r.invoice.due_date),
+            }), 'success');
+          })();
+          return;
+        }
         undoableMutation({
           apply: () => setBadge(row.id, 'paid'), revert: () => setBadge(row.id, null),
           commit: async () => { const r = await recordPayment(row.id, { amount: owed }); setBadge(row.id, null); if (!('ok' in r) || !r.ok) showToast(`Payment on ${row.secondary ?? row.primary} failed.`, 'error'); },
@@ -1115,7 +1142,9 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 affordance onto them. It lives in the panel's own header, at the
                 rule's end, in the critical ink at rest — rare, and unmistakably
                 the SCHEDULE's, which the invoice's own Delete never was. */}
-            {schedule && schedule.length > 0 && !removeSchedule && (
+            {/* CE-43 LC-2 packet 3 · F16: a booking's schedule is its own and is never removed
+                (the door refuses too, F-43.86 (b1)). The control is not drawn on it. */}
+            {schedule && schedule.length > 0 && !removeSchedule && !sel.isPackage && (
               <button type="button" onClick={() => setRemoveSchedule(true)} style={{
                 padding: '5px 10px', background: 'transparent',
                 border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
@@ -1243,7 +1272,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           LeadPackageCard.tsx): Attach package and Change package open the attach sheet;
           the schedule, the tells and the delivery line render from the server. Leads only. */}
       {slice === 'leads' && sel && (
-        <LeadPackageCard leadId={sel.id} onToast={(m, k) => showToast(m, k)} />
+        <LeadPackageCard leadId={sel.id}
+          booked={(sel.badge ?? '').toLowerCase() === 'booked'}
+          onBook={(k) => setBooking({ leadId: sel.id, kind: k })}
+          onToast={(m, k) => showToast(m, k)}
+        />
       )}
 
       {/* Lead vendor summary + conversation */}
@@ -1591,13 +1624,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               }}>{COPY.studioScheduleKeep}</button>
               <button type="button" disabled={removeBusy} onClick={async () => {
                 setRemoveBusy(true);
-                const res = await deleteSchedule(sel.id) as { ok: boolean; error?: string };
+                const res = await deleteSchedule(sel.id) as { ok: boolean; error?: string; code?: string };
                 if (res.ok) {
                   const again = await fetchSchedule(sel.id);
                   if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
                   showToast(COPY.studioScheduleGone, 'success');
                 } else {
-                  showToast(res.error ?? COPY.studioScheduleRemoveFailed, 'error');
+                  // F-43.86 (b1): the package refusal speaks the room's own byte, never the door's text.
+                  showToast(res.code === 'PACKAGE_SCHEDULE' ? COPY.studioScheduleRemoveFailed : (res.error ?? COPY.studioScheduleRemoveFailed), 'error');
                 }
                 setRemoveBusy(false); setRemoveSchedule(false);
               }} style={{
@@ -1874,6 +1908,24 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             invalidateSlice('leads');
             showToast('Forwarded.', 'success');
           }}
+        />
+      )}
+
+      {/* CE-43 LC-2 packet 3 · THE BOOKING SHEET (A12), one mount for both openers: the lead
+          card's A2 controls and the swipe-right Booked (F15(a)). On success the sheet has
+          already refreshed the slices; the open detail reads booked at once. */}
+      {slice === 'leads' && (
+        <BookingSheet
+          open={!!booking}
+          leadId={booking ? booking.leadId : null}
+          initialKind={booking ? booking.kind : 'booking_confirmed'}
+          onClose={() => setBooking(null)}
+          onBooked={() => {
+            const id = booking ? booking.leadId : null;
+            setBooking(null);
+            if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));
+          }}
+          onToast={(m, k) => showToast(m, k)}
         />
       )}
 

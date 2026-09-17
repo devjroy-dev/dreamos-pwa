@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 // scripts/b80_lc2_p1_shell_bench.js — TDW CE-43 · LC-2 · packet 1 (dreamos-pwa) · THE SHELLS.
+// AMENDED BY LABEL AT PACKET 3 (CE-43 LC-2r): §6.2, §6.3 and §6.6 now hold packet 3's live facts
+// (the sheet books through createDirectClient; F28(b) makes Advance received a switch between
+// Fee and Received on; Add client submits). M8 re-aimed at the live submit. No other cell moved.
 // AMENDED BY LABEL AT PACKET 2: §2.5, §2.6, §2.8 and §5 now hold packet 2's live facts (the
 // room's acts and the lead card are b81's to prove); M6 and M9 re-aimed at the new source.
 // Rung b80, chair-allocated (b79 stays held for R6's F-42.179 rename). Runnable from any
@@ -157,11 +160,17 @@ function sheetCells(sheet, clients, addsheet, addsheetBase) {
   const labels = (s.match(/label\(CLIENT_BOOKING\.(\w+)\)/g) || []).map((x) => x.match(/\.(\w+)\)/)[1]);
   return {
     mounted: /<ClientBookingSheet\b/.test(c) && !/<AddSheet\b/.test(c) && /from '@\/components\/vendor\/ClientBookingSheet'/.test(c),
-    noWrite: s.length > 0 && !/(createClient|createLead|postJson|patchJson|fetch\()/.test(s),
-    order: labels.join(',') === 'name,phone,weddingDate,pkg,fee,advance,receivedOn',
+    // [amended, packet 3] the sheet writes ONLY through createDirectClient (POST /clients/direct).
+    noWrite: s.length > 0 && /createDirectClient\(/.test(s) && !/(createClient\(|createLead|postJson|patchJson|fetch\()/.test(s),
+    // [amended, packet 3] F28(b): Advance received is a switch, not a labelled field; it sits
+    // between Fee and Received on, so C2's order holds.
+    order: labels.join(',') === 'name,phone,weddingDate,pkg,fee,receivedOn'
+      && s.indexOf('label(CLIENT_BOOKING.fee)') < s.indexOf('{CLIENT_BOOKING.advance}')
+      && s.indexOf('{CLIENT_BOOKING.advance}') < s.indexOf('label(CLIENT_BOOKING.receivedOn)'),
     feeConditional: /const needsFee = !!chosen && chosen\.total == null;/.test(s) && /\{needsFee && \(\s*<div>\{label\(CLIENT_BOOKING\.fee\)\}/.test(s),
     defaultPreselected: /r\.packages\.find\(\(p\) => p\.is_default\)/.test(s),
-    submitSoon: /onClick=\{\(\) => onToast\(COPY\.launchingSoon\)\}[\s\S]{0,400}\{CLIENT_BOOKING\.submit\}/.test(s),
+    // [amended, packet 3] Add client submits the booking; Launching soon. is gone from the sheet.
+    submitSoon: /onClick=\{\(\) => \{ void submit\(\); \}\}[\s\S]{0,400}\{CLIENT_BOOKING\.submit\}/.test(s) && !/launchingSoon/.test(s),
     title: /\{CLIENT_BOOKING\.title\}/.test(s),
     addSheetUntouched: addsheetBase !== null && addsheet === addsheetBase,
   };
@@ -243,11 +252,11 @@ function baseFile(rel) {
   sec('§6 · the Clients Add sheet (R-43.5)');
   const r6 = sheetCells(src.sheet, src.clients, src.addsheet, baseFile(F.addsheet));
   ok(r6.mounted, '§6.1 the Clients room mounts ClientBookingSheet, not AddSheet');
-  ok(r6.noWrite, '§6.2 the sheet writes nothing in packet 1 (no create call)');
-  ok(r6.order, '§6.3 C2 fields in the vetoed order');
+  ok(r6.noWrite, '§6.2 [amended, packet 3] the sheet writes only through createDirectClient');
+  ok(r6.order, '§6.3 [amended, packet 3] C2 fields in the vetoed order, Advance received a switch');
   ok(r6.feeConditional, '§6.4 the fee field shows only when the chosen package has no fee (F8(a))');
   ok(r6.defaultPreselected, '§6.5 the default package is preselected');
-  ok(r6.submitSoon, '§6.6 Add client answers Launching soon.');
+  ok(r6.submitSoon, '§6.6 [amended, packet 3] Add client submits the booking');
   ok(r6.title, '§6.7 the title is C1');
   ok(r6.addSheetUntouched, '§6.8 AddSheet is byte-identical to base 409a130e (ruled untouched)');
 
@@ -297,8 +306,8 @@ function baseFile(rel) {
     ok(m !== null && !sheetCells(m, src.clients, src.addsheet, baseFile(F.addsheet)).feeConditional, '§8 M7 the fee always asked → §6.4 RED');
   }
   {
-    const m = mut(src.sheet, 'onClick={() => onToast(COPY.launchingSoon)}', 'onClick={() => { void createClient({}); }}');
-    ok(m !== null && !sheetCells(m, src.clients, src.addsheet, baseFile(F.addsheet)).noWrite, '§8 M8 the sheet writes public.clients → §6.2 RED');
+    const m = mut(src.sheet, 'onClick={() => { void submit(); }}', 'onClick={() => { void createClient({}); }}');
+    ok(m !== null && !sheetCells(m, src.clients, src.addsheet, baseFile(F.addsheet)).noWrite, '§8 M8 [re-aimed, packet 3] the sheet writes public.clients → §6.2 RED');
   }
   {
     const m = mut(src.page, "color:var(--atelier-ink-mute);white-space:nowrap}", "color:#C9A84C;white-space:nowrap}");

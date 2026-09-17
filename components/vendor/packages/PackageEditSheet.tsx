@@ -17,7 +17,7 @@ import {
 import { PACKAGES, PACKAGE_FAILURES } from '@/lib/worklist/packages';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import {
-  Sheet, IdentityFields, FieldLabel, inputStyle, flagged, textButton, primaryButton,
+  Sheet, IdentityFields, FieldLabel, inputStyle, flagged, actionButton, primaryButton,
   wholeRupees, tidyItems, T,
 } from './PackageFields';
 
@@ -113,7 +113,8 @@ export function PackageEditSheet({ open, pkg, focusFee, onClose, onSaved, onToas
       onClose={onClose}
       footer={(
         <>
-          <button type="button" style={textButton('mute')} onClick={onClose}>{PACKAGES.cancel}</button>
+          {/* C-43.16 (packet 3): the sheet's Cancel is outlined in the muted ink (P2b Report 1, ruled). */}
+          <button type="button" style={actionButton('mute')} onClick={onClose}>{PACKAGES.cancel}</button>
           <button type="button" style={primaryButton()} onClick={() => { void save(); }} aria-busy={busy}>{PACKAGES.save}</button>
         </>
       )}

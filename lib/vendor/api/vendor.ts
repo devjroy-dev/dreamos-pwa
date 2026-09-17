@@ -343,6 +343,30 @@ export function attachLeadPackage(leadId: string, body: AttachInput): Promise<{ 
   return postJson<{ ok: true; lead_package: LeadPackage } | PackageRefusal | ApiErr>(`/api/v2/vendor/leads/${encodeURIComponent(leadId)}/package`, body);
 }
 
+// ── The booking act · CE-43 LC-2 packet 3 ────────────────────────────────────
+// dream-os src/lib/vendor/promotion.js through two doors (docs/handovers/TDW_CE43_LC2_P3_HANDOVER.md §2):
+//   POST /leads/:leadId/promote   the lead's booking sheet (A12)
+//   POST /clients/direct          the Clients Add sheet (R-43.5)
+// The doors carry no words. 422 `refused` carries an A9 code; `saved_as_lead` means the lead
+// exists and the booking did not finish (C5); anything else is F29.
+export type BookingKind = 'advance_paid' | 'booking_confirmed';
+export interface Promoted {
+  lead_id: string; binder_id: string; invoice_id: string; invoice_number: string;
+  adopted: boolean; opened: boolean; event: Record<string, unknown>;
+}
+export interface PromoteInput { kind: BookingKind; advance_received_on?: string }
+export type BookingFailure = { ok: false; error: string; code?: string | null; field?: string | null; step?: string; lead_id?: string };
+export function promoteLead(leadId: string, body: PromoteInput): Promise<{ ok: true; promoted: Promoted } | BookingFailure | ApiErr> {
+  return postJson<{ ok: true; promoted: Promoted } | BookingFailure | ApiErr>(`/api/v2/vendor/leads/${encodeURIComponent(leadId)}/promote`, body);
+}
+export interface DirectClientInput {
+  name: string; phone?: string; wedding_date: string; package_id: string;
+  fee?: number; advance_received: boolean; received_on?: string;
+}
+export function createDirectClient(body: DirectClientInput): Promise<{ ok: true; lead_id: string; deduped: boolean; promoted: Promoted } | BookingFailure | ApiErr> {
+  return postJson<{ ok: true; lead_id: string; deduped: boolean; promoted: Promoted } | BookingFailure | ApiErr>('/api/v2/vendor/clients/direct', body);
+}
+
 // ── Leads ─────────────────────────────────────────────────────────────────
 // TDW_03 (A) repoint, CE-ruled 2026-07-14: leads read the TYPED plane again.
 // LD-1: typed tables own leads. 02-P1 moved the writes to public.leads; the
@@ -761,7 +785,7 @@ import type {
   // Invoices
   CreateInvoiceRequest, CreateInvoiceResponse,
   UpdateInvoiceRequest, UpdateInvoiceResponse,
-  RecordPaymentRequest, RecordPaymentResponse,
+  RecordPaymentRequest, RecordPaymentResponse, PaidMilestone,
   InvoicePdfResponse,
   // Expenses
   CreateExpenseRequest, CreateExpenseResponse,
@@ -918,7 +942,9 @@ export async function recordPayment(invoiceId: string, body: RecordPaymentReques
   // screen's arithmetic deciding the new state. The door takes the AMOUNT and
   // the home does the rest, including stamping `last_payment_at` (F-39.8) that
   // no prior writer set.
-  const r = await postJson<{ ok: true; invoice: Invoice; transitioned: boolean; balance: number } | ApiErr>(
+  // CE-43 LC-2 packet 3 · F17: on a booking's invoice the door pays the NEXT milestone and
+  // answers with it; `milestone` rides through so the room can speak D3/D4.
+  const r = await postJson<{ ok: true; invoice: Invoice; transitioned: boolean; balance: number; milestone?: PaidMilestone } | ApiErr>(
     `${moneyBase(v)}/invoices/${v}/${invoiceId}/payments`, { amount: body.amount },
   );
   if (!('ok' in r) || !r.ok) return { ok: false, error: (r as ApiErr).error || MONEY_FALLBACK };
@@ -926,8 +952,9 @@ export async function recordPayment(invoiceId: string, body: RecordPaymentReques
   return {
     ok: true,
     invoice: r.invoice,
-    payment_recorded: body.amount,
+    payment_recorded: r.milestone ? Number(r.milestone.paid_amount) || 0 : body.amount,
     new_state: r.invoice.state as RecordPaymentResponse['new_state'],
+    milestone: r.milestone,
   };
 }
 
@@ -1493,7 +1520,9 @@ export function updateMilestone(
   return patchJson(`/api/v2/vendor/schedules/${milestoneId}`, patch);
 }
 
-export function deleteSchedule(invoiceId: string): Promise<{ ok: boolean; deleted: boolean } | ApiErr> {
+// CE-43 LC-2 packet 3b · F-43.86 (b1): a booking's schedule answers 409 with code
+// PACKAGE_SCHEDULE; the room speaks its own byte for it and never renders `error`.
+export function deleteSchedule(invoiceId: string): Promise<{ ok: boolean; deleted: boolean } | (ApiErr & { code?: string })> {
   return deleteJson(`/api/v2/vendor/invoices/${invoiceId}/schedule`);
 }
 

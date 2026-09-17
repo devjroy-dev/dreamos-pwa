@@ -136,8 +136,16 @@ t('NO new copy byte ships with the cure — suppression, never substitution', ()
 console.log('\n§2 · THE OTHER VERBS — BYTE-UNMOVED (acceptance, second half)');
 
 const S = () => CODE(SHELL_P);
-t('leads RIGHT is still Booked, and still a real write (patchLeadState)', () =>
-  /right: \{ label: 'Booked'/.test(S()) && /await patchLeadState\(row\.id, 'booked'\)/.test(S()));
+// ── AMENDED BY LABEL AT CE-43 LC-2 PACKET 3 (F15(a), chair-ruled) ──────────
+// THE ASSERTION WAS: 「leads RIGHT is still Booked, and still a real write (patchLeadState)」.
+// F15(a) moved the act: the swipe keeps its label and now OPENS the booking sheet (A12); the
+// write is the promotion act on Confirm booking, never a bare state change (R-43.5). What this
+// cell guards is unchanged in spirit: the gesture still does a real thing, and it no longer
+// fakes one. So it asserts the label, the sheet opener, and that no bare
+// patchLeadState(..., 'booked') survives anywhere in the shell.
+t('leads RIGHT is still Booked, and opens the booking sheet (F15(a)); no bare booked write survives', () =>
+  /right: \{ label: 'Booked', onTrigger: \(\) => setBooking\(\{ leadId: row\.id, kind: 'booking_confirmed' \}\) \}/.test(S())
+  && !/patchLeadState\([^)]*'booked'\)/.test(S()));
 t('leads LEFT still carries R-37.22\'s suppression, keyed on `redacted`', () =>
   /left: row\.redacted/.test(S()) && /\? undefined/.test(S())
     ? true : 'the R-37.22 precedent this cure reuses was disturbed by it');
@@ -212,9 +220,16 @@ t('EXACTLY ONE `success` site remains reachable from a swipe verb, and it is the
   const src = S();
   const body = src.match(/function swipeSidesFor\(row: Row\)[\s\S]*?\n  \}\n/);
   if (!body) throw new Error('REFUSED — could not extract swipeSidesFor');
+  // AMENDED BY LABEL AT CE-43 LC-2 PACKET 3 (F17, F-43.86 (c2), chair-ruled). The second site is
+  // explained here, as this cell asks: on a booking's invoice the D3/D4 toast is shown AFTER
+  // `await recordPayment` answered ok (a failed answer returns first with the error toast), so it
+  // reports an act the server confirmed, never a claim ahead of one. The pin is exact: two sites,
+  // the known early return and the answered one, in that order.
   const hits = body[0].match(/'success'/g) || [];
-  return hits.length === 1 && /showToast\('Already settled\.', 'success'\); return;/.test(body[0])
-    ? true : `the swipe table now carries ${hits.length} success sites — a new one is this delivery's to explain`;
+  const known = /showToast\('Already settled\.', 'success'\); return;/.test(body[0]);
+  const answered = /const r = await recordPayment\(row\.id, \{ amount: owed \}\);\s*if \(!\('ok' in r\) \|\| !r\.ok \|\| !r\.invoice\) \{ showToast\([^;]*'error'\); return; \}[\s\S]{0,900}?\}\), 'success'\);/.test(body[0]);
+  return hits.length === 2 && known && answered
+    ? true : `the swipe table now carries ${hits.length} success sites (known ${known}, answered ${answered}) — a new one is this delivery's to explain`;
 });
 t('that one site is a STATE report, not an act claim (it early-returns before any write)', () =>
   /if \(owed <= 0\) \{ showToast\('Already settled\.', 'success'\); return; \}/.test(S())

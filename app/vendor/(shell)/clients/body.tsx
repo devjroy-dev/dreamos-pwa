@@ -103,10 +103,12 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
       <ToastView toast={toast} />
       {/* CE-43 LC-2 · R-43.5: Add opens the booking sheet (a lead born booked), not the
           public.clients create (F-43.46). AddSheet is untouched; its clients schema stays for
-          the demo route. Packet 1: the sheet's act answers Launching soon. */}
+          the demo route. Packet 3: the sheet books the walk-in (POST /clients/direct) and the
+          cabinet refetches, so the client appears on this page a moment later. */}
       <ClientBookingSheet
         open={addOpen}
         onClose={() => setAddOpen(false)}
+        onDone={cab.refresh}
         onToast={(msg: string, kind?: ToastKind) => showToast(msg, kind)}
       />
     </SliceShell>

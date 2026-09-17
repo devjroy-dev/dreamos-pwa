@@ -1,0 +1,20 @@
+# scripts/floor-manifest-lc2-p3-pwa.txt
+# CE-43 · LC-2 packet 3 · the dreamos-pwa half. F-19.16: a dirty path outside this list is a STOP.
+# No new directory (BookingSheet.tsx lands in the existing components/vendor/packages/).
+lib/worklist/packages.ts
+lib/vendor/api/vendor.ts
+lib/vendor/types/vendor.ts
+components/vendor/packages/BookingSheet.tsx
+components/vendor/packages/LeadPackageCard.tsx
+components/vendor/packages/PackageEditSheet.tsx
+components/vendor/slices/SliceShell.tsx
+components/vendor/slices/SliceRow.tsx
+components/vendor/ClientBookingSheet.tsx
+app/vendor/(shell)/clients/body.tsx
+app/vendor/(shell)/invoices/body.tsx
+scripts/b82_lc2_p3_booking_bench.js
+scripts/b80_lc2_p1_shell_bench.js
+scripts/tdw37_hygiene_false_success.proof.mjs
+scripts/verify-lc2-p3-pwa.sh
+scripts/floor-manifest-lc2-p3-pwa.txt
+docs/handovers/TDW_CE43_LC2_P3_HANDOVER.md
