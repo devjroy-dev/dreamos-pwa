@@ -254,7 +254,11 @@ export function fetchWorklistToday(): Promise<WorklistTodayResponse> {
 // seeds her category's options once (ensureSeeded), and `seeding` reports that.
 // Fields are the handler's PACKAGE_SELECT, read from the handler, not assumed.
 export interface PackageLineItem { label: string; detail: string }
+/** One part of a package's payment shape (dream-os packageSchedule.js splitShares).
+ *  `amount` is null until the package has a fee (F21). Never carries a date. */
+export interface PackageSplitPart { kind: 'deposit' | 'middle' | 'final'; pct: number; amount: number | null }
 export interface VendorPackage {
+  split?: PackageSplitPart[];
   id: string;
   name: string;
   description: string;
@@ -277,6 +281,66 @@ export interface PackagesResponse {
 }
 export function fetchPackages(): Promise<PackagesResponse | ApiErr> {
   return getJson<PackagesResponse | ApiErr>('/api/v2/vendor/packages');
+}
+
+// ── Packages writes · CE-43 LC-2 packet 2 ───────────────────────────────────
+// dream-os src/api/vendor/packages.js: POST '/', PATCH '/:id', DELETE '/:id',
+// POST '/:id/default'. A refusal is 422 {error:'invalid', field}; a racing default is
+// 409 {error:'default_race'} (reported by the door, never retried).
+export type PackageInput = Partial<Pick<VendorPackage,
+  'name' | 'description' | 'line_items' | 'total' | 'deposit_pct' | 'middle_pct' |
+  'middle_enabled' | 'delivery_basis' | 'delivery_days'>>;
+export interface PackageWriteResponse { ok: true; package: VendorPackage }
+export interface PackageRefusal { ok: false; error: string; field?: string; code?: string }
+export function createPackage(body: PackageInput): Promise<PackageWriteResponse | PackageRefusal | ApiErr> {
+  return postJson<PackageWriteResponse | PackageRefusal | ApiErr>('/api/v2/vendor/packages', body);
+}
+export function updatePackage(id: string, body: PackageInput): Promise<PackageWriteResponse | PackageRefusal | ApiErr> {
+  return patchJson<PackageWriteResponse | PackageRefusal | ApiErr>(`/api/v2/vendor/packages/${encodeURIComponent(id)}`, body);
+}
+export function deletePackage(id: string): Promise<{ ok: true } | PackageRefusal | ApiErr> {
+  return deleteJson<{ ok: true } | PackageRefusal | ApiErr>(`/api/v2/vendor/packages/${encodeURIComponent(id)}`);
+}
+export function setDefaultPackage(id: string): Promise<PackageWriteResponse | PackageRefusal | ApiErr> {
+  return postJson<PackageWriteResponse | PackageRefusal | ApiErr>(`/api/v2/vendor/packages/${encodeURIComponent(id)}/default`, {});
+}
+
+// ── The package on a lead · CE-43 LC-2 packet 2 ─────────────────────────────
+// dream-os src/api/vendor/leadPackages.js (F22 (a)): its own router, so the lead detail
+// envelope is untouched. The schedule and delivery day are computed by the server; this
+// client renders them and never computes money.
+export interface LeadScheduleRow { kind: 'deposit' | 'middle' | 'final'; pct: number; amount: number; due_on: string }
+export interface LeadPackage {
+  id: string;
+  lead_id: string;
+  package_id: string | null;
+  snapshot: {
+    name: string; description: string; line_items: PackageLineItem[];
+    deposit_pct: number; middle_pct: number; middle_enabled: boolean;
+    delivery_basis: 'on_the_day' | 'days' | 'handover'; delivery_days: number | null;
+    source_package_id: string; source_seeded_from: string | null;
+    tells: Array<'middle_folded' | 'counted_from_wedding'>;
+  };
+  total: number;
+  schedule: LeadScheduleRow[];
+  delivery_on: string;
+  quoted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+export interface AttachInput {
+  package_id: string;
+  total?: number;
+  name?: string;
+  description?: string;
+  line_items?: PackageLineItem[];
+  delivery_on?: string;
+}
+export function fetchLeadPackage(leadId: string): Promise<{ ok: true; lead_package: LeadPackage | null } | ApiErr> {
+  return getJson<{ ok: true; lead_package: LeadPackage | null } | ApiErr>(`/api/v2/vendor/leads/${encodeURIComponent(leadId)}/package`);
+}
+export function attachLeadPackage(leadId: string, body: AttachInput): Promise<{ ok: true; lead_package: LeadPackage } | PackageRefusal | ApiErr> {
+  return postJson<{ ok: true; lead_package: LeadPackage } | PackageRefusal | ApiErr>(`/api/v2/vendor/leads/${encodeURIComponent(leadId)}/package`, body);
 }
 
 // ── Leads ─────────────────────────────────────────────────────────────────

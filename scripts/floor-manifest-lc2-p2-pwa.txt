@@ -1,0 +1,16 @@
+# scripts/floor-manifest-lc2-p2-pwa.txt
+# CE-43 · LC-2 packet 2 · the dreamos-pwa packet. F-19.16: a dirty path outside this list is a STOP.
+# `components/vendor/packages/` is new: it appears as the directory `git status --porcelain`
+# prints for a new untracked folder AND as each of its files (F-43.71's lesson).
+components/vendor/packages/
+components/vendor/packages/PackageFields.tsx
+components/vendor/packages/PackageEditSheet.tsx
+components/vendor/packages/LeadPackageCard.tsx
+app/vendor/(shell)/packages/page.tsx
+components/vendor/slices/SliceShell.tsx
+lib/vendor/api/vendor.ts
+lib/worklist/packages.ts
+scripts/b80_lc2_p1_shell_bench.js
+scripts/b81_lc2_p2_room_bench.js
+scripts/floor-manifest-lc2-p2-pwa.txt
+docs/handovers/TDW_CE43_LC2_P2_HANDOVER.md

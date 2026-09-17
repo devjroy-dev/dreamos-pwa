@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 // scripts/b80_lc2_p1_shell_bench.js — TDW CE-43 · LC-2 · packet 1 (dreamos-pwa) · THE SHELLS.
+// AMENDED BY LABEL AT PACKET 2: §2.5, §2.6, §2.8 and §5 now hold packet 2's live facts (the
+// room's acts and the lead card are b81's to prove); M6 and M9 re-aimed at the new source.
 // Rung b80, chair-allocated (b79 stays held for R6's F-42.179 rename). Runnable from any
 // working directory. Exit 0 green, 1 red, 3 refused (node_modules absent).
 //
@@ -89,8 +91,10 @@ function pageCells(src) {
     reads: /fetchPackages\(\)/.test(s) && /from '@\/lib\/vendor\/api\/vendor'/.test(s),
     bytes: ['PACKAGES.eyebrow', 'PACKAGES.sub(', 'PACKAGES.empty', 'PACKAGES.defaultMark', 'PACKAGES.edit', 'PACKAGES.setDefault', 'PACKAGES.del', 'PACKAGES.add', 'PACKAGES.feeUnset'].every((k) => s.includes(k)),
     label: /ROOMS\.find\(\(r\) => r\.id === 'packages'\)\?\.label/.test(s),
-    allSoon: /const soon = \(\) => show\(COPY\.launchingSoon\)/.test(s) && soonHandlers === 4 && !/onClick=\{\(\) => (?!show)/.test(s),
-    defaultNotOffered: /\{!p\.is_default && <button[^>]*onClick=\{soon\}>\{PACKAGES\.setDefault\}/.test(s),
+    // AMENDED BY LABEL — CE-43 LC-2 packet 2: the room's acts are live. The shell's
+    // `Launching soon.` is gone from the room; b81 proves each act.
+    allSoon: s.length > 0 && !/launchingSoon/.test(s) && soonHandlers === 0,
+    defaultNotOffered: /\{!p\.is_default && <button type="button" className="pkg-act" onClick=\{\(\) => \{ void makeDefault\(p\); \}\}>\{PACKAGES\.setDefault\}/.test(s),
     failedRead: /COPY\.surfaceUnavailable/.test(s),
     noWrite: s.length > 0 && !/(postJson|patchJson|deleteJson|method:\s*'(POST|PATCH|DELETE)')/.test(s),
   };
@@ -132,15 +136,18 @@ async function apiCells(src) {
   return r;
 }
 
-function shellCells(src) {
+// AMENDED BY LABEL — CE-43 LC-2 packet 2: SliceShell's inline shell card is replaced by the
+// live LeadPackageCard. These cells now hold the mount; b81 proves the card itself.
+function shellCells(src, cardSrc = read('components/vendor/packages/LeadPackageCard.tsx')) {
   const s = strip(src);
-  const block = (s.match(/\{slice === 'leads' && sel && \(\s*<div data-lc2="lead-package"[\s\S]*?\n\s{6}\)\}/) || [''])[0];
+  const card = strip(cardSrc || '');
+  const block = (s.match(/\{slice === 'leads' && sel && \(\s*<LeadPackageCard leadId=\{sel\.id\}[\s\S]*?\/>\s*\)\}/) || [''])[0];
   return {
     leadsOnly: block.length > 0,
-    bytes: /\{LEAD_PACKAGE\.eyebrow\}/.test(block) && /\{LEAD_PACKAGE\.attach\}<\/button>/.test(block),
-    soon: /onClick=\{\(\) => showToast\(SOL_COPY\.launchingSoon\)\}/.test(block),
-    imports: /import \{ COPY as SOL_COPY \} from '@\/lib\/solutions\/copy'/.test(s) && /import \{ LEAD_PACKAGE \} from '@\/lib\/worklist\/packages'/.test(s),
-    tokens: block.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(block),
+    bytes: card.length > 0 && /\{LEAD_PACKAGE\.eyebrow\}/.test(card) && /LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach/.test(card),
+    soon: card.length > 0 && /onClick=\{\(\) => setSheetOpen\(true\)\}/.test(card) && !/launchingSoon/.test(card),
+    imports: /import \{ LeadPackageCard \} from '@\/components\/vendor\/packages\/LeadPackageCard'/.test(s) && !/SOL_COPY/.test(s),
+    tokens: block.length > 0 && card.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(block + card),
   };
 }
 
@@ -205,10 +212,10 @@ function baseFile(rel) {
   ok(r2.reads, '§2.2 the room reads through fetchPackages');
   ok(r2.bytes, '§2.3 every rendered byte comes from the copy home');
   ok(r2.label, '§2.4 the title is the registry label, never typed');
-  ok(r2.allSoon, '§2.5 all four act controls answer Launching soon. (the one home)');
+  ok(r2.allSoon, '§2.5 [amended, packet 2] the room no longer answers Launching soon.; its acts are live (b81)');
   ok(r2.defaultNotOffered, '§2.6 Set as default is not offered on the default');
   ok(r2.failedRead, '§2.7 a failed read says COPY.surfaceUnavailable');
-  ok(r2.noWrite, '§2.8 the room writes nothing in packet 1');
+  ok(r2.noWrite, '§2.8 [amended, packet 2] the room calls no raw writer; its writes go through the API client');
 
   sec('§3 · the copy home, driven');
   const r3 = copyCells(src.copy);
@@ -227,11 +234,11 @@ function baseFile(rel) {
 
   sec('§5 · the lead card on SliceShell');
   const r5 = shellCells(src.shell);
-  ok(r5.leadsOnly, '§5.1 the card renders on the leads detail only');
-  ok(r5.bytes, '§5.2 A1 and A2 from the copy home');
-  ok(r5.soon, '§5.3 Attach package answers Launching soon.');
-  ok(r5.imports, '§5.4 the one Launching soon. home and the copy home are imported');
-  ok(r5.tokens, '§5.5 the card carries no colour literal (R-42.6)');
+  ok(r5.leadsOnly, '§5.1 [amended, packet 2] LeadPackageCard mounts on the leads detail only');
+  ok(r5.bytes, '§5.2 [amended, packet 2] the card takes A1 and A2 from the copy home');
+  ok(r5.soon, '§5.3 [amended, packet 2] Attach package opens the attach sheet, not Launching soon.');
+  ok(r5.imports, '§5.4 [amended, packet 2] SliceShell imports the live card and no longer the shell byte');
+  ok(r5.tokens, '§5.5 [amended, packet 2] the mount and the card carry no colour literal (R-42.6)');
 
   sec('§6 · the Clients Add sheet (R-43.5)');
   const r6 = sheetCells(src.sheet, src.clients, src.addsheet, baseFile(F.addsheet));
@@ -282,7 +289,7 @@ function baseFile(rel) {
     ok(m !== null && c.path !== true, '§8 M5 the path drifts → §4.1 RED');
   }
   {
-    const m = mut(src.shell, "{slice === 'leads' && sel && (\n        <div data-lc2=\"lead-package\"", "{sel && (\n        <div data-lc2=\"lead-package\"");
+    const m = mut(src.shell, "{slice === 'leads' && sel && (\n        <LeadPackageCard", "{sel && (\n        <LeadPackageCard");
     ok(m !== null && !shellCells(m).leadsOnly, '§8 M6 the card shown on every slice → §5.1 RED');
   }
   {
@@ -294,7 +301,7 @@ function baseFile(rel) {
     ok(m !== null && !sheetCells(m, src.clients, src.addsheet, baseFile(F.addsheet)).noWrite, '§8 M8 the sheet writes public.clients → §6.2 RED');
   }
   {
-    const m = mut(src.page, "color:var(--atelier-ink-mute);margin:12px 0 0}", "color:#C9A84C;margin:12px 0 0}");
+    const m = mut(src.page, "color:var(--atelier-ink-mute);white-space:nowrap}", "color:#C9A84C;white-space:nowrap}");
     ok(m !== null && !tokenCells([m, src.sheet, src.copy]), '§8 M9 a colour literal in the room → §7.1 RED');
   }
 
