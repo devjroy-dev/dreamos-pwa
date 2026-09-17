@@ -834,7 +834,11 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   const layerCells = (code) => {
     const t = strip(code);
     return {
-      portal: /return createPortal\(\s*<div data-sheet-layer=\{testId \|\| ''\} inert=\{isBeneath\(id\)\}>\{children\(z\)\}<\/div>,\s*document\.body,\s*\);/.test(t),
+      portal: /return createPortal\(\s*<div className="wl" data-wl-mode=\{mode\} data-sheet-layer=\{testId \|\| ''\} inert=\{isBeneath\(id\)\}\s*style=\{\{ position: 'relative', zIndex: z\.panel, background: 'none' \}\}>\{children\(z\)\}<\/div>,\s*document\.body,\s*\);/.test(t),
+      lifted: /style=\{\{ position: 'relative', zIndex: z\.panel, background: 'none' \}\}/.test(t),
+      skin: /const mode = useSyncExternalStore\(subscribeMode, readMode, \(\) => 'dark'\);/.test(t)
+        && /document\.querySelector<HTMLElement>\('\.wl\[data-wl-mode\]'\)/.test(t)
+        && /attributeFilter: \['data-wl-mode'\]/.test(t) && /className="wl" data-wl-mode=\{mode\}/.test(t),
       registers: /if \(!open\) return undefined;\s*openLayer\(id\);\s*const unwatch = watchViewport\(\);\s*return \(\) => \{ closeLayer\(id\); unwatch\(\); \};/.test(t),
       follows: /useSyncExternalStore\(subscribeLayers, openLayers, \(\) => serverStack\)/.test(t),
       zFromDepth: /const z = layerZ\(depthOf\(id\)\);/.test(t),
@@ -904,6 +908,14 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   ok(/<div data-sheet-body="" style=\{\{ flex: 1, \.\.\.SHEET_BODY_SCROLL,[^}]*\}\}>[\s\S]*?<\/div>\s*<div style=\{\{ padding: `12px 24px calc\(24px \+ \$\{SHEET_SAFE\}\)`, borderTop: '0\.5px solid var\(--atelier-card-border\)', flexShrink: 0 \}\}>\s*<button type="button" onClick=\{save\}/.test(cardSrc)
     && (cardSrc.match(/onClick=\{save\}/g) || []).length === 1,
     '§17.8 the client edit sheet: Save sits in a pinned action row after the scroll body (chair-ruled), once');
+  ok(lc17.lifted && lc17.skin,
+    '§17.9 F-43.119: the layer carries the depth\'s z-index itself (app/globals.css:959 makes every root child a stacking context) and wears the shell\'s wl class and data-wl-mode, so a portaled sheet is above the room and in its palette');
+  {
+    const m62 = mut(layerSrc, "style={{ position: 'relative', zIndex: z.panel, background: 'none' }}", "style={{ background: 'none' }}");
+    ok(m62 !== null && !layerCells(m62).lifted, '§9 M62 F-43.119: the layer without its own z-index (trapped under the room) → §17.9 RED');
+    const m63 = mut(layerSrc, 'className="wl" data-wl-mode={mode} ', '');
+    ok(m63 !== null && !layerCells(m63).skin, '§9 M63 F-43.119: a sheet outside the room\'s palette (Graphite in Chalk) → §17.9 RED');
+  }
   {
     const m54 = mut(layerSrc, "inert={isBeneath(id)}", "inert={depthOf(id) >= 0}");
     ok(m54 !== null && PAIRS.every(([, o, i]) => !pairDrive(stackSrc, strip(m54), o, i, sc17)), '§9 M54 F-43.116: the lock restored on the top sheet → every §17.7 pair RED');
@@ -913,7 +925,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     ok(m56 !== null && !layerSheetCells(m56, SHEETS.shared[1], '90dvh').body, '§9 M56 F-43.116: the shared sheet\'s body locked → §17.6 shared RED');
     const m57 = mut(read(SHEETS.wishbone[0]), "position: 'fixed', left: 0, right: 0, bottom: SHEET_BOTTOM, zIndex: z.panel,", "position: 'fixed', left: 0, right: 0, bottom: SHEET_BOTTOM, zIndex: 61,");
     ok(m57 !== null && !layerSheetCells(m57, SHEETS.wishbone[1], '88dvh').mount, '§9 M57 F-43.116: a hand-set z-index back on the date completion → §17.6 wishbone RED');
-    const m58 = mut(layerSrc, "return createPortal(\n    <div data-sheet-layer={testId || ''} inert={isBeneath(id)}>{children(z)}</div>,\n    document.body,\n  );", "return <div data-sheet-layer={testId || ''} inert={isBeneath(id)}>{children(z)}</div>;");
+    const m58 = mut(layerSrc, "return createPortal(", "return (false) && createPortal(");
     ok(m58 !== null && !layerCells(m58).portal, '§9 M58 F-43.116: the layer mounted in place (a transformed ancestor re-anchors it) → §17.4 RED');
     const m59 = mut(stackSrc, "const covered = Math.max(0, Math.round(layoutHeight - vv.height - vv.offsetTop));", "const covered = 0;");
     ok(m59 !== null && !stackDrive(m59).viewport, '§9 M59 F-43.116: the keyboard ignored → §17.3 RED');

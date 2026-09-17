@@ -11,6 +11,11 @@
 // · KEYBOARD-AWARE: while any layer is open, the visual viewport is written to three CSS variables on
 //   <html> (--tdw-vvh, --tdw-kb, --tdw-safe); sheets bound their height with sheetBound() and sit at
 //   `bottom: var(--tdw-kb)`, so the action row stays above the keyboard and within thumb reach.
+// · IN THE ROOM'S SKIN: `app/globals.css:959` sets `body > * { position: relative; z-index: 1 }` (it lifts
+//   every root child above the paper grain), which makes each portaled layer its own stacking context. So
+//   the layer itself carries the depth's z-index, and it wears the shell's `wl` class and `data-wl-mode`,
+//   because the palette tokens are defined on `.wl[data-wl-mode]` (lib/worklist/theme.ts scopeCss) and a
+//   sheet mounted at the root would otherwise read Graphite's defaults in Chalk.
 // A closed sheet stays mounted (its slide-out needs a node) and is not in the stack.
 import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -65,6 +70,22 @@ function watchViewport(): () => void {
 const serverStack: readonly string[] = [];
 const noSubscribe = () => () => {};
 
+/** The shell's theme, so a portaled sheet renders in the room's palette and type. */
+function shellNode(): HTMLElement | null {
+  return typeof document === 'undefined' ? null : document.querySelector<HTMLElement>('.wl[data-wl-mode]');
+}
+function subscribeMode(fn: () => void): () => void {
+  const el = shellNode();
+  if (!el || typeof MutationObserver === 'undefined') return () => {};
+  const mo = new MutationObserver(fn);
+  mo.observe(el, { attributes: true, attributeFilter: ['data-wl-mode'] });
+  return () => mo.disconnect();
+}
+function readMode(): string {
+  const el = shellNode();
+  return (el && el.getAttribute('data-wl-mode')) || 'dark';
+}
+
 export function SheetLayer({ open, children, testId }: {
   open: boolean;
   /** The scrim and the panel, given this layer's z-indexes. */
@@ -82,10 +103,12 @@ export function SheetLayer({ open, children, testId }: {
   }, [open, id]);
   // Re-render when the stack changes, so depth and `inert` follow the sheets above.
   useSyncExternalStore(subscribeLayers, openLayers, () => serverStack);
+  const mode = useSyncExternalStore(subscribeMode, readMode, () => 'dark');
   if (!mounted) return null;
   const z = layerZ(depthOf(id));
   return createPortal(
-    <div data-sheet-layer={testId || ''} inert={isBeneath(id)}>{children(z)}</div>,
+    <div className="wl" data-wl-mode={mode} data-sheet-layer={testId || ''} inert={isBeneath(id)}
+      style={{ position: 'relative', zIndex: z.panel, background: 'none' }}>{children(z)}</div>,
     document.body,
   );
 }
