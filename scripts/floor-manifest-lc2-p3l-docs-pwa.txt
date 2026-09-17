@@ -1,0 +1,4 @@
+# CE-43 · LC-2 packet 3l docs re-cut · dreamos-pwa only.
+docs/handovers/TDW_CE43_LC2_P3L_HANDOVER.md
+scripts/verify-lc2-p3l-docs-pwa.sh
+scripts/floor-manifest-lc2-p3l-docs-pwa.txt
