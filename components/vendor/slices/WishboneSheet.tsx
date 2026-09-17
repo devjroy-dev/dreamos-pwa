@@ -20,6 +20,7 @@
 //   bypass the bus; these callers refetch through their owners).
 
 import { useState } from 'react';
+import { SheetLayer, sheetBound, SHEET_BODY_SCROLL, SHEET_BOTTOM, SHEET_SAFE } from '@/components/vendor/SheetLayer';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useAsk } from '@/lib/worklist/askContext';
 import { A, F, cap } from './SliceRow';
@@ -117,13 +118,17 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
   const meta = active ? FIELD_META[active] : undefined;
   const victorOnly = !!meta?.victorOnly;
 
+  // Packet 3j · F-43.116: mounted through the one vendor layer (components/vendor/SheetLayer.tsx). It
+  // was z-index 60/61 by hand; it now stacks by open order above whatever sheet opened it, leaves that
+  // sheet inert under its own backdrop, and stays within the visible viewport above the keyboard.
   return (
-    <>
-      <div onClick={onDone} style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'var(--atelier-overlay)' }} />
-      <div style={{
-        position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 61,
+    <SheetLayer open testId="wishbone-sheet">{(z) => (<>
+      <div onClick={onDone} style={{ position: 'fixed', inset: 0, zIndex: z.scrim, background: 'var(--atelier-overlay)' }} />
+      <div data-lc2="wishbone-sheet" data-sheet-body="" style={{
+        position: 'fixed', left: 0, right: 0, bottom: SHEET_BOTTOM, zIndex: z.panel,
         background: 'var(--atelier-sheet-bg)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
-        borderTop: '0.5px solid var(--atelier-sheet-border)', padding: '18px 22px 26px',
+        borderTop: '0.5px solid var(--atelier-sheet-border)', padding: `18px 22px calc(26px + ${SHEET_SAFE})`,
+        maxHeight: sheetBound('88dvh'), boxSizing: 'border-box', ...SHEET_BODY_SCROLL,
       }}>
         <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>
           Complete the file
@@ -188,6 +193,6 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
           </div>
         )}
       </div>
-    </>
+    </>)}</SheetLayer>
   );
 }

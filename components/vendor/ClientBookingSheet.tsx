@@ -37,6 +37,7 @@
 // Appendix). The package select's empty option reads `Select…`, AddSheet's existing byte,
 // carried rather than coined. C-43.15 applies to package names upstream.
 // Tokens only (R-42.6).
+import { SheetLayer, sheetBound, useSheetScrollReset, SHEET_BODY_SCROLL, SHEET_BOTTOM, SHEET_SAFE } from '@/components/vendor/SheetLayer';
 import { useEffect, useMemo, useState } from 'react';
 import { fetchPackages, createDirectClient, type VendorPackage, type DirectClientInput } from '@/lib/vendor/api/vendor';
 import { CLIENT_BOOKING, BOOKING, PACKAGE_FAILURES } from '@/lib/worklist/packages';
@@ -160,31 +161,33 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
       letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>{text}</label>
   );
 
+  const bodyRef = useSheetScrollReset<HTMLDivElement>(open);
   return (
-    <>
+    // Packet 3j · F-43.116: mounted through the one vendor layer (components/vendor/SheetLayer.tsx).
+    <SheetLayer open={open} testId="client-booking-sheet">{(z) => (<>
       {open && (
         <div onClick={onClose}
-          style={{ position: 'fixed', inset: 0, zIndex: 40, backgroundColor: 'var(--atelier-overlay)' }} />
+          style={{ position: 'fixed', inset: 0, zIndex: z.scrim, backgroundColor: 'var(--atelier-overlay)' }} />
       )}
       {/* CE-43 LC-2 packet 3d · F-43.94 (chair YES): inert, not aria-hidden (F-43.89's cure). */}
       <div data-lc2="client-booking-sheet" inert={!open} style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+        position: 'fixed', bottom: SHEET_BOTTOM, left: 0, right: 0, zIndex: z.panel,
         backgroundColor: D.card, borderTopLeftRadius: 20, borderTopRightRadius: 20,
         borderTop: `1px solid ${D.border}`,
         transform: open ? 'translateY(0)' : 'translateY(100%)',
         transition: 'transform 320ms cubic-bezier(0.22,1,0.36,1)',
-        maxHeight: '88dvh', display: 'flex', flexDirection: 'column',
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        maxHeight: sheetBound('88dvh'), boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
+        paddingBottom: SHEET_SAFE,
       }}>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: 'var(--atelier-ink-dim)' }} />
         </div>
-        <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${D.border}` }}>
+        <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${D.border}`, flexShrink: 0 }}>
           <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.ink, margin: 0 }}>
             {CLIENT_BOOKING.title}
           </h2>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div ref={bodyRef} data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Packet 3f · R-43.16: the field gate is a control that focuses the flagged field; F29 is
               a failure and stays a plain line. */}
           {message && bad && <NeedFirst text={message} onFix={() => { const el = document.getElementById(`cbs-${bad}`); if (el) el.focus(); }} testId="client" />}
@@ -219,7 +222,7 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
             </div>
           )}
         </div>
-        <div style={{ padding: '12px 24px 16px', borderTop: `1px solid ${D.border}` }}>
+        <div style={{ padding: '12px 24px 16px', borderTop: `1px solid ${D.border}`, flexShrink: 0 }}>
           <button type="button" onClick={() => { void submit(); }} aria-busy={busy} style={{
             width: '100%', minHeight: 48, background: 'transparent', cursor: 'pointer',
             border: `0.5px solid ${D.accent}`, borderRadius: 2,
@@ -228,6 +231,6 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
           }}>{CLIENT_BOOKING.submit}</button>
         </div>
       </div>
-    </>
+    </>)}</SheetLayer>
   );
 }

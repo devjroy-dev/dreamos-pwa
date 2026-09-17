@@ -49,6 +49,11 @@
 // follows its refetched row; its reads keyed on the lead's id) and F-43.112 (the User Timing marks for the
 // card-and-rows moment and the conversation's landing, the helpers DRIVEN over a timing double); M48 to
 // M53. No existing cell changed.
+// AMENDED BY LABEL AT PACKET 3j (CE-43 LC-2s, F-43.116 ratified): §15.3 re-aimed at the bounded form (the
+// lead detail's full height is still 88dvh, now also bounded by the visible viewport through sheetBound).
+// §17 added: the one sheet layer, its stack DRIVEN, a cell per stacking pair (the inner body scrolls and is
+// not locked, the outer is inert under the inner's backdrop), the five sheets converted with no hand-set
+// layer order, the keyboard bound DRIVEN, the client edit sheet's pinned Save; M54 to M61.
 // NOT PROVEN HERE (declared): rendering on a device, both themes on glass, the gesture under a thumb,
 // `next build`, and the database. The founder's walk (card P3) and provisional floor are their witnesses.
 const fs = require('fs');
@@ -686,7 +691,8 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     && (cardS.match(/LEAD_PACKAGE\.attached/g) || []).length === 1,
     '§15.2 F-43.110: a successful attach or change speaks it once, before the sheet hands the row back; a refusal never does');
   const ds4 = strip(read('components/vendor/slices/DetailSheet.tsx'));
-  ok(/maxHeight: '88dvh', \.\.\.\(fullHeight \? \{ height: '88dvh' \} : \{\}\),/.test(ds4) && /fullHeight = false,/.test(ds4)
+  // [amended, 3j] the full height is sheetBound('88dvh'): 88dvh, and never past the visible viewport.
+  ok(/maxHeight: sheetBound\('88dvh'\), \.\.\.\(fullHeight \? \{ height: sheetBound\('88dvh'\) \} : \{\}\),/.test(ds4) && /fullHeight = false,/.test(ds4)
     && /fullHeight=\{slice === 'leads'\}/.test(strip(src.shell)),
     '§15.3 F-43.111: the lead detail opens at its full height from the first frame; other slices keep their content height');
   {
@@ -785,6 +791,136 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     ok(m52 !== null && !leadCells(m52).readyGate, '§9 M52 F-43.112: card-rows marked before the package read → §16.4 RED');
     const m53 = mut(src.shell, "if (leadMarks.current.id === id) markLead('conversation');", "if (leadMarks.current.id === id) markLead('card-rows');");
     ok(m53 !== null && !(leadCells(m53).readyGate && leadCells(m53).threadMark), '§9 M53 F-43.112: the conversation\'s landing folded into card-rows → §16.4 RED');
+  }
+
+  sec('§17 · packet 3j · the one sheet layer (F-43.116)');
+  const stackSrc = read('lib/vendor/sheetStack.ts');
+  const layerSrc = read('components/vendor/SheetLayer.tsx');
+  const stackDrive = (code) => {
+    const r = {};
+    let m;
+    try { m = loadModule(code); } catch { return r; }
+    try {
+      m.resetLayers();
+      m.openLayer('detail'); m.openLayer('booking');
+      r.twoDeep = m.isBeneath('detail') && !m.isBeneath('booking') && m.isTop('booking') && m.depthOf('booking') === 1;
+      r.zOrder = m.layerZ(1).scrim > m.layerZ(0).panel && m.layerZ(1).panel > m.layerZ(1).scrim && m.layerZ(0).scrim === 40 && m.layerZ(0).panel === 50;
+      m.openLayer('attach');
+      r.threeDeep = m.isBeneath('detail') && m.isBeneath('booking') && m.isTop('attach') && m.layerZ(2).scrim > m.layerZ(1).panel;
+      m.closeLayer('attach');
+      r.pops = m.isTop('booking') && !m.isBeneath('booking') && m.isBeneath('detail');
+      m.openLayer('booking');
+      r.idempotent = m.openLayers().length === 2;
+      m.closeLayer('detail');
+      r.middleLeaves = m.isTop('booking') && m.openLayers().length === 1 && m.depthOf('detail') === -1;
+      let n = 0; const un = m.subscribeLayers(() => { n++; }); m.openLayer('x'); m.closeLayer('x'); un(); m.openLayer('y');
+      r.emits = n === 2;
+      m.resetLayers();
+      const none = m.viewportVars(900, null);
+      const kb = m.viewportVars(900, { height: 570, offsetTop: 0 });
+      const chrome = m.viewportVars(900, { height: 860, offsetTop: 0 });
+      r.viewport = none.kb === '0px' && none.vvh === '100dvh' && /safe-area-inset-bottom/.test(none.safe)
+        && kb.kb === '330px' && kb.vvh === '570px' && kb.safe === '0px'
+        && chrome.kb === '0px' && chrome.vvh === '860px' && /safe-area-inset-bottom/.test(chrome.safe);
+      r.bound = m.sheetBound('90dvh') === 'min(90dvh, calc(var(--tdw-vvh, 100dvh) - 12px))';
+    } catch { return r; }
+    return r;
+  };
+  const sd = stackDrive(stackSrc);
+  ok(!!sd.twoDeep && !!sd.threeDeep && !!sd.pops && !!sd.idempotent && !!sd.middleLeaves && !!sd.emits,
+    '§17.1 DRIVEN: open order is depth; every open sheet beneath the top is beneath; closing the top hands the scroll back; reopening is one layer; a closed middle leaves');
+  ok(!!sd.zOrder, '§17.2 DRIVEN: each layer\'s backdrop sits above the sheet beneath it and below its own sheet; depth 0 keeps the estate\'s 40/50');
+  ok(!!sd.viewport && !!sd.bound, '§17.3 DRIVEN: the keyboard is read from the visual viewport (330px covered → bottom 330px, height 570px, no safe-area); browser chrome is not a keyboard; the height bound');
+  const layerCells = (code) => {
+    const t = strip(code);
+    return {
+      portal: /return createPortal\(\s*<div data-sheet-layer=\{testId \|\| ''\} inert=\{isBeneath\(id\)\}>\{children\(z\)\}<\/div>,\s*document\.body,\s*\);/.test(t),
+      registers: /if \(!open\) return undefined;\s*openLayer\(id\);\s*const unwatch = watchViewport\(\);\s*return \(\) => \{ closeLayer\(id\); unwatch\(\); \};/.test(t),
+      follows: /useSyncExternalStore\(subscribeLayers, openLayers, \(\) => serverStack\)/.test(t),
+      zFromDepth: /const z = layerZ\(depthOf\(id\)\);/.test(t),
+      bodyScroll: /overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch', minHeight: 0,/.test(t),
+      vars: /s\.setProperty\('--tdw-vvh', v\.vvh\);\s*s\.setProperty\('--tdw-kb', v\.kb\);\s*s\.setProperty\('--tdw-safe', v\.safe\);/.test(t)
+        && /vv\?\.addEventListener\('resize', on\);/.test(t),
+      reset: /if \(open && ref\.current\) ref\.current\.scrollTop = 0;/.test(t),
+    };
+  };
+  const lc17 = layerCells(layerSrc);
+  ok(lc17.portal && lc17.registers && lc17.follows && lc17.zFromDepth,
+    '§17.4 the layer: mounted at document.body (no ancestor re-anchors a fixed sheet), registered while open, inert only when beneath, z from depth');
+  ok(lc17.bodyScroll && lc17.vars && lc17.reset, '§17.5 the layer: the body scroll style (contained, momentum, shrinkable), the viewport variables, scroll reset on open');
+  // The five sheets: each mounts through the layer, takes its z from it, carries a scroll body, sits on the
+  // keyboard line and is bounded by the visible viewport. No hand-set numeric z-index survives in them.
+  const SHEETS = {
+    shared: ['components/vendor/packages/PackageFields.tsx', "<SheetLayer open={open} testId={testId}>", "90dvh"],
+    detail: ['components/vendor/slices/DetailSheet.tsx', '<SheetLayer open={open} testId="detail-sheet">', '88dvh'],
+    client: ['components/vendor/ClientBookingSheet.tsx', '<SheetLayer open={open} testId="client-booking-sheet">', '88dvh'],
+    wishbone: ['components/vendor/slices/WishboneSheet.tsx', '<SheetLayer open testId="wishbone-sheet">', '88dvh'],
+    binder: ['components/vendor/slices/BinderCard.tsx', '<SheetLayer open testId="binder-edit-sheet">', '85dvh'],
+  };
+  const layerSheetCells = (code, mount, cap) => {
+    const t = strip(code);
+    return {
+      mount: t.includes(mount) && /zIndex: z\.scrim/.test(t) && /zIndex: z\.panel/.test(t),
+      noHandZ: !/zIndex:\s*\d/.test(t.slice(t.indexOf(mount) < 0 ? 0 : t.indexOf(mount))),
+      body: /data-sheet-body=""/.test(t) && /\.\.\.SHEET_BODY_SCROLL/.test(t),
+      keyboard: /bottom: SHEET_BOTTOM/.test(t) && t.includes(`sheetBound('${cap}')`) && /SHEET_SAFE/.test(t) && /boxSizing: 'border-box'/.test(t),
+    };
+  };
+  const sc17 = Object.fromEntries(Object.entries(SHEETS).map(([k, [f, m, cap]]) => [k, layerSheetCells(read(f), m, cap)]));
+  for (const [k, v] of Object.entries(sc17)) {
+    ok(v.mount && v.noHandZ && v.body && v.keyboard, `§17.6 ${k}: through the layer, z from depth, no hand-set z-index, its own scroll body, on the keyboard line and bounded by the visible viewport`);
+  }
+  // A cell per stacking pair: open the outer, open the inner; the inner body's scroll container is present
+  // and not locked (its layer is not beneath), the outer is locked under the inner's backdrop.
+  const PAIRS = [
+    ['lead detail → booking sheet', 'detail', 'shared'],
+    ['booking sheet → attach sheet (+ Package)', 'shared', 'shared'],
+    ['lead detail → attach sheet (the card)', 'detail', 'shared'],
+    ['booking sheet → date completion (+ Wedding date)', 'shared', 'wishbone'],
+    ['lead detail → date completion (a detail chip)', 'detail', 'wishbone'],
+    ['Packages room → edit sheet', null, 'shared'],
+    ['Clients room → Clients sheet', null, 'client'],
+    ['client card → client edit sheet', null, 'binder'],
+    ['client card → date completion (a card chip)', null, 'wishbone'],
+  ];
+  const pairDrive = (stackCode, layerT, outerKey, innerKey, sheets) => {
+    let m, innerLocked, outerLocked;
+    try {
+      m = loadModule(stackCode);
+      m.resetLayers();
+      if (outerKey) m.openLayer('outer');
+      m.openLayer('inner');
+      innerLocked = m.isBeneath('inner');
+      outerLocked = outerKey ? m.isBeneath('outer') : true;
+      m.resetLayers();
+    } catch { return false; }
+    const inner = sheets[innerKey];
+    const outer = outerKey ? sheets[outerKey] : { mount: true };
+    const lockOnlyBeneath = /inert=\{isBeneath\(id\)\}/.test(layerT);
+    return !innerLocked && outerLocked && inner.body && inner.mount && outer.mount && lockOnlyBeneath;
+  };
+  for (const [label, o, i] of PAIRS) ok(pairDrive(stackSrc, strip(layerSrc), o, i, sc17), `§17.7 pair · ${label}: the inner body scrolls and is not locked; the outer is locked beneath`);
+  const cardSrc = strip(read('components/vendor/slices/BinderCard.tsx'));
+  ok(/<div data-sheet-body="" style=\{\{ flex: 1, \.\.\.SHEET_BODY_SCROLL,[^}]*\}\}>[\s\S]*?<\/div>\s*<div style=\{\{ padding: `12px 24px calc\(24px \+ \$\{SHEET_SAFE\}\)`, borderTop: '0\.5px solid var\(--atelier-card-border\)', flexShrink: 0 \}\}>\s*<button type="button" onClick=\{save\}/.test(cardSrc)
+    && (cardSrc.match(/onClick=\{save\}/g) || []).length === 1,
+    '§17.8 the client edit sheet: Save sits in a pinned action row after the scroll body (chair-ruled), once');
+  {
+    const m54 = mut(layerSrc, "inert={isBeneath(id)}", "inert={depthOf(id) >= 0}");
+    ok(m54 !== null && PAIRS.every(([, o, i]) => !pairDrive(stackSrc, strip(m54), o, i, sc17)), '§9 M54 F-43.116: the lock restored on the top sheet → every §17.7 pair RED');
+    const m55 = mut(stackSrc, "export function isBeneath(id: string): boolean { const d = depthOf(id); return d >= 0 && d < stack.length - 1; }", "export function isBeneath(id: string): boolean { const d = depthOf(id); return d >= 0 && d <= stack.length - 1; }");
+    ok(m55 !== null && PAIRS.every(([, o, i]) => !pairDrive(m55, strip(layerSrc), o, i, sc17)), '§9 M55 F-43.116: the topmost sheet counted as beneath (locked) → every §17.7 pair RED');
+    const m56 = mut(read(SHEETS.shared[0]), "<div ref={bodyRef} data-sheet-body=\"\" style={{ flex: 1, ...SHEET_BODY_SCROLL,", "<div ref={bodyRef} style={{ flex: 1, overflowY: 'hidden',");
+    ok(m56 !== null && !layerSheetCells(m56, SHEETS.shared[1], '90dvh').body, '§9 M56 F-43.116: the shared sheet\'s body locked → §17.6 shared RED');
+    const m57 = mut(read(SHEETS.wishbone[0]), "position: 'fixed', left: 0, right: 0, bottom: SHEET_BOTTOM, zIndex: z.panel,", "position: 'fixed', left: 0, right: 0, bottom: SHEET_BOTTOM, zIndex: 61,");
+    ok(m57 !== null && !layerSheetCells(m57, SHEETS.wishbone[1], '88dvh').mount, '§9 M57 F-43.116: a hand-set z-index back on the date completion → §17.6 wishbone RED');
+    const m58 = mut(layerSrc, "return createPortal(\n    <div data-sheet-layer={testId || ''} inert={isBeneath(id)}>{children(z)}</div>,\n    document.body,\n  );", "return <div data-sheet-layer={testId || ''} inert={isBeneath(id)}>{children(z)}</div>;");
+    ok(m58 !== null && !layerCells(m58).portal, '§9 M58 F-43.116: the layer mounted in place (a transformed ancestor re-anchors it) → §17.4 RED');
+    const m59 = mut(stackSrc, "const covered = Math.max(0, Math.round(layoutHeight - vv.height - vv.offsetTop));", "const covered = 0;");
+    ok(m59 !== null && !stackDrive(m59).viewport, '§9 M59 F-43.116: the keyboard ignored → §17.3 RED');
+    const m60 = mut(stackSrc, "return { scrim: LAYER_BASE + LAYER_STEP * d, panel: LAYER_BASE + 10 + LAYER_STEP * d };", "return { scrim: LAYER_BASE, panel: LAYER_BASE + 10 };");
+    ok(m60 !== null && !stackDrive(m60).zOrder, '§9 M60 F-43.116: every layer at 40/50 again (a stacked backdrop under the sheet beneath) → §17.2 RED');
+    const m61 = mut(read(SHEETS.binder[0]), "        <div style={{ padding: `12px 24px calc(24px + ${SHEET_SAFE})`, borderTop: '0.5px solid var(--atelier-card-border)', flexShrink: 0 }}>\n", "        <div>\n");
+    ok(m61 !== null && !/flexShrink: 0 \}\}>\s*<button type="button" onClick=\{save\}/.test(strip(m61)), '§9 M61 the client edit sheet\'s Save back into the scroll → §17.8 RED');
   }
 
   sec('§9 · mutations of production source');

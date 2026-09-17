@@ -16,6 +16,7 @@
 
 import { roomHref } from '@/lib/worklist/rooms';
 import { useState } from 'react';
+import { SheetLayer, sheetBound, SHEET_BODY_SCROLL, SHEET_BOTTOM, SHEET_SAFE } from '@/components/vendor/SheetLayer';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useAsk } from '@/lib/worklist/askContext';
 import type { CabinetBinder, BinderEditFields } from '@/lib/vendor/api/vendor';
@@ -78,50 +79,58 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
     letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 4, display: 'block',
   };
 
+  // Packet 3j · F-43.116 (chair-ruled): the client's edit sheet mounts through the one vendor layer
+  // (components/vendor/SheetLayer.tsx) and its Save sits in a pinned action row, as every other
+  // sheet's does: the fields scroll on their own above it, and it stays above the keyboard. It was a
+  // single scrolling column at z-index 60 bounded by 85vh, which overstates the visible height on iOS.
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
-      onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{
+    <SheetLayer open testId="binder-edit-sheet">{(z) => (<>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: z.scrim }} />
+      <div data-lc2="binder-edit-sheet" style={{
+        position: 'fixed', left: 0, right: 0, bottom: SHEET_BOTTOM, zIndex: z.panel,
         width: '100%',
         background: 'var(--atelier-sheet-bg)',
         backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
         borderTop: '0.5px solid var(--atelier-sheet-border)',
-        padding: '20px 24px calc(24px + env(safe-area-inset-bottom))',
-        display: 'flex', flexDirection: 'column', gap: 12, maxHeight: '85vh', overflowY: 'auto',
+        boxSizing: 'border-box', display: 'flex', flexDirection: 'column', maxHeight: sheetBound('85dvh'),
       }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
-          <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
-        </div>
-        <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Edit Binder</div>
-        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{binder.client ?? 'Unnamed'}</div>
-        <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -6 }}>
-          Money is edited in chat — the witnessed door. Everything else lives here.
-        </div>
+        <div data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '20px 24px 12px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+            <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
+          </div>
+          <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Edit Binder</div>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{binder.client ?? 'Unnamed'}</div>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -6 }}>
+            Money is edited in chat — the witnessed door. Everything else lives here.
+          </div>
 
-        <div><span style={labelStyle}>Client</span><input style={inputStyle} placeholder={binder.client ?? '—'} value={fields.client ?? ''} onChange={set('client')} /></div>
-        <div><span style={labelStyle}>Date</span><input style={inputStyle} type="date" value={fields.date ?? ''} onChange={set('date')} /></div>
-        <div><span style={labelStyle}>Phone</span><input style={inputStyle} placeholder={binder.phone ?? '—'} value={fields.phone ?? ''} onChange={set('phone')} /></div>
-        <div><span style={labelStyle}>Stage</span><input style={inputStyle} placeholder={binder.stage ?? '—'} value={fields.stage ?? ''} onChange={set('stage')} /></div>
-        <div>
-          <span style={labelStyle}>Add to the story</span>
-          <textarea style={{ ...inputStyle, minHeight: 64, resize: 'vertical' }}
-            placeholder="A line added beneath what stands — the story grows."
-            value={fields.note ?? ''} onChange={set('note')} />
-        </div>
+          <div><span style={labelStyle}>Client</span><input style={inputStyle} placeholder={binder.client ?? '—'} value={fields.client ?? ''} onChange={set('client')} /></div>
+          <div><span style={labelStyle}>Date</span><input style={inputStyle} type="date" value={fields.date ?? ''} onChange={set('date')} /></div>
+          <div><span style={labelStyle}>Phone</span><input style={inputStyle} placeholder={binder.phone ?? '—'} value={fields.phone ?? ''} onChange={set('phone')} /></div>
+          <div><span style={labelStyle}>Stage</span><input style={inputStyle} placeholder={binder.stage ?? '—'} value={fields.stage ?? ''} onChange={set('stage')} /></div>
+          <div>
+            <span style={labelStyle}>Add to the story</span>
+            <textarea style={{ ...inputStyle, minHeight: 64, resize: 'vertical' }}
+              placeholder="A line added beneath what stands — the story grows."
+              value={fields.note ?? ''} onChange={set('note')} />
+          </div>
 
-        <button type="button" onClick={save} disabled={!dirty || saving}
-          className={dirty && !saving ? 'atelier-fab' : undefined}
-          style={{
-            padding: '14px 0', borderRadius: 2, marginTop: 4,
-            border: '0.5px solid var(--atelier-label)',
-            cursor: dirty && !saving ? 'pointer' : 'default',
-            fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
-            letterSpacing: '0.42em', textTransform: 'uppercase',
-            background: !dirty || saving ? 'rgba(201,168,76,0.18)' : undefined,
-            opacity: !dirty || saving ? 0.6 : 1,
-          }}>{saving ? 'Saving…' : 'Save'}</button>
+        </div>
+        <div style={{ padding: `12px 24px calc(24px + ${SHEET_SAFE})`, borderTop: '0.5px solid var(--atelier-card-border)', flexShrink: 0 }}>
+          <button type="button" onClick={save} disabled={!dirty || saving}
+            className={dirty && !saving ? 'atelier-fab' : undefined}
+            style={{
+              width: '100%', padding: '14px 0', borderRadius: 2,
+              border: '0.5px solid var(--atelier-label)',
+              cursor: dirty && !saving ? 'pointer' : 'default',
+              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
+              letterSpacing: '0.42em', textTransform: 'uppercase',
+              background: !dirty || saving ? 'rgba(201,168,76,0.18)' : undefined,
+              opacity: !dirty || saving ? 0.6 : 1,
+            }}>{saving ? 'Saving…' : 'Save'}</button>
+        </div>
       </div>
-    </div>
+    </>)}</SheetLayer>
   );
 }
 

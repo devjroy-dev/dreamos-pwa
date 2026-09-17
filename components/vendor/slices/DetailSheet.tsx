@@ -11,6 +11,7 @@
 // P3 injects the wishbone. Not yet.
 
 import type { ReactNode } from 'react';
+import { SheetLayer, sheetBound, useSheetScrollReset, SHEET_BODY_SCROLL, SHEET_BOTTOM, SHEET_SAFE } from '@/components/vendor/SheetLayer';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 import { A, F, LABELS, cap, type Row } from './SliceRow';
@@ -53,30 +54,35 @@ export function DetailSheet({
   confirmDel, setConfirmDel, deleting, deleteMsg, setDeleteMsg, confirmDelete,
   detailExtra, detailTop, detailMissing, footerExtra, bodyLoading = false, fullHeight = false,
 }: DetailSheetProps) {
+  // Packet 3j · F-43.116: the record sheet mounts through the one vendor layer (components/vendor/
+  // SheetLayer.tsx). A sheet opened over it (the booking sheet, the date completion) covers it with its
+  // own backdrop and leaves it inert; its height is bounded by the visible viewport as well as 88dvh.
+  const open = !!sel;
+  const bodyRef = useSheetScrollReset<HTMLDivElement>(open);
   return (
-    <>
-      {sel && <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'var(--atelier-overlay)' }} />}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+    <SheetLayer open={open} testId="detail-sheet">{(z) => (<>
+      {sel && <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: z.scrim, background: 'var(--atelier-overlay)' }} />}
+      <div data-lc2="detail-sheet" inert={!open} style={{
+        position: 'fixed', bottom: SHEET_BOTTOM, left: 0, right: 0, zIndex: z.panel,
         background: 'var(--atelier-sheet-bg)',
         backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
         borderTop: '0.5px solid var(--atelier-sheet-border)',
-        padding: `0 0 calc(20px + env(safe-area-inset-bottom))`,
+        padding: `0 0 calc(20px + ${SHEET_SAFE})`,
         transform: sel ? 'translateY(0)' : 'translateY(100%)',
         transition: 'transform 320ms cubic-bezier(0.22,1,0.36,1)',
-        maxHeight: '88dvh', ...(fullHeight ? { height: '88dvh' } : {}), display: 'flex', flexDirection: 'column',
+        maxHeight: sheetBound('88dvh'), ...(fullHeight ? { height: sheetBound('88dvh') } : {}), boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
       }}>
         {/* Drag handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
           <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
         </div>
         {/* Calling-card header */}
-        <div style={{ padding: '6px 24px 14px', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+        <div style={{ padding: '6px 24px 14px', borderBottom: '0.5px solid var(--atelier-card-border)', flexShrink: 0 }}>
           <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 4 }}>{LABELS[slice]}</div>
           <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', letterSpacing: '0.005em', lineHeight: 1.15 }}>{sel?.primary ?? ''}</div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px 24px' }}>
+        <div ref={bodyRef} data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, overflowX: 'hidden', padding: '12px 24px' }}>
           {/* 3g · F-43.107: no fixed-height placeholder. Until the record's first read is in the body
               is empty, and then it renders whole, so nothing already on screen moves. */}
           {bodyLoading ? null : (<>
@@ -98,7 +104,7 @@ export function DetailSheet({
         </div>
 
         {/* Footer actions */}
-        <div style={{ padding: '12px 24px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ padding: '12px 24px 0', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
           {footerExtra}
 
           {!confirmDel ? (
@@ -174,6 +180,6 @@ export function DetailSheet({
           )}
         </div>
       </div>
-    </>
+    </>)}</SheetLayer>
   );
 }

@@ -1,0 +1,13 @@
+# CE-43 · LC-2 packet 3j · dreamos-pwa only. F-19.16: a dirty path outside this list is a STOP.
+# No new directory (lib/vendor and components/vendor exist).
+lib/vendor/sheetStack.ts
+components/vendor/SheetLayer.tsx
+components/vendor/packages/PackageFields.tsx
+components/vendor/slices/DetailSheet.tsx
+components/vendor/ClientBookingSheet.tsx
+components/vendor/slices/WishboneSheet.tsx
+components/vendor/slices/BinderCard.tsx
+scripts/b82_lc2_p3_booking_bench.js
+scripts/verify-lc2-p3j-pwa.sh
+scripts/floor-manifest-lc2-p3j-pwa.txt
+docs/handovers/TDW_CE43_LC2_P3J_HANDOVER.md

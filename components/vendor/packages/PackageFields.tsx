@@ -8,6 +8,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { PackageLineItem } from '@/lib/vendor/api/vendor';
 import { PACKAGES } from '@/lib/worklist/packages';
+import { SheetLayer, sheetBound, useSheetScrollReset, SHEET_BODY_SCROLL, SHEET_BOTTOM, SHEET_SAFE } from '@/components/vendor/SheetLayer';
 
 export const T = {
   ink: 'var(--atelier-ink)',
@@ -71,33 +72,37 @@ export function primaryButton(): CSSProperties {
 export function Sheet({ open, title, onClose, children, footer, testId }: {
   open: boolean; title: string; onClose: () => void; children: ReactNode; footer: ReactNode; testId: string;
 }) {
+  // Packet 3j · F-43.116: the sheet mounts through the one vendor layer (components/vendor/SheetLayer.tsx):
+  // portaled, stacked by open order, inert beneath a higher sheet, bounded by the visible viewport and
+  // lifted above the keyboard. Its body scrolls on its own and starts at the top on every open.
+  const bodyRef = useSheetScrollReset<HTMLDivElement>(open);
   return (
-    <>
-      {open && <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 40, backgroundColor: T.overlay }} />}
+    <SheetLayer open={open} testId={testId}>{(z) => (<>
+      {open && <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: z.scrim, backgroundColor: T.overlay }} />}
       {/* F-43.89 (packet 3c, chair-ruled): a closed sheet is `inert`, not `aria-hidden`. The
           browser drops focus from an inert subtree, so a sheet that closes itself while its own
           confirm button holds focus no longer hides a focused element from assistive tech. */}
       <div data-lc2={testId} role="dialog" aria-modal="true" inert={!open} style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, backgroundColor: T.sheet,
+        position: 'fixed', bottom: SHEET_BOTTOM, left: 0, right: 0, zIndex: z.panel, backgroundColor: T.sheet,
         borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTop: `1px solid ${T.sheetBorder}`,
         transform: open ? 'translateY(0)' : 'translateY(100%)',
         transition: 'transform 320ms cubic-bezier(0.22,1,0.36,1)',
-        maxHeight: '90dvh', display: 'flex', flexDirection: 'column', paddingBottom: 'env(safe-area-inset-bottom)',
+        maxHeight: sheetBound('90dvh'), boxSizing: 'border-box', display: 'flex', flexDirection: 'column', paddingBottom: SHEET_SAFE,
       }}>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: T.dim }} />
         </div>
-        <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${T.sheetBorder}` }}>
+        <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${T.sheetBorder}`, flexShrink: 0 }}>
           <h2 style={{ fontFamily: T.display, fontWeight: 400, fontSize: 24, lineHeight: 1.3, color: T.ink, margin: 0 }}>{title}</h2>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div ref={bodyRef} data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {children}
         </div>
-        <div style={{ padding: '12px 24px 16px', borderTop: `1px solid ${T.sheetBorder}`, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div style={{ padding: '12px 24px 16px', borderTop: `1px solid ${T.sheetBorder}`, display: 'flex', gap: 12, alignItems: 'center', flexShrink: 0 }}>
           {footer}
         </div>
       </div>
-    </>
+    </>)}</SheetLayer>
   );
 }
 
