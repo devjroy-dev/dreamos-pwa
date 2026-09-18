@@ -69,7 +69,15 @@ function copyCells(src) {
       && L.folded === 'The event is under a month away, so the middle payment is part of the final one.'
       && L.counted === 'Counted from the wedding date.'
       && L.delivery('5 February 2027') === 'Delivery · 5 February 2027';
-    r.a9 = JSON.stringify(L.refusals) === JSON.stringify({ no_package: 'Attach a package first.', no_fee: 'Set the fee first.', no_wedding_date: 'Add the wedding date first.', no_handover_date: 'Add the handover date first.' });
+    // AMENDED AT CE-44 (R-44.12). The cell read the refusal set as EXACTLY four lines.
+    // R-44.12 added a fifth, `already_booked`, so the equality now reads RED on correct
+    // source. The four A9 lines are still asserted, each by name and byte; the set is no
+    // longer closed, because the estate will keep adding refusals and a closed set turns
+    // every future ruling into a false red here.
+    r.a9 = L.refusals.no_package === 'Attach a package first.'
+      && L.refusals.no_fee === 'Set the fee first.'
+      && L.refusals.no_wedding_date === 'Add the wedding date first.'
+      && L.refusals.no_handover_date === 'Add the handover date first.';
     r.vetoAt30 = m.scheduleLabel('deposit', 30) === 'Deposit, 30% of the fee, on booking'
       && m.scheduleLabel('middle', 30) === '30% one month before the first function (optional)'
       && m.scheduleLabel('final', 40) === 'The remainder, on delivery, before the work is handed over';
@@ -176,7 +184,11 @@ function cardCells(src, shellSrc) {
     // [amended, packet 3f · R-43.16] the A9 line is a NeedFirst control built by needFor(code).
     refusals: /if \(isRefusal\(code\)\) \{\s*setNeed\(needFor\(code\)\);/.test(s) && /onToast\(PACKAGE_FAILURES\.attachFailed, 'error'\)/.test(s)
       && /if \(!chosen\) \{ setNeed\(needFor\('no_package'\)\);/.test(s),
-    handoverOnly: /\{chosen && chosen\.delivery_basis === 'handover' && \(\s*<div>\s*<FieldLabel text=\{LEAD_PACKAGE\.fHandover\}/.test(s),
+    // AMENDED AT CE-44 (R-44.13). The field used to follow the PACKAGE's basis, because
+    // the sheet could not change it. F-44.6 gave her that control, so the field must now
+    // follow HER choice — `basis`, the sheet's own state, seeded from the package. The
+    // guard it proves is unchanged: the handover date appears only on a handover basis.
+    handoverOnly: /\{chosen && basis === 'handover' && \(\s*<div>\s*<FieldLabel text=\{LEAD_PACKAGE\.fHandover\}/.test(s),
     // [amended, packet 3g · F-43.107] the list comes from the room's read-once cache (`list`).
     defaultPick: /(r\.packages|list)\.find\(\(p\) => p\.is_default\)/.test(s),
     onlyChanged: /if \(total != null && total !== chosen\.total\) body\.total = total;/.test(s) && /if \(name\.trim\(\) !== chosen\.name\) body\.name = name\.trim\(\);/.test(s),
@@ -293,7 +305,7 @@ function tokenCells(files) { return files.every((f) => f.length > 0 && !LITERAL.
     [src.edit, "      const t = setTimeout(() => feeRef.current?.focus(), 340);", '      const t = setTimeout(() => {}, 340);', (m) => !editCells(m).feeFocus, 'M10 the fee focus dropped → §4.1 RED'],
     [src.card, '{scheduleRow(row.kind, row.pct, formatRs(row.amount), row.due_on)}', '{scheduleRow(row.kind, row.pct, formatRs(Math.round(lp.total * row.pct / 100)), row.due_on)}', (m) => !cardCells(m, src.shell).serverMoney, 'M11 the card computing money → §5.1 RED'],
     [src.card, '{lp.snapshot.tells.includes(\'middle_folded\') && (', '{true && (', (m) => !cardCells(m, src.shell).tells, 'M12 the fold tell always shown → §5.2 RED'],
-    [src.card, "      {chosen && chosen.delivery_basis === 'handover' && (\n        <div>\n          <FieldLabel text={LEAD_PACKAGE.fHandover}", "      {chosen && (\n        <div>\n          <FieldLabel text={LEAD_PACKAGE.fHandover}", (m) => !cardCells(m, src.shell).handoverOnly, 'M13 the handover field on every package → §5.5 RED'],
+    [src.card, "      {chosen && basis === 'handover' && (\n        <div>\n          <FieldLabel text={LEAD_PACKAGE.fHandover}", "      {chosen && (\n        <div>\n          <FieldLabel text={LEAD_PACKAGE.fHandover}", (m) => !cardCells(m, src.shell).handoverOnly, 'M13 the handover field on every package → §5.5 RED'],
     [src.card, "color: T.ink, whiteSpace: 'nowrap' }}>{formatRs(lp.total)}", "color: '#0E1112', whiteSpace: 'nowrap' }}>{formatRs(lp.total)}", (m) => !tokenCells([src.page, src.fields, src.edit, m, src.copy]), 'M14 a colour literal on the card → §6.1 RED'],
   ];
   muts.push(

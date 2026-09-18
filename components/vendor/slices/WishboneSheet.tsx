@@ -66,6 +66,14 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
   const [remaining, setRemaining] = useState<string[]>(missing);
   const first = start && missing.includes(start) ? start : (missing[0] ?? null);
   const [active, setActive] = useState<string | null>(first);
+  // ── R-44.11 (founder, 2026-09-18, "ok. first one") · THE ADVANCE DOES NOT TAKE
+  //    THE KEYBOARD ─────────────────────────────────────────────────────────────
+  // R-44.10's rule, in the chair's words to him: "the keyboard comes up only when she
+  // tapped something that names the field, and never just because a sheet opened."
+  // The OPENING cell is named by the chip she tapped, so it keeps its focus. A cell
+  // reached by `save()`'s advance below was named by nobody, so it renders without one
+  // and the keyboard rises on her tap in the field, which is itself a naming tap.
+  const [advanced, setAdvanced] = useState(false);
   const [value, setValue] = useState((initialValues && first && initialValues[first]) || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,6 +120,14 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
     setRemaining(rest);
     setValue('');
     if (rest.length === 0) { onDone(); return; }
+    // R-44.11 · `autoFocus` alone does NOT do this. React applies it on MOUNT, and the
+    // next cell reuses the same <input> element, so nothing remounts and the caret — and
+    // the keyboard with it — simply stays where it was. Driven in the real room this read
+    // RED: activeElement was still an input after the save. So the advance puts the
+    // keyboard down itself, and her tap on the field brings it back.
+    setAdvanced(true);
+    const here = document.activeElement;
+    if (here instanceof HTMLElement) here.blur();
     setActive(rest[0]);
   }
 
@@ -162,7 +178,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
                 placeholder={meta?.placeholder}
                 value={value}
                 onChange={e => { setValue(e.target.value); setError(null); }}
-                autoFocus
+                autoFocus={!advanced}
                 style={{
                   width: '100%', padding: '10px 12px', boxSizing: 'border-box',
                   background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)',

@@ -276,7 +276,10 @@ function cardCells(code, editCode) {
     continues: !/pendingKind/.test(s) && /onAttached=\{\(row\) => \{ setLp\(row\); setSheetOpen\(false\); \}\}/.test(s)
       && /onNeedWeddingDate=\{onNeedWeddingDate\}/.test(s),
     // 3f · the attach sheet's own refusals
-    attachNeeds: /fix: code === 'no_wedding_date' \? onNeedWeddingDate\s*: code === 'no_fee' \? \(\) => focusOn\('att-fee'\)\s*: code === 'no_handover_date' \? \(\) => focusOn\('att-handover'\)\s*: \(\) => focusOn\('att-pkg'\),/.test(s)
+    // AMENDED AT CE-44 (R-44.12). The chain gained one arm: `already_booked` leaves by
+    // onClose, because it is the one refusal with no field to fix until F-44.17 lands.
+    // The four arms this cell was written for are each still asserted, in order.
+    attachNeeds: /fix: code === 'no_wedding_date' \? onNeedWeddingDate\s*: code === 'no_fee' \? \(\) => focusOn\('att-fee'\)\s*: code === 'no_handover_date' \? \(\) => focusOn\('att-handover'\)\s*: code === 'already_booked' \? onClose\s*: \(\) => focusOn\('att-pkg'\),/.test(s)
       && /\{need && <NeedFirst text=\{need\.text\} onFix=\{need\.fix\} testId="attach" \/>\}/.test(s)
       && /onNeedWeddingDate: \(\) => void;\s*focus\?: 'fee' \| 'handover' \| null;/.test(s)
       && /focusOn\(focus === 'fee' \? 'att-fee' : 'att-handover'\);/.test(s),

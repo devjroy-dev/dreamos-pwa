@@ -40,7 +40,7 @@ import type { ToastKind } from '@/hooks/vendor/useToast';
 import type { BookingKind } from '@/lib/vendor/api/vendor';
 import {
   Sheet, IdentityFields, FieldLabel, inputStyle, flagged, actionButton, primaryButton,
-  wholeRupees, tidyItems, T,
+  wholeRupees, tidyItems, T, plainValue, toggleText,
 } from './PackageFields';
 
 type RefusalCode = keyof typeof LEAD_PACKAGE.refusals;
@@ -154,6 +154,7 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNee
         onToast={onToast}
         onNeedWeddingDate={onNeedWeddingDate}
         leadFacts={leadFacts}
+        booked={booked}
       />
     </div>
   );
@@ -165,7 +166,7 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNee
 // open the lead's wedding-date completion (`onNeedWeddingDate`), and this sheet stays open under
 // it. `focus` opens the sheet on the fee or handover field. F-43.105: while the vendor's packages
 // load, the sheet shows a still placeholder, never an empty form that fills in later.
-export function AttachSheet({ open, leadId, current, onClose, onAttached, onToast, onNeedWeddingDate, focus = null, leadFacts }: {
+export function AttachSheet({ open, leadId, current, onClose, onAttached, onToast, onNeedWeddingDate, focus = null, leadFacts, booked = false }: {
   open: boolean; leadId: string; current: LeadPackage | null;
   onClose: () => void; onAttached: (row: LeadPackage) => void;
   onToast: (msg: string, kind?: ToastKind) => void;
@@ -174,6 +175,9 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
   focus?: 'fee' | 'handover' | null;
   /** 3g: the lead's date facts, from the Leads room's own read; null when unknown. */
   leadFacts: LeadFacts | null;
+  /** CE-44 · F-44.31: the couple is booked, from the lead's own state the room already holds.
+      The server's `already_booked` stays the backstop; this is what stops her typing first. */
+  booked?: boolean;
 }) {
   const [packages, setPackages] = useState<VendorPackage[] | null>(packagesCache);
   // 3g: set once the vendor taps Attach package with something missing; the chips then track it.
@@ -182,6 +186,16 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
   const [fee, setFee] = useState('');
   const [handover, setHandover] = useState('');
   const [name, setName] = useState('');
+  // ── CE-44 · F-44.6 · THE COUPLE'S OWN PAYMENT SHAPE ─────────────────────────
+  // The founder walked the gap: "the change package button does not give an option of
+  // altering the payment schedule. it doesnt mirror the package page." These five carry
+  // PackageEditSheet's own labels and reach the attach route packet 5 widened. R-44.13
+  // places them between the fee and the name, in the package page's own order.
+  const [depositPct, setDepositPct] = useState('');
+  const [middlePct, setMiddlePct] = useState('');
+  const [middleOn, setMiddleOn] = useState(true);
+  const [basis, setBasis] = useState<'on_the_day' | 'days' | 'handover'>('days');
+  const [days, setDays] = useState('');
   const [description, setDescription] = useState('');
   const [items, setItems] = useState<PackageLineItem[]>([]);
   const [need, setNeed] = useState<{ text: string; fix: () => void } | null>(null);
@@ -200,6 +214,12 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
     setName(p ? p.name : '');
     setDescription(p ? p.description : '');
     setItems(p ? p.line_items.map((x) => ({ ...x })) : []);
+    // F-44.6: the couple's shape starts as the package's own, then she may change it.
+    setDepositPct(p && p.deposit_pct != null ? String(p.deposit_pct) : '');
+    setMiddlePct(p && p.middle_pct != null ? String(p.middle_pct) : '');
+    setMiddleOn(p ? !!p.middle_enabled : true);
+    setBasis(p ? ((p.delivery_basis as 'on_the_day' | 'days' | 'handover') || 'days') : 'days');
+    setDays(p && p.delivery_days != null ? String(p.delivery_days) : '');
     setHandover('');
   }, []);
 
@@ -230,6 +250,10 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
     fix: code === 'no_wedding_date' ? onNeedWeddingDate
       : code === 'no_fee' ? () => focusOn('att-fee')
       : code === 'no_handover_date' ? () => focusOn('att-handover')
+      // R-44.12 · `already_booked` is the one refusal with no way forward until F-44.17
+      // lands in LC-3, so its only act is to leave. Focusing a field she cannot save
+      // would be the sheet pretending there is something to fix.
+      : code === 'already_booked' ? onClose
       : () => focusOn('att-pkg'),
   });
   const needForField = (field: string) => ({
@@ -259,7 +283,17 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
     if (description.trim() !== chosen.description) body.description = description.trim();
     const tidy = tidyItems(items);
     if (JSON.stringify(tidy) !== JSON.stringify(chosen.line_items)) body.line_items = tidy;
-    if (chosen.delivery_basis === 'handover' && handover) body.delivery_on = handover;
+    // F-44.6: each of the five travels only when it differs from the package's own, so an
+    // untouched attach sends exactly the body it sent before this packet.
+    const dep = depositPct.trim() === '' ? null : Number(depositPct);
+    const mid = middlePct.trim() === '' ? null : Number(middlePct);
+    const dys = days.trim() === '' ? null : Number(days);
+    if (dep != null && dep !== chosen.deposit_pct) body.deposit_pct = dep;
+    if (mid != null && mid !== chosen.middle_pct) body.middle_pct = mid;
+    if (middleOn !== !!chosen.middle_enabled) body.middle_enabled = middleOn;
+    if (basis !== chosen.delivery_basis) body.delivery_basis = basis;
+    if (dys != null && dys !== chosen.delivery_days) body.delivery_days = dys;
+    if (basis === 'handover' && handover) body.delivery_on = handover;
     setBusy(true); setNeed(null); setBad(null);
     try {
       const r = await attachLeadPackage(leadId, body);
@@ -287,7 +321,9 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
       testId="attach-sheet"
       title={LEAD_PACKAGE.sheetTitle}
       onClose={onClose}
-      footer={(
+      footer={booked ? (
+        <button type="button" style={actionButton('mute')} onClick={onClose}>{LEAD_PACKAGE.close}</button>
+      ) : (
         <>
           <button type="button" style={actionButton('mute')} onClick={onClose}>{PACKAGES.cancel}</button>
           <button type="button" style={primaryButton()} onClick={() => { void submit(); }} aria-busy={busy}>{LEAD_PACKAGE.attach}</button>
@@ -295,6 +331,29 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
       )}
     >
       <div ref={bodyRef} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* ── R-44.13 · S2 · A BOOKED COUPLE ───────────────────────────────────────
+          The founder ruled the picture: his sentence, the package and the fee as plain
+          text, one Close. No editable field and no Attach button, because none of them
+          can be saved until F-44.17 lands in LC-3. The title stays `Attach a package`:
+          it is the one held title and packages.ts says it speaks on attach and change
+          alike, so no new word is minted for this state. */}
+      {booked ? (
+        <>
+          <NeedFirst text={LEAD_PACKAGE.refusals.already_booked} onFix={onClose} testId="attach-booked" />
+          {current && (
+            <>
+              <div>
+                <FieldLabel text={LEAD_PACKAGE.fPackage} htmlFor="att-booked-pkg" />
+                <p id="att-booked-pkg" style={plainValue}>{current.snapshot.name}</p>
+              </div>
+              <div>
+                <FieldLabel text={LEAD_PACKAGE.fFee} htmlFor="att-booked-fee" />
+                <p id="att-booked-fee" style={plainValue}>{formatRs(current.total)}</p>
+              </div>
+            </>
+          )}
+        </>
+      ) : (<>
       {asked && (
         <MissingChips testId="attach" onPick={pickNeed}
           cells={needsNow.map((c) => ({ key: c, label: LEAD_PACKAGE.needLabel[c] }))} />
@@ -316,7 +375,43 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
         <input id="att-fee" inputMode="numeric" style={{ ...inputStyle, ...(bad === 'total' ? flagged : {}) }} value={fee}
           onChange={(e) => setFee(e.target.value.replace(/[^\d]/g, ''))} />
       </div>
-      {chosen && chosen.delivery_basis === 'handover' && (
+      {/* F-44.6 · R-44.13: the couple's own payment shape, between the fee and the name,
+          in the package page's order. PackageEditSheet's own labels; no new word. */}
+      {chosen && (<>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 11 }}>
+          <div>
+            <FieldLabel text={PACKAGES.fDeposit} htmlFor="att-dep" />
+            <input id="att-dep" inputMode="numeric" style={{ ...inputStyle, ...(bad === 'deposit_pct' ? flagged : {}) }}
+              value={depositPct} onChange={(e) => setDepositPct(e.target.value.replace(/[^\d]/g, ''))} />
+          </div>
+          <div>
+            <FieldLabel text={PACKAGES.fMiddle} htmlFor="att-mid" />
+            <input id="att-mid" inputMode="numeric" style={{ ...inputStyle, ...(bad === 'middle_pct' ? flagged : {}) }}
+              value={middlePct} onChange={(e) => setMiddlePct(e.target.value.replace(/[^\d]/g, ''))} />
+          </div>
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+          <input type="checkbox" checked={middleOn} onChange={(e) => setMiddleOn(e.target.checked)} />
+          <span style={toggleText}>{PACKAGES.fTakeMiddle}</span>
+        </label>
+        <div>
+          <FieldLabel text={PACKAGES.fDelivery} htmlFor="att-basis" />
+          <select id="att-basis" style={{ ...inputStyle, ...(bad === 'delivery_basis' ? flagged : {}) }} value={basis}
+            onChange={(e) => setBasis(e.target.value as 'on_the_day' | 'days' | 'handover')}>
+            <option value="on_the_day">{PACKAGES.dOnTheDay}</option>
+            <option value="days">{PACKAGES.dDays}</option>
+            <option value="handover">{PACKAGES.dHandover}</option>
+          </select>
+        </div>
+        {basis === 'days' && (
+          <div>
+            <FieldLabel text={PACKAGES.fDays} htmlFor="att-days" />
+            <input id="att-days" inputMode="numeric" style={{ ...inputStyle, ...(bad === 'delivery_days' ? flagged : {}) }}
+              value={days} onChange={(e) => setDays(e.target.value.replace(/[^\d]/g, ''))} />
+          </div>
+        )}
+      </>)}
+      {chosen && basis === 'handover' && (
         <div>
           <FieldLabel text={LEAD_PACKAGE.fHandover} htmlFor="att-handover" />
           <input id="att-handover" type="date" style={{ ...inputStyle, ...(bad === 'delivery_on' ? flagged : {}) }} value={handover}
@@ -327,6 +422,7 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
         <IdentityFields name={name} description={description} items={items}
           onName={setName} onDescription={setDescription} onItems={setItems} badField={bad} />
       )}
+      </>)}
       </>)}
       </div>
     </Sheet>

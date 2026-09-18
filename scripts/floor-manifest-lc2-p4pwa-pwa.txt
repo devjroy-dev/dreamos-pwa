@@ -1,0 +1,25 @@
+# CE-44 · LC-2 the pwa half · dreamos-pwa only. F-19.16: a dirty path outside this list is a STOP.
+# No new directory. New files: b83 and its room probe, this packet's verify script and this
+# manifest, the CE-44 handover, and docs/mocks (the approved mock and its six frames).
+components/vendor/packages/LeadPackageCard.tsx
+components/vendor/packages/PackageFields.tsx
+components/vendor/slices/ForwardSheet.tsx
+components/vendor/slices/SliceShell.tsx
+components/vendor/slices/WishboneSheet.tsx
+lib/vendor/api/vendor.ts
+lib/worklist/packages.ts
+scripts/b81_lc2_p2_room_bench.js
+scripts/b82_lc2_p3_booking_bench.js
+scripts/b83_lc2_p4pwa_bench.js
+scripts/lib/b83_room_probe.mjs
+scripts/verify-lc2-p4pwa-pwa.sh
+scripts/floor-manifest-lc2-p4pwa-pwa.txt
+docs/handovers/TDW_CE43_LC2_P3L_HANDOVER.md
+docs/handovers/TDW_CE44_LC2_P4PWA_HANDOVER.md
+docs/mocks/attach-sheet-mock.html
+docs/mocks/attach-sheet-mock__S1__dark__374.png
+docs/mocks/attach-sheet-mock__S1__light__374.png
+docs/mocks/attach-sheet-mock__S2__dark__374.png
+docs/mocks/attach-sheet-mock__S2__light__374.png
+docs/mocks/attach-sheet-REAL__dark__374.png
+docs/mocks/attach-sheet-REAL__light__374.png

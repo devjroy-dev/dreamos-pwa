@@ -145,12 +145,16 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
           <>
             <div style={{ ...label, letterSpacing: '0.42em', color: A.brass }}>{RF.pickerTitle}</div>
 
+            {/* R-44.10 (founder, 2026-09-18, "yes."): the keyboard comes up only when she
+                tapped something that NAMES the field, and never just because a sheet
+                opened. This sheet opens on a Forward tap, which names no field, so its
+                autoFocus is gone. Every remaining focus call in the vendor tree is driven
+                by a tap or a refusal that names its own field, and those stay. */}
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder={RF.searchPlaceholder}
               aria-label={RF.searchPlaceholder}
-              autoFocus
               style={{
                 width: '100%', boxSizing: 'border-box', background: 'var(--atelier-input-bg)',
                 border: '0.5px solid var(--atelier-input-border)', borderRadius: 3,

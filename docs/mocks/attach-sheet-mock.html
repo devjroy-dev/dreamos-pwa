@@ -1,0 +1,128 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>CE-44 · LC-2 · the change-package sheet, with the couple's own schedule</title>
+<!--
+  docs/mocks/attach-sheet-mock.html — TDW CE-44 · LC-2 · the pwa half (b83) · F-44.6.
+
+  WHAT THIS IS. The attach and change sheet as it will look once it mirrors the package
+  page. Nothing is built; the founder rules on the picture before a byte of glass moves.
+
+  THE PALETTE IS GRAPHITE AND CHALK, from app/globals.css:1293 and :1331 — the layer that
+  OVERRIDES the older Espresso block at :727. The first cut of this mock was built from
+  :727 and came out brown and gold; the founder caught it (e-44.16). Near-black with teal
+  #68C9B4 in Graphite, white with #0D6A5A in Chalk, matching lib/vendor/theme.ts:157/:218.
+
+  THE CHROME IS COPIED FROM THE RUNNING APP, not from memory: sentence-case labels rather
+  than uppercase, sentence-case buttons, the script face on the title, teal input borders.
+  attach-sheet-REAL__dark__374.png and __light__374.png are that same sheet as it ships
+  today, driven in the real room under C-43.18, and they sit beside these frames as proof.
+
+  EVERY BYTE IS ONE THE ESTATE ALREADY HOLDS, read out of lib/worklist/packages.ts:
+  'Deposit on booking (%)', 'Middle payment (%)', 'Take a middle payment', 'Delivery',
+  'Days after the event', 'Days'. The refusal is R-44.12, the founder's own.
+
+  NO RUPEE SPLIT LINE. The chair asked for one "if PackageEditSheet shows a rupee split
+  beneath the shares". It does not: the split bar lives on the room's card, not in the
+  sheet. The condition is false, so no line is drawn.
+-->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Cormorant+Garamond:wght@300;400&display=swap');
+  :root{
+    --bg:#0F1011; --sheet:#1D1E20; --sheet-border:rgba(240,244,246,.14);
+    --input-bg:rgba(240,244,246,.040); --input-border:rgba(104,201,180,.58);
+    --overlay:rgba(10,11,12,.74);
+    --ink:#EDEEEF; --ink-soft:#C8CACC; --ink-dim:#A3A6A9; --ink-mute:#888B8E; --ink-fade:#585B5E;
+    --accent:#68C9B4;
+  }
+  [data-theme="light"]{
+    --bg:#EDEEEF; --sheet:#FFFFFF; --sheet-border:rgba(23,25,26,.16);
+    --input-bg:rgba(23,25,26,.035); --input-border:rgba(13,106,90,.68);
+    --overlay:rgba(23,25,26,.44);
+    --ink:#0E1112; --ink-soft:#272B2D; --ink-dim:#3D4245; --ink-mute:#52585B; --ink-fade:#8A8D90;
+    --accent:#0D6A5A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0a;font-family:"DM Sans",system-ui,sans-serif}
+  .frame{width:374px;background:var(--bg);position:relative;overflow:hidden}
+  .scrim{position:absolute;inset:0;background:var(--overlay)}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--sheet);
+    border-top:.5px solid var(--sheet-border);border-radius:10px 10px 0 0;overflow:hidden}
+  .grab{width:36px;height:3px;border-radius:2px;background:var(--ink-fade);margin:9px auto 0}
+  .title{font-family:"Cormorant Garamond",Georgia,serif;font-weight:400;font-size:26px;
+    color:var(--ink);padding:14px 24px 16px;letter-spacing:.005em}
+  .hr{height:.5px;background:var(--sheet-border)}
+  .body{padding:18px 24px 0}
+  .lab{font:400 12.5px "DM Sans",system-ui;color:var(--ink-dim);margin:0 0 7px}
+  .in{width:100%;height:44px;border:1px solid var(--input-border);border-radius:3px;
+    background:var(--input-bg);color:var(--ink);font:400 16px "DM Sans",system-ui;
+    padding:0 12px;display:flex;align-items:center}
+  .in.sel::after{content:"⌄";margin-left:auto;color:var(--ink-dim);font-size:15px}
+  .fld{margin-bottom:16px}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .new{position:relative}
+  .new::before{content:"";position:absolute;left:-24px;top:-5px;bottom:-5px;width:2px;
+    background:var(--accent);opacity:.9}
+  .tog{display:flex;align-items:center;gap:10px;margin:0 0 16px}
+  .box{width:17px;height:17px;border:1px solid var(--input-border);border-radius:3px;
+    display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:11px}
+  .tog span{font:400 15px "DM Sans",system-ui;color:var(--ink-soft)}
+  .plain{font:400 16px "DM Sans",system-ui;color:var(--ink);padding:3px 0 2px}
+  .foot{border-top:.5px solid var(--sheet-border);padding:14px 24px 18px;
+    display:grid;grid-template-columns:1fr 2fr;gap:11px;margin-top:4px}
+  .foot.one{grid-template-columns:1fr}
+  .btn{height:46px;border:1px solid var(--ink-fade);border-radius:3px;
+    display:flex;align-items:center;justify-content:center;
+    font:400 15px "DM Sans",system-ui;color:var(--ink-dim)}
+  .btn.go{border-color:var(--accent);color:var(--accent)}
+  .needfirst{border:1px dashed var(--accent);border-radius:3px;padding:11px 13px;
+    font:400 14.5px/1.5 "DM Sans",system-ui;color:var(--accent);margin-bottom:17px}
+  .cap{font:500 11px/1.55 "DM Sans",system-ui;letter-spacing:.05em;color:#8A8D90;
+    max-width:374px;margin:0 0 8px;text-transform:uppercase}
+  .row{display:flex;gap:26px;padding:22px;align-items:flex-start}
+  .stack{display:flex;flex-direction:column}
+</style>
+
+<div class="row">
+  <div class="stack">
+    <div class="cap"><b>S1 · the sheet, with the couple's own schedule</b></div>
+    <div class="frame" data-shot="S1" style="height:760px">
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="title">Attach a package</div>
+        <div class="hr"></div>
+        <div class="body">
+          <div class="fld"><p class="lab">Package</p><div class="in sel">Photographs and film</div></div>
+          <div class="fld"><p class="lab">Fee for this couple</p><div class="in">80000</div></div>
+          <div class="fld new pair">
+            <div><p class="lab">Deposit on booking (%)</p><div class="in">30</div></div>
+            <div><p class="lab">Middle payment (%)</p><div class="in">30</div></div>
+          </div>
+          <div class="tog new"><span class="box">✓</span><span>Take a middle payment</span></div>
+          <div class="fld new"><p class="lab">Delivery</p><div class="in sel">Days after the event</div></div>
+          <div class="fld new"><p class="lab">Days</p><div class="in">45</div></div>
+          <div class="fld"><p class="lab">Name</p><div class="in">Photographs and film</div></div>
+        </div>
+        <div class="foot"><div class="btn">Cancel</div><div class="btn go">Attach package</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="cap"><b>S2 · the same sheet on a booked couple</b></div>
+    <div class="frame" data-shot="S2" style="height:760px">
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="title">Attach a package</div>
+        <div class="hr"></div>
+        <div class="body">
+          <div class="needfirst">This couple is booked. The package is fixed on their invoice.</div>
+          <div class="fld"><p class="lab">Package</p><div class="plain">Photographs and film</div></div>
+          <div class="fld"><p class="lab">Fee for this couple</p><div class="plain">Rs 80,000</div></div>
+        </div>
+        <div class="foot one"><div class="btn">Close</div></div>
+      </div>
+    </div>
+  </div>
+</div>

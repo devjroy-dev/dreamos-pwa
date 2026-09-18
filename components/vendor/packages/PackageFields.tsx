@@ -33,6 +33,17 @@ export const inputStyle: CSSProperties = {
 };
 export const flagged: CSSProperties = { borderColor: T.accent, borderWidth: 1.5 };
 
+/** CE-44 · R-44.13: a value the sheet shows but cannot edit (the booked couple's
+ *  package and fee). Tokens only, the input's own type size, no border. */
+export const plainValue: CSSProperties = {
+  fontFamily: T.body, fontWeight: 400, fontSize: 16, color: 'var(--atelier-ink)',
+  margin: 0, padding: '3px 0 2px',
+};
+/** The toggle's own label text, beside the middle-payment checkbox. */
+export const toggleText: CSSProperties = {
+  fontFamily: T.body, fontWeight: 400, fontSize: 15, color: 'var(--atelier-ink-soft)',
+};
+
 export function FieldLabel({ text, htmlFor }: { text: string; htmlFor?: string }) {
   return (
     <label htmlFor={htmlFor} style={{ display: 'block', fontFamily: T.body, fontSize: 12, color: T.mute, marginBottom: 6 }}>

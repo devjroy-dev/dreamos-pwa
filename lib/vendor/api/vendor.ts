@@ -338,6 +338,14 @@ export interface AttachInput {
   description?: string;
   line_items?: PackageLineItem[];
   delivery_on?: string;
+  // CE-44 · F-44.6: the couple's own payment shape. The attach route's accept-list was
+  // widened by packet 5 (dream-os `leadPackages.js` EDITABLE and OVERLAY_KEYS); before
+  // that it refused these five by name with `422 invalid`.
+  deposit_pct?: number;
+  middle_pct?: number;
+  middle_enabled?: boolean;
+  delivery_basis?: 'on_the_day' | 'days' | 'handover';
+  delivery_days?: number;
 }
 export function fetchLeadPackage(leadId: string): Promise<{ ok: true; lead_package: LeadPackage | null } | ApiErr> {
   return getJson<{ ok: true; lead_package: LeadPackage | null } | ApiErr>(`/api/v2/vendor/leads/${encodeURIComponent(leadId)}/package`);

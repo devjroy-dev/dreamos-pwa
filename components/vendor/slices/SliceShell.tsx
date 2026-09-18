@@ -66,7 +66,7 @@ import { useCabinetData } from '@/hooks/vendor/useVendorData'; // TDW_04 A3: bin
 import { deriveClients, derivePipeline, deriveExpensesThisMonth, deriveEventsThisWeek } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { BulkBar, type BulkAction } from './BulkBar';   // TDW_04 A2: select mode
 import { queueUndoable, flushAllPending, UNDO_WINDOW_MS } from '@/lib/vendor/undo'; // TDW_04 A2: F2's cure · A4: F-04.14 ruled
-import { WishboneSheet } from './WishboneSheet'; // TDW_04 A1: leads-plane wishbone (own module per tenancy law)
+import { WishboneSheet , chipLabel } from './WishboneSheet'; // TDW_04 A1: leads-plane wishbone (own module per tenancy law)
 import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
 import type { ScheduleMilestone } from '@/lib/vendor/types/vendor';
 import { ConversationThread } from '@/components/vendor/ConversationThread';
@@ -1221,7 +1221,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const missingTop = slice === 'leads' && sel && (sel.draftMissing?.length ?? 0) > 0 ? (
     <div style={{ marginBottom: 14 }}>
       <MissingChips heading testId="lead"
-        cells={sel.draftMissing!.map((c) => ({ key: c, label: cap(c.replace(/_/g, ' ')) }))}
+        // ── F-44.3 (CE-44) · ONE LABEL HOME FOR A CELL ─────────────────────────
+        // The chip read `+ Wedding Date` while the sheet it opens says `+ Wedding date`,
+        // because `cap()` (SliceRow.tsx:217) capitalises EVERY word and that is right for
+        // a detail VALUE and wrong for a column name. `chipLabel` is the WishboneSheet's
+        // own, and it falls back to the same `cap(...)` for a cell with no FIELD_META
+        // entry, so nothing else moves. Swept at CE-44: this was the only `cap()` on a
+        // cell KEY in the tree.
+        cells={sel.draftMissing!.map((c) => ({ key: c, label: chipLabel(c) }))}
         onPick={(c) => { setWishboneStart(c); setWishboneRow(sel); }} />
     </div>
   ) : null;
@@ -2118,6 +2125,15 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             // Cells here ∈ LEAD_EXPECTED = name/phone/wedding_date/wedding_city/
             // budget_max — all UpdateLeadRequest keys; budget is numeric.
             const body: Record<string, string | number> = { [cell]: cell === 'budget_max' ? Number(value) : value };
+            // ── F-43.122 (CE-44) · A DATE FILED HERE IS A DAY ──────────────────
+            // This route built its body from the cell key alone and could carry no
+            // precision, so a wedding date filed through a chip landed with whatever
+            // precision already stood — driven in a browser at F-43.117's probe, it
+            // PATCHed {"wedding_date":"2027-03-14"} with none. The `dateFix` route at
+            // :2102 has always sent 'day'. Now all three pwa date-write routes do.
+            if (cell === 'wedding_date' && /^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
+              body.wedding_date_precision = 'day';
+            }
             const res = await updateLead(wishboneRow.id, body);
             if (!res.ok) return ('error' in res && res.error) || 'Could not file it — try again.';
             invalidateSlice('leads');

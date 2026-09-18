@@ -116,7 +116,18 @@ export const LEAD_PACKAGE = {
     no_fee: 'Set the fee first.',
     no_wedding_date: 'Add the wedding date first.',
     no_handover_date: 'Add the handover date first.',
+    /** R-44.12 (founder, 2026-09-18, "OK TO YUR SUGGESTION."). It replaces
+     *  `attachFailed` for the code `already_booked` ALONE; every other attach failure
+     *  keeps "Could not attach the package."
+     *  ⚠ THIS SENTENCE CHANGES WHEN F-44.17 LANDS IN LC-3. It offers no way forward
+     *  because none exists: a booked couple's package cannot be changed until the
+     *  invoice and its instalments can move with it. When they can, this line must
+     *  name that way rather than close the door. */
+    already_booked: 'This couple is booked. The package is fixed on their invoice.',
   },
+  /** The booked sheet's one way out. CARRIED, NOT COINED: `referrals.ts:118`
+   *  `refusalClose` is the estate's own Close on a refusal, which is this case. */
+  close: 'Close',
 } as const;
 
 // ── A5 · THE SCHEDULE LINES, WITH THE PACKAGE'S OWN SHARES (F26) ──────────────
