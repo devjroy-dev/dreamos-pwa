@@ -209,12 +209,38 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
 
   const chosen = useMemo(() => (packages || []).find((p) => p.id === packageId) || null, [packages, packageId]);
 
-  const fillFrom = useCallback((p: VendorPackage | null) => {
+  // ── CE-44 · F-44.37 · SEED FROM HER, NOT FROM THE PACKAGE ───────────────────
+  // `fillFrom` used to seed every field from the PACKAGE, on first open and on re-open
+  // alike. Driven: a couple whose live row held middle 45 and ON, against a package of 30
+  // and OFF, opened showing 30 and OFF; and after saving 40 and ON, re-opened showing 30
+  // and OFF again. So the sheet hid what she saved AND re-armed against the package, so a
+  // second save could drop her earlier change silently.
+  //
+  // The rule now: when the selected package IS the one her live row was cut from, EVERY
+  // field seeds from HER row. On a first attach, or the moment she picks a DIFFERENT
+  // package, the fields seed from that package. Switching away and back re-seeds from her
+  // live row, never from a half-typed state: the selector is a choice of source, and the
+  // source is always a saved thing, never the middle of an edit.
+  const fillFrom = useCallback((p: VendorPackage | null, live: LeadPackage | null) => {
+    const hers = live && p && live.package_id === p.id ? live : null;
+    if (hers) {
+      const sn = hers.snapshot;
+      setFee(hers.total != null ? String(hers.total) : '');
+      setName(sn.name);
+      setDescription(sn.description);
+      setItems(sn.line_items.map((x) => ({ ...x })));
+      setDepositPct(sn.deposit_pct != null ? String(sn.deposit_pct) : '');
+      setMiddlePct(sn.middle_pct != null ? String(sn.middle_pct) : '');
+      setMiddleOn(!!sn.middle_enabled);
+      setBasis((sn.delivery_basis as 'on_the_day' | 'days' | 'handover') || 'days');
+      setDays(sn.delivery_days != null ? String(sn.delivery_days) : '');
+      setHandover(hers.delivery_on ? String(hers.delivery_on).slice(0, 10) : '');
+      return;
+    }
     setFee(p && p.total != null ? String(p.total) : '');
     setName(p ? p.name : '');
     setDescription(p ? p.description : '');
     setItems(p ? p.line_items.map((x) => ({ ...x })) : []);
-    // F-44.6: the couple's shape starts as the package's own, then she may change it.
     setDepositPct(p && p.deposit_pct != null ? String(p.deposit_pct) : '');
     setMiddlePct(p && p.middle_pct != null ? String(p.middle_pct) : '');
     setMiddleOn(p ? !!p.middle_enabled : true);
@@ -227,16 +253,33 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
     if (!open) return;
     setNeed(null); setBad(null); setBusy(false); setAsked(false);
     let alive = true;
-    void loadPackagesOnce().then((list) => {
+    // ── CE-44 · F-44.34 · RE-READ ON OPEN, AND NEVER SEED FROM MEMORY ─────────
+    // `loadPackagesOnce` returns a module-level cache (`:52`) that is cleared only by the
+    // Leads slice's own effect (SliceShell.tsx:488). Nothing in the Packages room clears
+    // it, so a package edited there and then opened here was diffed against a remembered
+    // copy. Driven: the sheet showed the middle ticked on a package whose middle was off,
+    // her tick equalled that belief, and `middle_enabled` was never sent.
+    // The sheet now reads the list fresh every time it opens. A failed read says so and
+    // seeds NOTHING, because a remembered list is exactly what caused this.
+    void fetchPackages().then((r) => {
       if (!alive) return;
+      if (!r || !r.ok) {
+        setPackages([]);
+        setPackageId('');
+        fillFrom(null, null);
+        onToast(PACKAGE_FAILURES.attachFailed, 'error');
+        return;
+      }
+      const list = r.packages;
       setPackages(list);
+      resetPackagesCache(); // the room's own next read takes the truth, not the stale copy
       const pick = (current && list.find((p) => p.id === current.package_id))
         || list.find((p) => p.is_default) || null;
       setPackageId(pick ? pick.id : '');
-      fillFrom(pick);
+      fillFrom(pick, current || null);
     });
     return () => { alive = false; };
-  }, [open, current, fillFrom]);
+  }, [open, current, fillFrom, onToast]);
 
   // `focus` opens the sheet on the field the booking sheet's refusal named, once the form exists.
   useEffect(() => {
@@ -276,23 +319,30 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
       return;
     }
     if (!chosen) { setNeed(needFor('no_package')); setBad('package_id'); return; }
-    const body: AttachInput = { package_id: chosen.id };
+    // ── CE-44 · F-44.34 · WHAT SHE SEES IS WHAT IS SENT ──────────────────────
+    // Every field used to travel only when it DIFFERED from `chosen`, the package as the
+    // sheet remembered it. Driven with the memory one edit stale: she ticked the middle
+    // on, the box was already ticked because the sheet believed it was, the difference was
+    // nil, and `middle_enabled` never left. The server merged her 40 onto a package whose
+    // middle is off and stored two payments while the toast said "Package attached."
+    // `total`, `name`, `description` and `line_items` sat under the same hazard.
+    // No diff now. The glass is the truth and all nine go, every time.
     const total = wholeRupees(fee);
-    if (total != null && total !== chosen.total) body.total = total;
-    if (name.trim() !== chosen.name) body.name = name.trim();
-    if (description.trim() !== chosen.description) body.description = description.trim();
-    const tidy = tidyItems(items);
-    if (JSON.stringify(tidy) !== JSON.stringify(chosen.line_items)) body.line_items = tidy;
-    // F-44.6: each of the five travels only when it differs from the package's own, so an
-    // untouched attach sends exactly the body it sent before this packet.
     const dep = depositPct.trim() === '' ? null : Number(depositPct);
     const mid = middlePct.trim() === '' ? null : Number(middlePct);
     const dys = days.trim() === '' ? null : Number(days);
-    if (dep != null && dep !== chosen.deposit_pct) body.deposit_pct = dep;
-    if (mid != null && mid !== chosen.middle_pct) body.middle_pct = mid;
-    if (middleOn !== !!chosen.middle_enabled) body.middle_enabled = middleOn;
-    if (basis !== chosen.delivery_basis) body.delivery_basis = basis;
-    if (dys != null && dys !== chosen.delivery_days) body.delivery_days = dys;
+    const body: AttachInput = {
+      package_id: chosen.id,
+      name: name.trim(),
+      description: description.trim(),
+      line_items: tidyItems(items),
+      middle_enabled: middleOn,
+      delivery_basis: basis,
+    };
+    if (total != null) body.total = total;
+    if (dep != null) body.deposit_pct = dep;
+    if (mid != null) body.middle_pct = mid;
+    if (dys != null) body.delivery_days = dys;
     if (basis === 'handover' && handover) body.delivery_on = handover;
     setBusy(true); setNeed(null); setBad(null);
     try {
@@ -365,7 +415,13 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
       <div>
         <FieldLabel text={LEAD_PACKAGE.fPackage} htmlFor="att-pkg" />
         <select id="att-pkg" style={{ ...inputStyle, ...(bad === 'package_id' ? flagged : {}) }} value={packageId}
-          onChange={(e) => { setPackageId(e.target.value); fillFrom(packages.find((p) => p.id === e.target.value) || null); setNeed(null); }}>
+          onChange={(e) => {
+            // F-44.37: the selector chooses a SOURCE. Her own package re-seeds from her
+            // live row; any other re-seeds from that package. Never from a half-typed state.
+            setPackageId(e.target.value);
+            fillFrom(packages.find((p) => p.id === e.target.value) || null, current || null);
+            setNeed(null);
+          }}>
           <option value="" disabled>Select…</option>
           {packages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>

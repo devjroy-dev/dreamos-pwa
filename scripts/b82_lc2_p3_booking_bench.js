@@ -290,8 +290,15 @@ function cardCells(code, editCode) {
     readOnce: /let packagesCache: VendorPackage\[\] \| null = null;/.test(s)
       && /export function loadPackagesOnce\(\): Promise<VendorPackage\[\]> \{\s*if \(packagesCache\) return Promise\.resolve\(packagesCache\);/.test(s)
       && /useState<VendorPackage\[\] \| null>\(packagesCache\)/.test(s)
-      && /void loadPackagesOnce\(\)\.then\(\(list\) => \{/.test(s)
-      && (s.match(/fetchPackages\(\)/g) || []).length === 1
+      // AMENDED BY LABEL AT CE-44 (F-44.34). F-43.107's point was that the sheet never
+      // draws an empty form that fills in later, and the room's prime-on-entry and
+      // clear-on-leave still do that. What is gone is the SHEET taking the cache's word
+      // on OPEN: driven, a package edited elsewhere left the sheet diffing against a
+      // remembered copy and dropping a key the vendor had set. The sheet now re-reads,
+      // so `fetchPackages()` appears twice, and seeds nothing from memory on a failure.
+      && /void fetchPackages\(\)\.then\(\(r\) => \{/.test(s)
+      && /if \(!r \|\| !r\.ok\)/.test(s)
+      && (s.match(/fetchPackages\(\)/g) || []).length === 2
       && /if \(r && r\.ok\) \{ packagesCache = r\.packages; return r\.packages; \}\s*packagesInflight = null;/.test(s),
     // 3g · item 1 (corrected): the attach sheet says what is missing before it sends
     attachAsks: /const needsNow: NeedCell\[\] = attachNeeds\(\{ chosen, fee: wholeRupees\(fee\), handover, lead: leadFacts \}\);/.test(s)
@@ -961,7 +968,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     [F.card, "fix: code === 'no_wedding_date' ? onNeedWeddingDate", "fix: code === 'no_wedding_date' ? () => focusOn('att-pkg')", (m) => !cardCells(m, src.edit).attachNeeds, 'M38 R-43.16: the date refusal without its date fix → §13.4 RED'],
     [F.card, "if (initial !== undefined) { setLp(initial); return; }", '', (m) => !cardCells(m, src.edit).initialRead, 'M39 F-43.105: the card ignores the detail\'s read → §13.7 RED'],
     [F.shell, "void fetchLeadPackage(id)\n      .then((pk) => setLeadPkg(", "void Promise.all([\n      fetchLeadDetail(id).catch(() => null), fetchLeadPackage(id)]).then(([, pk]) => setLeadPkg(", (m) => !shellCells(m).together, 'M40 [re-aimed, 3g] the reads made to wait on each other → §13.6 RED'],
-    [F.card, "if (packagesCache) return Promise.resolve(packagesCache);", '', (m) => !cardCells(m, src.edit).readOnce, 'M44 F-43.107: the packages read every open → §14.8 RED'],
+    [F.card, "void fetchPackages().then((r) => {", "void loadPackagesOnce().then((r) => {", (m) => !cardCells(m, src.edit).readOnce, 'M44 [re-aimed, F-44.34] the sheet trusts the cache on open → §14.8 RED'],
     [F.card, "    if (needsNow.length) {\n      setAsked(true); setNeed(null);", "    if (false) {\n      setAsked(true); setNeed(null);", (m) => !cardCells(m, src.edit).attachAsks, 'M45 item 1: the attach sends with something missing → §14.4 RED'],
     [F.shell, "wedding_date_precision: 'day' }", '}', (m) => !shellCells(m).dateFix, 'M41 F-43.76: the fixed date is not stored exact → §13.5 RED'],
     [F.shell, '          if (packagePayBlocked(row)) return;', '', (m) => !shellCells(m).guardOnce, 'M22 F-43.88: a second tap slips through → §10.1 RED'],

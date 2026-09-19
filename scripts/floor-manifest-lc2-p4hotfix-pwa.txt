@@ -1,0 +1,12 @@
+# CE-44 · LC-2 packet 4 pwa HOTFIX · F-44.34 and F-44.37 · dreamos-pwa only.
+# F-19.16: a dirty path outside this list is a STOP. New files: the F-44.34 probe (in
+# scripts/lib/ so run-floor.sh:186's flat glob does not collect it), this packet's verify
+# script and manifest, and the hotfix handover.
+components/vendor/packages/LeadPackageCard.tsx
+scripts/b81_lc2_p2_room_bench.js
+scripts/b82_lc2_p3_booking_bench.js
+scripts/b83_lc2_p4pwa_bench.js
+scripts/lib/f4434_probe.mjs
+scripts/verify-lc2-p4hotfix-pwa.sh
+scripts/floor-manifest-lc2-p4hotfix-pwa.txt
+docs/handovers/TDW_CE44_LC2_P4HOTFIX_HANDOVER.md

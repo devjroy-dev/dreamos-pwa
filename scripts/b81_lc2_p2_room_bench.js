@@ -191,7 +191,16 @@ function cardCells(src, shellSrc) {
     handoverOnly: /\{chosen && basis === 'handover' && \(\s*<div>\s*<FieldLabel text=\{LEAD_PACKAGE\.fHandover\}/.test(s),
     // [amended, packet 3g · F-43.107] the list comes from the room's read-once cache (`list`).
     defaultPick: /(r\.packages|list)\.find\(\(p\) => p\.is_default\)/.test(s),
-    onlyChanged: /if \(total != null && total !== chosen\.total\) body\.total = total;/.test(s) && /if \(name\.trim\(\) !== chosen\.name\) body\.name = name\.trim\(\);/.test(s),
+    // AMENDED BY LABEL AT CE-44 (F-44.34). F23 asked that the couple's edits be sent; this
+    // cell read that as "only the CHANGED ones", a diff against `chosen`. Driven on a
+    // list one edit stale, that diff silently dropped `middle_enabled` while the toast
+    // said "Package attached." The chair withdrew the diff: what is on the glass is what
+    // is sent. F23's substance is unchanged and still asserted here, that the couple's fee
+    // and wording travel on the attach; only the "only" is gone.
+    onlyChanged: /body: AttachInput = \{/.test(s)
+      && /name: name\.trim\(\),/.test(s)
+      && /if \(total != null\) body\.total = total;/.test(s)
+      && !/!== chosen\.total/.test(s),
     mounted: /const detailTop = slice === 'leads' && sel \? \(\s*<LeadPackageCard leadId=\{sel\.id\}/.test(sh) && /detailTop=\{detailTop\}/.test(sh),
     changeLabel: /\{lp \? LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach\}/.test(s),
     cardButton: /<button type="button" style=\{actionButton\(\)\} onClick=\{\(\) => setSheetOpen\(true\)\}>/.test(s),

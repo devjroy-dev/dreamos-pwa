@@ -44,7 +44,9 @@ const API = readIf('lib/vendor/api/vendor.ts');
   sec('§1 · F-44.6 / R-44.13 — the couple\'s own payment shape in the attach sheet');
   const FIVE = ['deposit_pct', 'middle_pct', 'middle_enabled', 'delivery_basis', 'delivery_days'];
   ok(FIVE.every((k) => new RegExp(`${k}\\?:`).test(API)), '§1.1 AttachInput carries all five');
-  ok(FIVE.every((k) => new RegExp(`body\\.${k} =`).test(CARDC)), '§1.2 the sheet sends all five');
+  // AMENDED AT CE-44 (F-44.34): three of the five are now literals in the body object
+  // rather than `body.x =` assignments, because they no longer depend on a comparison.
+  ok(FIVE.every((k) => new RegExp(`body\\.${k} =|${k}:`).test(CARDC)), '§1.2 the sheet sends all five');
   ok(/att-dep/.test(CARDC) && /att-mid/.test(CARDC) && /att-basis/.test(CARDC) && /att-days/.test(CARDC),
     '§1.3 each has its own control');
   {
@@ -57,8 +59,11 @@ const API = readIf('lib/vendor/api/vendor.ts');
     ok(order.every((n) => n > 0) && order.every((n, k) => k === 0 || n > order[k - 1]),
       '§1.4 they sit BETWEEN the fee and the name, in the package page\'s order (R-44.13)');
   }
-  ok(/if \(dep != null && dep !== chosen\.deposit_pct\)/.test(CARDC),
-    '§1.5 each travels only when it DIFFERS from the package\'s own — an untouched attach sends what it always did');
+  // AMENDED AT CE-44 (F-44.34). This asserted the diff against `chosen`, which the chair
+  // withdrew as a goal: it bought nothing and cost a silent drop of `middle_enabled` on a
+  // stale list. What is on the glass is what is sent.
+  ok(/body: AttachInput = \{[\s\S]{0,120}package_id: chosen\.id,/.test(CARDC) && !/!== chosen\.deposit_pct/.test(CARDC),
+    '§1.5 every field travels as it stands on the glass, with no diff against `chosen`');
   ok(/setDepositPct\(p && p\.deposit_pct != null/.test(CARDC),
     '§1.6 the couple\'s shape starts as the chosen package\'s own');
   ok(!/vendor_packages|savePackage|updatePackage/.test(CARDC),
@@ -198,6 +203,25 @@ const API = readIf('lib/vendor/api/vendor.ts');
       '§5.4 THE ROOM: tapping that field lands focus in it — her tap is the naming tap');
   }
 
+  // ══ §9 · F-44.34 and F-44.37, the packet's hotfix ═════════════════════════
+  sec('§9 · F-44.34 what she sees is what is sent · F-44.37 seed from her row');
+  ok(!/!== chosen\.deposit_pct|!== chosen\.middle_pct|!== !!chosen\.middle_enabled|!== chosen\.delivery_basis|!== chosen\.delivery_days/.test(CARDC),
+    '§9.1 no field is diffed against `chosen` any more (the five)');
+  ok(!/total !== chosen\.total|!== chosen\.name|!== chosen\.description|JSON\.stringify\(chosen\.line_items\)/.test(CARDC),
+    '§9.2 nor total, name, description or line_items — the same hazard, swept');
+  ok(/body: AttachInput = \{[\s\S]{0,260}middle_enabled: middleOn,/.test(CARDC),
+    '§9.3 middle_enabled travels unconditionally, which is the byte his attach dropped');
+  ok(/void fetchPackages\(\)\.then/.test(CARDC) && !/void loadPackagesOnce\(\)\.then/.test(CARDC),
+    '§9.4 the sheet re-reads the list on open instead of trusting the module cache');
+  ok(/if \(!r \|\| !r\.ok\) \{[\s\S]{0,200}fillFrom\(null, null\);/.test(CARDC),
+    '§9.5 a failed read seeds NOTHING from memory');
+  ok(/const hers = live && p && live\.package_id === p\.id \? live : null;/.test(CARDC),
+    '§9.6 her live row is the source when the selected package is the one it was cut from');
+  ok(/setFee\(hers\.total != null/.test(CARDC) && /setName\(sn\.name\)/.test(CARDC) && /setMiddleOn\(!!sn\.middle_enabled\)/.test(CARDC),
+    '§9.7 and EVERY field seeds from it, fee and wording included, not just the five');
+  ok(/fillFrom\(packages\.find\(\(p\) => p\.id === e\.target\.value\) \|\| null, current \|\| null\)/.test(CARDC),
+    '§9.8 the selector re-seeds from a saved source, never from a half-typed state');
+
   // ══ §8 · mutations ═════════════════════════════════════════════════════════
   sec('§8 · mutations of production source — each must turn its named cell RED');
   let mPass = 0, mFail = 0;
@@ -219,8 +243,14 @@ const API = readIf('lib/vendor/api/vendor.ts');
   // first-occurrence replace left that one standing while the cell still passed.
   mut('M5 · dropping the booked branch breaks §2.3',
     mutate('components/vendor/packages/LeadPackageCard.tsx', 'id="att-booked-pkg"', 'id="att-dead-pkg"', (s) => !/id="att-booked-pkg"/.test(s)));
-  mut('M6 · sending a share unconditionally breaks §1.5',
-    mutate('components/vendor/packages/LeadPackageCard.tsx', 'if (dep != null && dep !== chosen.deposit_pct)', 'if (dep != null)', (s) => !/dep !== chosen\.deposit_pct/.test(s)));
+  mut('M6 [re-aimed, F-44.34] · restoring the diff on the deposit → §1.5 RED',
+    mutate('components/vendor/packages/LeadPackageCard.tsx', 'if (dep != null) body.deposit_pct = dep;', 'if (dep != null && dep !== chosen.deposit_pct) body.deposit_pct = dep;', (m) => /!== chosen\.deposit_pct/.test(m)));
+  mut('M8 · restoring the diff on the middle → §9.1 RED (F-44.34)',
+    mutate('components/vendor/packages/LeadPackageCard.tsx', '      middle_enabled: middleOn,', '', (m) => !/middle_enabled: middleOn,/.test(m)));
+  mut('M9 · seeding from the package instead of her row → §9.6 RED (F-44.37)',
+    mutate('components/vendor/packages/LeadPackageCard.tsx', 'const hers = live && p && live.package_id === p.id ? live : null;', 'const hers = null;', (m) => !/live\.package_id === p\.id \? live/.test(m)));
+  mut('M10 · trusting the cache on open → §9.4 RED',
+    mutate('components/vendor/packages/LeadPackageCard.tsx', 'void fetchPackages().then', 'void loadPackagesOnce().then', (m) => !/void fetchPackages\(\)\.then/.test(m)));
   mut('M7 · emptying the byte breaks §2.1',
     mutate('lib/worklist/packages.ts', "already_booked: 'This couple is booked. The package is fixed on their invoice.'", "already_booked: ''", (s) => !/This couple is booked/.test(s)));
 
