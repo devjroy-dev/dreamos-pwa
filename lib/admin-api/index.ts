@@ -249,11 +249,12 @@ export const getWabaTemplates    = () => adminGet<{ count: number; pages: number
 export interface ModelRoute {
   provider: string; model: string;
   donna_provider?: string; donna_model?: string;
+  listener_provider?: string; listener_model?: string; // CE-44 LC-Victor P2 (R-44.14)
   nudge_provider?: string; nudge_model?: string;
   changed_by?: string; changed_at?: string;
   [k: string]: unknown;
 }
-export type ModelRole = 'provider' | 'donna' | 'nudge';
+export type ModelRole = 'provider' | 'donna' | 'nudge' | 'listener'; // 'listener': CE-44 LC-Victor P2
 export interface ModelRouteLane {
   key: string; surface: string; tier: string;
   roles: ModelRole[];

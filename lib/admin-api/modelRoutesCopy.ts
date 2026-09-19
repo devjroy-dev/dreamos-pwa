@@ -79,8 +79,8 @@ const TIER_NAME: Record<string, string> = {
 // lane and Mira on the marketing lane. One map, keyed by both, so no call site
 // carries a conditional about which persona a surface belongs to.
 const ROLE_NAME: Record<string, Record<string, string>> = {
-  wa_vendor:    { provider: 'Victor', donna: 'Donna' },
-  pwa_vendor:   { provider: 'Victor', donna: 'Donna' },
+  wa_vendor:    { provider: 'Victor', donna: 'Donna', listener: 'Listener' }, // Listener: the founder, "listen-yes" (CE-44)
+  pwa_vendor:   { provider: 'Victor', donna: 'Donna', listener: 'Listener' },
   wa_marketing: { provider: 'Mira',   nudge: 'Mira’s nudge' },
   wa_couple:    { provider: '' },   // a single unnamed role — the switch rides the surface row
   harvest:      { provider: '' },

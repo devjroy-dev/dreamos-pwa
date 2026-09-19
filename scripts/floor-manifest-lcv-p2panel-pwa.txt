@@ -1,0 +1,12 @@
+# CE-44 · LCV-1 · LC-Victor P2, the panel cut · F-44.43 · dreamos-pwa only.
+# F-19.16: a dirty path outside this list is a STOP. New files: rung b87, its probe (in
+# scripts/lib/ so run-floor.sh:186's flat glob does not collect it), this cut's verify script
+# and manifest, and the handover.
+app/admin/switchboard/ModelRoutesPanel.tsx
+lib/admin-api/index.ts
+lib/admin-api/modelRoutesCopy.ts
+scripts/b87_lcv_p2_panel_bench.js
+scripts/lib/lcv_p2_panel_probe.mjs
+scripts/verify-lcv-p2panel-pwa.sh
+scripts/floor-manifest-lcv-p2panel-pwa.txt
+docs/handovers/TDW_CE44_LCV_P2PANEL_HANDOVER.md

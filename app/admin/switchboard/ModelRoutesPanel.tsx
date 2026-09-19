@@ -104,6 +104,26 @@ function DiffersChip({ fields }: { fields: string[] }) {
   );
 }
 
+// ── EACH ROLE'S OWN FIELD (F-44.43) ─────────────────────────────────────────
+// An explicit map, never a catch-all. The ternary this replaces sent EVERY role that was
+// not `provider` or `donna` to `nudge_provider`, so when the server began serving the
+// listener role (CE-44 LC-Victor P2) the panel drew a row named by its raw key that read
+// the nudge field and could not show the founder's own choice back to him. The rule now:
+// a role absent from this map renders NO row, and the console names it. The server's
+// role list stays the authority for WHICH rows exist; this map only says where each
+// known role's value lives.
+const ROLE_FIELD: Record<string, string> = {
+  provider: 'provider',
+  donna:    'donna_provider',
+  nudge:    'nudge_provider',
+  listener: 'listener_provider',
+};
+function knownRole(lane: ModelRouteLane, role: string): boolean {
+  if (ROLE_FIELD[role]) return true;
+  console.warn(`[switchboard] ${lane.key} serves an unknown role "${role}": no row rendered (F-44.43)`);
+  return false;
+}
+
 // ── ONE ROLE ─────────────────────────────────────────────────────────────────
 // Its own row, its own switch, 44px minimum (§D-30, and F-41.67's cure: at 374 a
 // tier · switch · hand triptych clipped the second segment off the glass, so the
@@ -112,7 +132,7 @@ function RoleRow({ lane, role, providers, busy, onPick }: {
   lane: ModelRouteLane; role: ModelRole; providers: { id: string; label: string }[];
   busy: boolean; onPick: (role: ModelRole, provider: string) => void;
 }) {
-  const pf = role === 'provider' ? 'provider' : role === 'donna' ? 'donna_provider' : 'nudge_provider';
+  const pf = ROLE_FIELD[role];
   const current = lane.effective[pf] as string | undefined;
   // A split that is not set means the hand FOLLOWS the primary — Donna riding
   // Victor's route rather than her own. The switch shows where she actually is,
@@ -238,7 +258,7 @@ function SurfaceBlock({ surface, lanes, providers, busy, onPick }: {
                 options={providers} value={lane.effective.provider as string} onPick={() => {}}
               />
             </div>
-          ) : lane.roles.map(role => (
+          ) : lane.roles.filter(role => knownRole(lane, role)).map(role => (
             <RoleRow
               key={role} lane={lane} role={role} providers={providers}
               busy={busy === lane.key} onPick={(r, p) => onPick(lane, r, p)}
