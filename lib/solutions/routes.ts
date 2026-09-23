@@ -257,6 +257,15 @@ export const API = {
   postSunday:          () => `${POSTS_API_PATH}/sunday`,
   postSundayRefresh:   () => `${POSTS_API_PATH}/sunday/refresh`,
   igAuthorizeInsights: () => '/api/v2/vendor/ig/authorize?scope=insights',
+  // ── G6 · YOUR OWN NUMBER · CE-45 G6-1 (FK1, chair-ruled 2026-09-24) ──────
+  // BOTH DOORS DO NOT EXIST YET: dream-os builds them in cut 2a beside their
+  // siblings in src/api/vendor/solutions/index.js. Until then the GET answers
+  // 404 and the room renders its shell exactly as before (ruling F-a (a)): the
+  // flow is dark by construction, with no flag of its own on this side.
+  // GET the room (open, launch, number); POST the Embedded Signup result the
+  // instant Meta's code arrives, because the code lives thirty seconds (c-45.27).
+  ownNumber:           () => `${SOLUTIONS_API_PATH}/number`,
+  ownNumberConnect:    () => `${SOLUTIONS_API_PATH}/number/connect`,
 } as const;
 
 // ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS — RETIRED, F-40.170 ─────

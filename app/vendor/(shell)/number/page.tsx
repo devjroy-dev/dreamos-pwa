@@ -20,6 +20,13 @@
 // (A1, the Advisor precedent) — the seat is not changed, so report-issue keeps
 // the room. The sub-head reads `COPY.canHead` (T2). No byte is typed here.
 //
+// ── CE-45 · G6-1 · CUT ONE (FE_1) ───────────────────────────────────────────
+// This screen's inventory above is UNCHANGED: the shell stays the shell. The
+// page gains one read (`useOwnNumberRoom`) and one branch: when the door is open
+// and every flow byte has landed, `OwnNumberFlow` draws instead, with its own
+// inventory in its own file. Until then, and whenever the door is absent, shut,
+// or malformed, this screen renders exactly what it rendered at 320ad7e.
+//
 // ⚠ NO PERSONA NAME ANYWHERE ON THIS SCREEN. The capability is the assistant
 // answering on her own number; the chrome says what happens, never who does it
 // (R-37.70 as amended; b40 C32).
@@ -32,6 +39,8 @@ import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { BUTTONS, CHIPS, COPY, roomLabel } from '@/lib/solutions/copy';
 import { NUMBER } from '@/lib/worklist/ownNumber';
 import { SolutionsStyles } from '@/components/solutions/SolutionsPieces';
+import { OwnNumberFlow } from '@/components/solutions/OwnNumberFlow';
+import { useOwnNumberRoom } from '@/hooks/vendor/useOwnNumberRoom';
 
 export default function OwnNumberPage() {
   const router = useRouter();
@@ -44,6 +53,12 @@ export default function OwnNumberPage() {
 function OwnNumberScreen() {
   // THE MOUNT IS LOAD-BEARING — see /vendor/dates. The CTA's only act is `show()`.
   const { toast, show } = useToast();
+  // G6 · CE-45 G6-1 · THE ONE DECISION (read-first FK1, ruling F-a (a)). The flow
+  // is drawn only when the door answers open AND every flow byte is the founder's;
+  // anything else, including the door not existing yet, is the shell below,
+  // byte for byte as it was. The flow's own controls live in OwnNumberFlow.
+  const room = useOwnNumberRoom();
+  if (room.mode !== 'shell') return <OwnNumberFlow room={room} />;
   return (
     <WorklistShell title={roomLabel('number')}>
       <section className="sol-surface">

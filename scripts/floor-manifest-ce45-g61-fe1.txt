@@ -1,0 +1,14 @@
+# scripts/floor-manifest-ce45-g61-fe1.txt
+# CE-45 · G6-1 · cut one (FE_1) · the dreamos-pwa half. F-19.16: a dirty path outside this list is a STOP.
+# One new directory: none (every path below sits in a directory that already exists at 320ad7e).
+app/vendor/(shell)/number/page.tsx
+lib/solutions/routes.ts
+components/solutions/OwnNumberFlow.tsx
+hooks/vendor/useOwnNumberRoom.ts
+lib/vendor/metaSignup.ts
+lib/vendor/ownNumberDoor.ts
+lib/worklist/ownNumberFlow.ts
+scripts/b120_g61_own_number_bench.js
+scripts/lib/b120_own_number_probe.mjs
+scripts/floor-manifest-ce45-g61-fe1.txt
+docs/handovers/TDW_CE45_G61_FE1_HANDOVER.md
