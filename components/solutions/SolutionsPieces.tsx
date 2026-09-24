@@ -36,6 +36,8 @@
 
 import Link from 'next/link';
 import { CHIPS, type ChipKey } from '@/lib/solutions/copy';
+import { RoomIcon } from '@/components/worklist/RoomIcon';
+import type { IconKey } from '@/lib/worklist/icons';
 
 /**
  * The state chip. Its text comes from `CHIPS` and nowhere else — a chip that
@@ -87,12 +89,15 @@ export function StateChip({ state }: { state: ChipKey }) {
  * ink every live control on this shell already wears; `Coming` stays dim.
  */
 export function RoomRow({
-  href, label, desc, preview = false,
-}: { href: string; label: string; desc?: string; preview?: boolean }) {
+  href, label, desc, preview = false, icon,
+}: { href: string; label: string; desc?: string; preview?: boolean; icon?: IconKey }) {
+  // CE-45 FE-1 HOME_2 · R-45.21: `icon` names the row's drawing in the one registry
+  // (lib/worklist/icons.ts); absent, the row draws exactly as before (b73's rendered rows).
   // CE-45 FE-1: `desc` is the row's one line (ROW_DESC, R-45.20), read from its home by the
   // caller; absent, the row draws exactly as before.
   return (
     <Link href={href} className="sol-row" data-row-href={href}>
+      {icon ? <RoomIcon k={icon} className="sol-rowicon" /> : null}
       <span className="sol-rowtext">
         <span className="sol-rowlabel">{label}</span>
         {desc ? <span className="sol-rowdesc">{desc}</span> : null}
@@ -180,6 +185,8 @@ export function SolutionsStyles() {
 .sol-rowlabel{font:var(--wl-t3);color:var(--atelier-ink)}
 /* CE-45 FE-1: the row’s one line (R-45.20). t4 and ink-mute, both already in theme.ts; no new rung, no new token. */
 .sol-rowdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}
+/* CE-45 FE-1 HOME_2 · R-45.21: the row's icon, currentColor on ink-dim; no new colour, no rung. */
+.sol-rowicon{flex:none;width:20px;height:20px;color:var(--atelier-ink-dim)}
 .sol-roweyebrow{font:var(--wl-t5);color:var(--atelier-ink-mute);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 

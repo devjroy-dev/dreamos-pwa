@@ -58,6 +58,11 @@ export default function TodayPage() {
 
   return (
     <WorklistShell title={COPY.navToday}>
+      {/* CE-45 FE-1 HOME_2 · R-45.21, AMENDING P2 BY THE FOUNDER'S WORD ("it being at the bottom
+          defeats the purpose of pinning"): the six pinned rooms OPEN Home, above Today's own surface,
+          which below is lifted as it stands, not a byte of it rewritten. The address stays
+          /vendor/today (P5) and the title reads the kept key (COPY.navToday, 'Home'). */}
+      <PinnedRooms />
       <section className="wl-masthead">
         <div className="wl-mdate">{DATE_LINE}</div>
         {/* THE NUMERAL IS GATED, AND AT S4/3 IT IS GATED ON THE WORKING STATE.
@@ -104,11 +109,6 @@ export default function TodayPage() {
       {resting && today && <TodayResting today={today} />}
       {working && today && <TodayCards today={today} />}
       {working && today && <TodayDone today={today} />}
-      {/* CE-45 FE-1 · HOME (the founder’s layout, BS-1 close): this surface IS Home now, at the
-          same address (P5), titled by the same key (COPY.navToday reads 'Home', R-45.20 N0).
-          P2 RULED: everything above is Today’s own surface LIFTED AS IT STANDS, not a byte of it
-          rewritten; the six pinned rooms mount beneath it and wait on their own read. */}
-      <PinnedRooms />
       <style>{`
 /* R-37.82 (1): the column owns the gutter. Nothing here sets a horizontal inset. */
 .wl-masthead{padding-top:20px}

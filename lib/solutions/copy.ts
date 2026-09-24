@@ -166,11 +166,15 @@ export const ROOM_ROWS = [
  * mock's (docs/mocks/TDW_CE45_BS1_UI_HOME_AND_SHELVES.html, HUB). Every RoomKey appears in
  * exactly one group, which b122 pins; ROOM_ROWS above stays the one home of each row's label.
  */
+//
+// CE-45 FE-1 HOME_2 · R-45.21, AMENDING THE ORDER AT SITE. The founder, walking HOME_1 live on 24 Sept
+// 2026: "work together should be at the top. then get fonud get booked etc." Work together now leads;
+// names and member rows are unchanged. b122 1.3 pins this order.
 export const HUB_GROUPS: readonly { name: string; keys: readonly RoomKey[] }[] = [
+  { name: 'Work together', keys: ['collabs'] },
   { name: 'Get found',     keys: ['website', 'wedding_pages', 'google', 'posts'] },
   { name: 'Get booked',    keys: ['dates', 'introductions', 'referrals', 'number'] },
   { name: 'Get paid',      keys: ['contracts', 'reminders'] },
-  { name: 'Work together', keys: ['collabs'] },
 ] as const;
 
 /**

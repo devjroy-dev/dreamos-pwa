@@ -253,7 +253,11 @@ else {
   // AND_SHELVES.html, the row descriptions), which postdates this mock. This older mock is a ratified
   // artifact and is NOT edited; the rule is excused here BY ITS EXACT TEXT, so any other new .sol-*
   // rule, or any change to this one, still reddens the cell.
-  const LATER_MOCK = ['.sol-rowdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}'];
+  // CE-45 FE-1 HOME_2 · LABELLED AMENDMENT (R-45.21): the row's icon, drawn by the founder-approved
+  // mock TDW_CE45_FE1_MOCK_PINS_TOP_AND_ICONS.html (sha256 a0f8de82298867fef84daf370f4ec9f06f57baec48573735fc0db92d9e81ac63),
+  // excused BY ITS EXACT TEXT as the row line was; this older ratified mock is not edited.
+  const LATER_MOCK = ['.sol-rowdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}',
+    '.sol-rowicon{flex:none;width:20px;height:20px;color:var(--atelier-ink-dim)}'];
   const miss = shipped.filter((r) => !drawn.includes(r) && !LATER_MOCK.includes(r)), extra = drawn.filter((r) => !shipped.includes(r));
   ok('every shipped .sol-* rule is in the mock verbatim, and the mock carries no other', shipped.length > 0 && miss.length === 0 && extra.length === 0,
     (miss.length ? 'missing: ' + miss[0].slice(0, 70) : '') + (extra.length ? ' extra: ' + extra[0].slice(0, 70) : ''));

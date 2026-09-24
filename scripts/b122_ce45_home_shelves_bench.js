@@ -78,12 +78,49 @@ const RULED_SHELVES = {
   studio: ['room:portfolio', 'room:team', 'room:couture', 'room:advisor', 'room:billing', 'room:settings'],
 };
 const RULED_TOP = ['support', 'storefront'];
+// HOME_2 · RE-PINNED BY LABEL, R-45.21 (the founder, walking HOME_1: "work together should be at the
+// top. then get fonud get booked etc."): Work together leads; names and rows unchanged.
 const RULED_GROUPS = [
+  ['Work together', ['collabs']],
   ['Get found', ['website', 'wedding_pages', 'google', 'posts']],
   ['Get booked', ['dates', 'introductions', 'referrals', 'number']],
   ['Get paid', ['contracts', 'reminders']],
-  ['Work together', ['collabs']],
 ];
+// HOME_2 · R-45.21: THE 29 DRAWINGS OF THE APPROVED MOCK, sha256 of each <symbol>'s inner markup as it
+// stands in TDW_CE45_FE1_MOCK_PINS_TOP_AND_ICONS.html (sha256 a0f8de82298867fef84daf370f4ec9f06f57baec48573735fc0db92d9e81ac63).
+// A later edit to any drawing is a fresh veto: it reddens 5.2.
+const MOCK_SHA = 'a0f8de82298867fef84daf370f4ec9f06f57baec48573735fc0db92d9e81ac63';
+const H_ICON = {
+  support: '95e1197a1f2dca1f7fb031249d762260970815e62ec6c68c11a82fb29da0b9e2',
+  storefront: 'e5ea1b923a5558b98a2a677a5771b5662bee513d0dc906ee06fb8a3748ea5a02',
+  leads: '059e2c68b6403cdc66ab566b40bccb5f9350f7fb7c9d9237b03a5d619b931b5a',
+  clients: '1bda18d47fb8fa44cd53d93049a92c957849a4e21d0a36fb5c5e718c3a1c0a4b',
+  packages: 'bf2e84808cbba705a411d12ecfcf949404b8af536142ce72f2054c09927ab621',
+  calendar: 'b38e3c9c52383b6c5d4460f0f8cb6d1aeb99497086367135f671dde91ca2de3e',
+  events: 'dd934037f2a933add04b608e3eea1d8401bf8c88650334a8668fe9738731767a',
+  notes: 'abe2523d3b769abc29e177313b4bb5a341972b44fb5d6c1748d97fd9fa2f1399',
+  invoices: 'fe874e16e1972338364a03ea79a196173b0b9a4089bd0125fcb4df6d4118469c',
+  expenses: 'f842630509e70f7831e394d1dfd8726b70a9957a87b57a9318fda0b12af8eeed',
+  books: '1e23399f4e6de0794bbb4a186873b9ba751bcde0e8e2840f0ecbf4f316b1d9b2',
+  tds: 'a7bfcf0c4bca8cebc440c6045f820292a76ede34c1114a07c58a52ccf1503dd7',
+  portfolio: '746a7d34ac66f01aa75f9c2cbfb02f6fbb27b29621b70536479183f83478cbca',
+  team: '802c5e7c0dfb23026bfe3fdb54b74a1beb4ba824e3c537ccf3efcafb1cdb6876',
+  couture: '2792e2f62ef39ed8c8aca47f0deebe65d06a6e506c340fd0172dafae82313baa',
+  advisor: '0ed62f224940bf4a5b3c1a21688c47f5e3ad00ffc8a82c6503a56d1a0006d4f2',
+  billing: 'd423fd49e9a60fba3aa0c258d7dbfd90e77f36cf1f7d6433ef5309c5aac607e5',
+  settings: '9b7b6a36015263ccb673db74f470b77122b91dd696051c4986b8e706cfd60688',
+  website: 'cb08d5f0aeb05bfbc1b35d57fcaaa8179df60a701549a2b12988e838336fc513',
+  wedding_pages: '59a2b055f42da5ceeb06229ce707f5c805e2d7cd2a68fb3a926dc6f1a1cdc11d',
+  google: 'd0276301a79248f9438b39c2b9ced71907f889b70bced4c1085666914433b147',
+  posts: '78db92c3c05a27402fcc5198d16d18f02bdfefeb846ef781ee4bdf5895176d22',
+  dates: 'e427bc72f8e4db09bcaabafcd08336b9e0b8d4bb4882dae6cd285d630389a920',
+  introductions: 'ee5503b6ad5892d84ba7c1b27ec1adf22afd80df257b7772d575e395ed58b08d',
+  referrals: '5fdbd227ab44385f83fbc7be582ab0ec6c6d45b29e94771975f61535967cff4a',
+  number: '155795480dbae6729c4e58f581332a0d14ae55c665e3bd649b61bbfa6b4acbc3',
+  contracts: 'e4b2ab227c6fc8fb26bcb9a807c8e91436ba2bd25637f164e4bc21fbb0e0160e',
+  reminders: '980c5f803af7a01665d60cfb20eb6d1318b26fbbeecc87f179f41c93ee3f3632',
+  collabs: 'aa200749cd30e7a8ed4717d04996836778a5de8e9e525ed606c14245bb5d1f32',
+};
 const RULED_DEFAULT = ['room:leads', 'room:calendar', 'room:clients', 'room:invoices', 'row:posts', 'room:storefront'];
 const RULED_TRADE = {
   planning: ['room:leads', 'room:calendar', 'room:clients', 'room:events', 'room:team', 'room:invoices'],
@@ -113,8 +150,9 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
 // tree's own navToday, whatever it said. Both were caught at 24923aa and are cured here.
 
 (async () => {
-  let R, RT, WC, SC;
+  let R, RT, WC, SC; let IC = null; // HOME_2: lib/worklist/icons.ts
   sec('1  the founder\u2019s bytes, from their one home (R-45.19, R-45.20)');
+  try { IC = loadTs('lib/worklist/icons.ts'); } catch (_e) { IC = null; }
   try { R = loadTs('lib/worklist/rooms.ts'); RT = loadTs('lib/solutions/routes.ts'); WC = loadTs('lib/worklist/copy.ts'); SC = loadTs('lib/solutions/copy.ts'); }
   catch (e) { ok(false, '1.0 the four modules load', e.message); }
   R = R || {}; RT = RT || {}; WC = WC || {}; SC = SC || {};
@@ -220,6 +258,34 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
     return JSON.stringify(server) === JSON.stringify(ours) || `server ${server} ours ${ours}`;
   });
 
+  sec('3b the icons (R-45.21; the chair\u2019s (b)(i)), one registry, the approved mock\u2019s bytes');
+  const SHOWN = [...RULED_TOP, ...Object.values(RULED_SHELVES).flat().map((t) => t.split(':')[1]), ...RULED_GROUPS.flatMap(([, ks]) => ks)];
+  const SHOWN_KEYS = [...new Set(SHOWN)];
+  cell('5.1 the registry holds exactly the 29 keys shown on Rooms and Business Solutions, no more', () => {
+    if (!IC || !IC.ROOM_ICONS) return 'lib/worklist/icons.ts does not load';
+    const got = Object.keys(IC.ROOM_ICONS).sort(); const want = SHOWN_KEYS.slice().sort();
+    return (want.length === 29 && JSON.stringify(got) === JSON.stringify(want)) || JSON.stringify({ got: got.length, want: want.length, missing: want.filter((k) => !got.includes(k)), extra: got.filter((k) => !want.includes(k)) });
+  });
+  cell('5.2 every drawing is the approved mock\u2019s, byte for byte (29 sha256 carried; mock ' + MOCK_SHA.slice(0, 12) + ')', () => {
+    if (!IC || !IC.ROOM_ICONS) return 'no registry';
+    const bad = Object.keys(H_ICON).filter((k) => crypto.createHash('sha256').update(String(IC.ROOM_ICONS[k])).digest('hex') !== H_ICON[k]);
+    return (Object.keys(H_ICON).length === 29 && bad.length === 0) || 'drifted: ' + bad.join(',');
+  });
+  cell('5.3 the icon component draws nothing but the registry\u2019s constants (no other markup path)', () => {
+    const src = fs.readFileSync(P('components/worklist/RoomIcon.tsx'), 'utf8');
+    const uses = src.match(/dangerouslySetInnerHTML/g) || [];
+    if (uses.length !== 1) return 'RoomIcon has ' + uses.length + ' markup sinks, ruled one';
+    if (!/dangerouslySetInnerHTML=\{\{ __html: ROOM_ICONS\[k\] \}\}/.test(src)) return 'the one sink is not ROOM_ICONS[k]';
+    if (!/\{ k: IconKey; className: string \}/.test(src)) return 'k is not typed IconKey, or the props admit more than k and className';
+    // and no registry string is typed anywhere else in the tree's code
+    const files = spawnSync('git', ['ls-files', 'app', 'components', 'lib'], { cwd: ROOT, encoding: 'utf8' }).stdout.split('\n').filter((f) => /\.(tsx?|jsx?|mjs)$/.test(f) && f !== 'lib/worklist/icons.ts');
+    const extra = []; for (const f of files) { const t = fs.readFileSync(P(f), 'utf8'); for (const [k, v] of Object.entries(IC.ROOM_ICONS)) if (t.includes(v)) extra.push(f + ':' + k); }
+    return extra.length === 0 || 'a drawing is typed outside the registry: ' + extra.join(', ');
+  });
+  let ICONS_FILE = null;
+  if (IC && IC.ROOM_ICONS) { ICONS_FILE = path.join(os.tmpdir(), 'b122_icons.json'); fs.writeFileSync(ICONS_FILE, JSON.stringify(IC.ROOM_ICONS)); }
+  const oneIcon = (o, key, list) => (Array.isArray(list) && list.length === 1 && list[0].k === key && !!o.canon && list[0].html === o.canon[key]);
+
   // --static (FE-1, CE-45 differential turn): sections 1 to 3 only, for the production mutations,
   // whose claims all live there. NEVER a delivery run: the line printed below says which kind this
   // was, so a static green cannot pass for a full one. (Re-added: the severed turn removed it,
@@ -254,6 +320,7 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   };
   const probe = (mode, scenario) => {
     const env = { ...process.env }; if (clockMs !== null && Number.isFinite(clockMs)) env.B122_CLOCK = String(clockMs);
+    if (ICONS_FILE) env.B122_ICONS = ICONS_FILE;
     const r = spawnSync('node', [P('scripts/lib/b122_home_shelves_probe.mjs'), String(PORT), mode, scenario, SHOTS], { encoding: 'utf8', timeout: 240000, env });
     if (r.status === 3) return { noBrowser: true, text: r.stdout };
     try { return JSON.parse(String(r.stdout).trim().split('\n').pop()); } catch (_e) { return { error: `${r.status} ${String(r.stderr).slice(0, 300)}` }; }
@@ -301,6 +368,13 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
         });
         ok(rm.allTiles === 20 && (rm.shelves || []).every((s) => s.rows.every((r) => !r.coming && r.height >= 44)),
           `4.2e ${mode}: twenty rows on Rooms, none Coming, every one at least 44px tall`, rm.allTiles);
+        chk(`4.2g ${mode}: every row and the top pair carry exactly one icon, their own, the registry\u2019s bytes (R-45.21)`, () => {
+          const all = [...(rm.top || []), ...((rm.shelves || []).flatMap((x) => x.rows))];
+          const bad = all.filter((r) => !oneIcon(ro, r.key, r.icons)).map((r) => r.key + ':' + (r.icons || []).map((i) => i.k).join('+'));
+          return (all.length === 20 && bad.length === 0) || JSON.stringify({ n: all.length, bad });
+        });
+        ok((rm.top || []).length === 2 && rm.top.every((t) => t.icons && t.icons[0] && t.icons[0].color === t.nameColor),
+          `4.2h ${mode}: the top pair\u2019s icons take the metal, as their names do`, JSON.stringify((rm.top || []).map((t) => [t.icons && t.icons[0] && t.icons[0].color, t.nameColor])));
         ok(c.title === 'Rooms', `4.2f ${mode}: the title reads Rooms (a control: unchanged by the cut, green at the base)`, c.title);
         docks.rooms = c.dock; docks.roomsSeat = c.seatTop;
       }
@@ -312,6 +386,12 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
           const want = RULED_GROUPS.map(([n, ks]) => [n, ks.map((k) => [SC.roomLabel(k), H_ROW[k], ['dates', 'number'].includes(k) ? 'coming' : 'open'])]);
           const got = g.map((x) => [x.name, x.rows.map((r) => [r.label, h16(r.desc), r.chip])]);
           return (got.length === 4 && JSON.stringify(got) === JSON.stringify(want)) || JSON.stringify(got).slice(0, 280);
+        });
+        chk(`4.3d ${mode}: every Business Solutions row carries exactly one icon, its own, the registry\u2019s bytes (R-45.21)`, () => {
+          const rows = g.flatMap((x) => x.rows.map((r) => [x, r]));
+          const keyOf = (label) => RULED_GROUPS.flatMap(([, ks]) => ks).find((k) => SC.roomLabel(k) === label);
+          const bad = rows.filter(([, r]) => !oneIcon(hb, keyOf(r.label), r.icons)).map(([, r]) => r.label);
+          return (rows.length === 11 && bad.length === 0) || JSON.stringify({ n: rows.length, bad });
         });
         ok(hb.hub && hb.hub.footer === true, `4.3b ${mode}: the footer\u2019s human control is still there (a control: green at the base)`);
         chk(`4.3c ${mode}: Contracts & deposits and Payment reminders open the SAME route from Money and from Get paid (R-45.19)`, () => {
@@ -336,7 +416,14 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
         });
         if (t === 'photography') {
           const hm = ho.home || {}; const c = ho.chrome || {};
-          ok(hm.masthead === true && hm.mastheadBeforePins === true && !!hm.mdate, `4.5a ${mode}: Today\u2019s own surface stands above the pins, its date line drawn (P2)`, JSON.stringify([hm.masthead, hm.mastheadBeforePins, hm.mdate]));
+          // 4.5a INVERTED BY LABEL, R-45.21 (P2 amended by the founder: "it being at the bottom defeats the
+          // purpose of pinning"): the pins now stand ABOVE Today's surface, which still draws its date line.
+          ok(hm.masthead === true && hm.pinsBeforeMasthead === true && hm.mastheadBeforePins === false && hm.pinsBottom !== null && hm.mastTop !== null && hm.pinsBottom <= hm.mastTop + 1 && !!hm.mdate,
+            `4.5a ${mode}: the pins stand above Today\u2019s own surface, which still draws its date line (R-45.21)`, JSON.stringify([hm.pinsBeforeMasthead, hm.pinsBottom, hm.mastTop, hm.mdate]));
+          ok(hm.cols === 3 && (hm.pins || []).length === 6 && hm.pins.every((x) => x.descHidden === true && !!x.desc),
+            `4.5f ${mode}: the pins are compact, three across, each room\u2019s line kept for screen readers only (R-45.21)`, JSON.stringify([hm.cols, (hm.pins || []).map((x) => x.descHidden)]));
+          ok((hm.pins || []).length === 6 && hm.pins.every((x) => oneIcon(ho, x.key, x.icons)),
+            `4.5g ${mode}: every pin carries exactly one icon, its own, the registry\u2019s bytes (R-45.21)`, JSON.stringify((hm.pins || []).map((x) => [x.key, (x.icons || []).map((i) => i.k)])));
           ok(h16(hm.head) === H_COPY.pinnedHead, `4.5b ${mode}: the pins sit under their heading`, hm.head);
           ok(!!hm.change && hm.change.disabled === true && hm.change.chip === 'coming' && h16(hm.change.label) === H_COPY.pinnedChange,
             `4.5c ${mode}: the change control is drawn, stated, disabled and wears Coming (F-19.20; P1(b))`, JSON.stringify(hm.change));
@@ -344,6 +431,13 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
           ok(!!ho.clicked && ho.afterClick === ho.clicked, `4.5e ${mode}: a pinned room opens its room`, JSON.stringify([ho.clicked, ho.afterClick]));
           docks.home = c.dock; docks.homeSeat = c.seatTop;
         }
+      }
+
+      const hs = probe(mode, 'home:slow');
+      if (guard(hs, `4.7 ${mode}`)) {
+        const e = hs.early || {}; const l = hs.late || {};
+        ok(e.waiting === true && e.links === 0 && l.waiting === false && l.links === 6 && e.pinsH === l.pinsH && Math.abs((e.mastTop || -99) - (l.mastTop || 99)) <= 1,
+          `4.7 ${mode}: while her trade loads the pins hold their height, and Today\u2019s masthead does not move when they arrive (chair\u2019s (a))`, JSON.stringify([e, l]));
       }
 
       ok(!!docks.rooms && !!docks.home && docks.rooms.text === ph && docks.home.text === ph,

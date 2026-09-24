@@ -86,6 +86,7 @@ function SolutionsIndexScreen() {
                 key={k}
                 label={roomLabel(k)}
                 desc={ROW_DESC[k]}
+                icon={k}
                 href={ROOM_HREFS[k]}
                 preview={PREVIEW_KEYS.has(k)}
               />

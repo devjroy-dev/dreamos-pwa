@@ -68,6 +68,9 @@ try {
     const route = u.split('/__api')[1].split('?')[0];
     if (route === '/api/v2/vendor/me' && r.method() === 'GET') {
       out.meCalls += 1;
+      // HOME_2 (chair's (a)): home:slow answers /me after 4 s as a photographer, so the masthead can be
+      // measured while the pins wait and again after they arrive.
+      if (trade === 'slow') { setTimeout(() => r.respond(json({ ok: true, vendor: { id: 'v-probe', name: 'Probe', business_name: 'Probe Studio', category: 'photography', city: 'Delhi', handle: 'probe', upi_id: null, gstin: null } })), 4000); return; }
       if (trade === 'fail') return r.respond({ status: 500, contentType: 'text/plain', body: 'boom' });
       return r.respond(json({ ok: true, vendor: { id: 'v-probe', name: 'Probe', business_name: 'Probe Studio', category: trade === 'none' ? '' : trade, city: 'Delhi', handle: 'probe', upi_id: null, gstin: null } }));
     }
@@ -111,7 +114,9 @@ try {
     await settle(2500);
     out.chrome = await chrome();
     out.rooms = await p.evaluate(() => {
+      const icons = (el) => [...el.querySelectorAll('svg[data-icon]')].map((sv) => ({ k: sv.getAttribute('data-icon'), html: sv.innerHTML, color: getComputedStyle(sv).color }));
       const row = (e) => ({
+        icons: icons(e),
         key: e.getAttribute('data-room'),
         name: (e.querySelector('.wl-tname') || {}).textContent || null,
         desc: (e.querySelector('.wl-tdesc') || {}).textContent || null,
@@ -140,10 +145,11 @@ try {
     await waitFor(() => p.evaluate(() => !!document.querySelector('.sol-group')), 60000);
     await settle(2500);
     out.chrome = await chrome();
-    out.hub = await p.evaluate(() => ({
+    out.hub = await p.evaluate(() => { const icons = (el) => [...el.querySelectorAll('svg[data-icon]')].map((sv) => ({ k: sv.getAttribute('data-icon'), html: sv.innerHTML, color: getComputedStyle(sv).color })); return ({
       groups: [...document.querySelectorAll('section.sol-group')].map((g) => ({
         name: (g.querySelector('.sol-eyebrow') || {}).textContent || null,
         rows: [...g.querySelectorAll('a.sol-row')].map((r) => ({
+          icons: icons(r),
           label: (r.querySelector('.sol-rowlabel') || {}).textContent || null,
           desc: (r.querySelector('.sol-rowdesc') || {}).textContent || null,
           href: r.getAttribute('href'),
@@ -151,15 +157,34 @@ try {
         })),
       })),
       footer: !!document.querySelector('.wl-supportaction'),
-    }));
+    }); });
     await shot('hub');
   } else if (SCENARIO.startsWith('home:')) {
     await p.goto(`http://localhost:${PORT}/vendor/today`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+    if (trade === 'slow') {
+      await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-masthead') && !!document.querySelector('.wl-pins')), 60000);
+      await settle(600);
+      out.early = await p.evaluate(() => ({
+        mastTop: Math.round(document.querySelector('.wl-masthead').getBoundingClientRect().top),
+        pinsH: Math.round(document.querySelector('.wl-pins').getBoundingClientRect().height),
+        waiting: document.querySelector('.wl-pins').getAttribute('aria-busy') === 'true',
+        links: document.querySelectorAll('.wl-pins a.wl-pin').length,
+      }));
+      await waitFor(() => p.evaluate(() => document.querySelectorAll('.wl-pins a.wl-pin').length === 6), 20000);
+      await settle(600);
+      out.late = await p.evaluate(() => ({
+        mastTop: Math.round(document.querySelector('.wl-masthead').getBoundingClientRect().top),
+        pinsH: Math.round(document.querySelector('.wl-pins').getBoundingClientRect().height),
+        waiting: document.querySelector('.wl-pins').getAttribute('aria-busy') === 'true',
+        links: document.querySelectorAll('.wl-pins a.wl-pin').length,
+      }));
+    }
     await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-pins') || !!document.querySelector('.wl-masthead')), 60000);
     await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-pins')), 20000);
     await settle(2000);
     out.chrome = await chrome();
     out.home = await p.evaluate(() => {
+      const icons = (el) => [...el.querySelectorAll('svg[data-icon]')].map((sv) => ({ k: sv.getAttribute('data-icon'), html: sv.innerHTML, color: getComputedStyle(sv).color }));
       const pins = document.querySelector('.wl-pins');
       const mast = document.querySelector('.wl-masthead');
       const ch = document.querySelector('.wl-pinchange');
@@ -167,12 +192,18 @@ try {
         masthead: !!mast,
         mdate: (document.querySelector('.wl-mdate') || {}).textContent || null,
         mastheadBeforePins: !!(mast && pins && (mast.compareDocumentPosition(pins) & Node.DOCUMENT_POSITION_FOLLOWING)),
+        pinsBeforeMasthead: !!(mast && pins && (pins.compareDocumentPosition(mast) & Node.DOCUMENT_POSITION_FOLLOWING)),
+        pinsBottom: pins ? Math.round(pins.getBoundingClientRect().bottom) : null,
+        mastTop: mast ? Math.round(mast.getBoundingClientRect().top) : null,
+        cols: (() => { const g = document.querySelector('.wl-pingrid'); return g ? getComputedStyle(g).gridTemplateColumns.split(' ').filter(Boolean).length : null; })(),
         head: pins ? (pins.querySelector('.wl-pinshead') || {}).textContent || null : null,
         trade: pins ? pins.getAttribute('data-trade') : null,
         pins: pins ? [...pins.querySelectorAll('a.wl-pin')].map((a) => ({
           key: a.getAttribute('data-room'),
           name: (a.querySelector('.wl-pinname') || {}).textContent || null,
           desc: (a.querySelector('.wl-pindesc') || {}).textContent || null,
+          descHidden: (() => { const d = a.querySelector('.wl-pindesc'); if (!d) return null; const r = d.getBoundingClientRect(); return r.width <= 1 && r.height <= 1; })(),
+          icons: icons(a),
           href: a.getAttribute('href'),
           coming: !!a.querySelector('[data-state="coming"]'),
         })) : null,
@@ -190,6 +221,13 @@ try {
         out.afterClick = await p.evaluate(() => location.pathname);
       }
     }
+  }
+  // HOME_2: the browser's serialisation of every registry string, so the bench compares like with like.
+  if (process.env.B122_ICONS && fs.existsSync(process.env.B122_ICONS)) {
+    const reg = JSON.parse(fs.readFileSync(process.env.B122_ICONS, 'utf8'));
+    out.canon = await p.evaluate((reg) => Object.fromEntries(Object.entries(reg).map(([k, v]) => {
+      const sv = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sv.innerHTML = v; return [k, sv.innerHTML];
+    })), reg);
   }
 } catch (e) {
   out.errors.push(`probe: ${String(e && e.message).split('\n')[0]}`);

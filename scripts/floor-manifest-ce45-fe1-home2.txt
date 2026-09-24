@@ -1,0 +1,15 @@
+# scripts/floor-manifest-ce45-fe1-home2.txt
+# CE-45 · FE-1 · HOME_2 · pins on top, Work together first, an icon for every room (R-45.21) · dreamos-pwa. F-19.16: a dirty path outside this list is a STOP.
+# One new directory: none (every path below sits in a directory that already exists at 5fc25e4).
+app/vendor/(shell)/support/page.tsx
+app/vendor/(shell)/today/page.tsx
+components/solutions/SolutionsPieces.tsx
+components/worklist/PinnedRooms.tsx
+components/worklist/RoomIcon.tsx
+components/worklist/RoomsGrid.tsx
+lib/solutions/copy.ts
+lib/worklist/icons.ts
+scripts/b122_ce45_home_shelves_bench.js
+scripts/b77_shell2_hierarchy_bench.js
+scripts/floor-manifest-ce45-fe1-home2.txt
+scripts/lib/b122_home_shelves_probe.mjs

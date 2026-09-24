@@ -58,6 +58,8 @@ import { COPY, ROOM_DESC } from '@/lib/worklist/copy';
 import { roomLabel, ROW_DESC } from '@/lib/solutions/copy';
 import { itemHref, itemComing } from '@/lib/solutions/routes';
 import { StateChip } from '@/components/solutions/SolutionsPieces';
+import { RoomIcon } from '@/components/worklist/RoomIcon';
+import { iconFor, type IconKey } from '@/lib/worklist/icons';
 import type { AttentionKind } from '@/lib/vendor/types/vendor';
 
 const KIND_FOR_ROOM: Record<string, AttentionKind> = Object.fromEntries(
@@ -88,6 +90,9 @@ function Tile({ item, head, count, truncated }: { item: ShelfItem; head: boolean
       data-item-href={itemHref(item)}
       data-headline={head ? 'true' : undefined}
     >
+      {/* CE-45 FE-1 HOME_2 · R-45.21: the room's icon, from the one registry (lib/worklist/icons.ts),
+          drawn by the one component. A key with no drawing draws nothing, never an empty box. */}
+      {iconFor(t.key) !== null && <RoomIcon k={t.key as IconKey} className="wl-ticon" />}
       <span className="wl-ttext">
         <span className="wl-tname">{t.label}</span>
         {t.desc ? <span className="wl-tdesc">{t.desc}</span> : null}
@@ -232,6 +237,12 @@ const GRID_CSS = `
    hairline of R-40.98, which belonged to the tile grid this layout retires. */
 .wl-ttext{display:flex;flex-direction:column;gap:2px;min-width:0}
 .wl-tdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}
+/* CE-45 FE-1 HOME_2 · R-45.21: the icon sits before the name; the text takes the row. The icon's
+   colour is currentColor from the tokens the shell already emits: ink-dim on a row, the metal on
+   the headline pair (the name already takes the metal there). No new colour, no type rung. */
+.wl-ticon{flex:none;width:20px;height:20px;color:var(--atelier-ink-dim)}
+.wl-tilehead .wl-ticon{color:var(--role-metal)}
+.wl-tile .wl-ttext{flex:1}
 .wl-band.wl-top{margin-bottom:0}
 /* t4, NOT t5, and NOT uppercase-tracked. Two rulings meet on this one line and both bind:
    R-37.73 ② put the interactive floor at 12px after 9px was convicted as illegible chrome,
