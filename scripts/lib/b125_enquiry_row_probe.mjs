@@ -51,6 +51,8 @@ try {
   await p.setRequestInterception(true);
   p.on('request', (r) => {
     const u = r.url();
+    // FE_2b · the storefront revalidate door (same origin, a Next route): answered and counted here.
+    if (u.endsWith('/api/revalidate/storefront') && r.method() === 'POST') { out.revalidates = (out.revalidates || 0) + 1; return r.respond({ status: 200, contentType: 'application/json', body: '{"ok":true}' }); }
     if (!u.includes('/__api/')) return r.continue();
     const route = u.split('/__api')[1].split('?')[0];
     const json = (o) => { const st = o.__status || 200; delete o.__status; return r.respond({ status: st, contentType: 'application/json', body: JSON.stringify(o) }); };
@@ -64,12 +66,14 @@ try {
       const box = document.querySelector('[data-enquiry-row]');
       if (!box) return { row: null };
       const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
-      const opts = [...box.querySelectorAll('[data-option]')].map((o) => ({ key: o.getAttribute('data-option'), checked: o.getAttribute('aria-checked'), disabled: o.getAttribute('aria-disabled'), text: o.innerText.trim() }));
+      const opts = [...box.querySelectorAll('[data-option]')].map((o) => ({ key: o.getAttribute('data-option'), checked: o.getAttribute('aria-checked'), disabled: o.getAttribute('aria-disabled'), text: o.innerText.trim(), hasSwitch: !!o.querySelector('.wl-sw'), switchOn: !!o.querySelector('.wl-sw.on'), switchDisabled: !!o.querySelector('.wl-sw[data-disabled-switch="true"]') }));
       return {
         row: box.getAttribute('data-enquiry-row'),
         texts: [...box.querySelectorAll('.wl-swlabel,.wl-swline,.wl-setrowlabel')].filter(vis).map((e) => e.textContent.trim()),
         options: opts,
         input: !!box.querySelector('input#wl-enquiry-phone'),
+        all: box.textContent,
+        labelInOption: [...box.querySelectorAll('[data-option]')].some((o) => o.textContent.includes('Where enquiries go')),
       };
     });
     s.label = label; out.screens.push(s);

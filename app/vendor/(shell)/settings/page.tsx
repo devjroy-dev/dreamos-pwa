@@ -33,6 +33,8 @@ import { EXCHANGE } from '@/lib/worklist/exchange';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { WlToast } from '@/components/worklist/WlToast';
 import { SettingsScreen } from '@/components/vendor/SettingsScreen';
+import { SCard } from '@/components/vendor/AtelierForm';   // FE_2b: the settings section header, his ask
+import { getAuthHeader } from '@/lib/vendor/api/_base';     // FE_2b: the storefront revalidate door (R-G31.7)
 import { COPY } from '@/lib/worklist/copy';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 
@@ -182,6 +184,10 @@ function EnquiryRoutingRow() {
       }
       setRouting(r.vendor.enquiry_routing);
       setPhone(typeof r.vendor.enquiry_phone === 'string' ? r.vendor.enquiry_phone : null);
+      // F-44.155 · R-G31.7: the door echoed a rung, so her public page is rebuilt NOW, exactly as the storefront and
+      // website editors do (storefront/screen.tsx, your-website/screen.tsx). Without it /v/<code> (revalidate = 300)
+      // keeps the old link for up to five minutes, and on rung 2 that is her number lingering after she withdrew it.
+      try { await fetch('/api/revalidate/storefront', { method: 'POST', headers: getAuthHeader() }); } catch { /* the page refreshes within its window anyway */ }
       // The door answered with a different rung than she asked for: say so, never pretend.
       if (r.vendor.enquiry_routing !== body.enquiry_routing) { setErr(ENQ_FAILED); return false; }
       return true;
@@ -198,6 +204,7 @@ function EnquiryRoutingRow() {
   if (step === 'consent') {
     return (
       <div className="wl-set" data-enquiry-row="consent">
+        <SCard register="rungs" title={ENQ.label}>
         <div className="wl-swrow" style={{ cursor: 'default' }}>
           <span className="wl-swtext">
             <span className="wl-swlabel">{ENQ.own}</span>
@@ -219,6 +226,7 @@ function EnquiryRoutingRow() {
         <button type="button" className="wl-setrow" disabled={busy} onClick={() => { setErr(null); setStep('list'); }}>
           <span className="wl-setrowlabel">{ENQ_CANCEL}</span>
         </button>
+        </SCard>
       </div>
     );
   }
@@ -239,12 +247,10 @@ function EnquiryRoutingRow() {
 
   return (
     <div className="wl-set" data-enquiry-row="list" role="radiogroup" aria-label={ENQ.label}>
-      <div className="wl-swrow" style={{ cursor: 'default' }}>
-        <span className="wl-swtext">
-          <span className="wl-swlabel">{ENQ.label}</span>
-          <span className="wl-swline">{ENQ.line}</span>
-        </span>
-      </div>
+      {/* FE_2b · his ask: "Where enquiries go should read as header to the three options". The settings section
+          header itself (SCard, the "Business" heading's component, same register), E2 under it, the options beneath. */}
+      <SCard register="rungs" title={ENQ.label}>
+      <span className="wl-swline" style={{ padding: '0 16px' }}>{ENQ.line}</span>
       {option('tdw', ENQ.tdw, ENQ.tdwLine, () => { if (live !== 'tdw') void write({ enquiry_routing: 'tdw' }); })}
       {option('own_number', ENQ.own, ENQ.ownLine, () => { setDraft(livePhone || ''); setErr(null); setStep('consent'); })}
       <div role="radio" aria-checked={false} aria-disabled="true" className="wl-swrow" data-option="own_waba" style={{ cursor: 'default' }}>
@@ -252,8 +258,13 @@ function EnquiryRoutingRow() {
           <span className="wl-swlabel">{ENQ.waba}</span>
           <span className="wl-swline">{ENQ.wabaLine}</span>
         </span>
+        {/* F-19.20 (the chair's note, FE_2b): disabled AND stated, never absent. The same switch as its siblings, off,
+            at the page's own disabled look (the rows' busy opacity), so it reads as a third option that cannot be
+            chosen yet. No new colour. */}
+        <span className="wl-sw" aria-hidden data-disabled-switch="true" style={{ opacity: 0.6 }}><span /></span>
       </div>
       {err && <p className="wl-swline" role="status" style={{ padding: '0 16px' }}>{err}</p>}
+      </SCard>
     </div>
   );
 }

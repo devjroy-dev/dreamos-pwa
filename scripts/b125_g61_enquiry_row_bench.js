@@ -44,12 +44,18 @@ function loadTs(rel, src) {
 (async () => {
   sec('1  the words');
   const W = loadTs(WORDS);
+  // AMENDED BY LABEL · FE_2b (his "yes", 2026-09-24): tdw, tdwLine, own, ownLine, waba, wabaLine and phoneInvalid
+  // re-cut; were "Through TDW", "TDW answers for you in your voice, and every enquiry lands in your leads.",
+  // "Straight to my WhatsApp", "Couples message the number you type here.", "My own number in TDW app",
+  // "Arrives with Own number", "Enter a WhatsApp number with its country code.". tdwLine carries U+2019 (R-40.57).
   const VETOED = { label: 'Where enquiries go', line: 'Choose where couples land when they tap Enquire on WhatsApp on your page.',
-    tdw: 'Through TDW', tdwLine: 'TDW answers for you in your voice, and every enquiry lands in your leads.',
-    own: 'Straight to my WhatsApp', ownLine: 'Couples message the number you type here.', waba: 'My own number in TDW app',
-    wabaLine: 'Arrives with Own number', consentPublic: 'This number will be shown on your public page, where anyone can see it.',
+    tdw: 'Your TDW agent answers', tdwLine: 'Couples message TDW\u2019s number. Your agent replies for you and files every enquiry as a lead.',
+    own: 'You answer on your number', ownLine: 'Couples message your WhatsApp. You reply yourself; nothing comes to TDW.',
+    waba: 'Your TDW agent answers on your number',
+    wabaLine: 'Couples message your WhatsApp. Your agent replies for you there. Available once your own number is connected.',
+    consentPublic: 'This number will be shown on your public page, where anyone can see it.',
     consentBypass: 'Enquiries sent there skip TDW: no replies from TDW, and they will not appear in your leads.',
-    phoneLabel: 'Your WhatsApp number', confirm: 'Yes, send enquiries to this number', phoneInvalid: 'Enter a WhatsApp number with its country code.' };
+    phoneLabel: 'Your WhatsApp number', confirm: 'Yes, send enquiries to this number', phoneInvalid: 'Enter a WhatsApp number.' };
   const PIN = Object.fromEntries(Object.entries(VETOED).map(([k, v]) => [k, sha(v).slice(0, 16)]));
   const off = Object.keys(VETOED).filter((k) => typeof W.ENQ[k] !== 'string' || sha(W.ENQ[k]).slice(0, 16) !== PIN[k]);
   ok(off.length === 0 && Object.keys(W.ENQ).length === 13, '1.1 E1 to E11 (thirteen strings) byte-exact to his table', off.join(','));
@@ -87,11 +93,18 @@ function loadTs(rel, src) {
       const o = probe(mode, 'sList');
       if (good1(o, `2.list ${mode}`)) {
         const s = o.screens[0];
-        ok(s.row === 'list' && [W.ENQ.label, W.ENQ.line, W.ENQ.tdw, W.ENQ.tdwLine, W.ENQ.own, W.ENQ.ownLine, W.ENQ.waba, W.ENQ.wabaLine].every((t) => s.texts.includes(t))
+        // AMENDED BY LABEL · FE_2b: E1 is now the section heading (SCard), read from the row's text, not an option label.
+        ok(s.row === 'list' && s.all.includes(W.ENQ.label) && [W.ENQ.line, W.ENQ.tdw, W.ENQ.tdwLine, W.ENQ.own, W.ENQ.ownLine, W.ENQ.waba, W.ENQ.wabaLine].every((t) => s.texts.includes(t))
           && optOf(s, 'tdw').checked === 'true' && optOf(s, 'own_number').checked === 'false' && optOf(s, 'own_waba').disabled === 'true',
           `2.1 ${mode}: the row reads his words; Through TDW is checked; rung 3 is disabled with its state stated`, JSON.stringify(s));
+        ok(!s.labelInOption && s.all.indexOf(W.ENQ.label) < s.all.indexOf(W.ENQ.tdw) && /<SCard register="rungs" title=\{ENQ\.label\}>/.test(read(PAGE)),
+          `2.2 ${mode}: his ask, E1 HEADS the three options as the settings section header (SCard, the Business heading\u2019s own component), never one of them`);
       }
     }
+    { const o = probe('dark', 'sList');
+      if (good1(o, '2.3')) { const w = optOf(o.screens[0], 'own_waba');
+        ok(w.hasSwitch && w.switchDisabled && !w.switchOn && w.disabled === 'true' && w.text.includes(W.ENQ.wabaLine),
+          '2.3 F-19.20 (the chair\u2019s note): rung 3 HAS its switch, off and disabled, beside its stated state; never absent', JSON.stringify(w)); } }
     for (const mode of ['dark', 'light']) {
       const o = probe(mode, 'sOwn');
       if (!good1(o, `3.own ${mode}`)) continue;
@@ -102,15 +115,17 @@ function loadTs(rel, src) {
       ok(o.patches.length === 1 && o.patches[0].enquiry_routing === 'own_number' && o.patches[0].enquiry_phone === '+91 87577 88550' && after.row === 'list'
         && optOf(after, 'own_number').checked === 'true' && after.texts.includes('+91 87577 88550'),
         `3.3 ${mode}: the confirm writes {own_number, phone} once; the row settles on the door\u2019s echo, her number shown`, JSON.stringify({ p: o.patches, a: after }));
+      ok(o.revalidates === 1, `3.3r ${mode}: F-44.155, her public page is rebuilt once, right after the echoed write (R-G31.7)`, String(o.revalidates));
     }
     { const o = probe('dark', 'sBack');
       // NOT HOLLOW: sBack's /me says own_number, so this cell is red unless the row's own load succeeded.
       if (good1(o, '3.back')) ok(optOf(o.screens[0], 'own_number').checked === 'true' && o.screens[0].texts.includes('+91 98882 94440'),
         '3.4a the row LOADS her stored rung from /me (own_number and her number shown): the list is not a default', JSON.stringify(o.screens[0].options));
       if (good1(o, '3.back')) ok(o.patches.length === 1 && JSON.stringify(o.patches[0]) === '{"enquiry_routing":"tdw"}' && optOf(o.screens[1], 'tdw').checked === 'true',
-        '3.4 back to TDW: one tap, one write, no confirm (§7c: immediate)', JSON.stringify(o.patches)); }
+        '3.4 back to TDW: one tap, one write, no confirm (§7c: immediate)', JSON.stringify(o.patches));
+      if (good1(o, '3.back')) ok(o.revalidates === 1, '3.4r F-44.155: withdrawing her number rebuilds her public page at once (no five-minute exposure)', String(o.revalidates)); }
     { const o = probe('dark', 'sCancel');
-      if (good1(o, '3.cancel')) ok(o.patches.length === 0 && o.screens[2].row === 'list' && optOf(o.screens[2], 'tdw').checked === 'true', '3.5 cancel writes nothing and returns to the list'); }
+      if (good1(o, '3.cancel')) ok(o.patches.length === 0 && !o.revalidates && o.screens[2].row === 'list' && optOf(o.screens[2], 'tdw').checked === 'true', '3.5 cancel writes nothing, rebuilds nothing, and returns to the list'); }
     { const o = probe('dark', 'sWaba');
       if (good1(o, '3.waba')) ok(o.patches.length === 0 && o.screens[1].row === 'list', '3.6 the disabled rung does nothing: no write, no second screen'); }
     { const o = probe('dark', 'sSilent');
@@ -118,7 +133,8 @@ function loadTs(rel, src) {
         '3.7 FK5: a door that answers ok but keeps TDW leaves the row unchanged and says so (E12)', JSON.stringify(o.screens[2])); }
     { const o = probe('dark', 'sUnlisted');
       if (good1(o, '3.unlisted')) ok(o.screens[2].texts.includes(W.ENQ_FAILED) && o.screens[2].row === 'consent',
-        '3.8 FK5: an older door that drops the field (a 200 with nothing moved) is a refusal, never a change', JSON.stringify(o.screens[2])); }
+        '3.8 FK5: an older door that drops the field (a 200 with nothing moved) is a refusal, never a change', JSON.stringify(o.screens[2]));
+      if (good1(o, '3.unlisted')) ok(!o.revalidates, '3.8r no echo, no rebuild: the page is rebuilt only after a write the door echoed'); }
 
     sec('4  mutations of production code (each must turn its cell red; restored by sha)');
     const mutate = async (rel, from, to, holds) => {
@@ -141,6 +157,12 @@ function loadTs(rel, src) {
     res.push(['M3 the phone check always passes', await mutate(WORDS, '  return d.length >= 10 && d.length <= 15;', '  return true;',
       // 19 digits passes the pattern's length and fails ONLY the digit count, the line M3 replaces.
       async () => !loadTs(WORDS).phoneLooksRight('1234567890123456789'))]);
+    res.push(['M5 rung 3 drawn without its switch', await mutate(PAGE,
+      '        <span className="wl-sw" aria-hidden data-disabled-switch="true" style={{ opacity: 0.6 }}><span /></span>\n', '',
+      async () => { const o = probe('dark', 'sList', ''); const w = optOf(o.screens[0], 'own_waba'); return w.hasSwitch && w.switchDisabled; })]);
+    res.push(['M4 the revalidate call dropped', await mutate(PAGE,
+      "      try { await fetch('/api/revalidate/storefront', { method: 'POST', headers: getAuthHeader() }); } catch { /* the page refreshes within its window anyway */ }\n", '',
+      async () => { const o = probe('dark', 'sBack', ''); return o.revalidates === 1; })]);
     for (const [name, x] of res) ok(x.applied && x.red && x.restored, `4 ${name}: applies, turns its cell red, restored by sha`, JSON.stringify(x));
   } catch (e) {
     ok(false, `2.x the room run: ${String(e && e.message).split('\n')[0]}`);

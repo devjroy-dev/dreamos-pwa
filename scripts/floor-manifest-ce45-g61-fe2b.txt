@@ -1,0 +1,9 @@
+# scripts/floor-manifest-ce45-g61-fe2b.txt
+# CE-45 · G6-1 · FE_2b's pwa half (F-44.155, his header ask and his renamed options). F-19.16: a dirty path outside
+# this list is a STOP. BASE: 612a5b76 (given under R-45.14; built at 8a943ae1, carried byte for byte). No new directory.
+app/vendor/(shell)/settings/page.tsx
+lib/worklist/enquiryRouting.ts
+scripts/b125_g61_enquiry_row_bench.js
+scripts/lib/b125_enquiry_row_probe.mjs
+scripts/floor-manifest-ce45-g61-fe2b.txt
+docs/handovers/TDW_CE45_G61_FE2b_HANDOVER.md
