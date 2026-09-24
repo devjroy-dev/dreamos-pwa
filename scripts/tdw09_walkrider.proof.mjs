@@ -38,9 +38,11 @@ ok('§2.2 「 qualified brides 」 is dead in CODE (its epitaph may live in comm
   !/qualified brides/.test(strip(DISC)));
 
 sec('§3 · F-09.86 — the Masthead sub-line takes the body voice');
-ok('§3.1 the sub-line wears F.body at 16', /fontFamily: F\.body, fontWeight: 300, fontSize: 16/.test(MAST));
-ok('§3.2 F.body resolves on the shared const (a font key that does not exist is a silent CSS no-op)',
-  /body:\s+'var\(--font-dm-sans\)/.test(ROW));
+// AMENDED BY LABEL · CE-45 FE-2 TYPE_1: F retired with Jost and Italiana; the sub-line keeps the
+// body voice (DM Sans) at the row-secondary rung, t4, through the family's one const `T`.
+ok('§3.1 the sub-line wears the body voice at its rung', /font: T\.t4,[^}]*\}\}>\{sub\}/.test(MAST));
+ok('§3.2 T.t4 resolves on the shared const (a font key that does not exist is a silent CSS no-op)',
+  /t4:\s+'var\(--wl-t4\)'/.test(ROW));
 ok('§3.3 the two DRIFTED CITATIONS are dead — the header\u2019s 「 a Jost 10 sub-line NAMING 」 claim and the prop doc\u2019s 「 Jost 10 line naming 」 (the F-09.86 epitaph lawfully narrates the old value; a cell that reads epitaphs convicts the graveyard — first cut of this cell did exactly that, corrected here)',
   !/a Jost 10 sub-line NAMING/.test(MAST) && !/Jost 10 line naming/.test(MAST));
 

@@ -17,7 +17,7 @@ export interface FilterRailProps {
   onSelect: (key: string | null) => void;
 }
 
-const F = { label: 'var(--font-jost), system-ui, sans-serif' };
+import { T } from './SliceRow';
 
 export function FilterRail({ chips, active, onSelect }: FilterRailProps) {
   if (!chips.length) return null;
@@ -30,11 +30,15 @@ export function FilterRail({ chips, active, onSelect }: FilterRailProps) {
         const on = active === c.key;
         return (
           <button key={c.key} type="button" onClick={() => onSelect(on ? null : c.key)} style={{
-            flexShrink: 0, padding: '6px 11px', borderRadius: 999, cursor: 'pointer',
+            font: T.t5,
+            letterSpacing: '0.08em',
+            flexShrink: 0,
+            padding: '6px 11px',
+            borderRadius: 999,
+            cursor: 'pointer',
             border: `0.5px solid ${on ? 'var(--atelier-accent-text)' : 'var(--atelier-card-border)'}`,
             background: on ? 'rgba(201,168,76,0.12)' : 'transparent',
-            fontFamily: F.label, fontWeight: on ? 400 : 300, fontSize: 9,
-            letterSpacing: '0.18em', textTransform: 'uppercase',
+            textTransform: 'uppercase',
             color: on ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-mute)',
           }}>
             {c.label}{c.count != null ? ` · ${c.count}` : ''}

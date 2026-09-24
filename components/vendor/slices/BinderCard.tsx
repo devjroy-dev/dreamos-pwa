@@ -28,7 +28,7 @@ import {
   amountWordsAdjacent, fmtINR, moneyOf, noteTimeline, primaryAmount,
   relativeTouch, stageTone, type StageTone,
 } from '@/lib/vendor/cabinet';
-import { A, F, cap } from './SliceRow';
+import { A, T, cap } from './SliceRow';
 
 const TONE_COLOR: Record<StageTone, string> = {
   go:   'var(--role-positive)',
@@ -68,15 +68,24 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
   }
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '9px 11px', boxSizing: 'border-box',
+    font: T.t3,
+    width: '100%',
+    padding: '9px 11px',
+    boxSizing: 'border-box',
     background: 'var(--atelier-input-bg)',
-    border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
-    fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-    outline: 'none', caretColor: A.interactive,
+    border: '0.5px solid var(--atelier-card-border)',
+    borderRadius: 2,
+    color: A.ink,
+    outline: 'none',
+    caretColor: A.interactive,
   };
   const labelStyle: React.CSSProperties = {
-    fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute,
-    letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 4, display: 'block',
+    font: T.t5,
+    letterSpacing: '0.08em',
+    color: A.inkMute,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+    display: 'block',
   };
 
   // Packet 3j · F-43.116 (chair-ruled): the client's edit sheet mounts through the one vendor layer
@@ -98,9 +107,9 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
             <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
           </div>
-          <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Edit Binder</div>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{binder.client ?? 'Unnamed'}</div>
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -6 }}>
+          <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>Edit Binder</div>
+          <div style={{ font: T.t1, color: 'var(--atelier-ink)' }}>{binder.client ?? 'Unnamed'}</div>
+          <div style={{ font: T.t3, color: A.inkMute, marginTop: -6 }}>
             Money is edited in chat — the witnessed door. Everything else lives here.
           </div>
 
@@ -120,11 +129,13 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
           <button type="button" onClick={save} disabled={!dirty || saving}
             className={dirty && !saving ? 'atelier-fab' : undefined}
             style={{
-              width: '100%', padding: '14px 0', borderRadius: 2,
+              font: T.t4,
+              width: '100%',
+              padding: '14px 0',
+              borderRadius: 2,
               border: '0.5px solid var(--atelier-label)',
               cursor: dirty && !saving ? 'pointer' : 'default',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
-              letterSpacing: '0.42em', textTransform: 'uppercase',
+              color: INK_DEEP,
               background: !dirty || saving ? 'rgba(201,168,76,0.18)' : undefined,
               opacity: !dirty || saving ? 0.6 : 1,
             }}>{saving ? 'Saving…' : 'Save'}</button>
@@ -223,9 +234,11 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
       }}>
         {/* Line 1 — the name */}
         <div style={{
-          fontFamily: F.script, fontWeight: 500, fontSize: 20, color: A.ink,
-          letterSpacing: '0.005em', lineHeight: 1.15,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          font: T.t2,
+          color: A.ink,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
         }}>{binder.client ?? 'Unnamed'}</div>
 
         {/* Missing-cell chips — render truth; taps AWAKE (TDW_04 A1, the P3
@@ -242,16 +255,19 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
               <span key={c} role="button" data-cell={c}
                 onClick={e => { e.stopPropagation(); setWishboneStart(c); setWishboneOpen(true); }}
                 style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
-                letterSpacing: '0.06em',
-                border: '0.5px solid var(--atelier-ink-dim)', borderRadius: 2,
-                padding: '3px 8px', cursor: 'pointer',
+                font: T.t4,
+                color: A.inkMute,
+                border: '0.5px solid var(--atelier-ink-dim)',
+                borderRadius: 2,
+                padding: '3px 8px',
+                cursor: 'pointer',
               }}>+ {c}</span>
             ))}
             {overflow > 0 && (
               <span style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
-                letterSpacing: '0.06em', padding: '3px 2px',
+                font: T.t4,
+                color: A.inkMute,
+                padding: '3px 2px',
               }}>+{overflow} more</span>
             )}
           </div>
@@ -261,13 +277,15 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
         {hasMoney && (
           <div style={{ marginTop: 8 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>
+              <span style={{ font: T.t3, color: A.ink }}>
                 {amountWordsAdjacent(amt ?? total)}
               </span>
               {binder.direction && (
                 <span aria-label={binder.direction === 'in' ? 'money in' : 'money out'} style={{
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.inkMute,
-                  letterSpacing: '0.2em', textTransform: 'uppercase',
+                  font: T.t5,
+                  letterSpacing: '0.08em',
+                  color: A.inkMute,
+                  textTransform: 'uppercase',
                 }}>{binder.direction === 'in' ? '↓ in' : '↑ out'}</span>
               )}
             </div>
@@ -278,8 +296,8 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
                   <span style={{ width: `${100 - recvPct}%`, background: 'var(--atelier-ink-dim)', opacity: 0.35 }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                  <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.04em' }}>{fmtINR(recv)} in</span>
-                  <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.04em' }}>{pend > 0 ? `${fmtINR(pend)} due` : 'settled'}</span>
+                  <span style={{ font: T.t4, color: A.inkMute }}>{fmtINR(recv)} in</span>
+                  <span style={{ font: T.t4, color: A.inkMute }}>{pend > 0 ? `${fmtINR(pend)} due` : 'settled'}</span>
                 </div>
               </>
             )}
@@ -295,9 +313,12 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
           // address book rather than spelled here — same reasoning as the tier gate; a
           // cross-plane whisper is still a door out of this room.
           <a href={roomHref('leads')} onClick={e => e.stopPropagation()} style={{
-            display: 'inline-block', textDecoration: 'none',
-            fontFamily: F.label, fontWeight: 300, fontSize: 9,
-            color: A.interactiveWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
+            font: T.t5,
+            letterSpacing: '0.08em',
+            display: 'inline-block',
+            textDecoration: 'none',
+            color: A.interactiveWarm,
+            textTransform: 'uppercase',
             marginTop: 6,
           }}>Also a lead · {cap(crossLead.state)} ›</a>
         )}
@@ -306,12 +327,14 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 8 }}>
           {binder.stage && (
             <span style={{
-              fontFamily: F.label, fontWeight: 400, fontSize: 9, color: TONE_COLOR[tone],
-              letterSpacing: '0.24em', textTransform: 'uppercase',
+              font: T.t5,
+              letterSpacing: '0.08em',
+              color: TONE_COLOR[tone],
+              textTransform: 'uppercase',
             }}>{cap(binder.stage)}</span>
           )}
           {touched && (
-            <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+            <span style={{ font: T.t4, color: A.inkMute }}>
               {touched}
             </span>
           )}
@@ -327,44 +350,58 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             <div style={{ borderLeft: '0.5px solid rgba(201,168,76,0.35)', paddingLeft: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {timeline.map((line, i) => (
                 <div key={i} style={{
-                  fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.55,
+                  font: T.t3,
+                  color: A.inkSoft,
                 }}>{line}</div>
               ))}
             </div>
           ) : binder.booked_lead ? null : (
             // CE-43 LC-2 packet 3e · point 5 (a): not shown on a client with a booked lead behind
             // it; the booking summary on the client card lands in LC-3 (F-43.90).
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+            <div style={{ font: T.t3, color: A.inkMute }}>
               No story yet — it grows as you talk in chat.
             </div>
           )}
 
           <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
             <button type="button" onClick={askVictor} className="atelier-fab" style={{
-              flex: 1, padding: '11px 14px', borderRadius: 2, cursor: 'pointer',
+              font: T.t4,
+              flex: 1,
+              padding: '11px 14px',
+              borderRadius: 2,
+              cursor: 'pointer',
               border: '0.5px solid var(--atelier-label)',
-              fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
-              letterSpacing: '0.32em', textTransform: 'uppercase',
+              color: INK_DEEP,
             }}>Ask in chat</button>
             <button type="button" onClick={() => setEditOpen(true)} style={{
-              flex: 1, padding: '11px 14px', background: 'transparent',
-              border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
-              letterSpacing: '0.32em', textTransform: 'uppercase',
+              font: T.t4,
+              flex: 1,
+              padding: '11px 14px',
+              background: 'transparent',
+              border: '0.5px solid var(--atelier-sheet-border)',
+              borderRadius: 2,
+              cursor: 'pointer',
+              color: A.interactiveWarm,
             }}>Edit</button>
             {!hideConfirm ? (
               <button type="button" onClick={() => setHideConfirm(true)} style={{
-                padding: '11px 14px', background: 'transparent',
-                border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-ink-mute)',
-                letterSpacing: '0.32em', textTransform: 'uppercase',
+                font: T.t4,
+                padding: '11px 14px',
+                background: 'transparent',
+                border: '0.5px solid var(--atelier-sheet-border)',
+                borderRadius: 2,
+                cursor: 'pointer',
+                color: 'var(--atelier-ink-mute)',
               }}>Hide</button>
             ) : (
               <button type="button" onClick={() => { void hide(); }} style={{
-                padding: '11px 14px', background: 'transparent',
-                border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-critical)',
-                letterSpacing: '0.32em', textTransform: 'uppercase',
+                font: T.t4,
+                padding: '11px 14px',
+                background: 'transparent',
+                border: '0.5px solid var(--role-critical)',
+                borderRadius: 2,
+                cursor: 'pointer',
+                color: 'var(--role-critical)',
               }}>Sure?</button>
             )}
           </div>

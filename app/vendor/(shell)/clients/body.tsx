@@ -17,7 +17,7 @@ import { SliceShell } from '@/components/vendor/slices/SliceShell';
 import { BinderCard } from '@/components/vendor/slices/BinderCard';
 import { Masthead } from '@/components/vendor/slices/Masthead'; // TDW_04 A3
 import { deriveClients } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
-import { A, F } from '@/components/vendor/slices/SliceRow';
+import { A, T } from '@/components/vendor/slices/SliceRow';
 import { ClientBookingSheet } from '@/components/vendor/ClientBookingSheet'; // CE-43 LC-2 (R-43.5)
 import { WlToast } from '@/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
@@ -78,9 +78,10 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
         <>
           {empty && (
             <div style={{
-              padding: '40px 24px', textAlign: 'center',
-              fontFamily: F.script, fontWeight: 300, fontSize: 16,
-              color: A.inkMute, lineHeight: 1.6,
+              font: T.t3,
+              padding: '40px 24px',
+              textAlign: 'center',
+              color: A.inkMute,
             }}>
               {query
                 ? <>Nothing matching <span style={{ color: A.brassWarm }}>&ldquo;{query}&rdquo;</span></>

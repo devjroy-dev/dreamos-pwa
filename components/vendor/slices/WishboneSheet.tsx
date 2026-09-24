@@ -23,7 +23,7 @@ import { useState } from 'react';
 import { SheetLayer, sheetBound, SHEET_BODY_SCROLL, SHEET_BOTTOM, SHEET_SAFE } from '@/components/vendor/SheetLayer';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useAsk } from '@/lib/worklist/askContext';
-import { A, F, cap } from './SliceRow';
+import { A, T, cap } from './SliceRow';
 
 // One vocabulary, both planes (leads: draftContracts LEAD_EXPECTED; binders:
 // recordCompleteness RECORD_EXPECTED — names verified against HEAD).
@@ -146,10 +146,10 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
         borderTop: '0.5px solid var(--atelier-sheet-border)', padding: `18px 22px calc(26px + ${SHEET_SAFE})`,
         maxHeight: sheetBound('88dvh'), boxSizing: 'border-box', ...SHEET_BODY_SCROLL,
       }}>
-        <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>
+        <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>
           Complete the file
         </div>
-        <div style={{ fontFamily: F.script, fontWeight: 300,  fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
+        <div style={{ font: T.t3, color: A.inkMute, marginTop: 4 }}>
           {personLabel} — {remaining.length} detail{remaining.length === 1 ? '' : 's'} missing
         </div>
 
@@ -157,10 +157,13 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
         <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
           {remaining.map(c => (
             <button key={c} type="button" onClick={() => { setActive(c); setValue((initialValues && initialValues[c]) || ''); setError(null); }} style={{
-              fontFamily: F.label, fontWeight: c === active ? 400 : 300, fontSize: 16, lineHeight: 1.5,
-              color: c === active ? A.ink : A.inkMute, letterSpacing: '0.06em',
+              font: T.t4,
+              color: c === active ? A.ink : A.inkMute,
               border: `0.5px solid ${c === active ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-dim)'}`,
-              borderRadius: 2, padding: '3px 8px', background: 'transparent', cursor: 'pointer',
+              borderRadius: 2,
+              padding: '3px 8px',
+              background: 'transparent',
+              cursor: 'pointer',
             }}>+ {chipLabel(c)}</button>
           ))}
         </div>
@@ -168,7 +171,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
         {active && (
           <div style={{ marginTop: 14 }}>
             {victorOnly ? (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.5 }}>
+              <div style={{ font: T.t3, color: A.inkSoft }}>
                 Money is edited in chat — the witnessed door. Say it there and it files with the full trail.
               </div>
             ) : (
@@ -180,30 +183,43 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
                 onChange={e => { setValue(e.target.value); setError(null); }}
                 autoFocus={!advanced}
                 style={{
-                  width: '100%', padding: '10px 12px', boxSizing: 'border-box',
-                  background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)',
-                  borderRadius: 2, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
+                  font: T.t3,
+                  width: '100%',
+                  padding: '10px 12px',
+                  boxSizing: 'border-box',
+                  background: 'var(--atelier-input-bg)',
+                  border: '0.5px solid var(--atelier-card-border)',
+                  borderRadius: 2,
+                  color: A.ink,
                 }}
               />
             )}
             {error && (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: 'var(--role-critical)', marginTop: 6 }}>{error}</div>
+              <div style={{ font: T.t3, color: 'var(--role-critical)', marginTop: 6 }}>{error}</div>
             )}
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               {!victorOnly && (
                 <button type="button" onClick={save} disabled={saving} className={!saving ? 'atelier-fab' : undefined} style={{
-                  flex: 1, padding: '11px 14px', borderRadius: 2, cursor: saving ? 'default' : 'pointer',
-                  border: '0.5px solid var(--atelier-label)', opacity: saving ? 0.6 : 1,
+                  font: T.t4,
+                  flex: 1,
+                  padding: '11px 14px',
+                  borderRadius: 2,
+                  cursor: saving ? 'default' : 'pointer',
+                  border: '0.5px solid var(--atelier-label)',
+                  opacity: saving ? 0.6 : 1,
                   background: saving ? 'rgba(201,168,76,0.18)' : undefined,
-                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
-                  letterSpacing: '0.32em', textTransform: 'uppercase',
+                  color: INK_DEEP,
                 }}>{saving ? 'Filing…' : 'File it'}</button>
               )}
               <button type="button" onClick={() => tellVictor(active)} style={{
-                flex: 1, padding: '11px 14px', background: 'transparent',
-                border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
-                letterSpacing: '0.32em', textTransform: 'uppercase',
+                font: T.t4,
+                flex: 1,
+                padding: '11px 14px',
+                background: 'transparent',
+                border: '0.5px solid var(--atelier-sheet-border)',
+                borderRadius: 2,
+                cursor: 'pointer',
+                color: A.interactiveWarm,
               }}>{victorOnly ? 'Send to chat' : 'Ask in chat instead'}</button> {/* A4 copy law: persona-free chrome */}
             </div>
           </div>

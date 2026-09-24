@@ -1,0 +1,169 @@
+// scripts/lib/b123_type_probe.mjs · TDW CE-45 · FE-2 · TYPE_1 · the rung's browser arm.
+// Drives the REAL rooms in headless Chromium against `next dev` in mock mode (C-43.18), by b120's
+// and b122's method: puppeteer-core, CHROME_BIN or @sparticuz/chromium, a 374px touch viewport,
+// the theme by the shell's own cookie. Every read is answered from b123_fixtures.mjs, populated
+// (e-108: an empty room is not a measure). Lives in scripts/lib/ so the floor's glob skips it.
+//
+// usage: node scripts/lib/b123_type_probe.mjs PORT MODE ROOM SCENE [SHOTDIR]
+//   ROOM:  leads | clients | events | notes | invoices | expenses
+//   SCENE: rest | sheet (the first row's own sheet: the detail sheet, or for clients the card
+//          opened and then its edit sheet) | schedule (invoices: the add-milestones sheet's frame)
+// B123_CLOCK (ms since epoch) shifts the page's clock (C-44.13).
+// Prints ONE line of JSON. A missing key reads as RED in the bench, never as green.
+import fs from 'fs';
+import path from 'path';
+import puppeteer from '../../node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';
+import { answer } from './b123_fixtures.mjs';
+
+const [PORT = '3993', MODE_ARG, ROOM = 'leads', SCENE = 'rest', SHOTDIR = ''] = process.argv.slice(2);
+const MODE = MODE_ARG === 'light' ? 'light' : 'dark';
+const CLOCK = process.env.B123_CLOCK ? Number(process.env.B123_CLOCK) : null;
+
+function usable(p) { try { return !!p && fs.statSync(p).isFile(); } catch (_e) { return false; } }
+async function resolveBin() {
+  if (usable(process.env.CHROME_BIN)) return { bin: process.env.CHROME_BIN, how: 'CHROME_BIN' };
+  try {
+    const mod = await import('@sparticuz/chromium'); const c = mod.default || mod;
+    const p = await c.executablePath(); if (usable(p)) return { bin: p, how: '@sparticuz/chromium' };
+  } catch (_e) { /* fall through to the declared refusal */ }
+  return { bin: null, how: null };
+}
+const { bin, how } = await resolveBin();
+if (!bin) { console.log(JSON.stringify({ browser: null })); process.exit(3); }
+
+const out = { browser: how, mode: MODE, room: ROOM, scene: SCENE, clock: CLOCK, errors: [] };
+const b = await puppeteer.launch({ executablePath: bin, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+try {
+  const p = await b.newPage();
+  await p.setViewport({ width: 374, height: 780, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+  p.on('pageerror', (e) => out.errors.push(String(e && e.message).split('\n')[0]));
+  await p.setCookie({ name: 'tdw_wl_mode', value: MODE, domain: 'localhost', path: '/' });
+  if (CLOCK !== null) {
+    await p.evaluateOnNewDocument((t0) => {
+      const Real = Date; const start = Real.now(); const now = () => t0 + (Real.now() - start);
+      // eslint-disable-next-line no-global-assign
+      Date = class extends Real { constructor(...a) { if (a.length === 0) super(now()); else super(...a); } static now() { return now(); } };
+    }, CLOCK);
+  }
+  // The pwa registers a service worker, and a worker's fetches never reach page-level interception;
+  // b122's probe bypasses it the same way, so every read is answered from the fixtures.
+  const cdp = await p.createCDPSession();
+  await cdp.send('Network.enable');
+  await cdp.send('Network.setBypassServiceWorker', { bypass: true });
+  await p.setRequestInterception(true);
+  p.on('request', (r) => {
+    const u = r.url();
+    if (!u.includes('/__api/')) return r.continue();
+    const route = u.split('/__api')[1].split('?')[0];
+    (out.routes = out.routes || []).push(r.method() + ' ' + route);
+    return r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(answer(route)) });
+  });
+  const settle = (ms) => new Promise((res) => setTimeout(res, ms));
+  const waitFor = async (pred, ms = 90000) => { for (let i = 0; i < ms / 400; i += 1) { if (await p.evaluate(pred)) return true; await settle(400); } return false; };
+  const shot = async (label) => { if (!SHOTDIR) return; fs.mkdirSync(SHOTDIR, { recursive: true }); await p.screenshot({ path: path.join(SHOTDIR, `b123__${ROOM}__${label}__${MODE}.png`) }); };
+
+  await p.goto(`http://localhost:${PORT}/vendor/${ROOM}`, { waitUntil: 'domcontentloaded', timeout: 180000 });
+  const FIRST = { leads: 'Aanya Kapoor', clients: 'Aanya Kapoor', events: 'Aanya Kapoor Sangeet', invoices: 'Aanya Kapoor', expenses: 'Drone rental', notes: null }[ROOM];
+  out.loaded = await waitFor(FIRST ? new Function(`return !!document.querySelector('.wl-main') && document.querySelector('.wl-main').textContent.includes(${JSON.stringify(FIRST)})`)
+                                   : () => !!document.querySelector('.wl-main') && document.querySelector('.wl-main').textContent.trim().length > 0);
+  await settle(1500); // the masthead figure counts up over 300ms; both trees wait the same
+  await shot('rest');
+
+  if (SCENE === 'sheet') {
+    if (ROOM === 'clients') {
+      out.tapped = await p.evaluate(() => { const bt = document.querySelector('.wl-main button[aria-expanded]'); if (!bt) return null; bt.click(); return 'card'; });
+      await settle(900);
+      out.tapped2 = await p.evaluate(() => { const bt = [...document.querySelectorAll('.wl-main button')].find((x) => /^edit$/i.test(x.textContent.trim())); if (!bt) return null; bt.click(); return 'edit'; });
+      await waitFor(() => !!document.querySelector('[data-lc2="binder-edit-sheet"]'), 15000);
+    } else {
+      out.tapped = await p.evaluate(() => { const bt = document.querySelector('.wl-main [data-row-id] button'); if (!bt) return null; bt.click(); return bt.closest('[data-row-id]').getAttribute('data-row-id'); });
+      await waitFor(() => !!document.querySelector('[data-lc2="detail-sheet"]') && !!document.querySelector('[data-lc2="detail-sheet"]').textContent.trim(), 15000);
+    }
+    await settle(1200);
+    await shot('sheet');
+  } else if (SCENE === 'schedule' && ROOM === 'invoices') {
+    // the paid invoice (no schedule) offers "Add": it opens the add-milestones sheet (SliceShell)
+    out.tapped = await p.evaluate(() => { const r = document.querySelector('.wl-main [data-row-id="inv-0002"] button'); if (!r) return null; r.click(); return 'inv-0002'; });
+    await settle(1500);
+    out.tapped2 = await p.evaluate(() => {
+      const bt = [...document.querySelectorAll('[data-lc2="detail-sheet"] button')].find((x) => /^add$/i.test(x.textContent.trim()));
+      if (!bt) return null; bt.click(); return 'add';
+    });
+    await settle(1200);
+    await shot('schedule');
+  }
+
+  // Measure a settled page: every read the scene fired has landed (a schedule arriving 200ms later on
+  // one tree than the other is not a word change). Stable = the page's text unchanged for 1.5s.
+  { let last = '', same = 0;
+    for (let i = 0; i < 40 && same < 3; i += 1) { const now = await p.evaluate(() => document.body.innerText); same = now === last ? same + 1 : 0; last = now; await settle(500); } }
+  out.url = p.url();
+  Object.assign(out, await p.evaluate(() => {
+    if (!document.querySelector('.wl-main')) return { nodes: [], controls: [], crashed: true };
+    const W = 374;
+    // 1b's modules, measured at TYPE_2 and not here (the chair's split): their subtrees are marked, not skipped.
+    const LATER = '[data-lc2^="lead-package"],[data-lc2="lead-booking-controls"],[data-lc2="missing-chips"],[data-lc2^="thread"],[data-lc2="need-first"]';
+    const fam = (f) => { f = f.toLowerCase(); if (f.includes('cormorant')) return 'cormorant'; if (f.includes('dm_sans') || f.includes('dm sans')) return 'dmsans'; if (f.includes('jost')) return 'jost'; if (f.includes('italiana')) return 'italiana'; return f.split(',')[0].trim(); };
+    const scopes = [document.querySelector('.wl-main')];
+    for (const sel of ['[data-lc2="detail-sheet"]', '[data-lc2="binder-edit-sheet"]', '[data-lc2="wishbone-sheet"]']) {
+      const el = document.querySelector(sel);
+      if (el && el.getBoundingClientRect().top < window.innerHeight - 4) scopes.push(el);
+    }
+    // the add-milestones sheet and the other fixed overlays SliceShell draws with no marker: any fixed layer inside .wl, outside .wl-main
+    for (const el of document.querySelectorAll('.wl > div, .wl div[style*="position: fixed"]')) {
+      if (scopes.includes(el) || scopes.some((s) => s && (s.contains(el) || el.contains(s)))) continue;
+      const cs = getComputedStyle(el);
+      if (cs.position === 'fixed' && el.textContent.trim() && el.getBoundingClientRect().height > 40 && el.getBoundingClientRect().top < window.innerHeight - 4 && !el.closest('.wl-hdr, nav, .wl-dock, .wl-tabs, [class*="wl-dock"], [class*="wl-nav"]')) {
+        if ([...el.querySelectorAll('input,button')].length) scopes.push(el);
+      }
+    }
+    const main = scopes[0];
+    // A CLOSED sheet is a fixed layer translated below the fold: it is in the DOM, not on glass. The
+    // question is asked of the LAYER, never of the node: an open sheet's rows that sit below its own
+    // scroll fold are on the sheet and are counted. (The first cut asked it of the node, so a tree whose
+    // larger type pushed more rows below the fold counted fewer words: the base's 66 against 70.)
+    function offGlass(el) {
+      for (let a = el; a; a = a.parentElement) {
+        if (getComputedStyle(a).position === 'fixed') { const lr = a.getBoundingClientRect(); return lr.top >= window.innerHeight - 1 || lr.bottom <= 0; }
+      }
+      return false;
+    }
+    const strip = (() => { const cur = main && main.querySelector('button[aria-current="page"]'); return cur ? cur.parentElement : null; })();
+    const nodes = [];
+    scopes.filter(Boolean).forEach((root, si) => {
+      const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      while (w.nextNode()) {
+        const t = w.currentNode; const txt = t.textContent.replace(/\s+/g, ' ').trim(); if (!txt) continue;
+        const el = t.parentElement; const r = el.getBoundingClientRect(); if (r.width === 0 && r.height === 0) continue;
+        if (offGlass(el)) continue;
+        const cs = getComputedStyle(el);
+        let scroller = false; for (let a = el; a && a !== root; a = a.parentElement) { const ox = getComputedStyle(a).overflowX; if (ox === 'auto' || ox === 'scroll') { scroller = true; break; } }
+        nodes.push({ txt, scope: si, size: Math.round(parseFloat(cs.fontSize) * 100) / 100, f: fam(cs.fontFamily), wt: Number(cs.fontWeight),
+          ls: cs.letterSpacing, tt: cs.textTransform, fs: cs.fontStyle, later: !!el.closest(LATER), strip: !!(strip && strip.contains(el)),
+          scroller, left: Math.round(r.left), right: Math.round(r.right) });
+      }
+    });
+    const controls = [];
+    scopes.filter(Boolean).forEach((root) => {
+      for (const c of root.querySelectorAll('button, a[href], input, textarea, [role="button"]')) {
+        const r = c.getBoundingClientRect(); if (r.width === 0 && r.height === 0) continue;
+        if (offGlass(c)) continue;
+        const cs = getComputedStyle(c);
+        controls.push({ tag: c.tagName.toLowerCase(), role: c.getAttribute('role') || '', name: (c.getAttribute('aria-label') || c.textContent || c.getAttribute('placeholder') || '').replace(/\s+/g, ' ').trim(),
+          href: c.getAttribute('href') || '', tt: cs.textTransform, size: Math.round(parseFloat(cs.fontSize) * 100) / 100, later: !!c.closest(LATER), strip: !!(strip && strip.contains(c)) });
+      }
+    });
+    const fig = [...main.querySelectorAll('div')].find((d) => /^Rs [0-9,]+$/.test(d.textContent.trim()) && d.children.length === 0);
+    return {
+      scopes: scopes.filter(Boolean).length,
+      nodes, controls,
+      docOverflow: document.documentElement.scrollWidth - W,
+      mainOverflow: main ? main.scrollWidth - main.clientWidth : null,
+      stripLabels: strip ? [...strip.querySelectorAll('button')].map((x) => x.textContent.trim()) : [],
+      figure: fig ? { text: fig.textContent.trim(), size: parseFloat(getComputedStyle(fig).fontSize), f: fam(getComputedStyle(fig).fontFamily), sw: fig.scrollWidth, cw: fig.clientWidth, right: Math.round(fig.getBoundingClientRect().right) } : null,
+      storedSlice: (() => { try { return localStorage.getItem('dreamai_list_last_slice'); } catch (_e) { return 'unreadable'; } })(),
+    };
+  }));
+} catch (e) { out.errors.push('probe: ' + String(e && e.message).split('\n')[0]); }
+await b.close();
+console.log(JSON.stringify(out));

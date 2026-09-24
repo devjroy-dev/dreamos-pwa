@@ -169,14 +169,22 @@ console.log('\n\u2464 no truncated money (R-U24)');
 // `fitMoneySize` itself now has ZERO component readers and lives on in `lib/vendor/format.ts`
 // as the sanctioned answer; that is filed, not cured, in the ZIP 1b handover.
 const MAST = read('components/vendor/slices/Masthead.tsx');
+// ── AMENDED BY LABEL · CE-45 FE-2 TYPE_1 (F6, ruled 24 Sept 2026) ─────────────────────
+// The figure left Italiana 44/34 for the one feature rung it may take, t1 (Cormorant 24); t0 is
+// Today's alone. Its seven-figure step-down 44 -> 34 had one job, holding the whole number on a
+// narrow phone, and a single 24px rung does that job outright: b123 measures the longest figure
+// the wire can carry whole inside the column at 374px, in the real room. So the anchor moves
+// from the retired `fontSize: isMoney` to the figure's own element, and the second cell asks the
+// question the mechanism now answers: the figure takes t1 and nothing may set a size beside it.
 {
-  const moneyDiv = /fontSize: isMoney[\s\S]{0,400}?\}\}>/.exec(MAST);
+  const moneyDiv = /\{\s*font: T\.t1,[\s\S]{0,400}?\}\}>\{text\}/.exec(MAST);
   ok('the money headline no longer carries textOverflow: ellipsis',
      !!moneyDiv && !/textOverflow/.test(strip(moneyDiv[0])),
      moneyDiv ? 'ellipsis still present on the money headline' : 'money headline not found  anchor moved');
+  ok('the money figure sizes itself to hold the WHOLE figure',
+     !!moneyDiv && !/fontSize/.test(strip(moneyDiv[0])) && !/fontSize/.test(strip(MAST)),
+     'a size is set beside the rung on the money figure');
 }
-ok('the money figure sizes itself to hold the WHOLE figure',
-   /fontSize: isMoney && value >= 1_000_000 \? \d+ : \d+/.test(MAST));
 ok('the compact formatter is dead estate-wide',
    !/compact\(n \/ 100000, 'L'\)/.test(MAST));
 

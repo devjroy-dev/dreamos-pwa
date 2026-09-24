@@ -19,7 +19,7 @@
 // cannot disagree, because there is only one derivation to disagree with.
 
 import { useEffect, useRef, useState } from 'react';
-import { A, F } from './SliceRow';
+import { A, T } from './SliceRow';
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
 
 function useCountUp(target: number, ms = 300): number {
@@ -60,18 +60,18 @@ export function Masthead({ eyebrow, value, sub, isMoney }: {
   return (
     <div style={{ padding: '10px var(--slice-inset, 22px) 12px' }}>
       <div style={{
-        fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
-        letterSpacing: '0.06em', color: A.inkMute,
+        font: T.t5,
+        color: A.inkMute,
       }}>{eyebrow}</div>
       <div style={{
-        fontFamily: F.display, fontWeight: 300,
-        fontSize: isMoney && value >= 1_000_000 ? 34 : 44,
-        lineHeight: 1.05, color: A.ink, letterSpacing: '-0.01em',
+        font: T.t1,
+        color: A.ink,
         fontVariantNumeric: 'tabular-nums',
       }}>{text}</div>
       <div style={{
-        fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
-        letterSpacing: '0.08em', color: A.inkMute, marginTop: 2,
+        font: T.t4,
+        color: A.inkMute,
+        marginTop: 2,
       }}>{sub}</div>
     </div>
   );

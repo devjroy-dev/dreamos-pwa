@@ -17,7 +17,7 @@ export interface BulkBarProps {
   busy?: boolean;
 }
 
-const F = { label: 'var(--font-jost), system-ui, sans-serif' };
+import { T } from './SliceRow';
 
 export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: BulkBarProps) {
   if (selectedCount === 0) return null;
@@ -29,22 +29,29 @@ export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: Bu
       padding: '12px 18px calc(14px + env(safe-area-inset-bottom))',
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
-      <span style={{ fontFamily: F.label, fontWeight: 400, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--atelier-accent-text)' }}>
+      <span style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--atelier-accent-text)' }}>
         {selectedCount} selected
       </span>
       <div style={{ flex: 1, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
         {actions.map(a => (
           <button key={a.key} type="button" disabled={busy} onClick={() => onAction(a.key)} style={{
-            padding: '9px 12px', borderRadius: 2, cursor: busy ? 'default' : 'pointer',
+            font: T.t4,
+            padding: '9px 12px',
+            borderRadius: 2,
+            cursor: busy ? 'default' : 'pointer',
             border: `0.5px solid ${a.destructive ? 'var(--role-critical)' : 'var(--atelier-sheet-border)'}`,
-            background: 'transparent', opacity: busy ? 0.5 : 1,
-            fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase',
+            background: 'transparent',
+            opacity: busy ? 0.5 : 1,
             color: a.destructive ? 'var(--role-critical)' : 'var(--atelier-accent-text)',
           }}>{a.label}</button>
         ))}
         <button type="button" onClick={onCancel} style={{
-          padding: '9px 12px', borderRadius: 2, cursor: 'pointer', border: 'none', background: 'transparent',
-          fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase',
+          font: T.t4,
+          padding: '9px 12px',
+          borderRadius: 2,
+          cursor: 'pointer',
+          border: 'none',
+          background: 'transparent',
           color: 'var(--atelier-ink-mute)',
         }}>Cancel</button>
       </div>

@@ -32,7 +32,7 @@ import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
 import { API } from '@/lib/solutions/routes';
 import { RF, refusalSentence } from '@/lib/worklist/referrals';
 import type { ReferralPeer, PeerSearchResult, ForwardRefusalCode } from '@/lib/solutions/types';
-import { A, F } from './SliceRow';
+import { A, T } from './SliceRow';
 
 type Props = {
   leadId: string;
@@ -115,7 +115,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
     }
   }
 
-  const label = { fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase' as const, color: A.inkMute };
+  const label = { font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: A.inkMute };
   const panel: React.CSSProperties = {
     position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 61,
     background: 'var(--atelier-sheet-bg)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
@@ -143,7 +143,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
             founder's ruling. */}
         {picking ? (
           <>
-            <div style={{ ...label, letterSpacing: '0.42em', color: A.brass }}>{RF.pickerTitle}</div>
+            <div style={{ letterSpacing: '0.08em', ...label, color: A.brass }}>{RF.pickerTitle}</div>
 
             {/* R-44.10 (founder, 2026-09-18, "yes."): the keyboard comes up only when she
                 tapped something that NAMES the field, and never just because a sheet
@@ -156,10 +156,15 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
               placeholder={RF.searchPlaceholder}
               aria-label={RF.searchPlaceholder}
               style={{
-                width: '100%', boxSizing: 'border-box', background: 'var(--atelier-input-bg)',
-                border: '0.5px solid var(--atelier-input-border)', borderRadius: 3,
-                padding: '10px 12px', margin: '10px 0 2px',
-                fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.ink,
+                font: T.t3,
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'var(--atelier-input-bg)',
+                border: '0.5px solid var(--atelier-input-border)',
+                borderRadius: 3,
+                padding: '10px 12px',
+                margin: '10px 0 2px',
+                color: A.ink,
               }}
             />
 
@@ -168,8 +173,12 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                 {/* THE HEAD. It is drawn because the group EXISTS — the door
                     omits an empty one, so this never renders over nothing. */}
                 <div style={{
-                  ...label, letterSpacing: '0.08em', color: A.inkMute,
-                  marginTop: 14, paddingTop: 10, borderTop: '0.5px solid var(--atelier-card-border)',
+                  letterSpacing: '0.08em',
+                  ...label,
+                  color: A.inkMute,
+                  marginTop: 14,
+                  paddingTop: 10,
+                  borderTop: '0.5px solid var(--atelier-card-border)',
                 }}>
                   {g.key === 'worked_with' ? RF.groupWorkedWith
                     : g.key === 'same_trade' ? RF.groupSameTrade
@@ -183,7 +192,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                   }}>
                     <span>
                       {/* HER NAME OR NOTHING — never an invented one. */}
-                      <span style={{ display: 'block', fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.ink }}>{p.business_name || '\u2014'}</span>
+                      <span style={{ font: T.t3, display: 'block', color: A.ink }}>{p.business_name || '\u2014'}</span>
                       {/* TRADE AND CITY. Two facts decide whether she is the
                           RIGHT peer for this enquiry, and both are already on her
                           public storefront card — which is the whole argument
@@ -193,7 +202,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                         {[p.category, p.city].filter(Boolean).join(' \u00b7 ') || '\u2014'}
                       </span>
                     </span>
-                    {chosen?.id === p.id ? <span style={{ color: 'var(--atelier-accent-text)', fontSize: 16 }}>{'\u2713'}</span> : null}
+                    {chosen?.id === p.id ? <span style={{ font: T.t3, color: 'var(--atelier-accent-text)' }}>{'\u2713'}</span> : null}
                   </button>
                 ))}
               </div>
@@ -212,7 +221,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                 and a control pointing at a door this sheet cannot open is worse
                 than none. */}
             {result && result.searching && result.groups.length === 0 ? (
-              <p style={{ fontFamily: F.script, fontWeight: 300, fontSize: 13, color: A.inkMute, lineHeight: 1.5, marginTop: 14 }}>
+              <p style={{ font: T.t4, color: A.inkMute, marginTop: 14 }}>
                 {RF.searchNoMatch}
               </p>
             ) : null}
@@ -220,8 +229,8 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
         ) : (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-              <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 24, color: A.ink }}>{RF.sheetTitle}</span>
-              <button type="button" onClick={onDone} aria-label="Close" style={{ background: 'transparent', border: 'none', color: A.inkDim, fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>{'\u00d7'}</button>
+              <span style={{ font: T.t1, color: A.ink }}>{RF.sheetTitle}</span>
+              <button type="button" onClick={onDone} aria-label="Close" style={{ font: T.t2, background: 'transparent', border: 'none', color: A.inkDim, cursor: 'pointer' }}>{'\u00d7'}</button>
             </div>
 
             {/* ── THE REFUSAL · R-G51.2 ─────────────────────────────────────
@@ -231,19 +240,28 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                 beneath a refusal invites her to press it again. */}
             {refusal ? (
               <div style={{ border: '0.5px solid var(--role-caution)', borderLeftWidth: 2, borderRadius: 3, padding: 12, marginBottom: 12 }}>
-                <p style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.ink, lineHeight: 1.45, margin: 0 }}>{refusal}</p>
+                <p style={{ font: T.t3, color: A.ink, margin: 0 }}>{refusal}</p>
               </div>
             ) : null}
             {error ? (
-              <p style={{ fontFamily: F.script, fontWeight: 300, fontSize: 13, color: A.inkMute, lineHeight: 1.5, marginBottom: 10 }}>{error}</p>
+              <p style={{ font: T.t4, color: A.inkMute, marginBottom: 10 }}>{error}</p>
             ) : null}
 
             <span style={{ ...label, display: 'block', marginBottom: 5 }}>{RF.fieldPeer}</span>
             <button type="button" onClick={() => setPicking(true)} disabled={sending} style={{
-              display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center',
-              background: 'var(--atelier-input-bg)', border: `0.5px solid ${chosen ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
-              borderRadius: 3, padding: '10px 12px', marginBottom: 12, cursor: 'pointer',
-              fontFamily: F.script, fontWeight: 300, fontSize: 16, color: chosen ? A.ink : A.inkDim, textAlign: 'left',
+              font: T.t3,
+              display: 'flex',
+              width: '100%',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: 'var(--atelier-input-bg)',
+              border: `0.5px solid ${chosen ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
+              borderRadius: 3,
+              padding: '10px 12px',
+              marginBottom: 12,
+              cursor: 'pointer',
+              color: chosen ? A.ink : A.inkDim,
+              textAlign: 'left',
             }}>
               {/* ⚠ ITS FALLBACK USED TO BE B8 — "Peers you've worked with appear
                   here." — shown when her roster was empty, because an empty
@@ -264,10 +282,16 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                   placeholder={RF.notePlaceholder}
                   rows={3}
                   style={{
-                    width: '100%', boxSizing: 'border-box', background: 'var(--atelier-input-bg)',
-                    border: '0.5px solid var(--atelier-card-border)', borderRadius: 3, padding: '10px 12px',
-                    fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.ink, lineHeight: 1.5,
-                    marginBottom: 12, resize: 'none',
+                    font: T.t3,
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    background: 'var(--atelier-input-bg)',
+                    border: '0.5px solid var(--atelier-card-border)',
+                    borderRadius: 3,
+                    padding: '10px 12px',
+                    color: A.ink,
+                    marginBottom: 12,
+                    resize: 'none',
                   }}
                 />
               </>
@@ -275,25 +299,32 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
 
             {refusal ? (
               <button type="button" onClick={onDone} style={{
-                width: '100%', minHeight: 48, background: 'transparent',
-                border: '0.5px solid var(--atelier-card-border)', borderRadius: 3, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 11, letterSpacing: '0.08em',
-                textTransform: 'uppercase', color: A.inkSoft,
+                font: T.t4,
+                width: '100%',
+                minHeight: 48,
+                background: 'transparent',
+                border: '0.5px solid var(--atelier-card-border)',
+                borderRadius: 3,
+                cursor: 'pointer',
+                color: A.inkSoft,
               }}>{RF.refusalClose}</button>
             ) : (
               <>
                 <button type="button" onClick={send} disabled={!chosen || sending} style={{
-                  width: '100%', minHeight: 48, border: 'none', borderRadius: 3,
+                  font: T.t4,
+                  width: '100%',
+                  minHeight: 48,
+                  border: 'none',
+                  borderRadius: 3,
                   background: chosen && !sending ? 'var(--atelier-accent-text)' : 'var(--atelier-card-border)',
                   color: chosen && !sending ? 'var(--role-ink-deep)' : A.inkDim,
-                  fontFamily: F.label, fontWeight: 300, fontSize: 11, letterSpacing: '0.08em',
-                  textTransform: 'uppercase', cursor: chosen && !sending ? 'pointer' : 'default',
+                  cursor: chosen && !sending ? 'pointer' : 'default',
                 }}>{RF.sendVerb}</button>
 
                 {/* B6 · R-G51.7 SAID OUT LOUD BEFORE SHE TAPS, NOT DISCOVERED
                     AFTER. She will otherwise assume TDW told the couple, and
                     find out it did not when the couple asks. */}
-                <p style={{ fontFamily: F.script, fontWeight: 300, fontSize: 13, color: A.inkDim, lineHeight: 1.5, marginTop: 14 }}>
+                <p style={{ font: T.t4, color: A.inkDim, marginTop: 14 }}>
                   {RF.sheetStandingLine}
                 </p>
               </>

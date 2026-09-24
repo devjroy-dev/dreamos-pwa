@@ -14,7 +14,7 @@ import type { ReactNode } from 'react';
 import { SheetLayer, sheetBound, useSheetScrollReset, SHEET_BODY_SCROLL, SHEET_BOTTOM, SHEET_SAFE } from '@/components/vendor/SheetLayer';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
-import { A, F, LABELS, cap, type Row } from './SliceRow';
+import { A, T, LABELS, cap, type Row } from './SliceRow';
 
 interface DetailSheetProps {
   slice: ListSlice;
@@ -78,8 +78,8 @@ export function DetailSheet({
         </div>
         {/* Calling-card header */}
         <div style={{ padding: '6px 24px 14px', borderBottom: '0.5px solid var(--atelier-card-border)', flexShrink: 0 }}>
-          <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 4 }}>{LABELS[slice]}</div>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', letterSpacing: '0.005em', lineHeight: 1.15 }}>{sel?.primary ?? ''}</div>
+          <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass, marginBottom: 4 }}>{LABELS[slice]}</div>
+          <div style={{ font: T.t1, color: 'var(--atelier-ink)' }}>{sel?.primary ?? ''}</div>
         </div>
 
         <div ref={bodyRef} data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, overflowX: 'hidden', padding: '12px 24px' }}>
@@ -94,8 +94,8 @@ export function DetailSheet({
               padding: '10px 0', gap: 14,
               borderBottom: ii < (sel?.detail.length ?? 0) - 1 ? '0.5px solid var(--atelier-card-border)' : 'none',
             }}>
-              <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', flexShrink: 0, paddingTop: 3 }}>{f.label}</span>
-              <span style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em', textAlign: 'right', whiteSpace: 'pre-line' }}>{f.verbatim ? f.value : cap(f.value)}</span>
+              <span style={{ font: T.t5, letterSpacing: '0.08em', color: A.inkMute, textTransform: 'uppercase', flexShrink: 0, paddingTop: 3 }}>{f.label}</span>
+              <span style={{ font: T.t3, color: A.ink, textAlign: 'right', whiteSpace: 'pre-line' }}>{f.verbatim ? f.value : cap(f.value)}</span>
             </div>
           ))}
 
@@ -110,10 +110,13 @@ export function DetailSheet({
           {!confirmDel ? (
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="button" onClick={() => sel && onEditHere(sel)} className="atelier-fab" style={{
-                flex: 1, padding: '12px 16px', borderRadius: 2, cursor: 'pointer',
+                font: T.t4,
+                flex: 1,
+                padding: '12px 16px',
+                borderRadius: 2,
+                cursor: 'pointer',
                 border: '0.5px solid var(--atelier-label)',
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
-                letterSpacing: '0.32em', textTransform: 'uppercase',
+                color: INK_DEEP,
               }}>Edit Here</button>
 
               {/* ── R-41.70 §A 4 · IT SAYS WHAT IT DELETES ──────────────────
@@ -122,23 +125,28 @@ export function DetailSheet({
                   schedule has its own Remove in the panel header now; this one
                   names the invoice so the two can never be confused. */}
               <button type="button" onClick={() => { setConfirmDel(true); setDeleteMsg(null); }} style={{
-                flex: 1, padding: '12px 16px', background: 'transparent',
-                border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.red,
-                letterSpacing: '0.32em', textTransform: 'uppercase',
+                font: T.t4,
+                flex: 1,
+                padding: '12px 16px',
+                background: 'transparent',
+                border: '0.5px solid var(--role-critical)',
+                borderRadius: 2,
+                cursor: 'pointer',
+                color: A.red,
               }}>{slice === 'invoices' ? 'Delete invoice' : 'Delete'}</button>
             </div>
           ) : deleteMsg ? (
             <div style={{
-              fontFamily: F.script, fontWeight: 300, fontSize: 16,
+              font: T.t3,
               color: deleteMsg.startsWith('Done') || deleteMsg.includes('cancelled') ? A.brassWarm : A.red,
-              textAlign: 'center', lineHeight: 1.5, padding: '8px 0',
+              textAlign: 'center',
+              padding: '8px 0',
             }}>{deleteMsg}</div>
           ) : (
             <>
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, textAlign: 'center', lineHeight: 1.6 }}>
-                {slice === 'invoices' ? 'Cancel' : 'Remove'} <span style={{ color: 'var(--atelier-ink)', fontStyle: 'normal' }}>{sel?.primary}</span>?<br/>
-                <span style={{ fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+              <div style={{ font: T.t3, color: A.inkSoft, textAlign: 'center' }}>
+                {slice === 'invoices' ? 'Cancel' : 'Remove'} <span style={{ color: 'var(--atelier-ink)' }}>{sel?.primary}</span>?<br/>
+                <span style={{ font: T.t4, color: A.inkMute }}>
                   {/* TDW_04 A3.3 (F-04.15): each line now names what its door
                       actually does. It said leads would be "marked as lost" —
                       the M3 masquerade's own words, still on screen long after
@@ -162,18 +170,25 @@ export function DetailSheet({
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="button" onClick={() => setConfirmDel(false)} style={{
-                  flex: 1, padding: '12px 16px', background: 'transparent',
-                  border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
-                  letterSpacing: '0.32em', textTransform: 'uppercase',
+                  font: T.t4,
+                  flex: 1,
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  border: '0.5px solid var(--atelier-sheet-border)',
+                  borderRadius: 2,
+                  cursor: 'pointer',
+                  color: A.interactiveWarm,
                 }}>Back</button>
                 <button type="button" onClick={confirmDelete} disabled={deleting} style={{
-                  flex: 1, padding: '12px 16px',
-                  background: 'transparent', opacity: deleting ? 0.5 : 1,
-                  border: '0.5px solid var(--role-critical)', borderRadius: 2,
+                  font: T.t4,
+                  flex: 1,
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  opacity: deleting ? 0.5 : 1,
+                  border: '0.5px solid var(--role-critical)',
+                  borderRadius: 2,
                   cursor: deleting ? 'default' : 'pointer',
-                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-critical)',
-                  letterSpacing: '0.32em', textTransform: 'uppercase',
+                  color: 'var(--role-critical)',
                 }}>{deleting ? 'Working…' : 'Confirm'}</button>
               </div>
             </>

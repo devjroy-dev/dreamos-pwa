@@ -97,7 +97,24 @@ let fails = 0;
 let refusals = 0;
 const refusedNames = [];
 let C2_RETIRED_PRINTED = false; // CE-45 FE-1, A-45.2: C2's retired clause prints exactly once
+// ── A-45.2 · THE RETIRED CELLS, NAMED AT THE HARNESS (CE-45 FE-2 TYPE_1) ───────────────────
+// A cell whose subject a cut deleted is retired HERE, by its id, with its reason beside it. The
+// harness prints RETIRED, never counts it as a pass, never runs its body (a body that reads a
+// deleted region can only ever pass vacuously or throw), and at exit every row must have matched
+// EXACTLY ONE reached cell, or the bench exits 1: a row that matches nothing is a table that
+// has drifted from the cells it claims to retire.
+const RETIRED_CELLS = [
+  ['C28', 'A-45.2: the Slice Door (the in-room tab strip) was removed by the founder\u2019s ruling, CE-45 FE-2 TYPE_1; b123 pins its absence'],
+];
+const retiredHits = new Map(RETIRED_CELLS.map(([id]) => [id, 0]));
 function cell(name, fn) {
+  const rid = name.split(' ')[0];
+  if (retiredHits.has(rid)) {
+    retiredHits.set(rid, retiredHits.get(rid) + 1);
+    const why = RETIRED_CELLS.find(([id]) => id === rid)[1];
+    console.log('RETIRED ' + name + ' (' + why + ')');
+    return;
+  }
   try {
     const why = fn();
     if (!why) { console.log('GREEN ' + name); return; }
@@ -4504,6 +4521,10 @@ cell('C115 the Your website page writes the primary register once (Primary), ope
   return bad.length === 0 ? null : bad.join('; ');
 });
 
+// A-45.2: every retired row matched exactly one reached cell, or the table is a lie.
+for (const [id, n] of retiredHits) {
+  if (n !== 1) { console.log('RED   A-45.2 the retired row ' + id + ' matched ' + n + ' reached cell(s), not exactly one'); fails++; }
+}
 if (fails > 0) {
   console.log('\nFLOOR RED — ' + fails + ' cell(s)'
     + (refusals ? ' · ' + refusals + ' also REFUSED: ' + refusedNames.join(', ') : ''));

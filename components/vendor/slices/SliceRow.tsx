@@ -31,11 +31,20 @@ export const A = {
   green:     'var(--role-positive)',
   red:       'var(--role-critical)',
 } as const;
-export const F = {
-  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script:  'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
-  body:    'var(--font-dm-sans), system-ui, sans-serif',
-  label:   'var(--font-jost), system-ui, sans-serif',
+// ── CE-45 · FE-2 · TYPE_1 · THE FAMILY TAKES THE APP'S OWN TYPE ─────────────────
+// `F` named four faces (Italiana, Jost, DM Sans twice) and every call site set its own size,
+// weight, line-height and tracking beside it: the old dress FE-1's audit measured (e-108 for
+// what that audit could not see). It is retired, not aliased, so the compiler found every caller.
+// `T` names the six rungs of lib/worklist/theme.ts and nothing else. Each is the `font`
+// SHORTHAND (theme.ts typeCss), so a site that takes one cannot also set a size, a face or a
+// weight of its own; the family's sheets mount inside `.wl` (SheetLayer.tsx mountNode), where
+// the shell emits the rung variables. t0 is Today's numeral and is not offered here.
+export const T = {
+  t1: 'var(--wl-t1)',
+  t2: 'var(--wl-t2)',
+  t3: 'var(--wl-t3)',
+  t4: 'var(--wl-t4)',
+  t5: 'var(--wl-t5)',
 } as const;
 
 export const LABELS: Record<DoorSlice, string> = { clients: 'Clients', leads: 'Leads', invoices: 'Invoices', events: 'Events', expenses: 'Expenses', notes: 'Notes' };
@@ -266,17 +275,21 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
       }}>
         {/* Monogram glyph — always present, anchors left edge */}
         <span style={{
-          flexShrink: 0, width: 28, textAlign: 'center',
-          fontFamily: F.display, fontWeight: 400, fontSize: 20,
-          color: A.brassWarm, lineHeight: 1,
+          font: T.t2,
+          flexShrink: 0,
+          width: 28,
+          textAlign: 'center',
+          color: A.brassWarm,
         }}>{GLYPHS[slice]}</span>
 
         {/* Name + detail line */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontFamily: F.script, fontWeight: 500, fontSize: 16,
-            color: A.ink, letterSpacing: '0.005em', lineHeight: 1.15,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            font: T.t3,
+            color: A.ink,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}>
             {row.primary}
             {/* M-LEADS-TRUTH · the TDW mark. Founder copy, approved 2026-08-22,
@@ -303,11 +316,16 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
                  UNCHANGED by this delivery, so an eleventh un-cited site below
                  the floor still reds, which is the condition of the grant. */
               <span style={{
-                marginLeft: 8, verticalAlign: 'middle',
-                fontFamily: F.label, fontWeight: 500, fontSize: 9,
-                letterSpacing: '0.14em', textTransform: 'uppercase', color: A.brass,
-                border: '0.5px solid rgba(201,168,76,0.38)', borderRadius: 3,
-                padding: '2px 5px', lineHeight: 1, whiteSpace: 'nowrap',
+                font: T.t5,
+                letterSpacing: '0.08em',
+                marginLeft: 8,
+                verticalAlign: 'middle',
+                textTransform: 'uppercase',
+                color: A.brass,
+                border: '0.5px solid rgba(201,168,76,0.38)',
+                borderRadius: 3,
+                padding: '2px 5px',
+                whiteSpace: 'nowrap',
               }}>TDW</span>
             )}
             {/* ── R-G51.16 / R-40.52 · THE REFERRAL CHIP, PEER'S COPY ONLY ──
@@ -326,12 +344,16 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
                 meanings. */}
             {row.referralIn && (
               <span style={{
-                marginLeft: 8, verticalAlign: 'middle',
-                fontFamily: F.label, fontWeight: 500, fontSize: 9,
-                letterSpacing: '0.14em', textTransform: 'uppercase',
+                font: T.t5,
+                letterSpacing: '0.08em',
+                marginLeft: 8,
+                verticalAlign: 'middle',
+                textTransform: 'uppercase',
                 color: 'var(--atelier-accent-text)',
-                border: '0.5px solid var(--atelier-accent-text)', borderRadius: 3,
-                padding: '2px 5px', lineHeight: 1, whiteSpace: 'nowrap',
+                border: '0.5px solid var(--atelier-accent-text)',
+                borderRadius: 3,
+                padding: '2px 5px',
+                whiteSpace: 'nowrap',
               }}>{RF.chipReferral}</span>
             )}
             {/* ── F-40.211 / R-40.103 · THE WEDDING CHIP ────────────────────
@@ -365,19 +387,26 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
                 directly, as the referral chip does, and cannot be moved by it. */}
             {row.weddingLead && (
               <span style={{
-                marginLeft: 8, verticalAlign: 'middle',
-                fontFamily: F.label, fontWeight: 500, fontSize: 9,
-                letterSpacing: '0.14em', textTransform: 'uppercase',
+                font: T.t5,
+                letterSpacing: '0.08em',
+                marginLeft: 8,
+                verticalAlign: 'middle',
+                textTransform: 'uppercase',
                 color: 'var(--atelier-accent-text)',
-                border: '0.5px solid var(--atelier-accent-text)', borderRadius: 3,
-                padding: '2px 5px', lineHeight: 1, whiteSpace: 'nowrap',
+                border: '0.5px solid var(--atelier-accent-text)',
+                borderRadius: 3,
+                padding: '2px 5px',
+                whiteSpace: 'nowrap',
               }}>{WP.chipWedding}</span>
             )}
           </div>
           <div style={{
-            fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
-            color: A.inkMute, letterSpacing: '0.01em', marginTop: 3,
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            font: T.t4,
+            color: A.inkMute,
+            marginTop: 3,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}>{detailLine}</div>
           {row.crossChip && (
             // TDW_04 A3 (L-3): the chip is TAPPABLE when it knows where the twin
@@ -386,16 +415,28 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
             // announce, never link a spine; that spine waits for TDW_16).
             row.crossChipHref ? (
               <a href={row.crossChipHref} onClick={e => e.stopPropagation()} style={{
-                display: 'inline-block', textDecoration: 'none',
-                fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                color: A.interactiveWarm, letterSpacing: '0.08em', textTransform: 'uppercase',
-                marginTop: 4, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                font: T.t5,
+                letterSpacing: '0.08em',
+                display: 'inline-block',
+                textDecoration: 'none',
+                color: A.interactiveWarm,
+                textTransform: 'uppercase',
+                marginTop: 4,
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}>{row.crossChip} ›</a>
             ) : (
               <div style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                color: A.inkMute, letterSpacing: '0.08em', textTransform: 'uppercase',
-                marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                font: T.t5,
+                letterSpacing: '0.08em',
+                color: A.inkMute,
+                textTransform: 'uppercase',
+                marginTop: 4,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}>{row.crossChip}</div>
             )
           )}
@@ -404,14 +445,16 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
         {/* State pill — same chrome regardless of detail-line content */}
         {row.badge && (
           <span style={{
+            font: T.t5,
+            letterSpacing: '0.08em',
             flexShrink: 0,
-            fontFamily: F.label, fontWeight: 400, fontSize: 8,
             color: pillColor,
-            letterSpacing: '0.32em', textTransform: 'uppercase',
+            textTransform: 'uppercase',
             border: `0.5px solid ${pillColor}`,
             borderRadius: 2,
             padding: '4px 9px',
-            minWidth: 56, textAlign: 'center',
+            minWidth: 56,
+            textAlign: 'center',
           }}>{row.badge}</span>
         )}
       </button>
@@ -423,21 +466,33 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
             onClick={e => e.stopPropagation()}
             aria-label={`WhatsApp ${row.primary}`}
             style={{
-              width: 34, height: 34, borderRadius: '50%',
+              font: T.t3,
+              width: 34,
+              height: 34,
+              borderRadius: '50%',
               background: 'transparent',
               border: '0.5px solid var(--role-positive)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-              fontFamily: F.display, fontSize: 16, color: A.green, lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textDecoration: 'none',
+              color: A.green,
             }}><WaIcon /></a>
           <a href={`tel:${row.phone}`}
             onClick={e => e.stopPropagation()}
             aria-label={`Call ${row.primary}`}
             style={{
-              width: 34, height: 34, borderRadius: '50%',
+              font: T.t3,
+              width: 34,
+              height: 34,
+              borderRadius: '50%',
               background: 'var(--atelier-input-bg)',
               border: '0.5px solid var(--atelier-sheet-border)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-              fontFamily: F.display, fontSize: 16, color: A.interactiveWarm, lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textDecoration: 'none',
+              color: A.interactiveWarm,
             }}>☎</a>
         </div>
       )}

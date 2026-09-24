@@ -8,6 +8,7 @@
 // |dx| > |dy|).
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { T } from './SliceRow';
 
 const THRESHOLD = 96;
 
@@ -97,10 +98,15 @@ export function SwipeRow({ children, right, left, disabled }: {
     >
       {reveal && dx !== 0 && (
         <div style={{
-          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
-          justifyContent: dx > 0 ? 'flex-start' : 'flex-end', padding: '0 var(--slice-inset, 22px)',
-          fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 400,
-          fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase',
+          font: T.t5,
+          letterSpacing: '0.08em',
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: dx > 0 ? 'flex-start' : 'flex-end',
+          padding: '0 var(--slice-inset, 22px)',
+          textTransform: 'uppercase',
           color: reveal.destructive ? 'var(--role-critical)' : 'var(--atelier-accent-text)',
           opacity: revealOn ? 1 : 0.45,
         }}>{reveal.label}</div>

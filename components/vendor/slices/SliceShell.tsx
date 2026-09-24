@@ -19,12 +19,11 @@
 // — and once that moved, the specifier was dead. Derived, not assumed: zero call sites
 // remain in this file. An unused import is not tidiness debt; it is a named binding the
 // next reader wires something to (the `vendorName` finding at §4-2, same shape).
-import { useRouter } from 'next/navigation';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Fab } from '@/components/worklist/Fab';
-import { useLastSlice, type ListSlice, type DoorSlice } from '@/hooks/vendor/useLastSlice';
+import { type ListSlice } from '@/hooks/vendor/useLastSlice';
 import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
 // BLOCK 19 G5.1 — the control's label comes from the copy home, never spelled here.
 import { RF } from '@/lib/worklist/referrals';
@@ -71,7 +70,7 @@ import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
 import type { ScheduleMilestone } from '@/lib/vendor/types/vendor';
 import { ConversationThread } from '@/components/vendor/ConversationThread';
 import type { ConversationMessage } from '@/lib/vendor/types/vendor';
-import { A, F, LABELS, WaIcon, SliceRow, cap, type Row } from './SliceRow';
+import { A, T, LABELS, WaIcon, SliceRow, cap, type Row } from './SliceRow';
 
 // TDW_04 A1 (L-1, ST-1) — the lane declarations, house voice, LOCKED wording:
 // Leads "Enquiries pipeline"; Clients/Invoices/Expenses "From your binders";
@@ -133,13 +132,11 @@ import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 // two lines saved by inlining `true`.
 const SCHEDULE_ENABLED: boolean = true;
 
-// ── The Slice Door · CE addendum 2026-07-14 (F1 successor) ──────
-// The five slices as chips, canonical order, directly under the brass label.
-// Active state derives from the route param (never local state). Tap writes
-// the last-slice key through the EXISTING hook's write path, then navigates —
-// a real route change (the P1 remount nuance is a live path now; P4 judges it
-// per the standing ruling). Counts slot reserved — TDW_09 may add.
-const DOOR_ORDER: DoorSlice[] = ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes'];
+// ── CE-45 · FE-2 · TYPE_1 · THE SLICE DOOR IS GONE (the founder's ruling, 24 Sept 2026) ──
+// The in-room tab strip (Leads / Clients / Invoices / Expenses / Events / Notes) duplicated the
+// shelves and Home, which reach every one of these rooms. It was the only writer of the stored
+// last-slice key (dreamai_list_last_slice), and nothing reads that key, so nothing that runs
+// is lost with it. b123 pins the absence; b40 C28 is retired under A-45.2.
 
 // ── M-FINISH S2 · §4-3 · `useInShell` MOVED OUT OF THIS FILE, AND ONLY MOVED ──
 // It was DEFINED here at §4-1 because the list family was the only caller. Storefront,
@@ -153,70 +150,6 @@ const DOOR_ORDER: DoorSlice[] = ['leads', 'clients', 'invoices', 'expenses', 'ev
 // The reasoning that used to sit here travelled WITH the code and is not summarised: a
 // comment that paraphrases a decision living elsewhere is the next stale comment (F-38.29).
 
-export function SliceDoor({ active }: { active: DoorSlice }) {
-  const router = useRouter();
-  const [, setSlice] = useLastSlice();
-  const rowRef = useRef<HTMLDivElement | null>(null);
-  const activeRef = useRef<HTMLButtonElement | null>(null);
-
-  // Active chip auto-scrolled into view on entry and on slice change.
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: 'nearest', inline: 'center' });
-  }, [active]);
-
-  return (
-    <div ref={rowRef} style={{
-      display: 'flex', gap: 4, padding: '0 var(--slice-inset, 22px) 6px',
-      overflowX: 'auto', scrollbarWidth: 'none',
-      borderBottom: '0.5px solid var(--atelier-card-border)',
-    }}>
-      {DOOR_ORDER.map(s => {
-        const isActive = s === active;
-        return (
-          <button
-            key={s}
-            ref={isActive ? activeRef : undefined}
-            type="button"
-            aria-current={isActive ? 'page' : undefined}
-            onClick={() => { if (!isActive) { setSlice(s); router.push(`/vendor/${s}`); } }}
-            style={{
-              flexShrink: 0,
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              minHeight: 24, padding: '8px 10px', // pads the 24px line to a 40px touch target
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-            }}>
-            {/* ── THE OBLIGATION theme.ts SHIPPED UNDER BAR, DISCHARGED AT ITS NAMED SITTING ──
-                lib/worklist/theme.ts:28-31 recorded the inactive chip at 4.02:1 dark and
-                3.01:1 light against a 4.5 bar, named THIS line as the cause (a hard-coded
-                opacity 0.45, which no ink value can climb out of) and bound the cure BY
-                LABEL to "the Phase 2 SliceDoor sitting". The list family crossing is that
-                sitting, so it is discharged here rather than carried a third time.
-                THE OPACITY IS GONE, NOT TUNED. Two ink tokens carry the two states, and
-                both are MEASURED in theme.ts against the ground they sit on: ink-mute is
-                4.98:1 dark and 6.79:1 light, ink is 15.74:1 and 17.82:1. An opacity over a
-                token is a colour nobody measured; a token is a colour somebody did.
-                It reads correctly on the /vendor fallback too, because both trees define
-                these two variables — this is the one-home move, not a branch fork (D-2). */}
-            <span style={{
-              fontFamily: F.label, fontWeight: isActive ? 400 : 300, fontSize: 10,
-              letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: isActive ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
-              transition: 'color 200ms ease',
-            }}>
-              {LABELS[s]}
-              {/* counts slot reserved — TDW_09 may add */}
-            </span>
-            <span aria-hidden style={{
-              display: 'block', width: '100%', height: 2, borderRadius: 1,
-              background: isActive ? 'var(--atelier-accent-text)' : 'transparent',
-              transition: 'background 200ms ease',
-            }} />
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 // ── SliceShell · pure chrome ─────────────────────────────────────
 // Masthead slot (P5 fills it), search, list + empty state, FAB.
@@ -269,13 +202,22 @@ interface SliceShellProps {
 // register. Neither is swept inside a structural crossing.
 // ── G3.4 s2 · the edit sheet's two field styles, one home (mock S3) ─────────
 const msLabel: React.CSSProperties = {
-  display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8,
-  letterSpacing: '0.32em', textTransform: 'uppercase', color: A.inkMute, margin: '12px 0 6px',
+  font: T.t5,
+  letterSpacing: '0.08em',
+  display: 'block',
+  textTransform: 'uppercase',
+  color: A.inkMute,
+  margin: '12px 0 6px',
 };
 const msInput: React.CSSProperties = {
-  padding: '9px 10px', boxSizing: 'border-box', width: '100%',
-  background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)',
-  borderRadius: 2, fontFamily: F.script, fontWeight: 300, fontSize: 16, color: 'var(--atelier-ink)',
+  font: T.t3,
+  padding: '9px 10px',
+  boxSizing: 'border-box',
+  width: '100%',
+  background: 'var(--atelier-input-bg)',
+  border: '0.5px solid var(--atelier-card-border)',
+  borderRadius: 2,
+  color: 'var(--atelier-ink)',
 };
 
 export function SliceShell({ slice, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
@@ -292,7 +234,7 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
           every record-surface title, house voice. No surface claims totality it
           doesn't have. */}
       <div style={{ padding: '0 var(--slice-inset, 22px) 2px', marginTop: -4 }}>
-        <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{LANE_LINE[slice]}</span>
+        <span style={{ font: T.t3, color: A.inkMute }}>{LANE_LINE[slice]}</span>
       </div>
 
       {/* TDW_04 A3 (P5/ST-4): THE number — every figure from lib/vendor/derive.ts,
@@ -302,25 +244,27 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
         {sortControl && <div style={{ padding: '14px var(--slice-inset, 22px) 0 0' }}>{sortControl}</div>}
       </div>
 
-      {/* The Slice Door — the five slices, one thumb away (CE addendum) */}
-      <SliceDoor active={slice} />
 
       {/* Search */}
       <div style={{ padding: '12px var(--slice-inset, 22px) 6px' }}>
         <div style={{ position: 'relative' }}>
-          <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontFamily: F.display, fontSize: 16, color: A.inkMute, lineHeight: 1, pointerEvents: 'none' }}>⌕</span>
+          <span style={{ font: T.t3, position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: A.inkMute, pointerEvents: 'none' }}>⌕</span>
           <input
             type="text"
             placeholder={`Search ${LABELS[slice].toLowerCase()}…`}
             value={query}
             onChange={e => setQuery(e.target.value)}
             style={{
-              width: '100%', padding: '10px 12px 10px 32px', boxSizing: 'border-box',
+              font: T.t3,
+              width: '100%',
+              padding: '10px 12px 10px 32px',
+              boxSizing: 'border-box',
               background: 'var(--atelier-input-bg)',
               border: '0.5px solid var(--atelier-card-border)',
               borderRadius: 2,
-              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-              outline: 'none', caretColor: A.interactive,
+              color: A.ink,
+              outline: 'none',
+              caretColor: A.interactive,
             }}
           />
         </div>
@@ -335,9 +279,10 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
           <>
             {!loading && !error && rows.length === 0 && (
               <div style={{
-                padding: '40px 24px', textAlign: 'center',
-                fontFamily: F.script, fontWeight: 300, fontSize: 16,
-                color: A.inkMute, lineHeight: 1.5,
+                font: T.t3,
+                padding: '40px 24px',
+                textAlign: 'center',
+                color: A.inkMute,
               }}>
                 {query
                   ? <>Nothing matching <span style={{ color: A.brassWarm }}>&ldquo;{query}&rdquo;</span></>
@@ -351,9 +296,9 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
                 Said plainly, at the foot of the list, in the house voice. */}
             {!loading && !error && rows.length > 0 && CHIP_BLINDNESS[slice] && (
               <div style={{
+                font: T.t3,
                 padding: '14px var(--slice-inset, 22px) 20px',
-                fontFamily: F.script, fontWeight: 300, fontSize: 16,
-                color: A.inkMute, lineHeight: 1.5,
+                color: A.inkMute,
               }}>{CHIP_BLINDNESS[slice]}</div>
             )}
           </>
@@ -1152,10 +1097,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 The `--atelier-*` roles below are global in both trees. */}
             <button type="button" onClick={() => markPaidFor(row)?.onTrigger()}
               style={{
-                minHeight: 32, padding: '0 14px', borderRadius: 3, background: 'transparent',
-                border: `0.5px solid ${A.interactive}`, color: A.interactive,
-                fontFamily: F.label, fontWeight: 300, fontSize: 10,
-                letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+                font: T.t4,
+                minHeight: 32,
+                padding: '0 14px',
+                borderRadius: 3,
+                background: 'transparent',
+                border: `0.5px solid ${A.interactive}`,
+                color: A.interactive,
+                cursor: 'pointer',
               }}>
               {COPY.studioMarkPaid}
             </button>
@@ -1243,13 +1192,20 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           <button type="button" onClick={downloadInvoicePdf} disabled={pdfBusy}
             className={!pdfBusy ? 'atelier-fab' : undefined}
             style={{
-              width: '100%', marginBottom: 8, padding: '11px 14px',
+              font: T.t4,
+              width: '100%',
+              marginBottom: 8,
+              padding: '11px 14px',
               background: pdfBusy ? 'rgba(201,168,76,0.18)' : undefined,
-              border: '0.5px solid var(--atelier-label)', borderRadius: 3,
-              cursor: pdfBusy ? 'default' : 'pointer', opacity: pdfBusy ? 0.6 : 1,
-              fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
-              letterSpacing: '0.28em', textTransform: 'uppercase',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              border: '0.5px solid var(--atelier-label)',
+              borderRadius: 3,
+              cursor: pdfBusy ? 'default' : 'pointer',
+              opacity: pdfBusy ? 0.6 : 1,
+              color: INK_DEEP,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
             }}>
             {pdfBusy ? 'Fetching…' : '↓ Download PDF'}
           </button>
@@ -1279,26 +1235,35 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 }
               }}
               style={{
-                width: '100%', marginBottom: 16, padding: '11px 14px',
+                font: T.t4,
+                width: '100%',
+                marginBottom: 16,
+                padding: '11px 14px',
                 background: 'transparent',
-                border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 3,
+                border: '0.5px solid var(--atelier-sheet-border)',
+                borderRadius: 3,
                 cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--atelier-accent-text)',
-                letterSpacing: '0.28em', textTransform: 'uppercase',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                color: 'var(--atelier-accent-text)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
               }}>
               ↗ Send on WhatsApp
             </button>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brass, letterSpacing: '0.42em', textTransform: 'uppercase' }}>Payment Schedule</span>
+            <span style={{ font: T.t5, letterSpacing: '0.08em', color: A.brass, textTransform: 'uppercase' }}>Payment Schedule</span>
             <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
             {schedule && schedule.length === 0 && (
               <button type="button" onClick={() => setScheduleOpen(true)} style={{
-                padding: '5px 10px', background: 'transparent',
-                border: '0.5px solid rgba(201,168,76,0.5)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
-                letterSpacing: '0.28em', textTransform: 'uppercase',
+                font: T.t4,
+                padding: '5px 10px',
+                background: 'transparent',
+                border: '0.5px solid rgba(201,168,76,0.5)',
+                borderRadius: 2,
+                cursor: 'pointer',
+                color: A.interactiveWarm,
               }}>Add</button>
             )}
             {/* ── F-40.215 · REMOVE THE WHOLE SCHEDULE ─────────────────────
@@ -1310,19 +1275,23 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 (the door refuses too, F-43.86 (b1)). The control is not drawn on it. */}
             {schedule && schedule.length > 0 && !removeSchedule && !sel.isPackage && (
               <button type="button" onClick={() => setRemoveSchedule(true)} style={{
-                padding: '5px 10px', background: 'transparent',
-                border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.red,
-                letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                font: T.t4,
+                padding: '5px 10px',
+                background: 'transparent',
+                border: '0.5px solid var(--role-critical)',
+                borderRadius: 2,
+                cursor: 'pointer',
+                color: A.red,
+                flexShrink: 0,
               }}>{COPY.studioScheduleRemove}</button>
             )}
           </div>
-          {scheduleLoading && <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Fetching…</div>}
+          {scheduleLoading && <div style={{ font: T.t3, color: A.inkMute }}>Fetching…</div>}
           {/* #18 · NO SCHEDULE ⇒ NO CONTROL, AND A SENTENCE INSTEAD. The reminder
               has nothing to be about, so nothing is drawn greyed. The Add control
               is already in the header one line up. */}
           {schedule && schedule.length === 0 && !scheduleLoading && (
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, maxWidth: '40ch' }}>
+            <div style={{ font: T.t3, color: A.inkMute, maxWidth: '40ch' }}>
               {COPY.studioReminderNone}
             </div>
           )}
@@ -1335,8 +1304,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                went to one word per line. Line one is hers to read; line two is
                hers to tap. Nothing shrinks, nothing truncates. */
             <div key={ms.id} style={{ padding: '10px 0', borderBottom: '0.5px solid rgba(201,168,76,0.10)' }}>
-              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>{ms.milestone_label}</div>
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+              <div style={{ font: T.t3, color: A.ink }}>{ms.milestone_label}</div>
+              <div style={{ font: T.t4, color: A.inkMute }}>
                 {/* ── F-40.182 · THE HOUSE DATE, NOT THE COLUMN ──────────────
                     This printed `2026-09-08` — the raw DATE column — because the
                     panel was written dark and never read by an eye. `8 Sep 2026`
@@ -1350,11 +1319,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                 <span style={{
-                  fontFamily: F.label, fontWeight: 400, fontSize: 8,
+                  font: T.t5,
+                  letterSpacing: '0.08em',
                   color: ms.state === 'paid' ? A.green : ms.state === 'waived' ? A.inkMute : A.brassWarm,
-                  letterSpacing: '0.28em', textTransform: 'uppercase',
+                  textTransform: 'uppercase',
                   border: `0.5px solid ${ms.state === 'paid' ? A.green : ms.state === 'waived' ? 'var(--atelier-ink-dim)' : 'var(--role-metal)'}`,
-                  borderRadius: 2, padding: '3px 8px', flexShrink: 0,
+                  borderRadius: 2,
+                  padding: '3px 8px',
+                  flexShrink: 0,
                 }}>{ms.state}</span>
 
                 <span style={{ flex: 1 }} />
@@ -1367,14 +1339,20 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     UNIQUE (`WHERE status <> 'failed'`) frees the milestone. */}
                 {ms.sent_at && (
                   <span style={{
-                    fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.inkMute,
-                    letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                    font: T.t5,
+                    letterSpacing: '0.08em',
+                    color: A.inkMute,
+                    textTransform: 'uppercase',
+                    flexShrink: 0,
                   }}>{COPY.studioReminderSent}</span>
                 )}
                 {!ms.sent_at && ms.reminder_failed && (
                   <span style={{
-                    fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.brassWarm,
-                    letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                    font: T.t5,
+                    letterSpacing: '0.08em',
+                    color: A.brassWarm,
+                    textTransform: 'uppercase',
+                    flexShrink: 0,
                   }}>{COPY.studioReminderDidntGo}</span>
                 )}
 
@@ -1390,10 +1368,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     back, because the key no longer holds the milestone. */}
                 {ms.state === 'pending' && !ms.sent_at && (
                   <button type="button" onClick={() => setRemindMs(ms)} style={{
-                    padding: '5px 10px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                    font: T.t4,
+                    padding: '5px 10px',
+                    background: 'transparent',
+                    borderRadius: 2,
+                    cursor: 'pointer',
                     border: '0.5px solid rgba(201,168,76,0.5)',
-                    fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
-                    letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                    color: A.interactiveWarm,
+                    flexShrink: 0,
                   }}>Remind</button>
                 )}
 
@@ -1405,10 +1387,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     setEditMs(ms); setEditLabel(ms.milestone_label); setEditPct(String(ms.pct));
                     setEditDue(ms.due_date || ''); setEditErr(null);
                   }} style={{
-                    padding: '5px 10px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                    font: T.t4,
+                    padding: '5px 10px',
+                    background: 'transparent',
+                    borderRadius: 2,
+                    cursor: 'pointer',
                     border: '0.5px solid var(--atelier-card-border)',
-                    fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkDim,
-                    letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                    color: A.inkDim,
+                    flexShrink: 0,
                   }}>{COPY.studioMsEdit}</button>
                 )}
 
@@ -1421,10 +1407,13 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     if (res.ok) invalidateSlice('invoices');
                     setScheduleSaving(false);
                   }} disabled={scheduleSaving} className="atelier-fab" style={{
-                    padding: '5px 10px', borderRadius: 2, cursor: 'pointer',
+                    font: T.t4,
+                    padding: '5px 10px',
+                    borderRadius: 2,
+                    cursor: 'pointer',
                     border: '0.5px solid var(--atelier-label)',
-                    fontFamily: F.label, fontWeight: 400, fontSize: 8, color: INK_DEEP,
-                    letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
+                    color: INK_DEEP,
+                    flexShrink: 0,
                   }}>Paid</button>
                 )}
               </div>
@@ -1451,17 +1440,21 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     <div style={{ marginBottom: 10 }}>
       {!markLostConfirm ? (
         <button type="button" onClick={() => setMarkLostConfirm(true)} style={{
-          width: '100%', padding: '11px 14px', background: 'transparent',
-          border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-ink-mute)',
-          letterSpacing: '0.32em', textTransform: 'uppercase',
+          font: T.t4,
+          width: '100%',
+          padding: '11px 14px',
+          background: 'transparent',
+          border: '0.5px solid var(--atelier-sheet-border)',
+          borderRadius: 2,
+          cursor: 'pointer',
+          color: 'var(--atelier-ink-mute)',
         }}>Mark lost</button>
       ) : (
         <div>
           {/* F-04.12's confession — one line, only when the leap is backwards-unusual */}
           {isBackwardUnusual(sel?.badge) && (
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.5, marginBottom: 8 }}>
+              <div style={{ font: T.t3, color: A.inkSoft, marginBottom: 8 }}>
                 This one&rsquo;s further along — marking lost will keep the record, state the reason?
               </div>
               <input
@@ -1470,24 +1463,37 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 onChange={e => setLostReason(e.target.value)}
                 placeholder="Optional — it lands in the notes"
                 style={{
-                  width: '100%', padding: '9px 12px', boxSizing: 'border-box',
-                  background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)',
-                  borderRadius: 2, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
+                  font: T.t3,
+                  width: '100%',
+                  padding: '9px 12px',
+                  boxSizing: 'border-box',
+                  background: 'var(--atelier-input-bg)',
+                  border: '0.5px solid var(--atelier-card-border)',
+                  borderRadius: 2,
+                  color: A.ink,
                 }}
               />
             </div>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
           <button type="button" onClick={() => sel && markLost(sel)} style={{
-            flex: 1, padding: '11px 14px', background: 'transparent',
-            border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
-            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-critical)',
-            letterSpacing: '0.32em', textTransform: 'uppercase',
+            font: T.t4,
+            flex: 1,
+            padding: '11px 14px',
+            background: 'transparent',
+            border: '0.5px solid var(--role-critical)',
+            borderRadius: 2,
+            cursor: 'pointer',
+            color: 'var(--role-critical)',
           }}>Yes — mark {sel?.primary} lost</button>
           <button type="button" onClick={() => setMarkLostConfirm(false)} style={{
-            padding: '11px 14px', background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)',
-            borderRadius: 2, cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
-            color: 'var(--atelier-ink-mute)', letterSpacing: '0.32em', textTransform: 'uppercase',
+            font: T.t4,
+            padding: '11px 14px',
+            background: 'transparent',
+            border: '0.5px solid var(--atelier-sheet-border)',
+            borderRadius: 2,
+            cursor: 'pointer',
+            color: 'var(--atelier-ink-mute)',
           }}>Keep</button>
           </div>
         </div>
@@ -1514,10 +1520,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     && !sel.forwarded && !!sel.phone ? (
     <div style={{ marginBottom: 8 }}>
       <button type="button" onClick={() => { setForwardRow(sel); setSel(null); }} style={{
-        width: '100%', padding: '11px 14px', background: 'transparent',
-        border: '0.5px solid var(--atelier-accent-text)', borderRadius: 2, cursor: 'pointer',
-        fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)',
-        letterSpacing: '0.32em', textTransform: 'uppercase',
+        font: T.t4,
+        width: '100%',
+        padding: '11px 14px',
+        background: 'transparent',
+        border: '0.5px solid var(--atelier-accent-text)',
+        borderRadius: 2,
+        cursor: 'pointer',
+        color: 'var(--atelier-accent-text)',
       }}>{RF.forwardControl}</button>
     </div>
   ) : null;
@@ -1550,13 +1560,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       {slice === 'leads' && sel?.redacted && !confirmDel && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 4 }}>
           <div style={{
-            // 16px on F.script italic 300 is the row's OWN detail-line rung
-            // (SliceRow's `detailLine`), which is also the T-1 body floor. The
-            // first cut of this block shipped 15 and `tdw09_type` named it at
-            // the byte — a tenth declared size against nine rungs, below the
-            // floor. The census caught a sentence nobody would have squinted at.
-            fontFamily: F.script, fontWeight: 300, fontSize: 16,
-            lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.01em', textAlign: 'center',
+            // CE-45 FE-2 TYPE_1: the row's OWN detail-line rung, as it always was
+            // (SliceRow's `detailLine`), which is t4 now. The first cut of this block
+            // shipped 15 and `tdw09_type` named it at the byte; a rung cannot drift so.
+            font: T.t4,
+            color: A.inkMute, textAlign: 'center',
           }}>Upgrade to Essential tier or above to connect with your lead.</div>
           {/* ── R-38.1 CURE (S2 ZIP bounce) · THE TIER GATE WAS THE SIXTH OF NINE ──
               This CTA was a hardcoded `/vendor/billing`, and because `notes.tsx` imports
@@ -1574,8 +1582,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             borderRadius: 2, textDecoration: 'none',
           }}>
             <span style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm,
-              letterSpacing: '0.32em', textTransform: 'uppercase',
+              font: T.t4,
+              color: A.brassWarm,
             }}>See plans</span>
           </a>
         </div>
@@ -1591,7 +1599,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               borderRadius: 2, textDecoration: 'none',
             }}>
             <WaIcon />
-            <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.green, letterSpacing: '0.32em', textTransform: 'uppercase' }}>WhatsApp</span>
+            <span style={{ font: T.t4, color: A.green }}>WhatsApp</span>
           </a>
           <a href={`tel:${sel.phone}`}
             style={{
@@ -1601,8 +1609,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               border: '0.5px solid var(--atelier-sheet-border)',
               borderRadius: 2, textDecoration: 'none',
             }}>
-            <span style={{ fontFamily: F.display, fontSize: 16, color: A.brassWarm, lineHeight: 1 }}>☎</span>
-            <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.brassWarm, letterSpacing: '0.32em', textTransform: 'uppercase' }}>Call</span>
+            <span style={{ font: T.t3, color: A.brassWarm }}>☎</span>
+            <span style={{ font: T.t4, color: A.brassWarm }}>Call</span>
           </a>
         </div>
       )}
@@ -1625,9 +1633,13 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         <button type="button"
           onClick={() => setSortKey(k => k === 'recent' ? 'amount' : k === 'amount' ? 'date' : 'recent')}
           style={{
-            background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px 0',
-            fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.22em',
-            textTransform: 'uppercase', color: A.inkMute, whiteSpace: 'nowrap',
+            font: T.t4,
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '4px 0',
+            color: A.inkMute,
+            whiteSpace: 'nowrap',
           }}>{sortKey} ⌄</button>
       ) : undefined}
       onAdd={onAdd}
@@ -1673,8 +1685,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             borderTop: '0.5px solid var(--atelier-card-border)',
             borderRadius: '10px 10px 0 0', padding: '18px 16px 26px',
           }}>
-            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: A.ink, marginBottom: 6 }}>{editMs.milestone_label}</div>
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 14 }}>
+            <div style={{ font: T.t1, color: A.ink, marginBottom: 6 }}>{editMs.milestone_label}</div>
+            <div style={{ font: T.t3, color: A.inkMute, marginBottom: 14 }}>
               {COPY.studioMsEditTitle}
             </div>
 
@@ -1708,15 +1720,19 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             <input type="date" value={editDue} onChange={e => { setEditDue(e.target.value); setEditErr(null); }} style={msInput} />
 
             {editErr && (
-              <p style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, margin: '10px 0 0' }}>{editErr}</p>
+              <p style={{ font: T.t3, color: A.red, margin: '10px 0 0' }}>{editErr}</p>
             )}
 
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
               <button type="button" disabled={editBusy} onClick={() => setEditMs(null)} style={{
-                flex: 1, padding: '12px 16px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                font: T.t4,
+                flex: 1,
+                padding: '12px 16px',
+                background: 'transparent',
+                borderRadius: 2,
+                cursor: 'pointer',
                 border: '0.5px solid var(--atelier-card-border)',
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: A.inkDim,
-                letterSpacing: '0.32em', textTransform: 'uppercase',
+                color: A.inkDim,
               }}>{COPY.studioMsCancel}</button>
               <button type="button" disabled={editBusy} className="atelier-fab" onClick={async () => {
                 setEditBusy(true); setEditErr(null);
@@ -1739,10 +1755,13 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 }
                 setEditBusy(false);
               }} style={{
-                flex: 1, padding: '12px 16px', borderRadius: 2, cursor: 'pointer',
+                font: T.t4,
+                flex: 1,
+                padding: '12px 16px',
+                borderRadius: 2,
+                cursor: 'pointer',
                 border: '0.5px solid var(--atelier-label)',
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
-                letterSpacing: '0.32em', textTransform: 'uppercase',
+                color: INK_DEEP,
               }}>{COPY.studioMsSave}</button>
             </div>
           </div>
@@ -1763,18 +1782,22 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             borderTop: '0.5px solid var(--atelier-card-border)',
             borderRadius: '10px 10px 0 0', padding: '18px 16px 26px',
           }}>
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.6, color: A.inkSoft, textAlign: 'center', padding: '8px 0' }}>
-              Remove the schedule for <span style={{ color: A.ink, fontWeight: 500 }}>{sel.primary}</span>?
-              <span style={{ display: 'block', fontSize: 14, color: A.inkMute, marginTop: 6 }}>
+            <div style={{ font: T.t3, color: A.inkSoft, textAlign: 'center', padding: '8px 0' }}>
+              Remove the schedule for <span style={{ color: A.ink }}>{sel.primary}</span>?
+              <span style={{ font: T.t4, display: 'block', color: A.inkMute, marginTop: 6 }}>
                 The {schedule.length === 1 ? 'milestone goes' : `${schedule.length} milestones go`}. Reminders already sent stay in your record.
               </span>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               <button type="button" disabled={removeBusy} onClick={() => setRemoveSchedule(false)} style={{
-                flex: 1, padding: '12px 16px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                font: T.t4,
+                flex: 1,
+                padding: '12px 16px',
+                background: 'transparent',
+                borderRadius: 2,
+                cursor: 'pointer',
                 border: '0.5px solid var(--atelier-card-border)',
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: A.inkDim,
-                letterSpacing: '0.32em', textTransform: 'uppercase',
+                color: A.inkDim,
               }}>{COPY.studioScheduleKeep}</button>
               <button type="button" disabled={removeBusy} onClick={async () => {
                 setRemoveBusy(true);
@@ -1789,10 +1812,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 }
                 setRemoveBusy(false); setRemoveSchedule(false);
               }} style={{
-                flex: 1, padding: '12px 16px', background: 'transparent', borderRadius: 2, cursor: 'pointer',
+                font: T.t4,
+                flex: 1,
+                padding: '12px 16px',
+                background: 'transparent',
+                borderRadius: 2,
+                cursor: 'pointer',
                 border: '0.5px solid var(--role-critical)',
-                fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.red,
-                letterSpacing: '0.32em', textTransform: 'uppercase',
+                color: A.red,
               }}>{COPY.studioScheduleRemove}</button>
             </div>
           </div>
@@ -1810,7 +1837,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             borderRadius: '10px 10px 0 0', padding: '18px 16px 26px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brass, letterSpacing: '0.42em', textTransform: 'uppercase' }}>
+              <span style={{ font: T.t5, letterSpacing: '0.08em', color: A.brass, textTransform: 'uppercase' }}>
                 {COPY.studioReminderTitle}
               </span>
               <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
@@ -1819,19 +1846,22 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             {/* WHO IT GOES TO, BEFORE WHAT IT SAYS. A vendor checks the number
                 first; the message is only worth reading once she knows where it
                 is bound. */}
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 10 }}>
+            <div style={{ font: T.t3, color: A.inkMute, marginBottom: 10 }}>
               This goes to {sel.primary} on {sel.client_phone ?? '\u2014'}.
             </div>
 
             <div style={{
-              padding: '12px 14px', background: 'var(--atelier-input-bg)',
-              border: '0.5px solid var(--atelier-card-border)', borderRadius: 3,
-              fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
+              font: T.t3,
+              padding: '12px 14px',
+              background: 'var(--atelier-input-bg)',
+              border: '0.5px solid var(--atelier-card-border)',
+              borderRadius: 3,
+              color: A.ink,
             }}>
               {reminderPreview(sel.primary, remindMs, vendorBusinessName)}
             </div>
 
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, margin: '10px 0 16px', maxWidth: '40ch' }}>
+            <div style={{ font: T.t3, color: A.inkMute, margin: '10px 0 16px', maxWidth: '40ch' }}>
               {COPY.studioReminderRails}
             </div>
 
@@ -1873,11 +1903,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 }
               }}
               style={{
-                width: '100%', padding: '11px 14px', borderRadius: 3,
-                border: '0.5px solid var(--atelier-label)', cursor: remindBusy ? 'default' : 'pointer',
+                font: T.t4,
+                width: '100%',
+                padding: '11px 14px',
+                borderRadius: 3,
+                border: '0.5px solid var(--atelier-label)',
+                cursor: remindBusy ? 'default' : 'pointer',
                 opacity: remindBusy ? 0.6 : 1,
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
-                letterSpacing: '0.28em', textTransform: 'uppercase',
+                color: INK_DEEP,
               }}>
               {remindBusy ? 'Sending\u2026' : COPY.studioReminderSend}
             </button>
@@ -1899,9 +1932,9 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
               <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
             </div>
-            <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Payment Schedule</div>
-            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 4 }}>Add Milestones</div>
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -4, marginBottom: 4 }}>
+            <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>Payment Schedule</div>
+            <div style={{ font: T.t1, color: 'var(--atelier-ink)', marginBottom: 4 }}>Add Milestones</div>
+            <div style={{ font: T.t3, color: A.inkMute, marginTop: -4, marginBottom: 4 }}>
               Must sum to 100%. Amounts computed from invoice total.
             </div>
 
@@ -1930,11 +1963,17 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     placeholder="Booking"
                     aria-label={`Milestone ${idx + 1} name`}
                     style={{
-                      flex: 2, minWidth: 0, padding: '8px 10px', boxSizing: 'border-box',
+                      font: T.t3,
+                      flex: 2,
+                      minWidth: 0,
+                      padding: '8px 10px',
+                      boxSizing: 'border-box',
                       background: 'var(--atelier-input-bg)',
-                      border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
-                      fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-                      outline: 'none', caretColor: A.interactive,
+                      border: '0.5px solid var(--atelier-card-border)',
+                      borderRadius: 2,
+                      color: A.ink,
+                      outline: 'none',
+                      caretColor: A.interactive,
                     }}
                   />
                   <input
@@ -1944,11 +1983,18 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     placeholder="%"
                     aria-label={`Milestone ${idx + 1} share, percent`}
                     style={{
-                      flex: 1, minWidth: 0, padding: '8px 10px', boxSizing: 'border-box',
+                      font: T.t3,
+                      flex: 1,
+                      minWidth: 0,
+                      padding: '8px 10px',
+                      boxSizing: 'border-box',
                       background: 'var(--atelier-input-bg)',
-                      border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
-                      fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink,
-                      outline: 'none', textAlign: 'right', caretColor: A.interactive,
+                      border: '0.5px solid var(--atelier-card-border)',
+                      borderRadius: 2,
+                      color: A.ink,
+                      outline: 'none',
+                      textAlign: 'right',
+                      caretColor: A.interactive,
                     }}
                   />
                   {/* ── F-40.201 · THE DUPLICATED `%` IS GONE ─────────────────────
@@ -1957,7 +2003,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                       the sheet, from the two fields that actually hold her typing. */}
                   {milestones.length > 2 && (
                     <button type="button" onClick={() => setMilestones(prev => prev.filter((_, i) => i !== idx))}
-                      style={{ padding: '4px 6px', background: 'transparent', border: 'none', cursor: 'pointer', color: A.red, fontSize: 16, lineHeight: 1, flexShrink: 0 }}>×</button>
+                      style={{ font: T.t3, padding: '4px 6px', background: 'transparent', border: 'none', cursor: 'pointer', color: A.red, flexShrink: 0 }}>×</button>
                   )}
                 </div>
                 {/* ⚠ THIS ONE HAD NO ACCESSIBLE NAME AT ALL, not even a weak one:
@@ -1970,11 +2016,16 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                   aria-label={`Milestone ${idx + 1} due date`}
                   onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, due_date: e.target.value } : m))}
                   style={{
-                    width: '100%', padding: '8px 10px', boxSizing: 'border-box',
+                    font: T.t3,
+                    width: '100%',
+                    padding: '8px 10px',
+                    boxSizing: 'border-box',
                     background: 'var(--atelier-input-bg)',
-                    border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
-                    fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft,
-                    outline: 'none', caretColor: A.interactive,
+                    border: '0.5px solid var(--atelier-card-border)',
+                    borderRadius: 2,
+                    color: A.inkSoft,
+                    outline: 'none',
+                    caretColor: A.interactive,
                   }}
                 />
               </div>
@@ -1983,14 +2034,18 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
               <button type="button" onClick={() => setMilestones(prev => [...prev, { label: '', pct: '0', due_date: '' }])}
                 style={{
-                  padding: '6px 12px', background: 'transparent',
-                  border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
-                  letterSpacing: '0.28em', textTransform: 'uppercase',
+                  font: T.t4,
+                  padding: '6px 12px',
+                  background: 'transparent',
+                  border: '0.5px solid var(--atelier-sheet-border)',
+                  borderRadius: 2,
+                  cursor: 'pointer',
+                  color: A.interactiveWarm,
                 }}>+ Add Row</button>
               <span style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                letterSpacing: '0.28em', textTransform: 'uppercase',
+                font: T.t5,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
                 color: Math.abs(milestones.reduce((s,m) => s + Number(m.pct||0), 0) - 100) < 0.01 ? A.green : A.red,
               }}>{milestones.reduce((s,m) => s + Number(m.pct||0), 0)}% of 100%</span>
             </div>
@@ -2018,11 +2073,12 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                   <button type="button" onClick={doCreateSchedule} disabled={!canSave || scheduleSaving}
                     className={canSave && !scheduleSaving ? 'atelier-fab' : undefined}
                     style={{
-                      padding: '14px 0', borderRadius: 2,
+                      font: T.t4,
+                      padding: '14px 0',
+                      borderRadius: 2,
                       border: '0.5px solid var(--atelier-label)',
                       cursor: (canSave && !scheduleSaving) ? 'pointer' : 'default',
-                      fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
-                      letterSpacing: '0.42em', textTransform: 'uppercase',
+                      color: INK_DEEP,
                       background: !canSave || scheduleSaving ? 'rgba(201,168,76,0.18)' : undefined,
                       opacity: !canSave || scheduleSaving ? 0.6 : 1,
                       marginTop: 4,
