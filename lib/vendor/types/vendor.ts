@@ -122,6 +122,9 @@ export interface MeResponse {
     /** CE-42 4c-3b · G5.3, 0166 §1. Defaults FALSE at the column, and the reader
      *  coerces with `=== true` for that reason. */
     exchange_discoverable?: boolean;
+    /** CE-45 G6-1 FE_2 · spec §7c (0171). The door coerces all but 'own_number' to 'tdw'. */
+    enquiry_routing?: 'tdw' | 'own_number';
+    enquiry_phone?: string | null;
     // ── G3.1 · R-G31.6 — WHY capacity does not apply, when it does not ──────
     // `null` when it applies. Computed backend-side from `occupancy.js`'s ONE
     // ladder (`capacityVerdict`) — the PWA carries no copy of the rule, the same
@@ -178,6 +181,9 @@ export interface UpdateMeRequest {
    *  from 4c-3b-1s; the OPPOSITE default to its neighbour above, so a guessed value
    *  fails CLOSED — she is listed on the exchange only by her own tap. */
   exchange_discoverable?: boolean;
+  /** CE-45 G6-1 FE_2 · §7c. 'own_waba' is refused by the door until 2b, so it is not typed here. */
+  enquiry_routing?: 'tdw' | 'own_number';
+  enquiry_phone?: string | null;
   /** G3.1 s2 · what Google shows (0147 §4); null = derive at the card door. */
   seo_title?:        string | null;
   seo_description?:  string | null;
@@ -217,6 +223,9 @@ export interface UpdateMeResponse {
     /** CE-42 4c-3b · the echo the exchange row settles on. Optional until
      *  4c-3b-1s ships the field on the PATCH response. */
     exchange_discoverable?: boolean;
+    /** CE-45 G6-1 FE_2 · the echo the enquiry row settles on (FK5). */
+    enquiry_routing?: 'tdw' | 'own_number';
+    enquiry_phone?: string | null;
   };
 }
 

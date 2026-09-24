@@ -65,8 +65,10 @@ function loadTs(rel, src) {
   const BYTES_SRC = read(BYTES);
   // AMENDED BY LABEL (turn A): was "eighteen slots, every one null". The founder's bytes landed.
   const VETOED = {
-    consentHead: '9664956abe80b387', sharedWay: '5c80f6df791d9daf', sharedGo: 'bf56c14aa817a134',
-    movedWay: '40886584e9c87ffa', movedGo: '8cb184492cd65aa6', movedConfirm: 'd2d785d3349f20e3',
+    // AMENDED BY LABEL · CE-45 G6-1 FE_2: five slots renamed by the founder (2026-09-24, "ok"); were
+    // 9664956abe80b387, 5c80f6df791d9daf, bf56c14aa817a134, 40886584e9c87ffa, 8cb184492cd65aa6.
+    consentHead: 'ef491990814fc2aa', sharedWay: '3ccfc6185949e50f', sharedGo: '72f9695c0f051d5d',
+    movedWay: '02b23d7ee2c02e79', movedGo: '7ab492fb33187bc8', movedConfirm: 'd2d785d3349f20e3',
     movedConfirmGo: 'da7d92320cd0e2af', personalNumber: 'f8cb1adf6088b639', whoPays: '9558ba61218d2c9c',
     cancel: 'a0e63d7c7125d29a', connecting: 'f30c2ee0d49c456c', pending: 'bca103ca42a323f1',
     active: '1db668753387524b', suspended: 'f5f494a6cd724cb4', movedOut: '2bdb248a7d6a4c2b',
@@ -143,8 +145,9 @@ function loadTs(rel, src) {
     }
     return false;
   };
-  const probe = (mode, scenario) => {
-    const r = spawnSync('node', [P('scripts/lib/b120_own_number_probe.mjs'), String(PORT), mode, scenario, SHOTS], { encoding: 'utf8', timeout: 240000,
+  // e-94's CURE (FE_2): a mutation run passes shots = '' so the bench's shot folder only ever holds unmutated screens.
+  const probe = (mode, scenario, shots = SHOTS) => {
+    const r = spawnSync('node', [P('scripts/lib/b120_own_number_probe.mjs'), String(PORT), mode, scenario, shots], { encoding: 'utf8', timeout: 240000,
       env: { ...process.env, B120_TAPS: JSON.stringify({ sharedGo: FLOW.sharedGo, movedGo: FLOW.movedGo, movedConfirmGo: FLOW.movedConfirmGo }) } });
     if (r.status === 3) return { noBrowser: true, text: r.stdout };
     try { return JSON.parse(String(r.stdout).trim().split('\n').pop()); } catch (_e) { return { error: `${r.status} ${String(r.stderr).slice(0, 300)}` }; }
@@ -231,7 +234,7 @@ function loadTs(rel, src) {
       if (m1 !== null) {
         restores.push([BYTES, m1]);
         await new Promise((r) => setTimeout(r, 6000));
-        const o = probe('dark', 'sOpen');
+        const o = probe('dark', 'sOpen', '');
         ok(!o.noBrowser && !o.error && isShell(o.screens && o.screens[0]), '5.1 M1 turns 3.sOpen red: one owed byte and the open door draws the shell', JSON.stringify(o.screens && o.screens[0] && o.screens[0].step));
         fs.writeFileSync(P(BYTES), m1);
       }
@@ -240,7 +243,7 @@ function loadTs(rel, src) {
       if (m4 !== null) {
         restores.push([FLOWC, m4]);
         await new Promise((r) => setTimeout(r, 6000));
-        const o = probe('dark', 'sFlowMoved');
+        const o = probe('dark', 'sFlowMoved', '');
         const confirm = o.screens && o.screens[2];
         ok(!(confirm && confirm.step === 'confirm'), '5.3 M4 turns the twice-stated cell red: no confirmation screen appears', JSON.stringify(confirm));
         fs.writeFileSync(P(FLOWC), m4);

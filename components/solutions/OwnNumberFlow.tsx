@@ -127,8 +127,12 @@ export function OwnNumberFlow({ room }: { room: OwnNumberRoom }) {
           <>
             <h1 className="sol-title">{roomLabel('number')}</h1>
             <h2 className="sol-heading">{FLOW.consentHead}</h2>
-            <p className="sol-empty">{FLOW.sharedWay}</p>
-            <p className="sol-empty">{FLOW.movedWay}</p>
+            {/* FE_2 · the consent gap (the founder, on the screens): .sol-can is a flex column with a 10px gap
+                and no colour of its own, so the two ways read as two choices. No new style. */}
+            <div className="sol-can">
+              <p className="sol-empty">{FLOW.sharedWay}</p>
+              <p className="sol-empty">{FLOW.movedWay}</p>
+            </div>
             <p className="sol-note">{FLOW.personalNumber}</p>
             <p className="sol-note">{FLOW.whoPays}</p>
             <div className="sol-actions">

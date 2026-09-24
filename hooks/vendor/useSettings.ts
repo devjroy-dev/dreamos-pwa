@@ -89,6 +89,10 @@ export interface SettingsState {
   // never overstating her exposure — the opposite coercion to its neighbour above,
   // for the opposite default.
   exchange_discoverable: boolean;
+  // CE-45 G6-1 FE_2 · §7c. Anything the door did not send reads 'tdw': today's link, never an
+  // exposure she did not choose.
+  enquiry_routing: 'tdw' | 'own_number';
+  enquiry_phone:   string | null;
 }
 
 const EMPTY: SettingsState = {
@@ -122,6 +126,7 @@ const EMPTY: SettingsState = {
   // means "never overstate her privacy", and here that is `true`.
   peer_discoverable: true,
   category: '', exchange_discoverable: false,
+  enquiry_routing: 'tdw', enquiry_phone: null,
 };
 
 export function useSettings() {
@@ -210,6 +215,8 @@ export function useSettings() {
         peer_discoverable:   v.peer_discoverable !== false,
         category:            v.category ?? '',
         exchange_discoverable: v.exchange_discoverable === true,
+        enquiry_routing:     v.enquiry_routing === 'own_number' ? 'own_number' : 'tdw',
+        enquiry_phone:       typeof v.enquiry_phone === 'string' ? v.enquiry_phone : null,
       };
       setSaved(s);
       setCurrent(s);

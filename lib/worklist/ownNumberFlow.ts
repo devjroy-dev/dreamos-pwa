@@ -4,6 +4,9 @@
 // ⚠ EVERY VALUE HERE IS THE FOUNDER'S, as written in the copy table of
 // 2026-09-24 (read-first (iv), O1 to O11, eighteen slots) and approved by him in
 // one word ("ok", relayed by CE-45 the same day). b120 §1.1 pins each by sha.
+// FE_2 (2026-09-24): five slots renamed by the founder ("keep my app" did not say what it meant; his words,
+// "Use it on my phone and in TDW app", then "ok" to the matching set): consentHead, sharedWay, sharedGo,
+// movedWay, movedGo. The other thirteen are unchanged.
 // O12 was not consumed by this cut and has no slot. Until this delivery every
 // value was `null`, and the gate below kept the room a shell.
 //
@@ -62,11 +65,11 @@ export type OwnNumberFlowCopy = {
 };
 
 export const FLOW: OwnNumberFlowCopy = {
-  consentHead:    'Two ways to connect your number',
-  sharedWay:      'Keep your WhatsApp Business app. Your number works in the app and here at the same time. If you allow it, your chats from the last six months and your contacts come across. Broadcast lists stop working, and messages you send from the app stay free.',
-  sharedGo:       'Connect and keep my app',
-  movedWay:       'Or move your number here completely, so it runs only through The Dream Wedding.',
-  movedGo:        'Move my number',
+  consentHead:    'How should your number work?',
+  sharedWay:      'On your phone and in TDW app. Your number keeps working in WhatsApp Business on your phone, and TDW answers on it too. If you allow it, your chats from the last six months and your contacts come across. Broadcast lists stop working, and messages you send from your phone stay free.',
+  sharedGo:       'Use it on my phone and in TDW app',
+  movedWay:       'Only in TDW app. Your number runs only through TDW, and stops working in WhatsApp on your phone.',
+  movedGo:        'Use it only in TDW app',
   movedConfirm:   'Once it moves, this number stops working in your WhatsApp app. Are you sure?',
   movedConfirmGo: 'Yes, move it',
   personalNumber: 'A personal WhatsApp number cannot be kept in the app. Use a WhatsApp Business number, or a new number for your business.',

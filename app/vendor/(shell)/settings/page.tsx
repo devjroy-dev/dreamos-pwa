@@ -28,6 +28,7 @@ import { useRouter } from 'next/navigation';
 import { useSettings } from '@/hooks/vendor/useSettings';
 import { updateMe } from '@/lib/vendor/api/vendor';
 import { RF } from '@/lib/worklist/referrals';
+import { ENQ, ENQ_CANCEL, ENQ_FAILED, phoneLooksRight } from '@/lib/worklist/enquiryRouting';   // CE-45 G6-1 FE_2
 import { EXCHANGE } from '@/lib/worklist/exchange';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { WlToast } from '@/components/worklist/WlToast';
@@ -140,6 +141,123 @@ function PeerDiscoverySwitch() {
  *      and the row keeps the value the tap asked for rather than reading absence
  *      as a NO and flipping itself back under her finger.
  */
+/**
+ * CE-45 · G6-1 · FE_2 · §7c · "WHERE ENQUIRIES GO": her one switch for where a couple lands when they tap Enquire
+ * on WhatsApp. It lives in this file, beside the two switches above, for the reason this file's header gives:
+ * one control, one home.
+ *
+ * THE CONTROL INVENTORY (protocol §10 part 4):
+ *  list     option 1 (ENQ.tdw)    -> the door, {enquiry_routing:'tdw'}, at once (§7c: flipping back is immediate)
+ *           option 2 (ENQ.own)    -> the SECOND SCREEN; nothing is written from the list (FK3)
+ *           option 3 (ENQ.waba)   -> DISABLED, its state stated (ENQ.wabaLine, F-19.20); the door refuses it
+ *                                    until 2b anyway (FK2)
+ *  consent  the phone field; confirm (ENQ.confirm) -> the door, {enquiry_routing:'own_number', enquiry_phone};
+ *           cancel (ENQ_CANCEL) -> the list, nothing written
+ * ⚠ FK5: the row's state is set ONLY from the value the door returns. /me answers 200 for an unlisted field, so a
+ * row that trusted its own tap could show a change the server never made. A missing echo is a refusal here,
+ * not the requested value (the exchange switch above falls back; this one must not).
+ * ⚠ The twice-stated consent (§7c (a) and (b)) is a MECHANISM: the only write of 'own_number' is from the
+ * second screen, where both statements are on the glass above the confirm.
+ */
+function EnquiryRoutingRow() {
+  const { current, loading } = useSettings();
+  const [routing, setRouting] = useState<'tdw' | 'own_number' | null>(null);
+  const [phone, setPhone] = useState<string | null>(null);
+  const [step, setStep] = useState<'list' | 'consent'>('list');
+  const [draft, setDraft] = useState('');
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const live = routing ?? current.enquiry_routing;
+  const livePhone = phone ?? current.enquiry_phone;
+
+  async function write(body: { enquiry_routing: 'tdw' | 'own_number'; enquiry_phone?: string }) {
+    if (busy) return false;
+    setBusy(true);
+    setErr(null);
+    try {
+      const r = await updateMe(body);
+      if (!('ok' in r) || !r.ok || !r.vendor || (r.vendor.enquiry_routing !== 'tdw' && r.vendor.enquiry_routing !== 'own_number')) {
+        setErr(body.enquiry_routing === 'own_number' && !('ok' in r && r.ok) ? ENQ.phoneInvalid : ENQ_FAILED);
+        return false;
+      }
+      setRouting(r.vendor.enquiry_routing);
+      setPhone(typeof r.vendor.enquiry_phone === 'string' ? r.vendor.enquiry_phone : null);
+      // The door answered with a different rung than she asked for: say so, never pretend.
+      if (r.vendor.enquiry_routing !== body.enquiry_routing) { setErr(ENQ_FAILED); return false; }
+      return true;
+    } catch {
+      setErr(ENQ_FAILED);
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (loading) return null;
+
+  if (step === 'consent') {
+    return (
+      <div className="wl-set" data-enquiry-row="consent">
+        <div className="wl-swrow" style={{ cursor: 'default' }}>
+          <span className="wl-swtext">
+            <span className="wl-swlabel">{ENQ.own}</span>
+            <span className="wl-swline">{ENQ.consentPublic}</span>
+            <span className="wl-swline">{ENQ.consentBypass}</span>
+            <label className="wl-swline" htmlFor="wl-enquiry-phone">{ENQ.phoneLabel}</label>
+            <input id="wl-enquiry-phone" className="wl-erin" type="tel" inputMode="tel" autoComplete="tel"
+              value={draft} onChange={(e) => { setDraft(e.target.value); setErr(null); }} />
+            {err && <span className="wl-swline" role="status">{err}</span>}
+          </span>
+        </div>
+        <button type="button" className="wl-setrow" disabled={busy} style={{ opacity: busy ? 0.6 : 1 }}
+          onClick={async () => {
+            if (!phoneLooksRight(draft)) { setErr(ENQ.phoneInvalid); return; }
+            if (await write({ enquiry_routing: 'own_number', enquiry_phone: draft.trim() })) setStep('list');
+          }}>
+          <span className="wl-setrowlabel">{ENQ.confirm}</span>
+        </button>
+        <button type="button" className="wl-setrow" disabled={busy} onClick={() => { setErr(null); setStep('list'); }}>
+          <span className="wl-setrowlabel">{ENQ_CANCEL}</span>
+        </button>
+      </div>
+    );
+  }
+
+  const option = (key: 'tdw' | 'own_number', label: string, line: string, onPick: () => void) => (
+    <div role="radio" aria-checked={live === key} tabIndex={0} className="wl-swrow" data-option={key}
+      style={{ opacity: busy ? 0.6 : 1 }}
+      onClick={onPick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(); } }}>
+      <span className="wl-swtext">
+        <span className="wl-swlabel">{label}</span>
+        <span className="wl-swline">{line}</span>
+        {key === 'own_number' && live === 'own_number' && livePhone && <span className="wl-swline">{livePhone}</span>}
+      </span>
+      <span className={`wl-sw${live === key ? ' on' : ''}`} aria-hidden><span /></span>
+    </div>
+  );
+
+  return (
+    <div className="wl-set" data-enquiry-row="list" role="radiogroup" aria-label={ENQ.label}>
+      <div className="wl-swrow" style={{ cursor: 'default' }}>
+        <span className="wl-swtext">
+          <span className="wl-swlabel">{ENQ.label}</span>
+          <span className="wl-swline">{ENQ.line}</span>
+        </span>
+      </div>
+      {option('tdw', ENQ.tdw, ENQ.tdwLine, () => { if (live !== 'tdw') void write({ enquiry_routing: 'tdw' }); })}
+      {option('own_number', ENQ.own, ENQ.ownLine, () => { setDraft(livePhone || ''); setErr(null); setStep('consent'); })}
+      <div role="radio" aria-checked={false} aria-disabled="true" className="wl-swrow" data-option="own_waba" style={{ cursor: 'default' }}>
+        <span className="wl-swtext">
+          <span className="wl-swlabel">{ENQ.waba}</span>
+          <span className="wl-swline">{ENQ.wabaLine}</span>
+        </span>
+      </div>
+      {err && <p className="wl-swline" role="status" style={{ padding: '0 16px' }}>{err}</p>}
+    </div>
+  );
+}
+
 function ExchangeOptInSwitch() {
   const { current, loading } = useSettings();
   const [on, setOn] = useState<boolean | null>(null);
@@ -213,6 +331,7 @@ export default function ShellSettingsPage() {
       </div>
       <PeerDiscoverySwitch />
       <ExchangeOptInSwitch />
+      <EnquiryRoutingRow />
       <SettingsScreen chrome={false} ToastView={WlToast} />
       <style>{`
 .wl-set{padding-top:16px}
@@ -230,6 +349,7 @@ export default function ShellSettingsPage() {
 .wl-sw.on{background:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 .wl-sw>span{position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--atelier-ink-fade)}
 .wl-sw.on>span{left:auto;right:2px;background:var(--role-ink-deep)}
+.wl-erin{font:var(--wl-t3);color:var(--atelier-ink);background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:10px 12px;margin-top:4px;width:100%;max-width:38ch;box-sizing:border-box}
       `}</style>
     </WorklistShell>
   );

@@ -1,0 +1,15 @@
+# scripts/floor-manifest-ce45-g61-fe2.txt
+# CE-45 · G6-1 · FE_2's pwa half. F-19.16: a dirty path outside this list is a STOP.
+# BASE: 9b251ad4 (given by the chair under R-45.14; built at 82ff431e, carried byte for byte). Every path this ZIP writes, and nothing else.
+# No new directory.
+app/vendor/(shell)/settings/page.tsx
+lib/worklist/enquiryRouting.ts
+lib/vendor/types/vendor.ts
+hooks/vendor/useSettings.ts
+lib/worklist/ownNumberFlow.ts
+components/solutions/OwnNumberFlow.tsx
+scripts/b120_g61_own_number_bench.js
+scripts/b125_g61_enquiry_row_bench.js
+scripts/lib/b125_enquiry_row_probe.mjs
+scripts/floor-manifest-ce45-g61-fe2.txt
+docs/handovers/TDW_CE45_G61_FE2_HANDOVER.md
