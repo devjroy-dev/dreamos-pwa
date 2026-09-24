@@ -1,8 +1,8 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 import { useEffect, useState } from 'react';
 import type { ToastState } from '@/hooks/vendor/useToast';
 
-const F = { label: 'var(--font-jost), system-ui, sans-serif' };
 
 const SHRINK_AFTER_MS = 5000;
 
@@ -92,7 +92,7 @@ export function Toast({ toast }: { toast: ToastState | null }) {
       }} />
       {!asPill && (
         <span style={{
-          fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
+          font: RUNG.t3,
           // F-04.75 (B6-S2, the CE's legibility line — found by contrast
           // arithmetic, not by eye): the error variant's background is DARK RED
           // in BOTH themes, but this color fell through to var(--atelier-ink),
@@ -108,17 +108,20 @@ export function Toast({ toast }: { toast: ToastState | null }) {
           // the surface's own ink in every kind — 14.36:1 Graphite, 18.96:1
           // Chalk, measured. There is nothing left here to pin.
           color: 'var(--atelier-ink)',
-          letterSpacing: '0.02em',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
         }}>
           {toast.message}
         </span>
       )}
       {toast.action && (
         <button type="button" onClick={toast.action.onAction} style={{
-          background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px 4px',
-          fontFamily: F.label, fontWeight: 500, fontSize: 10, letterSpacing: '0.12em',
-          textTransform: 'uppercase',
+          font: RUNG.t4,
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '2px 4px',
           // One accent, both kinds, both modes (8.42:1 Graphite, 6.51:1 Chalk).
           // WlToast.tsx:102 already draws its action this way; the two toasts now
           // agree on the affordance, which is what R-40.129 ② asks of the kind.

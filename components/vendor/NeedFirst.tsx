@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 // components/vendor/NeedFirst.tsx — CE-43 · LC-2 · packet 3f · R-43.16, ONE PATTERN, ONE COMPONENT.
 //
 // R-43.16 (founder's rule, estate-wide): a refusal is a control and never a redirect. Wherever the
@@ -17,10 +18,18 @@
 import type { CSSProperties } from 'react';
 
 const needFirstStyle: CSSProperties = {
-  display: 'inline-block', alignSelf: 'flex-start', textAlign: 'left',
-  background: 'none', border: 'none', borderBottom: '1px dashed var(--atelier-accent-text)', borderRadius: 0,
-  padding: '2px 0', margin: 0, minHeight: 32, cursor: 'pointer',
-  fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', fontSize: 14, lineHeight: 1.45,
+  font: RUNG.t3,
+  display: 'inline-block',
+  alignSelf: 'flex-start',
+  textAlign: 'left',
+  background: 'none',
+  border: 'none',
+  borderBottom: '1px dashed var(--atelier-accent-text)',
+  borderRadius: 0,
+  padding: '2px 0',
+  margin: 0,
+  minHeight: 32,
+  cursor: 'pointer',
   color: 'var(--atelier-accent-text)',
 };
 

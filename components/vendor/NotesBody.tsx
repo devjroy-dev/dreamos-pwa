@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 // components/vendor/NotesBody.tsx — TDW_06 P7d (item 4): the owner_notes body, ONE source of truth.
 // The chrome-free notes surface (list · search · create · detail sheet · Send-to-Chat · delete).
 // Rendered by BOTH the business-screen NOTES tab (app/vendor/list/[slice]/notes.tsx) and the
@@ -29,20 +30,21 @@ const D = {
   borderCol: 'var(--atelier-card-border)', muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)', red: 'var(--role-critical)',
 };
-const F = {
-  display: 'var(--font-cormorant), Georgia, serif',
-  label:   'var(--font-jost), system-ui, sans-serif',
-  body:    'var(--font-dm-sans), system-ui, sans-serif',
-};
   // TDW_09 R-S2/R-S3 — the FIELD boundary, not the card hairline. `card-border`
   // is a panel edge (1.79:1 espresso / 1.40:1 paper); a control's edge has to
   // clear WCAG 1.4.11's 3:1 or the control is not identifiable as one. On paper
   // the fill cannot help — inputBg over the white sheet is 1.09:1 — so this edge
   // is the only thing that says `field`.
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
-  border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
-  fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',
+  font: RUNG.t3,
+  width: '100%',
+  padding: '11px 14px',
+  backgroundColor: 'var(--atelier-input-bg)',
+  border: `0.5px solid var(--atelier-input-border)`,
+  borderRadius: 8,
+  color: D.cream,
+  outline: 'none',
+  boxSizing: 'border-box',
 };
 
 function fmtDate(iso: string): string {
@@ -130,31 +132,31 @@ export function NotesBody() {
       <Toast toast={toast} />
 
       {/* Search */}
-      <div style={{ padding: '14px 24px 10px', flexShrink: 0 }}>
+      <div style={{ padding: '14px var(--slice-inset, 24px) 10px', flexShrink: 0 }}>
         <input
           value={query} onChange={e => setQuery(e.target.value)}
           placeholder="Search your notes"
-          style={{ ...inputStyle, borderRadius: 999, fontFamily: F.body }}
+          style={{ font: RUNG.t3, ...inputStyle, borderRadius: 999 }}
         />
       </div>
 
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontFamily: F.label, fontSize: 10, color: D.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Loading</span>
+          <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.muted, textTransform: 'uppercase' }}>Loading</span>
         </div>
       ) : filtered.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 8 }}>
-          <span style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 20, lineHeight: 1.5, color: D.cream }}>
+          <span style={{ font: RUNG.t2, color: D.cream }}>
             {query.trim() ? 'Nothing matches' : 'No notes yet'}
           </span>
           {!query.trim() && (
-            <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, lineHeight: 1.6, maxWidth: 260 }}>
+            <span style={{ font: RUNG.t3, color: D.muted, maxWidth: 260 }}>
               Anything you jot to yourself lands here — a thought to pick up later, kept just for you.
             </span>
           )}
         </div>
       ) : (
-        <div style={{ flex: 1, overflowY: 'auto', padding: '4px 16px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '4px var(--slice-inset, 16px) 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filtered.map(note => (
             // TDW_06 P7e: a paper card via the design system's own .atelier-card class, so it
             // wears each theme's card treatment (bg · border · lift · the per-theme inset
@@ -169,14 +171,24 @@ export function NotesBody() {
               display: 'flex', alignItems: 'flex-start', gap: 10,
             }}>
               <div style={{
-                flex: 1, minWidth: 0,
-                fontFamily: F.body, fontWeight: 300, fontSize: 16, color: 'var(--atelier-ink)', lineHeight: 1.45,
-                overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box',
-                WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                font: RUNG.t3,
+                flex: 1,
+                minWidth: 0,
+                color: 'var(--atelier-ink)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
               }}>{note.body}</div>
               <span style={{
-                fontFamily: F.label, fontSize: 8, color: 'var(--atelier-ink-mute)',
-                letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0, paddingTop: 2, whiteSpace: 'nowrap',
+                font: RUNG.t5,
+                letterSpacing: '0.08em',
+                color: 'var(--atelier-ink-mute)',
+                textTransform: 'uppercase',
+                flexShrink: 0,
+                paddingTop: 2,
+                whiteSpace: 'nowrap',
               }}>{fmtDate(note.created_at)}</span>
             </div>
           ))}
@@ -215,8 +227,8 @@ export function NotesBody() {
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--atelier-label)' }} />
             </div>
             <div style={{ padding: '14px 24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{selected.body}</p>
-              <span style={{ fontFamily: F.label, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>{fmtDate(selected.created_at)}</span>
+              <p style={{ font: RUNG.t3, color: D.cream, margin: 0, whiteSpace: 'pre-wrap' }}>{selected.body}</p>
+              <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: 'var(--atelier-accent-text)', textTransform: 'uppercase' }}>{fmtDate(selected.created_at)}</span>
               {/* CE-39 S2/6 · F-38.47: the note BODY is the prefill, and it never leaves
                   memory — this is the door that refused arm (b), a URL param, because a
                   note in a URL is a note in the history and the referrer. The ask door
@@ -232,16 +244,25 @@ export function NotesBody() {
                   is why the cell added this sitting asserts the DISMISSAL and not the
                   stacking. Same edit, same reason, same one-line shape as Calendar's. */}
               <button type="button" onClick={() => { setSelected(null); openAsk(selected.body); }} style={{
-                width: '100%', padding: '13px 0', background: 'var(--atelier-accent-text)', border: 'none', borderRadius: 999,
-                cursor: 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
-                color: 'var(--role-ink-on-metal)', letterSpacing: '0.3em', textTransform: 'uppercase',
+                font: RUNG.t4,
+                width: '100%',
+                padding: '13px 0',
+                background: 'var(--atelier-accent-text)',
+                border: 'none',
+                borderRadius: 999,
+                cursor: 'pointer',
+                color: 'var(--role-ink-on-metal)',
               }}>Send to Chat</button>
               <button type="button" onClick={() => doDelete(selected)} disabled={saving} style={{
-                width: '100%', padding: '13px 0',
-                background: 'transparent', opacity: saving ? 0.5 : 1,
-                border: '0.5px solid var(--role-critical)', borderRadius: 999,
-                cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
-                color: D.red, letterSpacing: '0.3em', textTransform: 'uppercase',
+                font: RUNG.t4,
+                width: '100%',
+                padding: '13px 0',
+                background: 'transparent',
+                opacity: saving ? 0.5 : 1,
+                border: '0.5px solid var(--role-critical)',
+                borderRadius: 999,
+                cursor: saving ? 'default' : 'pointer',
+                color: D.red,
               }}>{saving ? 'Working…' : 'Delete'}</button>
             </div>
           </div>
@@ -261,17 +282,21 @@ export function NotesBody() {
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--atelier-label)' }} />
             </div>
             <div style={{ padding: '14px 24px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream }}>Note to Self</div>
+              <div style={{ font: RUNG.t1, color: D.cream }}>Note to Self</div>
               <textarea
                 value={draft} onChange={e => setDraft(e.target.value)} autoFocus rows={4}
                 placeholder="Jot it down — just for you"
-                style={{ ...inputStyle, resize: 'none', minHeight: 96, lineHeight: 1.5 }}
+                style={{ ...inputStyle, resize: 'none', minHeight: 96 }}
               />
               <button type="button" onClick={doCreate} disabled={!canSave || saving} style={{
-                width: '100%', padding: '13px 0',
+                font: RUNG.t4,
+                width: '100%',
+                padding: '13px 0',
                 background: canSave && !saving ? 'var(--atelier-accent-text)' : 'var(--atelier-input-border)',
-                border: 'none', borderRadius: 999, cursor: canSave && !saving ? 'pointer' : 'not-allowed',
-                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: 'var(--role-ink-on-metal)', letterSpacing: '0.3em', textTransform: 'uppercase',
+                border: 'none',
+                borderRadius: 999,
+                cursor: canSave && !saving ? 'pointer' : 'not-allowed',
+                color: 'var(--role-ink-on-metal)',
               }}>{saving ? 'Saving…' : 'Save Note'}</button>
             </div>
           </div>

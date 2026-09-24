@@ -24,7 +24,9 @@ export const LEADS = {
       wedding_date: '2027-02-14', wedding_date_precision: 'day', budget_total: 2500000, budget_min: 1500000,
       state: 'new', source: 'wedding_team', referrer: null, raw_message: null, notes: 'Two days, Sangeet first.',
       created_at: '2026-09-20T06:30:00.000Z', tdw: true, tdw_enquired_at: '2026-09-21T09:15:00.000Z',
-      redacted: false, draft: null, forwarded_to: null, forwarded_by: null },
+      redacted: false, forwarded_to: null, forwarded_by: null,
+      // TYPE_2: one draft gap, so the lead's sheet draws MissingChips (1b's modules are measured now)
+      draft: { missing: ['budget_max'], complete_inline: { method: 'POST', path: '/api/v2/vendor/leads/lead-0001' }, tell_victor: { path: '/vendor', primer: 'About Aanya Kapoor: ' } } },
     { id: 'lead-0002', name: null, phone: '+919811100002', wedding_city: null,
       wedding_date: '2027-03-01', wedding_date_precision: 'month', budget_total: null, budget_min: 1000000,
       state: 'contacted', source: 'whatsapp', referrer: null, raw_message: null, notes: null,
@@ -106,11 +108,21 @@ export const NOTES = { ok: true, notes: [
   { id: 'note-0002', body: 'Kabir wants the teaser within a week.', binder_id: 'bind-0002', created_at: '2026-09-19T07:30:00.000Z' },
 ] };
 
+// TYPE_2: the lead's own conversation (ConversationMessage, lib/vendor/types/vendor.ts :411), so the
+// thread and its stamps draw. The instants are fixed; the stamp derives its IST day the house's way.
+export const LEAD_DETAIL = { ok: true, name: 'Aanya Kapoor', vendor_summary: 'Two-day wedding in Jaipur; asked for the Sangeet first.',
+  conversation: [
+    { direction: 'inbound', body: 'Hi, are you free on 14 Feb 2027 in Jaipur?', created_at: '2026-09-20T06:31:00.000Z', sent_by: 'lead' },
+    { direction: 'outbound', body: 'Yes, that date is open. Shall I share the packages?', created_at: '2026-09-20T06:40:00.000Z', sent_by: 'vendor' },
+    { direction: 'inbound', body: 'Please do, and the Sangeet too.', created_at: '2026-09-20T07:02:00.000Z', sent_by: 'lead' },
+  ] };
+
 export const ME = { ok: true, vendor: { id: VID, name: 'Probe', business_name: 'Probe Studio', category: 'photography',
   city: 'Delhi', handle: 'probe', upi_id: null, gstin: null } };
 
 /** One route table, most specific first. The probe answers every other read {ok:true}, as b120's does. */
 export function answer(route) {
+  if (route === '/api/v2/vendor/leads/lead-0001/detail') return LEAD_DETAIL;
   if (/^\/api\/v2\/vendor\/leads\/[^/]+\/detail$/.test(route)) return { ok: false, error: 'not in the stand-in' };
   if (/^\/api\/v2\/vendor\/leads\/[^/]+\/package$/.test(route)) return { ok: true, lead_package: null };
   if (route === `/api/v2/vendor/leads/${VID}`) return LEADS;

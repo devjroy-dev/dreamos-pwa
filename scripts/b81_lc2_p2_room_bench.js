@@ -211,7 +211,9 @@ function cardCells(src, shellSrc) {
 function fieldsCells(src) {
   const s = strip(src);
   return {
-    form: /export function actionButton\(tone: 'accent' \| 'mute' = 'accent'\): CSSProperties \{[\s\S]*?border: `0\.5px solid \$\{c\}`, borderRadius: 2,\s*minHeight: 40,/.test(s),
+    // AMENDED BY LABEL · CE-45 FE-2 TYPE_2: the re-dress reflowed actionButton one property to a line
+    // (its type now a rung); the form is the same, so the cell reads it with the whitespace free.
+    form: /export function actionButton\(tone: 'accent' \| 'mute' = 'accent'\): CSSProperties \{[\s\S]*?border: `0\.5px solid \$\{c\}`,\s*borderRadius: 2,\s*minHeight: 40,/.test(s),
     addItem: /style=\{\{ \.\.\.actionButton\(\), alignSelf: 'flex-start' \}\}[^>]*>\{PACKAGES\.fAddItem\}/.test(s) || /style=\{\{ \.\.\.actionButton\(\), alignSelf: 'flex-start' \}\} onClick=\{\(\) => onItems\(\[\.\.\.items, \{ label: '', detail: '' \}\]\)\}>\{PACKAGES\.fAddItem\}/.test(s),
   };
 }

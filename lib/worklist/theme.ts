@@ -127,6 +127,23 @@ export const TYPE_ROLE = {
 } as const;
 
 /**
+ * CE-45 · FE-2 · TYPE_2 · F7 (ruled 24 Sept 2026) · A RUNG THAT HOLDS OUTSIDE THE SHELL.
+ *
+ * `var(--wl-tN)` has a value only inside a scope that emitted typeCss (the shell's `.wl`, admin,
+ * three worklist sheets). A handful of shared modules the shell's rooms open are ALSO mounted where
+ * no scope exists: the legacy discover pages and the demo tree. There a bare var() resolves to
+ * nothing and the text falls back to whatever face it inherits. Each rung here therefore carries
+ * ITS OWN TUPLE as the var() fallback: inside the shell the variable wins and nothing changes;
+ * outside it the SAME tuple applies. The tuple is generated from TYPE and TYPE_ROLE above, so it
+ * is not a second copy of the scale and cannot drift from it: it is the scale, read twice.
+ * t0 is Today's numeral alone and is not offered.
+ */
+export const RUNG_FONT = Object.fromEntries(
+  (['t1', 't2', 't3', 't4', 't5'] as const).map((k) => [k,
+    `var(--wl-${k}, ${TYPE[k].weight} ${TYPE[k].size}px/${TYPE[k].line} ${TYPE[k].family === 'feature' ? TYPE_ROLE.feature : TYPE_ROLE.body})`]),
+) as Record<'t1' | 't2' | 't3' | 't4' | 't5', string>;
+
+/**
  * Emit the scope's type layer.
  *
  * ONE VARIABLE PER RUNG, AS THE `font` SHORTHAND. `font: var(--wl-t3)` sets family, size,

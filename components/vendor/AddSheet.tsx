@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 // components/AddSheet.tsx
 // Unified bottom-sheet add/edit form for all 5 slices.
 // FAB taps open this; chat path preserved as secondary affordance inside.
@@ -25,7 +26,6 @@ import type { ToastKind } from '@/hooks/vendor/useToast';
 
 import { istTodayISO } from '@/lib/vendor/istDay';
 const D = { bg: 'var(--atelier-bg)', card: 'var(--atelier-sheet-top)', border: 'var(--atelier-sheet-border)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--atelier-accent-text)', red: 'var(--role-critical)' };
-const F = { display: 'var(--font-cormorant), Georgia, serif', label: 'var(--font-jost), system-ui, sans-serif', body: 'var(--font-dm-sans), system-ui, sans-serif' };
 
 type FieldType = 'text' | 'textarea' | 'phone' | 'date' | 'time' | 'currency' | 'select';
 
@@ -420,11 +420,11 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
 
         {/* Header */}
         <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${D.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, letterSpacing: '0.01em' }}>
+          <h2 style={{ font: RUNG.t1, color: D.cream }}>
             {isEdit ? schema.editTitle : schema.title}
           </h2>
           {!isEdit && (
-            <button type="button" onClick={goToChat} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold, letterSpacing: '0.15em', textTransform: 'uppercase', flexShrink: 0 }}>
+            <button type="button" onClick={goToChat} style={{ font: RUNG.t4, background: 'none', border: 'none', cursor: 'pointer', color: D.gold, flexShrink: 0 }}>
               {/* R-37.70 as amended at R-38.17: the persona name is banned outright, in
                   prose as well as in labels. This control is reachable from all six crossed
                   rooms (SliceShell imports AddSheet) and from the shell's own Add control,
@@ -447,7 +447,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
             })
             .map((f, idx) => (
             <div key={f.key}>
-              <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 9, color: errors[f.key] ? D.red : D.muted, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>
+              <label style={{ font: RUNG.t5, letterSpacing: '0.08em', display: 'block', color: errors[f.key] ? D.red : D.muted, textTransform: 'uppercase', marginBottom: 6 }}>
                 {f.label}{f.required && <span style={{ color: D.gold }}> *</span>}
               </label>
               {f.type === 'textarea' ? (
@@ -477,7 +477,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
                 />
               )}
               {errors[f.key] && (
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red, marginTop: 4 }}>{errors[f.key]}</p>
+                <p style={{ font: RUNG.t3, color: D.red, marginTop: 4 }}>{errors[f.key]}</p>
               )}
             </div>
           ))}
@@ -500,25 +500,33 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
               // moved, which is the shape a cell cannot catch by reading a string.
               else router.push(`${roomHref('calendar')}?block=${d}`);
             }} style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
-              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold,
-              letterSpacing: '0.22em', textTransform: 'uppercase', textAlign: 'left',
+              font: RUNG.t4,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '2px 0',
+              color: D.gold,
+              textAlign: 'left',
             }}>Block this day instead →</button>
           )}
 
           {/* TDW_04 A4: "All details ↓" — the expander for control-minded vendors */}
           {!isEdit && phase === 'form' && (
             <button type="button" onClick={() => setShowAll(v => !v)} style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
-              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted,
-              letterSpacing: '0.22em', textTransform: 'uppercase', textAlign: 'left',
+              font: RUNG.t4,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '2px 0',
+              color: D.muted,
+              textAlign: 'left',
             }}>{showAll ? 'Fewer details ↑' : 'All details ↓'}</button>
           )}
 
           {/* TDW_04 A4: the chips phase — filed; the gaps offered, never demanded */}
           {phase === 'chips' && (
             <div style={{ borderTop: `0.5px solid ${D.border}`, paddingTop: 14 }}>
-              <div style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, marginBottom: 10 }}>
+              <div style={{ font: RUNG.t3, color: D.muted, marginBottom: 10 }}>
                 Filed. Anything else while it&rsquo;s open?
               </div>
               {missingKeys.length > 0 && !chipField && (
@@ -527,10 +535,13 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
                     const f = schema.fields.find(x => x.key === k)!;
                     return (
                       <button key={k} type="button" onClick={() => setChipField(k)} style={{
-                        padding: '7px 12px', borderRadius: 999, cursor: 'pointer',
-                        border: `0.5px solid ${D.border}`, background: 'transparent',
-                        fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                        letterSpacing: '0.18em', textTransform: 'uppercase', color: D.gold,
+                        font: RUNG.t4,
+                        padding: '7px 12px',
+                        borderRadius: 999,
+                        cursor: 'pointer',
+                        border: `0.5px solid ${D.border}`,
+                        background: 'transparent',
+                        color: D.gold,
                       }}>+ {f.label}</button>
                     );
                   })}
@@ -538,10 +549,15 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
               )}
               {chipField && (
                 <button type="button" disabled={chipSaving} onClick={() => { void saveChip(chipField); }} style={{
-                  marginTop: 8, padding: '9px 16px', borderRadius: 999, cursor: chipSaving ? 'default' : 'pointer',
-                  border: 'none', background: D.gold, opacity: chipSaving ? 0.6 : 1,
-                  fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-ink-on-metal)',
-                  letterSpacing: '0.22em', textTransform: 'uppercase',
+                  font: RUNG.t4,
+                  marginTop: 8,
+                  padding: '9px 16px',
+                  borderRadius: 999,
+                  cursor: chipSaving ? 'default' : 'pointer',
+                  border: 'none',
+                  background: D.gold,
+                  opacity: chipSaving ? 0.6 : 1,
+                  color: 'var(--role-ink-on-metal)',
                 }}>{chipSaving ? 'Saving…' : 'Save detail'}</button>
               )}
             </div>
@@ -555,11 +571,14 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
             onClick={phase === 'chips' ? finishDraft : submit}
             disabled={phase === 'chips' ? false : (submitting || !requiredMet)}
             style={{
-              width: '100%', padding: '14px 0',
+              font: RUNG.t4,
+              width: '100%',
+              padding: '14px 0',
               backgroundColor: phase === 'chips' ? D.gold : submitting || !requiredMet ? 'var(--atelier-input-border)' : D.gold,
-              border: 'none', borderRadius: 999, cursor: phase === 'chips' ? 'pointer' : submitting || !requiredMet ? 'default' : 'pointer',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10,
-              color: 'var(--role-ink-on-metal)', letterSpacing: '0.3em', textTransform: 'uppercase',
+              border: 'none',
+              borderRadius: 999,
+              cursor: phase === 'chips' ? 'pointer' : submitting || !requiredMet ? 'default' : 'pointer',
+              color: 'var(--role-ink-on-metal)',
               transition: 'background-color 200ms',
             }}
           >
@@ -573,12 +592,14 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
 
 function inputStyle(hasError: boolean): React.CSSProperties {
   return {
-    width: '100%', padding: '11px 14px', boxSizing: 'border-box',
+    font: RUNG.t3,
+    width: '100%',
+    padding: '11px 14px',
+    boxSizing: 'border-box',
     backgroundColor: 'var(--atelier-input-bg)',
     border: `0.5px solid ${hasError ? 'var(--role-critical)' : 'var(--atelier-sheet-border)'}`,
     borderRadius: 10,
-    fontFamily: 'var(--font-dm-sans), system-ui, sans-serif',
-    fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-ink)',
+    color: 'var(--atelier-ink)',
     outline: 'none',
     
   };

@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 // components/vendor/packages/BookingSheet.tsx — CE-43 · LC-2 · packet 3 · THE BOOKING SHEET (A12).
 //
 // One sheet, two openers:
@@ -164,7 +165,7 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
           cells={needsNow.map((c) => ({ key: c, label: LEAD_PACKAGE.needLabel[c] }))} />
       )}
       {need && <NeedFirst text={needText(need.code)} onFix={fixFor(need.code)} testId="booking" />}
-      {failed && <p role="alert" style={{ margin: 0, fontFamily: T.body, fontSize: 14, color: T.accent }}>{BOOKING.failed}</p>}
+      {failed && <p role="alert" style={{ font: RUNG.t3, margin: 0, color: T.accent }}>{BOOKING.failed}</p>}
       <div style={{ display: 'flex', gap: 10 }}>
         {kindButton('booking_confirmed', LEAD_PACKAGE.bookingConfirmed)}
         {kindButton('advance_paid', LEAD_PACKAGE.advancePaid)}

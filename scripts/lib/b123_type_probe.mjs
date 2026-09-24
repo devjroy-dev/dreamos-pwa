@@ -81,6 +81,38 @@ try {
     }
     await settle(1200);
     await shot('sheet');
+  } else if (SCENE === 'add') {
+    // TYPE_2: the room's + opens its add sheet (AddSheet; clients: ClientBookingSheet, submitted empty so
+    // NeedFirst draws; notes: the new-note sheet)
+    out.tapped = await p.evaluate(() => { const f = document.querySelector('.wl-fab'); if (!f) return null; f.click(); return f.getAttribute('aria-label'); });
+    await settle(1200);
+    if (ROOM === 'clients') {
+      out.tapped2 = await p.evaluate(() => { const s = document.querySelector('[data-lc2="client-booking-sheet"]'); const bt = s && [...s.querySelectorAll('button')].pop(); if (!bt) return null; bt.click(); return 'submit'; });
+      await waitFor(() => !!document.querySelector('[data-lc2="need-first"]'), 8000);
+    }
+    await settle(800);
+    await shot('add');
+  } else if (SCENE === 'booking' && ROOM === 'leads') {
+    // TYPE_2: the lead's sheet, then its "Booking confirmed": BookingSheet over PackageFields' Sheet
+    out.tapped = await p.evaluate(() => { const bt = document.querySelector('.wl-main [data-row-id="lead-0001"] button'); if (!bt) return null; bt.click(); return 'lead-0001'; });
+    await waitFor(() => !!document.querySelector('[data-lc2="lead-booking-controls"]'), 15000);
+    out.tapped2 = await p.evaluate(() => { const bt = [...document.querySelectorAll('[data-lc2="lead-booking-controls"] button')].find((x) => /^booking confirmed$/i.test(x.textContent.trim())); if (!bt) return null; bt.click(); return 'booking'; });
+    await waitFor(() => { const b = document.querySelector('[data-lc2="booking-sheet"]'); return !!b && b.getBoundingClientRect().top < window.innerHeight - 4; }, 8000);
+    await settle(1000);
+    await shot('booking');
+  } else if (SCENE === 'note' && ROOM === 'notes') {
+    out.tapped = await p.evaluate(() => { const n = [...document.querySelectorAll('.wl-main .atelier-card')][0]; if (!n) return null; n.click(); return 'note-0001'; });
+    await waitFor(() => !!document.querySelector('[data-wl-notesheet]'), 8000);
+    await settle(600);
+    await shot('note');
+  } else if (SCENE === 'toast' && ROOM === 'notes') {
+    // TYPE_2: the legacy Toast, raised by the one act here that needs no body back: deleting a note
+    out.tapped = await p.evaluate(() => { const n = [...document.querySelectorAll('.wl-main .atelier-card')][0]; if (!n) return null; n.click(); return 'note-0001'; });
+    await waitFor(() => !!document.querySelector('[data-wl-notesheet]'), 8000);
+    out.tapped2 = await p.evaluate(() => { const bt = [...document.querySelectorAll('[data-wl-notesheet] button')].find((x) => /^delete$/i.test(x.textContent.trim())); if (!bt) return null; bt.click(); return 'delete'; });
+    await waitFor(() => /Deleted/.test(document.querySelector('.wl-main').textContent), 8000);
+    await settle(300);
+    await shot('toast');
   } else if (SCENE === 'schedule' && ROOM === 'invoices') {
     // the paid invoice (no schedule) offers "Add": it opens the add-milestones sheet (SliceShell)
     out.tapped = await p.evaluate(() => { const r = document.querySelector('.wl-main [data-row-id="inv-0002"] button'); if (!r) return null; r.click(); return 'inv-0002'; });
@@ -102,10 +134,12 @@ try {
     if (!document.querySelector('.wl-main')) return { nodes: [], controls: [], crashed: true };
     const W = 374;
     // 1b's modules, measured at TYPE_2 and not here (the chair's split): their subtrees are marked, not skipped.
-    const LATER = '[data-lc2^="lead-package"],[data-lc2="lead-booking-controls"],[data-lc2="missing-chips"],[data-lc2^="thread"],[data-lc2="need-first"]';
+    // TYPE_1 marked TYPE_2's subtrees `later`. TYPE_2 re-dresses them, so nothing is later now; the
+    // selector stays as the one place a future cut would name a subtree it has not reached.
+    const LATER = '[data-b123-later]';
     const fam = (f) => { f = f.toLowerCase(); if (f.includes('cormorant')) return 'cormorant'; if (f.includes('dm_sans') || f.includes('dm sans')) return 'dmsans'; if (f.includes('jost')) return 'jost'; if (f.includes('italiana')) return 'italiana'; return f.split(',')[0].trim(); };
     const scopes = [document.querySelector('.wl-main')];
-    for (const sel of ['[data-lc2="detail-sheet"]', '[data-lc2="binder-edit-sheet"]', '[data-lc2="wishbone-sheet"]']) {
+    for (const sel of ['[data-lc2="detail-sheet"]', '[data-lc2="binder-edit-sheet"]', '[data-lc2="wishbone-sheet"]', '[data-lc2="booking-sheet"]', '[data-lc2="attach-sheet"]', '[data-lc2="client-booking-sheet"]']) {
       const el = document.querySelector(sel);
       if (el && el.getBoundingClientRect().top < window.innerHeight - 4) scopes.push(el);
     }

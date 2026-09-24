@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 // components/ConversationThread.tsx
 // Read-only couple conversation thread for lead detail view.
 // CE-43 LC-2 packet 3c: inbound messages are signed with the lead's name (fallback "Lead").
@@ -9,7 +10,6 @@ import type { ConversationMessage } from '@/lib/vendor/types/vendor';
 import { packageDate, istDateOf } from '@/lib/worklist/packages';
 
 const D = { card: 'var(--atelier-sheet-bg)', border: 'var(--atelier-sheet-border)', muted: 'var(--atelier-ink-mute)', cream: 'var(--atelier-ink)', gold: 'var(--role-metal)' };
-const F = { label: 'var(--font-jost), system-ui, sans-serif', body: 'var(--font-dm-sans), system-ui, sans-serif' };
 
 function fmtTime(iso: string) {
   try {
@@ -59,13 +59,13 @@ export function ConversationWaiting() {
         border: `0.5px solid ${isIn ? 'var(--atelier-sheet-border)' : 'var(--atelier-card-border)'}`,
         borderRadius: isIn ? '4px 12px 12px 12px' : '12px 4px 12px 12px',
       }} />
-      <span style={{ fontSize: 8, lineHeight: 1.6, marginTop: 4 }}>&nbsp;</span>
+      <span style={{ font: RUNG.t5, marginTop: 4 }}>&nbsp;</span>
     </div>
   );
   return (
     <div data-lc2="thread-waiting" aria-busy="true" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-        <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: D.muted, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 8 }}>Conversation</p>
+        <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.muted, textTransform: 'uppercase', marginBottom: 8 }}>Conversation</p>
         {[true, false, true].map((isIn, k) => bubble(isIn, k))}
       </div>
     </div>
@@ -89,8 +89,13 @@ export function ConversationThread({ messages, vendorSummary, leadName }: Props)
   const shown = visibleMessages(messages, expanded);
   const toggle = messages.length > COLLAPSED_COUNT ? (
     <button type="button" data-lc2="thread-toggle" onClick={() => setExpanded((e) => !e)} style={{
-      alignSelf: 'flex-start', background: 'none', border: 'none', padding: '8px 0', minHeight: 36, cursor: 'pointer',
-      fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.25em', textTransform: 'uppercase',
+      font: RUNG.t4,
+      alignSelf: 'flex-start',
+      background: 'none',
+      border: 'none',
+      padding: '8px 0',
+      minHeight: 36,
+      cursor: 'pointer',
       color: 'var(--atelier-accent-text)',
     }}>{expanded ? THREAD.showFewer : THREAD.showAll}</button>
   ) : null;
@@ -103,15 +108,15 @@ export function ConversationThread({ messages, vendorSummary, leadName }: Props)
           border: '0.5px solid rgba(201,168,76,0.25)',
           borderRadius: 10, padding: '10px 14px',
         }}>
-          <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: D.gold, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 5 }}>Summary</p>
-          <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, lineHeight: 1.5 }}>{vendorSummary}</p>
+          <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.gold, textTransform: 'uppercase', marginBottom: 5 }}>Summary</p>
+          <p style={{ font: RUNG.t3, color: D.cream }}>{vendorSummary}</p>
         </div>
       )}
 
       {/* Thread */}
       {messages.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: D.muted, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 8 }}>Conversation</p>
+          <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.muted, textTransform: 'uppercase', marginBottom: 8 }}>Conversation</p>
           {!expanded && toggle}
           {shown.map((msg, idx) => {
             const isIn = msg.direction === 'inbound';
@@ -129,10 +134,10 @@ export function ConversationThread({ messages, vendorSummary, leadName }: Props)
                   borderRadius: isIn ? '4px 12px 12px 12px' : '12px 4px 12px 12px',
                   padding: '8px 12px',
                 }}>
-                  <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.cream, lineHeight: 1.5, margin: 0 }}>{msg.body}</p>
+                  <p style={{ font: RUNG.t3, color: D.cream, margin: 0 }}>{msg.body}</p>
                 </div>
                 {/* F-43.96: the stamp at the thread's own label size (the `Conversation` label above). */}
-                <span data-lc2="thread-stamp" style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, lineHeight: 1.6, color: D.muted, letterSpacing: '0.25em', textTransform: 'uppercase', marginTop: 4, paddingLeft: isIn ? 2 : 0, paddingRight: isIn ? 0 : 2 }}>
+                <span data-lc2="thread-stamp" style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.muted, textTransform: 'uppercase', marginTop: 4, paddingLeft: isIn ? 2 : 0, paddingRight: isIn ? 0 : 2 }}>
                   {isIn ? inboundSender(leadName) : 'TDW'} · {stampOf(msg.created_at)}
                 </span>
               </div>
@@ -143,7 +148,7 @@ export function ConversationThread({ messages, vendorSummary, leadName }: Props)
       )}
 
       {!vendorSummary && messages.length === 0 && (
-        <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, fontStyle: 'italic', textAlign: 'center', padding: '8px 0' }}>
+        <p style={{ font: RUNG.t3, color: D.muted, textAlign: 'center', padding: '8px 0' }}>
           No conversation yet.
         </p>
       )}

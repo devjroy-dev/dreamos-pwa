@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 // components/vendor/MissingChips.tsx — CE-43 · LC-2 · packet 3g · ONE "Still missing" pattern.
 //
 // The lead detail's wishbone chips (TDW_04 A1), the booking sheet and the attach sheet show what is
@@ -9,14 +10,18 @@
 import type { CSSProperties } from 'react';
 
 const chipStyle: CSSProperties = {
-  fontFamily: 'var(--font-jost), system-ui, sans-serif', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
-  color: 'var(--atelier-ink-mute)', letterSpacing: '0.06em',
-  border: '0.5px solid var(--atelier-ink-dim)', borderRadius: 2,
-  padding: '3px 8px', background: 'transparent', cursor: 'pointer',
+  font: RUNG.t4,
+  color: 'var(--atelier-ink-mute)',
+  border: '0.5px solid var(--atelier-ink-dim)',
+  borderRadius: 2,
+  padding: '3px 8px',
+  background: 'transparent',
+  cursor: 'pointer',
 };
 const headingStyle: CSSProperties = {
-  fontFamily: 'var(--font-dm-sans), system-ui, sans-serif', fontWeight: 300, fontSize: 16, lineHeight: 1.5,
-  color: 'var(--atelier-ink-mute)', marginBottom: 8,
+  font: RUNG.t3,
+  color: 'var(--atelier-ink-mute)',
+  marginBottom: 8,
 };
 
 export function MissingChips({ cells, onPick, heading = false, testId }: {

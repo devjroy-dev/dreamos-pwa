@@ -169,6 +169,14 @@ function shellCells(src, cardSrc = read('components/vendor/packages/LeadPackageC
   };
 }
 
+// CE-45 FE-2 TYPE_2: AddSheet with its type taken out (see §6.8's amendment).
+function typeFree(src) {
+  return String(src)
+    .replace(/^import \{ RUNG_FONT as RUNG \} from '@\/lib\/worklist\/theme';[^\n]*\n/m, '')
+    .replace(/^const F = \{[^\n]*\};\n/m, '')
+    .replace(/\b(fontFamily|fontSize|fontWeight|lineHeight|letterSpacing|fontStyle|textTransform|font)\s*:\s*('[^']*'|[^,}\n]+)\s*,?/g, '')
+    .replace(/[\s,]+/g, '');
+}
 function sheetCells(sheet, clients, addsheet, addsheetBase) {
   const s = strip(sheet);
   const c = strip(clients);
@@ -187,7 +195,14 @@ function sheetCells(sheet, clients, addsheet, addsheetBase) {
     // [amended, packet 3] Add client submits the booking; Launching soon. is gone from the sheet.
     submitSoon: /onClick=\{\(\) => \{ void submit\(\); \}\}[\s\S]{0,400}\{CLIENT_BOOKING\.submit\}/.test(s) && !/launchingSoon/.test(s),
     title: /\{CLIENT_BOOKING\.title\}/.test(s),
-    addSheetUntouched: addsheetBase !== null && addsheet === addsheetBase,
+    // AMENDED BY LABEL · CE-45 FE-2 TYPE_2 (F4, ruled 24 Sept 2026: the sheets the legacy rooms open are
+    // re-dressed onto the app's type). The ruling this cell kept (R-43.5: the Clients booking sheet is a
+    // NEW sheet, and AddSheet is not touched to make it) still holds for everything AddSheet DOES; only
+    // its type moved. So the cell compares AddSheet with base 409a130e with its type taken out of both
+    // sides (every face, size, weight, line-height, tracking, style and case key, the retired face
+    // constant, the one rung import) and the layout whitespace and commas the re-dress reflowed.
+    // Anything else that moves, a handler, a field, a word or a colour, still reddens it.
+    addSheetUntouched: addsheetBase !== null && typeFree(addsheet) === typeFree(addsheetBase),
   };
 }
 
@@ -273,7 +288,7 @@ function baseFile(rel) {
   ok(r6.defaultPreselected, '§6.5 the default package is preselected');
   ok(r6.submitSoon, '§6.6 [amended, packet 3] Add client submits the booking');
   ok(r6.title, '§6.7 the title is C1');
-  ok(r6.addSheetUntouched, '§6.8 AddSheet is byte-identical to base 409a130e (ruled untouched)');
+  ok(r6.addSheetUntouched, '§6.8 [amended, CE-45 FE-2 TYPE_2] AddSheet equals base 409a130e in everything but its type (R-43.5 kept; F4)');
 
   sec('§7 · tokens only (R-42.6)');
   ok(tokenCells([src.page, src.sheet, src.copy]), '§7.1 no colour literal in the page, the sheet or the copy home');

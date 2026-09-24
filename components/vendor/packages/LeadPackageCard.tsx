@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 // components/vendor/packages/LeadPackageCard.tsx — CE-43 · LC-2 · packet 2.
 //
 // The package on a lead (A1 to A9). Reads GET /leads/:leadId/package; attaches through
@@ -98,7 +99,7 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNee
   }, [load, initial]);
 
   const eyebrow = (
-    <span style={{ fontFamily: T.label, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.mute }}>
+    <span style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.mute }}>
       {LEAD_PACKAGE.eyebrow}
     </span>
   );
@@ -113,22 +114,22 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNee
       {lp && (
         <div data-lc2="lead-package-attached" style={{ marginTop: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-            <span style={{ fontFamily: T.display, fontSize: 22, lineHeight: 1.2, color: T.ink }}>{lp.snapshot.name}</span>
-            <span style={{ fontFamily: T.display, fontSize: 20, color: T.ink, whiteSpace: 'nowrap' }}>{formatRs(lp.total)}</span>
+            <span style={{ font: RUNG.t2, color: T.ink }}>{lp.snapshot.name}</span>
+            <span style={{ font: RUNG.t2, color: T.ink, whiteSpace: 'nowrap' }}>{formatRs(lp.total)}</span>
           </div>
           <ul style={{ listStyle: 'none', margin: '10px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {lp.schedule.map((row) => (
-              <li key={row.kind} style={{ fontFamily: T.body, fontSize: 14, lineHeight: 1.45, color: T.ink }}>
+              <li key={row.kind} style={{ font: RUNG.t3, color: T.ink }}>
                 {scheduleRow(row.kind, row.pct, formatRs(row.amount), row.due_on)}
               </li>
             ))}
           </ul>
           {lp.snapshot.tells.includes('middle_folded') && (
-            <p style={{ margin: '8px 0 0', fontFamily: T.body, fontSize: 13, color: T.mute }}>{LEAD_PACKAGE.folded}</p>
+            <p style={{ font: RUNG.t4, margin: '8px 0 0', color: T.mute }}>{LEAD_PACKAGE.folded}</p>
           )}
-          <p style={{ margin: '8px 0 0', fontFamily: T.body, fontSize: 13, color: T.mute }}>{LEAD_PACKAGE.delivery(packageDate(lp.delivery_on))}</p>
+          <p style={{ font: RUNG.t4, margin: '8px 0 0', color: T.mute }}>{LEAD_PACKAGE.delivery(packageDate(lp.delivery_on))}</p>
           {lp.snapshot.tells.includes('counted_from_wedding') && (
-            <p style={{ margin: '4px 0 0', fontFamily: T.body, fontSize: 13, color: T.mute }}>{LEAD_PACKAGE.counted}</p>
+            <p style={{ font: RUNG.t4, margin: '4px 0 0', color: T.mute }}>{LEAD_PACKAGE.counted}</p>
           )}
         </div>
       )}

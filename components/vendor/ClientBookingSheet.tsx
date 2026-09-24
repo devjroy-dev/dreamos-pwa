@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 // components/vendor/ClientBookingSheet.tsx — CE-43 · LC-2 · THE CLIENTS ADD SHEET, RE-SHAPED (R-43.5).
 //
 // No path creates a client without a lead. A walk-in is a lead born booked, so the Clients
@@ -51,16 +52,17 @@ const D = {
   card: 'var(--atelier-sheet-top)', border: 'var(--atelier-sheet-border)',
   muted: 'var(--atelier-ink-mute)', ink: 'var(--atelier-ink)', accent: 'var(--atelier-accent-text)',
 };
-const F = {
-  display: 'var(--font-cormorant), Georgia, serif',
-  label: 'var(--font-jost), system-ui, sans-serif',
-  body: 'var(--font-dm-sans), system-ui, sans-serif',
-};
 
 const input: React.CSSProperties = {
-  width: '100%', boxSizing: 'border-box', padding: '12px 14px', minHeight: 44,
-  background: 'transparent', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
-  fontFamily: F.body, fontSize: 16, color: D.ink,
+  font: RUNG.t3,
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '12px 14px',
+  minHeight: 44,
+  background: 'transparent',
+  border: '0.5px solid var(--atelier-input-border)',
+  borderRadius: 2,
+  color: D.ink,
 };
 
 export interface ClientBookingSheetProps {
@@ -157,8 +159,14 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
   const flag = (f: Field): React.CSSProperties => (bad === f ? { borderColor: D.accent, borderWidth: 1.5 } : {});
 
   const label = (text: string) => (
-    <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted,
-      letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6 }}>{text}</label>
+    <label style={{
+      font: RUNG.t5,
+      letterSpacing: '0.08em',
+      display: 'block',
+      color: D.muted,
+      textTransform: 'uppercase',
+      marginBottom: 6,
+}}>{text}</label>
   );
 
   const bodyRef = useSheetScrollReset<HTMLDivElement>(open);
@@ -183,7 +191,7 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
           <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: 'var(--atelier-ink-dim)' }} />
         </div>
         <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${D.border}`, flexShrink: 0 }}>
-          <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.ink, margin: 0 }}>
+          <h2 style={{ font: RUNG.t1, color: D.ink, margin: 0 }}>
             {CLIENT_BOOKING.title}
           </h2>
         </div>
@@ -191,7 +199,7 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
           {/* Packet 3f · R-43.16: the field gate is a control that focuses the flagged field; F29 is
               a failure and stays a plain line. */}
           {message && bad && <NeedFirst text={message} onFix={() => { const el = document.getElementById(`cbs-${bad}`); if (el) el.focus(); }} testId="client" />}
-          {message && !bad && <p role="alert" style={{ margin: 0, fontFamily: F.body, fontSize: 14, color: D.accent }}>{message}</p>}
+          {message && !bad && <p role="alert" style={{ font: RUNG.t3, margin: 0, color: D.accent }}>{message}</p>}
           <div>{label(CLIENT_BOOKING.name)}
             <input id="cbs-name" style={{ ...input, ...flag('name') }} value={values.name} onChange={(e) => set('name', e.target.value)} autoComplete="off" />
           </div>
@@ -212,7 +220,7 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
               <input id="cbs-fee" style={{ ...input, ...flag('fee') }} inputMode="numeric" value={values.fee} onChange={(e) => set('fee', e.target.value.replace(/[^\d]/g, ''))} />
             </div>
           )}
-          <label data-lc2="advance-switch" style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: F.body, fontSize: 15, color: D.ink, minHeight: 44 }}>
+          <label data-lc2="advance-switch" style={{ font: RUNG.t3, display: 'flex', alignItems: 'center', gap: 10, color: D.ink, minHeight: 44 }}>
             <input type="checkbox" checked={advance} onChange={(e) => setAdvance(e.target.checked)} style={{ width: 20, height: 20, accentColor: D.accent }} />
             {CLIENT_BOOKING.advance}
           </label>
@@ -224,10 +232,14 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
         </div>
         <div style={{ padding: '12px 24px 16px', borderTop: `1px solid ${D.border}`, flexShrink: 0 }}>
           <button type="button" onClick={() => { void submit(); }} aria-busy={busy} style={{
-            width: '100%', minHeight: 48, background: 'transparent', cursor: 'pointer',
-            border: `0.5px solid ${D.accent}`, borderRadius: 2,
-            fontFamily: F.label, fontWeight: 300, fontSize: 11, letterSpacing: '0.2em',
-            textTransform: 'uppercase', color: D.accent,
+            font: RUNG.t4,
+            width: '100%',
+            minHeight: 48,
+            background: 'transparent',
+            cursor: 'pointer',
+            border: `0.5px solid ${D.accent}`,
+            borderRadius: 2,
+            color: D.accent,
           }}>{CLIENT_BOOKING.submit}</button>
         </div>
       </div>

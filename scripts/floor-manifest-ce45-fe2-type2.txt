@@ -1,0 +1,22 @@
+# scripts/floor-manifest-ce45-fe2-type2.txt
+# CE-45 · FE-2 · TYPE_2 · the sheets the legacy rooms open, and the legacy Toast, on the app's own type (F4, F5, F7); e-112's cure · dreamos-pwa. F-19.16: a dirty path outside this list is a STOP.
+# One new directory: none (every path below sits in a directory that already exists at 8a943ae1). No file is deleted.
+components/vendor/AddSheet.tsx
+components/vendor/ClientBookingSheet.tsx
+components/vendor/ConversationThread.tsx
+components/vendor/MissingChips.tsx
+components/vendor/NeedFirst.tsx
+components/vendor/NotesBody.tsx
+components/vendor/Toast.tsx
+components/vendor/packages/BookingSheet.tsx
+components/vendor/packages/LeadPackageCard.tsx
+components/vendor/packages/PackageFields.tsx
+docs/handovers/TDW_CE45_FE2_TYPE_2_HANDOVER.md
+lib/worklist/theme.ts
+scripts/b123_ce45_fe2_type_bench.js
+scripts/b80_lc2_p1_shell_bench.js
+scripts/b81_lc2_p2_room_bench.js
+scripts/b82_lc2_p3_booking_bench.js
+scripts/floor-manifest-ce45-fe2-type2.txt
+scripts/lib/b123_fixtures.mjs
+scripts/lib/b123_type_probe.mjs

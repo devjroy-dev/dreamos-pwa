@@ -505,7 +505,9 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   const threadSrc = read('components/vendor/ConversationThread.tsx');
   let sender = null;
   // [amended, 3d] the thread imports the copy home and useState; both are stubbed from the real sources.
-  const threadStubs = () => ({ react: { useState: (v) => [v, () => {}] }, 'react/jsx-runtime': { jsx: () => null, jsxs: () => null, Fragment: null }, '@/lib/worklist/packages': loadModule(src.copy) });
+  // AMENDED BY LABEL · CE-45 FE-2 TYPE_2: the thread now takes its type from lib/worklist/theme.ts (RUNG_FONT, F7),
+  // stubbed from the real source like the copy home beside it; theme.ts imports nothing.
+  const threadStubs = () => ({ react: { useState: (v) => [v, () => {}] }, 'react/jsx-runtime': { jsx: () => null, jsxs: () => null, Fragment: null }, '@/lib/worklist/packages': loadModule(src.copy), '@/lib/worklist/theme': loadModule(read('lib/worklist/theme.ts')) });
   let thread = null;
   try { thread = loadModule(threadSrc.replace(/^'use client';/, ''), threadStubs()); sender = thread.inboundSender; } catch (e) { console.log('  (thread did not load: ' + e.message + ')'); }
   ok(typeof sender === 'function' && sender('Sarah') === 'Sarah' && sender('  Riya  ') === 'Riya' && sender('') === 'Lead' && sender(null) === 'Lead' && sender(undefined) === 'Lead',
@@ -533,7 +535,10 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     && th.stampOf('2026-09-16T18:45:00Z').startsWith('17 September 2026 · '),
     '§11.8 F-43.96: the stamp is the IST day in full month and the time');
   ok(/\{isIn \? inboundSender\(leadName\) : 'TDW'\} · \{stampOf\(msg\.created_at\)\}/.test(ts)
-    && /data-lc2="thread-stamp" style=\{\{ fontFamily: F\.label, fontWeight: 300, fontSize: 8,/.test(ts) && !/fontSize: 16, lineHeight: 1\.5, color: D\.muted, letterSpacing: '0\.1em'/.test(ts),
+    // AMENDED BY LABEL · CE-45 FE-2 TYPE_2: the stamp keeps the LABEL size, which is now the label rung t5
+    // (DM Sans 11 through RUNG_FONT) where it was Jost 8; the cell's question, never a bare clock time at
+    // body size, is unchanged, so the body-size negative is kept as it was.
+    && /data-lc2="thread-stamp" style=\{\{ font: RUNG\.t5,/.test(ts) && !/fontSize: 16, lineHeight: 1\.5, color: D\.muted, letterSpacing: '0\.1em'/.test(ts),
     '§11.9 F-43.96: the stamp renders at the label size, never a bare clock time');
   const cbs = strip(src.sheet);
   ok(/data-lc2="client-booking-sheet" inert=\{!open\}/.test(cbs) && !/aria-hidden=\{!open\}/.test(cbs), '§11.10 F-43.94: the Clients sheet is inert when closed, not aria-hidden');
@@ -688,7 +693,9 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   ok(c5b.readOnce && c4.primeOnce, '§14.8 F-43.107: the packages list is read once per Leads visit (primed on entry, cleared on leaving; a failed read is not remembered)');
   const thread3 = strip(read('components/vendor/ConversationThread.tsx'));
   ok(/export function ConversationWaiting\(\)/.test(thread3) && /\[true, false, true\]\.map\(\(isIn, k\) => bubble\(isIn, k\)\)/.test(thread3)
-    && /minHeight: 24, padding: '8px 12px'/.test(thread3) && /fontSize: 8, lineHeight: 1\.6, marginTop: 4/.test(thread3)
+    // AMENDED BY LABEL · CE-45 FE-2 TYPE_2: the waiting stamp takes the stamp's own rung, so the outline
+    // still matches the stamp it becomes (was fontSize 8 / lineHeight 1.6 beside Jost 8).
+    && /minHeight: 24, padding: '8px 12px'/.test(thread3) && /\{\{ font: RUNG\.t5, marginTop: 4 \}\}>&nbsp;/.test(thread3)
     && tokensOnly(thread3.slice(thread3.indexOf('export function ConversationWaiting'), thread3.indexOf('export function inboundSender'))),
     '§14.9 F-43.107: the thread waits in the collapsed shape it becomes (three message outlines at the bubble and stamp geometry), tokens only');
   ok(c4.factsWired, '§14.10 the needs read the lead\'s date from the room\'s own leads read, for the card and the booking sheet');

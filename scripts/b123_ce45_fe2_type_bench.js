@@ -26,7 +26,8 @@
 //     for byte in a `finally` with its sha re-checked; each must redden its own cells:
 //     M1 a raw 9px restored on the row's state pill · M2 Italiana restored on the masthead figure ·
 //     M3 the Slice Door restored with its mount · M4 .32em tracking restored on a sheet label ·
-//     M5 one word changed in the lane line.
+//     M5 one word changed in the lane line · TYPE_2: M6 a raw 16px back on the legacy Toast · M7 RUNG_FONT's
+//     fallback no longer read from TYPE (a second copy of the scale).
 //
 // WHAT IT DOES NOT MEASURE, NAMED: the subtrees of the modules the chair placed in TYPE_2 (the lead's
 // package card and booking controls, the missing chips, the conversation thread, NeedFirst) are
@@ -48,7 +49,8 @@ const { spawn, spawnSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const P = (...a) => path.join(ROOT, ...a);
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
-const BASE = arg('--base', '82ff431ec3c5b1f50994b01be36e27fc5cf736cf');
+// TYPE_2 compares against the tip it builds on (8a943ae1: TYPE_1, then G6-1 FE2_1 on disjoint files); TYPE_1's own record ran against 82ff431e.
+const BASE = arg('--base', '8a943ae1cd20b401f04b59a32ba64242f00ec16b');
 const CLOCK = arg('--clock', null);
 const MODES = arg('--modes', 'dark,light').split(',');
 const ROOMS = arg('--rooms', 'leads,clients,events,notes,invoices,expenses').split(',');
@@ -61,10 +63,23 @@ const cell = (name, why) => { if (!why) { pass++; console.log('GREEN ' + name); 
 const read = (f, root = ROOT) => fs.readFileSync(path.join(root, f), 'utf8');
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 // comments out: a retired name may be narrated in a comment, never used in code
-const strip = (s) => s.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/[^\n]*/g, '$1');
+// e-112 (ruled (a), cured at TYPE_2): comments go through the ONE home, never a regex of the rung's own.
+const { stripComments: strip } = require('./lib/stripComments.cjs');
 
 const FAMILY = ['BinderCard', 'BulkBar', 'DetailSheet', 'FilterRail', 'ForwardSheet', 'Masthead', 'SliceRow', 'SliceShell', 'SwipeRow', 'WishboneSheet']
   .map((m) => `components/vendor/slices/${m}.tsx`).concat(['app/vendor/(shell)/clients/body.tsx']);
+// TYPE_2: the sheets the rooms open, and the legacy Toast (F4), take their rung through RUNG_FONT (F7).
+const SATELLITES = ['AddSheet', 'NeedFirst', 'MissingChips', 'ConversationThread', 'ClientBookingSheet', 'NotesBody', 'Toast',
+  'packages/LeadPackageCard', 'packages/BookingSheet', 'packages/PackageFields'].map((m) => `components/vendor/${m}.tsx`);
+// NAMED, NOT HIDDEN: PackageFields' token object `T` still carries three faces because the Packages
+// room's own edit sheet (components/vendor/packages/PackageEditSheet.tsx, cut 5 by the chair's order)
+// reads `T.body`. The three definition lines are the one exception, each matched by its exact text;
+// cut 5 retires them with their last reader.
+const FACE_DEFS_HELD = new Set([
+  "components/vendor/packages/PackageFields.tsx|display: 'var(--font-cormorant), Georgia, serif'",
+  "components/vendor/packages/PackageFields.tsx|label: 'var(--font-jost), system-ui, sans-serif'",
+  "components/vendor/packages/PackageFields.tsx|body: 'var(--font-dm-sans), system-ui, sans-serif'",
+]);
 const RUNGS = new Set(['46|cormorant|500', '24|cormorant|500', '17|dmsans|500', '14|dmsans|400', '12|dmsans|500', '11|dmsans|500']);
 const SIX = ['Leads', 'Clients', 'Invoices', 'Expenses', 'Events', 'Notes'];
 
@@ -76,14 +91,17 @@ function sourceCells(tag = '') {
     /export const F\b/.test(row) ? 'SliceRow still exports F'
       : !/export const T = \{\s*t1: 'var\(--wl-t1\)',\s*t2: 'var\(--wl-t2\)',\s*t3: 'var\(--wl-t3\)',\s*t4: 'var\(--wl-t4\)',\s*t5: 'var\(--wl-t5\)',\s*\} as const;/.test(row) ? 'T is not the five rungs exactly' : null);
   const raw = [], fonts = [], tracks = [];
-  for (const f of FAMILY) {
+  for (const f of FAMILY.concat(SATELLITES)) {
     const s = strip(read(f));
     for (const m of s.matchAll(/\b(fontFamily|fontSize|fontWeight|lineHeight|fontStyle)\s*:/g)) raw.push(`${f}: ${m[1]}`);
-    for (const m of s.matchAll(/--font-(jost|italiana|cormorant|dm-sans)/g)) raw.push(`${f}: --font-${m[1]}`);
-    for (const m of s.matchAll(/\bfont:\s*([^,\n}]+)/g)) if (!/^T\.t[1-5]$/.test(m[1].trim())) fonts.push(`${f}: font: ${m[1].trim()}`);
+    for (const m of s.matchAll(/(\w+):\s*'var\(--font-(jost|italiana|cormorant|dm-sans)[^']*'|--font-(jost|italiana|cormorant|dm-sans)/g)) {
+      if (m[1] && FACE_DEFS_HELD.has(`${f}|${m[0]}`)) continue;
+      raw.push(`${f}: --font-${m[2] || m[3]}`);
+    }
+    for (const m of s.matchAll(/\bfont:\s*([^,\n}]+)/g)) if (!/^(T|RUNG)\.t[1-5]$/.test(m[1].trim())) fonts.push(`${f}: font: ${m[1].trim()}`);
     for (const m of s.matchAll(/letterSpacing:\s*([^,\n}]+)/g)) if (m[1].trim() !== "'0.08em'") tracks.push(`${f}: ${m[1].trim()}`);
   }
-  cell('1.2 no raw size, face, weight, line-height or style in the family or the clients room', raw.length ? raw.slice(0, 6).join(' | ') + (raw.length > 6 ? ` (+${raw.length - 6})` : '') : null);
+  cell('1.2 no raw size, face, weight, line-height or style in the family, the clients room or the sheets they open (TYPE_2)', raw.length ? raw.slice(0, 6).join(' | ') + (raw.length > 6 ? ` (+${raw.length - 6})` : '') : null);
   cell('1.3 every font is a rung through T, and tracking is only .08em (theme.ts: eyebrows)',
     fonts.length || tracks.length ? fonts.concat(tracks).slice(0, 6).join(' | ') : null);
   const door = [];
@@ -110,11 +128,25 @@ function sourceCells(tag = '') {
   walk2('app'); walk2('components'); walk2('lib'); walk2('hooks');
   cell('1.5 the key the strip alone wrote has no writer and no reader left (nothing that ran is lost)',
     writers.length || readers.length ? `writers: ${writers.join(', ') || 'none'} · readers: ${readers.join(', ') || 'none'}` : null);
+  // 1.6 · F7: RUNG_FONT is the scale read twice, var(--wl-tN, <the tuple>), generated from TYPE
+  try {
+    const ts = require(P('node_modules/typescript'));
+    const js = ts.transpileModule(read('lib/worklist/theme.ts'), { compilerOptions: { module: 1, target: 7 } }).outputText;
+    const mod = { exports: {} }; new Function('module', 'exports', 'require', js)(mod, mod.exports, require);
+    const { RUNG_FONT, TYPE, TYPE_ROLE } = mod.exports;
+    const bad = ['t1', 't2', 't3', 't4', 't5'].filter((k) => RUNG_FONT[k] !== `var(--wl-${k}, ${TYPE[k].weight} ${TYPE[k].size}px/${TYPE[k].line} ${TYPE[k].family === 'feature' ? TYPE_ROLE.feature : TYPE_ROLE.body})`);
+    const t0 = Object.prototype.hasOwnProperty.call(RUNG_FONT, 't0');
+    const lit = /RUNG_FONT[\s\S]{0,900}?\b(1[0-9]|2[0-9]|4[0-9])px/.test(strip(read('lib/worklist/theme.ts')).split('export const RUNG_FONT')[1] || '');
+    cell('1.6 F7: each RUNG_FONT rung is var(--wl-tN, its own tuple), generated from TYPE (no second copy), and t0 is not offered',
+      bad.length ? 'wrong: ' + bad.join(', ') : t0 ? 't0 is offered' : lit ? 'a size literal inside RUNG_FONT: a second copy of the scale' : null);
+  } catch (e) { cell('1.6 F7: RUNG_FONT', 'could not transpile theme.ts: ' + e.message); }
   return fail;
 }
 
 // ══ §2-§4 · THE REAL ROOMS ═════════════════════════════════════════════════════════════════
-const SCENES = { leads: ['rest', 'sheet'], clients: ['rest', 'sheet'], events: ['rest', 'sheet'], notes: ['rest'], invoices: ['rest', 'sheet', 'schedule'], expenses: ['rest', 'sheet'] };
+// TYPE_2 adds each room's + (AddSheet; ClientBookingSheet submitted empty, so NeedFirst draws; the new-note
+// sheet), the lead's BookingSheet, the note's own sheet and the legacy Toast (a note deleted).
+const SCENES = { leads: ['rest', 'sheet', 'add', 'booking'], clients: ['rest', 'sheet', 'add'], events: ['rest', 'sheet', 'add'], notes: ['rest', 'note', 'add', 'toast'], invoices: ['rest', 'sheet', 'schedule', 'add'], expenses: ['rest', 'sheet', 'add'] };
 function probe(port, mode, room, scene, shots) {
   const env = { ...process.env }; if (CLOCK) env.B123_CLOCK = String(Date.parse(CLOCK));
   const r = spawnSync('node', [P('scripts/lib/b123_type_probe.mjs'), String(port), mode, room, scene, shots || ''], { encoding: 'utf8', timeout: 240000, env });
@@ -182,18 +214,22 @@ async function renderCells() {
       if (c.browser === null || b.browser === null) { cell(`2.0 ${tag} a browser launches`, 'no Chromium: CHROME_BIN unset and @sparticuz/chromium absent'); continue; }
       // the scene is only measured if BOTH trees reached it: the second tap (the clients card's Edit,
       // the paid invoice's Add) is asserted, not assumed, or a scene that never opened reads as green
-      const second = (x) => (room === 'clients' && scene === 'sheet') ? x.tapped2 === 'edit' : scene === 'schedule' ? x.tapped2 === 'add' : true;
+      const second = (x) => (room === 'clients' && scene === 'sheet') ? x.tapped2 === 'edit' : scene === 'schedule' ? x.tapped2 === 'add'
+        : scene === 'booking' ? x.tapped2 === 'booking' : scene === 'toast' ? x.tapped2 === 'delete' : (room === 'clients' && scene === 'add') ? x.tapped2 === 'submit' : true;
       const drove = c.loaded && b.loaded && (scene === 'rest' || (c.tapped && b.tapped && second(c) && second(b))) && !(c.errors || []).length && !(b.errors || []).length;
       cell(`2.0 ${tag} both trees drew the populated room and the scene`, drove ? null : `cured ${JSON.stringify({ l: c.loaded, t: c.tapped, t2: c.tapped2, e: c.errors })} base ${JSON.stringify({ l: b.loaded, t: b.tapped, t2: b.tapped2, e: b.errors })}`);
       if (!drove) continue;
-      if (room !== 'notes') typeCells(tag, c);
+      typeCells(tag, c); // TYPE_2: notes' body is on the rungs now, so notes carries the type cells too
       if (scene === 'rest') {
         const g = c.nodes.filter((n) => n.scope === 0 && !n.scroller && !n.later && (n.left < 16 || n.right > 374 - 16));
         cell(`2.5 ${tag} the 16px gutter on both sides, and no overflow at 374px`,
           c.docOverflow !== 0 || c.mainOverflow !== 0 ? `overflow doc ${c.docOverflow} main ${c.mainOverflow}` : g.length ? g.slice(0, 3).map((n) => `\u201c${n.txt.slice(0, 20)}\u201d ${n.left}-${n.right}`).join(' | ') : null);
       }
       cell(`2.6 ${tag} the strip is absent`, (c.stripLabels || []).length ? 'labels: ' + c.stripLabels.join(', ') : null);
-      if (scene === 'rest') cell(`3.0 ${tag} the base drew exactly the six labels the removal takes`, JSON.stringify(b.stripLabels) === JSON.stringify(SIX) ? null : 'base strip: ' + JSON.stringify(b.stripLabels));
+      // against 82ff431e the base still has the strip (the six labels are the one allowed removal); against a
+      // tip after TYPE_1 it has none, and the words must then match with nothing removed at all
+      const EXPECT = BASE.startsWith('82ff431e') ? SIX : [];
+      if (scene === 'rest') cell(`3.0 ${tag} the base drew exactly the strip labels the comparison removes (${EXPECT.length ? 'six' : 'none'})`, JSON.stringify(b.stripLabels || []) === JSON.stringify(EXPECT) ? null : 'base strip: ' + JSON.stringify(b.stripLabels));
       const words = (x) => x.nodes.filter((n) => !n.strip).map((n) => n.txt);
       const wa = words(b), wc = words(c);
       let firstDiff = -1; for (let i = 0; i < Math.max(wa.length, wc.length); i += 1) if (wa[i] !== wc[i]) { firstDiff = i; break; }
@@ -225,6 +261,9 @@ async function mutations() {
     { id: 'M2', file: 'components/vendor/slices/Masthead.tsx', from: /(font: T\.t1,)/, to: "$1 fontFamily: 'var(--font-italiana), serif',", cells: /^1\.2/ },
     { id: 'M3', file: 'app/vendor/(shell)/notes/body.tsx', from: /(<NotesBody \/>)/, to: '<SliceDoor active="notes" />$1', cells: /^1\.4/ },
     { id: 'M4', file: 'components/vendor/slices/DetailSheet.tsx', from: /(font: T\.t5,\s*letterSpacing: )'0\.08em'/, to: "$1'0.32em'", cells: /^1\.3/ },
+    // TYPE_2: a raw size back on the legacy Toast's message; RUNG_FONT stripped of its fallback (F7)
+    { id: 'M6', file: 'components/vendor/Toast.tsx', from: /(font: RUNG\.t3,)/, to: '$1 fontSize: 16,', cells: /^1\.2/ },
+    { id: 'M7', file: 'lib/worklist/theme.ts', from: /`var\(--wl-\$\{k\}, \$\{TYPE\[k\]\.weight\}/, to: '`var(--wl-${k}, 500', cells: /^1\.6/ },
     { id: 'M5', file: 'components/vendor/slices/SliceShell.tsx', from: /(const LANE_LINE[^=]*=\s*\{[^}]*?leads:\s*')([A-Za-z]+)/, to: '$1Planted', cells: /^3\.1/, render: true },
   ];
   for (const m of M) {

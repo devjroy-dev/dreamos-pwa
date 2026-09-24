@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 // components/vendor/packages/PackageFields.tsx — CE-43 · LC-2 · packet 2.
 //
 // The sheet chrome and the field editor both package sheets share: the Packages room's edit
@@ -27,26 +28,35 @@ export const T = {
 } as const;
 
 export const inputStyle: CSSProperties = {
-  width: '100%', boxSizing: 'border-box', padding: '12px 14px', minHeight: 44,
-  background: 'transparent', border: `0.5px solid ${T.input}`, borderRadius: 2,
-  fontFamily: T.body, fontSize: 16, color: T.ink,
+  font: RUNG.t3,
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '12px 14px',
+  minHeight: 44,
+  background: 'transparent',
+  border: `0.5px solid ${T.input}`,
+  borderRadius: 2,
+  color: T.ink,
 };
 export const flagged: CSSProperties = { borderColor: T.accent, borderWidth: 1.5 };
 
 /** CE-44 · R-44.13: a value the sheet shows but cannot edit (the booked couple's
  *  package and fee). Tokens only, the input's own type size, no border. */
 export const plainValue: CSSProperties = {
-  fontFamily: T.body, fontWeight: 400, fontSize: 16, color: 'var(--atelier-ink)',
-  margin: 0, padding: '3px 0 2px',
+  font: RUNG.t3,
+  color: 'var(--atelier-ink)',
+  margin: 0,
+  padding: '3px 0 2px',
 };
 /** The toggle's own label text, beside the middle-payment checkbox. */
 export const toggleText: CSSProperties = {
-  fontFamily: T.body, fontWeight: 400, fontSize: 15, color: 'var(--atelier-ink-soft)',
+  font: RUNG.t3,
+  color: 'var(--atelier-ink-soft)',
 };
 
 export function FieldLabel({ text, htmlFor }: { text: string; htmlFor?: string }) {
   return (
-    <label htmlFor={htmlFor} style={{ display: 'block', fontFamily: T.body, fontSize: 12, color: T.mute, marginBottom: 6 }}>
+    <label htmlFor={htmlFor} style={{ font: RUNG.t4, display: 'block', color: T.mute, marginBottom: 6 }}>
       {text}
     </label>
   );
@@ -54,8 +64,13 @@ export function FieldLabel({ text, htmlFor }: { text: string; htmlFor?: string }
 
 export function textButton(tone: 'accent' | 'mute' = 'accent'): CSSProperties {
   return {
-    background: 'none', border: 'none', padding: '8px 0', minHeight: 36, cursor: 'pointer',
-    fontFamily: T.body, fontSize: 14, color: tone === 'accent' ? T.accent : T.mute,
+    font: RUNG.t4,
+    background: 'none',
+    border: 'none',
+    padding: '8px 0',
+    minHeight: 36,
+    cursor: 'pointer',
+    color: tone === 'accent' ? T.accent : T.mute,
   };
 }
 
@@ -65,17 +80,27 @@ export function textButton(tone: 'accent' | 'mute' = 'accent'): CSSProperties {
 export function actionButton(tone: 'accent' | 'mute' = 'accent'): CSSProperties {
   const c = tone === 'accent' ? T.accent : T.mute;
   return {
-    background: 'transparent', border: `0.5px solid ${c}`, borderRadius: 2,
-    minHeight: 40, padding: '0 14px', cursor: 'pointer',
-    fontFamily: T.body, fontSize: 14, color: c,
+    font: RUNG.t4,
+    background: 'transparent',
+    border: `0.5px solid ${c}`,
+    borderRadius: 2,
+    minHeight: 40,
+    padding: '0 14px',
+    cursor: 'pointer',
+    color: c,
   };
 }
 
 export function primaryButton(): CSSProperties {
   return {
-    flex: 1, minHeight: 48, background: 'transparent', cursor: 'pointer',
-    border: `0.5px solid ${T.accent}`, borderRadius: 2,
-    fontFamily: T.body, fontSize: 15, color: T.accent,
+    font: RUNG.t4,
+    flex: 1,
+    minHeight: 48,
+    background: 'transparent',
+    cursor: 'pointer',
+    border: `0.5px solid ${T.accent}`,
+    borderRadius: 2,
+    color: T.accent,
   };
 }
 
@@ -104,7 +129,7 @@ export function Sheet({ open, title, onClose, children, footer, testId }: {
           <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: T.dim }} />
         </div>
         <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${T.sheetBorder}`, flexShrink: 0 }}>
-          <h2 style={{ fontFamily: T.display, fontWeight: 400, fontSize: 24, lineHeight: 1.3, color: T.ink, margin: 0 }}>{title}</h2>
+          <h2 style={{ font: RUNG.t1, color: T.ink, margin: 0 }}>{title}</h2>
         </div>
         <div ref={bodyRef} data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {children}
