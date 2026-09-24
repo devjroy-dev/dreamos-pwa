@@ -50,7 +50,19 @@ for (const rel of [ROOMS, GRIDF, HUB, SOLCOPY, ROUTES, PIECES, ROOM, WPCOPY, LEA
 }
 
 let pass = 0, fail = 0;
+// -- CE-45 FE-1 · LABELLED AMENDMENT: A-45.2'S RETIRED TABLE, AT THE HARNESS (dream-os b65's shape).
+// A retired cell prints RETIRED with its reason and is NEVER counted as a pass. CONTROL: at exit every
+// row below must have been met exactly once, or the bench goes red (a retirement that silently stops
+// matching would otherwise be a hole). Rulings: the chair's read-first and adopt-and-repair rulings,
+// CE-45, 24 Sept 2026.
+const __RETIRE = new Map([
+  ['20 / 19 / 10 / 9', 'A-45.2: the two-band grid constants retired with the founder\u2019s layout; ROOM_COUNT_EXPECTED is pinned on its own below; b122 \u00a72 pins the shelves'],
+  ['roomsInBand filters hosted rooms out of the grid', 'A-45.2: a hollow green, roomsInBand has no reader since the shelves; the function is listed for removal at the next cut that opens rooms.ts (F-05.56)'],
+  ['the eyebrow is KEPT', 'A-45.2: P3 put the four group headings in its place; the byte stays in its home unconsumed, pinned below (chair, CE-45)'],
+]);
+const __seen = new Map();
 const ok = (n, c, d) => {
+  if (__RETIRE.has(n)) { __seen.set(n, (__seen.get(n) || 0) + 1); console.log('  RETIRED ' + n + '  (' + __RETIRE.get(n) + ')'); return; }
   if (c) { pass++; console.log('  ok   ' + n); }
   else { fail++; console.log('  FAIL ' + n + (d ? '  \u2192 ' + d : '')); }
 };
@@ -71,7 +83,11 @@ sec('C1 \u00b7 the registry (R-40.20/.22)');
   ok('20 / 19 / 10 / 9', num('ROOM_COUNT_EXPECTED') === 20 && num('GRID_TILE_COUNT_EXPECTED') === 19
     && num('TOP_BAND_EXPECTED') === 10 && num('BOTTOM_BAND_EXPECTED') === 9,
     [num('ROOM_COUNT_EXPECTED'), num('GRID_TILE_COUNT_EXPECTED'), num('TOP_BAND_EXPECTED'), num('BOTTOM_BAND_EXPECTED')].join('/'));
-  const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
+  // CE-45 FE-1 · LABELLED AMENDMENT: the room count stands on its own (A-45.2 keeps it), and the id
+  // scan reads the ROOMS array ALONE, since SHELVES' { id: 'business' } keys are not rooms.
+  ok('ROOM_COUNT_EXPECTED stands at 20 (A-45.2 keeps it; no room added or removed)', num('ROOM_COUNT_EXPECTED') === 20, String(num('ROOM_COUNT_EXPECTED')));
+  const roomsBlock = (src.match(/export const ROOMS[\s\S]*?\n\](?: as const)?;/) || [''])[0];
+  const ids = (roomsBlock.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   ok('twenty rooms (CE-43 LC-2 F18, by label)', ids.length === 20, String(ids.length));
   ok('Business Solutions is index 0 of the work band (R-40.20)', ids[0] === 'support', ids[0]);
   const fb = src.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
@@ -127,10 +143,15 @@ sec('C2 \u00b7 the FAB clearance (R-G11.11 / F-40.27)');
   // AMENDED BY LABEL — R-40.98. The full-width span retired with the shape; what
   // the cell guards is unchanged in kind — the treatment is a REGISTRY fact, never
   // an index — and the rule it now reads is the accent hairline.
-  ok('the headline class swaps the tile\u2019s own border to the accent, and nothing else',
-    /\.wl-tilehead\{border-color:var\(--atelier-accent-text\)\}/.test(src));
+  // CE-45 FE-1 · LABELLED AMENDMENT (the ruled mock, .row.headline .n; BS-1 close): the headline pair is
+  // told apart by its NAME taking the metal, a token theme.ts already holds, and nothing else. The
+  // R-40.22 accent-border treatment is superseded by the founder's chosen mock.
+  ok('the headline name takes the metal, and nothing else (the ruled mock)',
+    /\.wl-tilehead \.wl-tname\{color:var\(--role-metal\)\}/.test(src) && !/\.wl-tilehead\{border-color/.test(src));
   ok('the tile renders its headline from the REGISTRY, never from an index',
-    /room\.headline \? 'wl-tile wl-tilehead' : 'wl-tile'/.test(src));
+    // CE-45 FE-1 · LABELLED AMENDMENT: the top pair is ROOMS.filter((r) => r.headline) (repair r6),
+    // which reads the registry's own flag exactly as R-40.98 rules.
+    /ROOMS\.filter\(\(r\) => r\.headline\)/.test(src));
   // ⚠ THIS ONE READS THE STRIPPED SOURCE, AND THE FIRST CUT DID NOT. Against the
   // raw file it went RED on the comment that RECORDS the retirement — the same
   // comment-blindness b40 C10 has already been bitten by twice, in both
@@ -208,6 +229,7 @@ sec('C3 \u00b7 the hub (R-40.23)');
   const hub = strip(read(HUB));
   ok('the hub no longer fetches', !/fetchIndex/.test(hub));
   ok('the eyebrow is KEPT', /COPY\.indexEyebrow/.test(hub));
+  ok('the eyebrow byte stays in its home, unconsumed (chair, CE-45)', /indexEyebrow:/.test(read('lib/solutions/copy.ts')) && !/COPY\.indexEyebrow/.test(hub));
   ok('the WhatsApp door is KEPT, class byte-for-byte', /wl-supportaction/.test(hub) && /supportWaNumber\(\)/.test(hub));
   ok('the footer line is KEPT', /COPY\.footerLine/.test(hub));
 }
@@ -235,12 +257,12 @@ sec('C4 \u00b7 every row is a Link with an href');
   // and calling the body absent (R-40.94: a window bound by the statement).
   const rr = code.match(/export function RoomRow\([\s\S]*?\n\}\n/);
   ok('RoomRow renders a Link and nothing else',
-    !!rr && /<Link href=\{href\} className="sol-row">/.test(rr[0]) && !/<div className="sol-row"/.test(rr[0]),
+    !!rr && /<Link href=\{href\} className="sol-row"(?: data-row-href=\{href\})?>/.test(rr[0]) /* CE-45 FE-1: the row's data-row-href, labelled */ && !/<div className="sol-row"/.test(rr[0]),
     rr ? 'a non-Link branch survives' : 'RoomRow not found');
   ok('RoomRow\u2019s href is REQUIRED, never optional',
     !!rr && /\{ href: string; label: string/.test(rr[0]) && !/href\?:/.test(rr[0]));
   ok('the hub\u2019s map is total over RoomKey, never Partial',
-    /const ROOM_HREFS: Record<RoomKey, string> = \{/.test(strip(read(HUB))) && !/Partial<Record/.test(strip(read(HUB))));
+    /* CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS MOVED to routes.ts byte for byte */ /const ROOM_HREFS: Record<RoomKey, string> = \{/.test(strip(read(ROUTES))) && !/Partial<Record/.test(strip(read(ROUTES))) && !/const ROOM_HREFS/.test(strip(read(HUB))));
   // COMMENTS STRIPPED FIRST. The first cut read this file raw and hit RoomRow's
   // own comment EXPLAINING why aria-disabled is refused — the prohibition
   // reported as the breach. Third sighting of that class in this arc.
@@ -263,7 +285,7 @@ sec('C4 \u00b7 every row is a Link with an href');
   ok('every row carries a chip, and its word tracks the preview set',
     /<StateChip state=\{preview \? 'coming' : 'open'\} \/>/.test(pieces));
   ok('the hub hands the set to the row, never a literal',
-    /preview=\{PREVIEW_KEYS\.has\(r\.key\)\}/.test(strip(read(HUB))));
+    /* CE-45 FE-1: the grouped rows hand the key as k */ /preview=\{PREVIEW_KEYS\.has\((?:r\.key|k)\)\}/.test(strip(read(HUB))));
   ok('no row is ever handed a literal chip state',
     !/state="open"/.test(pieces) && !/state=\{'open'\}/.test(pieces) && !/state="coming"/.test(pieces));
   // ── F-40.42 · THE DIVIDER SURVIVES A MIXED-TAG ROW LIST ──────────────────
@@ -296,7 +318,8 @@ sec('C4 \u00b7 every row is a Link with an href');
   //
   // `wedding_pages` is still named explicitly, so this bench still owns its own
   // room's row: G2 opening a second door cannot silently close G1.1's.
-  const hrefMap = hub.match(/const ROOM_HREFS[^=]*=\s*\{([\s\S]*?)\}/);
+  // CE-45 FE-1 · LABELLED AMENDMENT: the declared map now lives in routes.ts (the move); read there.
+  const hrefMap = strip(read(ROUTES)).match(/const ROOM_HREFS[^=]*=\s*\{([\s\S]*?)\}/);
   ok('the hub addresses rooms through a declared map, not a ternary', !!hrefMap,
     hrefMap ? 'ROOM_HREFS found' : 'no ROOM_HREFS declaration in the hub');
   if (hrefMap) {
@@ -1148,6 +1171,7 @@ if (process.argv.includes('--mutate')) {
   }
 }
 
+for (const [k] of __RETIRE) { if (__seen.get(k) !== 1) { fail++; console.log('  FAIL A-45.2 control: the retired cell \u201c' + k + '\u201d was met ' + (__seen.get(k) || 0) + ' times, not once'); } }
 console.log('\n' + (fail === 0 ? 'GREEN' : 'RED') + ' \u2014 b42 g11 wedding pages (pwa) ' +
   pass + '/' + (pass + fail));
 process.exit(fail === 0 ? 0 : 1);

@@ -54,7 +54,8 @@ cell('C1 the `posts` hub row opens: ROOM_HREFS carries it, the address is declar
   const m = routes.match(/export const POSTS_HREF\s*=\s*'([^']+)'/);
   if (!m) return 'POSTS_HREF not declared';
   if (m[1] !== '/vendor/posts') return `POSTS_HREF is ${m[1]}`;
-  if (!/\bposts:\s*POSTS_HREF\b/.test(hub)) return 'ROOM_HREFS has no posts entry — the chip stays Coming';
+  // CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS and PREVIEW_KEYS MOVED to lib/solutions/routes.ts byte for byte (the read-first ruling)
+  if (!/\bposts:\s*POSTS_HREF\b/.test(strip(read(path.join(ROOT, 'lib/solutions/routes.ts'))))) return 'ROOM_HREFS has no posts entry — the chip stays Coming';
   if (!page) return 'app/vendor/(shell)/posts/page.tsx absent — the href would 404';
 });
 

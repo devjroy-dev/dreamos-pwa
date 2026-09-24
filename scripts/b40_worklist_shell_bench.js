@@ -96,6 +96,7 @@ const REAL_NAMES = ['Swati'];
 let fails = 0;
 let refusals = 0;
 const refusedNames = [];
+let C2_RETIRED_PRINTED = false; // CE-45 FE-1, A-45.2: C2's retired clause prints exactly once
 function cell(name, fn) {
   try {
     const why = fn();
@@ -182,13 +183,20 @@ cell('C1 token completeness, both modes', () => {
 cell('C2 nineteen rooms in frozen order, eighteen tiles, 9 + 9 (R-37.75; R-37.87; R-38.9; R-38.10; R-40.20/.98/.99)', () => {
   const src = strip(read('lib/worklist/rooms.ts'));
   const num = (name) => { const m = src.match(new RegExp(name + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
-  const EXP_ALL = num('ROOM_COUNT_EXPECTED'), EXP_GRID = num('GRID_TILE_COUNT_EXPECTED');
-  const EXP_TOP = num('TOP_BAND_EXPECTED'), EXP_BOT = num('BOTTOM_BAND_EXPECTED');
+  // -- CE-45 FE-1 · LABELLED AMENDMENT (A-45.2; the founder’s layout, BS-1 close; chair’s ruling of
+  // 24 Sept 2026). THE BAND-COUNT CLAUSE IS RETIRED: GRID_TILE_COUNT_EXPECTED 19, TOP_BAND_EXPECTED 10
+  // and BOTTOM_BAND_EXPECTED 9 described the two-band grid the shelves replaced; b122 §2 pins the
+  // shelves’ ruled contents instead. It prints RETIRED once and is never counted as a pass.
+  // ROOM_COUNT_EXPECTED 20 STANDS. The id scan reads the ROOMS array ALONE, since SHELVES’ own
+  // { id: 'business' } keys would otherwise be counted as rooms. The LC-2 history below is kept.
+  const EXP_ALL = num('ROOM_COUNT_EXPECTED');
+  if (!C2_RETIRED_PRINTED) { console.log('RETIRED C2.band-counts (A-45.2: the two-band grid, retired by the founder’s layout; b122 §2 pins the shelves)'); C2_RETIRED_PRINTED = true; }
   // AMENDED BY LABEL — CE-43 LC-2 F18 (chair-ruled 2026-09-17, F-43.68): Packages joins the
   // work band beside Leads. 19/18/9/9 → 20/19/10/9. The title keeps its history.
-  if (EXP_ALL !== 20 || EXP_GRID !== 19 || EXP_TOP !== 10 || EXP_BOT !== 9)
-    return 'the registry\'s own constants drifted from the ruling: ' + EXP_ALL + '/' + EXP_GRID + '/' + EXP_TOP + '/' + EXP_BOT + ', expected 20/19/10/9';
-  const ids = (src.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
+  if (EXP_ALL !== 20)
+    return 'ROOM_COUNT_EXPECTED drifted from the ruling: ' + EXP_ALL + ', expected 20';
+  const roomsBlock = (src.match(/export const ROOMS[\s\S]*?\n\](?: as const)?;/) || [''])[0];
+  const ids = (roomsBlock.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   if (ids.length !== EXP_ALL) return 'registry has ' + ids.length + ' rooms, expected ' + EXP_ALL;
   const fb = src.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
   if (!fb) return 'FROZEN_ORDER not found';
@@ -242,15 +250,9 @@ cell('C2 nineteen rooms in frozen order, eighteen tiles, 9 + 9 (R-37.75; R-37.87
   // contract card to /vendor/rooms with nothing red (c-40.42's own reasoning).
   if (!ids.includes('contracts')) return 'contracts left ROOMS entirely — the address book must still answer for a hosted room';
   if (!/contract_unsigned:\s*'contracts'/.test(src)) return 'ROOM_FOR_KIND no longer points contract_unsigned at contracts';
-  // THE BAND CONSTANTS ARE GRID COUNTS, so the census subtracts the hosted rooms
-  // from the band they sit in rather than counting `band:` occurrences raw.
-  const entries = src.match(/\{\s*id:\s*'[a-z]+'[^}]*\}/g) || [];
-  const gridIn = (b) => entries.filter((e) => e.includes("band: '" + b + "'") && !/hostedBy:/.test(e)).length;
-  const work = gridIn('work');
-  const biz  = gridIn('business');
-  if (work !== EXP_TOP) return 'the work band draws ' + work + ' tiles, expected ' + EXP_TOP;
-  if (biz !== EXP_BOT) return 'the business band draws ' + biz + ' tiles, expected ' + EXP_BOT;
-  if (work + biz !== EXP_GRID) return 'the grid draws ' + (work + biz) + ' tiles, expected ' + EXP_GRID;
+  // CE-45 FE-1 · A-45.2: THE BAND CENSUS THAT STOOD HERE IS THE RETIRED CLAUSE'S OTHER HALF (it
+  // counted work/business grid tiles against 10/9/19). Removed with the constants, reported by the one
+  // RETIRED C2.band-counts line above; the shelves' contents are b122 §2's.
   return null;
 });
 
@@ -4235,11 +4237,15 @@ cell('C109 the date-check toggle revalidates after a successful write and never 
 // the row opens WEBSITE_HREF, declared once in routes.ts; Storefront keeps its
 // tile and its address; no STOREFRONT_HREF may appear (the registry owns it).
 cell('C105 the website row opens WEBSITE_HREF, declared once, and Storefront stays the registry\u2019s (R-40.132)', () => {
+  // CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS MOVED to lib/solutions/routes.ts byte for byte (a
+  // move accepted at the read-first ruling). The row map is read where it lives now, and the hub is
+  // pinned to declare no second one; the hub's bare-literal check below is unchanged.
   const hub = strip(read('app/vendor/(shell)/support/page.tsx'));
   const routes = strip(read('lib/solutions/routes.ts'));
   const bad = [];
-  if (!/website:\s*WEBSITE_HREF/.test(hub)) bad.push('the website row does not read WEBSITE_HREF');
-  if (/website:\s*roomHref\('storefront'\)/.test(hub)) bad.push('the website row still opens the Storefront room');
+  if (/const ROOM_HREFS/.test(hub)) bad.push('the hub page declares its own ROOM_HREFS: the map has two homes');
+  if (!/website:\s*WEBSITE_HREF/.test(routes)) bad.push('the website row does not read WEBSITE_HREF');
+  if (/website:\s*roomHref\('storefront'\)/.test(routes)) bad.push('the website row still opens the Storefront room');
   if (/'\/vendor\/your-website'|'\/vendor\/storefront'/.test(hub)) bad.push('a bare address literal appears in the hub');
   if (!/export const WEBSITE_HREF = '\/vendor\/your-website'/.test(routes)) bad.push('WEBSITE_HREF is not /vendor/your-website in routes.ts');
   if (/STOREFRONT_HREF/.test(routes)) bad.push('routes.ts declares STOREFRONT_HREF — the registry already owns that address');

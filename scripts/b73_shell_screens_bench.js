@@ -45,6 +45,8 @@ const has = (rel) => fs.existsSync(P(rel));
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
 
 const HUB    = 'app/vendor/(shell)/support/page.tsx';
+// CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS and PREVIEW_KEYS MOVED to lib/solutions/routes.ts byte for byte (the read-first ruling); the map, the set and M1-M3 are read and mutated THERE.
+const RMAP   = 'lib/solutions/routes.ts';
 const PIECES = 'components/solutions/SolutionsPieces.tsx';
 const SOLC   = 'lib/solutions/copy.ts';
 const ROUTES = 'lib/solutions/routes.ts';
@@ -68,12 +70,12 @@ if (process.argv.includes('--mutate')) {
   const base = run();
   if (base.status !== 0) { console.log('REFUSED — the bench is not GREEN before mutation (exit ' + base.status + ')'); process.exit(3); }
   const M = [
-    ['M1 the map goes back to Partial', HUB, 'const ROOM_HREFS: Record<RoomKey, string> = {', 'const ROOM_HREFS: Partial<Record<string, string>> = {'],
-    ['M2 a row loses its destination', HUB, '  number:        NUMBER_HREF,\n', ''],
-    ['M3 the preview set forgets number', HUB, "new Set<RoomKey>(['dates', 'number'])", "new Set<RoomKey>(['dates'])"],
-    ['M4 the hub hands a literal preview', HUB, 'preview={PREVIEW_KEYS.has(r.key)}', 'preview={false}'],
+    ['M1 the map goes back to Partial', RMAP, 'const ROOM_HREFS: Record<RoomKey, string> = {', 'const ROOM_HREFS: Partial<Record<string, string>> = {'],
+    ['M2 a row loses its destination', RMAP, '  number:        NUMBER_HREF,\n', ''],
+    ['M3 the preview set forgets number', RMAP, "new Set<RoomKey>(['dates', 'number'])", "new Set<RoomKey>(['dates'])"],
+    ['M4 the hub hands a literal preview', HUB, 'preview={PREVIEW_KEYS.has(k)}', 'preview={false}'],
     ['M5 the chip stops tracking preview', PIECES, "<StateChip state={preview ? 'coming' : 'open'} />", "<StateChip state={href ? 'open' : 'coming'} />"],
-    ['M6 the default flips to Coming', PIECES, 'href, label, preview = false,', 'href, label, preview = true,'],
+    ['M6 the default flips to Coming', PIECES, 'href, label, desc, preview = false,', 'href, label, desc, preview = true,'], // CE-45 FE-1: re-aimed, the row gained desc (R-45.20); the old anchor went VOID
     ['M7 the dates CTA stops answering', DPAGE, 'onClick={() => show(COPY.launchingSoon)}', 'onClick={() => {}}'],
     ['M8 the dates toast is unmounted', DPAGE, '      <WlToast toast={toast} />\n', ''],
     ['M9 the number CTA types its word', NPAGE, '{BUTTONS.connect}', "{'Connect'}"],
@@ -191,7 +193,7 @@ sec('\u00a71 \u00b7 a row without a destination does not compile (S5(b))');
   const extra = probe(lit(KEYS.concat(['bogus'])));
   ok('a key that is not a row is a compile error (TS2353)', extra.includes(2353), 'diagnostics ' + extra.join(','));
   ok('RoomKey is the ten literals, not string', probe("export const k: RoomKey = 'not_a_row';\n").includes(2322));
-  const hub = strip(read(HUB));
+  const hub = strip(read(RMAP)); // CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS and PREVIEW_KEYS MOVED to lib/solutions/routes.ts byte for byte (the read-first ruling)
   const decl = hub.match(/const ROOM_HREFS: Record<RoomKey, string> = \{([\s\S]*?)\};/);
   ok('the hub\u2019s map IS that type', !!decl, 'ROOM_HREFS is not declared as Record<RoomKey, string>');
   if (decl) {
@@ -218,10 +220,10 @@ const html = (props) => server.renderToStaticMarkup(React.createElement(pieces.R
 sec('\u00a73 \u00b7 the hub\u2019s chips');
 {
   const hub = strip(read(HUB));
-  const pk = hub.match(/const PREVIEW_KEYS: ReadonlySet<RoomKey> = new Set<RoomKey>\(\[([^\]]*)\]\);/);
+  const pk = strip(read(RMAP)).match( /* CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS and PREVIEW_KEYS MOVED to lib/solutions/routes.ts byte for byte (the read-first ruling) *//const PREVIEW_KEYS: ReadonlySet<RoomKey> = new Set<RoomKey>\(\[([^\]]*)\]\);/);
   const set = pk ? [...pk[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1]) : [];
   ok('PREVIEW_KEYS is exactly dates and number (S4(c))', set.slice().sort().join(',') === 'dates,number', set.join(','));
-  ok('the hub hands each row its set membership', /preview=\{PREVIEW_KEYS\.has\(r\.key\)\}/.test(hub));
+  ok('the hub hands each row its set membership', /preview=\{PREVIEW_KEYS\.has\((?:r\.key|k)\)\}/.test(hub)); // CE-45 FE-1: grouped rows name the key k
   const rows = copy.ROOM_ROWS.map((r) => html({ href: '/h', label: r.label, preview: set.includes(r.key) }));
   const coming = rows.filter((h) => /data-state="coming"/.test(h)).length;
   // ── AMENDED, LABELLED — R-42.16 (founder, 2026-09-10). The eleventh row is
@@ -366,7 +368,7 @@ browserCell.then(() => {
   };
   for (const d of ['app', 'lib', 'components']) walk(d);
   ok('no second spelling of either address', strays.length === 0, strays.join(', '));
-  ok('the hub reads both constants, never a literal', /dates:\s*DATES_HREF,/.test(strip(read(HUB))) && /number:\s*NUMBER_HREF,/.test(strip(read(HUB))));
+  ok('the hub reads both constants, never a literal', /dates:\s*DATES_HREF,/.test(strip(read(RMAP))) && /number:\s*NUMBER_HREF,/.test(strip(read(RMAP)))); // CE-45 FE-1: the map moved (labelled above)
 
   // ── §9 · THE FRAMES ───────────────────────────────────────────────────────
   sec('\u00a79 \u00b7 the committed frames draw the sheet');

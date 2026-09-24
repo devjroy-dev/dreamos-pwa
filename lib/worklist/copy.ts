@@ -110,8 +110,23 @@ export const COPY = {
    *  the founder vetoed on 2026-08-29 for the redacted-lead line, reused here rather than a
    *  second sentence saying the same thing. */
   capUpgradeCta:     'Upgrade in Billing.',
-  navToday: 'Today',
+  // R-45.20 (the founder, CE-45 FE-1 copy table row N0, 24 Sept 2026): Home takes the place of
+  // Today. THE KEY IS KEPT and only the value moves, so every reader of the right-hand seat
+  // (WorklistShell's tab, Home's title, b40 C-seat's key order) follows without a second byte.
+  navToday: 'Home',
   navRooms: 'Rooms',
+
+  // -- CE-45 FE-1 · HOME AND SHELVES (R-45.19, R-45.20; the founder's copy table, 24 Sept 2026) --
+  // The three shelves on Rooms. N1 is his (R-45.19: "Business", not "Couples"); N2 and N3 his by
+  // the table. The shelf CONTENTS live in lib/worklist/rooms.ts (SHELVES); these are the names only.
+  shelfBusiness: 'Business',
+  shelfMoney:    'Money',
+  shelfStudio:   'Studio',
+  // N8, his word: "Pinned rooms" (the proposal carried "Your"; he took it out).
+  pinnedHead:    'Pinned rooms',
+  // N9: the control under the pins. P1(b) makes it a STATED DISABLED control (F-19.20), wearing
+  // the estate's existing Coming chip (lib/solutions/copy.ts CHIPS.coming); no second byte.
+  pinnedChange:  'Change pinned rooms',
 
   // ── TODAY ────────────────────────────────────────────────────────────────
   // The numeral's caption. A NOUN, and deliberately not a claim: the numeral is 0 in this
@@ -872,4 +887,33 @@ export const COPY = {
   coutureGateLabel:    'Couture · Signature and Prestige',
   coutureGateSentence: 'Couture is part of Signature and Prestige. Upgrade in Billing.',
   coutureGateLinkWord: 'Billing',
+} as const;
+
+/**
+ * CE-45 FE-1 · R-45.20 · ONE LINE UNDER EACH REGISTRY ROOM'S NAME, ON ROOMS AND ON HOME'S PINS.
+ * The founder's copy table of 24 Sept 2026, rows D1 to D12 and D15 to D20, as he took them. Plain
+ * statements of what the room holds or does: no "her", "his", "you" or "your", no persona.
+ * KEYED BY ROOM ID, and only rooms that sit on a shelf or at the top carry one: Contracts and
+ * Collab are reached through their Business Solutions rows, whose lines live beside those rows
+ * (ROW_DESC, lib/solutions/copy.ts), so no room's line is typed twice.
+ */
+export const ROOM_DESC: Readonly<Record<string, string>> = {
+  support:    'Get found, get booked, get paid, work together',
+  storefront: 'The public page couples see',
+  leads:      'Enquiries, replies and follow-ups in one list',
+  clients:    'Booked couples and their records',
+  packages:   'Packages on offer, with prices',
+  calendar:   'Shoots, holds and blocked dates',
+  events:     'Every function of every wedding, by date',
+  notes:      'Notes kept on couples',
+  invoices:   'Invoices raised, and what is still due',
+  expenses:   'Costs recorded against each wedding',
+  books:      'All money in and out, in one view',
+  tds:        'Tax deducted at source by clients',
+  portfolio:  'Photos and films of past work',
+  team:       'Crew, and who works which shoot',
+  couture:    'Client appointments, for designers',
+  advisor:    'Advice from the business\u2019s own numbers',
+  billing:    'The TDW plan and its payments',
+  settings:   'Account details and switches',
 } as const;

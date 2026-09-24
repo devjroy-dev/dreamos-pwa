@@ -279,7 +279,7 @@ sec('C9 \u00b7 the hub row and its address');
     && /introductionSend:\s*\(id: string\) =>/.test(routes));
   const hub = strip(read(HUB));
   ok('the hub opens the row with ONE line and no ternary',
-    /introductions: INTRODUCTIONS_HREF,/.test(hub)
+    /introductions: INTRODUCTIONS_HREF,/.test(strip(read('lib/solutions/routes.ts'))) // CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS and PREVIEW_KEYS MOVED to lib/solutions/routes.ts byte for byte (the read-first ruling)
     && !/r\.key === 'introductions' \?/.test(hub));
   ok('the room is not a registry room (no tile is minted)',
     !/'\/vendor\/introductions'/.test(strip(read('lib/worklist/rooms.ts'))));

@@ -1,4 +1,15 @@
 "use client";
+// ── CE-45 FE-1 · THE FOUNDER'S LAYOUT (BS-1 close; R-45.19; R-45.20) · READ THIS FIRST ──────────
+// The two-band tile grid is replaced by the ruled mock (docs/mocks/TDW_CE45_BS1_UI_HOME_AND_
+// SHELVES.html): the top pair (Business Solutions, Storefront) with their names in the headline
+// ink, then three shelves (Business, Money, Studio) of at most six ROWS, each row its name and one
+// line. The notes below about bands, eighteen tiles and 3·3·3 describe the grid this replaced and
+// are kept as the record; what still binds from them is every tile is an anchor (R-38.2), the
+// figure is counts[k] and rides the host (c-40.42), and null is not 0 (F-38.31). ORDER now comes
+// from SHELVES and HEADLINE_TILES_EXPECTED (lib/worklist/rooms.ts), not FROZEN_ORDER. The class
+// names are kept (wl-band, wl-bandlabel, wl-tile, wl-tname, wl-tcount) because the shell's
+// benches pin the tap floor and type floor by them; a tile is now a full-width row of the same
+// stated height floor.
 // components/worklist/RoomsGrid.tsx — the two bands, EIGHTEEN tiles, frozen.
 //
 // EIGHTEEN IS NOW LITERAL AGAIN, AND FOR A NEW REASON. The header said eighteen
@@ -41,65 +52,70 @@
 // It was `<button onClick={router.push}>`, so eighteen destinations were unannounced to
 // Next and every chunk was fetched on tap. `<Link>` prefetches by default.
 import Link from 'next/link';
-import { ROOM_FOR_KIND, roomsInBand, roomsHostedBy, GRID_TILE_COUNT_EXPECTED, type Room } from '@/lib/worklist/rooms';
+import { ROOM_FOR_KIND, ROOMS, roomsHostedBy, SHELVES, type Room, type ShelfItem } from '@/lib/worklist/rooms';
 import { useTodayFeed } from '@/lib/worklist/feed';
-import { COPY } from '@/lib/worklist/copy';
+import { COPY, ROOM_DESC } from '@/lib/worklist/copy';
+import { roomLabel, ROW_DESC } from '@/lib/solutions/copy';
+import { itemHref, itemComing } from '@/lib/solutions/routes';
+import { StateChip } from '@/components/solutions/SolutionsPieces';
 import type { AttentionKind } from '@/lib/vendor/types/vendor';
 
-/** room id → the kind whose count it carries. Derived from the one-liner, never re-spelled. */
 const KIND_FOR_ROOM: Record<string, AttentionKind> = Object.fromEntries(
   (Object.keys(ROOM_FOR_KIND) as AttentionKind[]).map((k) => [ROOM_FOR_KIND[k], k]),
 );
 
-function Tile({ room, count, truncated }: { room: Room; count: number | null; truncated: boolean }) {
-  // `data-interim` used to mark a room that had NOT crossed into the shell, derived from a
-  // `/vendor` href. P7.2 flipped the shell ONTO the /vendor tree (arm (a)), so every href now
-  // begins that way and the mark would have said "interim" on all nineteen: a true byte
-  // gone false by the flip. Retired with the tree; nothing reads it (wl_audit's R-38.1
-  // arm re-keyed, b40 C24 inverted).
+/**
+ * CE-45 FE-1 · AN ITEM'S NAME AND LINE, EACH READ FROM ITS ONE HOME. A room's name is its
+ * registry label and its line ROOM_DESC's; a Business Solutions row's name is roomLabel's and its
+ * line ROW_DESC's. Home's pins read the same function, so a name is never typed twice.
+ */
+export function itemText(i: ShelfItem): { key: string; label: string; desc: string } {
+  if ('room' in i) {
+    const r = ROOMS.find((x) => x.id === i.room);
+    return { key: i.room, label: r ? r.label : '', desc: ROOM_DESC[i.room] || '' };
+  }
+  return { key: i.row, label: roomLabel(i.row), desc: ROW_DESC[i.row] };
+}
+
+function Tile({ item, head, count, truncated }: { item: ShelfItem; head: boolean; count: number | null; truncated: boolean }) {
+  const t = itemText(item);
+  const coming = itemComing(item);
   return (
     <Link
-      href={room.href}
-      /* R-40.98 · the headline treatment comes from the REGISTRY, never from an
-         index. `wl-tilehead` swaps the tile's own .5px border to the accent; the
-         shape, the height and the label's rung are every other tile's. A tile is
-         a headline because the founder named it, so the class is read off
-         `room.headline`.
-         AMENDED BY LABEL from `room.wide` / `wl-tilewide` (R-40.22), retired with
-         the full-width shape at the founder's word of 2026-09-07. */
-      className={room.headline ? 'wl-tile wl-tilehead' : 'wl-tile'}
-      data-room={room.id}
-      data-headline={room.headline ? 'true' : undefined}
+      href={itemHref(item)}
+      className={head ? 'wl-tile wl-tilehead' : 'wl-tile'}
+      data-room={t.key}
+      data-item-href={itemHref(item)}
+      data-headline={head ? 'true' : undefined}
     >
-      <span className="wl-tname">{room.label}</span>
-      {/* GATED ON A READING, LIKE THE MASTHEAD. No reading and no figure — never a `0`
-          standing in for a count nothing took (F-38.31). A REAL zero does not render
-          either: a tile wearing 「0」 is chrome that says nothing, and eighteen of them
-          would be a wall of zeros. */}
+      <span className="wl-ttext">
+        <span className="wl-tname">{t.label}</span>
+        {t.desc ? <span className="wl-tdesc">{t.desc}</span> : null}
+      </span>
+      {/* GATED ON A READING, AS BEFORE (F-38.31): no reading, no figure; a real zero draws
+          nothing either. */}
       {count !== null && count > 0 && (
         <span className="wl-tcount" data-truncated={truncated ? 'true' : undefined}>
           {count}{truncated ? COPY.todayTruncatedSuffix : ''}
         </span>
       )}
+      {/* F-19.20: a row whose screen cannot act yet says so where it stands. No shelf row is
+          Coming today; the arm exists so that one ruled onto a shelf later cannot read as live. */}
+      {coming && <StateChip state="coming" />}
     </Link>
   );
 }
 
+const SHELF_NAME: Record<'business' | 'money' | 'studio', string> = {
+  business: COPY.shelfBusiness, money: COPY.shelfMoney, studio: COPY.shelfStudio,
+};
+
 export function RoomsGrid() {
   const feed = useTodayFeed();
-  // c-40.42 · THE BADGE RIDES THE HOST. A tile's figure is its own kind's count
-  // PLUS the counts of every room it hosts, so Contracts' unsigned figure appears
-  // on Business Solutions rather than disappearing with the tile.
-  //
-  // ⚠ THE HOST'S OWN COUNT IS STILL READ FIRST AND CAN BE null. Business Solutions
-  // carries no kind today, so its figure is the hosted sum alone — but a host that
-  // later takes a kind of its own must add, not replace, and writing it that way
-  // now costs one line and removes the question.
-  //
-  // ⚠ AND `null` IS NOT `0`. The gate below renders nothing on a null (F-38.31: no
-  // figure standing in for a count nothing took), so a host with no reading and a
-  // host with a genuine zero must stay distinguishable: the sum starts as null and
-  // only becomes a number when some real reading contributed to it.
+  // c-40.42 · THE BADGE RIDES THE HOST, unchanged: a room's figure is its own kind's count plus
+  // the counts of every room it hosts, so Contracts' unsigned figure still appears on Business
+  // Solutions. A Business Solutions ROW on a shelf carries no figure of its own: rows have no
+  // attention kind, and the one hosted count already has its home on the host.
   function figure(room: Room): { count: number | null; truncated: boolean } {
     if (!feed.responded || !feed.today) return { count: null, truncated: false };
     const today = feed.today;
@@ -119,24 +135,25 @@ export function RoomsGrid() {
     }
     return { count, truncated };
   }
-  const tile = (r: Room) => { const f = figure(r); return <Tile key={r.id} room={r} count={f.count} truncated={f.truncated} />; };
+  const tile = (i: ShelfItem, head: boolean) => {
+    const room = 'room' in i ? ROOMS.find((r) => r.id === i.room) : undefined;
+    const f = room ? figure(room) : { count: null, truncated: false };
+    const t = itemText(i);
+    return <Tile key={t.key} item={i} head={head} count={f.count} truncated={f.truncated} />;
+  };
   return (
     <div className="wl-bands">
-      <section className="wl-band" aria-label="Your work">
-        <div className="wl-bandlabel">your work</div>
-        <div className="wl-tiles">{roomsInBand('work').map(tile)}</div>
-      </section>
-      <section className="wl-band" aria-label="Your business">
-        <div className="wl-bandlabel">your business</div>
-        <div className="wl-tiles">{roomsInBand('business').map(tile)}</div>
-      </section>
-      {/* THE MARKER COUNTS TILES, NOT ROOMS, SINCE R-40.99 SPLIT THE TWO.
-          It read `ROOMS.length` and would now say nineteen over a grid holding
-          eighteen — a marker that lies is worse than no marker, and this one has
-          no reader in the tree (derived by census across app, lib, components,
-          scripts and tools) so nothing was owed a migration. It states the grid's
-          own constant, which is the number a reader of this DOM is asking for. */}
-      <div hidden data-room-count={GRID_TILE_COUNT_EXPECTED} />
+      {/* REPAIR r6 (FE-1, CE-45): the top pair is read off each room’s own `headline` (R-40.98: the
+          ruling lives in the REGISTRY, never an index or a list retyped at the grid). */}
+      <div className="wl-band wl-top">
+        <div className="wl-tiles">{ROOMS.filter((r) => r.headline).map((r) => tile({ room: r.id }, true))}</div>
+      </div>
+      {SHELVES.map((sh) => (
+        <section key={sh.id} className="wl-band" aria-label={SHELF_NAME[sh.id]} data-shelf={sh.id}>
+          <div className="wl-bandlabel">{SHELF_NAME[sh.id]}</div>
+          <div className="wl-tiles">{sh.items.map((i) => tile(i, false))}</div>
+        </section>
+      ))}
       <style>{GRID_CSS}</style>
     </div>
   );
@@ -172,7 +189,9 @@ const GRID_CSS = `
    permitted, at .08em. The em-dash bracketing retired with the engraved register; a label
    that needs decoration to read as a label is not a label. */
 .wl-bandlabel{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px}
-.wl-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--wl-step)}
+/* CE-45 FE-1: a shelf is one card holding its rows, as the ruled mock draws it (.list). The card and
+   its hairline are the tile’s own tokens; no new colour. */
+.wl-tiles{display:flex;flex-direction:column;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;overflow:hidden}
 /* R-40.98 · THE HEADLINE TILE IS A COLOUR, NOT A SHAPE. The two full-width rules
    that stood here retired with R-40.22 at the founder’s word of 2026-09-07: the
    heads keep every other tile’s shape, size and rung and are told apart by their
@@ -202,19 +221,29 @@ const GRID_CSS = `
    matcher found the prose before the rule — comment-blindness in the other direction, and
    worth leaving recorded rather than tidied away. No selector is written out in this
    block. Nothing about the tile’s geometry is renegotiated by a number arriving. */
-.wl-tcount{position:absolute;top:6px;right:8px;font:var(--wl-t5);color:var(--atelier-accent-text)}
+.wl-tcount{position:static;flex:none;font:var(--wl-t5);color:var(--atelier-accent-text)}
 /* F-39.15: lining figures, stated rather than inherited from a family map. s-39.7 note —
    no backticks anywhere in this literal. */
 .wl-tcount{font-variant-numeric:lining-nums tabular-nums}
-.wl-tile{position:relative;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;height:var(--wl-tile);display:flex;align-items:center;justify-content:center;padding:6px;cursor:pointer;text-decoration:none}
-.wl-tilehead{border-color:var(--atelier-accent-text)}
+.wl-tile{position:relative;background:transparent;border:0;border-top:.5px solid var(--atelier-card-border);border-radius:0;min-height:var(--wl-tile);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;cursor:pointer;text-decoration:none}
+.wl-tile:first-child{border-top:0}
+/* CE-45 FE-1 · THE HEADLINE IS THE NAME’S INK, as the ruled mock draws it (.row.headline .n): the
+   metal, a token theme.ts already holds (role metal, lines 24 and 210). It replaces the accent
+   hairline of R-40.98, which belonged to the tile grid this layout retires. */
+.wl-ttext{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wl-tdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.wl-band.wl-top{margin-bottom:0}
 /* t4, NOT t5, and NOT uppercase-tracked. Two rulings meet on this one line and both bind:
    R-37.73 ② put the interactive floor at 12px after 9px was convicted as illegible chrome,
    and t5 is 11 — a tile is a control, so t5 would have walked that conviction back by one
    pixel while looking like a tidy. And R-38.4 permits letter-spaced uppercase in exactly
    two places, the nav seats and section eyebrows; a tile is neither, so the engraved
    costume comes off and the label is simply the room’s name. */
-.wl-tname{font:var(--wl-t4);color:var(--atelier-ink-soft);text-align:center}
+.wl-tname{font:var(--wl-t3);color:var(--atelier-ink)}
+/* REPAIR r5 (FE-1, CE-45): the headline name’s metal rule sits AFTER the name’s own rule, never before
+   it: b40 C11's type-floor census reads the FIRST rule naming wl-tname, and a colour-only rule first
+   read as a name with no rung. Same selector weight; order now also lets the metal win honestly. */
+.wl-tilehead .wl-tname{color:var(--role-metal)}
 .wl-tile:active{background:var(--atelier-row-hover);border-color:var(--atelier-accent-text)}
 .wl-tile:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 `;

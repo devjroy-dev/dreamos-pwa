@@ -49,7 +49,11 @@ try { ts = require('typescript'); } catch (e) { console.log('REFUSED — node_mo
 
 let pass = 0, fail = 0;
 const fails = [];
-const ok = (c, n) => { if (c) { pass++; console.log('  ok   ' + n); } else { fail++; fails.push(n); console.log('  FAIL ' + n); } };
+// -- CE-45 FE-1 · LABELLED AMENDMENT: A-45.2'S RETIRED TABLE, AT THE HARNESS (dream-os b65's shape).
+// Printed RETIRED with its reason, never counted; at exit each row must be met exactly once.
+const __RETIRE = new Map([['§1.4 the counts read 20 / 19 / 10 / 9', 'A-45.2: the two-band grid constants retired with the founder\u2019s layout; ROOM_COUNT_EXPECTED is b40 C2\u2019s and b42\u2019s; b122 \u00a72 pins the shelves']]);
+const __seen = new Map();
+const ok = (c, n) => { if (__RETIRE.has(n)) { __seen.set(n, (__seen.get(n) || 0) + 1); console.log('  RETIRED ' + n + '  (' + __RETIRE.get(n) + ')'); return; } if (c) { pass++; console.log('  ok   ' + n); } else { fail++; fails.push(n); console.log('  FAIL ' + n); } };
 const sec = (t) => console.log('\n' + t);
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
 
@@ -78,7 +82,9 @@ function loadModule(src, stubs = {}) {
 function registryCells(src) {
   const s = strip(src);
   const num = (n) => { const m = s.match(new RegExp(n + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
-  const ids = (s.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((x) => x.match(/'([a-z]+)'/)[1]);
+  // CE-45 FE-1 · LABELLED AMENDMENT: the id scan reads the ROOMS array alone (SHELVES' ids are not rooms).
+  const roomsBlock = (s.match(/export const ROOMS[\s\S]*?\n\](?: as const)?;/) || [''])[0];
+  const ids = (roomsBlock.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((x) => x.match(/'([a-z]+)'/)[1]);
   const fb = s.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
   const frozen = fb ? (fb[1].match(/'([a-z]+)'/g) || []).map((x) => x.slice(1, -1)) : [];
   return {
@@ -340,6 +346,7 @@ function baseFile(rel) {
     ok(!!icon && !!base && !icon.equals(base), '§8 M11 the family .ico left at its base bytes → §7b.4 RED');
   }
 
+  for (const [k] of __RETIRE) { if (__seen.get(k) !== 1) { fail++; fails.push('A-45.2 control: ' + k + ' met ' + (__seen.get(k) || 0) + ' times'); } }
   console.log(`\n════════  b80_lc2_p1_shell_bench: ${pass} passed, ${fail} failed  ════════`);
   if (fail) { console.log('RED:'); fails.forEach((f) => console.log('   · ' + f)); process.exit(1); }
 })().catch((e) => { console.error('BENCH ERROR', e); process.exit(2); });

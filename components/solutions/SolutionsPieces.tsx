@@ -87,12 +87,15 @@ export function StateChip({ state }: { state: ChipKey }) {
  * ink every live control on this shell already wears; `Coming` stays dim.
  */
 export function RoomRow({
-  href, label, preview = false,
-}: { href: string; label: string; preview?: boolean }) {
+  href, label, desc, preview = false,
+}: { href: string; label: string; desc?: string; preview?: boolean }) {
+  // CE-45 FE-1: `desc` is the row's one line (ROW_DESC, R-45.20), read from its home by the
+  // caller; absent, the row draws exactly as before.
   return (
-    <Link href={href} className="sol-row">
+    <Link href={href} className="sol-row" data-row-href={href}>
       <span className="sol-rowtext">
         <span className="sol-rowlabel">{label}</span>
+        {desc ? <span className="sol-rowdesc">{desc}</span> : null}
       </span>
       <StateChip state={preview ? 'coming' : 'open'} />
     </Link>
@@ -175,6 +178,8 @@ export function SolutionsStyles() {
 .sol-row:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .sol-rowtext{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
 .sol-rowlabel{font:var(--wl-t3);color:var(--atelier-ink)}
+/* CE-45 FE-1: the row’s one line (R-45.20). t4 and ink-mute, both already in theme.ts; no new rung, no new token. */
+.sol-rowdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}
 .sol-roweyebrow{font:var(--wl-t5);color:var(--atelier-ink-mute);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 

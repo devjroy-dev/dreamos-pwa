@@ -346,7 +346,8 @@ section('7. the fourth of nine opens');
   // The property is unchanged and is if anything stronger: the hub still holds
   // no literal address, and the address still has exactly one home — it is now
   // the REGISTRY, which is where a registry room's address belongs.
-  ok('the map gains one entry', /contracts:\s*roomHref\('contracts'\)/.test(hub));
+  // CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS MOVED to lib/solutions/routes.ts byte for byte; the entry is read there.
+  ok('the map gains one entry', /contracts:\s*roomHref\('contracts'\)/.test(code('lib/solutions/routes.ts')));
   ok('and no literal address', !/'\/vendor\/contracts'/.test(hub));
   ok('and no second home for it in routes.ts either',
      !/CONTRACTS_HREF/.test(code('lib/solutions/routes.ts')));

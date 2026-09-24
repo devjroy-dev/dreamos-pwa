@@ -35,6 +35,8 @@
 // disabled or behind a flag. The audit cells keyed to the six retire in the
 // same edit (tools/bs_audit.mjs, amended by label).
 
+import { roomHref, ROOMS, type ShelfItem } from '@/lib/worklist/rooms';
+import type { RoomKey } from '@/lib/solutions/copy';
 /** The room index. Still the one home for this address. */
 export const SOLUTIONS_INDEX_HREF = '/vendor/support';
 
@@ -334,3 +336,122 @@ export const NUMBER_HREF = '/vendor/number';
 // Referrals & partners (ruling F1(b)). Same not-a-room precedent as the nine above,
 // so `b40` C31 reads this declaration. 4c-3b changes nothing here.
 export const EXCHANGE_HREF = '/vendor/exchange';
+
+// ── CE-45 FE-1 · MOVED HERE FROM app/vendor/(shell)/support/page.tsx, BYTE FOR BYTE ─────────
+// ROOM_HREFS and PREVIEW_KEYS were module-private to the hub page. The founder's layout (BS-1
+// close; R-45.19) puts two of the hub's rows on the Money shelf too and lets a hub row be pinned
+// on Home, so three surfaces must resolve a row and know whether it is Coming, by ONE table. A
+// MOVE, stated to the chair and accepted (CE-45 read-first ruling): the entries, their order and
+// every ruling comment below travel unchanged; only `export` is added. The hub page imports them.
+// (its two imports sit at the head of this file)
+
+/**
+ * EVERY ROW'S DESTINATION, KEYED BY `ROOM_ROWS`' OWN KEYS — ALL TEN.
+ * Every address is read from `lib/solutions/routes.ts`; not one is a literal
+ * here, because `b40` C31 matches any `/vendor…` literal reachable from a shell
+ * page against a declared set and this file is reachable from all of them.
+ *
+ * ⚠ A TOTAL `Record<RoomKey, string>`, NOT `Partial<Record<string, string>>`.
+ * R-42.12 AMENDED, S5(b): every row navigates, so the type now says so. A row
+ * ruled into `ROOM_ROWS` without an entry here fails `tsc` — the destination-
+ * less row is caught at the build, not on a vendor's thumb — and a key that is
+ * not a row fails the same way. The `Partial` this replaced let both through
+ * and rendered the first as a `Coming` row that answered nothing.
+ */
+export const ROOM_HREFS: Record<RoomKey, string> = {
+  wedding_pages: WEDDING_PAGES_HREF,
+  google:        GOOGLE_REVIEWS_HREF,
+  // G5.1 · R-G51.10 — the third of the nine opens. `RoomRow` renders a
+  // `StateChip` on EVERY row (`href ? 'open' : 'coming'`), so this one entry is
+  // the whole change: the row gains a destination and its chip flips to `Open`.
+  // The key is `ROOM_ROWS`' own, not a new string.
+  referrals:     REFERRALS_HREF,
+  // ── R-42.16 · THE ELEVENTH ROW, AND IT COSTS NO CONSTANT. Derived at the cut,
+  // not chosen: `collab` IS a registry room — `lib/worklist/rooms.ts:181`,
+  // `{ id: 'collab', band: 'business', href: '/vendor/collab' }` — so its address
+  // comes from `roomHref` for exactly the reason `contracts` above does.
+  // `lib/solutions/routes.ts` is the home for rooms the registry does NOT own,
+  // and a `COLLAB_HREF` for one it does would be a second home for one address.
+  //
+  // The row is LIVE, so it is absent from `PREVIEW_KEYS` below and its chip reads
+  // `Open` — which on this list has meant "the thing works" since Arm C.
+  collabs:       roomHref('collab'),
+  // ── G3.2 · R-G32.16, AMENDED BY F-40.170 — THE FOURTH OF THE NINE, AND IT
+  // COSTS NO CONSTANT EITHER. Contracts is a REGISTRY room (`rooms.ts:168`), so
+  // its address comes from `roomHref` for exactly the reason `website` below
+  // does: `lib/solutions/routes.ts` is the home for rooms the registry does NOT
+  // own, and a constant for one it does is a second home. This row shipped with
+  // `CONTRACTS_HREF` and the constant is retired in the same edit that changes
+  // this line, so the two never disagree.
+  contracts:     roomHref('contracts'),
+  // ── G3.1 · R-G31.2 — THE FIFTH OF THE NINE OPENS, AND IT COSTS NO CONSTANT
+  // `website` is R-40.1's R3, 「Your website & SEO」. Its destination is the
+  // Storefront room, which is a REGISTRY room — so the address comes from
+  // `roomHref('storefront')` and NOT from a `STOREFRONT_HREF` in
+  // `lib/solutions/routes.ts`.
+  //
+  // ⚠ THAT ASYMMETRY IS DERIVED, NOT STYLISTIC. `b40` C31 builds its declared
+  // set from `rooms.ts`'s own `href:` values plus LEGACY_VENDOR_LINKS plus three
+  // nav seats; `/vendor/storefront` is already in it (`rooms.ts:123`). The four
+  // rooms above each needed a constant because they are NOT registry rooms
+  // (R-G11.12) and the constant is what gets them into that set at all. A fifth
+  // constant here would be a second home for an address the registry already
+  // owns — `routes.ts`'s own disease, arriving from the other direction.
+  website:       WEBSITE_HREF,   // R-40.132: sitting 2's room, off the registry
+  // ── G3.4 · R-G34 — THE SIXTH OF THE NINE OPENS ───────────────────────────
+  // `reminders` is `ROOM_ROWS`' own key for 「Payment reminders」 (R-40.1's R5).
+  // One line, as the map has promised five times: the row gains a destination
+  // and `RoomRow`'s chip flips from `Coming` to `Open`. No ternary, no second
+  // string, and `ROOM_ROWS`' label is untouched — it is R-40.1's byte.
+  //
+  // It takes a CONSTANT rather than `roomHref()` because payment reminders is
+  // not a registry room: `rooms.ts` has no entry for it, so `b40` C31's declared
+  // set would not contain `/vendor/payment-reminders` and the literal would be
+  // unreachable-by-declaration. Same asymmetry the four above document, and the
+  // same reason `website` goes the other way.
+  reminders:     PAYMENT_REMINDERS_HREF,
+  // ── CE-42 4a/3b · R-42.8 — THE SEVENTH ROW WITH A DESTINATION, AND IT IS
+  // THE TENTH ROW OF THE LIST. One line, no ternary, no second string, and
+  // `RoomRow`'s chip flips from `Coming` to `Open` off the presence of an href
+  // alone. A CONSTANT rather than `roomHref()`: introductions is not a registry
+  // room, so `b40` C31's declared set would not contain `/vendor/introductions`
+  // and the address would be unreachable-by-declaration — the same asymmetry
+  // `website` documents from the other direction.
+  introductions: INTRODUCTIONS_HREF,
+  // ── CE-42 4b-1 · R6 · ruling 1(a) — `posts` ("Posts & ads", R-40.1's own row)
+  // gains its destination; the chip flips Coming → Open off the href alone. A
+  // CONSTANT for the same not-a-registry-room reason as introductions above.
+  posts:         POSTS_HREF,
+  // ── CE-42 · SHELL · R-42.12 AMENDED — THE LAST TWO ROWS GAIN SCREENS ──────
+  // Shell screens: what the capability is, and the one act that says
+  // `Launching soon.` on tap. Constants for the not-a-registry-room reason the
+  // five above give. Their chips stay `Coming` through `PREVIEW_KEYS` below.
+  dates:         DATES_HREF,
+  number:        NUMBER_HREF,
+};
+
+/**
+ * THE ROWS WHOSE SCREEN CANNOT ACT YET — R-42.12 AMENDED, S4(c).
+ * Each opens a screen (`ROOM_HREFS` above) whose one control says `Launching
+ * soon.`; the chip on its hub row reads `Coming` (register §1a) rather than
+ * `Open`, because `Open` on this list has meant "the thing works" since Arm C.
+ * An entry LEAVES this set in the same edit that lands the real room — R8 for
+ * `dates`, R9 for `number` — and the chip flips with it. No ninth chip.
+ */
+export const PREVIEW_KEYS: ReadonlySet<RoomKey> = new Set<RoomKey>(['dates', 'number']);
+
+/**
+ * CE-45 FE-1 · THE ONE RESOLVER FROM A SHELF ITEM TO ITS ROUTE (q2: the pin key space is the
+ * route). A room resolves through its registry entry, a row through ROOM_HREFS above.
+ */
+export function itemHref(i: ShelfItem): string {
+  return 'room' in i ? roomHref(i.room) : ROOM_HREFS[i.row];
+}
+/** A row whose screen cannot act yet stays Coming wherever it is shown (F-19.20). */
+export function itemComing(i: ShelfItem): boolean {
+  return 'row' in i && PREVIEW_KEYS.has(i.row);
+}
+/** True when a room item names a room that is in the registry (b122 reads this). */
+export function itemKnown(i: ShelfItem): boolean {
+  return 'room' in i ? ROOMS.some((r) => r.id === i.room) : i.row in ROOM_HREFS;
+}

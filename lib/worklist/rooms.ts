@@ -21,6 +21,7 @@
 'use strict';
 
 import type { AttentionKind } from '@/lib/vendor/types/vendor';
+import type { RoomKey } from '@/lib/solutions/copy';
 
 export type Band = 'work' | 'business';
 
@@ -85,8 +86,67 @@ export interface Room {
   hostedBy?: string;
 }
 
-/** \u00a78.2: Calendar and Storefront are the two default pins. Nothing else pre-pins. */
-export const DEFAULT_PINS: readonly string[] = ['calendar', 'storefront'] as const;
+/**
+ * CE-45 FE-1 · A SHELF ITEM IS A ROOM OR A BUSINESS SOLUTIONS ROW, NAMED BY REFERENCE.
+ * q2 (chair, 24 Sept 2026): the pin key space is the ROUTE both lists resolve to, so "Posts & ads"
+ * pins like "Leads". The route itself is NOT spelled here: a room resolves through roomHref below
+ * and a row through ROOM_HREFS (lib/solutions/routes.ts), each address in its one home, and
+ * `itemHref` there is the one resolver. Two items are the same pin when they resolve to the same
+ * route; b122 pins that every item resolves to exactly one existing route.
+ */
+export type ShelfItem = { room: string } | { row: RoomKey };
+
+/**
+ * \u00a78.2 AMENDED BY THE FOUNDER'S RULING (BS-1 close and CE-45 q1, 24 Sept 2026): the six
+ * pinned rooms on Home. Was ['calendar', 'storefront'] ("Nothing else pre-pins"), dormant, with
+ * no reader in app, components, lib or hooks. The ruled mock's six replace the two; this is the
+ * default for a trade with no row in TRADE_PINS and for a /me read that fails (P1(b)).
+ * `pinnable: false` on a room still binds: no default below names support or advisor.
+ */
+export const DEFAULT_PINS: readonly ShelfItem[] = [
+  { room: 'leads' }, { room: 'calendar' }, { room: 'clients' },
+  { room: 'invoices' }, { row: 'posts' }, { room: 'storefront' },
+] as const;
+
+/**
+ * CE-45 FE-1 · THE SIX PINS BY TRADE, the founder's table T1 to T10 of 24 Sept 2026 (T11, "other"
+ * and any token without a row, is DEFAULT_PINS). Keyed by the eleven server-owned category tokens
+ * (dream-os src/agent/categories.js VENDOR_CATEGORIES; migration 0126's CHECK). No row names a
+ * Coming row or a room with `pinnable: false`; b122 pins both.
+ * P1(b): computed in the pwa from her category on /me; "hers to change" waits for a server half.
+ */
+export const TRADE_PINS: Readonly<Record<string, readonly ShelfItem[]>> = {
+  planning:        [{ room: 'leads' }, { room: 'calendar' }, { room: 'clients' }, { room: 'events' }, { room: 'team' }, { room: 'invoices' }],
+  designer:        [{ room: 'leads' }, { room: 'couture' }, { room: 'clients' }, { room: 'calendar' }, { room: 'invoices' }, { room: 'storefront' }],
+  photography:     [{ room: 'leads' }, { room: 'calendar' }, { room: 'clients' }, { room: 'invoices' }, { room: 'portfolio' }, { row: 'wedding_pages' }],
+  makeup:          [{ room: 'leads' }, { room: 'calendar' }, { room: 'clients' }, { room: 'invoices' }, { row: 'posts' }, { room: 'portfolio' }],
+  hairstylist:     [{ room: 'leads' }, { room: 'calendar' }, { room: 'clients' }, { room: 'invoices' }, { row: 'posts' }, { room: 'portfolio' }],
+  jewellery:       [{ room: 'leads' }, { room: 'clients' }, { room: 'packages' }, { room: 'invoices' }, { room: 'storefront' }, { row: 'posts' }],
+  decor:           [{ room: 'leads' }, { room: 'calendar' }, { room: 'events' }, { room: 'team' }, { room: 'invoices' }, { room: 'portfolio' }],
+  venue_catering:  [{ room: 'leads' }, { room: 'calendar' }, { room: 'packages' }, { room: 'events' }, { room: 'invoices' }, { room: 'expenses' }],
+  performer:       [{ room: 'leads' }, { room: 'calendar' }, { room: 'clients' }, { room: 'invoices' }, { row: 'posts' }, { room: 'portfolio' }],
+  content_creator: [{ room: 'leads' }, { row: 'posts' }, { row: 'collabs' }, { room: 'calendar' }, { room: 'invoices' }, { room: 'portfolio' }],
+} as const;
+
+/** Her six, by trade; an unknown, empty or unread trade gets DEFAULT_PINS. */
+export function pinsForTrade(category: string | null | undefined): readonly ShelfItem[] {
+  return (category && Object.prototype.hasOwnProperty.call(TRADE_PINS, category)) ? TRADE_PINS[category] : DEFAULT_PINS;
+}
+
+/**
+ * CE-45 FE-1 · ROOMS, AS THE FOUNDER RULED IT (BS-1 close; R-45.19). The top pair in the headline
+ * ink, then three shelves of at most six. Business Solutions opens its own page (P3), where the
+ * eleven rows sit in four groups (HUB_GROUPS, lib/solutions/copy.ts). Contracts & deposits and
+ * Payment reminders sit on Money AS WELL AS under Get paid: one home behind two rows (R-45.19),
+ * each resolving through ROOM_HREFS to the one route. Collab is reached only through its row,
+ * "Hire, collab & barter", under Work together (q3).
+ * The top pair is HEADLINE_TILES_EXPECTED below, read, never retyped.
+ */
+export const SHELVES: readonly { id: 'business' | 'money' | 'studio'; items: readonly ShelfItem[] }[] = [
+  { id: 'business', items: [{ room: 'leads' }, { room: 'clients' }, { room: 'packages' }, { room: 'calendar' }, { room: 'events' }, { room: 'notes' }] },
+  { id: 'money',    items: [{ room: 'invoices' }, { room: 'expenses' }, { room: 'books' }, { room: 'tds' }, { row: 'contracts' }, { row: 'reminders' }] },
+  { id: 'studio',   items: [{ room: 'portfolio' }, { room: 'team' }, { room: 'couture' }, { room: 'advisor' }, { room: 'billing' }, { room: 'settings' }] },
+] as const;
 
 // \u00a74-2 \u00b7 CALENDAR CROSSED FIRST, AND ONE AT A TIME IS THE RULE HERE. The list family
 // crossed together because six rooms were ONE definition mounted six times; the remaining
@@ -249,16 +309,11 @@ export const ROOM_FOR_KIND: Readonly<Record<AttentionKind, string>> = {
 // or derived: 11 → 15 → 16 → 17 → 18 → 19 directory, and 19 → 18 on the glass.
 // CE-43 LC-2 (F18, F-43.68): Packages joins the WORK band. Directory 19 → 20, grid 18 → 19.
 export const ROOM_COUNT_EXPECTED = 20;
-export const GRID_TILE_COUNT_EXPECTED = 19;
-// R-40.20: Business Solutions crosses from business to work. 8\u21929 and 11\u219210.
-// R-40.99: Contracts is hosted by the hub, so the BOTTOM BAND'S GRID count falls
-// 10 → 9 while its DIRECTORY count holds at 10. Both bands now fall 3·3·3 and the
-// orphan row that has followed this grid since R-37.87 is gone from both.
-// ⚠ THESE TWO ARE GRID COUNTS, not directory counts — they are what `roomsInBand`
-// returns, because that is the function the constants exist to check.
-// CE-43 LC-2: Packages makes the top band's grid ten (one orphan tile, disclosed).
-export const TOP_BAND_EXPECTED = 10;
-export const BOTTOM_BAND_EXPECTED = 9;
+// CE-45 FE-1 · RETIRED UNDER A-45.2 (chair, 24 Sept 2026): GRID_TILE_COUNT_EXPECTED (19),
+// TOP_BAND_EXPECTED (10) and BOTTOM_BAND_EXPECTED (9) described the two-band tile grid, which the
+// founder's layout (BS-1 close) replaces with the top pair and three shelves. Each cell that read
+// them is named RETIRED at its bench's harness; the shelves' own ruled contents (SHELVES above)
+// are what b122 pins instead. ROOM_COUNT_EXPECTED stands: no room is added or removed.
 
 /**
  * R-40.98 \u00b7 THE HEADLINE TILES, DECLARED SO A BENCH READS THE RULING AND NOT A COUNT.

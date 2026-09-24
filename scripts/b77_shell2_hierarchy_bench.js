@@ -248,7 +248,13 @@ else {
     .replace(/\n(?=[^.@\[]|\.\d)/g, ' ').split('\n').filter((l) => /^\.sol-/.test(l));
   const shipped = rules(piecesCss);
   const drawn = rules((mock.match(/<style>([\s\S]*?)<\/style>/) || [, ''])[1]);
-  const miss = shipped.filter((r) => !drawn.includes(r)), extra = drawn.filter((r) => !shipped.includes(r));
+  // CE-45 FE-1 · LABELLED AMENDMENT: ONE NAMED RULE IS RULED BY A LATER MOCK, NOT THIS ONE. The row's one
+  // line under its name (R-45.20) is drawn by the founder's BS-1 mock (docs/mocks/TDW_CE45_BS1_UI_HOME_
+  // AND_SHELVES.html, the row descriptions), which postdates this mock. This older mock is a ratified
+  // artifact and is NOT edited; the rule is excused here BY ITS EXACT TEXT, so any other new .sol-*
+  // rule, or any change to this one, still reddens the cell.
+  const LATER_MOCK = ['.sol-rowdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}'];
+  const miss = shipped.filter((r) => !drawn.includes(r) && !LATER_MOCK.includes(r)), extra = drawn.filter((r) => !shipped.includes(r));
   ok('every shipped .sol-* rule is in the mock verbatim, and the mock carries no other', shipped.length > 0 && miss.length === 0 && extra.length === 0,
     (miss.length ? 'missing: ' + miss[0].slice(0, 70) : '') + (extra.length ? ' extra: ' + extra[0].slice(0, 70) : ''));
   ok('its tokens are theme.ts scopeCss + typeCss, verbatim (both arms)', mock.includes(theme.scopeCss('.wl')) && mock.includes(theme.typeCss('.wl')));

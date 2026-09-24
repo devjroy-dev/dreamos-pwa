@@ -159,6 +159,41 @@ export const ROOM_ROWS = [
   { key: 'introductions', label: 'Introductions' },
 ] as const;
 
+/**
+ * CE-45 FE-1 · THE HUB'S FOUR GROUPS (R-45.19, R-45.20; the founder's copy table, 24 Sept 2026).
+ * Business Solutions keeps its page and route (P3, ruled "the page") and its eleven rows, now
+ * under four headings. Names N4 to N7 are his; the order of rows inside each group is the ruled
+ * mock's (docs/mocks/TDW_CE45_BS1_UI_HOME_AND_SHELVES.html, HUB). Every RoomKey appears in
+ * exactly one group, which b122 pins; ROOM_ROWS above stays the one home of each row's label.
+ */
+export const HUB_GROUPS: readonly { name: string; keys: readonly RoomKey[] }[] = [
+  { name: 'Get found',     keys: ['website', 'wedding_pages', 'google', 'posts'] },
+  { name: 'Get booked',    keys: ['dates', 'introductions', 'referrals', 'number'] },
+  { name: 'Get paid',      keys: ['contracts', 'reminders'] },
+  { name: 'Work together', keys: ['collabs'] },
+] as const;
+
+/**
+ * CE-45 FE-1 · R-45.20 · ONE LINE UNDER EACH BUSINESS SOLUTIONS ROW. The founder's copy table,
+ * rows D13, D14 and D21 to D29, as he took them. D28 keeps "Your own" by his word: it is the
+ * room's own name, the one place R-45.20 yields. D13 is kept as a claim because the Contracts
+ * room draws exactly those steps (app/vendor/(shell)/contracts/screen.tsx :332, :1057).
+ * Where a row also sits on the Money shelf (R-45.19), the shelf reads THIS line; no second byte.
+ */
+export const ROW_DESC: Readonly<Record<RoomKey, string>> = {
+  website:       'A web address, and being found on Google',
+  wedding_pages: 'A page for each wedding, with its credit list',
+  google:        'Review requests sent after each published wedding',
+  posts:         'Posts, reels and ad briefs, drafted from the portfolio and calendar',
+  dates:         'Dates still open, and offers to fill them',
+  introductions: 'Couples introduced, in both directions',
+  referrals:     'Enquiries passed to peers, and received from them',
+  number:        'Your own WhatsApp number, connected to TDW',
+  contracts:     'Agreements signed on WhatsApp; the date held on deposit',
+  reminders:     'Payment reminders sent on invoices',
+  collabs:       'Crew, models and partners to hire or trade with',
+};
+
 // ── ROW_EYEBROWS · RETIRED WITH ITS READERS (R-40.23) ──────────────────────
 // The six functional-register eyebrows retired with the six rows they sat
 // under. The nine carry none — see ROOM_ROWS above for why that is the ruling's

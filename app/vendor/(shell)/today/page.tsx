@@ -25,6 +25,7 @@ import { FirstRun } from '@/components/worklist/FirstRun';
 import { TodayCards, TodayResting, TodayDone, TodayKindLine } from '@/components/worklist/TodayCards';
 import { COPY } from '@/lib/worklist/copy';
 import { useTodayFeed } from '@/lib/worklist/feed';
+import { PinnedRooms } from '@/components/worklist/PinnedRooms';
 
 // Derived at render, never a fixture. Locale pinned so the string cannot drift with the
 // runtime's ICU data — the same reason the estate pins its own date formatters.
@@ -103,6 +104,11 @@ export default function TodayPage() {
       {resting && today && <TodayResting today={today} />}
       {working && today && <TodayCards today={today} />}
       {working && today && <TodayDone today={today} />}
+      {/* CE-45 FE-1 · HOME (the founder’s layout, BS-1 close): this surface IS Home now, at the
+          same address (P5), titled by the same key (COPY.navToday reads 'Home', R-45.20 N0).
+          P2 RULED: everything above is Today’s own surface LIFTED AS IT STANDS, not a byte of it
+          rewritten; the six pinned rooms mount beneath it and wait on their own read. */}
+      <PinnedRooms />
       <style>{`
 /* R-37.82 (1): the column owns the gutter. Nothing here sets a horizontal inset. */
 .wl-masthead{padding-top:20px}
