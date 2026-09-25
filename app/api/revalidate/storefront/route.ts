@@ -58,7 +58,10 @@ export async function POST(req: NextRequest) {
     });
     if (!r.ok) return NextResponse.json({ ok: false }, { status: 401 });
     const j = await r.json();
-    const h = j?.vendor?.routing_handle;
+    // F-44.167 (CE-45 G6-1): GET /api/v2/vendor/me answers the handle as `handle` (dream-os me.js, since 457c5b5),
+    // never `routing_handle`. Reading only `routing_handle` found nothing, so this door rebuilt no page from the day it
+    // was built (b9872676) and every consent switch waited out revalidate = 300. `routing_handle` stays as a fallback.
+    const h = j?.vendor?.handle ?? j?.vendor?.routing_handle;
     handle = typeof h === 'string' && h.trim() ? h.trim().toLowerCase() : null;
   } catch {
     // A door that could not be reached is not an authorisation. Fail closed.

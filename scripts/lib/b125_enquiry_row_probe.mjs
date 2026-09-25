@@ -52,14 +52,30 @@ try {
   p.on('request', (r) => {
     const u = r.url();
     // FE_2b · the storefront revalidate door (same origin, a Next route): answered and counted here.
-    if (u.endsWith('/api/revalidate/storefront') && r.method() === 'POST') { out.revalidates = (out.revalidates || 0) + 1; return r.respond({ status: 200, contentType: 'application/json', body: '{"ok":true}' }); }
+    // F-44.167 (b127's companion): the door is NOT stood in for. Its request goes through to the REAL route in next dev,
+    // whose server-side /me call reaches the bench's tiny server (me.js's key); the door's own answer is recorded below.
+    if (u.endsWith('/api/revalidate/storefront') && r.method() === 'POST') { out.revalidates = (out.revalidates || 0) + 1; return r.continue(); }
     if (!u.includes('/__api/')) return r.continue();
     const route = u.split('/__api')[1].split('?')[0];
-    const json = (o) => { const st = o.__status || 200; delete o.__status; return r.respond({ status: st, contentType: 'application/json', body: JSON.stringify(o) }); };
+    // F-44.167: the API base is now the bench's /me server (another port), so these calls are CROSS-ORIGIN: answer them
+    // the way a cross-origin API does, preflights included, or the browser drops them and the row sits on its default.
+    const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS' };
+    if (r.method() === 'OPTIONS') return r.respond({ status: 204, headers: CORS, body: '' });
+    const json = (o) => { const st = o.__status || 200; delete o.__status; return r.respond({ status: st, headers: CORS, contentType: 'application/json', body: JSON.stringify(o) }); };
     if (route === '/api/v2/vendor/me' && r.method() === 'GET') return json({ ok: true, vendor: { ...row } });
     if (route === '/api/v2/vendor/me' && r.method() === 'PATCH') { const body = JSON.parse(r.postData() || '{}'); out.patches.push(body); return json(door(body)); }
     return json({ ok: true });
   });
+  // The door's answers, read INSIDE the page: puppeteer cannot read the body of a request it let through (the read never
+  // settles), so a wrapper installed before the app's own code records each answer from the refresh door as it arrives.
+  await p.evaluateOnNewDocument(() => {
+    const f = window.fetch.bind(window); window.__door = [];
+    window.fetch = async (...a) => { const r = await f(...a); try { const u = String((a[0] && a[0].url) || a[0]); if (u.endsWith('/api/revalidate/storefront')) r.clone().json().then((j) => window.__door.push(j), () => window.__door.push({ unreadable: r.status })); } catch (_e) { /* not the door */ } return r; };
+  });
+  const doorCount = () => p.evaluate(() => (window.__door || []).length).catch(() => 0);
+  // After a tap that may call the door: wait until every door call made has answered (the route compiles on its first
+  // call in next dev, which takes seconds), then settle. A tap that calls no door waits for nothing.
+  const afterDoor = async () => { for (let i = 0; i < 80; i += 1) { await new Promise((res) => setTimeout(res, 250)); if ((await doorCount()) >= (out.revalidates || 0)) break; } };
   const settle = (ms = 900) => new Promise((res) => setTimeout(res, ms));
   const readRow = async (label) => {
     const s = await p.evaluate(() => {
@@ -92,14 +108,14 @@ try {
     out.tapped = await tapOption('own_number'); await settle(); await readRow('consent');
     out.patchesBeforeConfirm = out.patches.length;
     if (SCENARIO === 'sOwn') { await type('12345'); await tapButton(TYPE.confirm); await settle(); await readRow('invalid'); out.patchesAfterInvalid = out.patches.length; }
-    await type('+91 87577 88550'); await tapButton(TYPE.confirm); await settle(1500); await readRow('after');
+    await type('+91 87577 88550'); await tapButton(TYPE.confirm); await settle(1500); await afterDoor(); await settle(600); await readRow('after');
   } else if (SCENARIO === 'sBack') {
-    await tapOption('tdw'); await settle(1500); await readRow('after');
+    await tapOption('tdw'); await settle(1500); await afterDoor(); await settle(600); await readRow('after');
   } else if (SCENARIO === 'sCancel') {
     await tapOption('own_number'); await settle(); await readRow('consent'); await tapButton(TYPE.cancel); await settle(); await readRow('after');
   } else if (SCENARIO === 'sWaba') {
     await tapOption('own_waba'); await settle(); await readRow('after');
   }
 } catch (e) { out.errors.push(`probe: ${String(e && e.message).split('\n')[0]}`); }
-finally { await b.close(); }
+finally { try { const pg = (await b.pages()).pop(); if (pg) out.doorAnswers = await pg.evaluate(() => window.__door || []); } catch (_e) { /* page gone */ } await b.close(); }
 console.log(JSON.stringify(out));

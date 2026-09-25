@@ -1,0 +1,9 @@
+# scripts/floor-manifest-ce45-g61-f44167.txt
+# CE-45 · G6-1 · F-44.167 (the revalidate door). F-19.16: a dirty path outside this list is a STOP.
+# BASE: f08df476 (given under R-45.14: this cut lands first, TYPE_1b_r2 having stopped). No new directory.
+app/api/revalidate/storefront/route.ts
+scripts/b127_g61_revalidate_door_bench.js
+scripts/b125_g61_enquiry_row_bench.js
+scripts/lib/b125_enquiry_row_probe.mjs
+scripts/floor-manifest-ce45-g61-f44167.txt
+docs/handovers/TDW_CE45_G61_F44167_HANDOVER.md
