@@ -267,8 +267,9 @@ sec('C9 \u00b7 the hub row and its address');
   // reason it is amended rather than loosened: R-42.8 ruled Introductions LAST,
   // and it is still last — now with one more row above it, not beside it.
   ok('ROOM_ROWS carries eleven rows', labels.length === 11, String(labels.length));
-  ok('Introductions is LAST, after Your own number',
-    labels[10] === 'Introductions' && labels[9] === 'Your own number', labels.slice(9).join('|'));
+  // AMENDED BY LABEL · CE-45 IGD-1 cut 1 · R-45.27: the row above Introductions is renamed; the guard (Introductions LAST) is unchanged.
+  ok('Introductions is LAST, after WhatsApp and Instagram',
+    labels[10] === 'Introductions' && labels[9] === 'WhatsApp and Instagram', labels.slice(9).join('|'));
   const routes = strip(read(ROUTES));
   ok('INTRODUCTIONS_HREF is declared in the not-a-room home',
     /export const INTRODUCTIONS_HREF = '\/vendor\/introductions'/.test(routes));

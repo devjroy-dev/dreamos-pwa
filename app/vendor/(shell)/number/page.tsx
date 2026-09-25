@@ -41,6 +41,10 @@ import { NUMBER } from '@/lib/worklist/ownNumber';
 import { SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 import { OwnNumberFlow } from '@/components/solutions/OwnNumberFlow';
 import { useOwnNumberRoom } from '@/hooks/vendor/useOwnNumberRoom';
+// CE-45 IGD-1 cut 1 · R-45.27: the room "WhatsApp and Instagram" (its name is roomLabel('number')); G6's screen first under
+// SECTIONS.number, then MetaRoomSections (Instagram, the quiet time), all inside ONE shell (S1).
+import { MetaRoomSections } from '@/components/solutions/MetaRoomSections';
+import { SECTIONS } from '@/lib/worklist/metaRoom';
 
 export default function OwnNumberPage() {
   const router = useRouter();
@@ -58,12 +62,13 @@ function OwnNumberScreen() {
   // anything else, including the door not existing yet, is the shell below,
   // byte for byte as it was. The flow's own controls live in OwnNumberFlow.
   const room = useOwnNumberRoom();
-  if (room.mode !== 'shell') return <OwnNumberFlow room={room} />;
+  if (room.mode !== 'shell') return <OwnNumberFlow room={room} sectionHead={SECTIONS.number} after={<MetaRoomSections />} />;
   return (
     <WorklistShell title={roomLabel('number')}>
       <section className="sol-surface">
         <p className="sol-kicker">{CHIPS.coming}</p>
         <h1 className="sol-title">{roomLabel('number')}</h1>
+        <h2 className="sol-heading">{SECTIONS.number}</h2>
         <p className="sol-empty">{NUMBER.lede}</p>
         <p className="sol-subhead">{COPY.canHead}</p>
         <ul className="sol-can">
@@ -75,6 +80,7 @@ function OwnNumberScreen() {
           </button>
         </div>
       </section>
+      <MetaRoomSections />
       <WlToast toast={toast} />
       <SolutionsStyles />
     </WorklistShell>

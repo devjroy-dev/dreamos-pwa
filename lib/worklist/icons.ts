@@ -55,7 +55,10 @@ export const ROOM_ICONS: Readonly<Record<IconKey, string>> = {
   dates:         '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M12 13v6M9 16h6"/>', // sha256 e427bc72f8e4db09
   introductions: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>', // sha256 ee5503b6ad5892d8
   referrals:     '<path d="M17 3l4 4-4 4"/><path d="M3 7h18"/><path d="M7 21l-4-4 4-4"/><path d="M21 17H3"/>', // sha256 5fdbd227ab44385f
-  number:        '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.8 8.8 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 1 1 21 11.5z"/><path d="M9.5 9.5c.5 2 2 3.5 4 4l1-1 2 1v1.2c0 .6-.5 1-1.1 1A7.4 7.4 0 0 1 8.3 8.6c0-.6.4-1.1 1-1.1h1.2l1 2z"/>', // sha256 155795480dbae672
+  // CE-45 IGD-1 cut 1 · R-45.27 A4 (his, 25 Sept 2026) and F-44.164: two overlapping speech bubbles, the seat's own drawing, one
+  // stroke, no handset. The drawing it replaces (sha256 155795480dbae672) held a telephone handset inside a bubble, close to
+  // WhatsApp's rule against an image confusingly similar to its telephone logo. b122 :119 re-aimed by label.
+  number:        '<path d="M8 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M3 10a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3a2 2 0 0 1-2-2z"/>', // sha256 1b6519c8f964bef9
   contracts:     '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 17c1.4-2.2 2.4-2.2 3 0s1.6 2.2 3 0"/>', // sha256 e4b2ab227c6fc8fb
   reminders:     '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>', // sha256 980c5f803af7a016
   collabs:       '<path d="M11 17l2 2a1 1 0 1 0 3-3"/><path d="M14 14l2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="M21 3l1 11h-2"/><path d="M3 3L2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/>', // sha256 aa200749cd30e7a8

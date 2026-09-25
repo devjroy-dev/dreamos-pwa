@@ -145,7 +145,10 @@ export const ROOM_ROWS = [
   // the new byte and was amended by name at its own site, count still eleven.
   { key: 'collabs',       label: 'Hire, collab & barter' },
   { key: 'dates',         label: 'Open dates & rates' },
-  { key: 'number',        label: 'Your own number' },
+  // ── CE-45 IGD-1 cut 1 · R-45.27 (the founder, 25 Sept 2026, A1 (a)): the row becomes the room for both
+  // Meta channels. Key, place, href and Coming unchanged; eleven rows. "Your own number" now heads its
+  // section inside the room (lib/worklist/metaRoom.ts SECTIONS.number). b42, b69 and b122 re-aimed by label.
+  { key: 'number',        label: 'WhatsApp and Instagram' },
   // ── R-42.8 · THE TENTH ROW. CHAIR-RULED 2026-09-10, THE FOUNDER'S COPY ACT
   // EXECUTED BY THE CHAIR. It goes LAST, after `number`, by that ruling.
   //
@@ -192,7 +195,8 @@ export const ROW_DESC: Readonly<Record<RoomKey, string>> = {
   dates:         'Dates still open, and offers to fill them',
   introductions: 'Couples introduced, in both directions',
   referrals:     'Enquiries passed to peers, and received from them',
-  number:        'Your own WhatsApp number, connected to TDW',
+  // CE-45 IGD-1 cut 1 · R-45.27, A3 (his, 25 Sept 2026): D28 retires with the row's old name; R-45.20's plain register.
+  number:        'Enquiries on WhatsApp and Instagram, answered in the studio\u2019s name',
   contracts:     'Agreements signed on WhatsApp; the date held on deposit',
   reminders:     'Payment reminders sent on invoices',
   collabs:       'Crew, models and partners to hire or trade with',

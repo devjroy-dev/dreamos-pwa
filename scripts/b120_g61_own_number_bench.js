@@ -89,7 +89,9 @@ function loadTs(rel, src) {
   const sdkSrc = strip(read(SDK));
   ok(!/^\s*(loadSdk|launchSignup)\(/m.test(sdkSrc) && !/useEffect/.test(strip(read(FLOWC))) && !/metaSignup/.test(strip(page)) && !/metaSignup/.test(strip(read(HOOK))),
     '1.6 nothing loads the SDK on mount: no top-level call, no effect in the flow, the page and the hook never import it');
-  ok(/if \(room\.mode !== 'shell'\) return <OwnNumberFlow room=\{room\} \/>;/.test(page), '1.7 the page makes one decision and hands the flow its room');
+  // AMENDED BY LABEL · CE-45 IGD-1 cut 1 · S1 (R-45.27): the one decision is unchanged; the flow is now also handed the room's
+  // section heading and its `after` slot, so G6's screen and the Instagram section share one shell.
+  ok(/if \(room\.mode !== 'shell'\) return <OwnNumberFlow room=\{room\} sectionHead=\{SECTIONS\.number\} after=\{<MetaRoomSections \/>\} \/>;/.test(page), '1.7 the page makes one decision and hands the flow its room, its section heading and the room\u2019s other sections');
   ok(/ownNumber:\s+\(\) => `\$\{SOLUTIONS_API_PATH\}\/number`,/.test(read(ROUTES)) && /ownNumberConnect:\s+\(\) => `\$\{SOLUTIONS_API_PATH\}\/number\/connect`,/.test(read(ROUTES)),
     '1.8 the two doors stand at the ruled addresses beside their siblings (FK1)');
   ok(!all.some(([, s]) => /new Date\(|Date\.now\(/.test(strip(s))), '1.9 no file this cut adds reads a clock (C-44.13 has nothing to shift)');

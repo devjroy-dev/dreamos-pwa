@@ -268,6 +268,10 @@ export const API = {
   // instant Meta's code arrives, because the code lives thirty seconds (c-45.27).
   ownNumber:           () => `${SOLUTIONS_API_PATH}/number`,
   ownNumberConnect:    () => `${SOLUTIONS_API_PATH}/number/connect`,
+  // CE-45 IGD-1 cut 1 · R-45.27: the room's two new doors, served by dream-os in cut 2a (404 until then: dark).
+  instagram:           () => `${SOLUTIONS_API_PATH}/instagram`,
+  instagramSwitch:     () => `${SOLUTIONS_API_PATH}/instagram/switch`,
+  quiet:               () => `${SOLUTIONS_API_PATH}/quiet`,
 } as const;
 
 // ── G3.2 · R-G32.16 · THE CONTRACTS ROOM'S ADDRESS — RETIRED, F-40.170 ─────

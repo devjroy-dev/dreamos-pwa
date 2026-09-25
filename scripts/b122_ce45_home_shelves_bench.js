@@ -116,7 +116,8 @@ const H_ICON = {
   dates: 'e427bc72f8e4db09bcaabafcd08336b9e0b8d4bb4882dae6cd285d630389a920',
   introductions: 'ee5503b6ad5892d84ba7c1b27ec1adf22afd80df257b7772d575e395ed58b08d',
   referrals: '5fdbd227ab44385f83fbc7be582ab0ec6c6d45b29e94771975f61535967cff4a',
-  number: '155795480dbae6729c4e58f581332a0d14ae55c665e3bd649b61bbfa6b4acbc3',
+  // AMENDED BY LABEL · CE-45 IGD-1 cut 1 · R-45.27 A4 and F-44.164: the two-bubble drawing; was 155795480dbae672... (a handset in a bubble).
+  number: '1b6519c8f964bef9129cd637b8cdb605f0b3913d294656d5bef8f58e885fd73b',
   contracts: 'e4b2ab227c6fc8fb26bcb9a807c8e91436ba2bd25637f164e4bc21fbb0e0160e',
   reminders: '980c5f803af7a01665d60cfb20eb6d1318b26fbbeecc87f179f41c93ee3f3632',
   collabs: 'aa200749cd30e7a8ed4717d04996836778a5de8e9e525ed606c14245bb5d1f32',
@@ -139,7 +140,7 @@ const RULED_TRADE = {
 // shipped-byte law (R-40.57, b40 C102); the founder's words are unchanged, only the glyph is the estate's.
 const H_COPY = { navToday: '3a78695388b38b5c', shelfBusiness: '76f68a75f01ed76f', shelfMoney: '5ccc2e8715d7a17c', shelfStudio: '0aa91af2ec4c1fd7', pinnedHead: '57c2c20d41e6bf16', pinnedChange: 'c564d6151af0b34b' };
 const H_ROOM = { support: '81e50b18d2c0ea43', storefront: 'c9529003140a13d9', leads: '6ed99453447975d5', clients: '147ff67b902f0f8b', packages: '5ac4004541fc2013', calendar: 'ace4802cba166d27', events: '44ab8773647cf1af', notes: 'db19c49f8f6a2603', invoices: '5520f77a5ac7e0ec', expenses: 'd52a337c2f297d01', books: 'c2bebc4c8b046867', tds: 'cfc775545be4eda7', portfolio: 'c770d4b25db5b741', team: '8fdce67cbb74c589', couture: '5ec5b4c55960ce39', advisor: '3263e80df03c3bf4', billing: 'ac9b262fbde97683', settings: '28421eb441a5d5da' };
-const H_ROW = { website: 'b1291bdf51d0a58e', wedding_pages: '5802fa27fb15736d', google: '3829cc50cbae2d22', posts: 'f70c5ccaa24633ad', dates: 'becc2a75a6f041a1', introductions: '03b8eb501bbce215', referrals: '5e8933c42ebd55f6', number: '9c6c97a21614e055', contracts: 'b2be845480024cae', reminders: '24716217a180687d', collabs: '4ba555d36b7a7487' };
+const H_ROW = { website: 'b1291bdf51d0a58e', wedding_pages: '5802fa27fb15736d', google: '3829cc50cbae2d22', posts: 'f70c5ccaa24633ad', dates: 'becc2a75a6f041a1', introductions: '03b8eb501bbce215', referrals: '5e8933c42ebd55f6', number: 'b4153dd868095658' /* AMENDED BY LABEL · IGD-1 cut 1 · R-45.27 A3; was 9c6c97a21614e055 (D28) */, contracts: 'b2be845480024cae', reminders: '24716217a180687d', collabs: '4ba555d36b7a7487' };
 
 const tag = (i) => ('room' in i ? 'room:' + i.room : 'row:' + i.row);
 const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.slice(4) });
@@ -179,10 +180,12 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
     const extra = Object.keys(d).filter((k) => !(k in H_ROW));
     return (bad.length === 0 && extra.length === 0) || `moved ${bad.join(',')} extra ${extra.join(',')}`;
   });
-  cell('1.6 R-45.20 register: no her, his or you; "your" only in the row he ruled; no persona name', () => {
+  // AMENDED BY LABEL · CE-45 IGD-1 cut 1 · R-45.27: D28 ("Your own WhatsApp number...") retired with the row's old name, so the one
+  // "your" exception retires with it and the cell TIGHTENS: no line may say "your" now.
+  cell('1.6 R-45.20 register: no her, his, you or your; no persona name', () => {
     const all = [...Object.entries(WC.ROOM_DESC || {}), ...Object.entries(SC.ROW_DESC || {})];
     if (all.length !== 29) return 'lines ' + all.length;
-    const bad = all.filter(([k, v]) => /\b(her|his|you)\b/i.test(v) || (/\byour\b/i.test(v) && k !== 'number') || /\b(Victor|Donna|Harvey)\b/.test(v));
+    const bad = all.filter(([k, v]) => /\b(her|his|you)\b/i.test(v) || /\byour\b/i.test(v) || /\b(Victor|Donna|Harvey)\b/.test(v));
     return bad.length === 0 || bad.map(([k]) => k).join(',');
   });
 
@@ -217,7 +220,8 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
     const all = SC.ROOM_ROWS.map((r) => r.key);
     return (keys.length === all.length && all.every((k) => keys.filter((x) => x === k).length === 1)) || keys.join(',');
   });
-  cell('2.7 Coming stays Coming: Open dates & rates and Your own number, and no shelf row is Coming', () =>
+  // AMENDED BY LABEL · IGD-1 cut 1 · R-45.27: the name only; the key 'number' and its Coming are unchanged.
+  cell('2.7 Coming stays Coming: Open dates & rates and WhatsApp and Instagram, and no shelf row is Coming', () =>
     (JSON.stringify([...RT.PREVIEW_KEYS].sort()) === '["dates","number"]' && SH.every((s) => s.items.every((i) => !RT.itemComing(i)))) || [...RT.PREVIEW_KEYS]);
   cell('2.8 the move: ROOM_HREFS and PREVIEW_KEYS live in lib/solutions/routes.ts, and the hub page declares neither', () => {
     const page = read('app/vendor/(shell)/support/page.tsx');

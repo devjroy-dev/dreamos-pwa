@@ -187,7 +187,9 @@ const textOf = (html, cls, tag = '[a-z0-9]+') => (html.match(new RegExp('<(' + t
 sec('§1 · the surface, rendered from the real page');
 for (const s of SCREENS) {
   const inner = surfaceOf(s.html);
-  const want = ['p.sol-kicker', 'h1.sol-title', 'p.sol-empty', 'p.sol-subhead', 'ul.sol-can', 'div.sol-actions'].concat(s.aside ? ['div.sol-aside'] : []);
+  // AMENDED BY LABEL · CE-45 IGD-1 cut 1 · R-45.27 A5 (his): the number room is now "WhatsApp and Instagram", and G6's screen sits
+  // under its section heading "Your own number" (h2.sol-heading, t2) between the title and the lede. Dates is unchanged.
+  const want = ['p.sol-kicker', 'h1.sol-title'].concat(s.key === 'number' ? ['h2.sol-heading'] : []).concat(['p.sol-empty', 'p.sol-subhead', 'ul.sol-can', 'div.sol-actions']).concat(s.aside ? ['div.sol-aside'] : []);
   const got = topLevel(inner);
   // dates: the aside opens on D5 itself — D7 was struck, so no eyebrow heads it.
   const asideOk = !s.aside || /<div class="sol-aside"><p class="sol-asideline">/.test(inner);
@@ -269,12 +271,15 @@ else {
   const scoped = [...mock.matchAll(/^\[data-frame="[^"]+"\][^\n]*$/gm)].map((m) => m[0]);
   ok('exactly one scoped override, and it is b5b7dfc2\u2019s .sol-can margin on the before panel',
     scoped.length === 1 && scoped[0] === '[data-frame="H0-before"] .sol-can{margin:16px 0 0}', scoped.join(' | '));
+  // AMENDED BY LABEL · CE-45 IGD-1 cut 1 · R-45.27: this ratified mock predates the rename and is NOT edited; its number seat
+  // reads the room's old name, excused BY ITS EXACT TEXT (the LATER_MOCK precedent above). The tree's name is pinned by b126 1.6.
+  const MOCK_NUMBER_SEAT = 'Your own number';
   const seats = [...mock.matchAll(/<span class="wl-lbl">([^<]+)<\/span>/g)].map((m) => m[1].replace(/&amp;/g, '&'));
-  ok('every seat is the room (A1), never Business Solutions', seats.length === 3 && seats.join('|') === [copy.roomLabel('dates'), copy.roomLabel('dates'), copy.roomLabel('number')].join('|'), seats.join('|'));
+  ok('every seat is the room (A1), never Business Solutions', seats.length === 3 && seats.join('|') === [copy.roomLabel('dates'), copy.roomLabel('dates'), MOCK_NUMBER_SEAT].join('|'), seats.join('|'));
   ok('D7 is absent from the mock', !mock.replace(/<!--[\s\S]*?-->/, '').includes('Already working'));
   const D = load(DCOPY).DATES, N = load(NCOPY).NUMBER;
   const plain = mock.replace(/&amp;/g, '&');
-  const bytes = [D.lede, ...D.can, D.already, D.cta, N.lede, ...N.can, copy.COPY.canHead, copy.CHIPS.coming, copy.BUTTONS.connect, copy.roomLabel('dates'), copy.roomLabel('number')];
+  const bytes = [D.lede, ...D.can, D.already, D.cta, N.lede, ...N.can, copy.COPY.canHead, copy.CHIPS.coming, copy.BUTTONS.connect, copy.roomLabel('dates'), MOCK_NUMBER_SEAT];
   ok('every byte it draws is the shipped byte', bytes.every((b) => plain.includes(b)), bytes.filter((b) => !plain.includes(b)).join(' | '));
 }
 
@@ -391,7 +396,8 @@ browser.then((got) => {
       // uppercase sub-head, the aside line by the aside's rule line.
       sec('§3 · the three roles — ' + tag + '  (PROPOSED reading, F-42.216)');
       const keepT3 = isRung(g.lede, 't3') && isRung(g.li, 't3') && (!s.aside || isRung(g.asideline, 't3'));
-      const ledeHead = g.prevOfLede === 'sol-title' && isRung(g.title, 't1');
+      // AMENDED BY LABEL · IGD-1 cut 1 · R-45.27 A5: on number the lede is headed by its section heading (t2), itself under the t1 title.
+      const ledeHead = (s.key === 'number' ? g.prevOfLede === 'sol-heading' : g.prevOfLede === 'sol-title') && isRung(g.title, 't1');
       const listHead = g.prevOfList === 'sol-subhead' && isRung(g.subhead, 't5') && g.subhead.transform === 'uppercase';
       const asideHead = !s.aside || (g.firstOfAside === 'sol-asideline' && parseFloat(g.aside.bt) > 0 && g.aside.bts === 'solid');
       ok('each role keeps t3 (D) and is headed by its own device: lede \u2190 t1 title, list \u2190 t5 uppercase sub-head' + (s.aside ? ', aside line \u2190 rule line' : ''),

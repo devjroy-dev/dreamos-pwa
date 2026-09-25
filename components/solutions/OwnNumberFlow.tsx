@@ -25,6 +25,7 @@
 //
 // ⚠ NO PERSONA NAME ANYWHERE ON THIS SCREEN (R-37.70, b40 C32).
 import { useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { SolutionsStyles } from '@/components/solutions/SolutionsPieces';
 import { BUTTONS, CHIPS, COPY, roomLabel } from '@/lib/solutions/copy';
@@ -47,7 +48,11 @@ const STATE_CHIP: Record<OwnNumberLine['status'], string | null> = {
   pending: null, active: CHIPS.connected, suspended: CHIPS.needs_attention, migrated_out: CHIPS.not_connected,
 };
 
-export function OwnNumberFlow({ room }: { room: OwnNumberRoom }) {
+// CE-45 IGD-1 cut 1 · S1 (the chair, 25 Sept 2026, R-45.27): two optional props so ONE shell holds the room's two sections.
+// `sectionHead` is drawn under the room's title in every branch; `after` is drawn after G6's section inside the same shell.
+// Both absent, this component renders exactly what it rendered at d78461c7. G6's words and steps are unchanged.
+export function OwnNumberFlow({ room, sectionHead, after }: { room: OwnNumberRoom; sectionHead?: string; after?: ReactNode }) {
+  const head = sectionHead ? <h2 className="sol-heading">{sectionHead}</h2> : null;
   const [step, setStep] = useState<Step>('room');
   const [outcome, setOutcome] = useState<Outcome>(null);
   const busy = useRef(false);
@@ -96,9 +101,11 @@ export function OwnNumberFlow({ room }: { room: OwnNumberRoom }) {
         <section className="sol-surface" data-own-number="status" data-status={n.status}>
           {chip && <p className="sol-kicker">{chip}</p>}
           <h1 className="sol-title">{roomLabel('number')}</h1>
+          {head}
           <p className="sol-addr">{n.display_number}</p>
           <p className="sol-empty">{STATE_LINE[n.status]}</p>
         </section>
+        {after}
         <SolutionsStyles />
       </WorklistShell>
     );
@@ -111,6 +118,7 @@ export function OwnNumberFlow({ room }: { room: OwnNumberRoom }) {
           <>
             <p className="sol-kicker">{CHIPS.not_connected}</p>
             <h1 className="sol-title">{roomLabel('number')}</h1>
+            {head}
             <p className="sol-empty">{NUMBER.lede}</p>
             <p className="sol-subhead">{COPY.canHead}</p>
             <ul className="sol-can">
@@ -126,6 +134,7 @@ export function OwnNumberFlow({ room }: { room: OwnNumberRoom }) {
         {step === 'consent' && (
           <>
             <h1 className="sol-title">{roomLabel('number')}</h1>
+            {head}
             <h2 className="sol-heading">{FLOW.consentHead}</h2>
             {/* FE_2 · the consent gap (the founder, on the screens): .sol-can is a flex column with a 10px gap
                 and no colour of its own, so the two ways read as two choices. No new style. */}
@@ -145,6 +154,7 @@ export function OwnNumberFlow({ room }: { room: OwnNumberRoom }) {
         {step === 'confirm' && (
           <>
             <h1 className="sol-title">{roomLabel('number')}</h1>
+            {head}
             <p className="sol-empty">{FLOW.movedConfirm}</p>
             <p className="sol-note">{FLOW.whoPays}</p>
             <div className="sol-actions">
@@ -156,10 +166,12 @@ export function OwnNumberFlow({ room }: { room: OwnNumberRoom }) {
         {step === 'working' && (
           <>
             <h1 className="sol-title">{roomLabel('number')}</h1>
+            {head}
             <p className="sol-empty" role="status">{FLOW.connecting}</p>
           </>
         )}
       </section>
+      {after}
       <SolutionsStyles />
     </WorklistShell>
   );

@@ -213,7 +213,7 @@ sec('C3 \u00b7 the hub (R-40.23)');
     // `Hire, collab & barter` (the room takes requirement posts — hiring). The join
     // fired on the new byte, which is the pin working; the count stays eleven and
     // every other label and position is unchanged. R-41.121: amended, not loosened.
-    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Hire, collab & barter|Open dates & rates|Your own number|Introductions",
+    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Hire, collab & barter|Open dates & rates|WhatsApp and Instagram|Introductions", // AMENDED BY LABEL · CE-45 IGD-1 cut 1 · R-45.27: "Your own number" became "WhatsApp and Instagram"; count and order unchanged
     labels.join('|'));
   ok('ROWS is gone', !/export const ROWS\b/.test(copy));
   ok('ROW_EYEBROWS is gone', !/export const ROW_EYEBROWS\b/.test(copy));

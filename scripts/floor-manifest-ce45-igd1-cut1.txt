@@ -1,0 +1,21 @@
+# scripts/floor-manifest-ce45-igd1-cut1.txt
+# CE-45 · IGD-1 · CUT 1 (dreamos-pwa): R-45.27, the room "WhatsApp and Instagram"; S1; F-44.164; rung b126. F-19.16: a dirty path
+# outside this list is a STOP. BASE: d78461c7. No new directory (A-45.3 not engaged).
+app/vendor/(shell)/number/page.tsx
+components/solutions/OwnNumberFlow.tsx
+components/solutions/MetaRoomSections.tsx
+lib/solutions/copy.ts
+lib/solutions/routes.ts
+lib/worklist/icons.ts
+lib/worklist/metaRoom.ts
+lib/vendor/metaRoomDoor.ts
+scripts/b126_igd1_meta_room_bench.js
+scripts/lib/b126_dev_server.js
+scripts/lib/b126_meta_room_probe.mjs
+scripts/b42_g11_wedding_pages_bench.js
+scripts/b69_j1_introductions_bench.js
+scripts/b77_shell2_hierarchy_bench.js
+scripts/b120_g61_own_number_bench.js
+scripts/b122_ce45_home_shelves_bench.js
+scripts/floor-manifest-ce45-igd1-cut1.txt
+docs/handovers/TDW_CE45_IGD1_1_HANDOVER.md
