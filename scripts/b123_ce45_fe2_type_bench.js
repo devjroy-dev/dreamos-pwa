@@ -49,8 +49,8 @@ const { spawn, spawnSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const P = (...a) => path.join(ROOT, ...a);
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
-// TYPE_2 compares against the tip it builds on (8a943ae1: TYPE_1, then G6-1 FE2_1 on disjoint files); TYPE_1's own record ran against 82ff431e.
-const BASE = arg('--base', '8a943ae1cd20b401f04b59a32ba64242f00ec16b');
+// TYPE_1b compares against the tip it builds on (97031c40: TYPE_2, G6-1 FE2b_1, IGD-1 cut 1, then G6-1 F-44.167); TYPE_2's record ran against 8a943ae1, TYPE_1's against 82ff431e.
+const BASE = arg('--base', '97031c40f0ea97813caa2397c4089829a94f8b88');
 const CLOCK = arg('--clock', null);
 const MODES = arg('--modes', 'dark,light').split(',');
 const ROOMS = arg('--rooms', 'leads,clients,events,notes,invoices,expenses').split(',');
@@ -82,6 +82,26 @@ const FACE_DEFS_HELD = new Set([
 ]);
 const RUNGS = new Set(['46|cormorant|500', '24|cormorant|500', '17|dmsans|500', '14|dmsans|400', '12|dmsans|500', '11|dmsans|500']);
 const SIX = ['Leads', 'Clients', 'Invoices', 'Expenses', 'Events', 'Notes'];
+// TYPE_1b · his rows 4-8 in their home, pinned (1.7); the three foot lines his row 9 dropped, exactly
+// as 612a5b76 carried them (SliceShell CHIP_BLINDNESS), the one listed removal below the list (3.1).
+const HEAD_SHA = 'b7ebeb210b15d5e70989256f65fc788cec8256fcd0ff4ccdf17800cab1600354';
+const OLD_FOOT = new Set([
+  'Some entries may also exist as binders \u2014 phones connect them.',
+  'Some entries may also exist as enquiries \u2014 phones connect them.',
+  'Some dates may also sit in a binder \u2014 the entry has to name it.',
+]);
+// The registry's label bytes, read from lib/worklist/rooms.ts (the title's one source)
+const REG = Object.fromEntries([...read('lib/worklist/rooms.ts').matchAll(/\{ id: '([a-z-]+)',\s*label: '([^']+)'/g)].map((m) => [m[1], m[2]]));
+// The home's five functions, evaluated from their own bytes (never retyped here)
+function headHome() {
+  const ts = require(P('node_modules/typescript'));
+  const src = read('lib/worklist/copy.ts'); const i = src.indexOf('export const LEGACY_ROOM_HEAD');
+  if (i < 0) return null; // a tree before TYPE_1b has no home: 3.4 reds on it, it never throws
+  const blk = src.slice(i, src.indexOf('} as const;', i) + '} as const;'.length);
+  const js = ts.transpileModule(blk, { compilerOptions: { module: 1, target: 7 } }).outputText;
+  const mod = { exports: {} }; new Function('module', 'exports', js)(mod, mod.exports); return mod.exports.LEGACY_ROOM_HEAD;
+}
+const MONEY_ROOMS = new Set(['leads', 'invoices', 'expenses']);
 
 // ══ §1 · THE SOURCE ════════════════════════════════════════════════════════════════════════
 function sourceCells(tag = '') {
@@ -128,6 +148,28 @@ function sourceCells(tag = '') {
   walk2('app'); walk2('components'); walk2('lib'); walk2('hooks');
   cell('1.5 the key the strip alone wrote has no writer and no reader left (nothing that ran is lost)',
     writers.length || readers.length ? `writers: ${writers.join(', ') || 'none'} · readers: ${readers.join(', ') || 'none'}` : null);
+  // 1.7 · TYPE_1b: his five headline lines, byte for byte, in their ONE home (the founder's table, rows 4-8)
+  {
+    const src = read('lib/worklist/copy.ts');
+    const i = src.indexOf('export const LEGACY_ROOM_HEAD'); const j = i < 0 ? -1 : src.indexOf('} as const;', i);
+    const blk = i < 0 || j < 0 ? '' : src.slice(i, j + '} as const;'.length);
+    cell('1.7 TYPE_1b: LEGACY_ROOM_HEAD holds his rows 4-8 byte for byte (sha pinned) in lib/worklist/copy.ts',
+      !blk ? 'LEGACY_ROOM_HEAD not found' : sha(blk) !== HEAD_SHA ? 'the block moved: sha ' + sha(blk).slice(0, 12) : null);
+  }
+  // 1.8 · TYPE_1b: every headline reads the home, every title reads the registry; the retired lines are gone
+  {
+    const shell = strip(read('components/vendor/slices/SliceShell.tsx'));
+    const clients = strip(read('app/vendor/(shell)/clients/body.tsx'));
+    const notes = strip(read('app/vendor/(shell)/notes/body.tsx'));
+    const heads = [...(shell + clients).matchAll(/<Masthead\b[^>]*>/g)].map((m) => m[0]);
+    const bad = [];
+    if (heads.length !== 6) bad.push(`${heads.length} Masthead mounts, not six (five rooms in the shell, Clients' own)`);
+    heads.filter((h) => !/\bline=\{LEGACY_ROOM_HEAD\.(leads|clients|invoices|expenses|events)\(/.test(h)).forEach((h) => bad.push('a headline not from the home: ' + h.slice(0, 60)));
+    if (/\b(LANE_LINE|CHIP_BLINDNESS|eyebrow=|sub=)/.test(shell + clients)) bad.push('a retired lane, foot, eyebrow or sub-line survives');
+    if (!/const ROOM_NAME = Object\.fromEntries\(ROOMS\.map\(\(r\) => \[r\.id, r\.label\]\)\)/.test(shell) || !/<h1 data-room-title="" [^>]*>\{ROOM_NAME\[slice\]\}<\/h1>/.test(shell)) bad.push('the shell title is not the registry label');
+    if (!/const NOTES_NAME = ROOMS\.find\(\(r\) => r\.id === 'notes'\)\?\.label/.test(notes) || !/<h1 data-room-title="" [^>]*>\{NOTES_NAME\}<\/h1>/.test(notes)) bad.push('the Notes title is not the registry label');
+    cell('1.8 TYPE_1b: each headline reads LEGACY_ROOM_HEAD, each title the registry label; no lane, foot, eyebrow or sub-line survives', bad.length ? bad.join(' | ') : null);
+  }
   // 1.6 · F7: RUNG_FONT is the scale read twice, var(--wl-tN, <the tuple>), generated from TYPE
   try {
     const ts = require(P('node_modules/typescript'));
@@ -153,20 +195,61 @@ function probe(port, mode, room, scene, shots) {
   const line = (r.stdout || '').trim().split('\n').pop();
   try { return JSON.parse(line); } catch (_e) { return { errors: ['no JSON from the probe: ' + (r.stderr || '').split('\n')[0]], nodes: [], controls: [] }; }
 }
+// e-123's cure (TYPE_1b): each dev server's output is KEPT in a log beside the run, and a server that
+// does not come up prints its last lines, so the red carries its cause (stdio 'ignore' retired).
+// A-45.5: the tree's .next/dev is cleared before every start (a fresh production build leaves state a
+// dev server may refuse or stall on).
+const DEVLOG = (root, port) => path.join(require('os').tmpdir(), `b123-dev-${path.basename(root)}-${port}.log`);
+// F-44.160 (witnessed in the seat's container): Next 16 refuses a second `next dev` in one directory,
+// and clearing .next/dev under a running server deletes its lock. So a start first waits (bounded)
+// until no other next dev holds its root, and only then clears .next/dev (A-45.5).
+function rootDevs(root) {
+  const r = spawnSync('ps', ['-eo', 'pid,args'], { encoding: 'utf8' });
+  return String(r.stdout || '').split('\n').map((l) => l.trim().split(/\s+/)).filter((w) => w.length > 1 && /next(\s+dev\b|-server)/.test(w.slice(1).join(' ')))
+    .map((w) => Number(w[0])).filter((pid) => { if (pid === process.pid) return false; try { return fs.realpathSync(`/proc/${pid}/cwd`) === fs.realpathSync(root); } catch (_e) { return false; } });
+}
 async function startDev(root, port) {
+  for (let t = 0; t < 60 && rootDevs(root).length; t += 1) await new Promise((res) => setTimeout(res, 1000));
+  if (rootDevs(root).length) console.log(`  NOTE  another next dev still holds ${root} after 60s (pids ${rootDevs(root).join(', ')})`);
+  else { try { fs.rmSync(path.join(root, '.next', 'dev'), { recursive: true, force: true }); } catch (_e) { /* nothing to clear */ } }
+  const logFile = DEVLOG(root, port);
+  const fd = fs.openSync(logFile, 'w');
   const dev = spawn('npx', ['--no-install', 'next', 'dev', '-p', String(port)], {
-    cwd: root, detached: true, stdio: 'ignore',
+    cwd: root, detached: true, stdio: ['ignore', fd, fd],
     env: { ...process.env, NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${port}/__api` },
   });
+  fs.closeSync(fd);
   for (let i = 0; i < 180; i += 1) {
     const ok = spawnSync('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', `http://localhost:${port}/vendor/rooms`], { encoding: 'utf8', timeout: 60000 }).stdout;
     if (/^[23]/.test(ok)) return dev;
     await new Promise((res) => setTimeout(res, 1000));
   }
-  try { process.kill(-dev.pid); } catch (_e) { /* already gone */ }
+  stop(dev);
+  let tail = '';
+  try { tail = fs.readFileSync(logFile, 'utf8').split('\n').filter(Boolean).slice(-25).join('\n'); } catch (_e) { tail = '(no log)'; }
+  console.log(`\n── the dev server for ${root} on ${port} did not come up; its last lines (${logFile}):\n${tail}\n──`);
   return null;
 }
-const stop = (dev) => { if (dev) { try { process.kill(-dev.pid, 'SIGTERM'); } catch (_e) { /* gone */ } } };
+// F-44.160: a stop waits for the server to be gone, so the next start in the same root is not refused
+// F-44.160's second half, found in this rung (FE-2): stop() waited on npx's own pid, and the next-server
+// child outlived it, still holding the root (a stale server on 3964 in the seat's container, which later
+// made b122's control blocker refuse). The whole process tree goes now, and stop() waits until it has.
+const treeOf = (root) => {
+  const rows = String(spawnSync('ps', ['-eo', 'pid,ppid'], { encoding: 'utf8' }).stdout || '').split('\n').slice(1)
+    .map((l) => l.trim().split(/\s+/).map(Number)).filter((r) => r.length === 2 && r[0]);
+  const out = [root]; for (let k = 0; k < out.length; k += 1) for (const [pid, ppid] of rows) if (ppid === out[k] && !out.includes(pid)) out.push(pid);
+  return out;
+};
+const alive = (pid) => { try { process.kill(pid, 0); return true; } catch (_e) { return false; } };
+const stop = (dev) => {
+  if (!dev) return;
+  const tree = treeOf(dev.pid);
+  try { process.kill(-dev.pid, 'SIGTERM'); } catch (_e) { /* gone */ }
+  for (const pid of tree) { try { process.kill(pid, 'SIGTERM'); } catch (_e) { /* gone */ } }
+  for (let t = 0; t < 20 && tree.some(alive); t += 1) spawnSync('sleep', ['1']);
+  for (const pid of tree.filter(alive)) { try { process.kill(pid, 'SIGKILL'); } catch (_e) { /* gone */ } }
+  for (let t = 0; t < 10 && tree.some(alive); t += 1) spawnSync('sleep', ['0.5']);
+};
 
 function baseTree() {
   // A worktree at the named base, beside the repo (Turbopack refuses a node_modules symlinked from
@@ -230,10 +313,54 @@ async function renderCells() {
       // tip after TYPE_1 it has none, and the words must then match with nothing removed at all
       const EXPECT = BASE.startsWith('82ff431e') ? SIX : [];
       if (scene === 'rest') cell(`3.0 ${tag} the base drew exactly the strip labels the comparison removes (${EXPECT.length ? 'six' : 'none'})`, JSON.stringify(b.stripLabels || []) === JSON.stringify(EXPECT) ? null : 'base strip: ' + JSON.stringify(b.stripLabels));
-      const words = (x) => x.nodes.filter((n) => !n.strip).map((n) => n.txt);
+      // TYPE_1b: the room's HEAD (every node above the search glyph; for Notes, its title) is where his
+      // words changed, and 3.4 reads it against his bytes. Below it the words must be the base's, node for
+      // node, with the one listed removal: the three foot lines of his row 9.
+      const cut = (x, isBase) => {
+        const all = x.nodes.filter((n) => !n.strip);
+        // Notes has no search glyph: its head is its title, and only where the title is there to take
+        // (a tree before TYPE_1b has none, and its first note is a word of the list, not a head)
+        if (room === 'notes') { const t = !isBase && all[0] && all[0].txt === REG.notes ? 1 : 0; return { head: all.slice(0, t), body: all.slice(t) }; }
+        const k = all.findIndex((n) => n.txt === '\u2315');
+        return { head: k < 0 ? [] : all.slice(0, k), body: (k < 0 ? all : all.slice(k)).filter((n) => !OLD_FOOT.has(n.txt)) };
+      };
+      const C = cut(c, false), Bs = cut(b, true);
+      const words = (x) => (x === c ? C.body : Bs.body).map((n) => n.txt);
       const wa = words(b), wc = words(c);
       let firstDiff = -1; for (let i = 0; i < Math.max(wa.length, wc.length); i += 1) if (wa[i] !== wc[i]) { firstDiff = i; break; }
       cell(`3.1 ${tag} the words are the base\u2019s, node for node`, firstDiff < 0 ? null : `at ${firstDiff}: base \u201c${wa[firstDiff]}\u201d cured \u201c${wc[firstDiff]}\u201d (${wa.length}/${wc.length})`);
+      if (scene === 'rest') {
+        const H = C.head.map((n) => n.txt);
+        const bad = [];
+        if (H[0] !== REG[room]) bad.push(`the title reads \u201c${H[0]}\u201d, the registry says \u201c${REG[room]}\u201d`);
+        if (room !== 'notes') {
+          let at = 1;
+          if (MONEY_ROOMS.has(room)) { if (!/^Rs [0-9,]+$|^\u2014$/.test(H[1] || '')) bad.push('no money figure under the title'); at = 2; }
+          else if (H.some((t) => /^\d+$/.test(t))) bad.push('a count room draws a separate count figure');
+          // the count his line carries is the base's own live count, read from the base's head
+          const BH = Bs.head.map((n) => n.txt);
+          let n = 0;
+          if (room === 'clients' || room === 'events') n = Number(BH.find((t) => /^\d+$/.test(t)) || 0);
+          else { const m = BH.map((t) => /(\d+) (open|filed)/.exec(t)).find(Boolean); n = m ? Number(m[1]) : 0; }
+          const home = headHome();
+          const want = home ? home[room](n) : null;
+          if (!home) bad.push('no LEGACY_ROOM_HEAD home in this tree');
+          if (home && H[at] !== want) bad.push(`the line reads \u201c${H[at]}\u201d, his byte for ${n} is \u201c${want}\u201d`);
+          const rest = H.slice(at + 1).join(' ');
+          if (rest && rest !== 'recent \u2304' && rest !== 'amount \u2304' && rest !== 'date \u2304') bad.push('something else in the head: ' + rest);
+        }
+        cell(`3.4 ${tag} TYPE_1b: the head is his: the registry title, ${MONEY_ROOMS.has(room) ? 'the figure at t2 and ' : ''}his one line with the room's own count`, bad.length ? bad.join(' | ') : null);
+        // 3.5, RE-CUT (e-candidate, the seat's own): the first form read the title TEXT's top (16-22px), and
+        // the text's top moves with the face's ascent: 16 in the stand-in's fallback serif, 15 on the
+        // founder's machine with the real Cormorant. The ruling is the SPACE above the title, which is the
+        // title element's own geometry: its box starts at the room's top, it sets 16px above its line, and
+        // it is the room's first text. The face-dependent check (t1: Cormorant 24) stays on the text node.
+        const t = C.head[0]; const tb = c.titleBox;
+        cell(`3.5 ${tag} TYPE_1b: the room opens 16px above its first line, and that line is its title at t1`,
+          !t || !tb ? 'no title' : t.size !== 24 || t.f !== 'cormorant' ? `the title is ${t.f} ${t.size}`
+            : Math.abs(tb.elTop) > 0.5 ? `the title's box starts ${tb.elTop}px below the room's top, not at it`
+            : tb.padTop !== 16 ? `the title sets ${tb.padTop}px above its line, not 16` : !tb.first ? 'the title is not the room\u2019s first text' : null);
+      }
       const ctl = (x) => x.controls.filter((k) => !k.strip).map((k) => `${k.tag}|${k.role}|${k.name}|${k.href}`);
       const ca = ctl(b), cc = ctl(c);
       let cd = -1; for (let i = 0; i < Math.max(ca.length, cc.length); i += 1) if (ca[i] !== cc[i]) { cd = i; break; }
@@ -242,14 +369,20 @@ async function renderCells() {
       kc.forEach((k, i) => { if (kb[i] && kb[i].name === k.name && kb[i].tt === 'uppercase' && k.tt === 'none') f5.set(`${room}: ${k.name}`, true); });
       if (room === 'invoices' && scene === 'rest') {
         const fg = c.figure;
-        cell(`4.1 ${tag} F6: the longest figure renders whole at t1 inside the column`,
+        // AMENDED BY LABEL · TYPE_1b (the founder's "b"): the room's name is the surface's one t1, so the
+        // money figure stands at t2; the question, the widest figure whole inside the column, is unchanged.
+        cell(`4.1 ${tag} F6 (as amended by TYPE_1b): the longest figure renders whole at t2 inside the column`,
           !fg ? 'no money figure drawn' : fg.text !== 'Rs 9,99,99,99,999' ? 'the figure reads ' + fg.text
-            : fg.size !== 24 || fg.f !== 'cormorant' ? `the figure is ${fg.f} ${fg.size}` : fg.sw > fg.cw || fg.right > 374 - 16 ? `clipped: ${fg.sw}>${fg.cw} or right ${fg.right}` : null);
+            : fg.size !== 17 || fg.f !== 'dmsans' ? `the figure is ${fg.f} ${fg.size}` : fg.sw > fg.cw || fg.right > 374 - 16 ? `clipped: ${fg.sw}>${fg.cw} or right ${fg.right}` : null);
       }
     }
     console.log('\nF5 · the controls whose case moved to sentence case (the words unchanged):');
     for (const k of f5.keys()) console.log('   ' + k);
-    cell('3.3 F5 moved at least one control, and every one it moved kept its words (3.2)', f5.size ? null : 'no control changed case: F5 did not land');
+    // F5 landed with TYPE_1 and TYPE_2. Against a base before them it must move controls; against a base
+    // after them (TYPE_1b's own, 612a5b76) every control is already in sentence case, and it must move none.
+    const PRE_F5 = ['82ff431e', '9b251ad4', '8a943ae1'].some((b) => BASE.startsWith(b));
+    if (PRE_F5) cell('3.3 F5 moved at least one control, and every one it moved kept its words (3.2)', f5.size ? null : 'no control changed case: F5 did not land');
+    else cell('3.3 F5 is already whole at this base: no control changes case (TYPE_1b is words and space only)', f5.size ? 'a control changed case: ' + [...f5.keys()].slice(0, 4).join(', ') : null);
   } finally { stop(devC); stop(devB); }
 }
 
@@ -258,13 +391,19 @@ async function mutations() {
   console.log('\n\u00a75 \u00b7 mutations of production code, each restored');
   const M = [
     { id: 'M1', file: 'components/vendor/slices/SliceRow.tsx', from: /(\{row\.badge && \(\s*<span style=\{\{\s*font: T\.t5,)/, to: '$1 fontSize: 9,', cells: /^1\.2/ },
-    { id: 'M2', file: 'components/vendor/slices/Masthead.tsx', from: /(font: T\.t1,)/, to: "$1 fontFamily: 'var(--font-italiana), serif',", cells: /^1\.2/ },
+    // M2 (re-anchored at TYPE_1b: the figure moved from T.t1 to T.t2): Italiana restored on the money figure
+    { id: 'M2', file: 'components/vendor/slices/Masthead.tsx', from: /(font: T\.t2,)/, to: "$1 fontFamily: 'var(--font-italiana), serif',", cells: /^1\.2/ },
     { id: 'M3', file: 'app/vendor/(shell)/notes/body.tsx', from: /(<NotesBody \/>)/, to: '<SliceDoor active="notes" />$1', cells: /^1\.4/ },
     { id: 'M4', file: 'components/vendor/slices/DetailSheet.tsx', from: /(font: T\.t5,\s*letterSpacing: )'0\.08em'/, to: "$1'0.32em'", cells: /^1\.3/ },
     // TYPE_2: a raw size back on the legacy Toast's message; RUNG_FONT stripped of its fallback (F7)
     { id: 'M6', file: 'components/vendor/Toast.tsx', from: /(font: RUNG\.t3,)/, to: '$1 fontSize: 16,', cells: /^1\.2/ },
     { id: 'M7', file: 'lib/worklist/theme.ts', from: /`var\(--wl-\$\{k\}, \$\{TYPE\[k\]\.weight\}/, to: '`var(--wl-${k}, 500', cells: /^1\.6/ },
-    { id: 'M5', file: 'components/vendor/slices/SliceShell.tsx', from: /(const LANE_LINE[^=]*=\s*\{[^}]*?leads:\s*')([A-Za-z]+)/, to: '$1Planted', cells: /^3\.1/, render: true },
+    // M5 (re-aimed at TYPE_1b, the lane line it planted in being retired): one word of the list changes,
+    // the TDW mark on a lead's row; the words below the head must redden
+    { id: 'M5', file: 'components/vendor/slices/SliceRow.tsx', from: />TDW<\/span>/, to: '>TDX</span>', cells: /^3\.1/, render: true },
+    // TYPE_1b: one of his bytes changed in the home; the title typed instead of read from the registry
+    { id: 'M8', file: 'lib/worklist/copy.ts', from: /'Enquiries \\u00b7 none open'/, to: "'Enquiries \\u00b7 none at all'", cells: /^1\.7/ },
+    { id: 'M9', file: 'components/vendor/slices/SliceShell.tsx', from: /\{ROOM_NAME\[slice\]\}<\/h1>/, to: '{"Leads"}</h1>', cells: /^1\.8/ },
   ];
   for (const m of M) {
     const abs = P(m.file); const orig = fs.readFileSync(abs, 'utf8'); const h = sha(orig);

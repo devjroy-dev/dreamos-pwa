@@ -917,3 +917,15 @@ export const ROOM_DESC: Readonly<Record<string, string>> = {
   billing:    'The TDW plan and its payments',
   settings:   'Account details and switches',
 } as const;
+
+// ── CE-45 · FE-2 · TYPE_1b · THE LEGACY ROOMS' HEADLINE LINE (the founder's table, rows 4-8, 24 Sept 2026) ──
+// "Ill go with your recomendation": the eyebrow and sub-line pair under each legacy room's figure
+// collapses to ONE line, and "binders" leaves every one. The counts are the rooms' own live numbers,
+// exactly as before; only the words are his. One home: the family never types these.
+export const LEGACY_ROOM_HEAD = {
+  leads:    (n: number) => (n === 0 ? 'Enquiries \u00b7 none open' : `Enquiries \u00b7 ${n} open`),
+  clients:  (n: number) => (n === 0 ? 'Booked \u00b7 no clients yet' : n === 1 ? 'Booked \u00b7 1 client' : `Booked \u00b7 ${n} clients`),
+  invoices: (n: number) => (n === 0 ? 'Outstanding \u00b7 settled' : `Outstanding \u00b7 ${n} open`),
+  expenses: (n: number) => (n === 0 ? 'This month \u00b7 nothing filed' : `This month \u00b7 ${n} filed`),
+  events:   (n: number) => (n === 0 ? 'This week \u00b7 nothing ahead' : n === 1 ? 'This week \u00b7 1 ahead' : `This week \u00b7 ${n} ahead`),
+} as const;

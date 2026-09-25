@@ -13,11 +13,18 @@
 // The mount is not conditional here either: `Header` is NOT IMPORTED. It mounts at the
 // fallback route, app/vendor/list/[slice]/page.tsx, which is the only place it is wanted.
 import { NotesBody } from '@/components/vendor/NotesBody';
+import { A, T } from '@/components/vendor/slices/SliceRow';
+import { ROOMS } from '@/lib/worklist/rooms';
+
+// CE-45 · FE-2 · TYPE_1b (ii): Notes opens as the other five legacy rooms now open, its own name at
+// t1 from the registry's label byte, 16px above it (the reference surface's top).
+const NOTES_NAME = ROOMS.find((r) => r.id === 'notes')?.label ?? '';
 
 export default function NotesSlice({ vendorId }: { vendorId: string }) {
   void vendorId; // the slice-module contract passes vendorId; NotesBody reads by the session cookie
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <h1 data-room-title="" style={{ font: T.t1, color: A.ink, margin: 0, padding: '16px var(--slice-inset, 22px) 0' }}>{NOTES_NAME}</h1>
       <NotesBody />
     </div>
   );

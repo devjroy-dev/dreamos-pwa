@@ -18,6 +18,7 @@ import { BinderCard } from '@/components/vendor/slices/BinderCard';
 import { Masthead } from '@/components/vendor/slices/Masthead'; // TDW_04 A3
 import { deriveClients } from '@/lib/vendor/derive'; // TDW_04 A3: THE derivation
 import { A, T } from '@/components/vendor/slices/SliceRow';
+import { LEGACY_ROOM_HEAD } from '@/lib/worklist/copy';
 import { ClientBookingSheet } from '@/components/vendor/ClientBookingSheet'; // CE-43 LC-2 (R-43.5)
 import { WlToast } from '@/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
@@ -72,8 +73,7 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
       // TDW_04 A3 (P5/ST-4): this slice drives SliceShell directly (binder cards,
       // not rows), so it composes its own masthead — from the SAME derivation the
       // hub and the other mastheads read.
-      masthead={<Masthead eyebrow="Active engagements" value={deriveClients(cab.data).count}
-        sub={deriveClients(cab.data).count === 1 ? 'from your binders · 1 client' : 'from your binders · client-stage binders'} />}
+      masthead={<Masthead line={LEGACY_ROOM_HEAD.clients(deriveClients(cab.data).count)} value={deriveClients(cab.data).count} />}
       renderList={
         <>
           {empty && (

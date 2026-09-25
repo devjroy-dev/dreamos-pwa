@@ -1,0 +1,15 @@
+# scripts/floor-manifest-ce45-fe2-type1b.txt
+# CE-45 · FE-2 · TYPE_1b · the tops of the six legacy rooms in the founder's words (rows 1 to 10, option B); e-123's cure; A-45.5; F-44.160 (b122 hardened, A-45.6) · dreamos-pwa. F-19.16: a dirty path outside this list is a STOP.
+# One new directory: none (every path below sits in a directory that already exists at 97031c40). No file is deleted.
+app/vendor/(shell)/clients/body.tsx
+app/vendor/(shell)/notes/body.tsx
+components/vendor/slices/Masthead.tsx
+components/vendor/slices/SliceShell.tsx
+docs/handovers/TDW_CE45_FE2_TYPE_1b_HANDOVER.md
+lib/worklist/copy.ts
+scripts/b122_ce45_home_shelves_bench.js
+scripts/b123_ce45_fe2_type_bench.js
+scripts/floor-manifest-ce45-fe2-type1b.txt
+scripts/lib/b123_type_probe.mjs
+scripts/tdw09_money.proof.mjs
+scripts/tdw09_walkrider.proof.mjs

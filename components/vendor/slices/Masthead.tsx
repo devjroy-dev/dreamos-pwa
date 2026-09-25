@@ -5,9 +5,9 @@
 'use client';
 // components/vendor/slices/Masthead.tsx — TDW_04 A3 (P5's card, ST-4/L-4).
 //
-// THE number, per the spec: slice-name eyebrow (Cormorant italic 13,
-// letterspaced) → the figure (Cormorant 44) → a DM Sans body sub-line NAMING
-// the figure and its lane. Counts up once per mount over 300ms.
+// THE number. Since CE-45 FE-2 TYPE_1b (the founder's "b"): a money figure at t2, then ONE line of
+// his words naming it (LEGACY_ROOM_HEAD); a count room shows the line alone. The eyebrow above and
+// the lane sub-line below it retired together. Counts up once per mount over 300ms.
 // [F-09.86, TDW_09 walk rider: the sub-line was authored as Jost 10 — a
 // whisper; the T-1 floor raise moved it to 16 and Jost-at-body-size read wrong
 // (founder-walked 2026-08-07). A sentence takes the body font; the drifted
@@ -43,36 +43,34 @@ function useCountUp(target: number, ms = 300): number {
   return v;
 }
 
-export function Masthead({ eyebrow, value, sub, isMoney }: {
-  /** The slice's own word — "Pipeline", "Outstanding", "This month"… */
-  eyebrow: string;
-  /** The figure. Money renders as Rs with Indian grouping; counts render bare. */
+// ── CE-45 · FE-2 · TYPE_1b · ONE LINE, AND A FIGURE ONLY WHERE IT IS MONEY (the founder's "b", 24 Sept 2026) ──
+// The eyebrow and sub-line pair collapses to ONE line, his words from lib/worklist/copy.ts
+// LEGACY_ROOM_HEAD (the caller passes the line; nothing here types a word). The room's name above
+// is the surface's one t1 (theme.ts :49), so a MONEY figure stands at t2, the nearest rung, and a
+// COUNT room shows no separate figure: its line already says the count.
+export function Masthead({ line, value, isMoney }: {
+  /** The room's one headline line, from LEGACY_ROOM_HEAD. */
+  line: string;
+  /** The figure. Money renders as Rs with Indian grouping and is drawn; a count is carried by the line. */
   value: number;
-  /** Body sub-line naming the figure and its lane (L-1's honesty, at masthead scale; F-09.86: DM Sans, was Jost). */
-  sub: string;
   isMoney?: boolean;
 }) {
   const shown = useCountUp(value);
-  const text = isMoney
-    ? (value > 0 ? formatRs(shown) : '—')  // TDW_09 R-U25
-    : String(shown);
-
+  const text = value > 0 ? formatRs(shown) : '\u2014'; // TDW_09 R-U25
   return (
-    <div style={{ padding: '10px var(--slice-inset, 22px) 12px' }}>
-      <div style={{
-        font: T.t5,
-        color: A.inkMute,
-      }}>{eyebrow}</div>
-      <div style={{
-        font: T.t1,
-        color: A.ink,
-        fontVariantNumeric: 'tabular-nums',
-      }}>{text}</div>
+    <div data-room-head="" style={{ padding: '0 var(--slice-inset, 22px) 12px' }}>
+      {isMoney && (
+        <div style={{
+          font: T.t2,
+          color: A.ink,
+          fontVariantNumeric: 'tabular-nums',
+        }}>{text}</div>
+      )}
       <div style={{
         font: T.t4,
         color: A.inkMute,
-        marginTop: 2,
-      }}>{sub}</div>
+        marginTop: isMoney ? 2 : 0,
+      }}>{line}</div>
     </div>
   );
 }

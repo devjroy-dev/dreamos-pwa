@@ -41,6 +41,14 @@ const read = (rel) => fs.readFileSync(P(rel), 'utf8');
 const h16 = (s) => crypto.createHash('sha256').update(String(s)).digest('hex').slice(0, 16);
 const argClock = (() => { const i = process.argv.indexOf('--clock'); return i > 0 ? process.argv[i + 1] : null; })();
 
+// ── A-45.6 / F-44.160 (CE-45 FE-2, TYPE_1b) · THIS RUN KEEPS ITS OWN RECORD ──────────────────────
+// scripts/run-floor.sh runs every bench with its output sent to /dev/null (:296-297) and keeps only the
+// exit code, so a red inside a floor could never name its cell. Every line this bench prints is also
+// written to b122-last-run.log in the temp dir; after a floor, that file says which cell and why.
+const RUNLOG = path.join(os.tmpdir(), 'b122-last-run.log');
+try { fs.writeFileSync(RUNLOG, `b122 · ${new Date().toISOString()} · root ${path.join(__dirname, '..')}\n`); } catch (_e) { /* the run still runs */ }
+{ const out = console.log.bind(console); console.log = (...a) => { out(...a); try { fs.appendFileSync(RUNLOG, a.join(' ') + '\n'); } catch (_e) { /* unwritable tmp */ } }; }
+
 let pass = 0; let fail = 0; const failed = [];
 function ok(cond, name, info) {
   if (cond) { pass += 1; console.log(`  PASS  ${name}`); }
@@ -311,17 +319,94 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   const portBusy = await fetch(`http://localhost:${PORT}/`).then(() => true, () => false);
   ok(!portBusy, '4.0 the port is free before this bench starts its own server (no stale server walked)', portBusy ? `something already answers on ${PORT}` : '');
   if (portBusy) { console.log(`\nb122: ${pass} passed, ${fail} failed`); process.exit(1); }
-  const dev = spawn('npx', ['--no-install', 'next', 'dev', '-p', String(PORT)], {
-    cwd: ROOT, stdio: 'ignore', detached: true,
-    env: { ...process.env, NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${PORT}/__api` },
-  });
-  const up = async () => {
-    for (let i = 0; i < 150; i += 1) {
-      try { const r = await fetch(`http://localhost:${PORT}/`); if (r) return true; } catch (_e) { /* not yet */ }
+  // ── F-44.160 (CE-45 FE-2, TYPE_1b) · THE START, HARDENED ─────────────────────────────────────────
+  // WITNESSED IN THE SEAT'S CONTAINER: Next 16 refuses a second `next dev` in one directory ("Another
+  // next dev server is already running") and nothing then answers on the second port. In the floor,
+  // b120 runs just before this bench, in the same root, and exits without waiting for its server to die;
+  // on a loaded two-core Codespace that server can still hold the root when this one starts. So:
+  // (1) the server's output is kept in a log, and a server that never answers prints its last lines;
+  // (2) A-45.5: the root's .next/dev is cleared before a start;
+  // (3) the start waits (bounded) until no other next dev holds this root, and a start that does not
+  //     answer is retried ONCE, the retry printed as a line of the run, never silent.
+  const devLog = path.join(os.tmpdir(), `b122-dev-${PORT}.log`);
+  const rootDevs = () => {
+    const r = spawnSync('ps', ['-eo', 'pid,args'], { encoding: 'utf8' });
+    return String(r.stdout || '').split('\n').map((l) => l.trim().split(/\s+/)).filter((w) => w.length > 1 && /next(\s+dev\b|-server)/.test(w.slice(1).join(' ')))
+      .map((w) => Number(w[0])).filter((pid) => { if (pid === process.pid) return false; try { return fs.realpathSync(`/proc/${pid}/cwd`) === fs.realpathSync(ROOT); } catch (_e) { return false; } });
+  };
+  const waitRootFree = async (ms) => { for (let t = 0; t < ms; t += 1000) { if (!rootDevs().length) return true; await new Promise((r) => setTimeout(r, 1000)); } return !rootDevs().length; };
+  const answers = async (port, secs) => {
+    for (let i = 0; i < secs; i += 1) {
+      try { const r = await fetch(`http://localhost:${port}/`); if (r) return true; } catch (_e) { /* not yet */ }
       await new Promise((r) => setTimeout(r, 1000));
     }
     return false;
   };
+  // A-45.5's clear happens ONLY when this root is free: the seat's own control showed that clearing
+  // .next/dev under a running server deletes its lock, and a second server then starts beside it.
+  const spawnDev = (port, log, clear = true) => {
+    if (clear && !rootDevs().length) { try { fs.rmSync(path.join(ROOT, '.next', 'dev'), { recursive: true, force: true }); } catch (_e) { /* nothing to clear */ } }
+    const fd = fs.openSync(log, 'w');
+    const d = spawn('npx', ['--no-install', 'next', 'dev', '-p', String(port)], {
+      cwd: ROOT, stdio: ['ignore', fd, fd], detached: true,
+      env: { ...process.env, NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${port}/__api` },
+    });
+    fs.closeSync(fd);
+    return d;
+  };
+  const tail = (log) => { try { return fs.readFileSync(log, 'utf8').replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '').split('\n').filter(Boolean).slice(-25).join('\n'); } catch (_e) { return '(no log)'; } };
+  // killDev: the WHOLE tree goes, and the bench waits until it has. (FE-2, this turn: the first form
+  // signalled only npx's process group and waited on npx's pid; the next-server child it had spawned
+  // outlived it, still holding the root, which is the very hazard F-44.160 names, left for the NEXT
+  // bench in the floor. Witnessed: a blocker on 3989 alive after this bench exited green.)
+  const treeOf = (root) => {
+    const rows = String(spawnSync('ps', ['-eo', 'pid,ppid'], { encoding: 'utf8' }).stdout || '').split('\n').slice(1)
+      .map((l) => l.trim().split(/\s+/).map(Number)).filter((r) => r.length === 2 && r[0]);
+    const out = [root]; for (let k = 0; k < out.length; k += 1) for (const [pid, ppid] of rows) if (ppid === out[k] && !out.includes(pid)) out.push(pid);
+    return out;
+  };
+  const alive = (pid) => { try { process.kill(pid, 0); return true; } catch (_e) { return false; } };
+  const killDev = async (d) => {
+    if (!d) return;
+    const tree = treeOf(d.pid);
+    try { process.kill(-d.pid, 'SIGTERM'); } catch (_e) { /* gone */ }
+    for (const pid of tree) { try { process.kill(pid, 'SIGTERM'); } catch (_e) { /* gone */ } }
+    for (let t = 0; t < 20 && tree.some(alive); t += 1) await new Promise((r) => setTimeout(r, 1000));
+    for (const pid of tree.filter(alive)) { try { process.kill(pid, 'SIGKILL'); } catch (_e) { /* gone */ } }
+    for (let t = 0; t < 10 && tree.some(alive); t += 1) await new Promise((r) => setTimeout(r, 500));
+  };
+  async function startDev({ retry = true, wait = true, secs = 150 } = {}) {
+    if (wait && !(await waitRootFree(60000))) console.log(`  NOTE  another next dev still holds ${ROOT} after 60s; starting anyway (pids ${rootDevs().join(', ')})`);
+    let d = spawnDev(PORT, devLog);
+    if (await answers(PORT, secs)) return d;
+    console.log(`  NOTE  F-44.160: the dev server on ${PORT} did not answer in ${secs}s; its last lines:\n${tail(devLog)}`);
+    await killDev(d);
+    if (!retry) return null;
+    console.log('  NOTE  F-44.160: RETRY, starting it once more after the root is free');
+    await waitRootFree(60000);
+    d = spawnDev(PORT, devLog);
+    if (await answers(PORT, secs)) return d;
+    console.log(`  NOTE  F-44.160: the retry did not answer either; its last lines:\n${tail(devLog)}`);
+    await killDev(d);
+    return null;
+  }
+
+  // (4) THE CONTROL, proven every run: with another next dev holding the root and the wait and the retry
+  // disabled, the start must FAIL, and its own log must say why. A green here proves the mechanism the
+  // hardening answers is real on this machine; a red means the control no longer bites.
+  {
+    const blockLog = path.join(os.tmpdir(), 'b122-dev-blocker.log');
+    const blocker = spawnDev(3989, blockLog);
+    const blocking = await answers(3989, 150);
+    let d0 = null;
+    if (blocking) d0 = await startDev({ retry: false, wait: false, secs: 25 });
+    const said = /already running/i.test(tail(devLog));
+    ok(blocking && d0 === null && said, '4.00 control (F-44.160): with another next dev holding the root, the start fails and its log says why',
+      !blocking ? 'the blocker never answered' : d0 ? 'the second server answered: the control no longer bites' : said ? '' : 'no reason in its log: ' + tail(devLog).slice(-200));
+    await killDev(d0); await killDev(blocker);
+  }
+  const dev = await startDev();
+  const up = async () => !!dev;
   const probe = (mode, scenario) => {
     const env = { ...process.env }; if (clockMs !== null && Number.isFinite(clockMs)) env.B122_CLOCK = String(clockMs);
     if (ICONS_FILE) env.B122_ICONS = ICONS_FILE;
@@ -452,7 +537,31 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   } catch (e) {
     ok(false, '4 the surfaces ran', e.message);
   } finally {
-    try { process.kill(-dev.pid); } catch (_e) { /* gone */ }
+    await killDev(dev); // F-44.160: the bench waits for its own server to be gone before it exits
+    // and says so: a bench that leaves a next dev holding the root hands F-44.160 to the next bench
+    const left = rootDevs();
+    ok(left.length === 0, '4.99 F-44.160: this bench leaves no next dev holding the root (its control\u2019s blocker and its own server gone)', left.length ? 'still alive: ' + left.join(', ') : '');
+    // 4.99m · 4.99's PROOF OF RECORD (ruled 25 Sept 2026; c-45.49 withdrew the group-only kill as a
+    // race that cannot red on demand): a kill that signals ONLY npx's own pid must leave the server
+    // alive, and 4.99's own detector (rootDevs) must see it. Then the survivor goes by the whole-tree
+    // kill, and the root is proven free again, so this proof hands nothing on.
+    {
+      const mLog = path.join(os.tmpdir(), 'b122-dev-mutation.log');
+      const m = spawnDev(3988, mLog, false);
+      const mUp = await answers(3988, 150);
+      const tree = treeOf(m.pid);
+      try { process.kill(m.pid, 'SIGTERM'); } catch (_e) { /* gone */ }
+      await new Promise((r) => setTimeout(r, 3000));
+      const seen = rootDevs();
+      for (const pid of tree) { try { process.kill(pid, 'SIGTERM'); } catch (_e) { /* gone */ } }
+      for (let t = 0; t < 20 && tree.some(alive); t += 1) await new Promise((r) => setTimeout(r, 1000));
+      for (const pid of tree.filter(alive)) { try { process.kill(pid, 'SIGKILL'); } catch (_e) { /* gone */ } }
+      for (let t = 0; t < 10 && tree.some(alive); t += 1) await new Promise((r) => setTimeout(r, 500));
+      const after = rootDevs();
+      ok(mUp && seen.length > 0 && after.length === 0,
+        '4.99m mutation (F-44.160, ruled): a kill of npx alone leaves the server alive and 4.99\u2019s detector sees it; the whole-tree kill then frees the root',
+        !mUp ? 'the mutation server never answered' : !seen.length ? 'nothing seen after the npx-only kill: 4.99 would not bite' : 'the root is still held after the whole-tree kill: ' + after.join(', '));
+    }
   }
 
   console.log(`\nb122: ${pass} passed, ${fail} failed${fail ? '\n  ' + failed.join('\n  ') : ''}`);

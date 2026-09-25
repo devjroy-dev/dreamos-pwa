@@ -152,6 +152,13 @@ try {
       }
     }
     const main = scopes[0];
+    // TYPE_1b 3.5 (re-cut, e-candidate: the first form measured the TEXT's top, which moves with the face's
+    // own ascent: 16 in the stand-in's fallback serif, 15 with the real Cormorant on the founder's machine).
+    // The room's opening space is the TITLE ELEMENT's own geometry, which no face can move: where its box
+    // begins against the room's top, and the padding it sets above its line.
+    const titleEl = main ? main.querySelector('[data-room-title]') : null;
+    const titleBox = titleEl ? { elTop: Math.round((titleEl.getBoundingClientRect().top - main.getBoundingClientRect().top) * 10) / 10,
+      padTop: parseFloat(getComputedStyle(titleEl).paddingTop), first: (() => { const w = document.createTreeWalker(main, NodeFilter.SHOW_TEXT); while (w.nextNode()) { if (w.currentNode.textContent.trim()) return titleEl.contains(w.currentNode); } return false; })() } : null;
     // A CLOSED sheet is a fixed layer translated below the fold: it is in the DOM, not on glass. The
     // question is asked of the LAYER, never of the node: an open sheet's rows that sit below its own
     // scroll fold are on the sheet and are counted. (The first cut asked it of the node, so a tree whose
@@ -164,6 +171,9 @@ try {
     }
     const strip = (() => { const cur = main && main.querySelector('button[aria-current="page"]'); return cur ? cur.parentElement : null; })();
     const nodes = [];
+    // TYPE_1b: each node's TEXT top (its own line box, not its element's padding box) against .wl-main's
+    // top, so the rung can measure the room's opening space
+    const mainTop = main ? main.getBoundingClientRect().top : 0;
     scopes.filter(Boolean).forEach((root, si) => {
       const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
       while (w.nextNode()) {
@@ -174,7 +184,7 @@ try {
         let scroller = false; for (let a = el; a && a !== root; a = a.parentElement) { const ox = getComputedStyle(a).overflowX; if (ox === 'auto' || ox === 'scroll') { scroller = true; break; } }
         nodes.push({ txt, scope: si, size: Math.round(parseFloat(cs.fontSize) * 100) / 100, f: fam(cs.fontFamily), wt: Number(cs.fontWeight),
           ls: cs.letterSpacing, tt: cs.textTransform, fs: cs.fontStyle, later: !!el.closest(LATER), strip: !!(strip && strip.contains(el)),
-          scroller, left: Math.round(r.left), right: Math.round(r.right) });
+          scroller, left: Math.round(r.left), right: Math.round(r.right), top: (() => { const rg = document.createRange(); rg.selectNodeContents(t); return Math.round((rg.getBoundingClientRect().top - mainTop) * 10) / 10; })() });
       }
     });
     const controls = [];
@@ -190,7 +200,7 @@ try {
     const fig = [...main.querySelectorAll('div')].find((d) => /^Rs [0-9,]+$/.test(d.textContent.trim()) && d.children.length === 0);
     return {
       scopes: scopes.filter(Boolean).length,
-      nodes, controls,
+      nodes, controls, titleBox,
       docOverflow: document.documentElement.scrollWidth - W,
       mainOverflow: main ? main.scrollWidth - main.clientWidth : null,
       stripLabels: strip ? [...strip.querySelectorAll('button')].map((x) => x.textContent.trim()) : [],

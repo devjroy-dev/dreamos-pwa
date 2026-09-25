@@ -177,7 +177,9 @@ const MAST = read('components/vendor/slices/Masthead.tsx');
 // from the retired `fontSize: isMoney` to the figure's own element, and the second cell asks the
 // question the mechanism now answers: the figure takes t1 and nothing may set a size beside it.
 {
-  const moneyDiv = /\{\s*font: T\.t1,[\s\S]{0,400}?\}\}>\{text\}/.exec(MAST);
+  // AMENDED BY LABEL · CE-45 FE-2 TYPE_1b (the founder's "b"): the room's name is now the surface's one t1,
+  // so the money figure stands at t2; the two questions below are unchanged.
+  const moneyDiv = /\{\s*font: T\.t2,[\s\S]{0,400}?\}\}>\{text\}/.exec(MAST);
   ok('the money headline no longer carries textOverflow: ellipsis',
      !!moneyDiv && !/textOverflow/.test(strip(moneyDiv[0])),
      moneyDiv ? 'ellipsis still present on the money headline' : 'money headline not found  anchor moved');

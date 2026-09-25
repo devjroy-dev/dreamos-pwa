@@ -39,7 +39,8 @@ import { AddSheet } from '@/components/vendor/AddSheet';
 // The pair is chosen by the SAME derivation that chooses everything else here, so there is
 // one fact about which tree we are in and one place it is read.
 import { WlToast } from '@/components/worklist/WlToast';
-import { roomHref } from '@/lib/worklist/rooms';
+import { roomHref, ROOMS } from '@/lib/worklist/rooms';
+import { LEGACY_ROOM_HEAD } from '@/lib/worklist/copy';
 // THE TWO PDF SENTENCES AND THE INVOICE ROW'S VERB LIVE IN THE REGISTER, NOT
 // HERE (CE-39 2c-Studio, ruling 4). Both PDF bytes were spelled inline in this
 // file, at the two call sites below; `Mark paid` was spelled twice more, once
@@ -80,19 +81,9 @@ import { A, T, LABELS, WaIcon, SliceRow, cap, type Row } from './SliceRow';
 // Exhibit A's flagship pair among them); events match by the binder the row
 // itself names (an event that names none wears no chip). Silence about a
 // blindness is the lie this block exists to kill.
-const CHIP_BLINDNESS: Partial<Record<ListSlice, string>> = {
-  leads:    'Some entries may also exist as binders — phones connect them.',
-  invoices: 'Some entries may also exist as enquiries — phones connect them.',
-  events:   'Some dates may also sit in a binder — the entry has to name it.',
-};
 
-const LANE_LINE: Record<ListSlice, string> = {
-  leads:    'Enquiries pipeline',
-  clients:  'From your binders',
-  invoices: 'From your binders',
-  expenses: 'From your binders',
-  events:   'Your calendar',
-};
+// TYPE_1b (ii): each legacy room's title is the registry's own label byte (lib/worklist/rooms.ts ROOMS), read, never typed.
+const ROOM_NAME = Object.fromEntries(ROOMS.map((r) => [r.id, r.label])) as Record<string, string>;
 import { DetailSheet } from './DetailSheet';
 import { reminderPreview, reminderDate } from '@/lib/worklist/paymentReminders';
 import { updateMilestone, deleteSchedule } from '@/lib/vendor/api/vendor';
@@ -230,18 +221,18 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
           two nav seats are the way back, which is the same contract Billing and Settings
           crossed under at S1. On the /vendor fallback the row renders exactly as before. */}
       
-      {/* TDW_04 A1 (L-1, ST-1): the lane declaration — one provenance line under
-          every record-surface title, house voice. No surface claims totality it
-          doesn't have. */}
-      <div style={{ padding: '0 var(--slice-inset, 22px) 2px', marginTop: -4 }}>
-        <span style={{ font: T.t3, color: A.inkMute }}>{LANE_LINE[slice]}</span>
-      </div>
+      {/* CE-45 · FE-2 · TYPE_1b · (i) and (ii), ruled: the room opens as the reference surface opens,
+          16px above its first line, and that line is the room's own name at t1, the registry's label
+          byte (Packages' precedent), never typed here. The lane line that sat flush under the header
+          (marginTop -4) retired with the founder's rows 1 to 3. */}
+      <h1 data-room-title="" style={{ font: T.t1, color: A.ink, margin: 0, padding: '16px var(--slice-inset, 22px) 10px' }}>{ROOM_NAME[slice]}</h1>
 
       {/* TDW_04 A3 (P5/ST-4): THE number — every figure from lib/vendor/derive.ts,
           the same function the hub Ledger reads. */}
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div style={{ flex: 1, minWidth: 0 }}>{masthead}</div>
-        {sortControl && <div style={{ padding: '14px var(--slice-inset, 22px) 0 0' }}>{sortControl}</div>}
+        {/* TYPE_1b: the sort sits on the headline row itself (its first line), no longer 14px below it */}
+        {sortControl && <div style={{ padding: '0 var(--slice-inset, 22px) 0 0' }}>{sortControl}</div>}
       </div>
 
 
@@ -291,16 +282,7 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
             )}
             {rows.map(row => renderRow ? <div key={row.id}>{renderRow(row)}</div> : <SliceRow key={row.id} row={row} slice={slice} onSelect={() => onSelect(row)} />)}
 
-            {/* TDW_04 A3 (L-3, ST-2): each chip-bearing list discloses its
-                blindness ONCE — the chip's absence is not evidence of absence.
-                Said plainly, at the foot of the list, in the house voice. */}
-            {!loading && !error && rows.length > 0 && CHIP_BLINDNESS[slice] && (
-              <div style={{
-                font: T.t3,
-                padding: '14px var(--slice-inset, 22px) 20px',
-                color: A.inkMute,
-              }}>{CHIP_BLINDNESS[slice]}</div>
-            )}
+            {/* TYPE_1b: the foot line under the list (CHIP_BLINDNESS) retired with the founder's row 9. */}
           </>
         )}
       </div>
@@ -1024,28 +1006,23 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       const outstanding = d.summary ? d.summary.total_outstanding : null;
       const openCount = rawRows.filter(r => (r.payAmount ?? 0) > 0).length;
       if (outstanding === null) return null;
-      return <Masthead eyebrow="Outstanding" value={outstanding} isMoney
-        sub={openCount === 0 ? 'from your binders · settled' : `from your binders · across ${openCount} open`} />;
+      return <Masthead line={LEGACY_ROOM_HEAD.invoices(openCount)} value={outstanding} isMoney />;
     }
     if (slice === 'clients') {
       const c = deriveClients(cabForMoney.data);
-      return <Masthead eyebrow="Active engagements" value={c.count}
-        sub={c.count === 1 ? 'from your binders · 1 client' : 'from your binders · client-stage binders'} />;
+      return <Masthead line={LEGACY_ROOM_HEAD.clients(c.count)} value={c.count} />;
     }
     if (slice === 'leads') {
       const p = derivePipeline(rawRows.map(r => ({ state: r.badge, budget_total: r.pipelineValue })));
-      return <Masthead eyebrow="Pipeline value" value={p.value} isMoney
-        sub={p.count === 0 ? 'enquiries · nothing open' : `enquiries · across ${p.count} open`} />;
+      return <Masthead line={LEGACY_ROOM_HEAD.leads(p.count)} value={p.value} isMoney />;
     }
     if (slice === 'expenses') {
       const e = deriveExpensesThisMonth(rawRows.map(r => ({ amount: r.pipelineValue, expense_date: r.sortDate })));
-      return <Masthead eyebrow="This month" value={e.total} isMoney
-        sub={e.count === 0 ? 'from your binders · nothing filed' : `from your binders · ${e.count} filed`} />;
+      return <Masthead line={LEGACY_ROOM_HEAD.expenses(e.count)} value={e.total} isMoney />;
     }
     if (slice === 'events') {
       const w = deriveEventsThisWeek(rawRows.map(r => ({ event_date: r.sortDate, state: r.badge?.toLowerCase() })));
-      return <Masthead eyebrow="This week" value={w.count}
-        sub={w.count === 0 ? 'your calendar · nothing booked' : w.count === 1 ? 'your calendar · 1 event' : 'your calendar · events ahead'} />;
+      return <Masthead line={LEGACY_ROOM_HEAD.events(w.count)} value={w.count} />;
     }
     return null;
   }, [slice, cabForMoney.data, rawRows, d.summary]);
