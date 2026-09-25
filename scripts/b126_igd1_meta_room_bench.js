@@ -88,8 +88,9 @@ const ICON_SHA = '1b6519c8f964bef9129cd637b8cdb605f0b3913d294656d5bef8f58e885fd7
   const labels = S.ROOM_ROWS.map((r) => r.label);
   const group = (S.HUB_GROUPS.find((g) => g.name === 'Get booked') || { keys: [] }).keys;
   ok(S.roomLabel('number') === ROW_LABEL && S.ROW_DESC.number === ROW_LINE && labels.length === 11 && !labels.includes('Your own number')
-    && group[group.length - 1] === 'number',
-    '1.6 A1, A2, A3: the row is "WhatsApp and Instagram", last in Get booked, with its line; eleven rows; the old name gone from the hub');
+    && group[0] === 'number',
+    // AMENDED BY LABEL · IGD-1 cut 1b · R-45.28: A2 "last" became "first" by the founder's word after the walk.
+    '1.6 A1, R-45.28, A3: the row is "WhatsApp and Instagram", FIRST in Get booked, with its line; eleven rows; the old name gone from the hub');
   const IC = loadTs(ICONS);
   ok(sha(String(IC.ROOM_ICONS.number)) === ICON_SHA && !/M9\.5 9\.5c\.5 2 2 3\.5 4 4/.test(read(ICONS)),
     '1.7 A4 and F-44.164: the two-bubble drawing is the row\u2019s icon, and the handset drawing is nowhere in the icon set');

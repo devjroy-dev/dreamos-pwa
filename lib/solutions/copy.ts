@@ -176,7 +176,9 @@ export const ROOM_ROWS = [
 export const HUB_GROUPS: readonly { name: string; keys: readonly RoomKey[] }[] = [
   { name: 'Work together', keys: ['collabs'] },
   { name: 'Get found',     keys: ['website', 'wedding_pages', 'google', 'posts'] },
-  { name: 'Get booked',    keys: ['dates', 'introductions', 'referrals', 'number'] },
+  // CE-45 IGD-1 cut 1b · R-45.28 (the founder, after cut 1's walk, 25 Sept 2026): "whatsapp and instagram should be the First one
+  // in GET BOOKED-above open dates and rates". A2's "last" amended by his word; ROOM_ROWS' own order is untouched.
+  { name: 'Get booked',    keys: ['number', 'dates', 'introductions', 'referrals'] },
   { name: 'Get paid',      keys: ['contracts', 'reminders'] },
 ] as const;
 

@@ -1,0 +1,8 @@
+# scripts/floor-manifest-ce45-igd1-cut1b.txt
+# CE-45 · IGD-1 · CUT 1b (dreamos-pwa): R-45.28 only, "WhatsApp and Instagram" first in Get booked. BASE: afe6b076.
+# F-19.16: a dirty path outside this list is a STOP. No new directory. No handover in this repo (the founder's word on handovers
+# going to dream-os); cut 1b's record rides a dream-os docs delivery.
+lib/solutions/copy.ts
+scripts/b122_ce45_home_shelves_bench.js
+scripts/b126_igd1_meta_room_bench.js
+scripts/floor-manifest-ce45-igd1-cut1b.txt

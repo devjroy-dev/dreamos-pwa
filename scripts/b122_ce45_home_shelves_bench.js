@@ -91,7 +91,8 @@ const RULED_TOP = ['support', 'storefront'];
 const RULED_GROUPS = [
   ['Work together', ['collabs']],
   ['Get found', ['website', 'wedding_pages', 'google', 'posts']],
-  ['Get booked', ['dates', 'introductions', 'referrals', 'number']],
+  // AMENDED BY LABEL · CE-45 IGD-1 cut 1b · R-45.28: the founder moved "WhatsApp and Instagram" to the head of Get booked.
+  ['Get booked', ['number', 'dates', 'introductions', 'referrals']],
   ['Get paid', ['contracts', 'reminders']],
 ];
 // HOME_2 · R-45.21: THE 29 DRAWINGS OF THE APPROVED MOCK, sha256 of each <symbol>'s inner markup as it
