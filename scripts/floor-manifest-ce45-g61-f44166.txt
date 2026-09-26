@@ -1,0 +1,10 @@
+# scripts/floor-manifest-ce45-g61-f44166.txt
+# CE-45 · G6-1 · F-44.166 (the settings page's inner scroller) with F-44.172's byte. F-19.16: a dirty path outside this list
+# is a STOP. BASE: 6bb8e7e6 (IGD-1's cut 1b, given under R-45.14). Built at 97031c40; floored at afe6b076; carried byte for byte. No new directory.
+components/vendor/SettingsScreen.tsx
+lib/worklist/ownNumberFlow.ts
+scripts/b120_g61_own_number_bench.js
+scripts/b129_g61_settings_scroll_bench.js
+scripts/lib/b129_scroll_probe.mjs
+scripts/floor-manifest-ce45-g61-f44166.txt
+docs/handovers/TDW_CE45_G61_F44166_HANDOVER.md

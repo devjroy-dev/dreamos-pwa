@@ -71,7 +71,9 @@ function loadTs(rel, src) {
     movedWay: '02b23d7ee2c02e79', movedGo: '7ab492fb33187bc8', movedConfirm: 'd2d785d3349f20e3',
     movedConfirmGo: 'da7d92320cd0e2af', personalNumber: 'f8cb1adf6088b639', whoPays: '9558ba61218d2c9c',
     cancel: 'a0e63d7c7125d29a', connecting: 'f30c2ee0d49c456c', pending: 'bca103ca42a323f1',
-    active: '1db668753387524b', suspended: 'f5f494a6cd724cb4', movedOut: '2bdb248a7d6a4c2b',
+    // AMENDED BY LABEL · F-44.166's cut (F-44.172): `active` is his final byte, "Enquiries to this number are now answered here, by your personal TDW agent." (was
+    // 1db668753387524b, "…answered here, in your voice.").
+    active: 'a736be2aa9e03afb', suspended: 'f5f494a6cd724cb4', movedOut: '2bdb248a7d6a4c2b',
     stopped: '9a6a919ed3fe7efe', metaError: 'ee3a6c55876debe6', expired: 'd11460af28f8c376',
   };
   const FLOW = loadTs(BYTES).FLOW;

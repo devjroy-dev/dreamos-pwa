@@ -204,7 +204,10 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
   const waLink = `https://wa.me/917982159047?text=TDW-${handle.toUpperCase()}`;
 
   return (
-    <div ref={signOutAnchor} style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    // F-44.166 (CE-45 G6-1): IN THE SHELL (chrome false) this block takes its natural height, so the shell's own page
+    // scroller (main.wl-main) scrolls the whole page. As `flex: 1; min-height: 0` it was squeezed into whatever height the
+    // rows above it left (89 px at 374 x 900) and :219 below scrolled inside it. The chrome (standalone) mode is unchanged.
+    <div ref={signOutAnchor} style={chrome ? { flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 } : { flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
       <ToastView toast={toast} />
       {chrome && (
         <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
@@ -216,7 +219,11 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
       {/* R-38.5: inside the shell the COLUMN owns the gutter, so this container must not
           take one back. Outside it, the old layout supplies nothing and the 22px inset is
           load-bearing. One expression, both truths, rather than a second container. */}
-      <div style={{ flex: 1, overflowY: chrome ? 'auto' : 'visible', overflowX: 'hidden', padding: chrome ? '8px 22px calc(40px + env(safe-area-inset-bottom))' : '8px 0 24px' }}>
+      {/* F-44.166: in the shell overflowX is 'clip', not 'hidden'. With 'hidden' the browser computes this region's
+          `overflowY: visible` as `auto` (CSS turns a visible axis into auto when the other axis is not visible), which
+          made it a scroller of its own. 'clip' clips sideways without making a scroll container; a browser without
+          'clip' drops it and falls back to visible, which also leaves one scroller. Chrome mode unchanged. */}
+      <div style={{ flex: 1, overflowY: chrome ? 'auto' : 'visible', overflowX: chrome ? 'hidden' : 'clip', padding: chrome ? '8px 22px calc(40px + env(safe-area-inset-bottom))' : '8px 0 24px' }}>
 
         {/* TDW_07 P2 · CE ruling §C — ONE EDITOR PER FIELD, and the criterion is
             mechanical: a field Discover RENDERS or profileScore SCORES moved to Discover

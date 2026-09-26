@@ -77,7 +77,9 @@ export const FLOW: OwnNumberFlowCopy = {
   cancel:         'Not now',
   connecting:     'Connecting your number. If you are keeping your app, keep WhatsApp Business open on your phone.',
   pending:        'We are finishing the connection. This can take a few minutes.',
-  active:         'Enquiries to this number are now answered here, in your voice.',
+  // F-44.172 (his final words, 25 September; R-45.30): "in your voice" replaced. Its truth half is held by R-45.32
+  // (flag.own_number stays off for every vendor but DEV440 until 2b makes answering real).
+  active:         'Enquiries to this number are now answered here, by your personal TDW agent.',
   suspended:      'Paused. Meta flagged messages from this number, so we have stopped sending from it until its rating recovers.',
   movedOut:       'This number is no longer connected here.',
   stopped:        'You stopped before finishing, so nothing was connected.',
