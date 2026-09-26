@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
 // components/CalendarBlockSheet.tsx
 // Bottom sheet for blocking/unblocking a calendar date.
 // Custom pill-picker replaces native <select> — no OS popup.
@@ -21,11 +22,7 @@ const D = {
   gold: 'var(--role-metal)',
   red: 'var(--role-critical)',
 };
-const F = {
-  display: 'var(--font-cormorant), Georgia, serif',
-  label: 'var(--font-jost), system-ui, sans-serif',
-  body: 'var(--font-dm-sans), system-ui, sans-serif',
-};
+// CE-45 FE-2 cut 2: the local face constant F is retired (every site takes a rung through RUNG, F7).
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 const BLOCK_REASONS = [
@@ -63,11 +60,15 @@ function PillPicker({ options, value, onChange }: {
         const active = opt === value;
         return (
           <button key={opt} type="button" onClick={() => onChange(opt)} style={{
-            padding: '7px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+            font: RUNG.t5,
+            letterSpacing: '0.08em',
+            padding: '7px 14px',
+            borderRadius: 999,
+            border: 'none',
+            cursor: 'pointer',
             background: active ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
             outline: active ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
-            fontFamily: F.label, fontWeight: active ? 400 : 300, fontSize: 10,
-            letterSpacing: '0.15em', textTransform: 'uppercase',
+            textTransform: 'uppercase',
             color: active ? D.cream : D.muted,
             transition: `all 180ms ${EASE}`,
             WebkitTapHighlightColor: 'transparent',
@@ -176,10 +177,10 @@ export function CalendarBlockSheet({
 
         {/* Title row */}
         <div style={{ padding: '6px 24px 16px', borderBottom: D.border }}>
-          <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
+          <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: 'var(--atelier-accent-text)', textTransform: 'uppercase' }}>
             {dateIso ? fmtDate(dateIso) : ''}
           </p>
-          <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, marginTop: 2 }}>
+          <h2 style={{ font: RUNG.t1, color: D.cream, marginTop: 2 }}>
             {existingBlock ? 'Blocked date' : 'Block this date'}
           </h2>
         </div>
@@ -190,9 +191,12 @@ export function CalendarBlockSheet({
               (F-04.77's cure; the day sheet's own block, styles byte-for-byte.) */}
           {verdict && (
             <div style={{
-              padding: '10px 14px', borderRadius: 10,
-              border: '0.5px solid var(--role-critical)', background: 'transparent',
-              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red,
+              font: RUNG.t3,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: '0.5px solid var(--role-critical)',
+              background: 'transparent',
+              color: D.red,
             }}>{verdict}</div>
           )}
           {(() => {
@@ -200,13 +204,13 @@ export function CalendarBlockSheet({
             if (!onDay.length) return null;
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 12, borderBottom: D.border }}>
-                <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>On this day</span>
+                <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: 'var(--atelier-accent-text)', textTransform: 'uppercase' }}>On this day</span>
                 {onDay.map((e) => (
                   <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                    <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-accent-text)', minWidth: 54 }}>
+                    <span style={{ font: RUNG.t3, color: 'var(--atelier-accent-text)', minWidth: 54 }}>
                       {e.event_time ? e.event_time.slice(0, 5) : 'all day'}
                     </span>
-                    <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream, flex: 1 }}>
+                    <span style={{ font: RUNG.t3, color: D.cream, flex: 1 }}>
                       {e.title}{e.kind ? <span style={{ color: D.muted }}> · {e.kind}</span> : null}
                     </span>
                   </div>
@@ -217,17 +221,20 @@ export function CalendarBlockSheet({
           {existingBlock ? (
             <>
               {existingBlock.reason && (
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>
+                <p style={{ font: RUNG.t3, color: D.muted }}>
                   Reason: <span style={{ color: D.cream }}>{existingBlock.reason}</span>
                 </p>
               )}
               <button type="button" onClick={doUnblock} disabled={working} style={{
-                width: '100%', padding: '13px 0',
-                background: 'transparent', opacity: working ? 0.5 : 1,
+                font: RUNG.t4,
+                width: '100%',
+                padding: '13px 0',
+                background: 'transparent',
+                opacity: working ? 0.5 : 1,
                 border: '0.5px solid var(--role-critical)',
-                borderRadius: 999, cursor: working ? 'default' : 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: 10,
-                color: D.red, letterSpacing: '0.3em', textTransform: 'uppercase',
+                borderRadius: 999,
+                cursor: working ? 'default' : 'pointer',
+                color: D.red,
               }}>
                 {working ? 'Working…' : 'Unblock'}
               </button>
@@ -236,8 +243,12 @@ export function CalendarBlockSheet({
             <>
               <div>
                 <label style={{
-                  display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                  color: D.muted, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 12,
+                  font: RUNG.t5,
+                  letterSpacing: '0.08em',
+                  display: 'block',
+                  color: D.muted,
+                  textTransform: 'uppercase',
+                  marginBottom: 12,
                 }}>Reason</label>
                 <PillPicker options={BLOCK_REASONS} value={reason} onChange={setReason} />
               </div>
@@ -247,21 +258,28 @@ export function CalendarBlockSheet({
                   value={custom} onChange={e => setCustom(e.target.value)}
                   placeholder="Specify reason…"
                   style={{
-                    width: '100%', padding: '11px 14px', boxSizing: 'border-box',
+                    font: RUNG.t3,
+                    width: '100%',
+                    padding: '11px 14px',
+                    boxSizing: 'border-box',
                     background: 'var(--atelier-input-bg)',
                     border: '0.5px solid var(--atelier-card-border)',
-                    borderRadius: 10, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
-                    color: D.cream, outline: 'none', 
+                    borderRadius: 10,
+                    color: D.cream,
+                    outline: 'none',
                   }}
                 />
               )}
 
               <button type="button" onClick={doBlock} disabled={working} style={{
-                width: '100%', padding: '13px 0',
+                font: RUNG.t4,
+                width: '100%',
+                padding: '13px 0',
                 background: working ? 'var(--atelier-input-border)' : 'var(--atelier-accent-text)',
-                border: 'none', borderRadius: 999, cursor: working ? 'default' : 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: 'var(--role-ink-on-metal)',
-                letterSpacing: '0.3em', textTransform: 'uppercase',
+                border: 'none',
+                borderRadius: 999,
+                cursor: working ? 'default' : 'pointer',
+                color: 'var(--role-ink-on-metal)',
               }}>
                 {working ? 'Working…' : 'Block date'}
               </button>

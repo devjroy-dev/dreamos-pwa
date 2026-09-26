@@ -284,14 +284,20 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
 
         {/* Name + detail line */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
+          {/* F-44.177 (CE-45 FE-2, folded into cut 2): the row's tags no longer sit INSIDE the line that clips.
+              That line hides whatever spills out of it (it ellipses a long name), and a tag's padded box at the
+              t5 rung, in the real DM Sans, is taller than the name's line, so its bottom was cut on his phones
+              (the containers' fallback faces never showed it; A-45.9). The name clips alone now; each tag is its
+              own box beside it, which nothing clips. Same words, same order. */}
+          <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+          <span style={{
             font: T.t3,
             color: A.ink,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-          }}>
-            {row.primary}
+            minWidth: 0,
+          }}>{row.primary}</span>
             {/* M-LEADS-TRUTH · the TDW mark. Founder copy, approved 2026-08-22,
                 frozen at the character: three letters, no expansion, no tooltip.
                 It rides the NAME line rather than the meta line because it says
@@ -315,11 +321,13 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
                  always engraved, it just never said so. tdw09_type's test is
                  UNCHANGED by this delivery, so an eleventh un-cited site below
                  the floor still reds, which is the condition of the grant. */
-              <span style={{
+              <span data-row-tag="" style={{
                 font: T.t5,
                 letterSpacing: '0.08em',
                 marginLeft: 8,
-                verticalAlign: 'middle',
+                display: 'inline-flex',
+                alignItems: 'center',
+                flexShrink: 0,
                 textTransform: 'uppercase',
                 color: A.brass,
                 border: '0.5px solid rgba(201,168,76,0.38)',
@@ -343,11 +351,13 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
                 badge's, and two chips in one ink would be one chip wearing two
                 meanings. */}
             {row.referralIn && (
-              <span style={{
+              <span data-row-tag="" style={{
                 font: T.t5,
                 letterSpacing: '0.08em',
                 marginLeft: 8,
-                verticalAlign: 'middle',
+                display: 'inline-flex',
+                alignItems: 'center',
+                flexShrink: 0,
                 textTransform: 'uppercase',
                 color: 'var(--atelier-accent-text)',
                 border: '0.5px solid var(--atelier-accent-text)',
@@ -386,11 +396,13 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
                 split goes quietly wrong"), so this chip reads the CSS variable
                 directly, as the referral chip does, and cannot be moved by it. */}
             {row.weddingLead && (
-              <span style={{
+              <span data-row-tag="" style={{
                 font: T.t5,
                 letterSpacing: '0.08em',
                 marginLeft: 8,
-                verticalAlign: 'middle',
+                display: 'inline-flex',
+                alignItems: 'center',
+                flexShrink: 0,
                 textTransform: 'uppercase',
                 color: 'var(--atelier-accent-text)',
                 border: '0.5px solid var(--atelier-accent-text)',

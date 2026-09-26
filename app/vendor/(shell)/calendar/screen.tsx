@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
 // app/vendor/calendar/screen.tsx — THE CALENDAR'S BODY, ONE DEFINITION, NO CHROME.
 //
 // ── §4-2 · CALENDAR CROSSES · R-38.11 ───────────────────────────────────────
@@ -56,12 +57,6 @@ const A = {
   brassLine: 'rgba(201,168,76,0.18)',
   brassSoft: 'rgba(201,168,76,0.28)',
   terracotta:'var(--role-critical)',
-} as const;
-const F = {
-  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script:  'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
-  body:    'var(--font-dm-sans), system-ui, sans-serif',
-  label:   'var(--font-jost), system-ui, sans-serif',
 } as const;
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -329,9 +324,13 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
               {i === 1 && <span style={{ width: '0.5px', height: 9, background: A.brassLine }} />}
               <button type="button" onClick={() => setView(v)} aria-pressed={view === v}
                 style={{
-                  background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                  letterSpacing: '0.32em', textTransform: 'uppercase',
+                  font: RUNG.t5,
+                  letterSpacing: '0.08em',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
                   color: view === v ? A.interactiveWarm : A.inkMute,
                 }}>{v === 'month' ? 'Month' : 'Weddings'}</button>
             </span>
@@ -358,30 +357,52 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
           onClick={() => month === 0 ? (setYear(y=>y-1), setMonth(11)) : setMonth(m=>m-1)}
           aria-label="Previous month"
           style={{
-            position: 'absolute', left: 14, top: '50%', transform: 'translateY(-30%)',
-            width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--atelier-label)', fontFamily: F.display, fontSize: 25, lineHeight: 1,
+            font: RUNG.t2,
+            position: 'absolute',
+            left: 14,
+            top: '50%',
+            transform: 'translateY(-30%)',
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--atelier-label)',
           }}>‹</button>
 
         <div style={{
-          fontFamily: F.label, fontWeight: 200, fontSize: 9,
-          letterSpacing: '0.5em', textTransform: 'uppercase',
-          color: 'var(--atelier-label)', marginBottom: 6,
+          font: RUNG.t5,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: 'var(--atelier-label)',
+          marginBottom: 6,
         }}>Anno · {year}</div>
         <div style={{
-          fontFamily: F.display, fontWeight: 400, fontSize: 49,
-          color: 'var(--atelier-ink)', lineHeight: 1, letterSpacing: '0.02em',
+          font: RUNG.t1,
+          color: 'var(--atelier-ink)',
         }}>{MONTHS[month]}</div>
 
         <button type="button"
           onClick={() => month === 11 ? (setYear(y=>y+1), setMonth(0)) : setMonth(m=>m+1)}
           aria-label="Next month"
           style={{
-            position: 'absolute', right: 14, top: '50%', transform: 'translateY(-30%)',
-            width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--atelier-label)', fontFamily: F.display, fontSize: 25, lineHeight: 1,
+            font: RUNG.t2,
+            position: 'absolute',
+            right: 14,
+            top: '50%',
+            transform: 'translateY(-30%)',
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--atelier-label)',
           }}>›</button>
       </div>
 
@@ -442,8 +463,9 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
             boxShadow: 'none',
           }} />
           <span style={{
-            fontFamily: F.label, fontWeight: 300, fontSize: 8,
-            letterSpacing: '0.32em', textTransform: 'uppercase',
+            font: RUNG.t5,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
             color: hotOn ? A.interactiveWarm : A.inkMute,
           }}>Hot Dates</span>
         </button>
@@ -463,13 +485,13 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
             flexShrink: 0,
           }} />
           <div style={{
+            font: RUNG.t3,
             flex: 1,
-            fontFamily: F.script, fontSize: 16, lineHeight: 1.5, fontWeight: 400,
-            color: 'var(--atelier-ink-soft)', letterSpacing: '0.01em',
+            color: 'var(--atelier-ink-soft)',
           }}>
             {hotThisMonth === 1 ? 'One auspicious date this month — peak season approaches' : `${hotThisMonth === 2 ? 'Two' : hotThisMonth === 3 ? 'Three' : hotThisMonth} auspicious dates this month — peak season approaches`}
           </div>
-          <div style={{ fontFamily: F.display, fontSize: 16, lineHeight: 1.5, color: A.brassWarm }}>
+          <div style={{ font: RUNG.t3, color: A.brassWarm }}>
             {hotThisMonth}
           </div>
         </div>
@@ -483,30 +505,36 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
       }}>
         {DAYS.map((d, i) => (
           <div key={i} style={{
-            textAlign: 'center', padding: '2px 0',
-            fontFamily: F.label, fontWeight: 300, fontSize: 8,
-            letterSpacing: '0.32em', textTransform: 'uppercase',
+            font: RUNG.t5,
+            letterSpacing: '0.08em',
+            textAlign: 'center',
+            padding: '2px 0',
+            textTransform: 'uppercase',
             color: 'var(--atelier-label)',
           }}>{d}</div>
         ))}
       </div>
 
       {/* Month grid — fixed rows, no flex stretching */}
-      <div style={{
+      {/* CE-45 FE-2 cut 2: data-cal-grid marks the grid for b123 (his "2": its numerals at t2) */}
+      <div data-cal-grid="" style={{
         display: 'grid', gridTemplateColumns: 'repeat(7,1fr)',
         padding: '6px 18px 12px',
       }}>
         {/* Previous-month fade cells */}
         {Array.from({ length: firstDow }).map((_,i) => (
           <div key={`p${i}`} style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            font: RUNG.t2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             // TDW_09 F-09.15b: was a bare cream literal — the espresso ink at
             // 18% alpha, unquoted here on purpose (the bench's ④ reads comments).
             // Espresso 1.63:1 (the intended fade); Editorial Paper 1.02:1 — these
             // numerals did not dim on the light theme, they vanished. Now themed,
             // held at the 3:1 UI bar in each set rather than the body bar, because
             // last month's dates are meant to recede.
-            fontFamily: F.display, fontSize: 16, lineHeight: 1.5, color: 'var(--atelier-ink-fade)',
+            color: 'var(--atelier-ink-fade)',
           }}>{prevDays - firstDow + i + 1}</div>
         ))}
 
@@ -533,16 +561,21 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
                 setDaySel(prev => prev === dateIso ? null : dateIso);
               }}
               style={{
+                font: RUNG.t2,
                 position: 'relative',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 aspectRatio: '1',
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontFamily: F.display, fontWeight: 400, fontSize: 20, lineHeight: 1.5,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
                 // isToday: F-09.100 — the coin's ground THEMES (brass -> oxblood), so the numeral
                 //   follows the coin's own declared cream via its role. isSel: the selection
                 //   pill is a NON-theming cream literal, 13.30:1 / 15.70:1 — a true INK_DEEP site.
                 color: isToday ? 'var(--role-today-coin-ink)' : (isSel ? INK_DEEP : A.ink),
-                opacity: isFullDayBlocked ? 0.45 : 1,   // a partial hold still sells — no dim (interim until pips)
+                opacity: isFullDayBlocked ? 0.45 : 1,
+                // a partial hold still sells — no dim (interim until pips)
               }}>
               {/* Today brass coin (behind numeral) */}
               {isToday && (
@@ -595,9 +628,9 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
       {/* B6-S1 (item 3): the cap's honest tell. Copy on the veto-on-sight list. */}
       {winData?.truncated && (
         <div style={{
+          font: RUNG.t3,
           padding: '2px 22px 10px',
-          fontFamily: F.script, fontWeight: 300,
-          fontSize: 16, lineHeight: 1.5, color: A.inkMute,
+          color: A.inkMute,
         }}>Over 200 entries in this span — the furthest are not drawn.</div>
       )}
 
@@ -605,13 +638,14 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
       <div style={{ padding: '0 22px 12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0 12px' }}>
           <div style={{
-            fontFamily: F.label, fontWeight: 300, fontSize: 9,
-            letterSpacing: '0.5em', textTransform: 'uppercase',
+            font: RUNG.t5,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
             color: A.brass,
           }}>Next Engagements</div>
           <div style={{ flex: 1, height: '0.5px', background: 'var(--atelier-ink-dim)' }} />
           {nextThree.length > 0 && (
-            <div style={{ fontFamily: F.display, fontSize: 16, lineHeight: 1.5, color: A.brassWarm }}>
+            <div style={{ font: RUNG.t5, color: A.brassWarm }}>
               {nextThree.length}
             </div>
           )}
@@ -653,8 +687,8 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
           </div>
         ) : nextThree.length === 0 ? (
           <div style={{
-            fontFamily: F.script, fontWeight: 300,
-            fontSize: 16, lineHeight: 1.5, color: A.inkMute,
+            font: RUNG.t3,
+            color: A.inkMute,
             padding: '4px 0 8px',
           }}>Nothing on the horizon.</div>
         ) : (
@@ -662,7 +696,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
             {nextThree.map((ev, idx) => {
               const { day, month: mm } = splitDay(ev.event_date);
               return (
-                <div key={ev.id} style={{
+                <div key={ev.id} data-cal-next="" style={{
                   display: 'flex', alignItems: 'center', gap: 18,
                   padding: '14px 0',
                   borderBottom: idx < nextThree.length - 1 ? `0.5px solid rgba(201,168,76,0.12)` : 'none',
@@ -671,13 +705,15 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
                     flexShrink: 0, width: 56, textAlign: 'center',
                   }}>
                     <div style={{
-                      fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                      letterSpacing: '0.36em', textTransform: 'uppercase',
-                      color: 'var(--atelier-label)', marginBottom: 4,
+                      font: RUNG.t5,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color: 'var(--atelier-label)',
+                      marginBottom: 4,
                     }}>{mm}</div>
                     <div style={{
-                      fontFamily: F.display, fontWeight: 400, fontSize: 39,
-                      color: 'var(--atelier-ink)', lineHeight: 0.95, letterSpacing: '-0.01em',
+                      font: RUNG.t2,
+                      color: 'var(--atelier-ink)',
                     }}>{day}</div>
                   </div>
                   <div style={{
@@ -686,13 +722,15 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
                     borderLeft: '0.5px solid var(--atelier-card-border)',
                   }}>
                     <div style={{
-                      fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                      letterSpacing: '0.34em', textTransform: 'uppercase',
-                      color: 'var(--atelier-label)', marginBottom: 5,
+                      font: RUNG.t5,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color: 'var(--atelier-label)',
+                      marginBottom: 5,
                     }}>{ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0,5)}` : ''}</div>
                     <div style={{
-                      fontFamily: F.display, fontWeight: 400, fontSize: 20,
-                      color: 'var(--atelier-ink)', lineHeight: 1.2, letterSpacing: '0.005em',
+                      font: RUNG.t3,
+                      color: 'var(--atelier-ink)',
                     }}>{ev.title}</div>
                   </div>
                 </div>

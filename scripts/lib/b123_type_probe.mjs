@@ -63,10 +63,48 @@ try {
   const shot = async (label) => { if (!SHOTDIR) return; fs.mkdirSync(SHOTDIR, { recursive: true }); await p.screenshot({ path: path.join(SHOTDIR, `b123__${ROOM}__${label}__${MODE}.png`) }); };
 
   await p.goto(`http://localhost:${PORT}/vendor/${ROOM}`, { waitUntil: 'domcontentloaded', timeout: 180000 });
-  const FIRST = { leads: 'Aanya Kapoor', clients: 'Aanya Kapoor', events: 'Aanya Kapoor Sangeet', invoices: 'Aanya Kapoor', expenses: 'Drone rental', notes: null }[ROOM];
+  const FIRST = { leads: 'Aanya Kapoor', clients: 'Aanya Kapoor', events: 'Aanya Kapoor Sangeet', invoices: 'Aanya Kapoor', expenses: 'Drone rental', notes: null, calendar: 'Recce at Udaipur' }[ROOM];
   out.loaded = await waitFor(FIRST ? new Function(`return !!document.querySelector('.wl-main') && document.querySelector('.wl-main').textContent.includes(${JSON.stringify(FIRST)})`)
                                    : () => !!document.querySelector('.wl-main') && document.querySelector('.wl-main').textContent.trim().length > 0);
   await settle(1500); // the masthead figure counts up over 300ms; both trees wait the same
+  // F-44.177 · THE REAL FACES (A-45.9), registered AFTER the room has settled (a dev server reloads the page
+  // once after its first load, which would wipe faces registered earlier). On his machine next/font serves the real DM Sans and Cormorant; a
+  // container cannot fetch them and renders fallbacks, which hide exactly the overflow F-44.177 is. With
+  // B123_FONT_DIR set (the @fontsource woff2 files, fetched from the npm registry, never committed), the probe
+  // registers them under next/font's OWN family names, so the page renders in the real faces here too.
+  out.realFaces = false;
+  try {
+    const names = await p.evaluate(() => { const cs = getComputedStyle(document.documentElement); const first = (v) => v.split(',')[0].trim().replace(/^["']|["']$/g, ''); return { dm: first(cs.getPropertyValue('--font-dm-sans')), co: first(cs.getPropertyValue('--font-cormorant')) }; });
+    // (ruled, 26 Sept): with no B123_FONT_DIR, the probe obtains the real faces itself: `npm pack` of the two
+    // @fontsource packages into a cache under the temp dir (the npm registry is reachable in the containers and
+    // in his Codespace), once, then registered as below. If next/font already serves the real faces (his machine)
+    // they are simply used. If neither source loads, 6.3 still REFUSES: it never passes on fallback faces.
+    let dir = process.env.B123_FONT_DIR;
+    if (!dir) {
+      const { execSync } = await import('child_process');
+      const cache = path.join((await import('os')).tmpdir(), 'b123-fonts');
+      const want = ['dm-sans-latin-400-normal.woff2', 'dm-sans-latin-500-normal.woff2', 'cormorant-garamond-latin-500-normal.woff2'];
+      if (!want.every((f) => fs.existsSync(path.join(cache, f)))) {
+        try {
+          fs.mkdirSync(cache, { recursive: true });
+          execSync('npm pack @fontsource/dm-sans@5 @fontsource/cormorant-garamond@5 --silent', { cwd: cache, stdio: 'ignore', timeout: 120000 });
+          for (const tgz of fs.readdirSync(cache).filter((f) => f.endsWith('.tgz'))) execSync(`tar xzf ${tgz} package/files`, { cwd: cache, stdio: 'ignore' }) && null;
+          for (const f of want) { const src = path.join(cache, 'package', 'files', f); if (fs.existsSync(src)) fs.copyFileSync(src, path.join(cache, f)); }
+        } catch (e) { out.errors.push('faces: npm pack failed: ' + String(e && e.message).split('\n')[0]); }
+      }
+      if (want.every((f) => fs.existsSync(path.join(cache, f)))) dir = cache;
+      out.faceSource = dir ? 'npm-pack cache' : 'none';
+    } else out.faceSource = 'B123_FONT_DIR';
+    if (dir && names.dm && names.co) {
+      const face = (fam, file, w) => `@font-face{font-family:'${fam}';font-weight:${w};font-style:normal;src:url(data:font/woff2;base64,${fs.readFileSync(path.join(dir, file)).toString('base64')}) format('woff2');}`;
+      await p.addStyleTag({ content: [face(names.dm, 'dm-sans-latin-400-normal.woff2', 400), face(names.dm, 'dm-sans-latin-500-normal.woff2', 500), face(names.co, 'cormorant-garamond-latin-500-normal.woff2', 500)].join('\n') });
+    }
+    // a face declared by a style tag loads only when asked or used: ask for each weight explicitly, then settle
+    await p.evaluate(async (n) => { try { await Promise.all([document.fonts.load(`400 14px "${n.dm}"`), document.fonts.load(`500 11px "${n.dm}"`), document.fonts.load(`500 24px "${n.co}"`)]); } catch (_e) { /* reported below */ } await document.fonts.ready; }, names);
+    await new Promise((r) => setTimeout(r, 400));
+    out.realFaces = await p.evaluate((dm) => document.fonts.check(`500 11px "${dm}"`) && [...document.fonts].some((f) => f.family.replace(/["']/g, '') === dm && f.status === 'loaded'), names.dm);
+    out.faceNames = names;
+  } catch (e) { out.errors.push('faces: ' + String(e && e.message).split('\n')[0]); }
   await shot('rest');
 
   if (SCENE === 'sheet') {
@@ -81,6 +119,24 @@ try {
     }
     await settle(1200);
     await shot('sheet');
+  } else if (ROOM === 'calendar' && SCENE !== 'rest') {
+    // cut 2 · the Calendar's surfaces. The day sheet opens from a grid day; the block and crew sheets open
+    // from the day sheet's own controls. Each tap is asserted (tapped / tapped2), never assumed.
+    const tapText = (sel, re) => p.evaluate((sel, src) => { const r = new RegExp(src, 'i'); const bt = [...document.querySelectorAll(sel)].find((x) => r.test(x.textContent.trim())); if (!bt) return null; bt.click(); return bt.textContent.trim(); }, sel, re.source);
+    if (SCENE === 'weddings') {
+      out.tapped = await tapText('[aria-label="Calendar view"] button', /^weddings$/);
+      await waitFor(() => /Aanya Kapoor Wedding/.test(document.querySelector('.wl-main').textContent), 15000);
+    } else {
+      out.tapped = await tapText('.wl-main button', /^15$/);
+      await waitFor(() => /Dev Uthani Ekadashi|Nothing scheduled|Recce at Udaipur/.test(document.body.textContent) && [...document.querySelectorAll('.wl-main button')].some((b) => /^block day$/i.test(b.textContent.trim())), 15000);
+      if (SCENE === 'block') { out.tapped2 = (await tapText('.wl-main button', /^block day$/)) ? 'block' : null; await settle(1200); }
+      if (SCENE === 'crew') {
+        // the day's events land after the sheet opens: wait for the Crew control itself before the tap
+        await waitFor(() => [...document.querySelectorAll('button')].some((b) => /^crew$/i.test(b.textContent.trim())), 15000);
+        out.tapped2 = (await tapText('button', /^crew$/)) ? 'crew' : null; await waitFor(() => /Rhea Sharma/.test(document.querySelector('.wl-main').textContent), 15000); }
+    }
+    await settle(1200);
+    await shot(SCENE);
   } else if (SCENE === 'add') {
     // TYPE_2: the room's + opens its add sheet (AddSheet; clients: ClientBookingSheet, submitted empty so
     // NeedFirst draws; notes: the new-note sheet)
@@ -182,7 +238,7 @@ try {
         if (offGlass(el)) continue;
         const cs = getComputedStyle(el);
         let scroller = false; for (let a = el; a && a !== root; a = a.parentElement) { const ox = getComputedStyle(a).overflowX; if (ox === 'auto' || ox === 'scroll') { scroller = true; break; } }
-        nodes.push({ txt, scope: si, size: Math.round(parseFloat(cs.fontSize) * 100) / 100, f: fam(cs.fontFamily), wt: Number(cs.fontWeight),
+        nodes.push({ txt, scope: si, grid: !!el.closest('[data-cal-grid]'), next: !!el.closest('[data-cal-next]'), fab: !!el.closest('.wl-fab'), size: Math.round(parseFloat(cs.fontSize) * 100) / 100, f: fam(cs.fontFamily), wt: Number(cs.fontWeight),
           ls: cs.letterSpacing, tt: cs.textTransform, fs: cs.fontStyle, later: !!el.closest(LATER), strip: !!(strip && strip.contains(el)),
           scroller, left: Math.round(r.left), right: Math.round(r.right), top: (() => { const rg = document.createRange(); rg.selectNodeContents(t); return Math.round((rg.getBoundingClientRect().top - mainTop) * 10) / 10; })() });
       }
@@ -197,10 +253,17 @@ try {
           href: c.getAttribute('href') || '', tt: cs.textTransform, size: Math.round(parseFloat(cs.fontSize) * 100) / 100, later: !!c.closest(LATER), strip: !!(strip && strip.contains(c)) });
       }
     });
+    // F-44.177 · every row tag: its own box, its text's box (a Range: the real glyph line), and every ancestor
+    // that clips (overflow not visible), so the rung can ask that nothing of the tag is cut
+    const tags = [...main.querySelectorAll('[data-row-tag]')].filter((t) => t.getBoundingClientRect().height > 0).map((t) => {
+      const b = t.getBoundingClientRect(); const rg = document.createRange(); rg.selectNodeContents(t); const tb = rg.getBoundingClientRect();
+      const clips = []; for (let a = t.parentElement; a && a !== main; a = a.parentElement) { const cs = getComputedStyle(a); if (cs.overflowX !== 'visible' || cs.overflowY !== 'visible') { const r = a.getBoundingClientRect(); clips.push({ top: r.top, bottom: r.bottom, left: r.left, right: r.right }); } }
+      return { txt: t.textContent.trim(), box: { top: b.top, bottom: b.bottom, left: b.left, right: b.right }, text: { top: tb.top, bottom: tb.bottom }, clips, size: parseFloat(getComputedStyle(t).fontSize), tt: getComputedStyle(t).textTransform };
+    });
     const fig = [...main.querySelectorAll('div')].find((d) => /^Rs [0-9,]+$/.test(d.textContent.trim()) && d.children.length === 0);
     return {
       scopes: scopes.filter(Boolean).length,
-      nodes, controls, titleBox,
+      nodes, controls, titleBox, tags,
       docOverflow: document.documentElement.scrollWidth - W,
       mainOverflow: main ? main.scrollWidth - main.clientWidth : null,
       stripLabels: strip ? [...strip.querySelectorAll('button')].map((x) => x.textContent.trim()) : [],

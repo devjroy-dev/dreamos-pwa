@@ -3,6 +3,7 @@
 // still reads as the old voice. The mock’s screen four killed the pairing, not just the
 // family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
 // components/vendor/CalendarBands.tsx
 // TDW_04.5 · P2 — THE WEDDING-BAND VIEW (spec §P2, CE-ruled F1–F7).
 //
@@ -47,12 +48,6 @@ const A = {
   brassSoft: 'rgba(201,168,76,0.28)',
   brassRing: 'rgba(201,168,76,0.55)',
   terracotta:'var(--role-critical)',
-} as const;
-const F = {
-  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script:  'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
-  body:    'var(--font-dm-sans), system-ui, sans-serif',
-  label:   'var(--font-jost), system-ui, sans-serif',
 } as const;
 
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -102,12 +97,17 @@ function CrewCircle({ c }: { c: BandCrew }) {
       title={`${c.name} — ${c.confirmation}`}
       aria-label={`${c.name}, ${c.confirmation}`}
       style={{
-        width: 17, height: 17, borderRadius: '50%', flexShrink: 0,
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        font: RUNG.t4,
+        width: 17,
+        height: 17,
+        borderRadius: '50%',
+        flexShrink: 0,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         border: `0.5px solid ${stroke}`,
         background: fill,
-        fontFamily: F.label, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
-        letterSpacing: '0.04em', color: text,
+        color: text,
       }}>{c.initials}</span>
   );
 }
@@ -141,14 +141,19 @@ function Pip({ fn, muhurat, onTap }: { fn: BandFunction; muhurat: boolean; onTap
         )}
       </span>
       <span style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: 8,
-        letterSpacing: '0.22em', textTransform: 'uppercase',
-        color: A.inkMute, whiteSpace: 'nowrap',
+        font: RUNG.t5,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        color: A.inkMute,
+        whiteSpace: 'nowrap',
       }}>{fmtShort(fn.date)}</span>
       <span style={{
-        fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
-        color: A.inkSoft, maxWidth: 74, overflow: 'hidden',
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        font: RUNG.t3,
+        color: A.inkSoft,
+        maxWidth: 74,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
       }}>{fn.kind}</span>
       {fn.crew.length > 0 && (
         <span style={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
@@ -220,7 +225,9 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
     // empty board, which would assert "no weddings" on the strength of a failed GET.
     return (
       <div style={{
-        padding: '18px 22px 26px', fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
+        font: RUNG.t3,
+        padding: '18px 22px 26px',
+        color: A.inkMute,
       }}>The board could not be read just now.</div>
     );
   }
@@ -231,7 +238,9 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
   if (bands.length === 0 && loose.length === 0) {
     return (
       <div style={{
-        padding: '18px 22px 26px', fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.5,
+        font: RUNG.t3,
+        padding: '18px 22px 26px',
+        color: A.inkMute,
       }}>{EMPTY_BOARD}</div>
     );
   }
@@ -258,13 +267,15 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
                   no destination rather than guessing one. Wire point named in the
                   handover beside F3's Post-to-Collab. */}
               <div style={{
-                fontFamily: F.display, fontWeight: 400, fontSize: 20,
-                color: A.ink, lineHeight: 1.15, letterSpacing: '0.005em',
+                font: RUNG.t2,
+                color: A.ink,
               }}>{b.title ?? UNTITLED}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 4 }}>
                 <span style={{
-                  fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                  letterSpacing: '0.3em', textTransform: 'uppercase', color: A.brassWarm,
+                  font: RUNG.t5,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: A.brassWarm,
                 }}>
                   {b.span.start === b.span.end ? fmtShort(b.span.start) : `${fmtShort(b.span.start)} — ${fmtShort(b.span.end)}`}
                 </span>
@@ -272,8 +283,8 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
                     this element does not exist. It never renders ₹0. */}
                 {whisper && (
                   <span style={{
-                    fontFamily: F.script, fontWeight: 300,
-                    fontSize: 16, lineHeight: 1.5, color: A.inkMute,
+                    font: RUNG.t3,
+                    color: A.inkMute,
                   }}>{whisper}</span>
                 )}
               </div>
@@ -295,8 +306,10 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
         <div style={{ padding: '0 22px', marginTop: bands.length ? 20 : 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0 8px' }}>
             <div style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 9,
-              letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass,
+              font: RUNG.t5,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: A.brass,
             }}>{LOOSE_LABEL}</div>
             <div style={{ flex: 1, height: '0.5px', background: 'var(--atelier-ink-dim)' }} />
           </div>
@@ -313,7 +326,9 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
           is a finding, not a shrug. */}
       {data?.truncated && (
         <div style={{
-          padding: '10px 22px 0', fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
+          font: RUNG.t3,
+          padding: '10px 22px 0',
+          color: A.inkMute,
         }}>Over 400 entries in this span — the furthest are not drawn.</div>
       )}
     </div>

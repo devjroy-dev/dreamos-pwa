@@ -117,6 +117,40 @@ export const LEAD_DETAIL = { ok: true, name: 'Aanya Kapoor', vendor_summary: 'Tw
     { direction: 'inbound', body: 'Please do, and the Sangeet too.', created_at: '2026-09-20T07:02:00.000Z', sent_by: 'lead' },
   ] };
 
+// ── CE-45 FE-2 cut 2 · THE CALENDAR'S READS (e-108 again: on {ok:true} alone the room would crash on
+// blocks and dates it expects as arrays). Shapes from lib/vendor/types/vendor.ts (AvailabilityResponse,
+// HotDatesResponse, BandsResponse with Band/BandFunction/BandCrew, VendorDayResponse with DayEvent,
+// DayBlock, DayMilestone and DayFollowup, TeamMember). Money as numbers; a DATE as 'YYYY-MM-DD'.
+export const AVAILABILITY = { ok: true, total: 1, blocks: [
+  { id: 'blk-0001', blocked_date: '2026-11-21', reason: 'Travel', created_at: '2026-09-20T05:00:00.000Z', slot: 'full_day' },
+] };
+export const HOT_DATES = { ok: true, total: 2, dates: [
+  { date: '2026-11-20', note: 'Dev Uthani Ekadashi', region: 'North' },
+  { date: '2026-11-25', note: null, region: 'North' },
+] };
+const crew = [{ member_id: 'tm-0001', name: 'Rhea Sharma', initials: 'RS', role: 'Second shooter', confirmation: 'confirmed', external: false }];
+export const BANDS = { ok: true, default_view: 'month', category: 'photography', truncated: false,
+  bands: [{ binder_id: 'bind-0001', title: 'Aanya Kapoor', span: { start: '2027-02-13', end: '2027-02-14' }, money: null,
+    functions: [
+      { event_id: 'ev-0001', date: '2027-02-13', slot: 'evening', kind: 'shoot', title: 'Aanya Kapoor Sangeet', event_time: '18:00:00', crew, gap: false },
+      { event_id: 'ev-0003', date: '2027-02-14', slot: 'evening', kind: 'shoot', title: 'Aanya Kapoor Wedding', event_time: '19:00:00', crew: [], gap: true },
+    ] }],
+  loose: [{ event_id: 'ev-0002', date: '2026-11-20', slot: null, kind: 'recce', title: 'Recce at Udaipur', event_time: null, crew: [], gap: false }],
+};
+export const DAY = { ok: true, date: '2026-11-20',
+  // a booking's shoot (the day sheet offers Move, Crew and the rest on bookings) beside the recce
+  events: [
+    { id: 'ev-0001', title: 'Aanya Kapoor Sangeet', kind: 'shoot', slot: 'evening', event_time: '18:00:00', state: 'upcoming', notes: null, lead_id: 'lead-0001', linked_binder_id: 'bind-0001', binder_name: 'Aanya Kapoor', assigned_member_ids: [] },
+    { id: 'ev-0002', title: 'Recce at Udaipur', kind: 'recce', slot: 'morning', event_time: '10:00:00', state: 'upcoming', notes: null, lead_id: null, linked_binder_id: null, binder_name: null, assigned_member_ids: [] },
+  ],
+  blocks: [], hot: { note: 'Dev Uthani Ekadashi', label: null },
+  milestones: [{ id: 'ms-0003', invoice_id: 'inv-0001', label: 'Booking', amount_due: 45000, client_name: 'Aanya Kapoor', invoice_number: 'TDW-0001', ordinal: 1, of: 3 }],
+  followups: [{ id: 'fu-0001', client: 'Kabir Singh', note: 'Send the teaser', repeat_every: null }],
+};
+export const TEAM = { ok: true, members: [
+  { id: 'tm-0001', vendor_id: VID, name: 'Rhea Sharma', role: 'Second shooter', phone: '+919811100009', daily_rate_inr: 6000, notes: null, active: true, deleted_at: null, created_at: '2026-08-01T05:00:00.000Z', updated_at: '2026-08-01T05:00:00.000Z', page_token: 'tok-0001' },
+] };
+
 export const ME = { ok: true, vendor: { id: VID, name: 'Probe', business_name: 'Probe Studio', category: 'photography',
   city: 'Delhi', handle: 'probe', upi_id: null, gstin: null } };
 
@@ -135,6 +169,12 @@ export function answer(route) {
   if (/^\/api\/v2\/vendor\/invoices\/[^/]+\/schedule$/.test(route)) return SCHEDULE;
   if (route === '/api/v2/vendor/notes') return NOTES;
   if (route === '/api/v2/vendor/packages') return { ok: true, packages: [] };
+  // cut 2 · the calendar's reads (query strings are stripped by the probe)
+  if (route === `/api/v2/vendor/availability/${VID}`) return AVAILABILITY;
+  if (route === '/api/v2/hot-dates') return HOT_DATES;
+  if (route === `/api/v2/vendor/bands/${VID}`) return BANDS;
+  if (/^\/api\/v2\/vendor\/day\/[^/]+\/\d{4}-\d{2}-\d{2}$/.test(route)) return { ...DAY, date: route.split('/').pop() };
+  if (route === '/api/v2/vendor/studio/team') return TEAM;
   if (route === '/api/v2/vendor/me') return ME;
   return { ok: true };
 }

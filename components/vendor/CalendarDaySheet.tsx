@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
 // components/vendor/CalendarDaySheet.tsx
 // TDW_04 B6 surfaces S2 — item 4, P5's day sheet: "the platform thesis in one
 // surface." One round trip (GET /vendor/day/:vendorId/:date) feeds:
@@ -79,11 +80,7 @@ const D = {
   red: 'var(--role-critical)',
   terracotta: 'var(--role-critical)',
 };
-const F = {
-  display: 'var(--font-cormorant), Georgia, serif',
-  label: 'var(--font-jost), system-ui, sans-serif',
-  body: 'var(--font-dm-sans), system-ui, sans-serif',
-};
+// CE-45 FE-2 cut 2: the local face constant F is retired (every site takes a rung through RUNG, F7).
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const SHEET: React.CSSProperties = {
   background: 'var(--atelier-sheet-top)',
@@ -354,24 +351,27 @@ export function CalendarDaySheet({
         <div style={{ padding: '6px 24px 14px', borderBottom: D.border }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <div>
-              <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold, letterSpacing: '0.3em', textTransform: 'uppercase' }}>
+              <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.gold, textTransform: 'uppercase' }}>
                 {fmtDate(dateIso)}
               </p>
-              <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, marginTop: 2 }}>
+              <h2 style={{ font: RUNG.t1, color: D.cream, marginTop: 2 }}>
                 {fullDayBlock ? 'Blocked day' : 'The day'}
               </h2>
             </div>
             <button type="button" onClick={() => { onClose(); onAddBooking(dateIso); }} style={{
-              border: '0.5px solid rgba(201,168,76,0.4)', background: 'none', borderRadius: 999,
-              padding: '7px 14px', cursor: 'pointer',
-              fontFamily: F.label, fontWeight: 400, fontSize: 9, color: D.gold,
-              letterSpacing: '0.22em', textTransform: 'uppercase',
+              font: RUNG.t4,
+              border: '0.5px solid rgba(201,168,76,0.4)',
+              background: 'none',
+              borderRadius: 999,
+              padding: '7px 14px',
+              cursor: 'pointer',
+              color: D.gold,
             }}>+ Booking</button>
           </div>
           {hotNote && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 8 }}>
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: D.terracotta, boxShadow: 'none' }} />
-              <span style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.terracotta }}>{hotNote}</span>
+              <span style={{ font: RUNG.t3, color: D.terracotta }}>{hotNote}</span>
             </div>
           )}
         </div>
@@ -382,9 +382,12 @@ export function CalendarDaySheet({
           {/* The verdict line — the wire's sentence, verbatim, never softened. */}
           {verdict && (
             <div style={{
-              padding: '10px 14px', borderRadius: 10,
-              border: '0.5px solid var(--role-critical)', background: 'transparent',
-              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.red,
+              font: RUNG.t3,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: '0.5px solid var(--role-critical)',
+              background: 'transparent',
+              color: D.red,
             }}>
               {/* ── EACH KIND LABELLED AT ITS RENDER SITE, chair-ruled ────────────────
                   The label is for the READER OF THIS FILE and for the cell that walks it —
@@ -399,7 +402,7 @@ export function CalendarDaySheet({
           )}
 
           {loading && !day && (
-            <div style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>Fetching the day…</div>
+            <div style={{ font: RUNG.t3, color: D.muted }}>Fetching the day…</div>
           )}
 
           {/* Blocks — the held slots, named, beside the bookings (Q-S-4). */}
@@ -407,10 +410,10 @@ export function CalendarDaySheet({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {blocks.map((b) => (
                 <div key={b.id} style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                  <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: D.muted, minWidth: 64 }}>
+                  <span style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.muted, minWidth: 64 }}>
                     {b.slot === 'full_day' ? 'All day' : b.slot}
                   </span>
-                  <span style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream }}>
+                  <span style={{ font: RUNG.t3, color: D.cream }}>
                     Blocked{b.reason ? <span style={{ color: D.muted }}> · {b.reason}</span> : null}
                   </span>
                 </div>
@@ -420,13 +423,13 @@ export function CalendarDaySheet({
 
           {/* Bookings by slot, binder chips */}
           {groups.length === 0 && !loading && blocks.length === 0 && (
-            <div style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>
+            <div style={{ font: RUNG.t3, color: D.muted }}>
               Nothing scheduled.
             </div>
           )}
           {groups.map((g) => (
             <div key={String(g.slot)} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold, letterSpacing: '0.3em', textTransform: 'uppercase' }}>
+              <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.gold, textTransform: 'uppercase' }}>
                 {SLOT_HEADINGS[g.slot ?? '_none']}
               </span>
               {g.rows.map((ev) => (
@@ -465,12 +468,12 @@ export function CalendarDaySheet({
                       295px in 322px, nothing shrinking, and the title stops competing with
                       the buttons entirely. */}
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginBottom: 3 }}>
+                    <div style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginBottom: 3 }}>
                       {ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}{ev.state === 'done' ? ' · done' : ''}
                     </div>
-                    <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{ev.title}</div>
+                    <div style={{ font: RUNG.t3, color: D.cream }}>{ev.title}</div>
                     {ev.binder_name && (
-                      <div style={{ marginTop: 4, display: 'inline-block', padding: '3px 9px', borderRadius: 999, border: '0.5px solid rgba(201,168,76,0.28)', fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', color: D.gold }}>
+                      <div style={{ font: RUNG.t5, letterSpacing: '0.08em', marginTop: 4, display: 'inline-block', padding: '3px 9px', borderRadius: 999, border: '0.5px solid rgba(201,168,76,0.28)', textTransform: 'uppercase', color: D.gold }}>
                         {ev.binder_name}
                       </div>
                     )}
@@ -494,30 +497,41 @@ export function CalendarDaySheet({
                   {moveId === ev.id && (
                     <div style={{ marginTop: 12, paddingTop: 12, borderTop: D.border, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <input type="date" value={moveDate} onChange={(e) => setMoveDate(e.target.value)} style={{
-                        width: '100%', padding: '10px 13px', boxSizing: 'border-box',
-                        background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)',
-                        borderRadius: 10, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
-                        color: D.cream, outline: 'none', 
+                        font: RUNG.t3,
+                        width: '100%',
+                        padding: '10px 13px',
+                        boxSizing: 'border-box',
+                        background: 'var(--atelier-input-bg)',
+                        border: '0.5px solid var(--atelier-card-border)',
+                        borderRadius: 10,
+                        color: D.cream,
+                        outline: 'none',
                       }} />
                       <div style={{ display: 'flex', gap: 8 }}>
                         {SLOT_LABELS.map(({ key, label }) => (
                           <button key={key} type="button" onClick={() => setMoveSlot(moveSlot === key ? '' : key)} style={{
-                            padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
+                            font: RUNG.t5,
+                            letterSpacing: '0.08em',
+                            padding: '6px 12px',
+                            borderRadius: 999,
+                            cursor: 'pointer',
                             background: moveSlot === key ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
                             border: 'none',
                             outline: moveSlot === key ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
-                            fontFamily: F.label, fontWeight: moveSlot === key ? 400 : 300, fontSize: 9,
-                            letterSpacing: '0.18em', textTransform: 'uppercase',
+                            textTransform: 'uppercase',
                             color: moveSlot === key ? D.cream : D.muted,
                           }}>{label}</button>
                         ))}
                       </div>
                       <button type="button" disabled={working || !moveDate} onClick={() => void doMove(ev)} style={{
-                        padding: '11px 0', width: '100%', border: 'none', borderRadius: 999,
+                        font: RUNG.t4,
+                        padding: '11px 0',
+                        width: '100%',
+                        border: 'none',
+                        borderRadius: 999,
                         background: working || !moveDate ? 'var(--atelier-input-border)' : D.gold,
                         cursor: working || !moveDate ? 'default' : 'pointer',
-                        fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-ink-on-metal)',
-                        letterSpacing: '0.26em', textTransform: 'uppercase',
+                        color: 'var(--role-ink-on-metal)',
                       }}>{working ? 'Working…' : 'Move it'}</button>
                     </div>
                   )}
@@ -530,7 +544,7 @@ export function CalendarDaySheet({
           {(day?.followups?.length ?? 0) > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5, paddingTop: 4, borderTop: D.border }}>
               {day!.followups.map((f) => (
-                <div key={f.id} style={{ fontFamily: F.display, fontStyle: 'italic', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>
+                <div key={f.id} style={{ font: RUNG.t3, color: D.muted }}>
                   Follow up{f.client ? ` — ${f.client}` : ''}{f.note ? `: ${f.note}` : ''}{f.repeat_every ? ` (repeats ${f.repeat_every})` : ''}
                 </div>
               ))}
@@ -540,10 +554,10 @@ export function CalendarDaySheet({
           {/* Money due — C8, mark-paid through the existing door */}
           {(day?.milestones?.length ?? 0) > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4, borderTop: D.border }}>
-              <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Money due</span>
+              <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.gold, textTransform: 'uppercase' }}>Money due</span>
               {day!.milestones.map((m) => (
                 <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ flex: 1, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.cream }}>
+                  <span style={{ font: RUNG.t3, flex: 1, color: D.cream }}>
                     {rupees(m.amount_due)} due{m.client_name ? ` — ${m.client_name}` : ''}{m.of ? ` (${m.ordinal} of ${m.of})` : ''}
                   </span>
                   <button type="button" disabled={working} onClick={() => void doMarkPaid(m.id, m.amount_due)} style={pillBtn(D.gold)}>
@@ -556,7 +570,7 @@ export function CalendarDaySheet({
 
           {/* Actions: the block toggles + the full-day flow + the ask primer */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 8, borderTop: D.border }}>
-            <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted, letterSpacing: '0.25em', textTransform: 'uppercase' }}>
+            <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.muted, textTransform: 'uppercase' }}>
               Hold the day
             </span>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -568,25 +582,28 @@ export function CalendarDaySheet({
                     disabled={working || (!!fullDayBlock && !own)}
                     onClick={() => void toggleSlot(key)}
                     style={{
-                      padding: '8px 14px', borderRadius: 999,
+                      font: RUNG.t5,
+                      letterSpacing: '0.08em',
+                      padding: '8px 14px',
+                      borderRadius: 999,
                       cursor: working || (!!fullDayBlock && !own) ? 'default' : 'pointer',
                       background: held ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
                       border: 'none',
                       outline: held ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
                       opacity: !!fullDayBlock && !own ? 0.5 : 1,
-                      fontFamily: F.label, fontWeight: held ? 400 : 300, fontSize: 9,
-                      letterSpacing: '0.18em', textTransform: 'uppercase',
+                      textTransform: 'uppercase',
                       color: held ? D.cream : D.muted,
                     }}>{held ? `${label} ✕` : label}</button>
                 );
               })}
               <button type="button" disabled={working} onClick={() => { onClose(); onFullDayBlock(dateIso); }} style={{
-                padding: '8px 14px', borderRadius: 999, cursor: 'pointer',
+                font: RUNG.t4,
+                padding: '8px 14px',
+                borderRadius: 999,
+                cursor: 'pointer',
                 background: fullDayBlock ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
                 border: 'none',
                 outline: fullDayBlock ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
-                fontFamily: F.label, fontWeight: fullDayBlock ? 400 : 300, fontSize: 9,
-                letterSpacing: '0.18em', textTransform: 'uppercase',
                 color: fullDayBlock ? D.cream : D.muted,
               }}>{fullDayBlock ? 'Day blocked — manage' : 'Block day'}</button>
             </div>
@@ -600,9 +617,13 @@ export function CalendarDaySheet({
               // app/vendor/layout.tsx names what changed there).
               openAsk(`About ${fmtDate(dateIso)}: `);
             }} style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', textAlign: 'left',
-              fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold,
-              letterSpacing: '0.22em', textTransform: 'uppercase',
+              font: RUNG.t4,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px 0',
+              textAlign: 'left',
+              color: D.gold,
             }}>{/* R-37.70: 「Victor」 is an internal SEAT name and appears in no vendor-facing
                     byte. This control was invisible to the shell's persona sweep until
                     calendar crossed at §4-2 and the served-bytes gate found it — and then
@@ -617,11 +638,16 @@ export function CalendarDaySheet({
   );
 }
 
+// CE-45 FE-2 cut 2 (F5): these pills are ACTIONS (Move, Crew, Collab, Edit, Cancel, Mark paid), so they take
+// the button rung, t4, in sentence case; the choice pills (the slots, hold-the-day) stay t5 in capitals.
 function pillBtn(color: string, border?: string): React.CSSProperties {
   return {
-    background: 'none', border: `0.5px solid ${border ?? 'rgba(201,168,76,0.28)'}`,
-    borderRadius: 999, padding: '5px 10px', cursor: 'pointer',
-    fontFamily: F.label, fontWeight: 300, fontSize: 8,
-    letterSpacing: '0.24em', textTransform: 'uppercase', color,
+    font: RUNG.t4,
+    background: 'none',
+    border: `0.5px solid ${border ?? 'rgba(201,168,76,0.28)'}`,
+    borderRadius: 999,
+    padding: '5px 10px',
+    cursor: 'pointer',
+    color,
   };
 }

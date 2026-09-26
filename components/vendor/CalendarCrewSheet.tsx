@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
 // components/vendor/CalendarCrewSheet.tsx
 // TDW_04.5 P1 #6 (CE Ruling №10) — the day-sheet CREW PICKER.
 // Bottom sheet: toggle the ACTIVE team on/off a booking, then commit ONE full-array SET
@@ -28,11 +29,7 @@ const D = {
   cream: 'var(--atelier-ink)',
   gold: 'var(--role-metal)',
 };
-const F = {
-  display: 'var(--font-cormorant), Georgia, serif',
-  label: 'var(--font-jost), system-ui, sans-serif',
-  body: 'var(--font-dm-sans), system-ui, sans-serif',
-};
+// CE-45 FE-2 cut 2: the local face constant F is retired (every site takes a rung through RUNG, F7).
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 // COPY (founder veto standing — proposals ship unless vetoed):
@@ -147,10 +144,10 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
 
         {/* Title */}
         <div style={{ padding: '6px 24px 16px', borderBottom: D.border }}>
-          <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: 'var(--atelier-accent-text)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
+          <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: 'var(--atelier-accent-text)', textTransform: 'uppercase' }}>
             {event ? event.title : ''}
           </p>
-          <h2 style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, marginTop: 2 }}>
+          <h2 style={{ font: RUNG.t1, color: D.cream, marginTop: 2 }}>
             Assign crew
           </h2>
         </div>
@@ -158,9 +155,9 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
         {/* Body — the ACTIVE team as toggles, or the empty state */}
         <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
           {loading && members.length === 0 ? (
-            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>Loading team…</p>
+            <p style={{ font: RUNG.t3, color: D.muted }}>Loading team…</p>
           ) : members.length === 0 ? (
-            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>{EMPTY_STATE}</p>
+            <p style={{ font: RUNG.t3, color: D.muted }}>{EMPTY_STATE}</p>
           ) : (
             members.map((m) => {
               const on = selected.has(m.id);
@@ -174,16 +171,22 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
                 }}>
                   {/* selection dot */}
                   <span style={{
-                    width: 18, height: 18, borderRadius: 999, flexShrink: 0,
+                    font: RUNG.t3,
+                    width: 18,
+                    height: 18,
+                    borderRadius: 999,
+                    flexShrink: 0,
                     border: on ? `1px solid ${D.gold}` : '1px solid var(--atelier-label)',
                     background: on ? D.gold : 'transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 16, lineHeight: 1.5, color: 'var(--role-ink-on-metal)', fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--role-ink-on-metal)',
                   }}>{on ? '✓' : ''}</span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontFamily: F.display, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: D.cream }}>{m.name}</span>
+                    <span style={{ font: RUNG.t3, display: 'block', color: D.cream }}>{m.name}</span>
                     {(m.role || rate(m)) && (
-                      <span style={{ display: 'block', marginTop: 2, fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: D.muted }}>
+                      <span style={{ font: RUNG.t5, letterSpacing: '0.08em', display: 'block', marginTop: 2, textTransform: 'uppercase', color: D.muted }}>
                         {m.role || 'crew'}{rate(m) ? ` · ${rate(m)}` : ''}
                       </span>
                     )}
@@ -197,11 +200,14 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
         {/* Commit — the one gold */}
         <div style={{ padding: '12px 24px 0' }}>
           <button type="button" disabled={working || !event} onClick={() => void save()} style={{
-            padding: '13px 0', width: '100%', border: 'none', borderRadius: 999,
+            font: RUNG.t4,
+            padding: '13px 0',
+            width: '100%',
+            border: 'none',
+            borderRadius: 999,
             background: working || !event ? 'var(--atelier-input-border)' : D.gold,
             cursor: working || !event ? 'default' : 'pointer',
-            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: 'var(--role-ink-on-metal)',
-            letterSpacing: '0.26em', textTransform: 'uppercase',
+            color: 'var(--role-ink-on-metal)',
           }}>{working ? 'Saving…' : 'Save crew'}</button>
         </div>
       </div>
