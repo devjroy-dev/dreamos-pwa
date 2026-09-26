@@ -258,7 +258,7 @@ function loadTs(rel, src) {
   } finally {
     for (const [rel, src] of restores) fs.writeFileSync(P(rel), src);
     fs.writeFileSync(P(BYTES), BYTES_SRC);
-    try { process.kill(-dev.pid); } catch (_e) { /* gone */ }
+    require('./lib/stop_tree.js').stopTree(dev.pid); /* F-44.163 (CE-45 FE-2): the whole tree, waited on; was npx's group only */
   }
   ok(sha(read(BYTES)) === bytesSha, '5.4 the flow home is restored byte for byte');
 

@@ -24,6 +24,8 @@
 # Usage:  bash scripts/run-floor.sh                            # print the red set
 #         bash scripts/run-floor.sh --check                    # diff against the named base
 #         bash scripts/run-floor.sh --delivery FILE [--check]  # [F-19.16] declared-dirt tree
+#         bash scripts/run-floor.sh ... --resume DIR           # [A-46.2] a seat's slice: continue the
+#                                                              #   floor whose kept logs are DIR
 #
 # ── F-19.16 · THE PWA FLOOR COULD NOT MEASURE ANY DELIVERY TREE ──────────────
 #
@@ -70,10 +72,20 @@ cd "$(dirname "$0")/.." || exit 1
 # argument and would have swallowed `--delivery` without a word.
 CHECK=""
 MANIFEST=""
+RESUME=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --check)    CHECK="yes"; shift ;;
     --delivery) MANIFEST="${2:-}"; shift 2 || { echo "STOP — --delivery needs a manifest path."; exit 1; } ;;
+    # ── A-46.2 · --resume DIR (CE-46 FE-3): the seat's slice path, never the founder's ─────
+    # A floor's kept logs (see THE KEPT OUTPUT below) are also its resume ledger. With
+    # `--resume DIR` the runner continues the floor whose ledger is DIR: a member whose log
+    # there ends `KEPT GREEN floor=<id>` for THIS floor's id is skipped and its GREEN stands;
+    # every other member (log missing, red, errored, refused, or cut off without a trailer)
+    # runs again. The founder's block 2 is ONE whole floor with no --resume; this flag exists
+    # so a seat whose turn cannot hold a whole floor runs it in gated slices and the runner,
+    # not a hand, decides what a slice owes. A slice on a tree that moved is refused (below).
+    --resume)   RESUME="${2:-}"; shift 2 || { echo "STOP — --resume needs a floor log directory."; exit 1; } ;;
     *)          echo "STOP — unknown argument: $1"; exit 1 ;;
   esac
 done
@@ -286,19 +298,86 @@ REST=$(comm -23 <(echo "$ALL" | tr ' ' '\n' | sort -u) <(echo "$NEEDS_CLEAN" | s
 # steady state, which is how a bench stops looking without anyone noticing.
 RED=""
 REFUSED_SET=""
+# ── A-45.13 · NO MEMBER INHERITS ANOTHER'S SERVER (CE-45 FE-2, F-44.160 closed at the runner) ─────────────
+# Next 16 refuses a second `next dev` in one root, so a server a member leaves running turns the NEXT
+# dev-server member red (b87's :3989 did this to b122). After every member, scripts/lib/floor_reap.sh stops
+# any next dev still running in this root, the whole process tree, waited on, and NAMES it as that member's
+# leak. A leak is named, never silent, and never changes a member's verdict. A server alive before the
+# floor starts is named too, as the floor's own inheritance.
+LEAKS=""
+LEAK_LINE=$(bash scripts/lib/floor_reap.sh "(before the floor)")
+[ -n "$LEAK_LINE" ] && { LEAKS="${LEAKS}${LEAK_LINE}\n"; echo "$LEAK_LINE"; }
+
+# ── THE KEPT OUTPUT (CE-46 FE-3, ruled F1(a) and F2(c), 27 Sept 2026) ─────────────────────
+# THE DISEASE. The two dispatch lines below ran every member as `>/dev/null 2>&1`, so a red
+# member could not name its cell: the founder's floor read "RED: b120_g61_own_number_bench"
+# (41 against a base of 40) while b120 alone in the same tree was 50/50, and nothing anywhere
+# held the line that failed. A verdict without its evidence sends the seat guessing, and this
+# estate does not guess.
+#
+# THE CURE, at the runner's one home. Every member's stdout and stderr are kept, one file per
+# member, in ONE directory per floor, overwritten at the start of every floor and NAMED in the
+# floor's own output ("FLOOR LOGS: <dir>"). Each log opens with a header naming the floor and
+# the member, and closes with ONE trailer line the runner writes after it reads the exit code:
+#   KEPT GREEN floor=<id>      or      KEPT RED|ERROR|REFUSED rc=<n> floor=<id>
+# A log with no trailer is a member that was cut off mid-run. After the whole set, the runner
+# prints the LAST 25 LINES of every RED, ERROR or REFUSED member under a line naming it, so the
+# reader of the verdict reads the cell in the same output, and the full log stays on disk.
+# THE VERDICT IS STILL THE EXIT CODE (the header's rule); the kept text is evidence beside it,
+# never a classifier. A-45.6's own last-run logs for dev-server rungs stand beside these.
+#
+# THE LEDGER (A-46.2). The same directory is the floor's resume ledger: `--resume DIR` skips
+# only a member whose log in DIR ends `KEPT GREEN floor=<id>` for the id in DIR/floor.id, and
+# refuses outright if the tree is not the one that id was minted on (HEAD moved, or the dirty
+# set moved), because a GREEN kept on another tree is not this floor's GREEN.
+FLOOR_TREE="head=$(git rev-parse HEAD 2>/dev/null) dirt=$(echo "$DIRT" | sha256sum | cut -c1-16)"
+if [ -n "$RESUME" ]; then
+  LOG_DIR="$RESUME"
+  if [ ! -f "$LOG_DIR/floor.id" ]; then
+    echo "STOP — --resume ${LOG_DIR} holds no floor.id; nothing to resume. Nothing was run."
+    exit 1
+  fi
+  FLOOR_ID=$(sed -n '1p' "$LOG_DIR/floor.id")
+  LEDGER_TREE=$(sed -n '2p' "$LOG_DIR/floor.id")
+  if [ "$LEDGER_TREE" != "$FLOOR_TREE" ]; then
+    echo "STOP — --resume refused: the tree moved since floor ${FLOOR_ID} began."
+    echo "  ledger: ${LEDGER_TREE}"
+    echo "  now:    ${FLOOR_TREE}"
+    echo "A GREEN kept on another tree is not this floor's GREEN. Nothing was run."
+    exit 1
+  fi
+else
+  LOG_DIR="${TMPDIR:-/tmp}/tdw-floor-pwa"
+  rm -rf "$LOG_DIR"
+  mkdir -p "$LOG_DIR"
+  FLOOR_ID="$(date -u +%Y%m%dT%H%M%SZ)-$(git rev-parse --short HEAD 2>/dev/null)-$$"
+  printf '%s\n%s\n' "$FLOOR_ID" "$FLOOR_TREE" > "$LOG_DIR/floor.id"
+fi
+echo "FLOOR LOGS: ${LOG_DIR}  (floor ${FLOOR_ID}; one log per member; the tail of every red is printed after the set)"
+SKIPPED=0
 for b in $NEEDS_CLEAN $REST $WRAPPERS; do
   [ -f "$b" ] || continue
   n=$(basename "$b" | sed 's/\.proof\.mjs$//; s/\.mjs$//; s/\.js$//; s/\.sh$//')
+  LOG="$LOG_DIR/$n.log"
+  # A kept GREEN for THIS floor stands; anything else runs again (A-46.2).
+  if [ -n "$RESUME" ] && [ -f "$LOG" ] && [ "$(tail -n 1 "$LOG")" = "KEPT GREEN floor=${FLOOR_ID}" ]; then
+    SKIPPED=$((SKIPPED + 1))
+    continue
+  fi
+  printf 'floor %s · member %s · %s\n' "$FLOOR_ID" "$n" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$LOG"
   # DISPATCH ON EXTENSION. The `.proof.ts` benches cannot be run by node — they
   # compile first — so their wrappers run through bash. Two invocations, one
   # verdict rule: the exit code, exactly as the header states.
   case "$b" in
-    *.sh) bash "$b" >/dev/null 2>&1 ;;
-    *)    node "$b" >/dev/null 2>&1 ;;
+    *.sh) bash "$b" >>"$LOG" 2>&1 ;;
+    *)    node "$b" >>"$LOG" 2>&1 ;;
   esac
   rc=$?
+  LEAK_LINE=$(bash scripts/lib/floor_reap.sh "$n")
+  [ -n "$LEAK_LINE" ] && { LEAKS="${LEAKS}${LEAK_LINE}\n"; echo "$LEAK_LINE"; }
   if [ "$rc" -eq 3 ]; then
     REFUSED_SET="${REFUSED_SET}REFUSED: ${n}\n"
+    printf 'KEPT REFUSED rc=%s floor=%s\n' "$rc" "$FLOOR_ID" >> "$LOG"
   # ── E-1 · F-39.67 · EXIT 2 IS AN ERROR, AND IT GETS ITS OWN LINE ───────────
   # The estate's table is 0 pass · 1 fail · 2 error · 3 refused, and until this
   # sitting this runner read 2 as RED — an unexpected throw and a failed cell were
@@ -306,10 +385,35 @@ for b in $NEEDS_CLEAN $REST $WRAPPERS; do
   # so a bench that stops asserting and starts crashing is a visible move.
   elif [ "$rc" -eq 2 ]; then
     RED="${RED}ERROR: ${n}\n"
+    printf 'KEPT ERROR rc=%s floor=%s\n' "$rc" "$FLOOR_ID" >> "$LOG"
   elif [ "$rc" -ne 0 ]; then
     RED="${RED}RED: ${n}\n"
+    printf 'KEPT RED rc=%s floor=%s\n' "$rc" "$FLOOR_ID" >> "$LOG"
+  else
+    printf 'KEPT GREEN floor=%s\n' "$FLOOR_ID" >> "$LOG"
   fi
 done
+[ "$SKIPPED" -gt 0 ] && echo "A-46.2 · --resume: ${SKIPPED} member(s) kept GREEN from floor ${FLOOR_ID}, not run again"
+
+if [ -n "$LEAKS" ]; then
+  echo "A-45.13 · members that left a next dev running in the root (each stopped after its run):"
+  printf "$LEAKS" | sed 's/^/  /'
+fi
+
+# THE TAILS. Bounded at 25 lines so a floor of forty base reds stays readable; the whole log is
+# on disk under the directory named above. A member that reddened without printing a cell
+# still shows its last lines, which is the point.
+TAIL_LINES=25
+if [ -n "$REFUSED_SET$RED" ]; then
+  echo ""
+  echo "── the last ${TAIL_LINES} lines of every non-green member (full logs in ${LOG_DIR}) ──"
+  printf "%b" "$REFUSED_SET$RED" | while IFS= read -r verdict; do
+    [ -n "$verdict" ] || continue
+    m="${verdict#*: }"
+    echo "---- ${verdict} ----"
+    tail -n "$TAIL_LINES" "$LOG_DIR/$m.log" 2>/dev/null | sed 's/^/  | /'
+  done
+fi
 
 # ── THE FLOOR MUST NOT LEAVE FOOTPRINTS ──────────────────────────────────────
 # Reported, never silently cleaned: a bench writing into the tree is a real

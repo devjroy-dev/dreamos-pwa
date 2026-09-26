@@ -172,7 +172,7 @@ const API = readIf('lib/vendor/api/vendor.ts');
       res = JSON.parse((out.stdout || '{}').slice((out.stdout || '').indexOf('{')) || '{}');
     } catch (e) {
       console.log(`  (room probe failed: ${String(e && e.message).split('\n')[0]})`);
-    } finally { try { process.kill(-dev.pid); } catch (_e) { /* gone */ } }
+    } finally { require('./lib/stop_tree.js').stopTree(dev.pid); /* F-44.163 (CE-45 FE-2): the whole tree, waited on; was npx's group only */ }
 
     // ── §4.2 · STRUCK AT CE-44, AND WHY (e-44.19) ─────────────────────────
     // This cell used to read `res.forwardNoFocus === true` while `forwardOpened` meant

@@ -1,0 +1,15 @@
+# scripts/floor-manifest-ce46-fe3-runner.txt
+# CE-46 · FE-3 · the runner cure r3 (supersedes the unlanded r2) · dreamos-pwa @ 4d5a5dc2. F-19.16: a dirty path outside this list is a STOP.
+# Carried from r2: A-45.13 (the floor reaps and names leaked dev servers), F-44.163 closed (b87, b83, b120 whole-tree stops), BINARY_READS.
+# New in r3: the kept output and the printed tails (F1(a), F2(c)), the resume ledger (A-46.2), b133 §4 and §5.
+# One new directory: none (scripts/lib/ exists at 4d5a5dc2). No file is deleted.
+docs/handovers/TDW_CE46_FE3_RUNNER_HANDOVER.md
+scripts/b120_g61_own_number_bench.js
+scripts/b133_ce45_fe2_runner_reap_bench.js
+scripts/b83_lc2_p4pwa_bench.js
+scripts/b87_lcv_p2_panel_bench.js
+scripts/floor-manifest-ce46-fe3-runner.txt
+scripts/lib/floor_reap.sh
+scripts/lib/stop_tree.js
+scripts/run-floor.sh
+scripts/tdw_f0774_readers.proof.mjs

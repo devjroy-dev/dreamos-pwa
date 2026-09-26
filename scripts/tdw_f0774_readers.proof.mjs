@@ -419,13 +419,38 @@ ok(`§2.1 every declared exemption names a live file that DOES strip elsewhere (
   badExempt.length === 0,
   `exemptions that would launder an offender: ${badExempt.map((e) => e.file).join(', ')}`);
 
+// ── BINARY_READS (CE-45 FE-2, ruled (a) 26 Sept 2026) · A READ WHOSE SUBJECT IS NOT TEXT AT ALL ────────────
+// The census counts any file that reads files and parses as a code-subject reader. A read of a BINARY file
+// (a font, an image) has no comments to strip and no code to parse; it is outside the census's subject, as a
+// prose read is (EXEMPT_SITES), but unlike a prose read it cannot "strip elsewhere". So it is declared here,
+// per file and site, with the reason beside it, and is held to its own non-vacuity: the file exists, EVERY
+// file read in it (readFileSync) is the declared site, and that site reads a non-text extension. A binary
+// declaration cannot launder a code read beside it.
+const BINARY_READS = [
+  { file: 'scripts/lib/b123_type_probe.mjs', site: 'fs.readFileSync(path.join(dir, file))', ext: '.woff2',
+    why: 'registers the REAL faces (@fontsource woff2) under next/font\u2019s names so F-44.177\u2019s cell measures on them (A-45.9); the bytes are a font, never code or prose' },
+];
+const badBinary = BINARY_READS.filter((e) => {
+  const abs = path.join(ROOT, e.file);
+  if (!fs.existsSync(abs)) return true;
+  const src = fs.readFileSync(abs, 'utf8');
+  const sites = src.match(/readFileSync\([^)]*\)\)?/g) || [];
+  const onlyDeclared = sites.length > 0 && sites.every((m) => m.startsWith(e.site.replace(/^fs\./, '')) || ('fs.' + m).startsWith(e.site));
+  const nonText = /^\.(woff2?|ttf|otf|png|jpe?g|gif|webp|ico)$/.test(e.ext) && src.includes(e.ext);
+  return !(onlyDeclared && nonText);
+});
+ok(`\u00a72.1b every declared BINARY read names a live file whose every file read is that one site, of a non-text extension (${BINARY_READS.length} declared)`,
+  badBinary.length === 0,
+  `binary declarations that would launder a code read: ${badBinary.map((e) => e.file).join(', ')}`);
+const binaryFiles = new Set(badBinary.length ? [] : BINARY_READS.map((e) => e.file));
+
 // ── THE CELL. A code-subject reader that strips nowhere at all is an offender,
 //    and no site-level exemption can save it: the exemptions above are about a
 //    file's PARTICULAR reads, and a file with no strip anywhere has made no
 //    distinction to exempt.
 const exemptFiles = new Set(EXEMPT_SITES.map((e) => e.file));
 const offenders = readers
-  .filter((r) => r.codeSubject && !r.strips.length && !exemptFiles.has(r.rel))
+  .filter((r) => r.codeSubject && !r.strips.length && !exemptFiles.has(r.rel) && !binaryFiles.has(r.rel))
   .map((r) => r.rel);
 
 ok(`§2.2 every code-subject reader strips before it parses (${offenders.length} do not)`,

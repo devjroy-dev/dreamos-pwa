@@ -98,7 +98,7 @@ const sec = (t) => console.log(`\n§${t}`);
     ok(false, `2.x the panel run: ${String(e && e.message).split('\n')[0]}`);
   } finally {
     fs.writeFileSync(P(PANEL), panel);
-    try { process.kill(-dev.pid); } catch (_e) { /* gone */ }
+    require('./lib/stop_tree.js').stopTree(dev.pid); /* F-44.163 (CE-45 FE-2): the whole tree, waited on; was npx's group only */
   }
   const shaAfter = crypto.createHash('sha256').update(read(PANEL)).digest('hex');
   ok(shaAfter === shaBefore, '3.2 the mutated file is restored byte for byte');
