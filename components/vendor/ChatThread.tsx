@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 (the Ask TDW sheet cut): the app's own type (F7)
 import { FilingChip } from '@/components/vendor/FilingChip';
 import { useEffect, useRef, useState } from 'react';
 import { pressedStyle, touchBox44 } from '@/lib/vendor/controls';
@@ -6,9 +7,7 @@ import { MessageBubble } from './MessageBubble';
 import type { ChatMessage } from '@/hooks/vendor/useChat';
 import { useT } from '@/lib/vendor/ThemeContext';
 
-const F = {
-  label: 'var(--font-jost), system-ui, sans-serif',
-};
+// CE-45 FE-2 (the Ask TDW sheet cut): the local face constant F is retired; every site reads a rung (F7).
 
 interface Props {
   messages: ChatMessage[];
@@ -129,7 +128,7 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                 display: 'flex', alignItems: 'center', gap: 10, padding: '14px 22px 10px',
               }}>
                 <span style={{ flex: 1, height: '1px', background: line }} />
-                <span style={{ font: 'var(--wl-t5)', letterSpacing: '0.2em', textTransform: 'uppercase', color: ink }}>
+                <span style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: ink }}>
                   {m.room === 'advisor' ? 'Advisor' : 'Business'}
                 </span>
                 <span style={{ flex: 1, height: '1px', background: line }} />
@@ -148,8 +147,9 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
             }}>
               <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-card-border)' }} />
               <span style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 8,
-                letterSpacing: '0.34em', textTransform: 'uppercase' as const,
+                font: RUNG.t5,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase' as const,
                 color: 'var(--atelier-ink-mute)',
                 whiteSpace: 'nowrap',
               }}>Fresh thread</span>
@@ -199,11 +199,13 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                   onClick={() => onChipTap(value, label)}
                   {...pressHandlers(`clarify:${m.id}:${i}`)}
                   style={{
+                    font: RUNG.t4,
                     // height 32 is UNMOVED — touchBox44 grows the hit box with
                     // transparent padding and cancels it with negative margin, so
                     // the visible chip is byte-identical. The spread sits BESIDE
                     // the height, never replacing it.
-                    height: 32, paddingInline: 14,
+                    height: 32,
+                    paddingInline: 14,
                     ...touchBox44(32),
                     ...pressedStyle(pressedKey === `clarify:${m.id}:${i}`, reducedMotion),
                     WebkitTapHighlightColor: 'transparent',
@@ -211,8 +213,6 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                     border: '0.5px solid var(--atelier-card-border)',
                     borderRadius: 2,
                     cursor: 'pointer',
-                    fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                    letterSpacing: '0.22em', textTransform: 'uppercase' as const,
                     color: T.isLight ? T.accent : 'var(--atelier-label)',
                     whiteSpace: 'nowrap',
                   }}
@@ -239,8 +239,10 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                 }}
                 {...pressHandlers(`report:${m.id}`)}
                 style={{
+                  font: RUNG.t4,
                   // height 30 UNMOVED — see the clarify chip's note.
-                  height: 30, paddingInline: 12,
+                  height: 30,
+                  paddingInline: 12,
                   ...touchBox44(30),
                   ...pressedStyle(pressedKey === `report:${m.id}` && !reported[m.id], reducedMotion),
                   WebkitTapHighlightColor: 'transparent',
@@ -249,8 +251,6 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                   borderRadius: 2,
                   cursor: reported[m.id] ? 'default' : 'pointer',
                   opacity: reported[m.id] ? 0.4 : 1,
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                  letterSpacing: '0.2em', textTransform: 'uppercase' as const,
                   color: 'var(--atelier-accent-text)',
                   whiteSpace: 'nowrap',
                 }}
@@ -265,9 +265,9 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
             <div style={{ padding: '2px 22px 10px 38px' }}>
               {m.suggestions.intro && (
                 <div style={{
-                  fontFamily: F.label, fontSize: 16, fontWeight: 300,
+                  font: RUNG.t3,
                   color: 'var(--atelier-ink-dim)',
-                  margin: '2px 0 7px', lineHeight: 1.45, fontStyle: 'italic',
+                  margin: '2px 0 7px',
                 }}>{m.suggestions.intro}</div>
               )}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
@@ -278,12 +278,14 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                     onClick={() => onChipTap(opt.value, opt.label)}
                     {...pressHandlers(`suggest:${m.id}:${i}`)}
                     style={{
+                      font: RUNG.t4,
                       // F-09.103 — the THIRD sub-44 chip in this file. The charter's
                       // L2 named two; this one routes through the same onChipTap and
                       // was on no roster. Adopting two and declaring the floor held
                       // would leave the bench asserting a floor the file does not have.
                       // Height 30 UNMOVED, as above.
-                      height: 30, paddingInline: 12,
+                      height: 30,
+                      paddingInline: 12,
                       ...touchBox44(30),
                       ...pressedStyle(pressedKey === `suggest:${m.id}:${i}`, reducedMotion),
                       WebkitTapHighlightColor: 'transparent',
@@ -291,8 +293,6 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                       border: '0.5px dashed var(--atelier-card-border)',
                       borderRadius: 2,
                       cursor: 'pointer',
-                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                      letterSpacing: '0.2em', textTransform: 'uppercase' as const,
                       color: 'var(--atelier-accent-text)',
                       whiteSpace: 'nowrap',
                     }}

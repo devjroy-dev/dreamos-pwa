@@ -5,11 +5,11 @@
 // teleported to WhatsApp. Now the tap opens the chat, so the shape may promise what it
 // delivers: the vendor types where he was invited to type, and the answer comes back.
 //
-// ── R-38.17 · AND THE SHEET SAYS WHERE IT COMES BACK ────────────────────────
-// `askSheetNote` — 「TDW replies on WhatsApp.」 The vendor types in-app; the reply arrives
-// on her phone. A surface that takes the message and says nothing about where the answer
-// goes is wearing the costume again in the other direction: it looks like a thread, and
-// the thread is somewhere else. One line, under the head, at t5.
+// ── R-38.17's NOTE, RETIRED (CE-45 FE-2, the Ask TDW sheet cut, 26 Sept 2026) ─────────────
+// The sheet once said 「TDW replies on WhatsApp.」 under its head. By the time of ASK-1's cut 2
+// the answer streams into THIS thread (useChat -> streamChat -> /api/v2/vendor/chat), and ASK-1
+// confirmed nothing sends an app answer to WhatsApp, so the line had become untrue. It is
+// dropped by his decision; its copy key left lib/worklist/copy.ts with it.
 //
 // (The old note in this comment named a persona. 「DreamAi」 is banned outright from every
 // vendor-facing byte at R-38.17 and the ban is worth honouring in the file's own prose too,
@@ -99,7 +99,6 @@ export function AskSheet({ vendorId, mode, prefill = '', onClose }: {
               opens it are ONE statement about what this is, not two that can disagree. */}
           <div className="wl-askhead"><span className="wl-asktitle">{COPY.dockAria}</span>
             <button type="button" className="wl-askclose" aria-label="Close" onClick={onClose}>&times;</button></div>
-          <p className="wl-asknote">{COPY.askSheetNote}</p>
           <div className="wl-askbody" ref={scrollRef}>
             <ChatThread messages={messages} loading={loading} onChipTap={send} scrollRef={scrollRef}
               /* onConfirm/onCancel are required by Props and no-op'd by every caller,
@@ -176,7 +175,6 @@ const ASK_CSS = `
 /* R-38.17 the channel note. t5, ink-mute: it is metadata about where the answer lands,
    not a sentence the vendor has to read before typing. It sits under the head’s rule so
    the scroll body still starts at the thread. */
-.wl-asknote{flex-shrink:0;font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0}
-.wl-askclose{width:44px;height:44px;margin:-10px -10px -10px 0;background:none;border:none;color:var(--atelier-ink-mute);font-size:22px;line-height:1;cursor:pointer}
+.wl-askclose{width:44px;height:44px;margin:-10px -10px -10px 0;background:none;border:none;color:var(--atelier-ink-mute);font:var(--wl-t2);cursor:pointer}
 .wl-askbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:180px}
 `;

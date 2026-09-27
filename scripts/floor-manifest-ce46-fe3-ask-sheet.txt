@@ -1,0 +1,14 @@
+# scripts/floor-manifest-ce46-fe3-ask-sheet.txt
+# CE-46 · FE-3 · the Ask TDW sheet (CE-45 FE-2's WIP carried onto 5833b4f1) · F-19.16: a dirty path outside this list is a STOP.
+# Rung b134 (183 bare, 187 --mutate). F-44.201 and F-44.202 cured in this cut. No file is deleted; no new directory.
+components/vendor/ChatThread.tsx
+components/vendor/InputBar.tsx
+components/vendor/MessageBubble.tsx
+components/worklist/AskSheet.tsx
+docs/handovers/TDW_CE46_FE3_ASK_SHEET_HANDOVER.md
+lib/worklist/copy.ts
+scripts/b134_ce45_fe2_ask_sheet_bench.js
+scripts/b40_worklist_shell_bench.js
+scripts/floor-manifest-ce46-fe3-ask-sheet.txt
+scripts/lib/b134_ask_probe.mjs
+scripts/tdw_f0774_readers.proof.mjs

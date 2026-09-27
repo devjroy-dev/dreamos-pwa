@@ -1440,7 +1440,9 @@ cell('C32 no persona name reachable from any shell surface, DreamAi included (R-
   // AND THE GRAMMAR THAT PERMITTED IT IS RECORDED AS RETIRED, not silently deleted.
   const copy = strip(read('lib/worklist/copy.ts'));
   if (!/R-37\.78/.test(read('lib/worklist/copy.ts'))) return 'R-37.78 retires without a tombstone in copy.ts';
-  if (/askSheetNote:/.test(copy) === false) return 'the sheet no longer says where the reply lands';
+  // AMENDED BY LABEL (CE-45 FE-2, the Ask TDW sheet cut): the clause that required `askSheetNote` is
+  // retired with its SUBJECT, the note itself, dropped by the founder's decision because the answer now
+  // arrives in the sheet (ASK-1: nothing sends an app answer to WhatsApp). The persona sweep above stands.
   return null;
 });
 

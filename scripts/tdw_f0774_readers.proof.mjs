@@ -429,6 +429,8 @@ ok(`§2.1 every declared exemption names a live file that DOES strip elsewhere (
 const BINARY_READS = [
   { file: 'scripts/lib/b123_type_probe.mjs', site: 'fs.readFileSync(path.join(dir, file))', ext: '.woff2',
     why: 'registers the REAL faces (@fontsource woff2) under next/font\u2019s names so F-44.177\u2019s cell measures on them (A-45.9); the bytes are a font, never code or prose' },
+  { file: 'scripts/lib/b134_ask_probe.mjs', site: 'fs.readFileSync(path.join(dir, file))', ext: '.woff2',
+    why: 'CE-46 FE-3 (the Ask TDW sheet): b134\u2019s probe registers the same REAL faces by b123\u2019s own method (A-45.9); a font, never code or prose' },
 ];
 const badBinary = BINARY_READS.filter((e) => {
   const abs = path.join(ROOT, e.file);

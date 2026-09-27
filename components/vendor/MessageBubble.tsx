@@ -1,16 +1,12 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 (the Ask TDW sheet cut): the app's own type (F7)
 import { useState, type ReactNode } from 'react';
 import type { ChatMessage } from '@/hooks/vendor/useChat';
 import { useT } from '@/lib/vendor/ThemeContext';
 import { TypingDots } from './TypingDots';
 
 const A = { brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)' } as const;
-const F = {
-  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script:  'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
-  body:    'var(--font-dm-sans), system-ui, sans-serif',
-  label:   'var(--font-jost), system-ui, sans-serif',
-} as const;
+// CE-45 FE-2 (the Ask TDW sheet cut): the local face constant F is retired; every site reads a rung (F7).
 
 function toE164(raw: string): string {
   const digits = raw.replace(/\D/g, '');
@@ -33,7 +29,7 @@ function emphasizeRs(seg: string, T: Tok, salt: string): ReactNode[] {
   const parts = seg.split(/(Rs\.?\s?[\d,]+(?:\.\d+)?(?:\s?(?:lakh|cr|crore|k))?)/gi);
   return parts.map((p, i) => {
     if (/^Rs\.?\s?[\d,]/i.test(p)) {
-      return <span key={`${salt}r${i}`} style={{ color: T.accent, fontStyle: 'italic', fontWeight: 500 }}>{p}</span>;
+      return <span key={`${salt}r${i}`} style={{ color: T.accent, fontWeight: 500 }}>{p}</span>;
     }
     return <span key={`${salt}n${i}`}>{p}</span>;
   });
@@ -51,7 +47,7 @@ function italicNodes(text: string, T: Tok, salt: string): ReactNode[] {
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) out.push(<span key={`${salt}t${k++}`}>{emphasizeRs(text.slice(last, m.index), T, `${salt}${k}`)}</span>);
     const inner = m[1] !== undefined ? m[1] : (m[2] as string);
-    out.push(<em key={`${salt}i${k++}`} style={{ fontStyle: 'italic', fontWeight: 500 }}>{emphasizeRs(inner, T, `${salt}${k}`)}</em>);
+    out.push(<em key={`${salt}i${k++}`} style={{ fontStyle: 'normal', fontWeight: 500 }}>{emphasizeRs(inner, T, `${salt}${k}`)}</em>);
     last = re.lastIndex;
   }
   if (last < text.length) out.push(<span key={`${salt}t${k++}`}>{emphasizeRs(text.slice(last), T, `${salt}${k}`)}</span>);
@@ -81,9 +77,9 @@ function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
       // inversion (upright bold) read as a second voice breaking Victor's serif
       // on the live screens. His word arrived at the economics sitting's open:
       // the WHOLE register is italic — em, Rs accent, and headings joined (this ZIP).
-      out.push(<strong key={`${salt}b${k++}`} style={{ fontStyle: 'italic', fontWeight: 600 }}>{italicNodes(m[1], T, `${salt}${k}`)}</strong>);
+      out.push(<strong key={`${salt}b${k++}`} style={{ fontWeight: 500 }}>{italicNodes(m[1], T, `${salt}${k}`)}</strong>);
     } else {
-      out.push(<code key={`${salt}c${k++}`} style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontStyle: 'normal', fontSize: '0.86em', background: 'var(--atelier-input-bg)', padding: '1px 5px', borderRadius: 3 }}>{m[2]}</code>);
+      out.push(<code key={`${salt}c${k++}`} style={{ font: 'inherit', background: 'var(--atelier-input-bg)', padding: '1px 5px', borderRadius: 3 }}>{m[2]}</code>);
     }
     last = re.lastIndex;
   }
@@ -92,16 +88,43 @@ function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
 }
 // Block: blank-line-separated. A run of -/*/+/• lines is a bulleted list; a run of
 // "1." / "1)" lines is numbered; a #/##/### line is a heading; else a paragraph.
+// ── CE-45 FE-2 · THE ASK TDW SHEET CUT: NO MARKDOWN SYMBOL REACHES THE GLASS ────────────────────────────
+// ASK-1's app lane sends plain sentences (its code removes bold, headings, fences, bullet markers and dashes);
+// the Advisor room's replies carry markdown. What this renderer does not draw as structure is reduced to its
+// words BEFORE the blocks are read, so no raw symbol shows at phone size: a link shows its text, a table row
+// its cells joined by a middle dot (its separator row dropped), a rule line or a code fence is dropped, and a
+// quote marker is stripped. Words are never changed, only the markup around them.
+function plainMarkdown(text: string): string {
+  return (text || '').split('\n').map((line) => {
+    // F-44.201 (CE-46 FE-3): the fence is spelled \x60 so no backtick sits inside a regex literal (b40 C102's lexer
+    // reads a backtick anywhere outside a comment as a template string's edge; three of them here made it read the
+    // rest of this file as prose and count three comment apostrophes as shipped bytes)
+    if (/^\s*(\x60{3}|~~~)/.test(line)) return null;                               // a code fence
+    if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) return null;                      // a rule: ---, ***, ___
+    if (/^\s*\|?(\s*:?-{2,}:?\s*\|)+\s*:?-{0,}:?\s*\|?\s*$/.test(line)) return null;  // a table's separator row
+    let l = line.replace(/^\s*>\s?/, '');                                           // a quote marker
+    if (/^\s*\|.*\|\s*$/.test(l)) l = l.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim()).filter(Boolean).join(' \u00b7 ');
+    l = l.replace(/\[([^\]]+)\]\((?:[^)\s]+)\)/g, '$1');                           // a link: its text
+    // a heading stands alone in its own block (the renderer draws a heading only when it does), and a
+    // level past 3 is read as 3 (the renderer's deepest), so no '#' is ever left on the glass
+    if (/^\s*#{1,6}\s+/.test(l)) return '\n' + l.replace(/^\s*#{4,6}\s+/, '### ') + '\n';
+    return l;
+  }).filter((l) => l !== null).join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\n+/, '');
+}
+
 const BULLET = /^\s*[-*+•]\s+/;
 const NUMBERED = /^\s*\d+[.)]\s+/;
 const HEADING = /^\s*#{1,3}\s+/;
-function renderProse(text: string, T: Tok, F: Record<string, string>): ReactNode[] {
+function renderProse(text: string, T: Tok): ReactNode[] {
   const pStyle = {
-    fontFamily: F.script, fontWeight: 400,
-    fontSize: 16, color: T.ink, lineHeight: 1.42, letterSpacing: '0.005em',
-    margin: 0, whiteSpace: 'pre-wrap' as const,
+    font: RUNG.t3,
+    color: T.ink,
+    margin: 0,
+    whiteSpace: 'pre-wrap' as const,
+    overflowWrap: 'anywhere' as const,
+    // a long unbroken string (a link, a long number) wraps inside the bubble
   };
-  const blocks = (text || '').split(/\n\n+/);
+  const blocks = plainMarkdown(text).split(/\n\n+/);
   const out: ReactNode[] = [];
   blocks.forEach((block, bi) => {
     const lines = block.split('\n');
@@ -130,7 +153,7 @@ function renderProse(text: string, T: Tok, F: Record<string, string>): ReactNode
     } else if (isHeading) {
       const level = (nonEmpty[0].match(/^#{1,3}/) || ['#'])[0].length;
       out.push(
-        <p key={`h${bi}`} style={{ ...pStyle, fontStyle: 'italic', fontWeight: 600, fontSize: level === 1 ? 21 : level === 2 ? 19 : 18 }}>
+        <p key={`h${bi}`} style={{ font: RUNG.t2, ...pStyle }}>
           {inlineNodes(nonEmpty[0].replace(HEADING, ''), T, `${bi}-h-`)}
         </p>
       );
@@ -141,7 +164,7 @@ function renderProse(text: string, T: Tok, F: Record<string, string>): ReactNode
   return out;
 }
 
-function AiMessageText({ text, streaming, T, F }: { text: string; streaming?: boolean; T: ReturnType<typeof import('@/lib/vendor/ThemeContext').useT>; F: Record<string, string> }) {
+function AiMessageText({ text, streaming, T }: { text: string; streaming?: boolean; T: ReturnType<typeof import('@/lib/vendor/ThemeContext').useT> }) {
   const [copied, setCopied] = useState(false);
 
   function copy() {
@@ -161,7 +184,7 @@ function AiMessageText({ text, streaming, T, F }: { text: string; streaming?: bo
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {renderProse(text, T, F)}
+        {renderProse(text, T)}
       </div>
       <button
         type="button"
@@ -213,9 +236,10 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           boxShadow: 'none',
         }}>
           <p style={{
-            fontFamily: F.body, fontWeight: 300, fontSize: 16,
-            color: T.ink, lineHeight: 1.45, margin: 0,
-            whiteSpace: 'pre-wrap', letterSpacing: '0.005em',
+            font: RUNG.t3,
+            color: T.ink,
+            margin: 0,
+            whiteSpace: 'pre-wrap',
           }}>{message.text}</p>
         </div>
       </div>
@@ -243,31 +267,43 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             background: message.room === 'advisor' ? 'var(--atelier-accent-text)' : hairline,
           }} />
           <div style={{
-            fontFamily: F.label, fontWeight: 300, fontSize: 8,
-            letterSpacing: '0.5em', textTransform: 'uppercase',
-            color: T.isLight ? T.accent : 'rgba(201,168,76,0.65)', marginBottom: 6,
+            font: RUNG.t5,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: T.isLight ? T.accent : 'rgba(201,168,76,0.65)',
+            marginBottom: 6,
           }}>TDW</div>
-          <AiMessageText text={message.text} streaming={message.streaming} T={T} F={F} />
+          <AiMessageText text={message.text} streaming={message.streaming} T={T} />
         </div>
         {contact?.phone && (
           <div style={{ display: 'flex', gap: 8, paddingLeft: 16 }}>
             <a href={`https://wa.me/${toE164(contact.phone)}${contact.draft ? `?text=${encodeURIComponent(contact.draft)}` : ''}`}
               target="_blank" rel="noopener noreferrer" style={{
-                display: 'flex', alignItems: 'center', gap: 7, padding: '7px 14px',
-                background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)',
-                borderRadius: 2, textDecoration: 'none',
-                fontFamily: F.label, fontWeight: 300, fontSize: 9,
-                letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--role-positive)',
+                font: RUNG.t4,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 7,
+                padding: '7px 14px',
+                background: 'transparent',
+                border: '0.5px solid var(--atelier-sheet-border)',
+                borderRadius: 2,
+                textDecoration: 'none',
+                color: 'var(--role-positive)',
               }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--role-positive)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.532 5.849L0 24l6.318-1.658A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.371l-.359-.213-3.72.976.994-3.634-.234-.374A9.818 9.818 0 1112 21.818z"/></svg>
               WhatsApp {contact.name.split(' ')[0]}
             </a>
             <a href={`tel:${contact.phone}`} style={{
-              display: 'flex', alignItems: 'center', gap: 7, padding: '7px 14px',
-              background: T.inputBg, border: `0.5px solid ${T.inputBorder}`,
-              borderRadius: 2, textDecoration: 'none',
-              fontFamily: F.label, fontWeight: 300, fontSize: 9,
-              letterSpacing: '0.22em', textTransform: 'uppercase', color: T.inkMute,
+              font: RUNG.t4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 7,
+              padding: '7px 14px',
+              background: T.inputBg,
+              border: `0.5px solid ${T.inputBorder}`,
+              borderRadius: 2,
+              textDecoration: 'none',
+              color: T.inkMute,
             }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.67a16 16 0 006.29 6.29l1.03-1.34a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
               Call

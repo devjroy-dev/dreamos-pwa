@@ -341,7 +341,8 @@ export const COPY = {
   dockRowTitle: 'Ask TDW',
   // R-38.17: the sheet says where the answer comes back. The vendor types in-app and the
   // reply arrives on WhatsApp, and a surface that does not say so is a costume again.
-  askSheetNote: 'TDW replies on WhatsApp.',
+  // askSheetNote ('TDW replies on WhatsApp.') retired, CE-45 FE-2 (26 Sept 2026): the answer arrives in the
+  // sheet itself and nothing sends it to WhatsApp (ASK-1), so the line was untrue; dropped by his decision.
   // R-38.7: the founder vetoed the horizontal-strip treatment on Rooms. This byte keeps
   // its ONE home and that home is now the coin drawer (R-37.69/.83 amended at R-38.7).
   roomsAskTitle: 'TDW on WhatsApp',

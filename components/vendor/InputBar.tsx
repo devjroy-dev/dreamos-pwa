@@ -1,4 +1,5 @@
 'use client';
+import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 (the Ask TDW sheet cut): the app's own type (F7)
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/lib/vendor/ThemeContext';
 
@@ -97,7 +98,9 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
         placeholder={inNote ? 'Note to self…' : (placeholder ?? 'Ask anything…')}
         rows={1}
         style={{
-          flex: 1, resize: 'none',
+          font: RUNG.t2,
+          flex: 1,
+          resize: 'none',
           border: `0.5px solid ${noteBorder}`,
           borderRadius: 999,
           background: T.inputBg,
@@ -110,27 +113,28 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
           // branch tokens; the italic goes entirely, since a placeholder's job is done
           // by colour here and the leaning serif WAS the old voice. The
           // «Ask anything...» BYTE is untouched — founder-era copy, flagged not moved.
-          fontFamily: 'var(--font-dm-sans), system-ui, sans-serif',
-          fontStyle: 'normal',
-          fontWeight: 400, fontSize: 16,
-          lineHeight: `${LINE_HEIGHT}px`,
-          outline: 'none', overflowY: 'hidden',
+          outline: 'none',
+          overflowY: 'hidden',
           caretColor: T.interactive,
-          letterSpacing: '0.005em',
           transition: 'border-color 220ms cubic-bezier(0.22,1,0.36,1)',
         }}
       />
       <button type="button" onClick={send} disabled={!canSend} aria-label={inNote ? 'Save note' : 'Send'} style={{
-        width: 42, height: 42, borderRadius: '50%',
+        font: RUNG.t2,
+        width: 42,
+        height: 42,
+        borderRadius: '50%',
         border: '0.5px solid var(--atelier-label)',
         background: canSend
-          ? brassGrad
-          : 'var(--atelier-input-bg)',
+        ? brassGrad
+        : 'var(--atelier-input-bg)',
         cursor: canSend ? 'pointer' : 'default',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        color: canSend ? 'var(--role-ink-on-metal)' : T.inkDim,  // F-09.102: brassGrad ground themes
-        fontFamily: 'var(--font-italiana), Georgia, serif',
-        fontSize: 16, lineHeight: 1, fontWeight: 400,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        color: canSend ? 'var(--role-ink-on-metal)' : T.inkDim,
+        // F-09.102: brassGrad ground themes
         boxShadow: 'none',
         transition: 'all 200ms cubic-bezier(0.22,1,0.36,1)',
       }}>{inNote ? '✎' : '↑'}</button>
