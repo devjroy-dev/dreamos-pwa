@@ -38,7 +38,9 @@ try {
   await cdp.send('Network.enable');
   await cdp.send('Network.setBypassServiceWorker', { bypass: true });
   await p.setRequestInterception(true);
+  out.askPosts = 0;
   p.on('request', async (r) => {
+    if (/chat|ask|agent/i.test(r.url()) && r.method() === 'POST') out.askPosts += 1;
     const u = r.url();
     if (!u.includes('/__api/')) return r.continue();
     const route = u.split('/__api')[1].split('?')[0];
@@ -136,7 +138,7 @@ try {
       headFirstInMain: !!(main && head && main.firstElementChild === head),
       title: h1 ? h1.textContent : null, titleType: h1 ? T(h1) : null, titleBox: h1 ? r(h1) : null, titlePadTop: h1 ? parseFloat(getComputedStyle(h1).paddingTop) : null,
       shellLabel: (document.querySelector('.wl-lbl') || {}).textContent || null,
-      q: q ? { box: r(q), aria: q.getAttribute('aria-label'), first: q.dataset.first, ring: ring ? T(ring) : null, ringBorder: ring ? getComputedStyle(ring).borderTopWidth : null, dotDrawn, dotColor: dot ? dot.backgroundColor : null } : null,
+      q: q ? { box: r(q), aria: q.getAttribute('aria-label'), first: q.dataset.first, ring: ring ? T(ring) : null, ringBorder: ring ? getComputedStyle(ring).borderTopWidth : null, ringColor: ring ? getComputedStyle(ring).borderTopColor : null, accent: (() => { const d = document.createElement('i'); d.style.color = 'var(--atelier-accent-text)'; (document.querySelector('.wl') || document.body).appendChild(d); const c = getComputedStyle(d).color; d.remove(); return c; })(), dotDrawn, dotColor: dot ? dot.backgroundColor : null } : null,
       mainRight: main ? main.getBoundingClientRect().right : null, gutter: main ? parseFloat(getComputedStyle(main.firstElementChild).paddingLeft) : null,
       card: !!document.querySelector('.wl-help'), h1s, t1s, vw: innerWidth, vh: innerHeight,
       dock: (() => { const d = document.querySelector('.wl-dockfield'); return d ? r(d) : null; })(),
@@ -181,12 +183,8 @@ try {
     out.reopened2 = await p.evaluate(() => !!document.querySelector('.wl-help'));
     await p.keyboard.press('Escape'); await settle(300);
     out.afterEscape = await p.evaluate(() => ({ card: !!document.querySelector('.wl-help'), focusOnQ: document.activeElement === document.querySelector('.wl-roomhead .wl-helpq') }));
-    // Ask TDW about this: the sheet opens with the room's name in the input, nothing sent
-    await p.evaluate(() => document.querySelector('.wl-roomhead .wl-helpq').click()); await settle(300);
-    await p.evaluate(() => { const bt = [...document.querySelectorAll('.wl-helpacts button')].find((e) => /ask tdw/i.test(e.textContent)); if (bt) bt.click(); });
-    out.sheet = await waitFor(() => !!document.querySelector('.wl-askpanel textarea'), 20000);
-    await settle(500);
-    out.ask = await p.evaluate(() => { const ta = document.querySelector('.wl-askpanel textarea'); const bodies = document.querySelectorAll('.wl-askbody [data-role="user"], .wl-askbody .user-bubble'); return { input: ta ? ta.value : null, card: !!document.querySelector('.wl-help'), userBubbles: bodies.length }; });
+    // CE-46 FE-4 words cut: "Ask TDW about this" is removed; the card carries ONE control, and opening and closing the
+    // card must send nothing. The sheet is never opened from the card, so no ask request may have left.
   }
   await p.close();
 } catch (e) { out.errors.push('probe: ' + String(e && e.message).split('\n')[0]); }
