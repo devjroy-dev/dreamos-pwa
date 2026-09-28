@@ -58,6 +58,10 @@ import { pulseLines, type DatePulse } from '@/lib/worklist/pulse';
 // R-G31.7 · the SAME header every shell call sends. The revalidate route reads
 // it to ask dream-os who the caller is; the handle never comes from a body.
 import { getAuthHeader } from '@/lib/vendor/api/_base';
+// F-44.239 · the address was a literal (`https://thedreamwedding.in/v/…`) while the
+// Your website room reads SITE_BASE; one home, so an own domain or another base
+// cannot leave this row pointing at the wrong address.
+const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.in';
 
 // D3's read goes to the PUBLIC card door — no session, the same address a
 // stranger uses. Declared here rather than spelled at the call site.
@@ -468,14 +472,14 @@ function PublicPageBand() {
       <div style={{ padding: '0 var(--slice-inset, 24px)' }}>
         {handle ? (
           <a
-            href={`https://thedreamwedding.in/v/${handle.toLowerCase()}`}
+            href={`${SITE_BASE}/v/${handle.toLowerCase()}`}
             target="_blank" rel="noopener noreferrer"
             style={{
               fontFamily: F.script, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
               color: A.brass, textDecoration: 'underline', textUnderlineOffset: 3,
               wordBreak: 'break-all', display: 'block',
             }}
-          >{`thedreamwedding.in/v/${handle.toLowerCase()}`}</a>
+          >{`${SITE_BASE.replace(/^https?:\/\//, '')}/v/${handle.toLowerCase()}`}</a>
         ) : null}
 
         {/* ── THREE STATES, AND THE THIRD SAYS NOTHING — F-40.175 ───────────

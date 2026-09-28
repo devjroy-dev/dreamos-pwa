@@ -7,6 +7,14 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+// CE-46 · WEB-1 cut 1 · the vendor's subdomain (`<handle>.thedreamwedding.in`)
+// decided by one pure function so b145 can drive every case in node. The demo
+// hosts below keep their rules; `vendorLabel` refuses their labels by name.
+// F-44.238: this file keeps the deprecated `middleware` convention on purpose;
+// the rename to `proxy.ts` is its own later cut, ruled by the chair.
+import { decide } from '@/lib/public/vendorHost';
+
+const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.in';
 
 export function middleware(request: NextRequest) {
   const host = request.headers.get('host') || '';
@@ -47,6 +55,14 @@ export function middleware(request: NextRequest) {
     url.pathname = '/demo/not-found';
     return NextResponse.rewrite(url);
   }
+
+  // ── <handle>.thedreamwedding.in → her public leaves ─────────────────────
+  // `/`, `/date` and `/w/<slug>` rewrite onto app/v/[code]; an already-addressed
+  // `/v/…` passes; anything else on her address goes to the same path on the
+  // apex (302), so no signed-in surface ever renders under her name.
+  const d = decide(host, path, SITE_BASE, url.search);
+  if (d && d.kind === 'rewrite') { url.pathname = d.pathname; return NextResponse.rewrite(url); }
+  if (d && d.kind === 'redirect') return NextResponse.redirect(d.url, 302);
 
   return NextResponse.next();
 }

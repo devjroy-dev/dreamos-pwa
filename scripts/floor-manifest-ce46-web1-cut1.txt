@@ -1,0 +1,10 @@
+# scripts/floor-manifest-ce46-web1-cut1.txt
+# CE-46 · WEB-1 cut 1 · the vendor's subdomain edge rule, F-44.146 (the sitemap's wedding address), F-44.239 (the storefront editor's literal address) · base dc8dbdd1 · F-19.16: a dirty path outside this list is a STOP.
+# Rung b145 (32 cells, five mutations inside). No file is deleted; one new directory, none (lib/public exists).
+app/sitemap.ts
+app/vendor/(shell)/storefront/screen.tsx
+docs/handovers/TDW_CE46_WEB1_CUT1_HANDOVER.md
+lib/public/vendorHost.ts
+middleware.ts
+scripts/b145_ce46_web1_subdomain_bench.js
+scripts/floor-manifest-ce46-web1-cut1.txt

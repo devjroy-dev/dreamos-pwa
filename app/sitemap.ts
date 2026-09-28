@@ -46,7 +46,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages: MetadataRoute.Sitemap = rows
     .filter((p) => p && typeof p.handle === 'string' && p.handle)
     .map((p) => ({
-      url: p.slug ? `${SITE_BASE}/v/${p.handle}/${p.slug}` : `${SITE_BASE}/v/${p.handle}`,
+      // F-44.146 · the wedding leaf lives at app/v/[code]/w/[slug] (R-40.15); the
+      // sitemap once wrote `/v/<handle>/<slug>`, an address that never existed.
+      url: p.slug ? `${SITE_BASE}/v/${p.handle}/w/${p.slug}` : `${SITE_BASE}/v/${p.handle}`,
       lastModified: p.updated_at ? new Date(p.updated_at) : undefined,
       changeFrequency: p.slug ? 'monthly' : 'weekly',
       priority: p.slug ? 0.6 : 0.8,
