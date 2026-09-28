@@ -728,7 +728,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
                       textTransform: 'uppercase',
                       color: 'var(--atelier-label)',
                       marginBottom: 4,
-                    }}>{ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0,5)}` : ''}</div>
+                    }}>{ev.kind ? ev.kind.charAt(0).toUpperCase() + ev.kind.slice(1) : ''}{ev.event_time ? ` · ${ev.event_time.slice(0,5)}` : ''}</div>
                     <div style={{
                       font: RUNG.t3,
                       color: 'var(--atelier-ink)',

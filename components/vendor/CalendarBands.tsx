@@ -154,7 +154,7 @@ function Pip({ fn, muhurat, onTap }: { fn: BandFunction; muhurat: boolean; onTap
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-      }}>{fn.kind}</span>
+      }}>{fn.kind ? fn.kind.charAt(0).toUpperCase() + fn.kind.slice(1) : ''}</span>
       {fn.crew.length > 0 && (
         <span style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
           {fn.crew.slice(0, 4).map(c => <CrewCircle key={c.member_id} c={c} />)}

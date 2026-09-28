@@ -469,7 +469,7 @@ export function CalendarDaySheet({
                       the buttons entirely. */}
                   <div style={{ minWidth: 0 }}>
                     <div style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginBottom: 4 }}>
-                      {ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}{ev.state === 'done' ? ' · done' : ''}
+                      {ev.kind ? ev.kind.charAt(0).toUpperCase() + ev.kind.slice(1) : ''}{ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}{ev.state === 'done' ? ' · Done' : ''}
                     </div>
                     <div style={{ font: RUNG.t3, color: D.cream }}>{ev.title}</div>
                     {ev.binder_name && (

@@ -4,7 +4,7 @@
 //
 // usage: PORT=4200 node docs/design/tools/shots.mjs <before|after> <stage-n> [--large]
 // writes docs/design/shots/<stage-n>/<before|after>/<screen>-<mode>-<374|360>.png
-import { browser, open, shot, sleep } from './harness.mjs';
+import { browser, open, shot, sleep, PORT } from './harness.mjs';
 
 const [which = 'after', stage = 'stage-1'] = process.argv.slice(2);
 const LARGE = process.argv.includes('--large');
@@ -35,6 +35,8 @@ const b = await browser();
 for (const mode of ['dark', 'light']) for (const vp of ['ios', 'android']) for (const s of SCREENS) {
   let p = null;
   for (const r of s.routes) {
+    const st = await fetch(`http://localhost:${PORT}${r}`, { redirect: 'manual' }).then((x) => x.status).catch(() => 0);
+    if (st !== 200) continue;   // a room this stage has not drawn yet
     const q = await open(b, r, { mode, vp, dpr: 2, settle: 1200 });
     const ok = await q.evaluate(() => !!document.querySelector('.wl-main') && !/404|could not be found/i.test(document.title + (document.querySelector('.wl-main')?.innerText || '').slice(0, 80)));
     if (ok) { p = q; break; }
