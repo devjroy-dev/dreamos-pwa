@@ -1,0 +1,264 @@
+/* copied from the running app by docs/review/tools/extract-shell.mjs: the shell's own <style> (theme.ts scopeCss + typeCss, WorklistShell SHELL_CSS, PageHelp) */
+.wl[data-wl-mode="dark"]{--atelier-bg:#0F1011;--atelier-page-bg:#141516;--atelier-header-bg:#1A1B1D;--atelier-section-bg:#171819;--atelier-sheet-bg:#1D1E20;--atelier-overlay-bg:#0A0B0C;--atelier-card-bg:linear-gradient(180deg, rgba(240,244,246,0.060) 0%, rgba(240,244,246,0.030) 100%);--atelier-card-border:rgba(240,244,246,0.11);--atelier-card-shadow:rgba(0,0,0,0.50);--atelier-row-hover:rgba(240,244,246,0.14);--atelier-grain:rgba(255,255,255,0.012);--atelier-input-bg:rgba(240,244,246,0.040);--atelier-input-border:rgba(104,201,180,0.58);--atelier-sheet-top:#232527;--atelier-sheet-bot:#191A1C;--atelier-sheet-border:rgba(240,244,246,0.14);--atelier-overlay:rgba(10,11,12,0.74);--atelier-ink:#EDEEEF;--atelier-ink-soft:#C8CACC;--atelier-ink-dim:#A3A6A9;--atelier-ink-mute:#888B8E;--atelier-ink-fade:#585B5E;--atelier-label:#B9BCBF;--atelier-accent-text:#68C9B4;--role-metal:#C9A84C;--role-ink-on-metal:#141516;--role-ink-deep:#0F1011;--role-positive:#6FC98C;--role-caution:#DFAE6C;--role-critical:#E8836B;--role-scrim:rgba(10,11,12,0.62);--role-sheet:#1D1E20;--role-today-coin-ink:#141516;}.wl[data-wl-mode="light"]{--atelier-bg:#EDEEEF;--atelier-page-bg:#F3F4F4;--atelier-header-bg:#FFFFFF;--atelier-section-bg:#E7E9EA;--atelier-sheet-bg:#FFFFFF;--atelier-overlay-bg:#17191A;--atelier-card-bg:linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,249,249,0.72) 100%);--atelier-card-border:rgba(23,25,26,0.13);--atelier-card-shadow:rgba(23,25,26,0.09);--atelier-row-hover:rgba(23,25,26,0.11);--atelier-grain:rgba(23,25,26,0.012);--atelier-input-bg:rgba(23,25,26,0.035);--atelier-input-border:rgba(13,106,90,0.68);--atelier-sheet-top:#F8F9F9;--atelier-sheet-bot:#EDEFEF;--atelier-sheet-border:rgba(23,25,26,0.16);--atelier-overlay:rgba(23,25,26,0.44);--atelier-ink:#0E1112;--atelier-ink-soft:#272B2D;--atelier-ink-dim:#3D4245;--atelier-ink-mute:#52585B;--atelier-ink-fade:#767C80;--atelier-label:#3A3F42;--atelier-accent-text:#0D6A5A;--role-metal:#8A6F2A;--role-ink-on-metal:#FFFFFF;--role-ink-deep:#17191A;--role-positive:#2C7343;--role-caution:#8A5A18;--role-critical:#AE3A22;--role-scrim:rgba(23,25,26,0.38);--role-sheet:#FFFFFF;--role-today-coin-ink:#FFFFFF;}.wl{--wl-t0:500 46px/0.95 var(--font-cormorant), Georgia, serif;--wl-t1:500 24px/1.2 var(--font-cormorant), Georgia, serif;--wl-t2:500 17px/1.3 var(--font-dm-sans), system-ui, sans-serif;--wl-t3:400 14px/1.45 var(--font-dm-sans), system-ui, sans-serif;--wl-t4:500 12px/1.4 var(--font-dm-sans), system-ui, sans-serif;--wl-t5:500 11px/1.3 var(--font-dm-sans), system-ui, sans-serif;--wl-gutter:16px;--wl-step:8px;--wl-tile:64px;--wl-row:52px;--wl-fab:56px;--wl-fab-bottom:136px;}
+.wl-drawerscrim{position:fixed;inset:0;z-index:19;background:var(--role-scrim);border:none;cursor:pointer}
+.wl-drawer{position:absolute;top:calc(100% + var(--wl-step));right:var(--wl-gutter);z-index:20}
+/* R-37.82 the gutter law, raised 12 to 16 (R-38.5). ONE horizontal gutter, owned by the
+   scroll column. Every element inherits it; no component sets its own horizontal margin or
+   width, ever. The founder’s misalignment existed because rows chose their own inset, and
+   that freedom is removed by construction rather than by care.
+   The rhythm law: vertical spacing is the 8-scale, nothing improvised. Gutter, step, tile
+   and row are emitted by typeCss from the theme GRID, so the grid has one home and this
+   stylesheet reads it rather than restating it.
+
+   THIS RULE WAS DESTROYED ONCE AND THE ARM CAUGHT IT. Consolidating the drawer, I deleted
+   the old row rules with a regex instead of reading them; it ate the declaration bodies and
+   left the selectors, which then swallowed this rule into a malformed one. C-R2 reported
+   the gutter rendering at 0 of 390 and C-R7a reported the tile and plan-card edges at 0.
+   An automated edit to a stylesheet is a blind edit, and the block below is hand-written. */
+.wl-main > *{padding-left:var(--wl-gutter);padding-right:var(--wl-gutter)}
+/* SHARED CARD CHROME, ONE HOME. Used by the first-run cards, the Today empty state and
+   Billing. A class used by three components and owned by one is a single-home violation
+   wearing CSS; the shell emits them, because the shell is what every surface is inside. */
+.wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px;margin:0 0 8px}
+/* ── H-1(b) · F-38.40b · THE LEAD CARD’S INTERIOR REJOINS THE OTHERS ────────
+   The accent border was added to the box without compensating the padding, so this
+   card’s contents painted at gutter + 2 + 16 = 34 while every other card’s painted at
+   gutter + .5 + 16 = 32.5. Three card titles, three x values, where the whole point of
+   a card set is one. 1.5px is small and it is exactly the kind of thing an eye reads as
+   「something is off」 without being able to name it. */
+.wl-card-lead{border-left:2px solid var(--atelier-accent-text);padding-left:14.5px}
+.wl-cardtitle{font:var(--wl-t4);color:var(--atelier-accent-text);margin:0 0 8px}
+.wl-cardbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0}
+.wl-cardaction{margin-top:12px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
+.wl-cardaction:active{background:var(--atelier-row-hover)}
+.wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+/* ── THE BUTTON REGISTER, ONE HOME, ANY ROOM (P7.2 Arm C, chair ruling 2026-09-04) ──────
+   These four rules were written inside StudioSheets.tsx’s SHEET_CSS and mounted only by
+   TeamTabs — a SHELL-WIDE register scoped to one room. Storefront’s bio call (F-P72.C, S19)
+   needed the same register and there were exactly two wrong ways to have it: import the Team
+   room’s stylesheet into an unrelated room, or copy the values inline. The first build did the
+   second, which is a second home for the same bytes; the ruling hoists the rules here instead,
+   where .wl-tile and .wl-fab already live, and both rooms read the class. This is what the
+   F-39.4 FAB ruling did for the seat: one register, one home, any room.
+   The values are byte-identical to the ones TeamTabs shipped. */
+.wl-btn{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:3px;
+        font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;
+        background:transparent}
+.wl-btn2{flex:2}
+.wl-btn:disabled{opacity:.5;cursor:not-allowed}
+.wl-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
+.wl-btn.pri{background:var(--atelier-accent-text);color:var(--role-ink-deep)}
+
+/* ── THE FAB’S SEAT · 56px, bottom-right, ONE GUTTER IN, 16px CLEAR OF THE DOCK ────
+   ── THE OFFSET IS MEASURED NOW, NOT REMEMBERED  [relay #3 item 4] ────────────
+   The first cut computed the bottom chrome from its parts: nav min-height 52, plus a dock
+   of 8+8 padding over a 44px field with a half-pixel border, call it 61. 113. Every other
+   thing about the control was right and the gap came out at NINE PIXELS in both modes,
+   because 113 is not what the browser paints — the real chrome measures 120, and the seven
+   missing pixels live somewhere in a line box I would have kept re-deriving from the
+   stylesheet and kept getting wrong.
+
+   THAT IS THE WHOLE LESSON AND IT IS THIS FILE’S OWN NEIGHBOURHOOD: a rule assembled out
+   of other rules' declared values is arithmetic about a stylesheet, not a fact about a
+   page. The gutter cell, the tile-height cell and the edge cell all exist because
+   declarations and paint disagree.
+
+   MEASURED ON THE DEPLOY, 390x844, BOTH MODES: the dock’s top edge sits 120px above the
+   viewport bottom. 120 + 16 = 136, and the safe-area inset rides on top because it is zero
+   on the measuring surface and is not zero on the founder’s phone.
+
+   THE NUMBER IS NOT THE PROOF EITHER. C-R18 measures the painted gap every run and reds on
+   15..17; if the dock gains a row, this literal goes stale and the cell says so in the
+   run rather than in a comment nobody re-derives.
+
+   ── CE-39 S2/6 · F-39.4 · THE NUMBER LEFT THIS RULE FOR THE GRID ──────────────
+   It was written here as 136 and 56, and two other files wrote their own — 120 and 46 in
+   the slice tree, 80 and 52 on Notes — so the founder met a button that changed size,
+   corner and height as he walked, and on Notes it sat on the ask dock. The measurement
+   above is unchanged and still the warrant; what changed is that it now has one home,
+   GRID.fab in lib/worklist/theme.ts, emitted by typeCss as two variables this rule reads.
+   Nothing else in the shell may name a FAB size or a bottom offset. */
+.wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(var(--wl-fab-bottom) + env(safe-area-inset-bottom));z-index:18;width:var(--wl-fab);height:var(--wl-fab);border:none;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
+/* ── THE PRESS IS GEOMETRIC, AND THAT IS A RULING RATHER THAN A SHORTCUT ──────
+   F-38.14 measured the press FILL to 1.5:1 after 1.1:1 was convicted as an acknowledgement
+   nobody could see. That floor is a ratio between a row’s pressed fill and the ground it
+   sits on, and it does not transfer here: this control is a solid accent disc floating over
+   arbitrary content, so a darker accent has no fixed neighbour to be read against and any
+   number chosen for it would be a colour nobody measured — which is precisely what the
+   Slice Door’s retired opacity was.
+   So the press is SIZE and DEPTH: 56 to 52.6 (6%) with the shadow pulled in. Both are
+   changes to the control itself, both survive on any ground, and C-R18 measures the
+   painted rect rather than reading this rule. NO NEW COLOUR TOKEN WAS INVENTED FOR A
+   PRESSED STATE, and that refusal is the point of the paragraph. */
+.wl-fab:active{transform:scale(.94);box-shadow:0 1px 4px rgba(0,0,0,.28)}
+.wl-fab:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
+/* TOUCH. Two defects in the first cut, both found on the founder’s device and neither
+   visible in a desktop render: no pressed state anywhere, and no touch-action, so the
+   browser held every tap for the double-tap-zoom gesture before dispatching the click. */
+.wl{font:var(--wl-t3);touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
+.wl button,.wl a{touch-action:manipulation}
+/* R-38.5 the edge. The header’s horizontal padding IS the gutter, so the wordmark’s left
+   edge, the first tile’s border, the dock field’s border and Billing’s plan card all
+   resolve to one x. It was 22px here and 12px everywhere else, which is the misalignment
+   the founder kept seeing and no cell could name. */
+.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:16px var(--wl-gutter);display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
+.wl-hstack{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wl-house{font:var(--wl-t2);color:var(--atelier-ink)}
+.wl-lbl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-lblrow{display:flex;align-items:baseline;gap:8px;min-width:0}
+.wl-beta{font:var(--wl-t5);letter-spacing:.12em;text-transform:uppercase;color:var(--atelier-accent-text);flex-shrink:0}
+.wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+.wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+/* R-38.5: the nav’s content box shares the main column’s left edge, which is the container
+   half of the edge cell. The seats' TEXT is centred, so the text-edge cell reads the
+   wordmark, the grid, the dock and the plan card, and this one reads the boxes. */
+.wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
+.wl-seat{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-seat.on{color:var(--atelier-accent-text)}
+.wl-seat:active{background:var(--atelier-row-hover)}
+.wl-coin:active{background:var(--atelier-row-hover)}
+.wl-seat:focus-visible,.wl-coin:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
+@media (prefers-reduced-motion:reduce){.wl *{transition:none!important;animation:none!important}}
+
+.wl-roomhead{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wl-roomtitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0;padding:16px 0 10px;min-width:0}
+.wl-roomtitle-none{padding:0;flex:1}
+.wl-helpq{width:44px;height:44px;min-width:44px;min-height:44px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;margin:0 -11px 0 0;padding:0;touch-action:manipulation}
+.wl-helpqring{width:22px;height:22px;border:1px solid var(--atelier-ink-mute);border-radius:50%;display:flex;align-items:center;justify-content:center;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.wl-helpq[data-first="1"]::after{content:"";position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--atelier-accent-text)}
+.wl-helpq:active .wl-helpqring{background:var(--atelier-row-hover)}
+.wl-helpq:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
+.wl-help{position:fixed;inset:0;z-index:40;padding:0;display:flex;flex-direction:column;justify-content:center}
+.wl-helpscrim{position:absolute;inset:0;background:var(--role-scrim);border:none;cursor:pointer}
+.wl-helpcard{position:relative;margin:0 var(--wl-gutter);background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-radius:12px;padding:16px;max-height:60dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 8px 28px var(--atelier-card-shadow)}
+.wl-helpname{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 8px}
+.wl-helpwhat{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0 0 14px}
+.wl-helpdo{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:10px}
+.wl-helpdo li{display:flex;gap:12px;align-items:flex-start;font:var(--wl-t3);color:var(--atelier-ink)}
+.wl-helpicon{width:18px;height:18px;flex-shrink:0;margin-top:1px;stroke:var(--atelier-accent-text);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.wl-helplink{font:var(--wl-t4);color:var(--atelier-ink-mute);margin:0 0 16px}
+.wl-helpacts{display:flex;gap:8px}
+.wl-helpacts .wl-cardaction{flex:1;margin-top:0}
+.wl-helpacts .pri{background:var(--atelier-accent-text);border-color:transparent;color:var(--role-ink-deep)}
+
+
+/* ZIP 14 · F-16.39's cure stands: LONGHAND padding only. This line once read
+   "padding:18px 0 28px", and the shorthand’s horizontal 0 overrode the gutter
+   ".wl-main > *" supplies — flush to both screen edges for twelve ZIPs, in the founder’s
+   own screenshots, passed every time by a gate that asserted the rule was PRESENT and
+   never that it APPLIED. */
+/* ── R-G11.11 · THE GRID EARNS ITS OWN CLEARANCE  [F-40.27] ──────────────────
+   The two-wide arm (R-40.22) fills YOUR BUSINESS to 3·3·3 clean, and that is
+   what put a live tile under the FAB: today’s grid and the one-wide arm both
+   ended that band on a single left-hand tile, so the FAB had always floated
+   over empty space. Removing the orphan is what created the collision — the
+   clearance was an accident of the ragged row, never a decision.
+   THE FAB DOES NOT MOVE (founder, 2026-08-29: 「the FAB sits right on Rooms and
+   nowhere else」). The GRID makes room instead, and it does so for ANY tile
+   count rather than for this one: bottom padding = the FAB’s own seat plus one
+   tile height, so no band’s last row can sit beneath it however the registry is
+   reordered later.
+   BOTH NUMBERS ARE READ THROUGH THE VARIABLES typeCss EMITS FROM GRID
+   (lib/worklist/theme.ts). Neither 136 nor 64 is retyped here — a second copy of
+   the FAB’s seat is the exact three-homes defect F-39.4 cured.
+   (No backticks in this comment: it lives inside a JS template literal, as the
+   block’s own header warns. The first cut used them and tsc caught it.)
+   LONGHAND, per F-16.39's standing cure: a shorthand’s horizontal 0 would
+   override the gutter that .wl-main > * supplies. */
+.wl-bands{padding-top:16px;padding-bottom:calc(var(--wl-fab-bottom) + var(--wl-tile));flex:1}
+.wl-band+.wl-band{margin-top:24px}
+/* R-38.4: a section eyebrow — the second of the two places letter-spaced uppercase is
+   permitted, at .08em. The em-dash bracketing retired with the engraved register; a label
+   that needs decoration to read as a label is not a label. */
+.wl-bandlabel{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px}
+/* CE-45 FE-1: a shelf is one card holding its rows, as the ruled mock draws it (.list). The card and
+   its hairline are the tile’s own tokens; no new colour. */
+.wl-tiles{display:flex;flex-direction:column;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;overflow:hidden}
+/* R-40.98 · THE HEADLINE TILE IS A COLOUR, NOT A SHAPE. The two full-width rules
+   that stood here retired with R-40.22 at the founder’s word of 2026-09-07: the
+   heads keep every other tile’s shape, size and rung and are told apart by their
+   own border taking the accent. The rule sits AFTER the tile’s own rule below
+   rather than before it, because both are single-class selectors and the border
+   shorthand there would otherwise win on order alone.
+   ONE FILL IS NOT SPENT HERE, WHICH IS WHY THIS TREATMENT AND NOT A FILLED TILE:
+   the 3x-per-screen accent law budgets FILLS, the FAB and the dock’s send disc
+   already hold two, and a filled tile would also read at 2.71:1 in Chalk
+   (F-40.212, outside this radius). A hairline spends no fill and no new token. */
+/* ── F-38.4 · FIXED HEIGHT, NOT ASPECT (CE-38 relay #2) ───────────────────────
+   R-38.5 first ruled 1:1. At three-up on a 390px viewport with a 16px gutter and 8px gaps
+   a tile is 114px wide, so 1:1 makes it 114 tall — and eighteen rooms then measure ~946px
+   of grid against ~651px of work area. Settings, Business Solutions, Collab and Advisor
+   would sit permanently below the fold, which defeats R-37.61: a room reachable only by
+   scrolling past the fold is a hidden room wearing a tile. 64 clears the 44 tap floor with
+   air, fits the two-line label at t5, and puts all eighteen on screen at rest. */
+/* THE FIGURE SITS IN THE TILE’S CORNER, SO THE TILE BECOMES ITS POSITIONING CONTEXT —
+   AND the relative positioning GOES INSIDE THE EXISTING RULE, NOT IN A SECOND ONE.
+   NO BACKTICKS IN THIS BLOCK: it is inside a JS template literal, and a backtick written
+   around a declaration while explaining that declaration ends the literal. The estate has
+   paid for this six times; this was the seventh, caught by tsc. A second
+   rule for the same selector reddened C10 immediately: that cell reads the declarations
+   of the FIRST such rule to prove the 44px tap floor is STATED rather than survived by
+   accident, and a split hid the height from it. It reddened a SECOND time on the comment
+   explaining the first fix, because the selector was spelled inside it and the cell’s
+   matcher found the prose before the rule — comment-blindness in the other direction, and
+   worth leaving recorded rather than tidied away. No selector is written out in this
+   block. Nothing about the tile’s geometry is renegotiated by a number arriving. */
+.wl-tcount{position:static;flex:none;font:var(--wl-t5);color:var(--atelier-accent-text)}
+/* F-39.15: lining figures, stated rather than inherited from a family map. s-39.7 note —
+   no backticks anywhere in this literal. */
+.wl-tcount{font-variant-numeric:lining-nums tabular-nums}
+.wl-tile{position:relative;background:transparent;border:0;border-top:.5px solid var(--atelier-card-border);border-radius:0;min-height:var(--wl-tile);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;cursor:pointer;text-decoration:none}
+.wl-tile:first-child{border-top:0}
+/* CE-45 FE-1 · THE HEADLINE IS THE NAME’S INK, as the ruled mock draws it (.row.headline .n): the
+   metal, a token theme.ts already holds (role metal, lines 24 and 210). It replaces the accent
+   hairline of R-40.98, which belonged to the tile grid this layout retires. */
+.wl-ttext{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wl-tdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}
+/* CE-45 FE-1 HOME_2 · R-45.21: the icon sits before the name; the text takes the row. The icon's
+   colour is currentColor from the tokens the shell already emits: ink-dim on a row, the metal on
+   the headline pair (the name already takes the metal there). No new colour, no type rung. */
+.wl-ticon{flex:none;width:20px;height:20px;color:var(--atelier-ink-dim)}
+.wl-tilehead .wl-ticon{color:var(--role-metal)}
+.wl-tile .wl-ttext{flex:1}
+.wl-band.wl-top{margin-bottom:0}
+/* t4, NOT t5, and NOT uppercase-tracked. Two rulings meet on this one line and both bind:
+   R-37.73 ② put the interactive floor at 12px after 9px was convicted as illegible chrome,
+   and t5 is 11 — a tile is a control, so t5 would have walked that conviction back by one
+   pixel while looking like a tidy. And R-38.4 permits letter-spaced uppercase in exactly
+   two places, the nav seats and section eyebrows; a tile is neither, so the engraved
+   costume comes off and the label is simply the room’s name. */
+.wl-tname{font:var(--wl-t3);color:var(--atelier-ink)}
+/* REPAIR r5 (FE-1, CE-45): the headline name’s metal rule sits AFTER the name’s own rule, never before
+   it: b40 C11's type-floor census reads the FIRST rule naming wl-tname, and a colour-only rule first
+   read as a name with no rung. Same selector weight; order now also lets the metal win honestly. */
+.wl-tilehead .wl-tname{color:var(--role-metal)}
+.wl-tile:active{background:var(--atelier-row-hover);border-color:var(--atelier-accent-text)}
+.wl-tile:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+
+
+.wl-addsheet{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end}
+.wl-addscrim{position:absolute;inset:0;background:var(--role-scrim);border:none;cursor:pointer}
+.wl-addpanel{position:relative;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-bottom:none;border-radius:12px 12px 0 0;padding:8px var(--wl-gutter) calc(8px + env(safe-area-inset-bottom))}
+/* A section eyebrow, the second of the two permitted homes for letter-spaced uppercase. */
+.wl-addhead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:12px 0 8px}
+/* 52px is the shell’s row height and it clears the 44 tap floor with air. t3 for the
+   label: a row is a control, and R-37.73 (2) put the interactive floor at 12px after 9px
+   was convicted as illegible chrome. */
+.wl-addrow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0;background:none;border:none;border-top:.5px solid var(--atelier-card-border);cursor:pointer;text-align:left;touch-action:manipulation}
+.wl-addrow:first-of-type{border-top:none}
+.wl-addglyph{font:var(--wl-t4);color:var(--atelier-accent-text);width:20px;text-align:center;flex-shrink:0}
+.wl-addlabel{font:var(--wl-t3);color:var(--atelier-ink)}
+.wl-addrow:active{background:var(--atelier-row-hover)}
+.wl-addrow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
+
+
+/* R-38.5 · THE EDGE. The dock’s horizontal padding IS the gutter, so the field’s left
+   border shares one x with the wordmark above it and the first tile between them. It was
+   12px against a 22px header, which is exactly the kind of near-miss that reads as
+   sloppiness without ever being nameable by eye. */
+.wl-dock{flex-shrink:0;padding:8px var(--wl-gutter);background:var(--atelier-header-bg);border-top:.5px solid var(--atelier-card-border)}
+.wl-dockfield{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:999px;padding:10px 8px 10px 16px;cursor:pointer;text-align:left;touch-action:manipulation}
+.wl-dockph{flex:1;font:var(--wl-t3);color:var(--atelier-ink-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-docksend{width:28px;height:28px;flex-shrink:0;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);display:flex;align-items:center;justify-content:center;font:var(--wl-t4)}
+.wl-dockfield:active{background:var(--atelier-row-hover)}
+.wl-dockfield:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}

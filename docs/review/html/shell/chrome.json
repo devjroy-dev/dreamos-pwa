@@ -1,0 +1,7 @@
+{
+ "header": "<header class=\"wl-hdr\" style=\"position: relative; z-index: 5;\"><div class=\"wl-hstack\"><span class=\"wl-house\">The Dream Wedding</span><span class=\"wl-lblrow\"><span class=\"wl-lbl\">Rooms</span><span class=\"wl-beta\">Beta</span></span></div><button type=\"button\" class=\"wl-coin\" aria-label=\"Your profile\" aria-expanded=\"false\">P</button></header>",
+ "nav": "<nav class=\"wl-nav\" aria-label=\"Sections\"><a class=\"wl-seat on\" aria-current=\"page\" href=\"/vendor/rooms\">Rooms</a><a class=\"wl-seat\" href=\"/vendor/today\">Home</a></nav>",
+ "dock": "<div class=\"wl-dock\"><button type=\"button\" class=\"wl-dockfield\" aria-label=\"Ask TDW\"><span class=\"wl-dockph\">Ask TDW — “Am I free on 14 Feb?”</span><span class=\"wl-docksend\" aria-hidden=\"true\">↑</span></button></div>",
+ "roomhead": "<div class=\"wl-roomhead\"><h1 data-room-title=\"\" class=\"wl-roomtitle\">Rooms</h1><button type=\"button\" class=\"wl-helpq\" aria-label=\"What is this page\" aria-haspopup=\"dialog\" aria-expanded=\"false\" data-first=\"0\"><span class=\"wl-helpqring\" aria-hidden=\"true\">?</span></button></div>",
+ "wlStyle": "height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: var(--atelier-page-bg); color: var(--atelier-ink);"
+}

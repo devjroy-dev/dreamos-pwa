@@ -1,0 +1,276 @@
+{
+ "a-reply-to-enquiry": [
+  {
+   "step": 1,
+   "label": "home",
+   "counts": "",
+   "ok": true,
+   "url": "/vendor/today",
+   "shot": "screenshots/flows/a-reply-to-enquiry/light-android-01-home.png"
+  },
+  {
+   "step": 2,
+   "label": "open-enquiry",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/leads?lead=lead-0001",
+   "shot": "screenshots/flows/a-reply-to-enquiry/light-android-02-open-enquiry.png"
+  },
+  {
+   "step": 3,
+   "label": "scroll-to-conversation",
+   "counts": "scroll",
+   "ok": true,
+   "url": "/vendor/leads?lead=lead-0001",
+   "shot": "screenshots/flows/a-reply-to-enquiry/light-android-03-scroll-to-conversation.png"
+  },
+  {
+   "step": 4,
+   "label": "whatsapp-button",
+   "counts": "tap (leaves the app)",
+   "ok": true,
+   "url": "/vendor/leads?lead=lead-0001",
+   "shot": "screenshots/flows/a-reply-to-enquiry/light-android-04-whatsapp-button.png"
+  }
+ ],
+ "b-check-a-date": [
+  {
+   "step": 1,
+   "label": "home",
+   "counts": "",
+   "ok": true,
+   "url": "/vendor/today",
+   "shot": "screenshots/flows/b-check-a-date/light-android-01-home.png"
+  },
+  {
+   "step": 2,
+   "label": "rooms",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/rooms",
+   "shot": "screenshots/flows/b-check-a-date/light-android-02-rooms.png"
+  },
+  {
+   "step": 3,
+   "label": "calendar",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/calendar",
+   "shot": "screenshots/flows/b-check-a-date/light-android-03-calendar.png"
+  },
+  {
+   "step": 4,
+   "label": "next-month-x5",
+   "counts": "tap x5",
+   "ok": true,
+   "url": "/vendor/calendar",
+   "shot": "screenshots/flows/b-check-a-date/light-android-04-next-month-x5.png"
+  },
+  {
+   "step": 5,
+   "label": "day-14",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/calendar",
+   "shot": "screenshots/flows/b-check-a-date/light-android-05-day-14.png"
+  }
+ ],
+ "c-enquiry-to-booked-client": [
+  {
+   "step": 1,
+   "label": "home",
+   "counts": "",
+   "ok": true,
+   "url": "/vendor/today",
+   "shot": "screenshots/flows/c-enquiry-to-booked-client/light-android-01-home.png"
+  },
+  {
+   "step": 2,
+   "label": "open-enquiry",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/leads?lead=lead-0001",
+   "shot": "screenshots/flows/c-enquiry-to-booked-client/light-android-02-open-enquiry.png"
+  },
+  {
+   "step": 3,
+   "label": "attach-package",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/leads?lead=lead-0001",
+   "shot": "screenshots/flows/c-enquiry-to-booked-client/light-android-03-attach-package.png"
+  },
+  {
+   "step": 4,
+   "label": "choose-package-fee-fills",
+   "counts": "tap x2 (open list, pick)",
+   "ok": true,
+   "url": "/vendor/leads?lead=lead-0001",
+   "shot": "screenshots/flows/c-enquiry-to-booked-client/light-android-04-choose-package-fee-fills.png"
+  },
+  {
+   "step": 5,
+   "label": "attach",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/leads?lead=lead-0001",
+   "shot": "screenshots/flows/c-enquiry-to-booked-client/light-android-05-attach.png"
+  },
+  {
+   "step": 6,
+   "label": "booking-confirmed",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/leads?lead=lead-0001",
+   "shot": "screenshots/flows/c-enquiry-to-booked-client/light-android-06-booking-confirmed.png"
+  },
+  {
+   "step": 7,
+   "label": "confirm-booking",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/leads?lead=lead-0001",
+   "shot": "screenshots/flows/c-enquiry-to-booked-client/light-android-07-confirm-booking.png"
+  },
+  {
+   "step": 8,
+   "label": "lead-sheet-after",
+   "counts": "none",
+   "ok": true,
+   "url": "/vendor/leads?lead=lead-0001",
+   "shot": "screenshots/flows/c-enquiry-to-booked-client/light-android-08-lead-sheet-after.png"
+  },
+  {
+   "step": 9,
+   "label": "clients-room",
+   "counts": "tap x2 (Rooms, Clients)",
+   "ok": true,
+   "url": "/vendor/clients",
+   "shot": "screenshots/flows/c-enquiry-to-booked-client/light-android-09-clients-room.png"
+  }
+ ],
+ "d-send-invoice-and-see-who-owes": [
+  {
+   "step": 1,
+   "label": "home",
+   "counts": "",
+   "ok": true,
+   "url": "/vendor/today",
+   "shot": "screenshots/flows/d-send-invoice-and-see-who-owes/light-android-01-home.png"
+  },
+  {
+   "step": 2,
+   "label": "rooms",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/rooms",
+   "shot": "screenshots/flows/d-send-invoice-and-see-who-owes/light-android-02-rooms.png"
+  },
+  {
+   "step": 3,
+   "label": "invoices",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/invoices",
+   "shot": "screenshots/flows/d-send-invoice-and-see-who-owes/light-android-03-invoices.png"
+  },
+  {
+   "step": 4,
+   "label": "new-invoice",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/invoices",
+   "shot": "screenshots/flows/d-send-invoice-and-see-who-owes/light-android-04-new-invoice.png"
+  },
+  {
+   "step": 5,
+   "label": "fill",
+   "counts": "tap + type x2",
+   "ok": true,
+   "url": "/vendor/invoices",
+   "shot": "screenshots/flows/d-send-invoice-and-see-who-owes/light-android-05-fill.png"
+  },
+  {
+   "step": 6,
+   "label": "create-then-open-an-invoice",
+   "counts": "tap x2 (Create, open)",
+   "ok": true,
+   "url": "/vendor/invoices",
+   "shot": "screenshots/flows/d-send-invoice-and-see-who-owes/light-android-06-create-then-open-an-invoice.png"
+  },
+  {
+   "step": 7,
+   "label": "send-on-whatsapp",
+   "counts": "tap (leaves the app)",
+   "ok": true,
+   "url": "/vendor/invoices",
+   "shot": "screenshots/flows/d-send-invoice-and-see-who-owes/light-android-07-send-on-whatsapp.png"
+  }
+ ],
+ "e-today-and-week-with-crew": [
+  {
+   "step": 1,
+   "label": "home",
+   "counts": "",
+   "ok": true,
+   "url": "/vendor/today",
+   "shot": "screenshots/flows/e-today-and-week-with-crew/light-android-01-home.png"
+  },
+  {
+   "step": 2,
+   "label": "home-scrolled-events",
+   "counts": "scroll",
+   "ok": true,
+   "url": "/vendor/today",
+   "shot": "screenshots/flows/e-today-and-week-with-crew/light-android-02-home-scrolled-events.png"
+  },
+  {
+   "step": 3,
+   "label": "event-sheet-no-crew",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/events?event=ev-0101",
+   "shot": "screenshots/flows/e-today-and-week-with-crew/light-android-03-event-sheet-no-crew.png"
+  },
+  {
+   "step": 4,
+   "label": "rooms",
+   "counts": "tap (back) + tap",
+   "ok": true,
+   "url": "/vendor/rooms",
+   "shot": "screenshots/flows/e-today-and-week-with-crew/light-android-04-rooms.png"
+  },
+  {
+   "step": 5,
+   "label": "calendar",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/calendar",
+   "shot": "screenshots/flows/e-today-and-week-with-crew/light-android-05-calendar.png"
+  },
+  {
+   "step": 6,
+   "label": "today-28",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/calendar",
+   "shot": "screenshots/flows/e-today-and-week-with-crew/light-android-06-today-28.png"
+  },
+  {
+   "step": 7,
+   "label": "crew-for-haldi",
+   "counts": "tap",
+   "ok": true,
+   "url": "/vendor/calendar",
+   "shot": "screenshots/flows/e-today-and-week-with-crew/light-android-07-crew-for-haldi.png"
+  },
+  {
+   "step": 8,
+   "label": "close-then-weddings-view",
+   "counts": "tap x3 (close, close, Weddings)",
+   "ok": true,
+   "url": "/vendor/calendar",
+   "shot": "screenshots/flows/e-today-and-week-with-crew/light-android-08-close-then-weddings-view.png"
+  }
+ ]
+}

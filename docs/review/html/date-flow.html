@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Is a date free? · TDW mock-up</title>
+<!-- A mock-up for the UX review (docs/review/REPORT.md). Drawn with the app's own shell CSS and fonts, copied in. -->
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="shell/shell.css">
+<link rel="stylesheet" href="page.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="panel">
+    <p class="kicker">TDW vendor app · proposal</p>
+    <h1>Is a date free?</h1>
+    <p class="lede">Today: 8 taps across Home, Rooms, Calendar and a day sheet that never says the word free. Proposed: 2 taps and a plain answer.</p>
+    <h2>The steps</h2>
+    <ol class="steps">
+        <li data-step="today"><span>1</span>Tap Check a date on Home.</li>
+        <li data-step="date"><span>2</span>Pick the date. The answer says Free or Booked, and who asked for it.</li>
+        <li data-step="calendar"><span>3</span>Open in calendar: booked, enquiry and blocked days drawn plainly; tap the month to jump.</li>
+    </ol>
+    <h2>Theme</h2>
+    <div class="seg"><button data-set="mode=dark">Dark</button><button data-set="mode=light">Light</button></div>
+    <p class="row"><button class="restart" data-restart>Start again</button> <a href="index.html">All mock-ups</a></p>
+  </aside>
+  <div class="frame"><div id="phone"></div></div>
+</div>
+<script>window.TDW_MOCK = {"start":"today"};</script>
+<script src="tokens.js"></script>
+<script src="shell/chrome.js"></script>
+<script src="screens.js"></script>
+<script src="mock.js"></script>
+</body>
+</html>

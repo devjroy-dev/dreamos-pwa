@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Palettes and type · TDW mock-up</title>
+<!-- A mock-up for the UX review (docs/review/REPORT.md). Drawn with the app's own shell CSS and fonts, copied in. -->
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="shell/shell.css">
+<link rel="stylesheet" href="page.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="panel">
+    <p class="kicker">TDW vendor app · proposal</p>
+    <h1>Palettes and type</h1>
+    <p class="lede">The three proposed palettes, each dark and light, on the proposed screens. Every button in the phone works. Contrast of every pair: palettes/CONTRAST.md.</p>
+    <h2>Screens</h2>
+    <ol class="steps">
+        <li data-step="today"><button data-jump="today">Today</button></li>
+        <li data-step="leads lead book"><button data-jump="leads">Enquiries</button></li>
+        <li data-step="client clients invoice"><button data-jump="client">A client</button></li>
+    </ol>
+      <h2>Palette</h2>
+      <div class="seg"><button data-set="palette=ledger">Teal Ledger</button><button data-set="palette=slate">Slate and Teal</button><button data-set="palette=indigo">Indigo and Marigold</button></div>
+      <h2>Type</h2>
+      <div class="seg"><button data-set="type=inter">A: Inter</button><button data-set="type=plex">B: Plex, serif name</button><button data-set="type=today">Today: DM Sans</button></div>
+    <h2>Theme</h2>
+    <div class="seg"><button data-set="mode=dark">Dark</button><button data-set="mode=light">Light</button></div>
+    <p class="row"><button class="restart" data-restart>Start again</button> <a href="index.html">All mock-ups</a></p>
+  </aside>
+  <div class="frame"><div id="phone"></div></div>
+</div>
+<script>window.TDW_MOCK = {"start":"today"};</script>
+<script src="tokens.js"></script>
+<script src="shell/chrome.js"></script>
+<script src="screens.js"></script>
+<script src="mock.js"></script>
+</body>
+</html>

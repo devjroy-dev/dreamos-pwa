@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Today's and this week's events, with crew · TDW mock-up</title>
+<!-- A mock-up for the UX review (docs/review/REPORT.md). Drawn with the app's own shell CSS and fonts, copied in. -->
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="shell/shell.css">
+<link rel="stylesheet" href="page.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="panel">
+    <p class="kicker">TDW vendor app · proposal</p>
+    <h1>Today's and this week's events, with crew</h1>
+    <p class="lede">Today: Home lists the events with no crew; the crew is 4 taps away per event, inside the Calendar. Proposed: the crew is on the Home cards, the week is one tap, the event page one more.</p>
+    <h2>The steps</h2>
+    <ol class="steps">
+        <li data-step="today"><span>1</span>Home: each event shows its crew, confirmed or not yet replied. Tap This week.</li>
+        <li data-step="week"><span>2</span>This week: every function by day, with its crew or a clear No crew yet. Tap an event.</li>
+        <li data-step="event"><span>3</span>The event: where, when, the client, the crew, Message crew.</li>
+    </ol>
+    <h2>Theme</h2>
+    <div class="seg"><button data-set="mode=dark">Dark</button><button data-set="mode=light">Light</button></div>
+    <p class="row"><button class="restart" data-restart>Start again</button> <a href="index.html">All mock-ups</a></p>
+  </aside>
+  <div class="frame"><div id="phone"></div></div>
+</div>
+<script>window.TDW_MOCK = {"start":"today"};</script>
+<script src="tokens.js"></script>
+<script src="shell/chrome.js"></script>
+<script src="screens.js"></script>
+<script src="mock.js"></script>
+</body>
+</html>

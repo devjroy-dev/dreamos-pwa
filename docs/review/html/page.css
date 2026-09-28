@@ -1,0 +1,34 @@
+/* the page around the phone (not part of the app) */
+:root{--pg-bg:#E9EBE8;--pg-ink:#15191A;--pg-mute:#4F585C;--pg-line:#C9CFCB;--pg-card:#F5F6F3;--pg-accent:#0B6655;color-scheme:light}
+:root[data-mode="dark"]{--pg-bg:#0D0F10;--pg-ink:#E9ECEC;--pg-mute:#A2AAAD;--pg-line:#2E3538;--pg-card:#161A1C;--pg-accent:#5CC4AE;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--pg-bg);color:var(--pg-ink);font:400 16px/1.5 'Inter',system-ui,sans-serif}
+.layout{display:flex;gap:40px;justify-content:center;align-items:flex-start;padding:32px 16px}
+.panel{width:340px;flex-shrink:0}
+.kicker{font-size:13px;color:var(--pg-mute);margin:0 0 4px}
+h1{font:600 24px/1.25 'Inter',sans-serif;margin:0 0 8px}
+h2{font:600 14px/1.3 'Inter',sans-serif;margin:24px 0 8px}
+.lede{color:var(--pg-mute);margin:0}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.steps li{display:flex;gap:10px;padding:10px 12px;border:1px solid var(--pg-line);border-radius:10px;background:var(--pg-card);font-size:14px}
+.steps li span{flex-shrink:0;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--pg-mute);font-size:12px}
+.steps li.now{border-color:var(--pg-accent);box-shadow:inset 3px 0 0 var(--pg-accent)}
+.steps li button{all:unset;cursor:pointer;flex:1}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button,.restart{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--pg-line);background:var(--pg-card);color:var(--pg-ink);font:500 14px 'Inter',sans-serif;cursor:pointer}
+.seg button[aria-pressed="true"]{border-color:var(--pg-accent);box-shadow:inset 0 0 0 1px var(--pg-accent);color:var(--pg-accent)}
+.row{display:flex;gap:16px;align-items:center;margin-top:24px}
+a{color:var(--pg-accent)}
+/* the phone: 390 by 844 on a computer; the whole screen on a phone. transform makes it the box for fixed children */
+.frame{width:390px;height:844px;border-radius:36px;border:10px solid #000;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);flex-shrink:0}
+#phone{width:100%;height:100%;transform:translateZ(0);overflow:hidden}
+@media (max-width:760px){
+  .layout{flex-direction:column-reverse;align-items:stretch;padding:0;gap:0}
+  .frame{width:100%;height:100dvh;border:0;border-radius:0;box-shadow:none}
+  .panel{width:auto;padding:24px 16px 32px}
+}
+.index{max-width:640px;margin:0 auto;padding:40px 16px}
+.index ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:10px}
+.index li{padding:14px 16px;border:1px solid var(--pg-line);border-radius:12px;background:var(--pg-card)}
+.index li a{display:block;font-weight:600;margin-bottom:4px}
+.index li span{color:var(--pg-mute);font-size:14px}

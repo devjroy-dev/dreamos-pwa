@@ -1,0 +1,14 @@
+/* The faces the app uses (DM Sans, Cormorant Garamond; app/layout.tsx loads them from Google Fonts through next/font)
+   and the two proposed (Inter, IBM Plex Sans). Latin subset woff2 from @fontsource, SIL Open Font License (see LICENSE-*). */
+@font-face{font-family:'DM Sans';font-weight:400;font-display:swap;src:url(dm-sans-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'DM Sans';font-weight:500;font-display:swap;src:url(dm-sans-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Cormorant Garamond';font-weight:500;font-display:swap;src:url(cormorant-garamond-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Cormorant Garamond';font-weight:600;font-display:swap;src:url(cormorant-garamond-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:400;font-display:swap;src:url(inter-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:500;font-display:swap;src:url(inter-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:600;font-display:swap;src:url(inter-latin-600-normal.woff2) format('woff2')}
+@font-face{font-family:'IBM Plex Sans';font-weight:400;font-display:swap;src:url(ibm-plex-sans-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'IBM Plex Sans';font-weight:500;font-display:swap;src:url(ibm-plex-sans-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'IBM Plex Sans';font-weight:600;font-display:swap;src:url(ibm-plex-sans-latin-600-normal.woff2) format('woff2')}
+/* the variable names next/font gives the app's faces, so the shell's own CSS resolves unchanged */
+:root{--font-dm-sans:'DM Sans';--font-cormorant:'Cormorant Garamond'}

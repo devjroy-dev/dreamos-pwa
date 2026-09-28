@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enquiry to booked client · TDW mock-up</title>
+<!-- A mock-up for the UX review (docs/review/REPORT.md). Drawn with the app's own shell CSS and fonts, copied in. -->
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="shell/shell.css">
+<link rel="stylesheet" href="page.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="panel">
+    <p class="kicker">TDW vendor app · proposal</p>
+    <h1>Enquiry to booked client</h1>
+    <p class="lede">From Home: read the new enquiry, reply, then book it with a package. Today this takes 7 taps and three stacked sheets; proposed, 4 taps, and booking also makes the invoice and the calendar days.</p>
+    <h2>The steps</h2>
+    <ol class="steps">
+        <li data-step="today"><span>1</span>Home shows the enquiry and its last message. Tap it.</li>
+        <li data-step="lead"><span>2</span>The enquiry: the free date and the conversation come first. Tap Reply, or Book.</li>
+        <li data-step="book"><span>3</span>One sheet: pick the package; fee, dates and advance are filled in. Tap Book and make invoice.</li>
+        <li data-step="client"><span>4</span>The client page: money, functions with crew, the invoice.</li>
+    </ol>
+    <h2>Theme</h2>
+    <div class="seg"><button data-set="mode=dark">Dark</button><button data-set="mode=light">Light</button></div>
+    <p class="row"><button class="restart" data-restart>Start again</button> <a href="index.html">All mock-ups</a></p>
+  </aside>
+  <div class="frame"><div id="phone"></div></div>
+</div>
+<script>window.TDW_MOCK = {"start":"today"};</script>
+<script src="tokens.js"></script>
+<script src="shell/chrome.js"></script>
+<script src="screens.js"></script>
+<script src="mock.js"></script>
+</body>
+</html>
