@@ -1,0 +1,53 @@
+# scripts/floor-manifest-ce46-fe4-page-help.txt
+#
+# CE-46 · FE-4 · THE "?" ON EVERY SURFACE (the founder's ruling of 27 Sept 2026; the chair's Forks A to H of
+# 27 Sept and F-44.219 of 28 Sept). Rung b140. The delivery's own file table (F-19.16): every path this
+# delivery adds, edits or deletes, and nothing else. Deleted paths are listed as dirt too.
+#
+# BASE: 423d67cd (dreamos-pwa, origin/main; WEB-1 cut 1, b145). Built at dc8dbdd1 and carried once, no overlap.
+#
+# NEW (5 with this manifest and the handover)
+components/worklist/PageHelp.tsx                      # RoomHead, the "?", the card; RoomHeadProvider/RoomHeadTitle (F-44.219)
+lib/worklist/pageHelp.ts                              # the card's lines, one entry per route; line 1 read from ROOM_DESC/ROW_DESC
+scripts/b140_ce46_fe4_page_help_bench.js              # rung b140
+scripts/lib/b140_page_help_probe.mjs                  # b140's browser arm
+scripts/floor-manifest-ce46-fe4-page-help.txt         # this file
+docs/handovers/TDW_CE46_FE4_PAGE_HELP_HANDOVER.md     # the handover
+#
+# DELETED (A-45.1: named here, git rm in block 3)
+components/vendor/TipsCarousel.tsx                    # the carousel, retired by the founder's ruling
+scripts/tdw09_uivendor.proof.mjs                      # read the carousel by path; retired whole (A-45.2)
+#
+# EDITED: the shell and the rooms whose own titles retired (Fork A (3)), and the F-44.219 rooms
+components/worklist/WorklistShell.tsx
+lib/worklist/copy.ts
+components/vendor/Header.tsx
+components/vendor/slices/SliceShell.tsx
+app/vendor/(shell)/notes/body.tsx
+app/vendor/(shell)/advisor/page.tsx
+app/vendor/(shell)/packages/page.tsx
+app/vendor/(shell)/dates/page.tsx
+app/vendor/(shell)/number/page.tsx
+components/solutions/OwnNumberFlow.tsx
+components/solutions/SolutionsPieces.tsx
+app/vendor/(shell)/today/page.tsx
+components/worklist/TodayCards.tsx
+app/vendor/(shell)/calendar/screen.tsx
+components/worklist/BillingRoom.tsx
+#
+# EDITED: benches re-aimed by label (A-45.2), the runner's named base, a manifest line made history
+# (the differential found three of these: b40, b59, and b123's probe)
+scripts/b123_ce45_fe2_type_bench.js
+scripts/lib/b123_type_probe.mjs                      # the client card is picked past the "?" (aria-expanded)
+scripts/b40_worklist_shell_bench.js                   # C34, C68, C74 read Today's status where F-44.219 put it
+scripts/b59_seven_ink_census.js                       # the debt re-pinned 114 to 110: the carousel's four literals
+scripts/b122_ce45_home_shelves_bench.js               # 5.3 reads ls-files: a file deleted under A-45.1 is listed, absent, between blocks 1 and 3
+scripts/tdw_stripper_census.mjs                       # the same: its ENOENT turned tdw_f3942_census_guard's base red into a false GREEN
+scripts/b126_igd1_meta_room_bench.js
+scripts/lib/b126_meta_room_probe.mjs
+scripts/b77_shell2_hierarchy_bench.js
+tools/bs_audit.mjs
+scripts/tdw09_money.proof.mjs
+scripts/floor-manifest-ce40-palette.txt
+scripts/run-floor.sh                                  # the named base 40 to 39; the A-46.6 label at the pre-floor pass
+scripts/lib/floor_reap.sh                             # A-46.6: before the first member, ANY next dev, by pid, printed; lsof where no /proc

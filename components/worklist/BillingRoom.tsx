@@ -51,7 +51,7 @@ export function BillingRoom({ current, show, loading = false }: { current: Field
   return (
     <div className="wl-bill">
       {/* ── THE PLAN CARD ────────────────────────────────────────────────────
-          Plan name at t2, price at t1, status as a neutral chip. R-38.8's shape, and the
+          Plan name at t2, price at t2 since F-44.219 (it was t1), status as a neutral chip. R-38.8's shape, and the
           reason it is a shape rather than a sentence is F-10.110: the row used to blend
           entitlement and rail into one claim and got it wrong for every comped vendor.
           Three separate facts, three separate places, no connective tissue to be wrong.
@@ -262,10 +262,10 @@ const BILL_CSS = `
 .wl-billcard{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px;min-height:96px;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .wl-billlead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-billname{font:var(--wl-t2);color:var(--atelier-ink)}
-/* t1, and the ONE t1 on this surface. font-variant-numeric AFTER the shorthand, which
+/* t2 since F-44.219 (the surface's one t1 is the shell's head). font-variant-numeric AFTER the shorthand, which
    resets it — R-38.5 asks every figure to be tabular and the shorthand would silently
    throw the setting away if it were declared first. */
-.wl-billprice{font:var(--wl-t1);color:var(--atelier-ink)}
+.wl-billprice{font:var(--wl-t2);color:var(--atelier-ink)} /* F-44.219 (CE-46 FE-4, ruled 28 Sept 2026): t1 to t2 beneath the shell's "Billing" head, as TYPE_1b option B stepped the money rooms' figures */
 .wl-billprice{font-variant-numeric:tabular-nums}
 .wl-billbasic{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:4px 0 0}
 /* A NEUTRAL CHIP. It reports the rail and stops; it is not a colour-coded verdict on her

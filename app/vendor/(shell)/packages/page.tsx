@@ -96,7 +96,6 @@ function PackagesScreen() {
     <WorklistShell title={ROOM_LABEL}>
       <section className="sol-surface">
         <p className="sol-kicker">{PACKAGES.eyebrow}</p>
-        <h1 className="sol-title">{ROOM_LABEL}</h1>
         {packages && <p className="sol-subhead">{PACKAGES.sub(packages.length)}</p>}
         {failed && <p className="sol-err">{COPY.surfaceUnavailable}</p>}
         {packages === null && !failed && <div className="pkg-wait" aria-busy="true" />}

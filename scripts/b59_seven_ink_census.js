@@ -230,7 +230,11 @@ outOfFamily.length === 0
 // lost its ten gold-at-alpha literals; NO alpha-bearing gold was minted — each became an
 // EXISTING token (hairlines -> --atelier-card-border, the active/outline edges ->
 // --atelier-input-border), so the ruling above this line still stands for the rest.
-const RESTATED_PINNED = 114;
+// CE-46 FE-4 · RE-PINNED 114 -> 110, THE DEBT SHRANK BY FOUR (A-45.2, by label): the four gold-at-alpha literals
+// of components/vendor/TipsCarousel.tsx (:242, :253 twice, :325) left with the file, which the founder's ruling of
+// 27 Sept 2026 retired for the "?" on every surface. Derived by set difference of this census's own list at
+// dc8dbdd1 against the cut: those four are the only literals gone; every other entry moved line, not value.
+const RESTATED_PINNED = 110;
 console.log('\n\u00a71b  the restated-token debt is pinned, not passed over');
 restated.length === RESTATED_PINNED
   ? ok(`${RESTATED_PINNED} in-family literals`, 'the ruled debt — awaiting an alpha-bearing token ruling')

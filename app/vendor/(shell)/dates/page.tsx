@@ -60,7 +60,6 @@ function OpenDatesScreen() {
     <WorklistShell title={roomLabel('dates')}>
       <section className="sol-surface">
         <p className="sol-kicker">{CHIPS.coming}</p>
-        <h1 className="sol-title">{roomLabel('dates')}</h1>
         <p className="sol-empty">{DATES.lede}</p>
         <p className="sol-subhead">{COPY.canHead}</p>
         <ul className="sol-can">

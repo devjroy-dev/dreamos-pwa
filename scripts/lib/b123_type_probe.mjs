@@ -109,7 +109,9 @@ try {
 
   if (SCENE === 'sheet') {
     if (ROOM === 'clients') {
-      out.tapped = await p.evaluate(() => { const bt = document.querySelector('.wl-main button[aria-expanded]'); if (!bt) return null; bt.click(); return 'card'; });
+      // AMENDED BY LABEL · CE-46 FE-4: the head's "?" (.wl-helpq) is now the first button in the room carrying
+      // aria-expanded (it opens the page's card); the client card is the first one that is NOT it.
+      out.tapped = await p.evaluate(() => { const bt = document.querySelector('.wl-main button[aria-expanded]:not(.wl-helpq)'); if (!bt) return null; bt.click(); return 'card'; });
       await settle(900);
       out.tapped2 = await p.evaluate(() => { const bt = [...document.querySelectorAll('.wl-main button')].find((x) => /^edit$/i.test(x.textContent.trim())); if (!bt) return null; bt.click(); return 'edit'; });
       await waitFor(() => !!document.querySelector('[data-lc2="binder-edit-sheet"]'), 15000);

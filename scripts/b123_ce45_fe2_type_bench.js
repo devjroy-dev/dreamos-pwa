@@ -169,8 +169,13 @@ function sourceCells(tag = '') {
     if (heads.length !== 6) bad.push(`${heads.length} Masthead mounts, not six (five rooms in the shell, Clients' own)`);
     heads.filter((h) => !/\bline=\{LEGACY_ROOM_HEAD\.(leads|clients|invoices|expenses|events)\(/.test(h)).forEach((h) => bad.push('a headline not from the home: ' + h.slice(0, 60)));
     if (/\b(LANE_LINE|CHIP_BLINDNESS|eyebrow=|sub=)/.test(shell + clients)) bad.push('a retired lane, foot, eyebrow or sub-line survives');
-    if (!/const ROOM_NAME = Object\.fromEntries\(ROOMS\.map\(\(r\) => \[r\.id, r\.label\]\)\)/.test(shell) || !/<h1 data-room-title="" [^>]*>\{ROOM_NAME\[slice\]\}<\/h1>/.test(shell)) bad.push('the shell title is not the registry label');
-    if (!/const NOTES_NAME = ROOMS\.find\(\(r\) => r\.id === 'notes'\)\?\.label/.test(notes) || !/<h1 data-room-title="" [^>]*>\{NOTES_NAME\}<\/h1>/.test(notes)) bad.push('the Notes title is not the registry label');
+    // AMENDED BY LABEL · CE-46 FE-4 (Fork A (3), 27 Sept 2026): the title has ONE drawer now, WorklistShell's RoomHead
+    // (components/worklist/PageHelp.tsx), reading the shell's `title` byte; SliceShell and Notes draw no h1 and read no
+    // registry name. The cell asks the new question: neither family module draws a room title, and the shell's head does.
+    const head = strip(read('components/worklist/PageHelp.tsx')); const wl = strip(read('components/worklist/WorklistShell.tsx'));
+    if (/data-room-title|ROOM_NAME|<h1\b/.test(shell)) bad.push('SliceShell still draws a room title of its own');
+    if (/data-room-title|NOTES_NAME|<h1\b/.test(notes)) bad.push('Notes still draws a room title of its own');
+    if (!/const headLine = override === undefined \? title : override;/.test(head) || !/<h1 data-room-title="" className="wl-roomtitle">\{headLine\}<\/h1>/.test(head) || !/<RoomHead title=\{title\} \/>\{children\}/.test(wl)) bad.push('the shell does not draw the title from its own byte (F-44.219: or the room\u2019s own line), once, above the room');
     cell('1.8 TYPE_1b: each headline reads LEGACY_ROOM_HEAD, each title the registry label; no lane, foot, eyebrow or sub-line survives', bad.length ? bad.join(' | ') : null);
   }
   // 1.6 · F7: RUNG_FONT is the scale read twice, var(--wl-tN, <the tuple>), generated from TYPE
@@ -313,8 +318,18 @@ function sceneCells(room, scene, mode, c, b, f5 = new Map()) {
     // TYPE_1b: the room's HEAD (every node above the search glyph; for Notes, its title) is where his
     // words changed, and 3.4 reads it against his bytes. Below it the words must be the base's, node for
     // node, with the one listed removal: the three foot lines of his row 9.
+    // AMENDED BY LABEL · CE-46 FE-4 (the "?" on every surface, 27 Sept 2026; F-44.219, 28 Sept): the cured tree
+    // carries TWO things the base cannot: the "?" glyph on the head's line (one text node, "?") and, on Calendar,
+    // the month drawn AS the head (the shell's RoomHead) instead of between the arrows. Both are taken off BY WHAT
+    // THEY ARE before the comparison: the first "?" node, and on Calendar the month-name node at t1 in either tree,
+    // wherever it stands. Every other word is still compared node for node. b140 proves both.
+    const MONTH_T1 = /^(January|February|March|April|May|June|July|August|September|October|November|December)$/;
     const cut = (x, isBase) => {
-      const all = x.nodes.filter((n) => !n.strip);
+      const qAt = x.nodes.findIndex((n) => n.txt === '?' && !n.strip);
+      // the month's own node: the FIRST full month name in the tree (the base drew it between the arrows at the
+      // base's own size, the cure draws it as the head at t1); the grid and the dates below never spell one
+      const mAt = room === 'calendar' ? x.nodes.findIndex((n) => !n.strip && MONTH_T1.test(n.txt)) : -1;
+      const all = x.nodes.filter((n, i) => !n.strip && i !== qAt && i !== mAt);
       // Notes has no search glyph: its head is its title, and only where the title is there to take
       // (a tree before TYPE_1b has none, and its first note is a word of the list, not a head)
       // (cut 2: a base AFTER TYPE_1b carries the title too, so it is taken off either tree wherever it stands)
@@ -402,11 +417,14 @@ function sceneCells(room, scene, mode, c, b, f5 = new Map()) {
           : Math.abs(tb.elTop) > 0.5 ? `the title's box starts ${tb.elTop}px below the room's top, not at it`
           : tb.padTop !== 16 ? `the title sets ${tb.padTop}px above its line, not 16` : !tb.first ? 'the title is not the room\u2019s first text' : null);
     }
-    const ctl = (x) => x.controls.filter((k) => !k.strip).map((k) => `${k.tag}|${k.role}|${k.name}|${k.href}`);
+    // AMENDED BY LABEL · CE-46 FE-4: the "?" (named "What is this page") is the one control this cut adds to every
+    // room; it is taken off by its name, and every other control is still compared in order (b140 2.3 proves it).
+    const ctl = (x) => x.controls.filter((k) => !k.strip && k.name !== 'What is this page').map((k) => `${k.tag}|${k.role}|${k.name}|${k.href}`);
     const ca = ctl(b), cc = ctl(c);
     let cd = -1; for (let i = 0; i < Math.max(ca.length, cc.length); i += 1) if (ca[i] !== cc[i]) { cd = i; break; }
     cell(`3.2 ${tag} the controls are the base\u2019s by name, role and href`, cd < 0 ? null : `at ${cd}: base ${ca[cd]} cured ${cc[cd]}`);
-    const kc = c.controls.filter((x) => !x.strip), kb = b.controls.filter((x) => !x.strip);
+    // CE-46 FE-4: the "?" is off both lists here too, by its name, so the pairing by index still lines up (3.3)
+    const kc = c.controls.filter((x) => !x.strip && x.name !== 'What is this page'), kb = b.controls.filter((x) => !x.strip && x.name !== 'What is this page');
     kc.forEach((k, i) => { if (kb[i] && kb[i].name === k.name && kb[i].tt === 'uppercase' && k.tt === 'none') f5.set(`${room}: ${k.name}`, true); });
     if (room === 'invoices' && scene === 'rest') {
       const fg = c.figure;

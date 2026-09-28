@@ -26,6 +26,7 @@ import { TodayCards, TodayResting, TodayDone, TodayKindLine } from '@/components
 import { COPY } from '@/lib/worklist/copy';
 import { useTodayFeed } from '@/lib/worklist/feed';
 import { PinnedRooms } from '@/components/worklist/PinnedRooms';
+import { RoomHeadTitle } from '@/components/worklist/PageHelp';
 
 // Derived at render, never a fixture. Locale pinned so the string cannot drift with the
 // runtime's ICU data — the same reason the estate pins its own date formatters.
@@ -58,6 +59,11 @@ export default function TodayPage() {
 
   return (
     <WorklistShell title={COPY.navToday}>
+      {/* F-44.219 (CE-46 FE-4, ruled 28 Sept 2026): this surface's t1 is its STATUS LINE (R-38.4), so the
+          shell's head draws it in place of the room name, which stays the t5 label above. Three states,
+          three lines, the same three that stood below as h1s; the working state and the unsettled read
+          pass null and the head carries the "?" alone (R-39.13: no heading over the cards). */}
+      <RoomHeadTitle line={!feed.responded && !feed.pending ? COPY.todayNotLive : firstRun ? COPY.todayNothingYet : resting ? COPY.todayRestingHead : null} />
       {/* CE-45 FE-1 HOME_2 · R-45.21, AMENDING P2 BY THE FOUNDER'S WORD ("it being at the bottom
           defeats the purpose of pinning"): the six pinned rooms OPEN Home, above Today's own surface,
           which below is lifted as it stands, not a byte of it rewritten. The address stays
@@ -95,8 +101,8 @@ export default function TodayPage() {
             the first reading settles either way. While it is true this surface says NOTHING —
             the numeral and the cards are absent, which is honest, and a skeleton would be a
             second claim about a fact not yet in hand (R-38.4: one t1 per surface). */}
-        {!feed.responded && !feed.pending && <h1 className="wl-status">{COPY.todayNotLive}</h1>}
-        {firstRun && <h1 className="wl-status">{COPY.todayNothingYet}</h1>}
+        {/* the two status h1s that stood here moved to the shell's head (F-44.219); their bytes are read
+            above, the same COPY keys, and .wl-status retired with them */}
         <div className="wl-mrule" />
       </section>
 
@@ -153,7 +159,6 @@ export default function TodayPage() {
 .wl-mkdot{font:var(--wl-t5);color:var(--atelier-ink-fade)}
 .wl-mkind:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .wl-mcap{font:var(--wl-t5);color:var(--atelier-ink-dim)}
-.wl-status{font:var(--wl-t1);color:var(--atelier-ink);margin:8px 0 0}
 .wl-mrule{height:.5px;background:var(--role-metal);opacity:.55;margin-top:16px}
       `}</style>
     </WorklistShell>

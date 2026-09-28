@@ -80,8 +80,13 @@ function commentRanges(src, rel) {
 
 const lineOf = (s, p) => s.slice(0, p).split('\n').length;
 
+// AMENDED BY LABEL · CE-46 FE-4 (28 Sept 2026): `git ls-files` lists the INDEX, and a delivery that deletes a file
+// under A-45.1 removes it from the tree in block 1 (`rm -f`) but from the index only in block 3 (`git rm`). The
+// founder's floor runs between the two, so a listed file can be absent; reading it threw ENOENT, the census
+// died, and tdw_f3942_census_guard then SKIPPED its fresh run and read GREEN, a false green on a red base. A
+// file absent from the tree is not in the tree's census: it is dropped here, and nothing else changes.
 const files = execSync(`cd ${ROOT} && git ls-files`, { encoding: 'utf8' })
-  .trim().split('\n').filter(f => CODE_EXT.test(f) && !f.startsWith('scripts/'));
+  .trim().split('\n').filter(f => CODE_EXT.test(f) && !f.startsWith('scripts/') && fs.existsSync(path.join(ROOT, f)));
 
 say('═══ F-07.74 CLASS CENSUS — TypeScript-lexer adjudicated ═══');
 say(`repo tip: ${execSync(`cd ${ROOT} && git rev-parse HEAD`, { encoding: 'utf8' }).trim()}`);

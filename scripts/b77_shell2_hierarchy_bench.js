@@ -66,14 +66,18 @@ if (process.argv.includes('--mutate')) {
   const run = () => spawnSync(process.execPath, [__filename], { cwd: ROOT, encoding: 'utf8' });
   const base = run();
   if (base.status !== 0) { console.log('REFUSED — the bench is not GREEN before mutation (exit ' + base.status + ')'); process.exit(3); }
+  // AMENDED BY LABEL · CE-46 FE-4 · Fork A (3), 27 Sept 2026: the sub-rooms' t1 title is drawn by WorklistShell's RoomHead
+  // now (components/worklist/PageHelp.tsx) and `.sol-title` left Pieces with its five mounts. Under A-45.2 the mutations
+  // whose subject was the page-drawn title are RETIRED, named, never run: M2 (the number title typed), M5 (the title
+  // drops to t2), M7 (number renders its title twice), M16 (the lede headed by nothing). M6 becomes "a t1 rule in
+  // Pieces" (zero is the ruled count). The shell's head is proven by b140 and b123 3.5.
+  const RETIRED_MUTATIONS = ['M2 the number title is typed, not read', 'M5 the title drops to t2', 'M7 number renders its title twice', 'M16 the lede is headed by nothing (title rendered after it)'];
+  RETIRED_MUTATIONS.forEach((n) => console.log('RETIRED ' + n + ' (CE-46 FE-4, A-45.2: the page draws no title)'));
   const M = [
     ['M1 the eyebrow leaves dates', DPAGE, '        <p className="sol-kicker">{CHIPS.coming}</p>\n', ''],
-    ['M2 the number title is typed, not read', NPAGE, "<h1 className=\"sol-title\">{roomLabel('number')}</h1>", '<h1 className="sol-title">{\'Your own number\'}</h1>'],
     ['M3 the eyebrow drops to ink-mute', PIECES, 'text-transform:uppercase;color:var(--atelier-ink-dim);margin:0 0 6px}', 'text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 6px}'],
     ['M4 the sub-head tracking goes to .06em', PIECES, '.sol-subhead{font:var(--wl-t5);letter-spacing:.08em;', '.sol-subhead{font:var(--wl-t5);letter-spacing:.06em;'],
-    ['M5 the title drops to t2', PIECES, '.sol-title{font:var(--wl-t1);', '.sol-title{font:var(--wl-t2);'],
-    ['M6 a second t1 rule in Pieces', PIECES, '.sol-kicker{font:var(--wl-t5);', '.sol-kicker{font:var(--wl-t1);'],
-    ['M7 number renders its title twice', NPAGE, "        <p className=\"sol-empty\">{NUMBER.lede}</p>\n", "        <h1 className=\"sol-title\">{roomLabel('number')}</h1>\n        <p className=\"sol-empty\">{NUMBER.lede}</p>\n"],
+    ['M6 a t1 rule in Pieces', PIECES, '.sol-kicker{font:var(--wl-t5);', '.sol-kicker{font:var(--wl-t1);'],
     ['M8 the list takes its old margin back', PIECES, '.sol-can{list-style:none;margin:0;', '.sol-can{list-style:none;margin:16px 0 0;'],
     ['M9 the sub-head byte is typed into number', NPAGE, '<p className="sol-subhead">{COPY.canHead}</p>', '<p className="sol-subhead">What this will do</p>'],
     ['M10 a hex literal in the sub-head', PIECES, 'text-transform:uppercase;color:var(--atelier-ink-dim);margin:24px 0 10px}', 'text-transform:uppercase;color:#A3A6A9;margin:24px 0 10px}'],
@@ -82,9 +86,6 @@ if (process.argv.includes('--mutate')) {
     ['M13 the mock revives the struck D7', MOCK, '<div class="sol-aside"><p class="sol-asideline">', '<div class="sol-aside"><p class="sol-kicker">Already working</p><p class="sol-asideline">'],
     ['M14 the mock draws the seat the chair first drew', MOCK, '<span class="wl-lbl">Your own number</span>', '<span class="wl-lbl">Business Solutions</span>'],
     ['M15 the mock carries the Chalk label it first carried', MOCK, '--atelier-label:#3A3F42;', '--atelier-label:#52585B;'],
-    ['M16 the lede is headed by nothing (title rendered after it)', DPAGE,
-      "        <h1 className=\"sol-title\">{roomLabel('dates')}</h1>\n        <p className=\"sol-empty\">{DATES.lede}</p>\n",
-      "        <p className=\"sol-empty\">{DATES.lede}</p>\n        <h1 className=\"sol-title\">{roomLabel('dates')}</h1>\n"],
   ];
   const touched = [...new Set(M.map((m) => m[1]).concat([DCOPY]))];
   const before = Object.fromEntries(touched.map((f) => [f, sha(f)]));
@@ -189,16 +190,18 @@ for (const s of SCREENS) {
   const inner = surfaceOf(s.html);
   // AMENDED BY LABEL · CE-45 IGD-1 cut 1 · R-45.27 A5 (his): the number room is now "WhatsApp and Instagram", and G6's screen sits
   // under its section heading "Your own number" (h2.sol-heading, t2) between the title and the lede. Dates is unchanged.
-  const want = ['p.sol-kicker', 'h1.sol-title'].concat(s.key === 'number' ? ['h2.sol-heading'] : []).concat(['p.sol-empty', 'p.sol-subhead', 'ul.sol-can', 'div.sol-actions']).concat(s.aside ? ['div.sol-aside'] : []);
+  // CE-46 FE-4: no h1 in the surface; the shell's RoomHead heads it above `.sol-surface`.
+  const want = ['p.sol-kicker'].concat(s.key === 'number' ? ['h2.sol-heading'] : []).concat(['p.sol-empty', 'p.sol-subhead', 'ul.sol-can', 'div.sol-actions']).concat(s.aside ? ['div.sol-aside'] : []);
   const got = topLevel(inner);
   // dates: the aside opens on D5 itself — D7 was struck, so no eyebrow heads it.
   const asideOk = !s.aside || /<div class="sol-aside"><p class="sol-asideline">/.test(inner);
-  ok(s.key + ': eyebrow, title, lede, sub-head, list, actions' + (s.aside ? ', aside opening on D5 (D7 struck)' : '') + ' — in that order',
+  ok(s.key + ': eyebrow, lede, sub-head, list, actions' + (s.aside ? ', aside opening on D5 (D7 struck)' : '') + ' — in that order',
     got.join(' ') === want.join(' ') && asideOk, got.join(' ') + (asideOk ? '' : ' · the aside opens on something other than D5'));
   ok(s.key + ': the eyebrow reads CHIPS.coming (C2)', !!copy.CHIPS.coming && textOf(inner, 'sol-kicker', 'p') === copy.CHIPS.coming, String(textOf(inner, 'sol-kicker', 'p')));
+  // CE-46 FE-4: the page passes roomLabel to the shell as its title and draws none of its own; the shell's head is b140's.
   const title = textOf(inner, 'sol-title', 'h1');
-  ok(s.key + ': the title reads roomLabel, the seat\u2019s own byte (A1)',
-    title === copy.roomLabel(s.key).replace(/&/g, '&amp;') && s.html.includes('data-shell-title="' + copy.roomLabel(s.key).replace(/&/g, '&amp;') + '"'), title);
+  ok(s.key + ': the title is the shell\u2019s: roomLabel passed as the seat\u2019s own byte (A1), no h1 drawn by the page',
+    title == null && s.html.includes('data-shell-title="' + copy.roomLabel(s.key).replace(/&/g, '&amp;') + '"'), String(title));
   // undefined === undefined is not a byte: at the uncured tree both sides were
   // absent and this cell read GREEN. It now requires the byte to exist.
   const head = textOf(inner, 'sol-subhead', 'p');
@@ -208,7 +211,7 @@ for (const s of SCREENS) {
   const src = strip(read(s.rel));
   ok(s.key + ': all three are READ from their homes, none typed',
     src.includes('<p className="sol-kicker">{CHIPS.coming}</p>') &&
-    src.includes('<h1 className="sol-title">{roomLabel(\'' + s.key + '\')}</h1>') &&
+    src.includes("title={roomLabel('" + s.key + "')}") && !src.includes('className="sol-title"') &&
     src.includes('<p className="sol-subhead">{COPY.canHead}</p>'));
 }
 
@@ -234,7 +237,7 @@ sec('§7 · bs_audit C18, amended by label (R-42.17)');
 {
   const r = spawnSync(process.execPath, [P(BSA)], { cwd: ROOT, encoding: 'utf8' });
   const line = (r.stdout.match(/^(PASS|FAIL|INCO)\s+C18 .*$/m) || [''])[0];
-  ok('C18 reads PASS: one t1 rule in Pieces, on .sol-title, rendered at most once per reader', /^PASS\s+C18 at most one t1 per surface, and it is \.sol-title/.test(line), line || 'no C18 line');
+  ok('C18 reads PASS: no t1 rule in Pieces, no reader draws one; the shell owns the page title', /^PASS\s+C18 no surface declares its own t1/.test(line), line || 'no C18 line');
 }
 
 // ── §6 · THE MOCK, AMENDED TO THE TREE (c-42.52 / c-42.53) ──────────────────
@@ -260,7 +263,10 @@ else {
   // excused BY ITS EXACT TEXT as the row line was; this older ratified mock is not edited.
   const LATER_MOCK = ['.sol-rowdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}',
     '.sol-rowicon{flex:none;width:20px;height:20px;color:var(--atelier-ink-dim)}'];
-  const miss = shipped.filter((r) => !drawn.includes(r) && !LATER_MOCK.includes(r)), extra = drawn.filter((r) => !shipped.includes(r));
+  // CE-46 FE-4 · LABELLED AMENDMENT (Fork A (3)): `.sol-title` LEFT Pieces (the shell draws the t1 now). This ratified
+  // mock is NOT edited; its title rule is excused BY ITS EXACT TEXT as an extra, so any other extra still reddens.
+  const RETIRED_FROM_TREE = ['.sol-title{font:var(--wl-t1);color:var(--atelier-ink);margin:0 0 10px}'];
+  const miss = shipped.filter((r) => !drawn.includes(r) && !LATER_MOCK.includes(r)), extra = drawn.filter((r) => !shipped.includes(r) && !RETIRED_FROM_TREE.includes(r));
   ok('every shipped .sol-* rule is in the mock verbatim, and the mock carries no other', shipped.length > 0 && miss.length === 0 && extra.length === 0,
     (miss.length ? 'missing: ' + miss[0].slice(0, 70) : '') + (extra.length ? ' extra: ' + extra[0].slice(0, 70) : ''));
   ok('its tokens are theme.ts scopeCss + typeCss, verbatim (both arms)', mock.includes(theme.scopeCss('.wl')) && mock.includes(theme.typeCss('.wl')));
@@ -293,7 +299,7 @@ sec('§4 · the census — no rung outside RUNGS, no colour outside the palette'
   // The census is OF THE HIERARCHY: each cell also requires the three rules the
   // cure adds to be among what it counted, so neither can pass by counting a
   // stylesheet that never grew them (R-40.105's vacuity class).
-  const newRules = ['.sol-kicker', '.sol-title', '.sol-subhead'];
+  const newRules = ['.sol-kicker', '.sol-subhead']; // CE-46 FE-4: .sol-title is the shell's head now
   const absent = newRules.filter((r) => !new RegExp('\\' + r + '\\{[^}]*font:var\\(--wl-t\\d\\)[^}]*color:var\\(--atelier-').test(css));
   ok('every font in the stylesheet is one of the six rungs, as the shorthand — the hierarchy counted', fonts.length > 0 && offRung.length === 0 && longhand.length === 0 && absent.length === 0,
     offRung.concat(longhand).join(' | ') + (absent.length ? ' · not counted: ' + absent.join(', ') : ''));
@@ -379,7 +385,8 @@ browser.then((got) => {
           isRung(c, 't5') && c.transform === 'uppercase' && parseFloat(c.track).toFixed(2) === t5track && c.color === hex(pal['ink-dim']),
           c ? [c.size, c.weight, c.line, c.transform, c.track, c.color].join(' ') : 'absent');
       }
-      ok('exactly one t1 on the surface, and it is h1.sol-title', g.h1s === 1 && g.t1s.length === 1 && g.t1s[0] === 'H1.sol-title' && isRung(g.title, 't1'),
+      // CE-46 FE-4: the surface draws no t1 and no h1; the shell's RoomHead above it does (b140, b123 3.5).
+      ok('no t1 and no h1 inside the surface: the shell owns the page title', g.h1s === 0 && g.t1s.length === 0 && !g.title,
         g.h1s + ' h1, t1 on: ' + g.t1s.join(', '));
       ok('the sub-head carries the space: 24 above it, 10 below, the list 0 (ruling D)',
         g.subhead && g.subhead.mt === '24px' && g.subhead.mb === '10px' && g.ul && g.ul.mt === '0px', g.subhead ? [g.subhead.mt, g.subhead.mb, g.ul && g.ul.mt].join(' ') : 'absent');
@@ -397,10 +404,11 @@ browser.then((got) => {
       sec('§3 · the three roles — ' + tag + '  (PROPOSED reading, F-42.216)');
       const keepT3 = isRung(g.lede, 't3') && isRung(g.li, 't3') && (!s.aside || isRung(g.asideline, 't3'));
       // AMENDED BY LABEL · IGD-1 cut 1 · R-45.27 A5: on number the lede is headed by its section heading (t2), itself under the t1 title.
-      const ledeHead = (s.key === 'number' ? g.prevOfLede === 'sol-heading' : g.prevOfLede === 'sol-title') && isRung(g.title, 't1');
+      // CE-46 FE-4: on dates the lede is headed by the t5 eyebrow (the t1 title is the shell's, above the surface).
+      const ledeHead = (s.key === 'number' ? g.prevOfLede === 'sol-heading' : g.prevOfLede === 'sol-kicker');
       const listHead = g.prevOfList === 'sol-subhead' && isRung(g.subhead, 't5') && g.subhead.transform === 'uppercase';
       const asideHead = !s.aside || (g.firstOfAside === 'sol-asideline' && parseFloat(g.aside.bt) > 0 && g.aside.bts === 'solid');
-      ok('each role keeps t3 (D) and is headed by its own device: lede \u2190 t1 title, list \u2190 t5 uppercase sub-head' + (s.aside ? ', aside line \u2190 rule line' : ''),
+      ok('each role keeps t3 (D) and is headed by its own device: lede \u2190 the eyebrow or section heading, list \u2190 t5 uppercase sub-head' + (s.aside ? ', aside line \u2190 rule line' : ''),
         keepT3 && ledeHead && listHead && asideHead,
         [keepT3 ? '' : 'a role left t3', ledeHead ? '' : 'lede headed by ' + g.prevOfLede, listHead ? '' : 'list headed by ' + g.prevOfList, asideHead ? '' : 'aside unruled'].filter(Boolean).join(' · '));
       const lit = [['lede', g.lede], ['can-do', g.li], ['aside', s.aside ? g.asideline : null]].filter(([, c]) => c)
@@ -409,7 +417,7 @@ browser.then((got) => {
 
       // ── §4b · THE CENSUS, COMPUTED ───────────────────────────────────────
       sec('§4 · the census, computed — ' + tag);
-      const counted = ['P.sol-kicker', 'H1.sol-title', 'P.sol-subhead'].every((w) => g.texts.some((t) => t.who === w));
+      const counted = ['P.sol-kicker', 'P.sol-subhead'].every((w) => g.texts.some((t) => t.who === w)); // CE-46 FE-4: no H1 in the surface
       const off = g.texts.filter((t) => !theme.RUNGS.some((k) => isRung(t, k)));
       ok('every text on the surface sits on one of the six rungs — the hierarchy counted', counted && off.length === 0,
         off.map((t) => t.who + ' ' + t.size + '/' + t.weight).join(', ') + (counted ? '' : ' · hierarchy absent'));

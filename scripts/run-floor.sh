@@ -305,6 +305,11 @@ REFUSED_SET=""
 # leak. A leak is named, never silent, and never changes a member's verdict. A server alive before the
 # floor starts is named too, as the floor's own inheritance.
 LEAKS=""
+# A-46.6 (CE-46, ruled 28 Sept 2026; built by FE-4): the pass BEFORE the first member stops ANY next dev or
+# next-server on the machine, whatever its root, by program name and pid, and prints what it killed (one
+# REAPED line: pid, root, command). WEB-1's floor went red on b122 because a server started before the floor
+# shared .next with the bench's own, and this pass could not see it on the founder's Mac (no /proc there);
+# the reaper now reads a process's root by lsof where /proc is absent. The after-member pass stays this root.
 LEAK_LINE=$(bash scripts/lib/floor_reap.sh "(before the floor)")
 [ -n "$LEAK_LINE" ] && { LEAKS="${LEAKS}${LEAK_LINE}\n"; echo "$LEAK_LINE"; }
 
@@ -675,7 +680,11 @@ if [ "$CHECK" = "yes" ]; then
   # tdw41_c3_switchboard_copy, tdw_m_bridename_gate, waDial. ONE LEAVES:
   # tdw10_p2_retint (retired, exits 0). Nothing reclassifies. A red not on this list
   # is that delivery's to explain.
-  printf 'RED: b05_f0589_pwa_name_wire_bench\nRED: b40_worklist_shell_bench\nRED: b42_g11_wedding_pages_bench\nRED: b61_f2_model_routes_panel\nRED: ce41_e2ivb_switchboard_shape\nRED: f04_96_three_rail_session\nRED: run-assign-words-proof\nRED: run-mode-bridge-proof\nRED: tdw07_p1_discover\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_hotfix\nRED: tdw09_landing\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw09_uivendor\nRED: tdw10_billing_tab\nRED: tdw10_p1_shell\nRED: tdw10_p2_bridge\nRED: tdw10_p3_deck\nRED: tdw10_tier\nRED: tdw13_d4_extraction\nRED: tdw37_leadgate_b_slot\nRED: tdw41_c3_switchboard_copy\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\nRED: tdw_f3942_census_guard\nRED: tdw_m_bridename_gate\nRED: waDial\n' | sort > /tmp/base.txt
+  # ── BASE AMENDED, LABELLED — CE-46 FE-4 (27 Sept 2026): ONE LEAVES. tdw09_uivendor.proof.mjs
+  # read components/vendor/TipsCarousel.tsx by path (its TIPS_FILE); the carousel is DELETED
+  # with the founder's ruling (the "?" on every surface) and the bench is retired whole under
+  # A-45.2 (git rm), so its RED line leaves the named base: 40 to 39. Nothing else moves.
+  printf 'RED: b05_f0589_pwa_name_wire_bench\nRED: b40_worklist_shell_bench\nRED: b42_g11_wedding_pages_bench\nRED: b61_f2_model_routes_panel\nRED: ce41_e2ivb_switchboard_shape\nRED: f04_96_three_rail_session\nRED: run-assign-words-proof\nRED: run-mode-bridge-proof\nRED: tdw07_p1_discover\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_hotfix\nRED: tdw09_landing\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw10_billing_tab\nRED: tdw10_p1_shell\nRED: tdw10_p2_bridge\nRED: tdw10_p3_deck\nRED: tdw10_tier\nRED: tdw13_d4_extraction\nRED: tdw37_leadgate_b_slot\nRED: tdw41_c3_switchboard_copy\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\nRED: tdw_f3942_census_guard\nRED: tdw_m_bridename_gate\nRED: waDial\n' | sort > /tmp/base.txt
   grep -v '^REFUSED: ' /tmp/floor.txt > /tmp/floor_fail.txt
   if grep -q '^REFUSED: ' /tmp/base.txt; then
     echo "STOP — the named base carries a REFUSED line. Bases hold failures only (c-39.57)."

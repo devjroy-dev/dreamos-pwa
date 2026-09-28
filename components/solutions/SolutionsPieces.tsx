@@ -262,7 +262,6 @@ export function SolutionsStyles() {
    list, so .sol-can margin goes 16px 0 0 to 0. The hub eyebrow .sol-eyebrow stays at ink-mute,
    untouched (B1). No backticks and no straight apostrophes here: b40 C102 reads this literal. */
 .sol-kicker{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:0 0 6px}
-.sol-title{font:var(--wl-t1);color:var(--atelier-ink);margin:0 0 10px}
 .sol-subhead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:24px 0 10px}
 .sol-can{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;max-width:46ch}
 .sol-can li{position:relative;padding-left:16px;font:var(--wl-t3);color:var(--atelier-ink)}

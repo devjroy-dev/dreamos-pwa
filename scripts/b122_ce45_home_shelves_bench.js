@@ -291,7 +291,10 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
     if (!/dangerouslySetInnerHTML=\{\{ __html: ROOM_ICONS\[k\] \}\}/.test(src)) return 'the one sink is not ROOM_ICONS[k]';
     if (!/\{ k: IconKey; className: string \}/.test(src)) return 'k is not typed IconKey, or the props admit more than k and className';
     // and no registry string is typed anywhere else in the tree's code
-    const files = spawnSync('git', ['ls-files', 'app', 'components', 'lib'], { cwd: ROOT, encoding: 'utf8' }).stdout.split('\n').filter((f) => /\.(tsx?|jsx?|mjs)$/.test(f) && f !== 'lib/worklist/icons.ts');
+    // AMENDED BY LABEL · CE-46 FE-4: ls-files lists the index; a file deleted under A-45.1 is gone from the tree in
+    // block 1 and from the index only in block 3, so between them (where the founder's floor runs) it is listed
+    // but absent. An absent file types nothing: it is dropped, not read (it threw ENOENT on TipsCarousel.tsx).
+    const files = spawnSync('git', ['ls-files', 'app', 'components', 'lib'], { cwd: ROOT, encoding: 'utf8' }).stdout.split('\n').filter((f) => /\.(tsx?|jsx?|mjs)$/.test(f) && f !== 'lib/worklist/icons.ts' && fs.existsSync(P(f)));
     const extra = []; for (const f of files) { const t = fs.readFileSync(P(f), 'utf8'); for (const [k, v] of Object.entries(IC.ROOM_ICONS)) if (t.includes(v)) extra.push(f + ':' + k); }
     return extra.length === 0 || 'a drawing is typed outside the registry: ' + extra.join(', ');
   });

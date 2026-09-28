@@ -15,7 +15,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AccountDrawer } from '@/components/worklist/AccountDrawer';
 import { SIGNOUT_SCOPE } from '@/components/worklist/SignOutSheet';
-import { TipsCarousel } from '@/components/vendor/TipsCarousel';
 import { useVendorMe } from '@/hooks/vendor/useVendorMe';
 import { useTheme } from '@/hooks/vendor/useTheme';
 import { useT } from '@/lib/vendor/ThemeContext';
@@ -53,7 +52,12 @@ function titleCase(s: string | null | undefined): string {
 
 export function Header({ vendorName }: { vendorName: string | null }) {
   const [profileOpen, setProfileOpen] = useState(false);
-  const [tipsOpen, setTipsOpen]       = useState(false);
+  // ── CE-46 · FE-4 · THE TIP CAROUSEL IS RETIRED (the founder's ruling of 27 Sept 2026) ──
+  // `tipsOpen` and the TipsCarousel mount stood here with NO writer of `true` since the Tips row
+  // left the drawer (the ONE DRAWER note below): a manual that taught the retired DreamAi app,
+  // unreachable in the tree. It is deleted whole (components/vendor/TipsCarousel.tsx, git rm),
+  // and every surface now explains itself through the "?" on its own head
+  // (components/worklist/PageHelp.tsx, lib/worklist/pageHelp.ts).
   const [theme, , setThemeMode] = useTheme();
   const T = useT();
 
@@ -351,7 +355,6 @@ export function Header({ vendorName }: { vendorName: string | null }) {
       }} />
     </header>
 
-    {tipsOpen && <TipsCarousel onClose={() => setTipsOpen(false)} />}
     </>
   );
 }

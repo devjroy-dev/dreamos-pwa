@@ -339,6 +339,15 @@ export const COPY = {
   // consolidation is a sitting of its own because each has its own ruling behind it.
   dockAria: 'Ask TDW',
   dockRowTitle: 'Ask TDW',
+  // ── CE-46 · FE-4 · THE "?" CARD (the founder's ruling of 27 Sept 2026) ────────────────────
+  // The card's lines live in lib/worklist/pageHelp.ts (line 1 read from ROOM_DESC and ROW_DESC);
+  // only its chrome strings live here. The two control labels are his accepted shape: "Got it"
+  // and "Ask TDW about this". The prefill is the room's name alone, sent nowhere (Fork D (1)).
+  helpAria:   'What is this page',
+  helpClose:  'Close',
+  helpAsk:    'Ask TDW about this',
+  helpGotIt:  'Got it',
+  helpAskPrefill: (room: string) => room,
   // R-38.17: the sheet says where the answer comes back. The vendor types in-app and the
   // reply arrives on WhatsApp, and a surface that does not say so is a costume again.
   // askSheetNote ('TDW replies on WhatsApp.') retired, CE-45 FE-2 (26 Sept 2026): the answer arrives in the

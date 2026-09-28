@@ -128,7 +128,6 @@ export default function AdvisorPage() {
             fold. Ratified on the frame's read. */}
         {!started && (
           <div className="wl-adv">
-            <h1 className="wl-advtitle">{COPY.advisorTitle}</h1>
             <p className="wl-advbody">{COPY.advisorEmpty}</p>
             {failed && <p className="wl-advnote">{COPY.advisorUnset}</p>}
             {/* R-41.142 — advisorThreadNote RETIRED. It said "Moving between Advisor
@@ -162,7 +161,6 @@ export default function AdvisorPage() {
 .wl-advroom{display:flex;flex-direction:column;height:100%;min-height:0}
 .wl-advchip{align-self:flex-start;font:var(--wl-t5);letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-accent-text);border:1px solid var(--atelier-accent-text);border-radius:999px;padding:4px 10px;margin:8px 0 2px}
 .wl-adv{padding-top:20px;padding-bottom:8px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
-.wl-advtitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0}
 .wl-advbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
 .wl-advnote{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0;max-width:52ch}
 .wl-advthread{flex:1;min-height:0;overflow-y:auto;padding-top:12px}

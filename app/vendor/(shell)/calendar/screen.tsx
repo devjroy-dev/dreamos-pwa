@@ -23,6 +23,7 @@ import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 cut 2: t
 
 import { useRouter } from 'next/navigation';
 import { Fab } from '@/components/worklist/Fab';
+import { RoomHeadTitle } from '@/components/worklist/PageHelp';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useState } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
@@ -380,10 +381,10 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
           color: 'var(--atelier-label)',
           marginBottom: 6,
         }}>Anno · {year}</div>
-        <div style={{
-          font: RUNG.t1,
-          color: 'var(--atelier-ink)',
-        }}>{MONTHS[month]}</div>
+        {/* F-44.219 (CE-46 FE-4, ruled 28 Sept 2026): the month is this surface's one t1 (his "2") and it is
+            the shell's head now, drawn by RoomHead in place of the room name (the t5 label keeps "Calendar");
+            the t1 div that stood here between the arrows retired. The year eyebrow stays with the arrows. */}
+        <RoomHeadTitle line={MONTHS[month]} />
 
         <button type="button"
           onClick={() => month === 11 ? (setYear(y=>y+1), setMonth(0)) : setMonth(m=>m+1)}

@@ -96,10 +96,13 @@ const ICON_SHA = '1b6519c8f964bef9129cd637b8cdb605f0b3913d294656d5bef8f58e885fd7
     '1.7 A4 and F-44.164: the two-bubble drawing is the row\u2019s icon, and the handset drawing is nowhere in the icon set');
   ok(!ADDED.some((f) => /new Date\(|Date\.now\(/.test(strip(read(f)))), '1.8 no file this cut adds reads a clock (C-44.13 has nothing to shift)');
   const flow = read(FLOWC);
-  const h1s = (flow.match(/<h1 className="sol-title">\{roomLabel\('number'\)\}<\/h1>\n\s*\{head\}/g) || []).length;
+  // AMENDED BY LABEL · CE-46 FE-4 (Fork A (3), 27 Sept 2026): the room's t1 title is the shell's RoomHead now; the flow
+  // draws NO h1 of its own in any state, and the section heading `{head}` stands first under the shell's head.
+  const h1s = (flow.match(/<h1 className="sol-title">/g) || []).length;
+  const heads = (flow.match(/\n\s*\{head\}/g) || []).length;
   const afters = (flow.match(/\{after\}\n\s*<SolutionsStyles \/>/g) || []).length;
-  ok(h1s === 5 && afters === 2 && /sectionHead\?: string; after\?: ReactNode/.test(flow),
-    '1.9 S1: OwnNumberFlow draws the section heading under the title in all five places and the `after` slot in both shells', `${h1s} ${afters}`);
+  ok(h1s === 0 && heads === 5 && afters === 2 && /sectionHead\?: string; after\?: ReactNode/.test(flow),
+    '1.9 S1: OwnNumberFlow draws no title of its own (the shell does), the section heading in all five places and the `after` slot in both shells', `${h1s} ${heads} ${afters}`);
   const page = read(PAGE);
   ok(/return <OwnNumberFlow room=\{room\} sectionHead=\{SECTIONS\.number\} after=\{<MetaRoomSections \/>\} \/>;/.test(page)
     && /<h2 className="sol-heading">\{SECTIONS\.number\}<\/h2>/.test(page) && /<MetaRoomSections \/>\n\s*<WlToast/.test(page),
@@ -160,7 +163,7 @@ const ICON_SHA = '1b6519c8f964bef9129cd637b8cdb605f0b3913d294656d5bef8f58e885fd7
       let o = probe(mode, 'r404');
       if (guard(o, `3.r404 ${mode}`)) {
         const s = o.screens[0];
-        ok(s.title === ROW_LABEL && s.g6 && s.g6[0] === 'Coming' && s.g6[2] === M.SECTIONS.number && s.ig === null && s.quiet === null,
+        ok(s.title === ROW_LABEL && s.g6 && s.g6[0] === 'Coming' && s.g6[1] === M.SECTIONS.number /* CE-46 FE-4: the h1 between them is the shell's now */ && s.ig === null && s.quiet === null,
           `3.r404 ${mode}: both doors absent, the room is G6\u2019s shell under "WhatsApp and Instagram" and "Your own number", nothing else drawn`, JSON.stringify({ t: s.title, g6: s.g6 && s.g6.slice(0, 3), ig: s.ig, q: s.quiet }));
       }
       if (!browserOk) break;

@@ -540,8 +540,11 @@ try {
   }
   const pc = piecesSrc ? strip(piecesSrc) : '';
   const t1Rules = [...pc.matchAll(/([^{}]+)\{[^{}]*var\(--wl-t1\)[^{}]*\}/g)].map((m) => m[1].trim());
-  if (t1Rules.length !== 1 || t1Rules[0] !== '.sol-title') {
-    offenders.push('Pieces carries ' + t1Rules.length + ' t1 rule(s) [' + t1Rules.join(', ') + '], ruled exactly one, on .sol-title');
+  // AMENDED BY LABEL · CE-46 FE-4 (Fork A (3), 27 Sept 2026): the cell's ORIGINAL premise is true again, by ruling.
+  // WorklistShell's RoomHead draws the one t1 for every surface (components/worklist/PageHelp.tsx); `.sol-title`
+  // left Pieces and no page mounts it. So: ZERO t1 rules in Pieces, no reader renders `.sol-title`, none declares a t1.
+  if (t1Rules.length !== 0) {
+    offenders.push('Pieces carries ' + t1Rules.length + ' t1 rule(s) [' + t1Rules.join(', ') + '], ruled zero: the shell owns the page title');
   }
   // THE READER SET IS DERIVED, never listed (R-40.94): every file under app/
   // that mounts <SolutionsStyles />. At R-42.17 that is dates, number,
@@ -559,12 +562,12 @@ try {
   for (const rel of readers) {
     const src = strip(readFileSync(join(ROOT, rel), 'utf8'));
     const n = (src.match(/className="sol-title"/g) || []).length;
-    if (n > 1) offenders.push(rel + ' renders .sol-title ' + n + ' times');
+    if (n > 0) offenders.push(rel + ' renders .sol-title ' + n + ' time(s); the shell draws the title');
     if (/var\(--wl-t1\)/.test(src)) offenders.push(rel + ' declares its own t1');
   }
   offenders.length === 0
-    ? P('C18 at most one t1 per surface, and it is .sol-title', 'one t1 rule in Pieces; ' + readers.length + ' readers, none renders it twice, none declares its own')
-    : F('C18 at most one t1 per surface, and it is .sol-title', offenders.join('; '));
+    ? P('C18 no surface declares its own t1: the shell owns the page title', 'no t1 rule in Pieces; ' + readers.length + ' readers, none renders .sol-title, none declares its own')
+    : F('C18 no surface declares its own t1: the shell owns the page title', offenders.join('; '));
 }
 
 // ── C20 · NO MONEY STRING, NO PERSONA NAME ───────────────────────────────

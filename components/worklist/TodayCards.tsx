@@ -328,10 +328,13 @@ function DoneSummary({ today }: { today: WorklistTodayResponse }) {
  * and the sentence is the better of the two. `app/w/today/page.tsx` gates the numeral on
  * the working state for exactly this reason.
  */
+// CE-46 FE-4 · F-44.219 (ruled 28 Sept 2026): "All clear." is the head now. app/vendor/(shell)/today/page.tsx
+// hands it to the shell's RoomHead on the resting day (the same COPY.todayRestingHead byte); the h1 that stood
+// first in this section retired with .wl-tresthead. (A line comment here, not a JSX one inside the markup: b40
+// reads this function by its shape, and a stripped JSX comment leaves a bare brace that ends the read early.)
 export function TodayResting({ today }: { today: WorklistTodayResponse }) {
   return (
     <section className="wl-trest" aria-label="Done today">
-      <h1 className="wl-tresthead">{COPY.todayRestingHead}</h1>
       <DoneSummary today={today} />
       <style>{REST_CSS}</style>
     </section>
@@ -396,7 +399,6 @@ const FEED_CSS = `
 
 const REST_CSS = `
 .wl-trest{padding-top:20px;padding-bottom:24px}
-.wl-tresthead{font:var(--wl-t1);color:var(--atelier-ink);margin-bottom:14px}
 .wl-tdone{padding-bottom:28px}
 .wl-tdonerule{height:.5px;background:var(--role-metal);opacity:.55;margin:0 0 18px}
 .wl-tdonehead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin-bottom:10px}

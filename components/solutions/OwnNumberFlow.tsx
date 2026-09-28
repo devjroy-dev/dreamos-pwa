@@ -100,7 +100,6 @@ export function OwnNumberFlow({ room, sectionHead, after }: { room: OwnNumberRoo
       <WorklistShell title={roomLabel('number')}>
         <section className="sol-surface" data-own-number="status" data-status={n.status}>
           {chip && <p className="sol-kicker">{chip}</p>}
-          <h1 className="sol-title">{roomLabel('number')}</h1>
           {head}
           <p className="sol-addr">{n.display_number}</p>
           <p className="sol-empty">{STATE_LINE[n.status]}</p>
@@ -117,7 +116,6 @@ export function OwnNumberFlow({ room, sectionHead, after }: { room: OwnNumberRoo
         {step === 'room' && (
           <>
             <p className="sol-kicker">{CHIPS.not_connected}</p>
-            <h1 className="sol-title">{roomLabel('number')}</h1>
             {head}
             <p className="sol-empty">{NUMBER.lede}</p>
             <p className="sol-subhead">{COPY.canHead}</p>
@@ -133,7 +131,6 @@ export function OwnNumberFlow({ room, sectionHead, after }: { room: OwnNumberRoo
         )}
         {step === 'consent' && (
           <>
-            <h1 className="sol-title">{roomLabel('number')}</h1>
             {head}
             <h2 className="sol-heading">{FLOW.consentHead}</h2>
             {/* FE_2 · the consent gap (the founder, on the screens): .sol-can is a flex column with a 10px gap
@@ -153,7 +150,6 @@ export function OwnNumberFlow({ room, sectionHead, after }: { room: OwnNumberRoo
         )}
         {step === 'confirm' && (
           <>
-            <h1 className="sol-title">{roomLabel('number')}</h1>
             {head}
             <p className="sol-empty">{FLOW.movedConfirm}</p>
             <p className="sol-note">{FLOW.whoPays}</p>
@@ -165,7 +161,6 @@ export function OwnNumberFlow({ room, sectionHead, after }: { room: OwnNumberRoo
         )}
         {step === 'working' && (
           <>
-            <h1 className="sol-title">{roomLabel('number')}</h1>
             {head}
             <p className="sol-empty" role="status">{FLOW.connecting}</p>
           </>

@@ -39,7 +39,7 @@ import { AddSheet } from '@/components/vendor/AddSheet';
 // The pair is chosen by the SAME derivation that chooses everything else here, so there is
 // one fact about which tree we are in and one place it is read.
 import { WlToast } from '@/components/worklist/WlToast';
-import { roomHref, ROOMS } from '@/lib/worklist/rooms';
+import { roomHref } from '@/lib/worklist/rooms';
 import { LEGACY_ROOM_HEAD } from '@/lib/worklist/copy';
 // THE TWO PDF SENTENCES AND THE INVOICE ROW'S VERB LIVE IN THE REGISTER, NOT
 // HERE (CE-39 2c-Studio, ruling 4). Both PDF bytes were spelled inline in this
@@ -82,8 +82,7 @@ import { A, T, LABELS, WaIcon, SliceRow, cap, type Row } from './SliceRow';
 // itself names (an event that names none wears no chip). Silence about a
 // blindness is the lie this block exists to kill.
 
-// TYPE_1b (ii): each legacy room's title is the registry's own label byte (lib/worklist/rooms.ts ROOMS), read, never typed.
-const ROOM_NAME = Object.fromEntries(ROOMS.map((r) => [r.id, r.label])) as Record<string, string>;
+// ROOM_NAME (the registry label per slice) retired with the h1 it fed: CE-46 FE-4, the head is the shell's.
 import { DetailSheet } from './DetailSheet';
 import { reminderPreview, reminderDate } from '@/lib/worklist/paymentReminders';
 import { updateMilestone, deleteSchedule } from '@/lib/vendor/api/vendor';
@@ -223,9 +222,10 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
       
       {/* CE-45 · FE-2 · TYPE_1b · (i) and (ii), ruled: the room opens as the reference surface opens,
           16px above its first line, and that line is the room's own name at t1, the registry's label
-          byte (Packages' precedent), never typed here. The lane line that sat flush under the header
-          (marginTop -4) retired with the founder's rows 1 to 3. */}
-      <h1 data-room-title="" style={{ font: T.t1, color: A.ink, margin: 0, padding: '16px var(--slice-inset, 22px) 10px' }}>{ROOM_NAME[slice]}</h1>
+          byte. CE-46 · FE-4 (Fork A (3), 27 Sept 2026): THAT LINE IS THE SHELL'S NOW. WorklistShell
+          mounts RoomHead above every room's body (components/worklist/PageHelp.tsx), drawing the same
+          byte with the "?" on its line, so the h1 that stood here is retired and ROOM_NAME with it.
+          What this family draws starts at the headline row. */}
 
       {/* TDW_04 A3 (P5/ST-4): THE number — every figure from lib/vendor/derive.ts,
           the same function the hub Ledger reads. */}

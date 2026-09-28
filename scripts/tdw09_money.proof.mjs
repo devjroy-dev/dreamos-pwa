@@ -79,6 +79,8 @@ const EXEMPT = new Map([
 // P7.2 ZIP 1b: `PeekNav.tsx` was DELETED at the flip (zero readers before it). It stays named
 // here because this pair is the DISCHARGED list — the two files that must never re-enter
 // EXEMPT — and a deleted file re-entering would be a stray twice over.
+// CE-46 FE-4 (27 Sept 2026): `TipsCarousel.tsx` is now DELETED too (the carousel retired for the "?" on every
+// surface). By this list's own rule it stays named, as PeekNav does: the DISCHARGED pair is what must never re-enter.
 const EXEMPT_DISCHARGED = ['components/vendor/TipsCarousel.tsx', 'components/vendor/PeekNav.tsx'];
 
 // ── the sweep, re-derived every run ─────────────────────────────────────────

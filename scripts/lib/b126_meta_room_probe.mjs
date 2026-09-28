@@ -91,7 +91,7 @@ try {
       const btn = (el) => (el ? [...el.querySelectorAll('button')].filter(vis).map((e) => e.textContent.trim()) : null);
       const sel = q ? q.querySelector('select') : null;
       return {
-        title: (document.querySelector('h1.sol-title') || {}).textContent || null,
+        title: (document.querySelector('h1[data-room-title]') || {}).textContent || null, // CE-46 FE-4: the shell's head
         g6: txt(g6), g6buttons: btn(g6),
         ig: txt(igs), igButtons: btn(igs), igState: igs ? igs.getAttribute('data-state') : null,
         quiet: q ? q.textContent.trim() : null, quietValue: sel ? sel.value : null,

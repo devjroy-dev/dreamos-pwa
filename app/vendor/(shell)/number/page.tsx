@@ -67,7 +67,6 @@ function OwnNumberScreen() {
     <WorklistShell title={roomLabel('number')}>
       <section className="sol-surface">
         <p className="sol-kicker">{CHIPS.coming}</p>
-        <h1 className="sol-title">{roomLabel('number')}</h1>
         <h2 className="sol-heading">{SECTIONS.number}</h2>
         <p className="sol-empty">{NUMBER.lede}</p>
         <p className="sol-subhead">{COPY.canHead}</p>

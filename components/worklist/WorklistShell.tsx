@@ -32,6 +32,7 @@ import { useMode } from '@/lib/worklist/ModeContext';
 import { AskProvider, type AskApi } from '@/lib/worklist/askContext';
 import { AiDock } from '@/components/worklist/AiDock';
 import { AccountDrawer } from '@/components/worklist/AccountDrawer';
+import { RoomHead, RoomHeadProvider, PAGE_HELP_CSS } from '@/components/worklist/PageHelp';
 
 const SCOPE = '.wl';
 
@@ -144,7 +145,7 @@ export function WorklistShell({ title, children }: {
       height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
       background: 'var(--atelier-page-bg)', color: 'var(--atelier-ink)',
     }}>
-      <style>{scopeCss(SCOPE) + typeCss(SCOPE) + SHELL_CSS}</style>
+      <style>{scopeCss(SCOPE) + typeCss(SCOPE) + SHELL_CSS + PAGE_HELP_CSS}</style>
 
       <header className="wl-hdr" style={{ position: 'relative', zIndex: coinOpen ? 21 : 5 }}>
         {/* R-38.4: the wordmark is t2, DM SANS. It was Cormorant at 17/400 and CE-38's own
@@ -186,7 +187,18 @@ export function WorklistShell({ title, children }: {
         )}
       </header>
 
-      <main className="wl-main">{children}</main>
+      {/* ── CE-46 · FE-4 · THE ROOM'S HEAD HAS ONE DRAWER (Fork A (3), ruled 27 Sept 2026) ──
+          The room's own name at t1, 16px above it, the first line of every surface (the
+          founder's TYPE_1b ruling of 24 Sept, now on all 33 rooms), with the "?" on its line
+          at the right edge. It reads the same `title` byte the header's t5 label reads, so
+          the two cannot disagree, and the ten rooms that drew this line themselves (SliceShell,
+          Notes, .sol-title, the Advisor) draw it no longer. It is a direct child of the main
+          column, so it takes the gutter from the one rule below and never sets its own.
+          The head is the shell's; what a room draws BENEATH it (the legacy headline line, a
+          solutions kicker, the Advisor's intro) is the room's, unchanged. F-44.219: Calendar and
+          Today set the head's line to their own (the month; the status line) through RoomHeadProvider,
+          so those two pages keep one t1 with the "?" on it, and no room draws a second. */}
+      <RoomHeadProvider><main className="wl-main"><RoomHead title={title} />{children}</main></RoomHeadProvider>
 
       {/* ── R-41.139 · THE DOCK IS NOT MOUNTED ON /vendor/advisor ────────────────
           NOT MOUNTED, not hidden. A first cut of this hid it from the page's own

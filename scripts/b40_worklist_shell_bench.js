@@ -1501,7 +1501,11 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   // which is a claim about the FIRST, rendered during the SECOND on every load. It now waits
   // for a SETTLED failure. Both halves are asserted: the byte may not render while pending, and
   // the feed must still distinguish the two states.
-  if (!/!feed\.responded && !feed\.pending && <h1[^\n]*todayNotLive/.test(today))
+  // AMENDED BY LABEL · CE-46 FE-4 · F-44.219 (ruled 28 Sept 2026): Today's status line is the shell's HEAD now,
+  // handed to RoomHead by <RoomHeadTitle line={...} /> in one expression over the same three states; the h1s that
+  // stood here retired. The gates are asserted where they now live, arm by arm, in the same order.
+  const HEADLINE = (today.match(/<RoomHeadTitle line=\{([^}]*)\} \/>/) || [, ''])[1];
+  if (!/^!feed\.responded && !feed\.pending \? COPY\.todayNotLive/.test(HEADLINE))
     return 'the not-reading line is not gated on a SETTLED absence of a reading (F-39.72)';
   if (!/pending: boolean/.test(feed)) return 'the feed does not distinguish a pending read from a failed one';
   if (!/pending: true/.test(feed) || !/pending: false/.test(feed)) return 'the feed declares pending but never sets both states';
@@ -1510,9 +1514,9 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   // F-38.31 guard stands in its new place and is the thing this arm holds: `has_any ===
   // false` is an ANSWER — the feed ran and reported that nothing has ever existed — not an
   // absence. The refusal that does NOT change is that no status byte may stand over cards.
-  if (!/\{firstRun && <h1[^\n]*todayNothingYet/.test(today))
+  if (!/: firstRun \? COPY\.todayNothingYet : /.test(HEADLINE))
     return 'the true-empty line is not gated on first-run';
-  if (/\{working && <h1/.test(today))
+  if (/\{working && <h1/.test(today) || /working \?/.test(HEADLINE) || !/: null$/.test(HEADLINE.trim()))
     return 'a status byte stands over the cards (R-39.13)';
   return null;
 });
@@ -2695,7 +2699,9 @@ cell('C68 done_today renders in both states, and only the resting arm carries a 
   const done    = (cards.match(/export function TodayDone[\s\S]*?\n\}/) || [''])[0];
   if (!resting) bad.push('TodayResting is gone');
   if (!done) bad.push('TodayDone is gone — the working state shows nothing finished');
-  if (!/todayRestingHead/.test(resting)) bad.push('the resting state lost its status byte');
+  // AMENDED BY LABEL · CE-46 FE-4 · F-44.219: the resting arm's status byte ("All clear.") is the shell's head
+  // now, handed up by the page's RoomHeadTitle and gated on `resting`, not drawn inside TodayResting.
+  if (!/: resting \? COPY\.todayRestingHead : null/.test(strip(read('app/vendor/(shell)/today/page.tsx')))) bad.push('the resting state lost its status byte');
   if (/todayRestingHead/.test(done)) bad.push('the working state carries a status byte over its cards (R-39.13)');
   for (const f of [resting, done]) if (f && !/DoneSummary/.test(f)) bad.push('a state builds its own summary instead of reading the one home');
   const page = strip(read('app/vendor/(shell)/today/page.tsx'));
@@ -2841,7 +2847,9 @@ cell('C74 the done ledger carries its particular; the status byte is the resting
   if (!/formatRs/.test(sum)) bad.push('the ledger builds a money string outside the one money home (D-7)');
   const resting = (src.match(/export function TodayResting[\s\S]*?\n\}/) || [''])[0];
   const done    = (src.match(/export function TodayDone[\s\S]*?\n\}/) || [''])[0];
-  if (!/todayRestingHead/.test(resting)) bad.push('the resting state lost its status byte');
+  // AMENDED BY LABEL · CE-46 FE-4 · F-44.219: the resting arm's status byte ("All clear.") is the shell's head
+  // now, handed up by the page's RoomHeadTitle and gated on `resting`, not drawn inside TodayResting.
+  if (!/: resting \? COPY\.todayRestingHead : null/.test(strip(read('app/vendor/(shell)/today/page.tsx')))) bad.push('the resting state lost its status byte');
   if (/todayRestingHead/.test(done)) bad.push('the working ledger carries a status byte over its cards (R-39.13)');
   if (!/todayDoneHead/.test(done)) bad.push('the working ledger has no eyebrow');
   if (/'Invoices paid'|'Contracts signed'|'Tasks done'/.test(src)) bad.push('the ledger spells its own row labels (s-39.6)');

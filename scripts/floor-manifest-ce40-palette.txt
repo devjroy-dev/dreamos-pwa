@@ -54,7 +54,7 @@ components/vendor/NotesBody.tsx
 components/vendor/SettingsScreen.tsx
 components/vendor/SubscriptionCard.tsx
 components/vendor/TierMeter.tsx
-components/vendor/TipsCarousel.tsx
+# components/vendor/TipsCarousel.tsx  (CE-46 FE-4, 27 Sept 2026: the file is deleted, the carousel retired; this row is history)
 components/vendor/slices/BinderCard.tsx
 components/vendor/slices/BulkBar.tsx
 components/vendor/slices/DetailSheet.tsx
