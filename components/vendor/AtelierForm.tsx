@@ -20,7 +20,7 @@ export const A = {
   interactive:     'var(--atelier-accent-text)',
   interactiveWarm: 'var(--atelier-accent-text)',
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
+  brass: 'var(--atelier-ink)' /* DESIGN-1 · P5: headings in the text colour; gold is the brand mark's */, brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
 } as const;
 export const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -51,35 +51,35 @@ export type Register = 'engraved' | 'rungs';
 const R = {
   cardTitle: (r: Register): React.CSSProperties => r === 'rungs'
     ? { font: 'var(--wl-t5)', letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }
-    : { fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass },
+    : { fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass },
   fieldLabel: (r: Register): React.CSSProperties => r === 'rungs'
-    ? { display: 'block', font: 'var(--wl-t5)', color: A.inkMute, marginBottom: 6 }
-    : { display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 },
+    ? { display: 'block', font: 'var(--wl-t5)', color: A.inkMute, marginBottom: 8 }
+    : { display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 8 },
   input: (r: Register): React.CSSProperties => r === 'rungs'
     ? { font: 'var(--wl-t3)', color: A.ink }
-    : { fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink },
+    : { fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.ink },
   rowText: (r: Register): React.CSSProperties => r === 'rungs'
     ? { font: 'var(--wl-t3)', color: A.ink }
-    : { fontFamily: F.script, fontWeight: 400, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' },
+    : { fontFamily: F.script, fontWeight: 400, fontSize: '1rem', lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' },
   readLabel: (r: Register): React.CSSProperties => r === 'rungs'
     ? { font: 'var(--wl-t5)', color: A.inkMute }
-    : { fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase' },
+    : { fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase' },
   readValue: (r: Register): React.CSSProperties => r === 'rungs'
     ? { font: 'var(--wl-t3)', color: A.ink }
-    : { fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' },
+    : { fontFamily: F.script, fontWeight: 500, fontSize: '1rem', lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' },
   // The rung twin takes the shell's 44px tap floor (R-37.73 (1)); the engraved bytes
   // keep their own height, which is the main tree's business.
   saveBtn: (r: Register): React.CSSProperties => r === 'rungs'
     ? { font: 'var(--wl-t4)', color: INK_DEEP, minHeight: 44 }
-    : { fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP, letterSpacing: '0.36em', textTransform: 'uppercase' },
+    : { fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP, letterSpacing: '0.36em', textTransform: 'uppercase' },
 };
 
 export function SCard({ title, children, register = 'engraved' }: { title: string; children: React.ReactNode; register?: Register }) {
   return (
-    <div style={{ marginBottom: 22 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
         <span style={R.cardTitle(register)}>{title}</span>
-        <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
+        <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {children}
@@ -94,8 +94,8 @@ export function SField({ label, value, onChange, multiline, placeholder, inputMo
   register?: Register;
 }) {
   const base: React.CSSProperties = {
-    width: '100%', padding: '11px 14px', boxSizing: 'border-box',
-    background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)', borderRadius: 2,
+    width: '100%', padding: '12px 16px', boxSizing: 'border-box',
+    background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-card-border)', borderRadius: 12,
     ...R.input(register), outline: 'none',
     caretColor: A.interactive, resize: 'none' as const, 
   };
@@ -143,11 +143,11 @@ export function SaveBtn({ dirty, loading, onSave, register = 'engraved' }: { dir
   if (!dirty && !loading) return null;
   return (
     <button type="button" onClick={onSave} disabled={loading || !dirty} className={dirty && !loading ? 'atelier-fab' : undefined} style={{
-      alignSelf: 'flex-end', padding: '8px 16px', borderRadius: 2,
+      alignSelf: 'flex-end', padding: '8px 16px', borderRadius: 12,
       border: '0.5px solid var(--atelier-label)',
       cursor: loading || !dirty ? 'default' : 'pointer',
       ...R.saveBtn(register),
-      background: !dirty || loading ? 'rgba(201,168,76,0.18)' : undefined,
+      background: !dirty || loading ? 'var(--atelier-row-hover)' : undefined,
       opacity: loading || !dirty ? 0.6 : 1,
     }}>{loading ? 'Saving…' : 'Save'}</button>
   );

@@ -117,7 +117,7 @@ export default function TodayPage() {
       {working && today && <TodayDone today={today} />}
       <style>{`
 /* R-37.82 (1): the column owns the gutter. Nothing here sets a horizontal inset. */
-.wl-masthead{padding-top:20px}
+.wl-masthead{padding-top:24px}
 .wl-mdate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 /* THE STATUS IS THE SURFACE’S t1. The four rules that carried todayTitle, todayEmpty,
    todayEmptyAction and todayNotLive-at-t5 retire with the bytes R-38.17 cut, because a
@@ -153,7 +153,7 @@ export default function TodayPage() {
 .wl-mnum{font-variant-numeric:lining-nums tabular-nums}
 /* THE KIND LINE · F-39.24's cure. Rules transcribed from the ratified frames, not
    re-authored. t5, ink-dim, nowrap per segment so a count never breaks from its noun. */
-.wl-mkinds{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;margin-top:10px}
+.wl-mkinds{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-top:12px}
 .wl-mkind{font:var(--wl-t5);color:var(--atelier-ink-dim);text-decoration:none;white-space:nowrap}
 .wl-mkind{font-variant-numeric:lining-nums tabular-nums}
 .wl-mkdot{font:var(--wl-t5);color:var(--atelier-ink-fade)}

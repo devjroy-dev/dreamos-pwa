@@ -1,7 +1,7 @@
 'use client';
 // app/vendor/list/[slice]/events.tsx — TDW_03 P1 · TDW_04 A3 (L-3 cross-chip)
 // Events slice module. TDW_04 A3: each calendar row that names a binder wears
-// the cross-chip — "In your books · <client> · <stage>" — display-only, reading
+// the cross-chip — "Also a client · <client> · <stage>" — display-only, reading
 // the binder the event itself points to (linked_binder_id, wired in this same
 // delivery). Reads, never writes; tapping jumps to the twin's slice.
 // DISCLOSED: an event with no linked_binder_id wears no chip — absence means
@@ -43,7 +43,7 @@ export default function EventsSlice({ vendorId }: { vendorId: string }) {
     return baseRows(events).map(row => {
       const b = row.twinBinderId ? binderById.get(row.twinBinderId) : undefined;
       if (!b) return row;
-      const bits = ['In your books'];
+      const bits = ['Also a client'];
       if (b.client) bits.push(b.client);
       if (b.stage) bits.push(cap(b.stage));
       const recv = b.amount_received ?? 0;

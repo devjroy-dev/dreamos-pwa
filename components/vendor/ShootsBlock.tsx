@@ -135,25 +135,25 @@ export function ShootsBlock() {
 // `.rf-rdetail` upper-cases, and a date or a vendor's note must not be shouted.
 // NO BACKTICKS IN THIS BLOCK — it is a template literal.
 const SHOOTS_CSS = `
-.sh-block{margin-top:22px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
-.sh-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.sh-block{margin-top:24px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
+.sh-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
 .sh-title{font:var(--wl-t2);color:var(--atelier-ink)}
 .sh-act{font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-accent-text);
-        background:transparent;border:none;padding:10px 0;min-height:44px;cursor:pointer}
+        background:transparent;border:none;padding:12px 0;min-height:44px;cursor:pointer}
 .sh-none{font:var(--wl-t3);color:var(--atelier-ink-mute);margin:0}
-.sh-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;
-         padding:13px 14px;margin-bottom:var(--wl-step)}
-.sh-detail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:3px;font-variant-numeric:lining-nums tabular-nums}
-.sh-by{margin-top:10px}
-.sh-roles{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.sh-role{font:var(--wl-t5);color:var(--atelier-ink-soft);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:5px 8px}
+.sh-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;
+         padding:12px 16px;margin-bottom:var(--wl-step)}
+.sh-detail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:4px;font-variant-numeric:lining-nums tabular-nums}
+.sh-by{margin-top:12px}
+.sh-roles{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.sh-role{font:var(--wl-t5);color:var(--atelier-ink-soft);border:.5px solid var(--atelier-card-border);border-radius:12px;padding:4px 8px}
 .sh-role.you{color:var(--atelier-accent-text);border-color:var(--atelier-input-border)}
 .sh-acts{display:flex;gap:8px;margin-top:12px}
-.sh-go,.sh-ghost{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:3px;
+.sh-go,.sh-ghost{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;
                  font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;background:transparent;cursor:pointer}
 .sh-go{border:.5px solid var(--atelier-input-border);color:var(--atelier-accent-text)}
 .sh-ghost{border:.5px solid var(--atelier-card-border);color:var(--atelier-ink-mute)}
 .sh-go:disabled,.sh-ghost:disabled{opacity:.5;cursor:not-allowed}
 .sh-act:focus-visible,.sh-go:focus-visible,.sh-ghost:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.sh-gap{margin-top:14px}
+.sh-gap{margin-top:16px}
 `;

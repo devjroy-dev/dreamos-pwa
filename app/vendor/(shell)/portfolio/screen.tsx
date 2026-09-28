@@ -96,16 +96,16 @@ const COPY = {
   // F2-1/2/3 — the batch set. Founder-vetoed byte-exact 2026-07-29 (F-2's cure).
   // Single-file uploads keep B1/B2; these render only for a batch of two or more.
   F2_1: (i: number, n: number) => `Uploading ${i} of ${n}…`,
-  F2_2: (n: number) => `${n} photos added — with our team for review.`,
-  F2_3: (r: number) => `Room for ${r} more — adding the first ${r}.`,
-  B2: 'Photo added — with our team for review',
+  F2_2: (n: number) => `${n} photos added. They are with our team for review.`,
+  F2_3: (r: number) => `Space for ${r} more. Adding the first ${r}.`,
+  B2: 'Photo added. It is with our team for review',
   B3: "That upload didn’t go through. Try again.",
   C1: 'Remove this photo?',
   C2: "It leaves your portfolio and Discover straight away. This can’t be undone.",
   C3: 'Remove',
   C4: 'Keep',
   C5: 'Photo removed',
-  D1: 'A line about this photo — optional.',
+  D1: 'A line about this photo (optional).',
   D2: 'Caption saved',
   E1: 'COVER',
   E2: 'Make this the cover',
@@ -117,7 +117,7 @@ const COPY = {
   G1: 'Press and drag to reorder. The first photo is your cover.',
   // G3 — the filter/drag interlock line. Founder-vetoed byte-exact 2026-07-29.
   // Rendered ONLY while a non-`all` filter is active; never otherwise.
-  G3: 'Switch to All to reorder — filters show only some of your photos.',
+  G3: 'Switch to All to reorder. Filters show only some of your photos.',
   // G4/G5 — Cure B's gestureless reorder. CHAIR-WORDED, FOUNDER VETO OUTSTANDING
   // (the ruling named the bytes; it did not route them through the founder's card).
   // These are the only two vendor-facing strings in this sitting not yet vetoed.
@@ -128,7 +128,7 @@ const COPY = {
   // They are kept here so the action sitting inherits an executed veto instead of
   // re-running the founder's copy card. H4-H11 were never drafted into code.
   H1: 'Import from Instagram',
-  H2: "Instagram only allows this for professional accounts — business or creator. If yours is personal, switching is free and takes a minute in Instagram’s own settings.",
+  H2: "Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is free and takes a minute in Instagram’s own settings.",
   // H3 — THE LOAD-BEARING ONE. The addendum's law is "MANUAL UPLOAD IS THE
   // PERMANENT FALLBACK, NEVER A WALL". These are the founder's own bytes,
   // chosen over the drafted alternative, and they sit ABOVE the connect action
@@ -160,7 +160,7 @@ const COPY = {
   H6:  'Selected {n} of {r}',                                   // VETOED 2026-07-30
   H7:  'Add {n} to my portfolio',                               // VETOED 2026-07-30
   H8:  'Imported photos are live on Discover now.',             // VETOED 2026-07-30 (clause 「 3. visible 」)
-  H9:  '{n} added. {f} could not be copied — you can upload those from your phone.', // VETOED 2026-07-30
+  H9:  '{n} added. {f} could not be copied; you can upload those from your phone.', // VETOED 2026-07-30
   H10: "We couldn’t reach Instagram just now.",                 // VETOED 2026-07-30
   H11: 'Your Instagram connection has expired. Connect again to import more photos.', // VETOED 2026-07-30
   H13: 'Disconnect Instagram',                                  // VETOED 2026-07-30
@@ -215,7 +215,7 @@ const COPY = {
   // 「 ok 」 at chair relay #2, 2026-08-06. The 「 On iPhone: 」 prefix left with
   // the draft because the line now renders ONLY in the iOS standalone context —
   // everyone who can read it is already on an iPhone.
-  H19: 'Press and hold Connect Instagram, then choose "Open in New Tab". A normal tap gets caught by the Instagram app.', // VETOED 2026-08-06 (wording B, relay #2)
+  H19: 'Press and hold Connect Instagram, then choose "Open in new tab". A normal tap gets caught by the Instagram app.', // VETOED 2026-08-06 (wording B, relay #2)
 } as const;
 
 // ── THE iOS INSTRUCTION'S RENDER GATE (R-1 ruling F-1(a) · F-2(a)) ─────────
@@ -231,7 +231,7 @@ const COPY = {
 // in the iOS standalone PWA, a plain tap on the connect anchor is claimed by
 // the Instagram app's Universal Link, and iOS policy gives the PWA no way to
 // receive the IG app's permission grant — the consent screen can only complete
-// in a browser tab. Long-press → "Open in New Tab" is the founder's
+// in a browser tab. Long-press → "Open in new tab" is the founder's
 // device-witnessed escape (2026-07-30 walk; his own account connected through
 // it). `navigator.standalone === true` is the iOS-Safari-only standalone
 // signal — one property, no UA sniffing, false or undefined everywhere else —
@@ -246,11 +246,11 @@ function isIosStandalone(): boolean {
 // outcome could be argued to come from the target size or position rather than
 // the navigation form, and the walk would prove less than it costs.
 const PROBE_BTN: React.CSSProperties = {
-  display: 'block', width: '100%', padding: '11px 0', marginBottom: 8,
+  display: 'block', width: '100%', padding: '12px 0', marginBottom: 8,
   boxSizing: 'border-box', background: 'transparent', textAlign: 'center',
-  textDecoration: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
-  borderRadius: 2, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 300,
-  fontSize: 16, lineHeight: 1.5, color: 'var(--role-metal)', letterSpacing: '0.08em',
+  textDecoration: 'none', border: '0.5px solid var(--atelier-input-border)',
+  borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 300,
+  fontSize: '1rem', lineHeight: 1.5, color: 'var(--role-metal)', letterSpacing: '0.08em',
 };
 
 // ── TDW_07 P4a · THE PICKER TILE, MEMOISED ──────────────────────────────────
@@ -275,7 +275,7 @@ const IgTile = memo(function IgTile({ item, on, dead, onToggle }: {
     <button type="button" disabled={dead} onClick={() => onToggle(item.source_url)}
       style={{
         position: 'relative', aspectRatio: '1', padding: 0, border: 'none',
-        borderRadius: 2, overflow: 'hidden', cursor: dead ? 'default' : 'pointer',
+        borderRadius: 12, overflow: 'hidden', cursor: dead ? 'default' : 'pointer',
         opacity: dead ? 0.3 : 1, background: 'rgba(0,0,0,0.06)',
         // The tap must feel instant even before React repaints the border.
         WebkitTapHighlightColor: 'transparent', transform: on ? 'scale(0.96)' : 'none',
@@ -286,9 +286,9 @@ const IgTile = memo(function IgTile({ item, on, dead, onToggle }: {
         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
       {(isVideo || isAlbum) && (
         <span style={{
-          position: 'absolute', top: 5, right: 5, padding: '2px 5px', borderRadius: 2,
+          position: 'absolute', top: 5, right: 5, padding: '4px 4px', borderRadius: 12,
           background: 'var(--atelier-overlay)', color: 'var(--atelier-ink)',
-          fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.18em',
+          fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.18em',
           textTransform: 'uppercase', pointerEvents: 'none',
         }}>{isVideo ? COPY.H15 : COPY.H16}</span>
       )}
@@ -305,15 +305,15 @@ const IgTile = memo(function IgTile({ item, on, dead, onToggle }: {
           }} />
           <span style={{
             position: 'absolute', inset: 0, border: '3px solid var(--atelier-accent-text)',
-            borderRadius: 2, pointerEvents: 'none',
+            borderRadius: 12, pointerEvents: 'none',
           }} />
           <span style={{
             position: 'absolute', top: '50%', left: '50%',
             transform: 'translate(-50%,-50%)',
             width: 26, height: 26, borderRadius: '50%',
-            background: 'var(--atelier-accent-text)', color: 'var(--role-ink-on-metal)',
+            background: 'var(--role-primary)', color: 'var(--role-on-primary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, lineHeight: 1, pointerEvents: 'none',
+            fontSize: '1rem', lineHeight: 1, pointerEvents: 'none',
           }}>✓</span>
         </>
       )}
@@ -875,7 +875,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
           one filled gold and the only way a photo gets in. The spacer takes over the
           label's `flex: 1` so Upload stays exactly where the thumb already knows it. */}
       <div style={{
-        padding: '12px var(--slice-inset, 22px)', display: 'flex', alignItems: 'center', gap: 12,
+        padding: '12px var(--slice-inset, 16px)', display: 'flex', alignItems: 'center', gap: 12,
         borderBottom: '0.5px solid var(--atelier-card-border)',
       }}>
         
@@ -885,10 +885,10 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
         <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading || full}
           className="atelier-fab"
           style={{
-            padding: '8px 16px', borderRadius: 2,
+            padding: '8px 16px', borderRadius: 12,
             cursor: (uploading || full) ? 'default' : 'pointer',
             border: '0.5px solid var(--atelier-label)',
-            fontFamily: F.label, fontWeight: 400, fontSize: 9,
+            fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem',
             color: INK_DEEP, letterSpacing: '0.32em', textTransform: 'uppercase',
             opacity: (uploading || full) ? 0.5 : 1,
           }}>
@@ -911,11 +911,11 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
 
           It does not gate on the photo floor. A vendor below six photos sees the preview
           with what he has — F5's whole argument for the pre-approval mount. */}
-      <div style={{ padding: '10px var(--slice-inset, 22px) 0' }}>
+      <div style={{ padding: '12px var(--slice-inset, 16px) 0' }}>
         <button type="button" onClick={() => router.push('/vendor/discover/preview')} style={{
-          display: 'block', width: '100%', padding: '11px 0',
-          background: 'none', border: `0.5px solid ${A.interactiveWarm}`, borderRadius: 2,
-          cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
+          display: 'block', width: '100%', padding: '12px 0',
+          background: 'none', border: `0.5px solid ${A.interactiveWarm}`, borderRadius: 12,
+          cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
           letterSpacing: '0.32em', textTransform: 'uppercase', color: A.interactiveWarm,
         }}>
           See your profile as couples do
@@ -924,43 +924,43 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
 
       {/* Filter pills — restored (CE §0.2 (a)). Ghost/bordered only: the screen's
           one filled gold stays the Upload action. */}
-      <div style={{ display: 'flex', gap: 8, padding: '12px var(--slice-inset, 22px) 0', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, padding: '12px var(--slice-inset, 16px) 0', flexWrap: 'wrap' }}>
         {STATE_FILTERS.map(sf => (
           <button key={sf} type="button" onClick={() => setFilter(sf)} style={{
-            padding: '6px 14px', borderRadius: 2, cursor: 'pointer', flexShrink: 0,
-            background: filter === sf ? 'rgba(201,168,76,0.18)' : 'transparent',
-            border: `0.5px solid ${filter === sf ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
-            fontFamily: F.label, fontWeight: 300, fontSize: 9,
+            padding: '8px 16px', borderRadius: 12, cursor: 'pointer', flexShrink: 0,
+            background: filter === sf ? 'var(--atelier-card-border)' : 'transparent',
+            border: `0.5px solid ${filter === sf ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
+            fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
             color: filter === sf ? A.interactiveWarm : A.inkMute,
             letterSpacing: '0.28em', textTransform: 'uppercase',
-          }}>{sf}</button>
+          }}>{sf.charAt(0).toUpperCase() + sf.slice(1)}</button>
         ))}
       </div>
 
-      <div style={{ padding: '12px var(--slice-inset, 22px) 0', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ padding: '12px var(--slice-inset, 16px) 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {cap > 0 && (
           <div style={{
-            fontFamily: F.label, fontWeight: 300, fontSize: 9,
+            fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
             letterSpacing: '0.28em', textTransform: 'uppercase', color: A.brassWarm,
           }}>{COPY.A1(images.length, cap)}</div>
         )}
         {full && (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkSoft }}>
             {COPY.A2(cap)}
           </div>
         )}
         {images.length > 1 && canReorder && (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
             {COPY.G1}
           </div>
         )}
         {images.length > 1 && !canReorder && (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
             {COPY.G3}
           </div>
         )}
         {images.length > 0 && (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
             {COPY.F4}
           </div>
         )}
@@ -974,16 +974,16 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
         onPointerCancel={onPointerUp}
       >
         {loading ? (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>
             Loading…
           </div>
         ) : images.length === 0 ? (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', padding: '60px 20px', lineHeight: 1.5 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, textAlign: 'center', padding: '64px 24px', lineHeight: 1.5 }}>
             No images yet. <br />
             <span style={{ color: A.brassWarm }}>Tap upload to add your first.</span>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
             {images.map((img, idx) => (
               <div
                 key={img.id}
@@ -999,7 +999,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 onKeyDown={e => { if (e.key === 'Enter') { setSel(img); setCaption(img.caption ?? ''); } }}
                 style={{
                   position: 'relative', aspectRatio: '3/4', overflow: 'hidden',
-                  border: '0.5px solid rgba(201,168,76,0.2)', borderRadius: 2,
+                  border: '0.5px solid var(--atelier-card-border)', borderRadius: 12,
                   cursor: 'pointer', background: 'none', padding: 0,
                   // ── F-1's DEFENSES ────────────────────────────────────────
                   // Chrome's long-press image menu took the gesture before any
@@ -1026,10 +1026,10 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                     idx is only trustworthy in the unfiltered view. */}
                 {(canReorder ? idx === 0 : img.position === 0) && (
                   <div style={{
-                    position: 'absolute', top: 6, left: 6, padding: '3px 8px',
+                    position: 'absolute', top: 6, left: 6, padding: '4px 8px',
                     background: 'linear-gradient(180deg, var(--role-metal) 0%, var(--role-metal) 100%)',
                     border: '0.5px solid var(--atelier-label)',
-                    fontFamily: F.label, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
+                    fontFamily: F.label, fontWeight: 400, fontSize: '1rem', lineHeight: 1.5,
                     color: 'var(--role-ink-on-metal)', letterSpacing: '0.28em',  // F-09.102: ground is var(--role-metal), which themes
                   }}>{COPY.E1}</div>
                 )}
@@ -1037,7 +1037,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                   <div style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 8px',
                     background: 'var(--atelier-overlay)',
-                    fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                    fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                     letterSpacing: '0.24em', textTransform: 'uppercase',
                     color: stateColor(img.approval_state),
                   }}>{stateLabel(img.approval_state)}</div>
@@ -1079,9 +1079,9 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
             the entry dark and logs why. Absence remains the safe state. */}
 
         {ig && ig.ig_import_enabled && (
-          <div style={{ marginTop: 34, paddingTop: 26, borderTop: '0.5px solid rgba(201,168,76,0.18)' }}>
+          <div style={{ marginTop: 32, paddingTop: 24, borderTop: '0.5px solid var(--atelier-card-border)' }}>
             <div style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em',
+              fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.28em',
               textTransform: 'uppercase', color: A.brassWarm, marginBottom: 12,
             }}>{COPY.H1}</div>
 
@@ -1092,12 +1092,12 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 first and the reassurance second has been sold to; the other way
                 round, they have been told the truth first. */}
             <p style={{
-              fontFamily: F.script, fontWeight: 300, fontSize: 16,
-              color: A.inkSoft, margin: '0 0 14px', lineHeight: 1.55,
+              fontFamily: F.script, fontWeight: 300, fontSize: '1rem',
+              color: A.inkSoft, margin: '0 0 16px', lineHeight: 1.55,
             }}>{COPY.H3}</p>
 
             {ig.connection_state === 'expired' ? (
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, margin: '0 0 14px' }}>
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.red, margin: '0 0 16px' }}>
                 {COPY.H11}
               </p>
             ) : null}
@@ -1105,7 +1105,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
             {!ig.connected || ig.connection_state === 'expired' ? (
               <>
                 <p style={{
-                  fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute,
+                  fontFamily: F.body, fontWeight: 300, fontSize: '1rem', color: A.inkMute,
                   margin: '0 0 16px', lineHeight: 1.6,
                 }}>{COPY.H2}</p>
                 {/* THE CONNECT CONTROL — a real link over a destination that
@@ -1130,20 +1130,20 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 {igAuthUrl ? (
                   <a href={igAuthUrl}
                     style={{
-                      display: 'block', width: '100%', padding: '13px 0', boxSizing: 'border-box',
+                      display: 'block', width: '100%', padding: '12px 0', boxSizing: 'border-box',
                       background: 'transparent', textAlign: 'center', textDecoration: 'none',
-                      border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                      border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
                       cursor: 'pointer',
-                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                      fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                       color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                     }}>{COPY.H4}</a>
                 ) : (
                   <button type="button" disabled={igBusy !== null} onClick={igConnectRetry}
                     style={{
-                      width: '100%', padding: '13px 0', background: 'transparent',
-                      border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                      width: '100%', padding: '12px 0', background: 'transparent',
+                      border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
                       cursor: igBusy ? 'default' : 'pointer', opacity: igBusy ? 0.4 : 1,
-                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                      fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                       color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                     }}>{COPY.H4}</button>
                 )}
@@ -1160,7 +1160,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                       be its own small lie. */}
                 {isIosStandalone() && igAuthUrl && (
                   <p style={{
-                    fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute,
+                    fontFamily: F.body, fontWeight: 300, fontSize: '1rem', color: A.inkMute,
                     margin: '12px 0 0', lineHeight: 1.6,
                   }}>{COPY.H19}</p>
                 )}
@@ -1174,28 +1174,28 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                     rather than printing an empty @. */}
                 {ig.ig_username && (
                   <p style={{
-                    fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                    fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                     letterSpacing: '0.18em', textTransform: 'uppercase',
-                    color: A.brassWarm, margin: '0 0 10px',
+                    color: A.brassWarm, margin: '0 0 12px',
                   }}>{COPY.H18.replace('{handle}', ig.ig_username)}</p>
                 )}
                 <p style={{
-                  fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute,
+                  fontFamily: F.body, fontWeight: 300, fontSize: '1rem', color: A.inkMute,
                   margin: '0 0 16px', lineHeight: 1.6,
                 }}>{COPY.H12}</p>
                 <button type="button" disabled={igBusy !== null || full} onClick={igOpenPicker}
                   style={{
-                    width: '100%', padding: '13px 0', background: 'transparent',
-                    border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                    width: '100%', padding: '12px 0', background: 'transparent',
+                    border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
                     cursor: (igBusy || full) ? 'default' : 'pointer', opacity: (igBusy || full) ? 0.4 : 1,
-                    fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                    fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                     color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                   }}>{COPY.H1}</button>
                 <button type="button" disabled={igBusy !== null} onClick={igDisconnect}
                   style={{
-                    width: '100%', padding: '10px 0', marginTop: 8, background: 'transparent',
+                    width: '100%', padding: '12px 0', marginTop: 8, background: 'transparent',
                     border: 'none', cursor: igBusy ? 'default' : 'pointer',
-                    fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute,
+                    fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute,
                   }}>{COPY.H13}</button>
               </>
             )}
@@ -1221,16 +1221,16 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 no veto: they are unreachable without the query parameter and
                 they die with the ladder. */}
             {igProbe && (
-              <div style={{ marginTop: 28, paddingTop: 20, borderTop: '0.5px dashed rgba(201,168,76,0.35)' }}>
+              <div style={{ marginTop: 32, paddingTop: 24, borderTop: '0.5px dashed var(--atelier-input-border)' }}>
                 <div style={{
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em',
-                  textTransform: 'uppercase', color: A.brassWarm, marginBottom: 6,
+                  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.28em',
+                  textTransform: 'uppercase', color: A.brassWarm, marginBottom: 8,
                 }}>Navigation probe</div>
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: A.inkMute, margin: '0 0 4px', lineHeight: 1.6 }}>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '1rem', color: A.inkMute, margin: '0 0 4px', lineHeight: 1.6 }}>
                   Tap each in order. Screenshot what you get. Come back to this
                   page between taps — the link refreshes itself every time.
                 </p>
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, margin: '0 0 14px' }}>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, margin: '0 0 16px' }}>
                   State: <strong>{igAuthUrl ? igAuthUrl.slice(-8) : 'minting…'}</strong>
                 </p>
 
@@ -1291,13 +1291,13 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
               display: 'flex', flexDirection: 'column',
               background: 'var(--atelier-sheet-bg)', borderRadius: '14px 14px 0 0',
             }}>
-            <div style={{ padding: '22px 18px 12px', flexShrink: 0 }}>
+            <div style={{ padding: '24px 16px 12px', flexShrink: 0 }}>
             <div style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em',
+              fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.28em',
               textTransform: 'uppercase', color: A.brassWarm, marginBottom: 4,
             }}>{COPY.H5}</div>
             <div style={{
-              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 4,
+              fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginBottom: 4,
             }}>
               {COPY.H6.replace('{n}', String(igPicked.length)).replace('{r}', String(igRoom))}
             </div>
@@ -1306,20 +1306,20 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 surprised by their own storefront. */}
             {igItems.some(i => i.media_type === 'VIDEO') && (
               <div style={{
-                fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 14,
+                fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginBottom: 16,
               }}>{COPY.H17}</div>
             )}
 
             </div>
 
             {/* THE ONLY SCROLLING REGION. */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0 18px 16px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 16px' }}>
             {igItems.length === 0 ? (
-              <p style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+              <p style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
                 {COPY.H10}
               </p>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                 {igItems.map(item => (
                   <IgTile key={item.id} item={item}
                     on={igPicked.includes(item.source_url)}
@@ -1335,19 +1335,19 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 the first tap to the last regardless of how much media the vendor
                 has. The hairline separates it from the grid scrolling beneath. */}
             <div style={{
-              flexShrink: 0, padding: '12px 18px calc(env(safe-area-inset-bottom,0px) + 16px)',
-              borderTop: '0.5px solid rgba(201,168,76,0.18)',
+              flexShrink: 0, padding: '12px 16px calc(env(safe-area-inset-bottom,0px) + 16px)',
+              borderTop: '0.5px solid var(--atelier-card-border)',
               background: 'var(--atelier-sheet-bg)',
             }}>
               <button type="button" disabled={igPicked.length === 0 || igBusy !== null}
                 onClick={igImport}
                 style={{
-                  width: '100%', padding: '14px 0',
+                  width: '100%', padding: '16px 0',
                   background: igPicked.length ? 'var(--atelier-accent-text)' : 'transparent',
-                  border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                  border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
                   cursor: igPicked.length ? 'pointer' : 'default',
                   opacity: (igPicked.length === 0 || igBusy) ? 0.4 : 1,
-                  fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                   color: igPicked.length ? 'var(--role-ink-on-metal)' : A.interactiveWarm,
                   letterSpacing: '0.28em', textTransform: 'uppercase',
                 }}>{COPY.H7.replace('{n}', String(igPicked.length))}</button>
@@ -1368,28 +1368,28 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
             padding: '16px 24px calc(24px + env(safe-area-inset-bottom))',
             maxHeight: '86vh', overflowY: 'auto',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
-              <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
             </div>
             <img src={imgUrl(sel.image_url, 'full')} alt="" style={{
               width: '100%', aspectRatio: '3/4', objectFit: 'cover', objectPosition: 'center top',
-              borderRadius: 2, marginBottom: 14, border: '0.5px solid rgba(201,168,76,0.2)',
+              borderRadius: 12, marginBottom: 16, border: '0.5px solid var(--atelier-card-border)',
             }} />
 
             <div style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 9,
+              fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
               letterSpacing: '0.32em', textTransform: 'uppercase',
-              color: stateColor(sel.approval_state), marginBottom: 6,
+              color: stateColor(sel.approval_state), marginBottom: 8,
             }}>{sel.approval_state}</div>
 
             {sel.rejection_reason && (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.red, marginBottom: 12, lineHeight: 1.4 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.red, marginBottom: 12, lineHeight: 1.4 }}>
                 {sel.rejection_reason}
               </div>
             )}
 
             {sel.position === 0 && (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
                 {COPY.E4}
               </div>
             )}
@@ -1397,22 +1397,22 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
             <textarea value={caption} onChange={e => setCaption(e.target.value)}
               placeholder={COPY.D1} rows={2}
               style={{
-                width: '100%', boxSizing: 'border-box', marginBottom: 10, padding: '10px 12px',
-                background: 'transparent', border: '0.5px solid rgba(201,168,76,0.22)', borderRadius: 2,
-                color: A.ink, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, resize: 'vertical',
+                width: '100%', boxSizing: 'border-box', marginBottom: 12, padding: '12px 12px',
+                background: 'transparent', border: '0.5px solid var(--atelier-card-border)', borderRadius: 12,
+                color: A.ink, fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, resize: 'vertical',
               }} />
             <button type="button" onClick={() => doSaveCaption(sel.id)}
               style={{
-                width: '100%', padding: '11px 0', marginBottom: 10,
-                background: 'transparent', border: '0.5px solid rgba(201,168,76,0.4)', borderRadius: 2,
-                cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                width: '100%', padding: '12px 0', marginBottom: 12,
+                background: 'transparent', border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
+                cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                 color: A.interactiveWarm, letterSpacing: '0.32em', textTransform: 'uppercase',
               }}>Save caption</button>
 
             {/* CURE B — the deterministic path. Disabled at the ends rather than
                 hidden, so the control's shape never shifts under the thumb. */}
             {canReorder && images.length > 1 && !confirming && (
-              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                 {([['up', -1], ['down', 1]] as const).map(([dir, delta]) => {
                   const idx  = images.findIndex(i => i.id === sel.id);
                   const dead = !canMove(images.length, idx, delta);
@@ -1420,10 +1420,10 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                     <button key={dir} type="button" disabled={dead}
                       onClick={() => moveBy(sel.id, delta)}
                       style={{
-                        flex: 1, padding: '11px 0', background: 'transparent',
-                        border: '0.5px solid rgba(201,168,76,0.35)', borderRadius: 2,
+                        flex: 1, padding: '12px 0', background: 'transparent',
+                        border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
                         cursor: dead ? 'default' : 'pointer', opacity: dead ? 0.35 : 1,
-                        fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                        fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                         color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                       }}>{delta === -1 ? COPY.G4 : COPY.G5}</button>
                   );
@@ -1436,17 +1436,17 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 {sel.position !== 0 && (
                   <button type="button" onClick={() => doSetCover(sel.id)}
                     style={{
-                      flex: 1, padding: '13px 0', background: 'transparent',
-                      border: '0.5px solid rgba(201,168,76,0.5)', borderRadius: 2, cursor: 'pointer',
-                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                      flex: 1, padding: '12px 0', background: 'transparent',
+                      border: '0.5px solid var(--atelier-input-border)', borderRadius: 12, cursor: 'pointer',
+                      fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                       color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
                     }}>{COPY.E2}</button>
                 )}
                 <button type="button" onClick={() => setConfirming(true)}
                   style={{
-                    flex: 1, padding: '13px 0', background: 'transparent',
-                    border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
-                    fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                    flex: 1, padding: '12px 0', background: 'transparent',
+                    border: '0.5px solid var(--role-critical)', borderRadius: 12, cursor: 'pointer',
+                    fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                     color: A.red, letterSpacing: '0.32em', textTransform: 'uppercase',
                   }}>{COPY.C3}</button>
               </div>
@@ -1455,25 +1455,25 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                  an irreversible act behind a single touch. Inline rather than a
                  second sheet so the photo stays on screen while they decide. */
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink }}>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.ink }}>
                   {COPY.C1}
                 </div>
-                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.45 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkSoft, lineHeight: 1.45 }}>
                   {COPY.C2}
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                   <button type="button" onClick={() => setConfirming(false)}
                     style={{
-                      flex: 1, padding: '13px 0', background: 'transparent',
-                      border: '0.5px solid rgba(201,168,76,0.3)', borderRadius: 2, cursor: 'pointer',
-                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                      flex: 1, padding: '12px 0', background: 'transparent',
+                      border: '0.5px solid var(--atelier-input-border)', borderRadius: 12, cursor: 'pointer',
+                      fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                       color: A.interactiveWarm, letterSpacing: '0.32em', textTransform: 'uppercase',
                     }}>{COPY.C4}</button>
                   <button type="button" onClick={() => doDelete(sel.id)}
                     style={{
-                      flex: 1, padding: '13px 0', background: 'transparent',
-                      border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
-                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                      flex: 1, padding: '12px 0', background: 'transparent',
+                      border: '0.5px solid var(--role-critical)', borderRadius: 12, cursor: 'pointer',
+                      fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                       color: A.red, letterSpacing: '0.32em', textTransform: 'uppercase',
                     }}>{COPY.C3}</button>
                 </div>

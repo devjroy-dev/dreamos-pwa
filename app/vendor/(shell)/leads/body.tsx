@@ -2,7 +2,7 @@
 // app/vendor/list/[slice]/leads.tsx — TDW_03 P1 · R1(b) cross-chip added
 // Leads slice module: typed plane (post-(A) repoint). R1(b), CE-ruled:
 // each lead row carries a display-only whisper when a records-plane binder
-// shares its phone — "In your books · booked · ₹20k in". Reads, never
+// shares its phone — "Also a client · booked · ₹20k in". Reads, never
 // writes; 16's engagements spine sending a postcard ahead of itself.
 // DISCLOSED: phone-asymmetric twins won't chip (absence ≠ no twin).
 
@@ -82,8 +82,14 @@ function leadTitle(l: { name?: string | null; phone?: string | null }): string {
   const name = (l.name || '').trim();
   if (name) return name;
   const phone = (l.phone || '').trim();
-  if (phone) return phone;
+  if (phone) return spacedPhone(phone);
   return 'Unknown';
+}
+
+/** DESIGN-1 · W4: an Indian mobile as people write it, "+91 98111 00002", not the wire's "+919811100002". */
+function spacedPhone(p: string): string {
+  const m = /^\+?91(\d{5})(\d{5})$/.exec(p.replace(/\s+/g, ''));
+  return m ? `+91 ${m[1]} ${m[2]}` : p;
 }
 
 /**
@@ -176,7 +182,7 @@ function referralRows(l: Lead): { label: string; value: string; verbatim?: boole
 }
 
 function baseRows(leads: Lead[]): Row[] {
-  return leads.map(l => ({ id: l.id, primary: leadTitle(l), secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, redacted: l.redacted === true, budgetMin: l.budget_min ?? null, aiPrimer: `About ${l.name??'this enquiry'}: ` /* F-40.178: leadTitle is NOT used here on purpose. 'About this enquiry:' is a lawful natural phrase a vendor is about to type into; 'About +918595363978:' is a worse opening line than the one it replaces. The DELETE primer above is the opposite case — it names the row for a DESTRUCTIVE act, where 'unknown' was actively wrong. */, deletePrimer: `Delete the lead for ${leadTitle(l)} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? l.budget_min ?? 0, /* R-37.28: a floor is an "at least", and a masthead that counts the richest lead as zero is the same lie one level up. MIXED SEMANTIC, NAMED (F-06.85): this sum mixes ceilings with floors, so it is an ESTIMATE of pipeline value and not a bound in either direction — the alternative was excluding open-band leads entirely, which understates worse. If a per-band pipeline ever lands, THIS LINE IS ITS FIRST READER. */ tdw: l.tdw === true, forwarded: !!(l.forwarded_to || l.forwarded_by), referralIn: !!l.forwarded_by, weddingLead: isWeddingLead(l), detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},...(l.tdw === true ? [{label:'ENQUIRED VIA TDW',value:fmtArrival(l.tdw_enquired_at)||'—'}] : []),{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:leadBudget(l)},{label:'Source',value:l.source??'—'},...referralRows(l),{label:'Notes',value:l.notes??'—',verbatim:true}] })); // Notes: F-04.7 read-row (display-only, CE fence)
+  return leads.map(l => ({ id: l.id, primary: leadTitle(l), secondary: l.wedding_city??undefined, meta: leadMeta(l), badge: l.state, badgeAlert: l.state==='lost', phone: l.phone??undefined, redacted: l.redacted === true, budgetMin: l.budget_min ?? null, aiPrimer: `About ${l.name??'this enquiry'}: ` /* F-40.178: leadTitle is NOT used here on purpose. 'About this enquiry:' is a lawful natural phrase a vendor is about to type into; 'About +918595363978:' is a worse opening line than the one it replaces. The DELETE primer above is the opposite case — it names the row for a DESTRUCTIVE act, where 'unknown' was actively wrong. */, deletePrimer: `Delete the enquiry from ${leadTitle(l)} (id: ${l.id}).`, draftMissing: l.draft?.missing, pipelineValue: l.budget_total ?? l.budget_min ?? 0, /* R-37.28: a floor is an "at least", and a masthead that counts the richest lead as zero is the same lie one level up. MIXED SEMANTIC, NAMED (F-06.85): this sum mixes ceilings with floors, so it is an ESTIMATE of pipeline value and not a bound in either direction — the alternative was excluding open-band leads entirely, which understates worse. If a per-band pipeline ever lands, THIS LINE IS ITS FIRST READER. */ tdw: l.tdw === true, forwarded: !!(l.forwarded_to || l.forwarded_by), referralIn: !!l.forwarded_by, weddingLead: isWeddingLead(l), detail: [{label:'State',value:l.state},{label:'Arrived',value:fmtArrival(l.created_at)||'—'},...(l.tdw === true ? [{label:'Enquired via TDW',value:fmtArrival(l.tdw_enquired_at)||'—'}] : []),{label:'Wedding date',value:fmtLeadDate(l.wedding_date, l.wedding_date_precision)},{label:'City',value:l.wedding_city??'—'},{label:'Budget',value:leadBudget(l)},{label:'Source',value:l.source??'—'},...referralRows(l),{label:'Notes',value:l.notes??'—',verbatim:true}] })); // Notes: F-04.7 read-row (display-only, CE fence)
 }
 
 // TDW_04 A2 (L-2, F-04.2's ratified cure): DELETE means the REAL soft-delete
@@ -208,7 +214,7 @@ export default function LeadsSlice({ vendorId }: { vendorId: string }) {
       const b = k ? binderByPhone.get(k) : undefined;
       if (!b) return row;
       const recv = b.amount_received ?? 0;
-      const bits = ['In your books'];
+      const bits = ['Also a client'];
       if (b.stage) bits.push(cap(b.stage));
       if (recv > 0) bits.push(`${amountWordsAdjacent(recv)} in`);
       return { ...row, crossChip: bits.join(' · ') };

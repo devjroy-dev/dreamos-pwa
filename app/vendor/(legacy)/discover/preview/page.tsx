@@ -218,26 +218,26 @@ export default function DiscoverPreviewPage() {
           <ChevronLeft size={16} strokeWidth={1.5} />
         </button>
         <span style={{
-          fontFamily: "'Jost',sans-serif", fontSize: 9, fontWeight: 300,
+          fontFamily: 'var(--font-inter), system-ui, sans-serif', fontSize: '0.8125rem', fontWeight: 300,
           letterSpacing: '0.28em', textTransform: 'uppercase',
-          color: 'var(--atelier-ink-soft)',
+          color: '#FFFFFF',   // DESIGN-1: on a dark chip over a photo, whatever the theme
           border: '0.5px solid rgba(255,255,255,0.18)', borderRadius: 12,
-          padding: '4px 10px', background: 'rgba(12,10,9,0.32)',
+          padding: '4px 12px', background: 'rgba(12,10,9,0.72)',
           backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)',
         }}>
-          PREVIEW
+          Preview
         </span>
       </div>
 
       <div style={{ flex: 1, pointerEvents: 'none' }} />
 
       {loading && (
-        <p style={{ position: 'relative', zIndex: 2, fontFamily: "'DM Sans',sans-serif", fontSize: 16, lineHeight: 1.5, fontWeight: 300, color: 'var(--atelier-ink-dim)', margin: 0, padding: '0 24px 24px' }}>
+        <p style={{ position: 'relative', zIndex: 2, fontFamily: 'var(--font-inter), system-ui, sans-serif', fontSize: '1rem', lineHeight: 1.5, fontWeight: 300, color: 'var(--atelier-ink-dim)', margin: 0, padding: '0 24px 24px' }}>
           Loading your profile…
         </p>
       )}
       {!loading && error && (
-        <p style={{ position: 'relative', zIndex: 2, fontFamily: "'DM Sans',sans-serif", fontSize: 16, lineHeight: 1.5, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0, padding: '0 24px 24px' }}>
+        <p style={{ position: 'relative', zIndex: 2, fontFamily: 'var(--font-inter), system-ui, sans-serif', fontSize: '1rem', lineHeight: 1.5, fontWeight: 300, color: 'var(--atelier-ink-mute)', margin: 0, padding: '0 24px 24px' }}>
           {error}
         </p>
       )}
@@ -264,7 +264,7 @@ export default function DiscoverPreviewPage() {
               the production column, read server-side. */}
           {data.discover_paused && (
             <p style={{
-              fontFamily: "'Jost',sans-serif", fontSize: 16, lineHeight: 1.5, fontWeight: 300,
+              fontFamily: 'var(--font-inter), system-ui, sans-serif', fontSize: '1rem', lineHeight: 1.5, fontWeight: 300,
               letterSpacing: '0.14em', color: 'var(--atelier-ink-soft)',
               margin: '0 0 14px', padding: '0 24px',
             }}>
@@ -283,7 +283,7 @@ export default function DiscoverPreviewPage() {
           {/* Copy ③ — founder-vetoed, byte-exact. */}
           {!data.is_live && !data.discover_paused && (
             <p style={{
-              fontFamily: "'Cormorant Garamond',serif", fontSize: 16, fontWeight: 300,
+              fontFamily: 'var(--font-inter), system-ui, sans-serif', fontSize: '1rem', fontWeight: 300,
               fontStyle: 'italic', color: 'var(--atelier-ink-mute)',
               margin: '18px 0 0', padding: '0 24px', lineHeight: 1.5,
             }}>
@@ -308,7 +308,7 @@ export default function DiscoverPreviewPage() {
           padding: '9px 16px', borderRadius: 16, maxWidth: '86%',
           background: 'rgba(12,10,9,0.82)', backdropFilter: 'blur(18px)',
           WebkitBackdropFilter: 'blur(18px)', border: '0.5px solid rgba(255,255,255,0.14)',
-          fontFamily: "'DM Sans',sans-serif", fontSize: 16, lineHeight: 1.5, fontWeight: 300,
+          fontFamily: 'var(--font-inter), system-ui, sans-serif', fontSize: '1rem', lineHeight: 1.5, fontWeight: 300,
           color: 'var(--atelier-ink)', textAlign: 'center',
           animation: 'dissolveIn 200ms cubic-bezier(0.22,1,0.36,1)',
         }}>

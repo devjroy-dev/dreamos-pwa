@@ -6,15 +6,15 @@ import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: 
 // missing the same way: a row of `+ label` chips, each tappable to ITS OWN cell (F-43.108: a tapped
 // chip never opens the first missing cell instead). `onPick` is required (R-43.16: a line that says
 // something is needed is the way to add it). The look is the lead detail's existing chip, tokens only.
-// `heading` shows the existing `Still missing — tap to complete:` line above the chips.
+// `heading` shows the existing `Add what is missing:` line above the chips.
 import type { CSSProperties } from 'react';
 
 const chipStyle: CSSProperties = {
   font: RUNG.t4,
   color: 'var(--atelier-ink-mute)',
   border: '0.5px solid var(--atelier-ink-dim)',
-  borderRadius: 2,
-  padding: '3px 8px',
+  borderRadius: 12,
+  padding: '4px 8px',
   background: 'transparent',
   cursor: 'pointer',
 };
@@ -33,8 +33,8 @@ export function MissingChips({ cells, onPick, heading = false, testId }: {
   if (cells.length === 0) return null;
   return (
     <div data-lc2="missing-chips" data-need={testId}>
-      {heading && <div style={headingStyle}>Still missing — tap to complete:</div>}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {heading && <div style={headingStyle}>Add what is missing:</div>}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {cells.map((c) => (
           <button key={c.key} type="button" data-cell={c.key} onClick={() => onPick(c.key)} style={chipStyle}>+ {c.label}</button>
         ))}

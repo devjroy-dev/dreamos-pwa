@@ -55,8 +55,8 @@ const A = {
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
   brassDeep: 'var(--role-metal)',
-  brassLine: 'rgba(201,168,76,0.18)',
-  brassSoft: 'rgba(201,168,76,0.28)',
+  brassLine: 'var(--atelier-card-border)',
+  brassSoft: 'var(--atelier-row-hover)',
   terracotta:'var(--role-critical)',
 } as const;
 
@@ -309,27 +309,27 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
           after the lift was the signature itself. */}
 
       {/* Scrollable body — calendar grid + engagements scroll together */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 110 }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 112 }}>
 
       {/* ── TDW_04.5 P2 — the MONTH · WEDDINGS toggle (spec §P2: Jost, top-right) ──
           Two words, one hairline divider between them; the live one is brass, the
-          other recedes. Same pill vocabulary as the Hot Dates toggle below, so the
+          other recedes. Same pill vocabulary as the Good dates toggle below, so the
           screen gains no second dialect. Copy founder-vetoed YES 2026-07-22. */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 22px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 16px 0' }}>
         <div role="group" aria-label="Calendar view" style={{
-          display: 'flex', alignItems: 'center', gap: 9,
-          border: `0.5px solid ${A.brassLine}`, borderRadius: 999, padding: '5px 12px',
+          display: 'flex', alignItems: 'center', gap: 8,
+          border: '1px solid var(--atelier-card-border)', borderRadius: 12, padding: '0 4px',
         }}>
           {(['month', 'weddings'] as const).map((v, i) => (
-            <span key={v} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <span key={v} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {i === 1 && <span style={{ width: '0.5px', height: 9, background: A.brassLine }} />}
               <button type="button" onClick={() => setView(v)} aria-pressed={view === v}
                 style={{
-                  font: RUNG.t5,
-                  letterSpacing: '0.08em',
+                  font: RUNG.t4,
+                  fontWeight: 500,
                   background: 'none',
                   border: 'none',
-                  padding: 0,
+                  padding: '0 12px',
                   cursor: 'pointer',
                   textTransform: 'uppercase',
                   color: view === v ? A.interactiveWarm : A.inkMute,
@@ -348,11 +348,11 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
           above), so the board follows it with zero new wiring. ONE navigator, one
           home — a second prev/next inside CalendarBands would be a second control
           for one piece of state. The grid, weekday labels, hot-dates ribbon and the
-          Next Engagements rail stay month-only (F5). ── */}
+          Coming up rail stay month-only (F5). ── */}
       <div style={{
         position: 'relative',
         textAlign: 'center',
-        padding: '20px 22px 12px',
+        padding: '24px 16px 12px',
       }}>
         <button type="button"
           onClick={() => month === 0 ? (setYear(y=>y-1), setMonth(11)) : setMonth(m=>m-1)}
@@ -379,8 +379,8 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
           color: 'var(--atelier-label)',
-          marginBottom: 6,
-        }}>Anno · {year}</div>
+          marginBottom: 8,
+        }}>{year}</div>
         {/* F-44.219 (CE-46 FE-4, ruled 28 Sept 2026): the month is this surface's one t1 (his "2") and it is
             the shell's head now, drawn by RoomHead in place of the room name (the t5 label keeps "Calendar");
             the t1 div that stood here between the arrows retired. The year eyebrow stays with the arrows. */}
@@ -408,7 +408,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
       </div>
 
       {/* ── THE BAND BOARD (P2) — the toggle swaps the whole reading surface.
-             F5 ruled HIDE: the Next Engagements rail returns with Month, because on
+             F5 ruled HIDE: the Coming up rail returns with Month, because on
              this board the band IS the horizon. ── */}
       {view === 'weddings' && (
         <CalendarBands
@@ -447,16 +447,16 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
 
       {/* Brass divider with hot-dates toggle on the right */}
       <div style={{
-        padding: '0 22px',
+        padding: '0 16px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 14,
+        marginBottom: 16,
       }}>
         <div style={{ width: 34, height: '0.5px', background: A.brass, opacity: 0.9 }} />
         <button type="button" onClick={() => setHotOn(!hotOn)}
           style={{
-            display: 'flex', alignItems: 'center', gap: 7,
-            background: 'none', border: `0.5px solid ${hotOn ? 'rgba(201,168,76,0.4)' : 'rgba(201,168,76,0.18)'}`,
-            borderRadius: 999, padding: '5px 11px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: 'none', border: `0.5px solid ${hotOn ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
+            borderRadius: 999, padding: '4px 12px', cursor: 'pointer',
           }}>
           <span style={{
             width: 6, height: 6, borderRadius: '50%',
@@ -468,15 +468,15 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             color: hotOn ? A.interactiveWarm : A.inkMute,
-          }}>Hot Dates</span>
+          }}>Good dates</span>
         </button>
       </div>
 
       {/* Hot dates ribbon — only when toggle on and there are any */}
       {hotOn && hotThisMonth > 0 && (
         <div className="atelier-hot-ribbon" style={{
-          margin: '0 18px 14px',
-          padding: '10px 14px',
+          margin: '0 16px 16px',
+          padding: '12px 16px',
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
           <div style={{
@@ -490,7 +490,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
             flex: 1,
             color: 'var(--atelier-ink-soft)',
           }}>
-            {hotThisMonth === 1 ? 'One auspicious date this month — peak season approaches' : `${hotThisMonth === 2 ? 'Two' : hotThisMonth === 3 ? 'Three' : hotThisMonth} auspicious dates this month — peak season approaches`}
+            {hotThisMonth === 1 ? 'One auspicious date this month. Peak season is near' : `${hotThisMonth === 2 ? 'Two' : hotThisMonth === 3 ? 'Three' : hotThisMonth} auspicious dates this month. Peak season is near`}
           </div>
           <div style={{ font: RUNG.t3, color: A.brassWarm }}>
             {hotThisMonth}
@@ -501,7 +501,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
       {/* Weekday labels */}
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(7,1fr)',
-        padding: '0 18px 8px',
+        padding: '0 16px 8px',
         borderBottom: '0.5px solid var(--atelier-card-border)',
       }}>
         {DAYS.map((d, i) => (
@@ -509,7 +509,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
             font: RUNG.t5,
             letterSpacing: '0.08em',
             textAlign: 'center',
-            padding: '2px 0',
+            padding: '4px 0',
             textTransform: 'uppercase',
             color: 'var(--atelier-label)',
           }}>{d}</div>
@@ -520,7 +520,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
       {/* CE-45 FE-2 cut 2: data-cal-grid marks the grid for b123 (his "2": its numerals at t2) */}
       <div data-cal-grid="" style={{
         display: 'grid', gridTemplateColumns: 'repeat(7,1fr)',
-        padding: '6px 18px 12px',
+        padding: '8px 16px 12px',
       }}>
         {/* Previous-month fade cells */}
         {Array.from({ length: firstDow }).map((_,i) => (
@@ -595,8 +595,8 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
               {isBlocked && (
                 <span style={{
                   position: 'absolute', inset: '14%', borderRadius: '50%',
-                  background: 'rgba(201,168,76,0.10)',
-                  border: '0.5px dashed rgba(201,168,76,0.35)',
+                  background: 'var(--atelier-row-hover)',
+                  border: '0.5px dashed var(--atelier-input-border)',
                   zIndex: 0,
                 }} />
               )}
@@ -630,20 +630,20 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
       {winData?.truncated && (
         <div style={{
           font: RUNG.t3,
-          padding: '2px 22px 10px',
+          padding: '4px 16px 12px',
           color: A.inkMute,
-        }}>Over 200 entries in this span — the furthest are not drawn.</div>
+        }}>Over 200 entries in this span. The furthest are not shown.</div>
       )}
 
-      {/* ── Next Engagements ──────────────────────────────────── */}
-      <div style={{ padding: '0 22px 12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0 12px' }}>
+      {/* ── Coming up ──────────────────────────────────── */}
+      <div style={{ padding: '0 16px 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 0 12px' }}>
           <div style={{
             font: RUNG.t5,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             color: A.brass,
-          }}>Next Engagements</div>
+          }}>Coming up</div>
           <div style={{ flex: 1, height: '0.5px', background: 'var(--atelier-ink-dim)' }} />
           {nextThree.length > 0 && (
             <div style={{ font: RUNG.t5, color: A.brassWarm }}>
@@ -678,10 +678,10 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
             state to three rows always was refused, because the ruling requires
             zero visual change once loaded. */}
         {eventsLoading ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '14px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 0' }}>
             {/* 56px column + 39px numeral box: the loaded row's own geometry */}
             <Reserve h={51} w={56} />
-            <div style={{ flex: 1, minWidth: 0, paddingLeft: 18, borderLeft: '0.5px solid var(--atelier-card-border)', display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div style={{ flex: 1, minWidth: 0, paddingLeft: 16, borderLeft: '0.5px solid var(--atelier-card-border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
               <Reserve h={11} w="34%" />
               <Reserve h={24} w="66%" />
             </div>
@@ -698,9 +698,9 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
               const { day, month: mm } = splitDay(ev.event_date);
               return (
                 <div key={ev.id} data-cal-next="" style={{
-                  display: 'flex', alignItems: 'center', gap: 18,
-                  padding: '14px 0',
-                  borderBottom: idx < nextThree.length - 1 ? `0.5px solid rgba(201,168,76,0.12)` : 'none',
+                  display: 'flex', alignItems: 'center', gap: 16,
+                  padding: '16px 0',
+                  borderBottom: idx < nextThree.length - 1 ? `0.5px solid var(--atelier-card-border)` : 'none',
                 }}>
                   <div style={{
                     flexShrink: 0, width: 56, textAlign: 'center',
@@ -719,7 +719,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
                   </div>
                   <div style={{
                     flex: 1, minWidth: 0,
-                    paddingLeft: 18,
+                    paddingLeft: 16,
                     borderLeft: '0.5px solid var(--atelier-card-border)',
                   }}>
                     <div style={{
@@ -727,7 +727,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
                       color: 'var(--atelier-label)',
-                      marginBottom: 5,
+                      marginBottom: 4,
                     }}>{ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0,5)}` : ''}</div>
                     <div style={{
                       font: RUNG.t3,
@@ -739,7 +739,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
             })}
           </div>
         )}
-      </div>{/* end Next Engagements */}
+      </div>{/* end Coming up */}
       </>)}{/* end view === 'month' */}
       </div>{/* end scroll wrapper */}
 

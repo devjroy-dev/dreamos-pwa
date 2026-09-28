@@ -164,7 +164,7 @@ function ReferralsScreen() {
 
       <SolutionsStyles />
       <style>{`
-.rf-xrow{margin-top:14px}
+.rf-xrow{margin-top:16px}
 /* THE LEADS-CARD IDIOM, SHARED WITH THE WEDDING-PAGES AND GOOGLE REVIEWS ROOMS.
    Every rule below is transcribed from those rooms' own blocks, property for
    property — the Block 19 rooms are the same room with different rows, and a
@@ -179,20 +179,20 @@ function ReferralsScreen() {
    ⚠ NO BACKTICKS IN THIS BLOCK. It is a template literal, and a backtick in a
    CSS comment closes the string — G2's first cut failed tsc with eleven errors
    none of which mentioned a backtick. */
-.rf-room{padding-top:20px;padding-bottom:28px}
-.rf-bal{display:flex;gap:28px;align-items:baseline;padding-bottom:16px;border-bottom:.5px solid var(--role-metal);margin-bottom:18px}
+.rf-room{padding-top:24px;padding-bottom:32px}
+.rf-bal{display:flex;gap:32px;align-items:baseline;padding-bottom:16px;border-bottom:.5px solid var(--role-metal);margin-bottom:16px}
 .rf-balfig{display:flex;flex-direction:column;gap:4px}
 .rf-ballabel{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .rf-balval{font:var(--wl-t2);color:var(--atelier-ink);font-variant-numeric:lining-nums tabular-nums}
 .rf-sec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px;display:flex;justify-content:space-between}
 .rf-sec span{font-variant-numeric:lining-nums tabular-nums}
 .rf-row{display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:12px;width:100%;text-align:left;
-        background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;
-        padding:13px 14px;margin-bottom:var(--wl-step)}
+        background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;
+        padding:12px 16px;margin-bottom:var(--wl-step)}
 .rf-rprimary{font:var(--wl-t3);color:var(--atelier-ink);display:block}
-.rf-rdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:3px;text-transform:uppercase;letter-spacing:.08em}
-.rf-rstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap;padding-top:2px;font-variant-numeric:lining-nums tabular-nums}
-.rf-note{font:var(--wl-t5);color:var(--atelier-ink-fade);line-height:1.5;text-transform:none;letter-spacing:0;margin:2px 0 0;max-width:40ch}
+.rf-rdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:4px;text-transform:uppercase;letter-spacing:.08em}
+.rf-rstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap;padding-top:4px;font-variant-numeric:lining-nums tabular-nums}
+.rf-note{font:var(--wl-t5);color:var(--atelier-ink-fade);line-height:1.5;text-transform:none;letter-spacing:0;margin:4px 0 0;max-width:40ch}
 /* CE-42 4c-1 · MOVED, NOT REWORDED (frame S1-empty, vetoed): the pair is left-set so the
    Shoots block can sit beneath it. Both strings are byte-kept. */
 .rf-empty{display:flex;flex-direction:column;gap:4px;padding:0 0 4px}

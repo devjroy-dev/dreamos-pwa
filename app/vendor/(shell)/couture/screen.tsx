@@ -58,7 +58,7 @@ const A = {
   interactive:     'var(--atelier-accent-text)',
   interactiveWarm: 'var(--atelier-accent-text)',
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', brassLine: 'rgba(201,168,76,0.18)', red: 'var(--role-critical)',
+  brass: 'var(--atelier-ink)' /* DESIGN-1 · P5 */, brassWarm: 'var(--atelier-label)', brassLine: 'var(--atelier-card-border)', red: 'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -123,11 +123,11 @@ export function CoutureScreen({ vendorId }: { vendorId: string }) {
             fallback ROUTE now, which covers both arms with one, and inside the shell the
             chrome is WorklistShell's. */}
         <div className="atelier-card atelier-card-ornate" style={{
-          margin: '40px var(--slice-inset, 22px)', padding: '32px 24px', textAlign: 'center',
+          margin: '40px var(--slice-inset, 16px)', padding: '32px 24px', textAlign: 'center',
         }}>
-          <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>{COPY.coutureGateLabel}</div>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', marginBottom: 12, lineHeight: 1.15 }}>By appointment only.</div>
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.55, marginBottom: 20 }}>
+          <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>{COPY.coutureGateLabel}</div>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem', color: 'var(--atelier-ink)', marginBottom: 12, lineHeight: 1.15 }}>By appointment only.</div>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkSoft, lineHeight: 1.55, marginBottom: 24 }}>
             {/* R-39.6 · the vetoed byte is ONE string in lib/worklist/copy.ts; the link word
                 is split out of it here so the sentence and its door share a home. */}
             {COPY.coutureGateSentence.split(COPY.coutureGateLinkWord)[0]}
@@ -136,8 +136,8 @@ export function CoutureScreen({ vendorId }: { vendorId: string }) {
           </div>
           <button type="button" onClick={() => router.back()} style={{
             padding: '12px 24px', background: 'transparent',
-            border: `0.5px solid rgba(201,168,76,0.32)`, borderRadius: 2, cursor: 'pointer',
-            fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
+            border: `0.5px solid var(--atelier-input-border)`, borderRadius: 12, cursor: 'pointer',
+            fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.interactiveWarm,
             letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>Back</button>
         </div>
@@ -159,13 +159,13 @@ export function CoutureScreen({ vendorId }: { vendorId: string }) {
           this screen's only way to add availability. Retiring the row to retire the word
           would have taken the action with it. The spacer replaces the label's `flex: 1` so
           the action stays where the thumb already knows to find it. */}
-      <div style={{ padding: '12px var(--slice-inset, 22px)', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+      <div style={{ padding: '12px var(--slice-inset, 16px)', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
         
         {<div style={{ flex: 1 }} />}
         {tab === 'availability' && eligible && (
           <button type="button" onClick={() => setAddOpen(true)} className="atelier-fab" style={{
-            padding: '8px 16px', borderRadius: 2, cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
+            padding: '8px 16px', borderRadius: 12, cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
+            fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP,
             letterSpacing: '0.32em', textTransform: 'uppercase',
           }}>+ Slot</button>
         )}
@@ -174,34 +174,34 @@ export function CoutureScreen({ vendorId }: { vendorId: string }) {
       <div style={{ display: 'flex' }}>
         {(['availability', 'appointments'] as const).map(t => (
           <button key={t} type="button" onClick={() => setTab(t)} style={{
-            flex: 1, padding: '14px 0', background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: 9,
+            flex: 1, padding: '16px 0', background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: '0.8125rem',
             color: tab === t ? A.interactiveWarm : A.inkMute,
             letterSpacing: '0.32em', textTransform: 'uppercase',
-            borderBottom: tab === t ? `0.5px solid ${A.interactive}` : '0.5px solid rgba(201,168,76,0.08)',
+            borderBottom: tab === t ? `0.5px solid ${A.interactive}` : '0.5px solid var(--atelier-card-border)',
           }}>{t}</button>
         ))}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '20px var(--slice-inset, 22px) 100px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '24px var(--slice-inset, 16px) 96px' }}>
         {loading ? (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>Loading…</div>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>Loading…</div>
         ) : tab === 'availability' ? (
           slots.length === 0 ? (
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', paddingTop: 32, lineHeight: 1.5 }}>No slots yet.<br /><span style={{ color: A.brassWarm }}>Add your first.</span></div>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, textAlign: 'center', paddingTop: 32, lineHeight: 1.5 }}>No slots yet.<br /><span style={{ color: A.brassWarm }}>Add your first.</span></div>
           ) : slots.map(slot => (
-            <div key={slot.id} style={{ display: 'flex', alignItems: 'center', padding: '14px 4px', gap: 14, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+            <div key={slot.id} style={{ display: 'flex', alignItems: 'center', padding: '16px 4px', gap: 16, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{fmtDate(slot.slot_at)}</div>
-                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 3 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1rem', lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{fmtDate(slot.slot_at)}</div>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
                   Rs {slot.fee_inr.toLocaleString('en-IN')} · {slot.duration_minutes} min · <span style={{ color: slot.state === 'open' ? A.brassWarm : A.inkMute }}>{slot.state}</span>
                 </div>
               </div>
               {slot.state === 'open' && (
                 <button type="button" onClick={() => doRemoveSlot(slot.id)} style={{
-                  background: 'none', border: '0.5px solid var(--role-critical)', borderRadius: 2,
-                  padding: '5px 10px', cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.red,
+                  background: 'none', border: '0.5px solid var(--role-critical)', borderRadius: 12,
+                  padding: '4px 12px', cursor: 'pointer',
+                  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.red,
                   letterSpacing: '0.28em', textTransform: 'uppercase',
                 }}>Remove</button>
               )}
@@ -209,11 +209,11 @@ export function CoutureScreen({ vendorId }: { vendorId: string }) {
           ))
         ) : (
           appointments.length === 0 ? (
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', paddingTop: 32 }}>No appointments yet.</div>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, textAlign: 'center', paddingTop: 32 }}>No appointments yet.</div>
           ) : appointments.map(appt => (
-            <div key={appt.id} className="atelier-card" style={{ padding: '14px 18px', marginBottom: 10 }}>
-              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink }}>{fmtDate(appt.appointment_at)}</div>
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 3 }}>
+            <div key={appt.id} className="atelier-card" style={{ padding: '16px 16px', marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1rem', lineHeight: 1.5, color: A.ink }}>{fmtDate(appt.appointment_at)}</div>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
                 Rs {appt.fee_inr.toLocaleString('en-IN')} · {appt.state}
               </div>
             </div>
@@ -231,35 +231,35 @@ export function CoutureScreen({ vendorId }: { vendorId: string }) {
             borderTop: '0.5px solid var(--atelier-sheet-border)',
             padding: '16px 24px calc(24px + env(safe-area-inset-bottom))',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
-              <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
             </div>
-            <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 10 }}>New Slot</div>
+            <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>New slot</div>
 
-            <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Date & Time</label>
+            <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 8 }}>Date & time</label>
             <input type="datetime-local" value={slotAt} onChange={e => setSlotAt(e.target.value)} style={{
-              width: '100%', padding: '12px 14px', boxSizing: 'border-box',
-              background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
-              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
-               marginBottom: 14, caretColor: A.interactive,
+              width: '100%', padding: '12px 16px', boxSizing: 'border-box',
+              background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
+              fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.ink, outline: 'none',
+               marginBottom: 16, caretColor: A.interactive,
             }} />
 
-            <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Fee (Rs)</label>
+            <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 8 }}>Fee (Rs)</label>
             <input type="number" value={feeInr} onChange={e => setFeeInr(e.target.value)} placeholder="3000" style={{
-              width: '100%', padding: '12px 14px', boxSizing: 'border-box',
-              background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
-              fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
+              width: '100%', padding: '12px 16px', boxSizing: 'border-box',
+              background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
+              fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.ink, outline: 'none',
               marginBottom: 16, caretColor: A.interactive,
             }} />
 
             <button type="button" onClick={doAddSlot} disabled={saving || !slotAt || !feeInr} className="atelier-fab" style={{
-              width: '100%', padding: '14px 0', borderRadius: 2,
+              width: '100%', padding: '16px 0', borderRadius: 12,
               border: '0.5px solid var(--atelier-label)',
               cursor: (saving || !slotAt || !feeInr) ? 'default' : 'pointer',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
+              fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP,
               letterSpacing: '0.42em', textTransform: 'uppercase',
               opacity: (saving || !slotAt || !feeInr) ? 0.5 : 1,
-            }}>{saving ? 'Saving…' : 'Add Slot'}</button>
+            }}>{saving ? 'Saving…' : 'Add slot'}</button>
           </div>
         </>
       )}

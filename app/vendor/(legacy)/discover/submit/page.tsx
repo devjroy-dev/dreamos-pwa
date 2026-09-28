@@ -148,7 +148,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '12px 14px', boxSizing: 'border-box',
     background: 'var(--atelier-input-bg)', border: '0.5px solid rgba(201,168,76,0.28)', borderRadius: 2,
-    fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
+    fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.ink, outline: 'none',
     caretColor: A.interactive, 
   };
 
@@ -158,9 +158,9 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
       <Header vendorName={vendorName} />
 
       <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid rgba(201,168,76,0.12)' }}>
-        <button type="button" onClick={() => step > 1 ? setStep(s => s - 1) : router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
-        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Request Discover</span>
-        <span style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{step} of 3</span>
+        <button type="button" onClick={() => step > 1 ? setStep(s => s - 1) : router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: '1.375rem', lineHeight: 1 }}>‹</button>
+        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, flex: 1 }}>Request Discover</span>
+        <span style={{ fontFamily: F.script, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>{step} of 3</span>
       </div>
 
       {/* Step indicator */}
@@ -178,13 +178,13 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '24px 22px', display: 'flex', flexDirection: 'column', gap: 18 }}>
 
         <div>
-          <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 6 }}>Step {step}</div>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{STEP_LABELS[step - 1]}</div>
+          <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 6 }}>Step {step}</div>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem', color: 'var(--atelier-ink)', lineHeight: 1.15 }}>{STEP_LABELS[step - 1]}</div>
         </div>
 
         {step === 1 && (
           <>
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               {COPY.discoverRangeNote}
             </div>
             {/* TDW_07 P4b · F4 (WIDENED) — THE MAX FIELD IS REMOVED-BY-RULING.
@@ -198,14 +198,14 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
               /* F-4(a): the value exists — REVIEW, don't re-collect. The line is
                  the FOUNDER-VETOED byte; the bio stays edited where it says. */
               <div style={{ marginTop: 8 }}>
-                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Min (Rs)</div>
-                <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.2 }}>{rateMin}</div>
-                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>From your bio — edit there</div>
+                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Min (Rs)</div>
+                <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem', color: 'var(--atelier-ink)', lineHeight: 1.2 }}>{rateMin}</div>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>From your bio — edit there</div>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Min (Rs)</label>
+                  <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6 }}>Min (Rs)</label>
                   <input type="number" value={rateMin} onChange={e => setRateMin(e.target.value)} style={inputStyle} placeholder="100000" />
                 </div>
               </div>
@@ -215,11 +215,11 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
 
         {step === 2 && (
           <>
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               Choose up to ten that describe your work. Brides filter by these.
             </div>
             {tagsFromBio && (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: -4 }}>From your bio — edit there</div>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: -4 }}>From your bio — edit there</div>
             )}
             {vocab && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
@@ -230,7 +230,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
                       padding: '7px 14px', borderRadius: 2, cursor: 'pointer',
                       background: on ? 'rgba(201,168,76,0.18)' : 'transparent',
                       border: `0.5px solid ${on ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
-                      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+                      fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                       color: on ? A.interactiveWarm : A.inkMute,
                       letterSpacing: '0.28em', textTransform: 'uppercase',
                     }}>{tag}</button>
@@ -247,20 +247,20 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
               <button type="button" onClick={addCustom} style={{
                 padding: '10px 16px', borderRadius: 2, cursor: 'pointer',
                 background: 'transparent', border: '0.5px solid var(--atelier-label)',
-                fontFamily: F.label, fontWeight: 400, fontSize: 9, letterSpacing: '0.32em',
+                fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', letterSpacing: '0.32em',
                 textTransform: 'uppercase', color: A.interactiveWarm }}>Add</button>
             </div>
             {/* FOUNDER-VETOED: the custom-tag honesty byte. */}
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
               Your own words are shown on your profile, but couples can&rsquo;t filter by them yet.
             </div>
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{tags.length} of 10 selected</div>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>{tags.length} of 10 selected</div>
           </>
         )}
 
         {step === 3 && (
           <>
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, lineHeight: 1.55, marginTop: -8 }}>
               {COPY.discoverPitchNote}
             </div>
             <textarea
@@ -268,9 +268,9 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
               onChange={e => setPitch(e.target.value.slice(0, 500))}
               rows={6}
               placeholder="Twelve years of weddings, signature documentary style, recent feature in Vogue India…"
-              style={{ ...inputStyle, resize: 'none', /* R-37.86 per-site verdict: KEEP — empty-vs-filled state, not voice. */ fontFamily: F.script, fontStyle: pitch ? 'normal' : 'italic', fontSize: 16, lineHeight: 1.5 }}
+              style={{ ...inputStyle, resize: 'none', /* R-37.86 per-site verdict: KEEP — empty-vs-filled state, not voice. */ fontFamily: F.script, fontStyle: pitch ? 'normal' : 'italic', fontSize: '1rem', lineHeight: 1.5 }}
             />
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'right' }}>{pitch.length} of 500</div>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, textAlign: 'right' }}>{pitch.length} of 500</div>
           </>
         )}
 
@@ -289,7 +289,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
             style={{
               width: '100%', padding: '14px 0', borderRadius: 2,
               border: '0.5px solid var(--atelier-label)', cursor: 'pointer',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
+              fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP,
               letterSpacing: '0.5em', textTransform: 'uppercase',
             }}>Continue</button>
         ) : (
@@ -309,7 +309,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
               width: '100%', padding: '14px 0', borderRadius: 2,
               border: '0.5px solid var(--atelier-label)',
               cursor: (submitting || pitch.trim().length === 0) ? 'default' : 'pointer',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
+              fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP,
               letterSpacing: '0.5em', textTransform: 'uppercase',
               opacity: (submitting || pitch.trim().length === 0) ? 0.5 : 1,
             }}>{submitting ? 'Submitting…' : 'Submit Application'}</button>

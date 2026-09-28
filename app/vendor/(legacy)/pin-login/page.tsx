@@ -150,8 +150,8 @@ export default function VendorPinLoginPage() {
   const inputStyle: React.CSSProperties = {
     width: 52, height: 62, background: 'transparent', border: 'none', outline: 'none',
     borderBottom: '2px solid ' + GOLD,
-    fontFamily: "'DM Sans', sans-serif",
-    fontWeight: 400, fontSize: 25, lineHeight: 1.5, color: '#F0E6D2', textAlign: 'center',
+    fontFamily: 'var(--font-inter), system-ui, sans-serif',
+    fontWeight: 400, fontSize: '1.75rem', lineHeight: 1.5, color: '#F0E6D2', textAlign: 'center',
     touchAction: 'manipulation', caretColor: GOLD,
   };
 
@@ -170,7 +170,7 @@ export default function VendorPinLoginPage() {
       `}</style>
 
       {toast && (
-        <div style={{ position:'fixed',top:24,left:'50%',transform:'translateX(-50%)',background:'rgba(201,168,76,0.12)',backdropFilter:'blur(12px)',border:'0.5px solid rgba(201,168,76,0.3)',color:GOLD,fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize: 16, lineHeight: 1.5,padding:'10px 20px',borderRadius:100,zIndex:9999,whiteSpace:'nowrap',animation:'slideDown 280ms cubic-bezier(0.22,1,0.36,1)' }}>{toast}</div>
+        <div style={{ position:'fixed',top:24,left:'50%',transform:'translateX(-50%)',background:'rgba(201,168,76,0.12)',backdropFilter:'blur(12px)',border:'0.5px solid rgba(201,168,76,0.3)',color:GOLD,fontFamily: 'var(--font-inter), system-ui, sans-serif',fontWeight:300,fontSize: '1rem', lineHeight: 1.5,padding:'10px 20px',borderRadius:100,zIndex:9999,whiteSpace:'nowrap',animation:'slideDown 280ms cubic-bezier(0.22,1,0.36,1)' }}>{toast}</div>
       )}
 
 
@@ -224,12 +224,12 @@ export default function VendorPinLoginPage() {
         <div style={{ position:'absolute',inset:0,background:'rgba(12,10,9,0.45)' }} />
         <div style={{ position:'absolute',bottom:0,left:0,right:0,animation:'pinFadeIn 400ms cubic-bezier(0.22,1,0.36,1)' }}>
           <div style={{ background:'rgba(12,10,9,0.3)',backdropFilter:'blur(28px)',WebkitBackdropFilter:'blur(28px)',borderTop:'0.5px solid rgba(201,168,76,0.52)',borderRadius:'20px 20px 0 0',padding:'28px 32px calc(env(safe-area-inset-bottom, 16px) + 32px)' }}>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontStyle:'italic',fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'rgba(240,230,210,0.65)',margin:'0 0 2px' }}>The Dream Wedding</p>
-            <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 8,letterSpacing:'0.32em',textTransform:'uppercase',color:GOLD,margin:'0 0 24px' }}>MAKER PORTAL</p>
-            <p style={{ fontFamily:"'Cormorant Garamond',serif",fontWeight:300,fontSize: 25,color:'#F0E6D2',margin:'0 0 4px',lineHeight:1.15 }}>
+            <p style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif',fontStyle:'italic',fontWeight:300,fontSize: '1rem', lineHeight: 1.5,color:'rgba(240,230,210,0.65)',margin:'0 0 2px' }}>The Dream Wedding</p>
+            <p style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif',fontWeight:200,fontSize: '0.8125rem',letterSpacing:'0.32em',textTransform:'uppercase',color:GOLD,margin:'0 0 24px' }}>MAKER PORTAL</p>
+            <p style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif',fontWeight:300,fontSize: '1.75rem',color:'#F0E6D2',margin:'0 0 4px',lineHeight:1.15 }}>
               {firstName ? 'Welcome back, ' + firstName + '.' : 'Welcome back.'}
             </p>
-            <p style={{ fontFamily:"'DM Sans',sans-serif",fontWeight:300,fontSize: 16, lineHeight: 1.5,color:'rgba(240,230,210,0.65)',margin:'0 0 28px' }}>Enter your PIN to continue.</p>
+            <p style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif',fontWeight:300,fontSize: '1rem', lineHeight: 1.5,color:'rgba(240,230,210,0.65)',margin:'0 0 28px' }}>Enter your PIN to continue.</p>
             <div style={{ display:'flex',justifyContent:'center',gap:16,marginBottom:32,animation: shaking ? 'pinShake 320ms cubic-bezier(0.22,1,0.36,1)' : 'none' }}>
               {pin.map((d, i) => (
                 <input key={i} ref={el => { pinRefs.current[i] = el; }}
@@ -240,9 +240,9 @@ export default function VendorPinLoginPage() {
                   style={inputStyle} disabled={loading} />
               ))}
             </div>
-            {loading && <p style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 9,letterSpacing:'0.2em',textTransform:'uppercase',color:GOLD,textAlign:'center',marginBottom:20 }}>Verifying…</p>}
+            {loading && <p style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif',fontWeight:200,fontSize: '0.8125rem',letterSpacing:'0.2em',textTransform:'uppercase',color:GOLD,textAlign:'center',marginBottom:20 }}>Verifying…</p>}
             <p onClick={() => { router.push('/vendor/pin-reset'); }}
-              style={{ fontFamily:"'Jost',sans-serif",fontWeight:200,fontSize: 8,letterSpacing:'0.16em',textTransform:'uppercase',color:'rgba(240,230,210,0.65)',textAlign:'center',cursor:'pointer',touchAction:'manipulation' }}
+              style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif',fontWeight:200,fontSize: '0.8125rem',letterSpacing:'0.16em',textTransform:'uppercase',color:'rgba(240,230,210,0.65)',textAlign:'center',cursor:'pointer',touchAction:'manipulation' }}
             >Forgot PIN?</p>
           </div>
         </div>

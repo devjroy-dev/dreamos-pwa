@@ -346,21 +346,21 @@ export default function ShellSettingsPage() {
       <SettingsScreen chrome={false} ToastView={WlToast} />
       <style>{`
 .wl-set{padding-top:16px}
-.wl-setrow{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--wl-row);padding:0 16px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;text-decoration:none;touch-action:manipulation}
+.wl-setrow{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--wl-row);padding:0 16px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;text-decoration:none;touch-action:manipulation}
 .wl-setrowlabel{flex:1;font:var(--wl-t3);color:var(--atelier-ink)}
-.wl-setrowchev{color:var(--atelier-ink-dim);font-size:14px;line-height:1;flex-shrink:0}
+.wl-setrowchev{color:var(--atelier-ink-dim);font-size:0.875rem;line-height:1;flex-shrink:0}
 .wl-setrow:active{background:var(--atelier-row-hover)}
 .wl-setrow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.wl-swrow{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:14px 16px;cursor:pointer;touch-action:manipulation}
-.wl-swrow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px;border-radius:3px}
-.wl-swtext{display:flex;flex-direction:column;gap:5px;min-width:0}
+.wl-swrow{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 16px;cursor:pointer;touch-action:manipulation}
+.wl-swrow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px;border-radius:12px}
+.wl-swtext{display:flex;flex-direction:column;gap:4px;min-width:0}
 .wl-swlabel{font:var(--wl-t3);color:var(--atelier-ink)}
 .wl-swline{font:var(--wl-t5);color:var(--atelier-ink-mute);line-height:1.5;max-width:38ch}
-.wl-sw{flex:0 0 auto;width:46px;height:27px;border-radius:14px;position:relative;margin-top:2px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);transition:background 140ms ease}
+.wl-sw{flex:0 0 auto;width:46px;height:27px;border-radius:14px;position:relative;margin-top:4px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);transition:background 140ms ease}
 .wl-sw.on{background:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 .wl-sw>span{position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--atelier-ink-fade)}
 .wl-sw.on>span{left:auto;right:2px;background:var(--role-ink-deep)}
-.wl-erin{font:var(--wl-t3);color:var(--atelier-ink);background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:10px 12px;margin-top:4px;width:100%;max-width:38ch;box-sizing:border-box}
+.wl-erin{font:var(--wl-t3);color:var(--atelier-ink);background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;padding:12px 12px;margin-top:4px;width:100%;max-width:38ch;box-sizing:border-box}
       `}</style>
     </WorklistShell>
   );

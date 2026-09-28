@@ -174,7 +174,7 @@ export const ROOMS: readonly Room[] = [
   // other files and two benches already spell. Renaming it would buy a tidier
   // symbol and cost a route, a redirect and every reader of both.
   { id: 'support',   label: 'Business Solutions', band: 'work', href: '/vendor/support', pinnable: false, headline: true },
-  { id: 'leads',     label: 'Leads',     band: 'work', href: '/vendor/leads',     pinnable: true  },
+  { id: 'leads',     label: 'Enquiries', band: 'work', href: '/vendor/leads',     pinnable: true  },
   // ── CE-43 · LC-2 · F18 · THE PACKAGES ROOM, BESIDE LEADS (chair-ruled 2026-09-17) ──
   // A package is quoted to a lead, so the room sits next to the room it serves. An
   // INSERTION, founder-worded through the chair: every id after it shifts one index, and

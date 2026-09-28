@@ -47,7 +47,7 @@ interface Item { requirement_type: string; note: string }
 
 const MAX_ITEMS = 8;
 // F-42.205 — the founder's byte, vetoed by the chair 2026-09-10. Shoots only.
-const NOTE_PLACEHOLDER = 'Who you need \u2014 e.g. Model, 22\u201330';
+const NOTE_PLACEHOLDER = 'Who you need, for example: Model, 22 to 30';
 
 export function CollabPostForm({ kind, prefill, onClose, onSuccess }: {
   kind: CollabKind;
@@ -226,20 +226,20 @@ export function CollabPostForm({ kind, prefill, onClose, onSuccess }: {
 // Tokens only — every colour a var() the shell's scope already declares (R-42.6);
 // every size a rung (R-38.4). No literal, no new rung.
 const FORM_CSS = `
-.cp-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cp-chips{display:flex;flex-wrap:wrap;gap:8px}
 .cp-chip{font:var(--wl-t5);color:var(--atelier-ink-soft);background:transparent;border:.5px solid var(--atelier-card-border);
-         border-radius:3px;padding:9px 10px;min-height:36px;cursor:pointer}
+         border-radius:12px;padding:8px 12px;min-height:36px;cursor:pointer}
 .cp-chip.on{color:var(--atelier-accent-text);border-color:var(--atelier-input-border)}
 .cp-chip:focus-visible,.cp-add:focus-visible,.cp-x:focus-visible,.cp-rlabel:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .cp-item{margin-bottom:8px}
-.cp-count{display:flex;justify-content:space-between;align-items:center;font:var(--wl-t5);color:var(--atelier-ink-mute);margin-bottom:6px}
+.cp-count{display:flex;justify-content:space-between;align-items:center;font:var(--wl-t5);color:var(--atelier-ink-mute);margin-bottom:8px}
 .cp-x{width:44px;height:32px;background:transparent;border:none;cursor:pointer;font:var(--wl-t2);line-height:1;color:var(--atelier-ink-mute)}
-.cp-row{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
+.cp-row{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}
 .cp-rlabel{font:var(--wl-t3);color:var(--atelier-ink);background:transparent;border:none;padding:0;cursor:pointer;text-align:left}
-.cp-note{padding:8px 10px}
+.cp-note{padding:8px 12px}
 .cp-add{align-self:flex-start;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-accent-text);
-        background:transparent;border:none;padding:6px 0;cursor:pointer}
-.cp-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        background:transparent;border:none;padding:8px 0;cursor:pointer}
+.cp-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .cp-tick{display:flex;align-items:center;gap:8px;font:var(--wl-t3);color:var(--atelier-ink-soft);cursor:pointer}
 .cp-tick input{width:16px;height:16px;accent-color:var(--atelier-accent-text)}
 .cp-budget{flex:2}.cp-period{flex:1}

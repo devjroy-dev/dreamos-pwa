@@ -260,17 +260,17 @@ const SHELL_CSS = `
 /* SHARED CARD CHROME, ONE HOME. Used by the first-run cards, the Today empty state and
    Billing. A class used by three components and owned by one is a single-home violation
    wearing CSS; the shell emits them, because the shell is what every surface is inside. */
-.wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px;margin:0 0 8px}
+.wl-card{background:var(--atelier-card-bg);border:1px solid var(--atelier-card-border);border-radius:var(--wl-btn-r);padding:16px;margin:0 0 8px}
 /* ── H-1(b) · F-38.40b · THE LEAD CARD’S INTERIOR REJOINS THE OTHERS ────────
    The accent border was added to the box without compensating the padding, so this
    card’s contents painted at gutter + 2 + 16 = 34 while every other card’s painted at
    gutter + .5 + 16 = 32.5. Three card titles, three x values, where the whole point of
    a card set is one. 1.5px is small and it is exactly the kind of thing an eye reads as
    「something is off」 without being able to name it. */
-.wl-card-lead{border-left:2px solid var(--atelier-accent-text);padding-left:14.5px}
+.wl-card-lead{border-left:2px solid var(--atelier-accent-text);padding-left:16px}
 .wl-cardtitle{font:var(--wl-t4);color:var(--atelier-accent-text);margin:0 0 8px}
 .wl-cardbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0}
-.wl-cardaction{margin-top:12px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
+.wl-cardaction{margin-top:12px;background:transparent;border:1px solid var(--atelier-input-border);border-radius:var(--wl-btn-r);cursor:pointer;padding:0 16px;min-height:var(--wl-btn-h);font:var(--wl-tb);color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-cardaction:active{background:var(--atelier-row-hover)}
 .wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 /* ── THE BUTTON REGISTER, ONE HOME, ANY ROOM (P7.2 Arm C, chair ruling 2026-09-04) ──────
@@ -282,13 +282,19 @@ const SHELL_CSS = `
    where .wl-tile and .wl-fab already live, and both rooms read the class. This is what the
    F-39.4 FAB ruling did for the seat: one register, one home, any room.
    The values are byte-identical to the ones TeamTabs shipped. */
-.wl-btn{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:3px;
-        font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;
-        background:transparent}
+.wl-btn{flex:1;min-height:var(--wl-btn-h);display:flex;align-items:center;justify-content:center;border-radius:var(--wl-btn-r);
+        font:var(--wl-tb);cursor:pointer;border:1px solid var(--atelier-input-border);
+        background:transparent;color:var(--atelier-ink)}
 .wl-btn2{flex:2}
 .wl-btn:disabled{opacity:.5;cursor:not-allowed}
 .wl-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
-.wl-btn.pri{background:var(--atelier-accent-text);color:var(--role-ink-deep)}
+.wl-btn.pri{background:var(--role-primary);border-color:var(--role-primary);color:var(--role-on-primary)}
+/* DESIGN-1 · the estate's filled button (.atelier-fab, globals.css) takes the one primary inside the
+   shell: no gold, no gradient, no borrowed link colour (REPORT.md §4, P3, P4, P13). globals.css pins
+   its own colours as important, so this rule has to be too. */
+.wl .atelier-fab{background:var(--role-primary)!important;border:1px solid var(--role-primary)!important;color:var(--role-on-primary)!important;box-shadow:none!important}
+/* The calendar's today coin: the palette's solid metal, the ground its ink (today-coin-ink) was measured on. */
+.wl .atelier-today-coin{background:var(--role-metal)!important;box-shadow:none!important}
 
 /* ── THE FAB’S SEAT · 56px, bottom-right, ONE GUTTER IN, 16px CLEAR OF THE DOCK ────
    ── THE OFFSET IS MEASURED NOW, NOT REMEMBERED  [relay #3 item 4] ────────────
@@ -319,7 +325,7 @@ const SHELL_CSS = `
    above is unchanged and still the warrant; what changed is that it now has one home,
    GRID.fab in lib/worklist/theme.ts, emitted by typeCss as two variables this rule reads.
    Nothing else in the shell may name a FAB size or a bottom offset. */
-.wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(var(--wl-fab-bottom) + env(safe-area-inset-bottom));z-index:18;width:var(--wl-fab);height:var(--wl-fab);border:none;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
+.wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(var(--wl-fab-bottom) + env(safe-area-inset-bottom));z-index:18;width:var(--wl-fab);height:var(--wl-fab);border:none;border-radius:50%;background:var(--role-primary);color:var(--role-on-primary);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
 /* ── THE PRESS IS GEOMETRIC, AND THAT IS A RULING RATHER THAN A SHORTCUT ──────
    F-38.14 measured the press FILL to 1.5:1 after 1.1:1 was convicted as an acknowledgement
    nobody could see. That floor is a ratio between a row’s pressed fill and the ground it
@@ -331,30 +337,58 @@ const SHELL_CSS = `
    changes to the control itself, both survive on any ground, and C-R18 measures the
    painted rect rather than reading this rule. NO NEW COLOUR TOKEN WAS INVENTED FOR A
    PRESSED STATE, and that refusal is the point of the paragraph. */
+/* DESIGN-1: globals.css's light-theme blanket (html.theme-light, color inherit, 0-3-1) outranks this
+   class when the html element still carries theme-light from a legacy page; the glyph keeps its ink. */
+.wl .wl-fab,.wl .wl-btn.pri,.wl .wl-docksend{color:var(--role-on-primary)!important}
 .wl-fab:active{transform:scale(.94);box-shadow:0 1px 4px rgba(0,0,0,.28)}
 .wl-fab:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
 /* TOUCH. Two defects in the first cut, both found on the founder’s device and neither
    visible in a desktop render: no pressed state anywhere, and no touch-action, so the
    browser held every tap for the double-tap-zoom gesture before dispatching the click. */
-.wl{font:var(--wl-t3);touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
+.wl{font:var(--wl-t3);touch-action:manipulation;-webkit-tap-highlight-color:rgba(92,196,174,0.16)}
+/* DESIGN-1 · THE REPORT'S TYPE RULES, HELD AT THE SCOPE (docs/review/REPORT.md §5).
+   Sentence case and no letter-spacing on every byte inside the shell, and even-width figures
+   for money and times. They are held here, once, rather than trusted to each module: the
+   estate's older modules carry their own tracking and capitals inline (the engraved register),
+   and an inline style outranks any class. No italic outside a written emphasis (em, i).
+   The font shorthand resets font-variant-numeric,
+   which is why the figures rule is important and not a plain inherit. */
+.wl,.wl *{font-variant-numeric:tabular-nums!important;letter-spacing:normal!important;text-transform:none!important}
+.wl *:not(em):not(i){font-style:normal!important}
 .wl button,.wl a{touch-action:manipulation}
+/* DESIGN-1: a form control does not inherit its face by default (the user agent gives it Arial); here it does. */
+.wl button,.wl input,.wl select,.wl textarea{font-family:inherit}
+/* DESIGN-1 · P2 · THE 44 PX FLOOR, HELD AT THE SCOPE. The review measured 87 controls under 44
+   across the rooms, each sized by its own module (a 32 px chip here, a 28 px sort there). The
+   floor is one rule: every control inside the shell is at least 44 by 44, whatever its module
+   wrote inline, which is why it is important. A link inside a sentence stays a line of text
+   (min-height does not act on an inline box), as WCAG 2.5.8 allows. Checkboxes and radios take
+   their label's hit area; a switch draws its own 44 px area (its room's stylesheet). */
+.wl button:not(.wl-sw):not(.yw-toggle),.wl [role=button],.wl [role=tab],.wl select,.wl summary,.wl a,
+.wl input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]){min-height:44px!important}
+/* DESIGN-1 · every button is 48 high (REPORT.md §3, Buttons), the 44 floor's taller twin. */
+.wl button:not(.wl-sw):not(.yw-toggle){min-height:var(--wl-btn-h)!important}
+.wl button:not(.wl-sw):not(.yw-toggle),.wl [role=button],.wl [role=tab],.wl a{min-width:44px!important}
 /* R-38.5 the edge. The header’s horizontal padding IS the gutter, so the wordmark’s left
    edge, the first tile’s border, the dock field’s border and Billing’s plan card all
    resolve to one x. It was 22px here and 12px everywhere else, which is the misalignment
    the founder kept seeing and no cell could name. */
-.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:16px var(--wl-gutter);display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
-.wl-hstack{display:flex;flex-direction:column;gap:2px;min-width:0}
-.wl-house{font:var(--wl-t2);color:var(--atelier-ink)}
-.wl-lbl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+/* DESIGN-1 · P1: the header clears the notch when installed. viewport-fit=cover and the
+   black-translucent status bar (app/layout.tsx) draw the app under the status bar; the inset
+   is zero in a browser tab, so the 16 stands there. */
+.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:max(16px, env(safe-area-inset-top)) var(--wl-gutter) 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
+.wl-hstack{display:flex;flex-direction:column;gap:4px;min-width:0}
+.wl-house{font:500 1.0625rem/1.2 var(--font-brand), Georgia, serif;color:var(--atelier-ink)}
+.wl-lbl{font:var(--wl-t5);color:var(--atelier-ink-mute)}
 .wl-lblrow{display:flex;align-items:baseline;gap:8px;min-width:0}
-.wl-beta{font:var(--wl-t5);letter-spacing:.12em;text-transform:uppercase;color:var(--atelier-accent-text);flex-shrink:0}
+.wl-beta{font:var(--wl-t5);color:var(--atelier-accent-text);flex-shrink:0}
 .wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 /* R-38.5: the nav’s content box shares the main column’s left edge, which is the container
    half of the edge cell. The seats' TEXT is centred, so the text-edge cell reads the
    wordmark, the grid, the dock and the plan card, and this one reads the boxes. */
 .wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
-.wl-seat{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-seat{flex:1;min-height:56px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t5);font-size:min(0.875rem, 14px);font-weight:600;color:var(--atelier-ink-mute)}
 .wl-seat.on{color:var(--atelier-accent-text)}
 .wl-seat:active{background:var(--atelier-row-hover)}
 .wl-coin:active{background:var(--atelier-row-hover)}

@@ -170,7 +170,7 @@ function PaymentRemindersScreen() {
               Asked band would be counting deliveries of nothing. */}
           {asked.length > 0 ? (
             <>
-              <div className="pr-sec" style={{ marginTop: 22 }}>{PR.sectionSent}<span>{sent.length}</span></div>
+              <div className="pr-sec" style={{ marginTop: 24 }}>{PR.sectionSent}<span>{sent.length}</span></div>
               {sent.map((a) => (
                 <div className="pr-row" key={`s-${a.id}`}>
                   <div>
@@ -190,7 +190,7 @@ function PaymentRemindersScreen() {
               this side renders what it is handed and derives no dates. */}
           {due.length > 0 ? (
             <>
-              <div className="pr-sec" style={{ marginTop: 22 }}>{PR.sectionDue}<span>{due.length}</span></div>
+              <div className="pr-sec" style={{ marginTop: 24 }}>{PR.sectionDue}<span>{due.length}</span></div>
               {due.map((d) => (
                 <div className="pr-row" key={d.milestone_id}>
                   <div>
@@ -207,7 +207,7 @@ function PaymentRemindersScreen() {
               The switch, and beneath it EITHER its own state sentence OR the
               dark line — never both, and never a state sentence that describes
               a cadence which cannot happen. */}
-          <div className="pr-sec" style={{ marginTop: 22 }}>{PR.sectionSending}</div>
+          <div className="pr-sec" style={{ marginTop: 24 }}>{PR.sectionSending}</div>
           <button
             type="button"
             className="pr-switch"
@@ -237,23 +237,23 @@ function PaymentRemindersScreen() {
    ⚠ NO BACKTICKS IN THIS BLOCK. It is a template literal, and a backtick in a
    CSS comment closes the string — the G2 seat’s first cut failed tsc with eleven
    errors none of which mentioned a backtick. */
-.pr-room{padding-top:20px;padding-bottom:28px}
+.pr-room{padding-top:24px;padding-bottom:32px}
 .pr-sec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px;display:flex;justify-content:space-between}
 .pr-sec span{font-variant-numeric:lining-nums tabular-nums}
 .pr-row{display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:12px;width:100%;text-align:left;
-        background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;
-        padding:13px 14px;margin-bottom:var(--wl-step)}
+        background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;
+        padding:12px 16px;margin-bottom:var(--wl-step)}
 .pr-rprimary{font:var(--wl-t3);color:var(--atelier-ink);display:block}
-.pr-rdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:3px;font-variant-numeric:lining-nums tabular-nums}
-.pr-rstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap;padding-top:2px}
+.pr-rdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:4px;font-variant-numeric:lining-nums tabular-nums}
+.pr-rstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap;padding-top:4px}
 .pr-rstate.live{color:var(--atelier-accent-text)}
-.pr-note{font:var(--wl-t5);color:var(--atelier-ink-fade);line-height:1.5;text-transform:none;letter-spacing:0;margin:2px 0 0;max-width:40ch}
-.pr-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:56px 0 30px}
+.pr-note{font:var(--wl-t5);color:var(--atelier-ink-fade);line-height:1.5;text-transform:none;letter-spacing:0;margin:4px 0 0;max-width:40ch}
+.pr-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:56px 0 32px}
 .pr-eh{font:var(--wl-t2);color:var(--atelier-ink)}
 .pr-ep{font:var(--wl-t3);color:var(--atelier-ink-mute);max-width:250px}
 .pr-switch{display:flex;align-items:center;justify-content:space-between;column-gap:12px;width:100%;text-align:left;
-           background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;
-           padding:13px 14px;margin-bottom:var(--wl-step)}
+           background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;
+           padding:12px 16px;margin-bottom:var(--wl-step)}
 .pr-switch:disabled{opacity:.55}
 .pr-swstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap}
 .pr-swstate.on{color:var(--atelier-accent-text)}

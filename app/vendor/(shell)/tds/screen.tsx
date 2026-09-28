@@ -47,7 +47,7 @@ const A = {
   interactive:     'var(--atelier-accent-text)',
   interactiveWarm: 'var(--atelier-accent-text)',
   ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
+  brass: 'var(--atelier-ink)' /* DESIGN-1 · P5 */, brassWarm: 'var(--atelier-label)', red: 'var(--role-critical)',
 } as const;
 const F = {
   display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
@@ -57,14 +57,14 @@ const F = {
 } as const;
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '12px 14px', boxSizing: 'border-box',
-  background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 2,
-  fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.ink, outline: 'none',
+  width: '100%', padding: '12px 16px', boxSizing: 'border-box',
+  background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
+  fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.ink, outline: 'none',
   caretColor: A.interactive, 
 };
 const labelStyle: React.CSSProperties = {
-  fontFamily: F.label, fontWeight: 300, fontSize: 8,
-  color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 6,
+  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+  color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 8,
 };
 
 function currentFY(): string {
@@ -149,25 +149,25 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
           rides on it, and a spacer takes over the label's `flex: 1` so the control does not
           move under the thumb. Same shape as Portfolio's and Couture's; Contracts' row went
           entirely, because nothing rode on that one. */}
-      <div style={{ padding: '12px var(--slice-inset, 22px)', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+      <div style={{ padding: '12px var(--slice-inset, 16px)', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
         
         {<div style={{ flex: 1 }} />}
         <button type="button" onClick={doExport} style={{
-          padding: '6px 12px', background: 'transparent',
-          border: '0.5px solid var(--atelier-input-border)', borderRadius: 2, cursor: 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.interactiveWarm,
+          padding: '8px 12px', background: 'transparent',
+          border: '0.5px solid var(--atelier-input-border)', borderRadius: 12, cursor: 'pointer',
+          fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.interactiveWarm,
           letterSpacing: '0.32em', textTransform: 'uppercase',
         }}>Export CSV</button>
       </div>
 
       {/* FY pills */}
-      <div style={{ padding: '14px var(--slice-inset, 22px) 6px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div style={{ padding: '16px var(--slice-inset, 16px) 8px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {fyOptions().map(f => (
           <button key={f} type="button" onClick={() => onFyChange(f)} style={{
-            padding: '6px 12px', borderRadius: 2, cursor: 'pointer',
-            background: fy === f ? 'rgba(201,168,76,0.18)' : 'transparent',
-            border: `0.5px solid ${fy === f ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
-            fontFamily: F.label, fontWeight: 300, fontSize: 9,
+            padding: '8px 12px', borderRadius: 12, cursor: 'pointer',
+            background: fy === f ? 'var(--atelier-card-border)' : 'transparent',
+            border: `0.5px solid ${fy === f ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
+            fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
             color: fy === f ? A.interactiveWarm : A.inkMute,
             letterSpacing: '0.28em', textTransform: 'uppercase',
           }}>{f}</button>
@@ -176,34 +176,34 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
 
       {/* Summary ledger */}
       {summary && (
-        <div style={{ margin: '14px 22px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{fy}</span>
-            <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
-            <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>{summary.entry_count} entries</span>
+        <div style={{ margin: '16px 24px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+            <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{fy}</span>
+            <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
+            <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>{summary.entry_count} entries</span>
           </div>
           <div style={{
             display: 'flex', alignItems: 'stretch',
-            padding: '22px 8px 18px',
+            padding: '24px 8px 16px',
             borderTop: '0.5px solid var(--atelier-card-border)',
             borderBottom: '0.5px solid var(--atelier-card-border)',
           }}>
             {[
               { label: 'Gross',        val: summary.total_gross, color: 'var(--atelier-ink)' },
               { label: 'TDS',          val: summary.total_tds,   color: A.red, divider: true },
-              { label: 'Net Received', val: summary.total_net,   color: A.brassWarm, divider: true },
+              { label: 'Net received', val: summary.total_net,   color: A.brassWarm, divider: true },
             ].map(item => (
               <div key={item.label} style={{ flex: 1, textAlign: 'center', padding: '0 4px', position: 'relative' }}>
-                {item.divider && <span aria-hidden style={{ position: 'absolute', left: 0, top: '12%', bottom: '12%', width: '0.5px', background: 'rgba(201,168,76,0.22)' }} />}
-                <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, lineHeight: 1, color: item.color, letterSpacing: '-0.005em' }}>Rs {item.val.toLocaleString('en-IN')}</div>
-                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginTop: 10 }}>{item.label}</div>
+                {item.divider && <span aria-hidden style={{ position: 'absolute', left: 0, top: '12%', bottom: '12%', width: '0.5px', background: 'var(--atelier-row-hover)' }} />}
+                <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1, color: item.color, letterSpacing: '-0.005em' }}>Rs {item.val.toLocaleString('en-IN')}</div>
+                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginTop: 12 }}>{item.label}</div>
               </div>
             ))}
           </div>
           {summary.by_section.length > 0 && (
-            <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
               {summary.by_section.map(s => (
-                <span key={s.section} style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.005em' }}>
+                <span key={s.section} style={{ fontFamily: F.script, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.005em' }}>
                   {s.section} · Rs {s.tds.toLocaleString('en-IN')} ({s.count})
                 </span>
               ))}
@@ -214,36 +214,36 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
 
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
         </div>
       ) : entries.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, textAlign: 'center', lineHeight: 1.5 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, textAlign: 'center', lineHeight: 1.5 }}>
             No TDS entries for {fy}.<br /><span style={{ color: A.brassWarm }}>Log your first below.</span>
           </div>
         </div>
       ) : (
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', marginTop: 14, paddingBottom: 110 }}>
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', marginTop: 16, paddingBottom: 112 }}>
           {entries.map(e => (
             <div key={e.id} style={{
-              padding: '14px var(--slice-inset, 24px)',
+              padding: '16px var(--slice-inset, 16px)',
               borderBottom: '0.5px solid var(--atelier-card-border)',
-              display: 'flex', alignItems: 'center', gap: 14,
+              display: 'flex', alignItems: 'center', gap: 16,
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{e.client_name}</div>
-                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, color: 'var(--atelier-label)', letterSpacing: '0.28em', textTransform: 'uppercase', marginTop: 3 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1rem', lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{e.client_name}</div>
+                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: 'var(--atelier-label)', letterSpacing: '0.28em', textTransform: 'uppercase', marginTop: 4 }}>
                   {e.deduction_date} · {e.section || '—'} · {e.tds_rate}%
                 </div>
-                <div style={{ display: 'flex', gap: 14, marginTop: 5, fontFamily: F.script, fontSize: 16, lineHeight: 1.5 }}>
+                <div style={{ display: 'flex', gap: 16, marginTop: 4, fontFamily: F.script, fontSize: '1rem', lineHeight: 1.5 }}>
                   <span style={{ color: A.inkSoft }}>Gross Rs {e.gross_amount.toLocaleString('en-IN')}</span>
                   <span style={{ color: A.red }}>TDS Rs {e.tds_amount.toLocaleString('en-IN')}</span>
                 </div>
               </div>
               <button type="button" onClick={() => doDelete(e)} style={{
-                padding: '6px 10px', background: 'transparent',
-                border: '0.5px solid var(--role-critical)', borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.red,
+                padding: '8px 12px', background: 'transparent',
+                border: '0.5px solid var(--role-critical)', borderRadius: 12, cursor: 'pointer',
+                fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.red,
                 letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
               }}>Delete</button>
             </div>
@@ -269,14 +269,14 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
             background: 'var(--atelier-sheet-bg)',
             backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
             borderTop: '0.5px solid var(--atelier-sheet-border)',
-            padding: '20px 24px calc(24px + env(safe-area-inset-bottom))',
+            padding: '24px 24px calc(24px + env(safe-area-inset-bottom))',
             display: 'flex', flexDirection: 'column', gap: 12, maxHeight: '85vh', overflowY: 'auto',
           }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-              <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
+              <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
             </div>
-            <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 2 }}>New Entry</div>
-            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 6 }}>Log TDS</div>
+            <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 4 }}>New entry</div>
+            <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.375rem', color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 8 }}>Log TDS</div>
 
             <div><div style={labelStyle}>Client / Company *</div><input style={inputStyle} value={clientName} onChange={e => setClientName(e.target.value)} placeholder="ABC Corp Pvt Ltd" /></div>
             <div><div style={labelStyle}>Gross Amount (Rs) *</div><input style={inputStyle} type="number" value={grossAmt} onChange={e => setGrossAmt(e.target.value)} placeholder="100000" /></div>
@@ -289,11 +289,11 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
             </div>
             {grossAmt && Number(grossAmt) > 0 && (
               <div style={{
-                padding: '10px 14px',
+                padding: '12px 16px',
                 background: 'var(--atelier-input-bg)',
                 border: '0.5px solid var(--atelier-card-border)',
-                borderRadius: 2, display: 'flex', gap: 18,
-                fontFamily: F.script, fontSize: 16, lineHeight: 1.5,
+                borderRadius: 12, display: 'flex', gap: 16,
+                fontFamily: F.script, fontSize: '1rem', lineHeight: 1.5,
               }}>
                 <span style={{ color: A.inkSoft }}>TDS: <strong style={{ color: A.red, fontStyle: 'normal' }}>Rs {tdsAmt.toLocaleString('en-IN')}</strong></span>
                 <span style={{ color: A.inkSoft }}>Net: <strong style={{ color: A.brassWarm, fontStyle: 'normal' }}>Rs {netAmt.toLocaleString('en-IN')}</strong></span>
@@ -302,27 +302,27 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
             <div>
               <div style={labelStyle}>Section</div>
               <select value={section} onChange={e => setSection(e.target.value)} style={selectStyle(inputStyle)}>
-                <option value="194J">194J — Professional Services</option>
-                <option value="194C">194C — Contractors</option>
-                <option value="194I">194I — Rent</option>
-                <option value="194H">194H — Commission</option>
+                <option value="194J">194J: Professional services</option>
+                <option value="194C">194C: Contractors</option>
+                <option value="194I">194I: Rent</option>
+                <option value="194H">194H: Commission</option>
                 <option value="other">Other</option>
               </select>
             </div>
-            <div><div style={labelStyle}>Deduction Date</div><input style={inputStyle} type="date" value={dedDate} onChange={e => setDedDate(e.target.value)} /></div>
+            <div><div style={labelStyle}>Deduction date</div><input style={inputStyle} type="date" value={dedDate} onChange={e => setDedDate(e.target.value)} /></div>
             <div><div style={labelStyle}>Client PAN</div><input style={inputStyle} value={pan} onChange={e => setPan(e.target.value.toUpperCase())} placeholder="AABCS1234X" /></div>
             <div><div style={labelStyle}>Client TAN</div><input style={inputStyle} value={tan} onChange={e => setTan(e.target.value.toUpperCase())} placeholder="DELS01234C" /></div>
             <div><div style={labelStyle}>Certificate / Form 16A No.</div><input style={inputStyle} value={certNo} onChange={e => setCertNo(e.target.value)} placeholder="Optional" /></div>
 
-            {!canCreate && <div style={{ fontFamily: F.script, fontSize: 16, lineHeight: 1.5, color: A.red, marginTop: 2 }}>Client name and gross amount are required.</div>}
+            {!canCreate && <div style={{ fontFamily: F.script, fontSize: '1rem', lineHeight: 1.5, color: A.red, marginTop: 4 }}>Client name and gross amount are required.</div>}
 
             <button type="button" onClick={doCreate} disabled={!canCreate || saving} className="atelier-fab" style={{
-              padding: '14px 0', borderRadius: 2, cursor: (canCreate && !saving) ? 'pointer' : 'default',
+              padding: '16px 0', borderRadius: 12, cursor: (canCreate && !saving) ? 'pointer' : 'default',
               border: '0.5px solid var(--atelier-label)',
-              fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
+              fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP,
               letterSpacing: '0.42em', textTransform: 'uppercase',
-              opacity: (canCreate && !saving) ? 1 : 0.5, marginTop: 6,
-            }}>{saving ? 'Saving…' : 'Log Entry'}</button>
+              opacity: (canCreate && !saving) ? 1 : 0.5, marginTop: 8,
+            }}>{saving ? 'Saving…' : 'Log entry'}</button>
           </div>
         </div>
       )}

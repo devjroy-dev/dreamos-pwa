@@ -93,7 +93,8 @@ function run(root) {
       return !!m && m[1].trim() === '!ms.sent_at';
     })());
   ok('the row says the short form; the toast says the sentence',
-    /studioReminderDidntGo:\s*"Didn't go"/.test(copy) && /studioReminderRetry:\s*"Reminder didn't go — try again\."/.test(copy)
+    // DESIGN-1 · STAGE 1 (by label): the toast's sentence lost its dash (REPORT.md W1): "The reminder did not go. Try again."
+    /studioReminderDidntGo:\s*"Didn't go"/.test(copy) && /studioReminderRetry:\s*"The reminder did not go\. Try again\."/.test(copy)
     && /COPY\.studioReminderRetry/.test(shell));
 
   sec('§E · the shut gate in plain words (R-41.70 §E 19–20, F-41.17)');

@@ -270,9 +270,9 @@ const BOOKS_CSS = `
 .wl-bkfiglabel{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-bkfigval{font:var(--wl-t2);color:var(--atelier-ink)}
 .wl-bkfigval{font-variant-numeric:lining-nums tabular-nums}
-.wl-bkgroup+.wl-bkgroup{margin-top:22px}
+.wl-bkgroup+.wl-bkgroup{margin-top:24px}
 .wl-bkghead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
-            padding:10px 0;border-top:.5px solid var(--role-metal)}
+            padding:12px 0;border-top:.5px solid var(--role-metal)}
 .wl-bkgname{font:var(--wl-t2);color:var(--atelier-ink)}
 .wl-bkgfigs{display:flex;gap:16px}
 .wl-bkpfig{font:var(--wl-t5);color:var(--atelier-ink-mute);white-space:nowrap}
@@ -282,15 +282,15 @@ const BOOKS_CSS = `
 .wl-bkcdate{width:74px}
 .wl-bkcbal{width:88px}
 .wl-bkcolh{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);
-           text-align:right;padding:10px 0 8px;border-bottom:.5px solid var(--atelier-card-border);font-weight:500}
+           text-align:right;padding:12px 0 8px;border-bottom:.5px solid var(--atelier-card-border);font-weight:500}
 .wl-bkcolh.wl-bkl{text-align:left}
-.wl-bkdate{font:var(--wl-t5);color:var(--atelier-ink-mute);text-align:left;padding:11px 8px 0 0;
+.wl-bkdate{font:var(--wl-t5);color:var(--atelier-ink-mute);text-align:left;padding:12px 8px 0 0;
            vertical-align:top;white-space:nowrap}
 .wl-bkdate{font-variant-numeric:lining-nums tabular-nums}
-.wl-bknum{font:var(--wl-t3);color:var(--atelier-ink-soft);text-align:right;padding:10px 0 0 10px;vertical-align:top}
+.wl-bknum{font:var(--wl-t3);color:var(--atelier-ink-soft);text-align:right;padding:12px 0 0 12px;vertical-align:top}
 .wl-bknum{font-variant-numeric:lining-nums tabular-nums}
 .wl-bkbal{color:var(--atelier-ink)}
-.wl-bkpart td{font:var(--wl-t5);color:var(--atelier-ink-mute);padding:3px 0 11px;
+.wl-bkpart td{font:var(--wl-t5);color:var(--atelier-ink-mute);padding:4px 0 12px;
               border-bottom:.5px solid var(--atelier-card-border)}
 .wl-bkpart td{font-variant-numeric:lining-nums tabular-nums}
 .wl-bkundated{color:var(--atelier-ink-fade)}

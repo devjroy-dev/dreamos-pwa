@@ -10,7 +10,7 @@ export function TypingDots() {
   const ember = T.accent;
   const emberSoft = T.brassSoft;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', padding: '6px 2px 6px 4px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', padding: '8px 4px 8px 4px' }}>
       <span
         style={{
           position: 'relative', display: 'inline-block',

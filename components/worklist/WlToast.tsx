@@ -99,12 +99,12 @@ export function WlToast({ toast }: { toast: ToastState | null }) {
 const TOAST_CSS = `
 .wl-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;pointer-events:none;
   display:flex;align-items:center;gap:8px;max-width:calc(100vw - 40px);
-  padding:10px 18px;border-radius:999px;
+  padding:12px 16px;border-radius:999px;
   background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);
   box-shadow:0 8px 32px -8px var(--atelier-card-shadow);
   transition:padding 220ms cubic-bezier(0.22,1,0.36,1);
   animation:wlToastIn 220ms cubic-bezier(0.22,1,0.36,1) both}
-.wl-toast.pill{padding:8px 14px}
+.wl-toast.pill{padding:8px 16px}
 .wl-toast.err{border-color:var(--role-critical)}
 .wl-toastdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:var(--role-metal)}
 .wl-toast.err .wl-toastdot{background:var(--role-critical)}
@@ -112,7 +112,7 @@ const TOAST_CSS = `
   white-space:normal;overflow-wrap:anywhere;overflow:hidden;
   display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4}
 .wl-toast.err .wl-toastmsg{color:var(--atelier-ink)}
-.wl-toastaction{pointer-events:auto;background:transparent;border:none;cursor:pointer;padding:2px 4px;
+.wl-toastaction{pointer-events:auto;background:transparent;border:none;cursor:pointer;padding:4px 4px;
   font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;
   color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-toast.err .wl-toastaction{color:var(--atelier-accent-text)}

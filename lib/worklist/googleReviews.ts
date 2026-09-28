@@ -108,7 +108,7 @@ export const GR = {
    * BEING FOUND — master §7 refuses platform-SEO claims, and this is the byte
    * where such a claim would slip in.
    */
-  listingThenBody: 'Your name, hours, service areas and photos stay in step with your rooms, and every couple we ask lands on your listing.',
+  listingThenBody: 'Your name, hours, service areas and photos stay in step with your page, and every couple we ask lands on your listing.',
 
   /**
    * When the room's own read fails. Same shape as `COPY.indexUnavailable`: says

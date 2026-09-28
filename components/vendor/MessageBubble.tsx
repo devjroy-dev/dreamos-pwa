@@ -79,7 +79,7 @@ function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
       // the WHOLE register is italic — em, Rs accent, and headings joined (this ZIP).
       out.push(<strong key={`${salt}b${k++}`} style={{ fontWeight: 500 }}>{italicNodes(m[1], T, `${salt}${k}`)}</strong>);
     } else {
-      out.push(<code key={`${salt}c${k++}`} style={{ font: 'inherit', background: 'var(--atelier-input-bg)', padding: '1px 5px', borderRadius: 3 }}>{m[2]}</code>);
+      out.push(<code key={`${salt}c${k++}`} style={{ font: 'inherit', background: 'var(--atelier-input-bg)', padding: '0px 4px', borderRadius: 12 }}>{m[2]}</code>);
     }
     last = re.lastIndex;
   }
@@ -135,7 +135,7 @@ function renderProse(text: string, T: Tok): ReactNode[] {
     if (isBullet) {
       const items = nonEmpty.map((l) => l.replace(BULLET, ''));
       out.push(
-        <ul key={`ul${bi}`} style={{ ...pStyle, margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <ul key={`ul${bi}`} style={{ ...pStyle, margin: 0, paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {items.map((it, ii) => (
             <li key={`li${bi}-${ii}`} style={{ listStyleType: 'disc' }}>{inlineNodes(it, T, `${bi}-${ii}-`)}</li>
           ))}
@@ -144,7 +144,7 @@ function renderProse(text: string, T: Tok): ReactNode[] {
     } else if (isNumbered) {
       const items = nonEmpty.map((l) => l.replace(NUMBERED, ''));
       out.push(
-        <ol key={`ol${bi}`} style={{ ...pStyle, margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <ol key={`ol${bi}`} style={{ ...pStyle, margin: 0, paddingLeft: 24, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {items.map((it, ii) => (
             <li key={`oli${bi}-${ii}`} style={{ listStyleType: 'decimal' }}>{inlineNodes(it, T, `${bi}-${ii}-`)}</li>
           ))}
@@ -227,9 +227,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   if (isUser) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 22px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 24px' }}>
         <div style={{
-          maxWidth: '80%', padding: '10px 14px',
+          maxWidth: '80%', padding: '12px 16px',
           borderRadius: '14px 14px 4px 14px',
           background: 'var(--atelier-input-bg)',
           border: '0.5px solid var(--atelier-card-border)',
@@ -248,12 +248,12 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   const hairline = T.isLight
     ? 'var(--atelier-accent-text)'
-    : 'linear-gradient(180deg, transparent 0%, rgba(201,168,76,0.5) 25%, rgba(201,168,76,0.75) 50%, rgba(201,168,76,0.5) 75%, transparent 100%)';
+    : 'linear-gradient(180deg, transparent 0%, var(--atelier-input-border) 25%, var(--atelier-input-border) 50%, var(--atelier-input-border) 75%, transparent 100%)';
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '8px 22px' }}>
-      <div style={{ maxWidth: '92%', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ padding: '8px 18px 4px 16px', position: 'relative' }}>
+    <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '8px 24px' }}>
+      <div style={{ maxWidth: '92%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ padding: '8px 16px 4px 16px', position: 'relative' }}>
           {/* R-41.142 — THE ADVISOR EDGE IS THIS HAIRLINE, RECOLOURED. The bubble
               already draws a left rule; giving the room a SECOND one would put two
               elements on one edge and let them disagree. When the message was
@@ -270,8 +270,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             font: RUNG.t5,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
-            color: T.isLight ? T.accent : 'rgba(201,168,76,0.65)',
-            marginBottom: 6,
+            color: T.isLight ? T.accent : 'var(--atelier-input-border)',
+            marginBottom: 8,
           }}>TDW</div>
           <AiMessageText text={message.text} streaming={message.streaming} T={T} />
         </div>
@@ -282,11 +282,11 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                 font: RUNG.t4,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 7,
-                padding: '7px 14px',
+                gap: 8,
+                padding: '8px 16px',
                 background: 'transparent',
                 border: '0.5px solid var(--atelier-sheet-border)',
-                borderRadius: 2,
+                borderRadius: 12,
                 textDecoration: 'none',
                 color: 'var(--role-positive)',
               }}>
@@ -297,11 +297,11 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               font: RUNG.t4,
               display: 'flex',
               alignItems: 'center',
-              gap: 7,
-              padding: '7px 14px',
+              gap: 8,
+              padding: '8px 16px',
               background: T.inputBg,
               border: `0.5px solid ${T.inputBorder}`,
-              borderRadius: 2,
+              borderRadius: 12,
               textDecoration: 'none',
               color: T.inkMute,
             }}>

@@ -27,7 +27,7 @@ export const A = {
   inkDim:    'var(--atelier-ink-dim)',
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
-  brassLine: 'rgba(201,168,76,0.18)',
+  brassLine: 'var(--atelier-card-border)',
   green:     'var(--role-positive)',
   red:       'var(--role-critical)',
 } as const;
@@ -47,7 +47,7 @@ export const T = {
   t5: 'var(--wl-t5)',
 } as const;
 
-export const LABELS: Record<DoorSlice, string> = { clients: 'Clients', leads: 'Leads', invoices: 'Invoices', events: 'Events', expenses: 'Expenses', notes: 'Notes' };
+export const LABELS: Record<DoorSlice, string> = { clients: 'Clients', leads: 'Enquiries', invoices: 'Invoices', events: 'Events', expenses: 'Expenses', notes: 'Notes' };
 export const GLYPHS: Record<ListSlice, string> = { clients: 'C', leads: 'L', invoices: 'I', events: '◐', expenses: '×' };
 
 // State pill color per state — used as colored border + colored text
@@ -204,7 +204,7 @@ export function fmtArrival(iso: string | null | undefined) {
 // ruling for, and their bytes are not in R2's charge. Filed, visible, untouched.
 
 // TDW_09 R-U25: the name stays for its importers; the string comes from the one home.
-export function fmtRs(n: number | null | undefined) { return n == null ? 'Rs —' : formatRs(n); }
+export function fmtRs(n: number | null | undefined) { return n == null ? 'Not set' : formatRs(n); }
 export function fmtDate(iso: string | null | undefined) {
   if (!iso) return '—';
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
@@ -225,7 +225,9 @@ export function fmtLeadDate(iso: string | null | undefined, precision?: 'day' | 
 // "Delhi NCR" stays "Delhi NCR" (already correct), "—" stays "—".
 export function cap(s: string | null | undefined): string {
   if (!s || s === '—') return s ?? '—';
-  return s.split(/[\s_-]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  // DESIGN-1 · W4: a hyphen is kept, so an invoice number reads "TDW-0003" here as it does on
+  // Today (it was split to "TDW 0003": one number, two spellings).
+  return s.split(/[\s_]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 }
 
 // WhatsApp icon — defined outside JSX to avoid path string parsing issues
@@ -252,9 +254,18 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
     interactiveWarm: 'var(--atelier-accent-text)',
   };
 
-  // Build detail line — always has content, never blank
+  // ── DESIGN-1 · THE ONE ROW (docs/review/REPORT.md §3, findings P8 and P14) ─────────────────
+  // At least 64 high. Line 1 the name, on its own line. Line 2 one line of facts, where the
+  // provenance tags (TDW, Referral, Wedding) and the twin's note ride as words instead of boxes
+  // that squeezed the name ("Aanya Kapo…"). One thing on the right: the status, a sentence-case
+  // pill coloured by meaning. The letter column (L, I, ◐) carried no meaning and is gone.
+  // The twin note keeps its words and loses its separate link line: its href was the room,
+  // never the record, and the one row has no third line. Name and facts wrap rather than cut: at
+  // the phone's large text setting nothing is cut off (the founder's rule).
   const detailParts = [row.secondary, row.meta].filter(Boolean) as string[];
-  const detailLine = detailParts.length > 0 ? detailParts.map(cap).join(' · ') : '—';
+  const tags = [row.tdw ? 'TDW' : '', row.referralIn ? RF.chipReferral : '', row.weddingLead ? WP.chipWedding : ''].filter(Boolean);
+  const facts = [...detailParts.map(cap), ...tags, row.crossChip || ''].filter(Boolean);
+  const detailLine = facts.join(' · ');
 
   const pillColor = stateColor(slice, row.badge);
 
@@ -265,222 +276,54 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
     // does that. It ships in both trees because it is inert in both.
     <div data-row-id={row.id} style={{
       display: 'flex', alignItems: 'center',
-      borderBottom: '0.5px solid var(--atelier-card-border)',
+      borderBottom: '1px solid var(--atelier-card-border)',
     }}>
       <button type="button" onClick={onSelect} style={{
-        flex: 1, minWidth: 0,
-        display: 'flex', alignItems: 'center', gap: 16,
-        padding: '15px 16px 15px var(--slice-inset, 22px)',
+        flex: 1, minWidth: 0, minHeight: 64,
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '12px 16px 12px var(--slice-inset, 16px)',
         background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
       }}>
-        {/* Monogram glyph — always present, anchors left edge */}
-        <span style={{
-          font: T.t2,
-          flexShrink: 0,
-          width: 28,
-          textAlign: 'center',
-          color: A.brassWarm,
-        }}>{GLYPHS[slice]}</span>
-
-        {/* Name + detail line */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {/* F-44.177 (CE-45 FE-2, folded into cut 2): the row's tags no longer sit INSIDE the line that clips.
-              That line hides whatever spills out of it (it ellipses a long name), and a tag's padded box at the
-              t5 rung, in the real DM Sans, is taller than the name's line, so its bottom was cut on his phones
-              (the containers' fallback faces never showed it; A-45.9). The name clips alone now; each tag is its
-              own box beside it, which nothing clips. Same words, same order. */}
-          <div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-          <span style={{
+          <div data-row-name="" style={{
             font: T.t3,
+            fontWeight: 500,
             color: A.ink,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            minWidth: 0,
-          }}>{row.primary}</span>
-            {/* M-LEADS-TRUTH · the TDW mark. Founder copy, approved 2026-08-22,
-                frozen at the character: three letters, no expansion, no tooltip.
-                It rides the NAME line rather than the meta line because it says
-                something about WHO this is, not when they came — and because the
-                meta line already carries the wedding date and the city and
-                would ellipsis first on a narrow phone.
-                Display-only: F-04.7's fence holds, no editor grows here. */}
-            {row.tdw && (
-              /* R2 · THE 9px EXEMPTION, GRANTED THROUGH THE SCALE'S OWN DOOR.
-                 R-35.25's pattern, this chair granting, cited here so the grant
-                 lives at the site rather than in a bench's memory.
-                 THE EVIDENCE: 9px on F.label is the chrome's established label
-                 rung — SliceShell.tsx:167/:713/:745, WishboneSheet.tsx:99/:148/
-                 :155, studioShared.tsx:52 all sit there and studioShared.tsx:78
-                 goes to 8. The badge is not the outlier; moving it alone would
-                 MAKE it one.
-                 AND IT PASSES THE CENSUS'S OWN THREE-LEG ENGRAVED TEST rather
-                 than any widening of it: letterSpacing + textTransform:
-                 'uppercase' in this one style object. The transform was absent
-                 only because the literal 'TDW' was already caps — the label was
-                 always engraved, it just never said so. tdw09_type's test is
-                 UNCHANGED by this delivery, so an eleventh un-cited site below
-                 the floor still reds, which is the condition of the grant. */
-              <span data-row-tag="" style={{
-                font: T.t5,
-                letterSpacing: '0.08em',
-                marginLeft: 8,
-                display: 'inline-flex',
-                alignItems: 'center',
-                flexShrink: 0,
-                textTransform: 'uppercase',
-                color: A.brass,
-                border: '0.5px solid rgba(201,168,76,0.38)',
-                borderRadius: 3,
-                padding: '2px 5px',
-                whiteSpace: 'nowrap',
-              }}>TDW</span>
-            )}
-            {/* ── R-G51.16 / R-40.52 · THE REFERRAL CHIP, PEER'S COPY ONLY ──
-                This lead ARRIVED from a peer. The sender's own row carries NO
-                chip: her record already says `Forwarded to`, and one word cannot
-                carry both directions — `TDW` means "this came through TDW", and
-                a chip meaning BOTH "sent to a peer" and "received from a peer"
-                would make the room ambiguous at a glance, which is the only
-                moment a chip is read.
-
-                Rides the SAME 9px grant cited above — same style object, same
-                three-leg engraved test (letterSpacing + uppercase) — so the
-                census is unchanged and an un-cited site below the floor still
-                reds. It reads the ACCENT rather than brass: brass is the TDW
-                badge's, and two chips in one ink would be one chip wearing two
-                meanings. */}
-            {row.referralIn && (
-              <span data-row-tag="" style={{
-                font: T.t5,
-                letterSpacing: '0.08em',
-                marginLeft: 8,
-                display: 'inline-flex',
-                alignItems: 'center',
-                flexShrink: 0,
-                textTransform: 'uppercase',
-                color: 'var(--atelier-accent-text)',
-                border: '0.5px solid var(--atelier-accent-text)',
-                borderRadius: 3,
-                padding: '2px 5px',
-                whiteSpace: 'nowrap',
-              }}>{RF.chipReferral}</span>
-            )}
-            {/* ── F-40.211 / R-40.103 · THE WEDDING CHIP ────────────────────
-                THE ONE PROVENANCE A VENDOR MAY NOT ALREADY KNOW. `TDW` and
-                `Referral` mark leads whose origin she half-knows; a wedding
-                lead can arrive from a page she has never seen. Swati's came
-                from Dev Roy's wedding page and her list said nothing — the fact
-                was on the wire (the detail row reads `Source · Wedding Team`)
-                and only the list withheld it.
-
-                Rides the SAME 9px grant cited on the TDW badge above — same
-                style object, same three-leg engraved test (letterSpacing +
-                uppercase) — so the census is unchanged and an un-cited site
-                below the floor still reds.
-
-                ⚠ THE REFERRAL'S INK, NOT A THIRD ONE — founder veto, 2026-09-07.
-                The first cut used `A.inkMute` on the argument that two chips in
-                one colour would be one chip wearing two meanings. ON GLASS THAT
-                WAS WRONG: muted grey reads as DISABLED or SECONDARY beside two
-                live chips, and a provenance the vendor most needs — a page she
-                has never seen — was the one drawn faintest. The WORD carries the
-                distinction; the ink carries the fact that this is provenance at
-                all. Byte-identical to the referral chip's, deliberately.
-
-                ⚠ AND IT IS THE LITERAL TOKEN, NOT `A.brass`. The local palette
-                at :235 SHADOWS the module-level `A` and re-points `brass` to
-                `var(--role-metal)` — which is why TDW renders gold here while
-                module-level `A.brass` is the accent. That shadow is the file's
-                own documented hazard ("a shadowed const is exactly where a token
-                split goes quietly wrong"), so this chip reads the CSS variable
-                directly, as the referral chip does, and cannot be moved by it. */}
-            {row.weddingLead && (
-              <span data-row-tag="" style={{
-                font: T.t5,
-                letterSpacing: '0.08em',
-                marginLeft: 8,
-                display: 'inline-flex',
-                alignItems: 'center',
-                flexShrink: 0,
-                textTransform: 'uppercase',
-                color: 'var(--atelier-accent-text)',
-                border: '0.5px solid var(--atelier-accent-text)',
-                borderRadius: 3,
-                padding: '2px 5px',
-                whiteSpace: 'nowrap',
-              }}>{WP.chipWedding}</span>
-            )}
-          </div>
-          <div style={{
+            overflowWrap: 'anywhere',
+          }}>{row.primary}</div>
+          <div data-row-facts="" style={{
             font: T.t4,
             color: A.inkMute,
-            marginTop: 3,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            marginTop: 4,
+            overflowWrap: 'anywhere',
           }}>{detailLine}</div>
-          {row.crossChip && (
-            // TDW_04 A3 (L-3): the chip is TAPPABLE when it knows where the twin
-            // lives — tap jumps to the twin's canonical slice. Still display-only:
-            // it reads and links, it never writes (the R2 boundary — dispatch may
-            // announce, never link a spine; that spine waits for TDW_16).
-            row.crossChipHref ? (
-              <a href={row.crossChipHref} onClick={e => e.stopPropagation()} style={{
-                font: T.t5,
-                letterSpacing: '0.08em',
-                display: 'inline-block',
-                textDecoration: 'none',
-                color: A.interactiveWarm,
-                textTransform: 'uppercase',
-                marginTop: 4,
-                maxWidth: '100%',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>{row.crossChip} ›</a>
-            ) : (
-              <div style={{
-                font: T.t5,
-                letterSpacing: '0.08em',
-                color: A.inkMute,
-                textTransform: 'uppercase',
-                marginTop: 4,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>{row.crossChip}</div>
-            )
-          )}
         </div>
 
-        {/* State pill — same chrome regardless of detail-line content */}
+        {/* The one thing on the right: the status, in sentence case. */}
         {row.badge && (
           <span style={{
             font: T.t5,
-            letterSpacing: '0.08em',
             flexShrink: 0,
             color: pillColor,
-            textTransform: 'uppercase',
-            border: `0.5px solid ${pillColor}`,
-            borderRadius: 2,
-            padding: '4px 9px',
-            minWidth: 56,
+            border: `1px solid ${pillColor}`,
+            borderRadius: 999,
+            padding: '4px 12px',
             textAlign: 'center',
-          }}>{row.badge}</span>
+            whiteSpace: 'nowrap',
+          }}>{cap(row.badge)}</span>
         )}
       </button>
 
       {/* WhatsApp + Call buttons — clients only, when phone exists */}
       {slice === 'clients' && row.phone && (
-        <div style={{ display: 'flex', gap: 6, paddingRight: 16, flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 8, paddingRight: 16, flexShrink: 0 }}>
           <a href={`https://wa.me/${row.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
             onClick={e => e.stopPropagation()}
             aria-label={`WhatsApp ${row.primary}`}
             style={{
               font: T.t3,
-              width: 34,
-              height: 34,
+              width: 44,
+              height: 44,
               borderRadius: '50%',
               background: 'transparent',
               border: '0.5px solid var(--role-positive)',
@@ -495,8 +338,8 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
             aria-label={`Call ${row.primary}`}
             style={{
               font: T.t3,
-              width: 34,
-              height: 34,
+              width: 44,
+              height: 44,
               borderRadius: '50%',
               background: 'var(--atelier-input-bg)',
               border: '0.5px solid var(--atelier-sheet-border)',

@@ -148,7 +148,7 @@ function GoogleReviewsScreen() {
               an empty Asked band would be counting replies to nothing. */}
           {asked.length > 0 ? (
             <>
-              <div className="gr-sec" style={{ marginTop: 22 }}>{GR.sectionReviews}<span>{room.landedCount}</span></div>
+              <div className="gr-sec" style={{ marginTop: 24 }}>{GR.sectionReviews}<span>{room.landedCount}</span></div>
               <p className="gr-note">{GR.reviewsWaiting}</p>
             </>
           ) : null}
@@ -158,7 +158,7 @@ function GoogleReviewsScreen() {
               placeholder, no `coming soon`: a dimmed seal would be a control
               lying about being available, and the veto sheet's row 11 is the
               byte that replaces it. */}
-          <div className="gr-sec" style={{ marginTop: 22 }}>{GR.sectionSeal}</div>
+          <div className="gr-sec" style={{ marginTop: 24 }}>{GR.sectionSeal}</div>
           {seal ? (
             <>
               <div className="gr-row">
@@ -180,10 +180,10 @@ function GoogleReviewsScreen() {
               The date is the DOOR's `gbpAvailableFrom` rendered through the
               house format — not typed into copy, so the sentence cannot
               disagree with the field the backend sends. */}
-          <div className="gr-sec" style={{ marginTop: 22 }}>{GR.sectionListing}</div>
+          <div className="gr-sec" style={{ marginTop: 24 }}>{GR.sectionListing}</div>
           <p className="gr-note">{GR.listingFrom.replace('{date}', houseDate(room.gbpAvailableFrom))}</p>
-          <p className="gr-note" style={{ marginTop: 10 }}>{GR.listingWhy}</p>
-          <div className="gr-sec" style={{ marginTop: 26 }}>{GR.listingThenHead}</div>
+          <p className="gr-note" style={{ marginTop: 12 }}>{GR.listingWhy}</p>
+          <div className="gr-sec" style={{ marginTop: 24 }}>{GR.listingThenHead}</div>
           <p className="gr-note">{GR.listingThenBody}</p>
         </div>
       ) : null}
@@ -199,18 +199,18 @@ function GoogleReviewsScreen() {
    ⚠ NO BACKTICKS IN THIS BLOCK. It is a template literal, and a backtick in a
    CSS comment closes the string — which is exactly how the first cut of this
    file failed tsc with eleven errors none of which mentioned a backtick. */
-.gr-room{padding-top:20px;padding-bottom:28px}
+.gr-room{padding-top:24px;padding-bottom:32px}
 .gr-sec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px;display:flex;justify-content:space-between}
 .gr-sec span{font-variant-numeric:lining-nums tabular-nums}
 .gr-row{display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:12px;width:100%;text-align:left;
-        background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;
-        padding:13px 14px;margin-bottom:var(--wl-step)}
+        background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;
+        padding:12px 16px;margin-bottom:var(--wl-step)}
 .gr-rprimary{font:var(--wl-t3);color:var(--atelier-ink);display:block}
-.gr-rdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:3px;font-variant-numeric:lining-nums tabular-nums}
-.gr-rstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap;padding-top:2px}
+.gr-rdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:4px;font-variant-numeric:lining-nums tabular-nums}
+.gr-rstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap;padding-top:4px}
 .gr-rstate.live{color:var(--atelier-accent-text)}
-.gr-note{font:var(--wl-t5);color:var(--atelier-ink-fade);line-height:1.5;text-transform:none;letter-spacing:0;margin:2px 0 0;max-width:40ch}
-.gr-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:56px 0 30px}
+.gr-note{font:var(--wl-t5);color:var(--atelier-ink-fade);line-height:1.5;text-transform:none;letter-spacing:0;margin:4px 0 0;max-width:40ch}
+.gr-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:56px 0 32px}
 .gr-eh{font:var(--wl-t2);color:var(--atelier-ink)}
 .gr-ep{font:var(--wl-t3);color:var(--atelier-ink-mute);max-width:250px}
       `}</style>

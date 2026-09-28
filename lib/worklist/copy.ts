@@ -113,8 +113,8 @@ export const COPY = {
   // R-45.20 (the founder, CE-45 FE-1 copy table row N0, 24 Sept 2026): Home takes the place of
   // Today. THE KEY IS KEPT and only the value moves, so every reader of the right-hand seat
   // (WorklistShell's tab, Home's title, b40 C-seat's key order) follows without a second byte.
-  navToday: 'Home',
-  navRooms: 'Rooms',
+  navToday: 'Today',
+  navRooms: 'More',
 
   // -- CE-45 FE-1 · HOME AND SHELVES (R-45.19, R-45.20; the founder's copy table, 24 Sept 2026) --
   // The three shelves on Rooms. N1 is his (R-45.19: "Business", not "Couples"); N2 and N3 his by
@@ -123,10 +123,10 @@ export const COPY = {
   shelfMoney:    'Money',
   shelfStudio:   'Studio',
   // N8, his word: "Pinned rooms" (the proposal carried "Your"; he took it out).
-  pinnedHead:    'Pinned rooms',
+  pinnedHead:    'Pinned',
   // N9: the control under the pins. P1(b) makes it a STATED DISABLED control (F-19.20), wearing
   // the estate's existing Coming chip (lib/solutions/copy.ts CHIPS.coming); no second byte.
-  pinnedChange:  'Change pinned rooms',
+  pinnedChange:  'Change pinned',
 
   // ── TODAY ────────────────────────────────────────────────────────────────
   // The numeral's caption. A NOUN, and deliberately not a claim: the numeral is 0 in this
@@ -217,7 +217,7 @@ export const COPY = {
   // map is its one home. The section eyebrows still read `ROOMS`; only the kind line
   // reads this.
   kindNouns: {
-    lead_unanswered:   ['lead', 'leads'],
+    lead_unanswered:   ['enquiry', 'enquiries'],
     invoice_due:       ['invoice', 'invoices'],
     events_today:      ['event', 'events'],
     contract_unsigned: ['contract', 'contracts'],
@@ -230,7 +230,7 @@ export const COPY = {
   // twice, in two registers, and the sentence is the better of the two. It is still
   // resting-only — never over cards that disprove it.
   todayRestingHead:  'All clear.',
-  todayRestingScope: 'Counts cover invoices, contracts and tasks \u2014 the three that record when they were finished.',
+  todayRestingScope: 'Counts cover invoices, contracts and tasks, the three that record when they were finished.',
 
   // ── THE FIRST-RUN CARDS · THREE, ONE SENTENCE EACH (R-38.6) ──────────────
   // ORDER FOLLOWS THE VENDOR'S OWN TIMELINE, not a feature list: work reaches him (1, 2),
@@ -300,7 +300,7 @@ export const COPY = {
   cardAskChipsEyebrow: 'Try',
   cardAskChips: [
     'Am I free on 14 February?',        // query_day        tools.js:443
-    'How many open leads do I have?',   // list_leads       tools.js:90
+    'How many open enquiries do I have?',   // list_leads       tools.js:90
     'Raise an invoice for Meghna',      // create_invoice   tools.js:222
     'Log a studio hire expense',        // log_expense      tools.js:351
     'Tell Priya the date works',        // send_to_couple   tools.js:512
@@ -312,7 +312,7 @@ export const COPY = {
   // the surface's whole content rather than a paragraph decorating a control.
   supportTitle: 'Business Solutions',
   supportHeader: 'Customised solutions for your business',
-  supportBody:  'SEO, marketing automation, ads, campaign pages, a feature built for how you work \u2014 tell us what would grow your business and we build it with you. Something broken? That reaches us here too.',
+  supportBody:  'SEO, marketing automation, ads, campaign pages, a feature built for how you work. Tell us what would grow your business and we build it with you. Something broken? That reaches us here too.',
   supportAction: 'Message us on WhatsApp',
 
   // ── 10 · 11 — the coin's two modes ───────────────────────────────────────
@@ -331,7 +331,7 @@ export const COPY = {
   // attributes an answer to a character. The tombstone is written rather than the block
   // deleted, because a rule that vanishes gets reinvented by the next reader who notices
   // there is no rule.
-  dockPlaceholder: 'Ask TDW \u2014 \u201cAm I free on 14 Feb?\u201d',
+  dockPlaceholder: 'Ask TDW: Am I free on 14 Feb?',
   // ⚠ THREE KEYS, ONE BYTE — the same shape as F-38.23's six header words, and named for
   // the same reason. `dockAria` labels the control, `dockRowTitle` labels the drawer row
   // and `cardAskTitle` titles card 2; they are three separately-vetoed bytes that currently
@@ -410,7 +410,7 @@ export const COPY = {
   // being a fourth spelling of the six header words (F-38.23) — they are a different word.
   addTitle:    'Add',
   addCalendar: 'Calendar',
-  addLead:     'Lead',
+  addLead:     'Enquiry',
   addClient:   'Client',
   addInvoice:  'Invoice',
   addExpense:  'Expense',
@@ -426,7 +426,7 @@ export const COPY = {
   advisorThreadNote: 'Moving between Advisor and the ask bar starts a fresh conversation each time.',
   // Rendered only when the mode PATCH did not land. It reports what the screen does NOT
   // know rather than asserting a state the server never confirmed.
-  advisorUnset: 'Could not switch to Advisor just now \u2014 try again in a moment.',
+  advisorUnset: 'Could not switch to Advisor just now. Try again in a moment.',
 
   // ── R-38.8 · BILLING ─────────────────────────────────────────────────────
   // MONEY REGISTER IS LAW HERE: `Rs X,XXX`, zero rupee glyphs, zero k/L/Cr shorthand. The
@@ -516,7 +516,7 @@ export const COPY = {
    *  ruled D4 stands unamended — a persistent stranger can narrow a DATE, never
    *  a NAME, and `crew.js`'s bucket bounds the enumeration. */
   storefrontDateStanding:
-    'Couples can check a date on this page. It answers free, held or booked \u2014 never a client\u2019s name.',
+    'Couples can check a date on this page. It answers free, held or booked, never a client\u2019s name.',
   /** D6a · R-40.78, `ruled_off`. A DECISION: a planner's occupancy is off by
    *  ruling until the crew math lands. `don\u2019t apply` says the rule has been
    *  made, which is true and is not an apology. */
@@ -697,7 +697,7 @@ export const COPY = {
   // F-39.26's class in a type, and card ⑤ asserts the row lands — so the arm
   // that could not be seen now has a byte of its own.
   studioToastPaidLogged:    'Marked as paid.',
-  studioToastPaidNoExpense: "Marked as paid — the expense wasn’t logged.",
+  studioToastPaidNoExpense: "Marked as paid. The expense was not logged.",
   // ── CANCEL, NOT DELETE — THE WORDS FOLLOW THE WRITE ───────────────────────
   // `public.team_payments` has THIRTEEN columns and none of them is
   // `deleted_at` (PUBLIC_SCHEMA.md, witnessed by ordinal); `PATCH /:id/cancel`
@@ -754,7 +754,7 @@ export const COPY = {
   // `studioPdfNoAdvance` is UNCHANGED wording. A real precondition is not the
   // same defect as an invented state — it moves for the one-home law alone.
   studioPdfFailed:      "Couldn’t prepare the PDF just now. Try again in a moment.",
-  studioPdfNoAdvance:   'PDF not ready yet — record the advance first.',
+  studioPdfNoAdvance:   'PDF not ready yet. Record the advance first.',
 
   // ── BLOCK 19 · G3.4 — THE INVOICE RECORD'S ONE NEW CONTROL ────────────────
   // Vetoed on `docs/mocks/G34_VETO_SHEET.md` §E, ratified 2026-09-06 (R-40.42).
@@ -769,13 +769,13 @@ export const COPY = {
   // This sentence is how she learns that at the moment she would wonder.
   studioReminderSend:    'Send the reminder',                                    // #14
   studioReminderTitle:   'Send this reminder?',                                  // #15
-  studioReminderRails:   'Your UPI and bank details are on the invoice PDF. Send that with the reminder if she needs them.', // #16b
+  studioReminderRails:   'Your UPI and bank details are on the invoice PDF. Send that with the reminder if the couple needs them.', // #16b
   studioReminderSent:    'Reminder sent',                                        // #17
   // ── G3.4 s2 (R-41.70 §D 16/18) ─────────────────────────────────────────────
   // The row says the short form; the toast on a failed tap says the sentence.
   // At 8px/0.28em beside three controls the full sentence does not fit a 374 row.
   studioReminderDidntGo: "Didn't go",
-  studioReminderRetry:   "Reminder didn't go — try again.",
+  studioReminderRetry:   "The reminder did not go. Try again.",
   // ── G3.4 s2 (R-41.70 §A/§B/§C) — the schedule can be corrected ─────────────
   studioMsEdit:          'Edit',
   studioMsEditTitle:     'Change the name, the share or the date. The amount follows the share.',
@@ -808,7 +808,7 @@ export const COPY = {
   // own heading says what she is looking at.
   collabTitle:     'Collab',
   calendarTitle: 'Calendar',
-  leadsTitle:    'Leads',
+  leadsTitle:    'Enquiries',
   clientsTitle:  'Clients',
   invoicesTitle: 'Invoices',
   expensesTitle: 'Expenses',
@@ -865,7 +865,7 @@ export const COPY = {
   // look. Rendering `booksEmpty` over a failed call tells a vendor WITH money that
   // her money is gone. `advisorUnset`'s shape and register: it reports what the
   // screen does not know, rather than asserting a state the server never confirmed.
-  booksFailed: 'Could not read your books just now \u2014 try again in a moment.',
+  booksFailed: 'Could not read your books just now. Try again in a moment.',
   eventsTitle:   'Events',
   notesTitle:    'Notes',
   billingPlanLead:  'Your plan',
@@ -884,7 +884,7 @@ export const COPY = {
   // chat.js:buildLlmForTurn floors an unrecognised tier to basic. The three paid tiers
   // have NO inclusion source anywhere in this repo; they ship without a line this sitting
   // and are owed as bytes in docs/COPY_REGISTER_M-FINISH.md rather than invented here.
-  planBasicIncludes: 'Profile and leads. No AI replies.',
+  planBasicIncludes: 'Profile and enquiries. No AI replies.',
   planAction:        'Choose',
   planCurrent:       'Current',
   // ── CE-39 step 2a · R-39.6 · COUTURE = SIGNATURE + PRESTIGE ─────────────────

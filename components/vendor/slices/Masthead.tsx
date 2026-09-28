@@ -58,7 +58,7 @@ export function Masthead({ line, value, isMoney }: {
   const shown = useCountUp(value);
   const text = value > 0 ? formatRs(shown) : '\u2014'; // TDW_09 R-U25
   return (
-    <div data-room-head="" style={{ padding: '0 var(--slice-inset, 22px) 12px' }}>
+    <div data-room-head="" style={{ padding: '0 var(--slice-inset, 16px) 12px' }}>
       {isMoney && (
         <div style={{
           font: T.t2,

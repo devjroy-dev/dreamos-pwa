@@ -136,7 +136,7 @@ function binderToClient(b: CabinetBinder): ClientsResponse['clients'][number] {
 // (city, budget, source, email, category) fold into the note as prose.
 type BinderWriteResponse = { ok: boolean; message?: string; binder?: CabinetBinder | null; error?: string };
 function currentVendorId(): string | null { return getVendorSession()?.id ?? null; }
-function noVendor(): ApiErr { return { ok: false, error: 'No vendor session — please sign in again.' }; }
+function noVendor(): ApiErr { return { ok: false, error: 'No vendor session. Please sign in again.' }; }
 function foldNote(...lines: Array<string | null | undefined>): string | undefined {
   const out = lines.map((l) => (l ?? '').toString().trim()).filter(Boolean);
   return out.length ? out.join('\n') : undefined;
@@ -200,7 +200,7 @@ export type BinderEditFields = {
 };
 export function editBinder(binderId: string, fields: BinderEditFields): Promise<BinderWriteResponse> {
   const v = currentVendorId();
-  if (!v) return Promise.resolve({ ok: false, error: 'No vendor session — please sign in again.' });
+  if (!v) return Promise.resolve({ ok: false, error: 'No vendor session. Please sign in again.' });
   return postJson<BinderWriteResponse>(`${binderBase(v)}/${binderId}/edit`, fields);
 }
 
@@ -836,12 +836,12 @@ export function deleteLead(leadId: string): Promise<{ ok: boolean; deleted?: { i
 // door exists, so hide commits immediately and UNDO calls /unarchive).
 export function hideBinder(binderId: string): Promise<BinderWriteResponse> {
   const v = currentVendorId();
-  if (!v) return Promise.resolve({ ok: false, error: 'No vendor session — please sign in again.' });
+  if (!v) return Promise.resolve({ ok: false, error: 'No vendor session. Please sign in again.' });
   return postJson<BinderWriteResponse>(`${binderBase(v)}/${binderId}/hide`, {});
 }
 export function unarchiveBinder(binderId: string): Promise<BinderWriteResponse> {
   const v = currentVendorId();
-  if (!v) return Promise.resolve({ ok: false, error: 'No vendor session — please sign in again.' });
+  if (!v) return Promise.resolve({ ok: false, error: 'No vendor session. Please sign in again.' });
   return postJson<BinderWriteResponse>(`${binderBase(v)}/${binderId}/unarchive`, {});
 }
 

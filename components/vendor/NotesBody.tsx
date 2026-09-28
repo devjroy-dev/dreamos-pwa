@@ -38,10 +38,10 @@ const D = {
 const inputStyle: React.CSSProperties = {
   font: RUNG.t3,
   width: '100%',
-  padding: '11px 14px',
+  padding: '12px 16px',
   backgroundColor: 'var(--atelier-input-bg)',
   border: `0.5px solid var(--atelier-input-border)`,
-  borderRadius: 8,
+  borderRadius: 12,
   color: D.cream,
   outline: 'none',
   boxSizing: 'border-box',
@@ -132,7 +132,7 @@ export function NotesBody() {
       <Toast toast={toast} />
 
       {/* Search */}
-      <div style={{ padding: '14px var(--slice-inset, 24px) 10px', flexShrink: 0 }}>
+      <div style={{ padding: '16px var(--slice-inset, 16px) 12px', flexShrink: 0 }}>
         <input
           value={query} onChange={e => setQuery(e.target.value)}
           placeholder="Search your notes"
@@ -156,7 +156,7 @@ export function NotesBody() {
           )}
         </div>
       ) : (
-        <div style={{ flex: 1, overflowY: 'auto', padding: '4px var(--slice-inset, 16px) 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '4px var(--slice-inset, 16px) 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filtered.map(note => (
             // TDW_06 P7e: a paper card via the design system's own .atelier-card class, so it
             // wears each theme's card treatment (bg · border · lift · the per-theme inset
@@ -166,20 +166,16 @@ export function NotesBody() {
             // quiet, in the corner — all colours are theme tokens.
             <div key={note.id} onClick={() => setSelected(note)} className="atelier-card" style={{
               borderLeft: '2px solid var(--atelier-accent-text)',
-              padding: '10px 13px 11px 15px',
+              padding: '12px 12px 12px 16px',
               cursor: 'pointer',
-              display: 'flex', alignItems: 'flex-start', gap: 10,
+              display: 'flex', alignItems: 'flex-start', gap: 12,
             }}>
               <div style={{
                 font: RUNG.t3,
                 flex: 1,
                 minWidth: 0,
                 color: 'var(--atelier-ink)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
+                overflowWrap: 'anywhere',   // DESIGN-1: the note is shown whole; nothing is cut at the large text setting
               }}>{note.body}</div>
               <span style={{
                 font: RUNG.t5,
@@ -187,7 +183,7 @@ export function NotesBody() {
                 color: 'var(--atelier-ink-mute)',
                 textTransform: 'uppercase',
                 flexShrink: 0,
-                paddingTop: 2,
+                paddingTop: 4,
                 whiteSpace: 'nowrap',
               }}>{fmtDate(note.created_at)}</span>
             </div>
@@ -224,9 +220,9 @@ export function NotesBody() {
             padding: '0 0 calc(24px + env(safe-area-inset-bottom))',
           }}>
             <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--atelier-label)' }} />
+              <div style={{ width: 36, height: 4, borderRadius: 12, background: 'var(--atelier-label)' }} />
             </div>
-            <div style={{ padding: '14px 24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ padding: '16px 24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <p style={{ font: RUNG.t3, color: D.cream, margin: 0, whiteSpace: 'pre-wrap' }}>{selected.body}</p>
               <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: 'var(--atelier-accent-text)', textTransform: 'uppercase' }}>{fmtDate(selected.created_at)}</span>
               {/* CE-39 S2/6 · F-38.47: the note BODY is the prefill, and it never leaves
@@ -246,17 +242,17 @@ export function NotesBody() {
               <button type="button" onClick={() => { setSelected(null); openAsk(selected.body); }} style={{
                 font: RUNG.t4,
                 width: '100%',
-                padding: '13px 0',
-                background: 'var(--atelier-accent-text)',
+                padding: '12px 0',
+                background: 'var(--role-primary)',
                 border: 'none',
-                borderRadius: 999,
+                borderRadius: 12,
                 cursor: 'pointer',
-                color: 'var(--role-ink-on-metal)',
-              }}>Send to Chat</button>
+                color: 'var(--role-on-primary)',
+              }}>Send to chat</button>
               <button type="button" onClick={() => doDelete(selected)} disabled={saving} style={{
                 font: RUNG.t4,
                 width: '100%',
-                padding: '13px 0',
+                padding: '12px 0',
                 background: 'transparent',
                 opacity: saving ? 0.5 : 1,
                 border: '0.5px solid var(--role-critical)',
@@ -279,25 +275,25 @@ export function NotesBody() {
             padding: '0 0 calc(24px + env(safe-area-inset-bottom))',
           }}>
             <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--atelier-label)' }} />
+              <div style={{ width: 36, height: 4, borderRadius: 12, background: 'var(--atelier-label)' }} />
             </div>
-            <div style={{ padding: '14px 24px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ font: RUNG.t1, color: D.cream }}>Note to Self</div>
+            <div style={{ padding: '16px 24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ font: RUNG.t1, color: D.cream }}>Note to self</div>
               <textarea
                 value={draft} onChange={e => setDraft(e.target.value)} autoFocus rows={4}
-                placeholder="Jot it down — just for you"
+                placeholder="Jot it down, just for you"
                 style={{ ...inputStyle, resize: 'none', minHeight: 96 }}
               />
               <button type="button" onClick={doCreate} disabled={!canSave || saving} style={{
                 font: RUNG.t4,
                 width: '100%',
-                padding: '13px 0',
+                padding: '12px 0',
                 background: canSave && !saving ? 'var(--atelier-accent-text)' : 'var(--atelier-input-border)',
                 border: 'none',
                 borderRadius: 999,
                 cursor: canSave && !saving ? 'pointer' : 'not-allowed',
                 color: 'var(--role-ink-on-metal)',
-              }}>{saving ? 'Saving…' : 'Save Note'}</button>
+              }}>{saving ? 'Saving…' : 'Save note'}</button>
             </div>
           </div>
         </div>

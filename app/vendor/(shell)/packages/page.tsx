@@ -178,39 +178,39 @@ function PackagesScreen() {
       <style>{`
 .pkg-wait{min-height:120px}
 .pkg-list{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
-.pkg-card{background:var(--atelier-sheet-top);border:.5px solid var(--atelier-card-border);border-radius:2px;padding:14px 14px 12px}
+.pkg-card{background:var(--atelier-sheet-top);border:.5px solid var(--atelier-card-border);border-radius:12px;padding:16px 16px 12px}
 .pkg-card--default{border-left:2px solid var(--atelier-accent-text);border-radius:0}
 .pkg-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .pkg-fold{background:none;border:none;padding:0;margin:0;text-align:left;cursor:pointer;color:inherit;font:inherit;display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
 .pkg-fold:focus-visible,.pkg-fee--unset:focus-visible,.pkg-act:focus-visible,.pkg-add:focus-visible{outline:1.5px solid var(--atelier-accent-text);outline-offset:3px}
-.pkg-name{font-family:var(--font-cormorant),Georgia,serif;font-weight:500;font-size:23px;line-height:1.15;color:var(--atelier-ink)}
-.pkg-default{font-family:var(--font-jost),system-ui,sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text);margin-top:4px}
+.pkg-name{font-family:var(--font-cormorant),Georgia,serif;font-weight:500;font-size:1.375rem;line-height:1.15;color:var(--atelier-ink)}
+.pkg-default{font-family:var(--font-jost),system-ui,sans-serif;font-size:0.8125rem;letter-spacing:.16em;text-transform:uppercase;color:var(--atelier-accent-text);margin-top:4px}
 .pkg-fee{white-space:nowrap;margin-top:4px}
-.pkg-fee--unset{background:none;border:none;padding:2px 0;cursor:pointer;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:14px;color:var(--atelier-accent-text);border-bottom:1px dashed var(--atelier-accent-text);border-radius:0}
-.pkg-fee--set{font-family:var(--font-cormorant),Georgia,serif;font-size:22px;line-height:1.1;color:var(--atelier-ink)}
-.pkg-fold--body{width:100%;margin-top:6px}
-.pkg-summary{font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--atelier-ink-mute);margin-bottom:12px}
-.pkg-barrow{display:flex;align-items:center;gap:10px;width:100%}
-.pkg-bar{flex:1 1 auto;display:flex;gap:2px;height:5px;min-width:60px}
+.pkg-fee--unset{background:none;border:none;padding:4px 0;cursor:pointer;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.875rem;color:var(--atelier-accent-text);border-bottom:1px dashed var(--atelier-accent-text);border-radius:0}
+.pkg-fee--set{font-family:var(--font-cormorant),Georgia,serif;font-size:1.375rem;line-height:1.1;color:var(--atelier-ink)}
+.pkg-fold--body{width:100%;margin-top:8px}
+.pkg-summary{font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.8125rem;line-height:1.45;color:var(--atelier-ink-mute);margin-bottom:12px}
+.pkg-barrow{display:flex;align-items:center;gap:12px;width:100%}
+.pkg-bar{flex:1 1 auto;display:flex;gap:4px;height:5px;min-width:60px}
 .pkg-seg{display:block;height:100%;flex-basis:0}
 .pkg-seg--deposit{background:var(--atelier-accent-text)}
 .pkg-seg--middle{background:var(--atelier-accent-text);opacity:.45}
 .pkg-seg--final{background:var(--atelier-ink);opacity:.22}
-.pkg-numerals{font-family:var(--font-jost),system-ui,sans-serif;font-size:11px;color:var(--atelier-ink-mute);white-space:nowrap}
+.pkg-numerals{font-family:var(--font-jost),system-ui,sans-serif;font-size:0.8125rem;color:var(--atelier-ink-mute);white-space:nowrap}
 .pkg-chev{color:var(--atelier-ink-mute);flex:none;transition:transform .2s}
 .pkg-chev--open{transform:rotate(180deg)}
 .pkg-more{border-top:.5px solid var(--atelier-card-border);margin-top:12px;padding-top:12px}
-.pkg-desc{font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:14px;line-height:1.55;color:var(--atelier-ink-soft);margin:0 0 6px;max-width:52ch}
+.pkg-desc{font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.875rem;line-height:1.55;color:var(--atelier-ink-soft);margin:0 0 8px;max-width:52ch}
 .pkg-items{margin:0;padding:0}
-.pkg-item{margin-top:10px}
-.pkg-item dt{font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:12px;color:var(--atelier-ink-mute)}
-.pkg-item dd{margin:1px 0 0;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--atelier-ink)}
-.pkg-actions{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
-.pkg-act{background:transparent;border:.5px solid var(--atelier-accent-text);border-radius:2px;padding:0 14px;min-height:40px;cursor:pointer;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:14px;color:var(--atelier-accent-text)}
+.pkg-item{margin-top:12px}
+.pkg-item dt{font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.8125rem;color:var(--atelier-ink-mute)}
+.pkg-item dd{margin:0px 0 0;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.875rem;line-height:1.45;color:var(--atelier-ink)}
+.pkg-actions{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+.pkg-act{background:transparent;border:.5px solid var(--atelier-accent-text);border-radius:12px;padding:0 16px;min-height:40px;cursor:pointer;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.875rem;color:var(--atelier-accent-text)}
 .pkg-act--quiet{color:var(--atelier-ink-mute);border-color:var(--atelier-ink-mute)}
 .pkg-act--right{margin-left:auto}
-.pkg-confirm p{margin:14px 0 0;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:14px;line-height:1.5;color:var(--atelier-ink)}
-.pkg-add{display:block;width:100%;margin:12px 0 4px;padding:16px;min-height:52px;background:none;cursor:pointer;border:1px dashed var(--atelier-input-border);border-radius:2px;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:15px;color:var(--atelier-accent-text)}
+.pkg-confirm p{margin:16px 0 0;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.875rem;line-height:1.5;color:var(--atelier-ink)}
+.pkg-add{display:block;width:100%;margin:12px 0 4px;padding:16px;min-height:52px;background:none;cursor:pointer;border:1px dashed var(--atelier-input-border);border-radius:12px;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.9375rem;color:var(--atelier-accent-text)}
 @media (prefers-reduced-motion: reduce){.pkg-chev{transition:none}}
 `}</style>
     </WorklistShell>

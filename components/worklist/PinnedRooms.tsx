@@ -100,15 +100,15 @@ export function PinnedRooms() {
 // NO BACKTICKS IN THIS LITERAL (the estate's standing warning). Every value is a rung or a token
 // the shell already emits (lib/worklist/theme.ts); no new colour, no ad-hoc px for type.
 const PIN_CSS = `
-.wl-pins{padding-top:16px;padding-bottom:14px;border-bottom:.5px solid var(--atelier-card-border)}
+.wl-pins{padding-top:16px;padding-bottom:16px;border-bottom:.5px solid var(--atelier-card-border)}
 .wl-pinshead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px}
 .wl-pingrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--wl-step)}
-.wl-pin{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:8px;height:84px;padding:10px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;text-decoration:none;cursor:pointer}
+.wl-pin{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:8px;min-height:84px;padding:12px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;text-decoration:none;cursor:pointer}
 .wl-pin:active{background:var(--atelier-row-hover);border-color:var(--atelier-accent-text)}
 .wl-pin:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.wl-pinname{font:var(--wl-t4);color:var(--atelier-ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.wl-pinname{font:var(--wl-t4);color:var(--atelier-ink);overflow-wrap:anywhere}
 .wl-picon{flex:none;width:20px;height:20px;color:var(--atelier-accent-text)}
 .wl-pinwait{cursor:default}
-.wl-pindesc{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-.wl-pinchange{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-top:10px;padding:0;background:transparent;border:0;font:var(--wl-t4);color:var(--atelier-ink-mute);cursor:not-allowed}
+.wl-pindesc{position:absolute;width:1px;height:1px;margin:0px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.wl-pinchange{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-top:12px;padding:0;background:transparent;border:0;font:var(--wl-t4);color:var(--atelier-ink-mute);cursor:not-allowed}
 `;

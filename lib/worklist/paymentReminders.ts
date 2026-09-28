@@ -45,7 +45,7 @@ export const PR = {
   // NOT name the three days: that number belongs to the switch's line, and
   // stating it here would promise a cadence before she has armed anything.
   emptyHead: 'No reminders sent yet',                                  // #8
-  emptyBody: 'Open an invoice with a payment schedule and send the first reminder yourself. After that, this room keeps the record.', // #9
+  emptyBody: 'Open an invoice with a payment schedule and send the first reminder yourself. After that, this page keeps the record.', // #9
 
   // ── THE SWITCH ──────────────────────────────────────────────────────────
   // #12 carries the whole guarantee in one sentence — the first reminder is

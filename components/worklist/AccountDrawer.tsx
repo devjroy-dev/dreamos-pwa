@@ -206,13 +206,13 @@ export function AccountDrawer({ mode, onPickMode, onClose, room }: {
 // F-38.14: the press fill is measured, not asserted. 1.511:1 on Graphite, 1.251:1 on Chalk.
 // F-38.16: the destructive row carries clearance from the label above it.
 const DRAWER_CSS = `
-.tdw-drawer{background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-radius:3px;overflow:hidden;min-width:248px}
-.tdw-drawer .wl-dsec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:14px 16px 10px}
+.tdw-drawer{background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-radius:12px;overflow:hidden;min-width:248px}
+.tdw-drawer .wl-dsec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:16px 16px 12px}
 .tdw-drawer .wl-dsec:not(:first-of-type){border-top:.5px solid var(--atelier-card-border)}
 .tdw-drawer .wl-drow{display:flex;align-items:center;width:100%;min-height:52px;padding:8px 16px;background:none;border:none;cursor:pointer;text-align:left;text-decoration:none;touch-action:manipulation}
 .tdw-drawer .wl-drow + .wl-drow{border-top:.5px solid var(--atelier-card-border)}
 .tdw-drawer .wl-drow.mode + .wl-drow.mode{border-top:none}
-.tdw-drawer .wl-drow.danger{margin-top:6px}
+.tdw-drawer .wl-drow.danger{margin-top:8px}
 .tdw-drawer .wl-dlabel{font:var(--wl-t3);color:var(--atelier-ink)}
 .tdw-drawer .wl-drow[aria-current="true"] .wl-dlabel{color:var(--atelier-accent-text)}
 .tdw-drawer .wl-drow.danger .wl-dlabel{color:var(--role-critical)}

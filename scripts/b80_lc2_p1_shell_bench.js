@@ -177,6 +177,24 @@ function typeFree(src) {
     .replace(/\b(fontFamily|fontSize|fontWeight|lineHeight|letterSpacing|fontStyle|textTransform|font)\s*:\s*('[^']*'|[^,}\n]+)\s*,?/g, '')
     .replace(/[\s,]+/g, '');
 }
+// DESIGN-1 · STAGE 1 (by label): §6.8 amended a second time, the same way TYPE_2 amended it. Stage 1 set the whole
+// vendor app on one spacing scale and one corner (docs/review/REPORT.md §3: 4, 8, 12, 16, 24, 32; 12px corners) and
+// retired words (REPORT.md W1, W5: no dashes, "enquiry" never "lead"). So AddSheet is compared with the base in
+// everything but its type, its spacing and corners, and those words: lookFree takes the spacing and corners out as
+// typeFree takes the type, and designWords applies the stage's word changes to the BASE, each one listed, so any
+// other word that moves still reddens this cell.
+function lookFree(src) {
+  return typeFree(String(src).replace(/\b(padding\w*|margin\w*|gap|borderRadius)\s*:\s*('[^']*'|[^,}\n]+)\s*,?/g, ''));
+}
+const DESIGN_WORDS = [
+  ["'New lead'", "'New enquiry'"], ["'Edit lead'", "'Edit enquiry'"], ["'Add lead'", "'Add enquiry'"],
+  ['Tell me about the new enquiry \u2014 paste it or describe it and I\u2019ll log it.', 'Tell me about the new enquiry. Paste it or describe it and I\u2019ll log it.'],
+  ['Give me the details for the invoice \u2014 client name, total amount, and any advance?', 'Give me the details for the invoice: client name, total amount and any advance.'],
+  ['Could not identify record \u2014 please try again.', 'Could not find that record. Please try again.'],
+  ['Invoice has payments \u2014 cancel and re-issue to edit.', 'This invoice has payments. Cancel it and issue a new one to edit.'],
+  ["'Filed \u2014 1 detail pending'", "'Saved. 1 detail to add'"], ['`Filed \u2014 ${n} details pending`', '`Saved. ${n} details to add`'],
+];
+function designWords(src) { let t = String(src); for (const [a, b] of DESIGN_WORDS) t = t.split(a).join(b); return t; }
 function sheetCells(sheet, clients, addsheet, addsheetBase) {
   const s = strip(sheet);
   const c = strip(clients);
@@ -202,7 +220,7 @@ function sheetCells(sheet, clients, addsheet, addsheetBase) {
     // sides (every face, size, weight, line-height, tracking, style and case key, the retired face
     // constant, the one rung import) and the layout whitespace and commas the re-dress reflowed.
     // Anything else that moves, a handler, a field, a word or a colour, still reddens it.
-    addSheetUntouched: addsheetBase !== null && typeFree(addsheet) === typeFree(addsheetBase),
+    addSheetUntouched: addsheetBase !== null && lookFree(addsheet) === lookFree(designWords(addsheetBase)),
   };
 }
 
@@ -288,7 +306,7 @@ function baseFile(rel) {
   ok(r6.defaultPreselected, '§6.5 the default package is preselected');
   ok(r6.submitSoon, '§6.6 [amended, packet 3] Add client submits the booking');
   ok(r6.title, '§6.7 the title is C1');
-  ok(r6.addSheetUntouched, '§6.8 [amended, CE-45 FE-2 TYPE_2] AddSheet equals base 409a130e in everything but its type (R-43.5 kept; F4)');
+  ok(r6.addSheetUntouched, '§6.8 [amended, CE-45 FE-2 TYPE_2; DESIGN-1] AddSheet equals base 409a130e in everything but its type, spacing, corners and the stage\u2019s listed words (R-43.5 kept; F4)');
 
   sec('§7 · tokens only (R-42.6)');
   ok(tokenCells([src.page, src.sheet, src.copy]), '§7.1 no colour literal in the page, the sheet or the copy home');

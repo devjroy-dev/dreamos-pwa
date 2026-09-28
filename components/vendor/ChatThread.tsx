@@ -125,7 +125,7 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
             const ink  = advisor ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-mute)';
             return (
               <div aria-label={`Entering the ${m.room} room`} style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '14px 22px 10px',
+                display: 'flex', alignItems: 'center', gap: 12, padding: '16px 24px 12px',
               }}>
                 <span style={{ flex: 1, height: '1px', background: line }} />
                 <span style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: ink }}>
@@ -142,8 +142,8 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
               the A4 copy law. */}
           {m.divider ? (
             <div aria-label="Fresh thread starts here" style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '14px 22px 10px',
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '16px 24px 12px',
             }}>
               <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-card-border)' }} />
               <span style={{
@@ -186,8 +186,8 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
           {/* Clarify chips — brass in dark, oxblood in light */}
           {m.clarify?.options && m.clarify.options.length > 0 && (
             <div style={{
-              display: 'flex', flexWrap: 'wrap', gap: 7,
-              padding: '4px 22px 8px 38px',
+              display: 'flex', flexWrap: 'wrap', gap: 8,
+              padding: '4px 24px 8px 40px',
             }}>
               {m.clarify.options.map((opt, i) => {
                 const label = typeof opt === 'string' ? opt : opt.label;
@@ -205,13 +205,13 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                     // the visible chip is byte-identical. The spread sits BESIDE
                     // the height, never replacing it.
                     height: 32,
-                    paddingInline: 14,
+                    paddingInline: 16,
                     ...touchBox44(32),
                     ...pressedStyle(pressedKey === `clarify:${m.id}:${i}`, reducedMotion),
                     WebkitTapHighlightColor: 'transparent',
                     background: 'var(--atelier-input-bg)',
                     border: '0.5px solid var(--atelier-card-border)',
-                    borderRadius: 2,
+                    borderRadius: 12,
                     cursor: 'pointer',
                     color: T.isLight ? T.accent : 'var(--atelier-label)',
                     whiteSpace: 'nowrap',
@@ -228,7 +228,7 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
               through useDemoChat) `intercepted` is never set, so the chip is dormant there BY
               CONSTRUCTION — asserted as a negative cell, never assumed. */}
           {m.intercepted && (
-            <div style={{ padding: '2px 22px 10px 38px' }}>
+            <div style={{ padding: '4px 24px 12px 40px' }}>
               <button
                 type="button"
                 disabled={!!reported[m.id]}
@@ -248,7 +248,7 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                   WebkitTapHighlightColor: 'transparent',
                   background: 'transparent',
                   border: '0.5px dashed var(--atelier-card-border)',
-                  borderRadius: 2,
+                  borderRadius: 12,
                   cursor: reported[m.id] ? 'default' : 'pointer',
                   opacity: reported[m.id] ? 0.4 : 1,
                   color: 'var(--atelier-accent-text)',
@@ -262,15 +262,15 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
               completed action. Lighter/ghost styling distinguishes them from
               clarify (which is a blocking question). Includes optional intro. */}
           {m.suggestions?.suggestions && m.suggestions.suggestions.length > 0 && (
-            <div style={{ padding: '2px 22px 10px 38px' }}>
+            <div style={{ padding: '4px 24px 12px 40px' }}>
               {m.suggestions.intro && (
                 <div style={{
                   font: RUNG.t3,
                   color: 'var(--atelier-ink-dim)',
-                  margin: '2px 0 7px',
+                  margin: '4px 0 8px',
                 }}>{m.suggestions.intro}</div>
               )}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {m.suggestions.suggestions.map((opt, i) => (
                   <button
                     key={i}
@@ -291,7 +291,7 @@ export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrol
                       WebkitTapHighlightColor: 'transparent',
                       background: 'transparent',
                       border: '0.5px dashed var(--atelier-card-border)',
-                      borderRadius: 2,
+                      borderRadius: 12,
                       cursor: 'pointer',
                       color: 'var(--atelier-accent-text)',
                       whiteSpace: 'nowrap',

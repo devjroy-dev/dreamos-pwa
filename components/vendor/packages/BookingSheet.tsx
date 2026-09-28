@@ -166,7 +166,7 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
       )}
       {need && <NeedFirst text={needText(need.code)} onFix={fixFor(need.code)} testId="booking" />}
       {failed && <p role="alert" style={{ font: RUNG.t3, margin: 0, color: T.accent }}>{BOOKING.failed}</p>}
-      <div style={{ display: 'flex', gap: 10 }}>
+      <div style={{ display: 'flex', gap: 12 }}>
         {kindButton('booking_confirmed', LEAD_PACKAGE.bookingConfirmed)}
         {kindButton('advance_paid', LEAD_PACKAGE.advancePaid)}
       </div>

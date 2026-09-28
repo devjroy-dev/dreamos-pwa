@@ -238,7 +238,9 @@ ok('§4.15 the sheet is a flex COLUMN — header, scroller, pinned action',
   // Asserted on code: the scroller's own closing precedes the pinned footer's
   // padding, which is the structural fact the comment merely describes.
   const scroller = PICKER.indexOf("flex: 1, overflowY: 'auto'");
-  const footer   = PICKER.indexOf("borderTop: '0.5px solid rgba(201,168,76,0.18)'");
+  // DESIGN-1 · STAGE 1 (by label): the footer's gold hairline literal became the token read (b59's ruling J, the
+  // palette's gold moved), so the footer is found by the token it now reads.
+  const footer   = PICKER.indexOf("borderTop: '0.5px solid var(--atelier-card-border)'");
   const button   = PICKER.indexOf('onClick={igImport}');
   ok('§4.17 the import action lives OUTSIDE the scroller — a control the vendor '
      + 'must hunt for is a control that does not exist',

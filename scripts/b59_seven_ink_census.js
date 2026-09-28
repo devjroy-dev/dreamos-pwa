@@ -234,7 +234,13 @@ outOfFamily.length === 0
 // of components/vendor/TipsCarousel.tsx (:242, :253 twice, :325) left with the file, which the founder's ruling of
 // 27 Sept 2026 retired for the "?" on every surface. Derived by set difference of this census's own list at
 // dc8dbdd1 against the cut: those four are the only literals gone; every other entry moved line, not value.
-const RESTATED_PINNED = 110;
+// DESIGN-1 · STAGE 1 · RE-PINNED 110 -> 23, THE DEBT SHRANK BY EIGHTY-SEVEN (by label, the Teal Ledger palette). The
+// palette moved --role-metal #C9A84C -> #CDB068, so every gold-at-alpha literal, rgba(201,168,76,a), fell out of family
+// (84 of them, 85 with the toast's #EDEEEF). Ruling J cured them rather than any widening of this cell: each became an
+// EXISTING token read (a hairline -> --atelier-card-border, an outline at alpha 0.3 or more -> --atelier-input-border, a
+// tint -> --atelier-row-hover, a word -> --atelier-ink-mute); the toast's ink is Graphite's own #ECEFEF, one in-family
+// literal added. No alpha-bearing token was minted. The other 22 moved line, not value.
+const RESTATED_PINNED = 23;
 console.log('\n\u00a71b  the restated-token debt is pinned, not passed over');
 restated.length === RESTATED_PINNED
   ? ok(`${RESTATED_PINNED} in-family literals`, 'the ruled debt — awaiting an alpha-bearing token ruling')
@@ -289,8 +295,9 @@ const NEG = [
   ['a plain token read passes', "color: 'var(--role-critical)'", (l) => (l.match(LITERAL) || []).length === 0 && !PHANTOM.test(l)],
   // and the inverse of §1: a palette value must NOT be called out of family, or
   // the law would forbid the palette itself.
-  ['--role-metal’s own hex is in family',    '#C9A84C', (l) => FAMILY.has(toHex(l))],
-  ['--role-critical’s own hex is in family', '#AE3A22', (l) => FAMILY.has(toHex(l))],
+  // DESIGN-1 (by label): the two probes read Teal Ledger's values, #CDB068 and #A53420 (were #C9A84C and #AE3A22).
+  ['--role-metal’s own hex is in family',    '#CDB068', (l) => FAMILY.has(toHex(l))],
+  ['--role-critical’s own hex is in family', '#A53420', (l) => FAMILY.has(toHex(l))],
 ];
 for (const [name, line, probe] of NEG) {
   probe(line) ? ok(name) : bad(name, 'the exclusion is wrong \u2014 this cell will red on correct code');

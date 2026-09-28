@@ -181,7 +181,7 @@ export function SolutionsStyles() {
 .sol-row:last-child{border-bottom:none}
 .sol-row:active{background:var(--atelier-row-hover)}
 .sol-row:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.sol-rowtext{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
+.sol-rowtext{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 auto}
 .sol-rowlabel{font:var(--wl-t3);color:var(--atelier-ink)}
 /* CE-45 FE-1: the row’s one line (R-45.20). t4 and ink-mute, both already in theme.ts; no new rung, no new token. */
 .sol-rowdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}
@@ -192,7 +192,7 @@ export function SolutionsStyles() {
 
 .sol-chip{font:var(--wl-t5);letter-spacing:.06em;text-transform:uppercase;
   white-space:nowrap;color:var(--atelier-ink-soft);flex:0 0 auto;
-  border:.5px solid var(--atelier-input-border);border-radius:2px;padding:3px 7px}
+  border:.5px solid var(--atelier-input-border);border-radius:12px;padding:4px 8px}
 .sol-chip--connected{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 .sol-chip--live{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 .sol-chip--needs_attention{color:var(--role-caution);border-color:var(--role-caution)}
@@ -203,27 +203,27 @@ export function SolutionsStyles() {
    somewhere; the dim chip beside it is the contrast that makes it read. */
 .sol-chip--open{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 
-.sol-surface{display:flex;flex-direction:column;padding-top:16px;padding-bottom:28px}
+.sol-surface{display:flex;flex-direction:column;padding-top:16px;padding-bottom:32px}
 .sol-eyebrow{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;
-  color:var(--atelier-ink-mute);margin:0 0 6px}
+  color:var(--atelier-ink-mute);margin:0 0 8px}
 .sol-heading{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 12px}
 .sol-err{font:var(--wl-t3);color:var(--role-critical);margin:0 0 12px}
 .sol-empty{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
 
 .sol-stats{display:flex;flex-wrap:wrap;gap:24px;margin:16px 0 0}
-.sol-stat{display:flex;flex-direction:column;gap:2px}
+.sol-stat{display:flex;flex-direction:column;gap:4px}
 .sol-statvalue{font:var(--wl-t2);color:var(--atelier-ink)}
 .sol-statlabel{font:var(--wl-t5);letter-spacing:.06em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 
 .sol-list{display:flex;flex-direction:column;margin:16px 0 0}
 .sol-item{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  min-height:48px;padding:10px 0;border-bottom:.5px solid var(--atelier-card-border)}
+  min-height:48px;padding:12px 0;border-bottom:.5px solid var(--atelier-card-border)}
 .sol-item:last-child{border-bottom:none}
 .sol-itemlabel{font:var(--wl-t3);color:var(--atelier-ink)}
 .sol-itemnote{font:var(--wl-t5);color:var(--atelier-ink-mute)}
 
-.sol-actions{display:flex;gap:10px;margin:20px 0 0;flex-wrap:wrap}
-.sol-btn{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;
+.sol-actions{display:flex;gap:12px;margin:24px 0 0;flex-wrap:wrap}
+.sol-btn{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:12px;
   cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);
   color:var(--atelier-accent-text);touch-action:manipulation}
 .sol-btn:active{background:var(--atelier-row-hover)}
@@ -239,10 +239,10 @@ export function SolutionsStyles() {
 .sol-addr{font:var(--wl-t3);color:var(--atelier-ink);margin:16px 0 0;word-break:break-all}
 /* F-19.21: a RESERVED name, not a live address. Muted and not link-coloured, so
    nothing about it invites a tap that would land on DEPLOYMENT_NOT_FOUND. */
-.sol-reserved{font:var(--wl-t3);color:var(--atelier-ink-mute);margin:14px 0 0;word-break:break-all}
+.sol-reserved{font:var(--wl-t3);color:var(--atelier-ink-mute);margin:16px 0 0;word-break:break-all}
 .sol-note{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0;max-width:52ch}
 
-.sol-footer{margin-top:28px;padding-top:20px;border-top:.5px solid var(--atelier-card-border);
+.sol-footer{margin-top:32px;padding-top:24px;border-top:.5px solid var(--atelier-card-border);
   display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 .sol-footerbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
 
@@ -261,12 +261,12 @@ export function SolutionsStyles() {
    Advisor precedent). .sol-subhead heads the can-do list, and now carries the space above the
    list, so .sol-can margin goes 16px 0 0 to 0. The hub eyebrow .sol-eyebrow stays at ink-mute,
    untouched (B1). No backticks and no straight apostrophes here: b40 C102 reads this literal. */
-.sol-kicker{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:0 0 6px}
-.sol-subhead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:24px 0 10px}
-.sol-can{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;max-width:46ch}
+.sol-kicker{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:0 0 8px}
+.sol-subhead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:24px 0 12px}
+.sol-can{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;max-width:46ch}
 .sol-can li{position:relative;padding-left:16px;font:var(--wl-t3);color:var(--atelier-ink)}
 .sol-can li::before{content:"";position:absolute;left:2px;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--atelier-ink-dim)}
-.sol-aside{display:flex;flex-direction:column;margin-top:28px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
+.sol-aside{display:flex;flex-direction:column;margin-top:32px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
 .sol-asideline{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
 
 @media (prefers-reduced-motion: reduce){.sol-row,.sol-btn{transition:none}}

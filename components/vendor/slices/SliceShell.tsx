@@ -197,16 +197,16 @@ const msLabel: React.CSSProperties = {
   display: 'block',
   textTransform: 'uppercase',
   color: A.inkMute,
-  margin: '12px 0 6px',
+  margin: '12px 0 8px',
 };
 const msInput: React.CSSProperties = {
   font: T.t3,
-  padding: '9px 10px',
+  padding: '8px 12px',
   boxSizing: 'border-box',
   width: '100%',
   background: 'var(--atelier-input-bg)',
   border: '0.5px solid var(--atelier-card-border)',
-  borderRadius: 2,
+  borderRadius: 12,
   color: 'var(--atelier-ink)',
 };
 
@@ -232,12 +232,12 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <div style={{ flex: 1, minWidth: 0 }}>{masthead}</div>
         {/* TYPE_1b: the sort sits on the headline row itself (its first line), no longer 14px below it */}
-        {sortControl && <div style={{ padding: '0 var(--slice-inset, 22px) 0 0' }}>{sortControl}</div>}
+        {sortControl && <div style={{ padding: '0 var(--slice-inset, 16px) 0 0' }}>{sortControl}</div>}
       </div>
 
 
       {/* Search */}
-      <div style={{ padding: '12px var(--slice-inset, 22px) 6px' }}>
+      <div style={{ padding: '12px var(--slice-inset, 16px) 8px' }}>
         <div style={{ position: 'relative' }}>
           <span style={{ font: T.t3, position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: A.inkMute, pointerEvents: 'none' }}>⌕</span>
           <input
@@ -248,11 +248,11 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
             style={{
               font: T.t3,
               width: '100%',
-              padding: '10px 12px 10px 32px',
+              padding: '12px 12px 12px 32px',
               boxSizing: 'border-box',
               background: 'var(--atelier-input-bg)',
               border: '0.5px solid var(--atelier-card-border)',
-              borderRadius: 2,
+              borderRadius: 12,
               color: A.ink,
               outline: 'none',
               caretColor: A.interactive,
@@ -265,7 +265,7 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
       {filterRail}
 
       {/* List */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 110 }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 112 }}>
         {renderList ?? (
           <>
             {!loading && !error && rows.length === 0 && (
@@ -396,8 +396,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     void fetchLeadDetail(leadId).then((res) => {
       const lead = res && res.ok ? res.lead : null;
       const stored = lead && lead.wedding_date ? String(lead.wedding_date).slice(0, 10) : '';
-      setDateFix({ leadId, name: (lead && lead.name) || 'Lead', value: stored });
-    }).catch(() => setDateFix({ leadId, name: 'Lead', value: '' }));
+      setDateFix({ leadId, name: (lead && lead.name) || 'Enquiry', value: stored });
+    }).catch(() => setDateFix({ leadId, name: 'Enquiry', value: '' }));
   };
   // F-43.105: the lead detail and its package are read together when the sheet opens, and the body
   // renders once both are in (a still placeholder until then), so the package card never pops in.
@@ -598,9 +598,9 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const filterChips: FilterChip[] = useMemo(() => {
     const count = (fn: (r: Row) => boolean) => rawRows.filter(fn).length;
     if (slice === 'leads') return ['new', 'contacted', 'quoted', 'booked', 'lost']
-      .map(k => ({ key: k, label: k, count: count(r => (r.badge ?? '').toLowerCase() === k) }));
+      .map(k => ({ key: k, label: k.charAt(0).toUpperCase() + k.slice(1), count: count(r => (r.badge ?? '').toLowerCase() === k) }));
     if (slice === 'invoices') return ['overdue', 'unpaid', 'advance_paid', 'paid']
-      .map(k => ({ key: k, label: k === 'advance_paid' ? 'part-paid' : k,
+      .map(k => ({ key: k, label: k === 'advance_paid' ? 'Part paid' : k.charAt(0).toUpperCase() + k.slice(1),
         count: k === 'overdue' ? count(r => !!r.badgeAlert) : count(r => (r.badge ?? '').toLowerCase().replace(' ', '_') === k) }));
     if (slice === 'expenses') {
       const keys = [...new Set(rawRows.map(r => monthKey(r.sortDate)).filter(Boolean))].sort().reverse().slice(0, 6);
@@ -610,9 +610,9 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       const today = istTodayISO();
       const week = istPlusDaysISO(7);
       return [
-        { key: 'week', label: 'this week', count: count(r => (r.sortDate ?? '') >= today && (r.sortDate ?? '') <= week && (r.badge ?? '') === 'upcoming') },
-        { key: 'later', label: 'later', count: count(r => (r.sortDate ?? '') > week && (r.badge ?? '') === 'upcoming') },
-        { key: 'done', label: 'done', count: count(r => (r.badge ?? '') === 'done') },
+        { key: 'week', label: 'This week', count: count(r => (r.sortDate ?? '') >= today && (r.sortDate ?? '') <= week && (r.badge ?? '') === 'upcoming') },
+        { key: 'later', label: 'Later', count: count(r => (r.sortDate ?? '') > week && (r.badge ?? '') === 'upcoming') },
+        { key: 'done', label: 'Done', count: count(r => (r.badge ?? '') === 'done') },
       ];
     }
     return [];
@@ -798,7 +798,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       commit: async () => {
         const res = await fetch(req.url, { method: req.method, headers: { 'Content-Type': 'application/json', ...getAuthHeader() }, body: req.body });
         const data = await res.json().catch(() => ({ ok: false, error: 'Server error.' }));
-        if (!res.ok || !data.ok) { unhideRow(row.id); showToast(data.error ?? 'Delete failed — the row is back.', 'error'); }
+        if (!res.ok || !data.ok) { unhideRow(row.id); showToast(data.error ?? 'Delete failed. The row is back.', 'error'); }
       },
       toastMsg: req.successMessage ?? 'Removed.',
     });
@@ -829,7 +829,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         // and lands it in the notes trail — verified at HEAD, leads.js).
         const res = await patchLeadState(row.id, 'lost', reason || undefined);
         setBadge(row.id, null); // bus refetch takes over as truth
-        if (!('ok' in res) || !res.ok) showToast(`Could not mark ${row.primary} lost — still ${prevBadge}.`, 'error');
+        if (!('ok' in res) || !res.ok) showToast(`Could not mark ${row.primary} lost. Still ${prevBadge}.`, 'error');
       },
       toastMsg: `${row.primary} marked lost.`,
     });
@@ -1058,12 +1058,12 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           background: selected.has(row.id) ? 'var(--atelier-accent-text)' : 'transparent',
         }} />
       )}
-      <div style={selectMode ? { paddingLeft: 18 } : undefined}>
+      <div style={selectMode ? { paddingLeft: 16 } : undefined}>
         <SwipeRow right={selectMode ? undefined : swipeSidesFor(row).right} left={selectMode ? undefined : swipeSidesFor(row).left}>
           <SliceRow row={row} slice={slice} onSelect={() => selectMode ? toggleSelected(row) : (setSel(row), setConfirmDel(false))} />
         </SwipeRow>
         {slice === 'invoices' && !selectMode && (row.payAmount ?? 0) > 0 && !packagePayBlocked(row) && (
-          <div style={{ padding: '0 var(--slice-inset, 22px) 12px' }}>
+          <div style={{ padding: '0 var(--slice-inset, 16px) 12px' }}>
             {/* ⚠ INLINE, NOT A `wl-` CLASS, AND THAT IS THE WHOLE REASON THIS
                 LOOKS UNLIKE `TeamTabs`' row button. `SliceShell` is mounted in
                 BOTH trees — inside the shell at `/w/list/[slice]` and on
@@ -1076,8 +1076,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               style={{
                 font: T.t4,
                 minHeight: 32,
-                padding: '0 14px',
-                borderRadius: 3,
+                padding: '0 16px',
+                borderRadius: 12,
                 background: 'transparent',
                 border: `0.5px solid ${A.interactive}`,
                 color: A.interactive,
@@ -1145,7 +1145,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // card and above the detail rows, and are absent when nothing is missing. F-43.108: a tapped chip
   // opens its own cell. (TDW_04 A1's render truth: the wire's missing set.)
   const missingTop = slice === 'leads' && sel && (sel.draftMissing?.length ?? 0) > 0 ? (
-    <div style={{ marginBottom: 14 }}>
+    <div style={{ marginBottom: 16 }}>
       <MissingChips heading testId="lead"
         // ── F-44.3 (CE-44) · ONE LABEL HOME FOR A CELL ─────────────────────────
         // The chip read `+ Wedding Date` while the sheet it opens says `+ Wedding date`,
@@ -1165,20 +1165,21 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     <>
       {/* Invoice payment schedule */}
       {slice === 'invoices' && sel && (
-        <div style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid var(--atelier-card-border)' }}>
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid var(--atelier-card-border)' }}>
+          {/* DESIGN-1 · E12: one primary on the sheet, the likely next step (Send on WhatsApp); the PDF
+              is the outlined secondary. The order is unchanged. */}
           <button type="button" onClick={downloadInvoicePdf} disabled={pdfBusy}
-            className={!pdfBusy ? 'atelier-fab' : undefined}
             style={{
               font: T.t4,
               width: '100%',
               marginBottom: 8,
-              padding: '11px 14px',
-              background: pdfBusy ? 'rgba(201,168,76,0.18)' : undefined,
-              border: '0.5px solid var(--atelier-label)',
-              borderRadius: 3,
+              padding: '12px 16px',
+              background: 'transparent',
+              border: '1px solid var(--atelier-sheet-border)',
+              borderRadius: 12,
               cursor: pdfBusy ? 'default' : 'pointer',
               opacity: pdfBusy ? 0.6 : 1,
-              color: INK_DEEP,
+              color: 'var(--atelier-accent-text)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1211,16 +1212,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                   showToast('Could not fetch the PDF. Try again.', 'error');
                 }
               }}
+              className="atelier-fab"
               style={{
                 font: T.t4,
                 width: '100%',
                 marginBottom: 16,
-                padding: '11px 14px',
-                background: 'transparent',
-                border: '0.5px solid var(--atelier-sheet-border)',
-                borderRadius: 3,
+                padding: '12px 16px',
+                borderRadius: 12,
                 cursor: 'pointer',
-                color: 'var(--atelier-accent-text)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1229,16 +1228,16 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               ↗ Send on WhatsApp
             </button>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <span style={{ font: T.t5, letterSpacing: '0.08em', color: A.brass, textTransform: 'uppercase' }}>Payment Schedule</span>
-            <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <span style={{ font: T.t5, color: A.inkMute }}>Payment schedule</span>
+            <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
             {schedule && schedule.length === 0 && (
               <button type="button" onClick={() => setScheduleOpen(true)} style={{
                 font: T.t4,
-                padding: '5px 10px',
+                padding: '4px 12px',
                 background: 'transparent',
-                border: '0.5px solid rgba(201,168,76,0.5)',
-                borderRadius: 2,
+                border: '0.5px solid var(--atelier-input-border)',
+                borderRadius: 12,
                 cursor: 'pointer',
                 color: A.interactiveWarm,
               }}>Add</button>
@@ -1253,12 +1252,12 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             {schedule && schedule.length > 0 && !removeSchedule && !sel.isPackage && (
               <button type="button" onClick={() => setRemoveSchedule(true)} style={{
                 font: T.t4,
-                padding: '5px 10px',
+                padding: '4px 12px',
                 background: 'transparent',
-                border: '0.5px solid var(--role-critical)',
-                borderRadius: 2,
+                border: '1px solid var(--atelier-sheet-border)',
+                borderRadius: 12,
                 cursor: 'pointer',
-                color: A.red,
+                color: A.ink,   // DESIGN-1: red is Delete's alone (REPORT.md §3, Buttons)
                 flexShrink: 0,
               }}>{COPY.studioScheduleRemove}</button>
             )}
@@ -1280,7 +1279,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                transcribed as S1 of the mock. With Edit and a third chip state it
                went to one word per line. Line one is hers to read; line two is
                hers to tap. Nothing shrinks, nothing truncates. */
-            <div key={ms.id} style={{ padding: '10px 0', borderBottom: '0.5px solid rgba(201,168,76,0.10)' }}>
+            <div key={ms.id} style={{ padding: '12px 0', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
               <div style={{ font: T.t3, color: A.ink }}>{ms.milestone_label}</div>
               <div style={{ font: T.t4, color: A.inkMute }}>
                 {/* ── F-40.182 · THE HOUSE DATE, NOT THE COLUMN ──────────────
@@ -1301,8 +1300,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                   color: ms.state === 'paid' ? A.green : ms.state === 'waived' ? A.inkMute : A.brassWarm,
                   textTransform: 'uppercase',
                   border: `0.5px solid ${ms.state === 'paid' ? A.green : ms.state === 'waived' ? 'var(--atelier-ink-dim)' : 'var(--role-metal)'}`,
-                  borderRadius: 2,
-                  padding: '3px 8px',
+                  borderRadius: 12,
+                  padding: '4px 8px',
                   flexShrink: 0,
                 }}>{ms.state}</span>
 
@@ -1346,11 +1345,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 {ms.state === 'pending' && !ms.sent_at && (
                   <button type="button" onClick={() => setRemindMs(ms)} style={{
                     font: T.t4,
-                    padding: '5px 10px',
+                    padding: '4px 12px',
                     background: 'transparent',
-                    borderRadius: 2,
+                    borderRadius: 12,
                     cursor: 'pointer',
-                    border: '0.5px solid rgba(201,168,76,0.5)',
+                    border: '0.5px solid var(--atelier-input-border)',
                     color: A.interactiveWarm,
                     flexShrink: 0,
                   }}>Remind</button>
@@ -1365,9 +1364,9 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     setEditDue(ms.due_date || ''); setEditErr(null);
                   }} style={{
                     font: T.t4,
-                    padding: '5px 10px',
+                    padding: '4px 12px',
                     background: 'transparent',
-                    borderRadius: 2,
+                    borderRadius: 12,
                     cursor: 'pointer',
                     border: '0.5px solid var(--atelier-card-border)',
                     color: A.inkDim,
@@ -1385,8 +1384,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     setScheduleSaving(false);
                   }} disabled={scheduleSaving} className="atelier-fab" style={{
                     font: T.t4,
-                    padding: '5px 10px',
-                    borderRadius: 2,
+                    padding: '4px 12px',
+                    borderRadius: 12,
                     cursor: 'pointer',
                     border: '0.5px solid var(--atelier-label)',
                     color: INK_DEEP,
@@ -1401,7 +1400,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
 
       {/* Lead vendor summary + conversation */}
       {slice === 'leads' && (leadDetail || loadingDetail) && (
-        <div style={{ marginTop: 18, paddingTop: 18, borderTop: '0.5px solid var(--atelier-card-border)' }}>
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid var(--atelier-card-border)' }}>
           {loadingDetail && !leadDetail
             ? <ConversationWaiting />
             : leadDetail && <ConversationThread vendorSummary={leadDetail.vendor_summary} messages={leadDetail.conversation} leadName={leadDetail.name} />
@@ -1414,15 +1413,15 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // Per-slice footer extras — leads WhatsApp/Call row, verbatim
   // TDW_04 A2 (L-2): the deliberate Mark-lost block for the leads detail sheet.
   const markLostBlock = slice === 'leads' && sel && sel.badge !== 'lost' ? (
-    <div style={{ marginBottom: 10 }}>
+    <div style={{ marginBottom: 12 }}>
       {!markLostConfirm ? (
         <button type="button" onClick={() => setMarkLostConfirm(true)} style={{
           font: T.t4,
           width: '100%',
-          padding: '11px 14px',
+          padding: '12px 16px',
           background: 'transparent',
           border: '0.5px solid var(--atelier-sheet-border)',
-          borderRadius: 2,
+          borderRadius: 12,
           cursor: 'pointer',
           color: 'var(--atelier-ink-mute)',
         }}>Mark lost</button>
@@ -1438,15 +1437,15 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 type="text"
                 value={lostReason}
                 onChange={e => setLostReason(e.target.value)}
-                placeholder="Optional — it lands in the notes"
+                placeholder="Optional. It goes in the notes"
                 style={{
                   font: T.t3,
                   width: '100%',
-                  padding: '9px 12px',
+                  padding: '8px 12px',
                   boxSizing: 'border-box',
                   background: 'var(--atelier-input-bg)',
                   border: '0.5px solid var(--atelier-card-border)',
-                  borderRadius: 2,
+                  borderRadius: 12,
                   color: A.ink,
                 }}
               />
@@ -1456,19 +1455,19 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           <button type="button" onClick={() => sel && markLost(sel)} style={{
             font: T.t4,
             flex: 1,
-            padding: '11px 14px',
+            padding: '12px 16px',
             background: 'transparent',
             border: '0.5px solid var(--role-critical)',
-            borderRadius: 2,
+            borderRadius: 12,
             cursor: 'pointer',
             color: 'var(--role-critical)',
           }}>Yes — mark {sel?.primary} lost</button>
           <button type="button" onClick={() => setMarkLostConfirm(false)} style={{
             font: T.t4,
-            padding: '11px 14px',
+            padding: '12px 16px',
             background: 'transparent',
             border: '0.5px solid var(--atelier-sheet-border)',
-            borderRadius: 2,
+            borderRadius: 12,
             cursor: 'pointer',
             color: 'var(--atelier-ink-mute)',
           }}>Keep</button>
@@ -1499,10 +1498,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       <button type="button" onClick={() => { setForwardRow(sel); setSel(null); }} style={{
         font: T.t4,
         width: '100%',
-        padding: '11px 14px',
+        padding: '12px 16px',
         background: 'transparent',
         border: '0.5px solid var(--atelier-accent-text)',
-        borderRadius: 2,
+        borderRadius: 12,
         cursor: 'pointer',
         color: 'var(--atelier-accent-text)',
       }}>{RF.forwardControl}</button>
@@ -1535,14 +1534,14 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           THE COPY IS THE FOUNDER'S, EXECUTED 2026-08-25, shipped character for
           character. The CTA ships on his silence per the kickoff's own term. */}
       {slice === 'leads' && sel?.redacted && !confirmDel && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 4 }}>
           <div style={{
             // CE-45 FE-2 TYPE_1: the row's OWN detail-line rung, as it always was
             // (SliceRow's `detailLine`), which is t4 now. The first cut of this block
             // shipped 15 and `tdw09_type` named it at the byte; a rung cannot drift so.
             font: T.t4,
             color: A.inkMute, textAlign: 'center',
-          }}>Upgrade to Essential tier or above to connect with your lead.</div>
+          }}>Upgrade to Essential or above to contact this couple.</div>
           {/* ── R-38.1 CURE (S2 ZIP bounce) · THE TIER GATE WAS THE SIXTH OF NINE ──
               This CTA was a hardcoded `/vendor/billing`, and because `notes.tsx` imports
               `SliceDoor` from this very file, the whole module \u2014 tier gate included \u2014 is in
@@ -1553,10 +1552,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               link moves with it. */}
           <a href={roomHref('billing')} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '11px 0',
+            padding: '12px 0',
             background: 'var(--atelier-input-bg)',
             border: '0.5px solid var(--atelier-sheet-border)',
-            borderRadius: 2, textDecoration: 'none',
+            borderRadius: 12, textDecoration: 'none',
           }}>
             <span style={{
               font: T.t4,
@@ -1570,10 +1569,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           <a href={`https://wa.me/${sel.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
             style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '11px 0',
+              padding: '12px 0',
               background: 'transparent',
               border: '0.5px solid var(--role-positive)',
-              borderRadius: 2, textDecoration: 'none',
+              borderRadius: 12, textDecoration: 'none',
+              color: A.green,   // DESIGN-1 · P7: the icon draws in currentColor; without this it was link blue
             }}>
             <WaIcon />
             <span style={{ font: T.t4, color: A.green }}>WhatsApp</span>
@@ -1581,10 +1581,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           <a href={`tel:${sel.phone}`}
             style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '11px 0',
+              padding: '12px 0',
               background: 'var(--atelier-input-bg)',
               border: '0.5px solid var(--atelier-sheet-border)',
-              borderRadius: 2, textDecoration: 'none',
+              borderRadius: 12, textDecoration: 'none',
             }}>
             <span style={{ font: T.t3, color: A.brassWarm }}>☎</span>
             <span style={{ font: T.t4, color: A.brassWarm }}>Call</span>
@@ -1617,7 +1617,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             padding: '4px 0',
             color: A.inkMute,
             whiteSpace: 'nowrap',
-          }}>{sortKey} ⌄</button>
+          }}>{sortKey.charAt(0).toUpperCase() + sortKey.slice(1)} ⌄</button>
       ) : undefined}
       onAdd={onAdd}
     >
@@ -1660,10 +1660,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             width: '100%', background: 'var(--atelier-sheet-bg)',
             backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
             borderTop: '0.5px solid var(--atelier-card-border)',
-            borderRadius: '10px 10px 0 0', padding: '18px 16px 26px',
+            borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
           }}>
-            <div style={{ font: T.t1, color: A.ink, marginBottom: 6 }}>{editMs.milestone_label}</div>
-            <div style={{ font: T.t3, color: A.inkMute, marginBottom: 14 }}>
+            <div style={{ font: T.t1, color: A.ink, marginBottom: 8 }}>{editMs.milestone_label}</div>
+            <div style={{ font: T.t3, color: A.inkMute, marginBottom: 16 }}>
               {COPY.studioMsEditTitle}
             </div>
 
@@ -1697,7 +1697,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             <input type="date" value={editDue} onChange={e => { setEditDue(e.target.value); setEditErr(null); }} style={msInput} />
 
             {editErr && (
-              <p style={{ font: T.t3, color: A.red, margin: '10px 0 0' }}>{editErr}</p>
+              <p style={{ font: T.t3, color: A.red, margin: '12px 0 0' }}>{editErr}</p>
             )}
 
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
@@ -1706,7 +1706,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 flex: 1,
                 padding: '12px 16px',
                 background: 'transparent',
-                borderRadius: 2,
+                borderRadius: 12,
                 cursor: 'pointer',
                 border: '0.5px solid var(--atelier-card-border)',
                 color: A.inkDim,
@@ -1735,7 +1735,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 font: T.t4,
                 flex: 1,
                 padding: '12px 16px',
-                borderRadius: 2,
+                borderRadius: 12,
                 cursor: 'pointer',
                 border: '0.5px solid var(--atelier-label)',
                 color: INK_DEEP,
@@ -1757,11 +1757,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             width: '100%', background: 'var(--atelier-sheet-bg)',
             backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
             borderTop: '0.5px solid var(--atelier-card-border)',
-            borderRadius: '10px 10px 0 0', padding: '18px 16px 26px',
+            borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
           }}>
             <div style={{ font: T.t3, color: A.inkSoft, textAlign: 'center', padding: '8px 0' }}>
               Remove the schedule for <span style={{ color: A.ink }}>{sel.primary}</span>?
-              <span style={{ font: T.t4, display: 'block', color: A.inkMute, marginTop: 6 }}>
+              <span style={{ font: T.t4, display: 'block', color: A.inkMute, marginTop: 8 }}>
                 The {schedule.length === 1 ? 'milestone goes' : `${schedule.length} milestones go`}. Reminders already sent stay in your record.
               </span>
             </div>
@@ -1771,7 +1771,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 flex: 1,
                 padding: '12px 16px',
                 background: 'transparent',
-                borderRadius: 2,
+                borderRadius: 12,
                 cursor: 'pointer',
                 border: '0.5px solid var(--atelier-card-border)',
                 color: A.inkDim,
@@ -1793,10 +1793,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                 flex: 1,
                 padding: '12px 16px',
                 background: 'transparent',
-                borderRadius: 2,
+                borderRadius: 12,
                 cursor: 'pointer',
-                border: '0.5px solid var(--role-critical)',
-                color: A.red,
+                border: '1px solid var(--atelier-sheet-border)',
+                color: A.ink,
               }}>{COPY.studioScheduleRemove}</button>
             </div>
           </div>
@@ -1811,34 +1811,34 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             background: 'var(--atelier-sheet-bg)',
             backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
             borderTop: '0.5px solid var(--atelier-card-border)',
-            borderRadius: '10px 10px 0 0', padding: '18px 16px 26px',
+            borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
               <span style={{ font: T.t5, letterSpacing: '0.08em', color: A.brass, textTransform: 'uppercase' }}>
                 {COPY.studioReminderTitle}
               </span>
-              <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
+              <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
             </div>
 
             {/* WHO IT GOES TO, BEFORE WHAT IT SAYS. A vendor checks the number
                 first; the message is only worth reading once she knows where it
                 is bound. */}
-            <div style={{ font: T.t3, color: A.inkMute, marginBottom: 10 }}>
+            <div style={{ font: T.t3, color: A.inkMute, marginBottom: 12 }}>
               This goes to {sel.primary} on {sel.client_phone ?? '\u2014'}.
             </div>
 
             <div style={{
               font: T.t3,
-              padding: '12px 14px',
+              padding: '12px 16px',
               background: 'var(--atelier-input-bg)',
               border: '0.5px solid var(--atelier-card-border)',
-              borderRadius: 3,
+              borderRadius: 12,
               color: A.ink,
             }}>
               {reminderPreview(sel.primary, remindMs, vendorBusinessName)}
             </div>
 
-            <div style={{ font: T.t3, color: A.inkMute, margin: '10px 0 16px', maxWidth: '40ch' }}>
+            <div style={{ font: T.t3, color: A.inkMute, margin: '12px 0 16px', maxWidth: '40ch' }}>
               {COPY.studioReminderRails}
             </div>
 
@@ -1882,8 +1882,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               style={{
                 font: T.t4,
                 width: '100%',
-                padding: '11px 14px',
-                borderRadius: 3,
+                padding: '12px 16px',
+                borderRadius: 12,
                 border: '0.5px solid var(--atelier-label)',
                 cursor: remindBusy ? 'default' : 'pointer',
                 opacity: remindBusy ? 0.6 : 1,
@@ -1903,24 +1903,24 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             background: 'var(--atelier-sheet-bg)',
             backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
             borderTop: '0.5px solid var(--atelier-sheet-border)',
-            padding: '20px 24px calc(24px + env(safe-area-inset-bottom))',
+            padding: '24px 24px calc(24px + env(safe-area-inset-bottom))',
             display: 'flex', flexDirection: 'column', gap: 12, maxHeight: '85vh', overflowY: 'auto',
           }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
-              <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
+              <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
             </div>
-            <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>Payment Schedule</div>
-            <div style={{ font: T.t1, color: 'var(--atelier-ink)', marginBottom: 4 }}>Add Milestones</div>
+            <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>Payment schedule</div>
+            <div style={{ font: T.t1, color: 'var(--atelier-ink)', marginBottom: 4 }}>Add milestones</div>
             <div style={{ font: T.t3, color: A.inkMute, marginTop: -4, marginBottom: 4 }}>
               Must sum to 100%. Amounts computed from invoice total.
             </div>
 
             {milestones.map((ms, idx) => (
               <div key={idx} style={{
-                padding: '12px 14px',
+                padding: '12px 16px',
                 background: 'var(--atelier-row-hover)',
                 border: '0.5px solid var(--atelier-card-border)',
-                borderRadius: 2,
+                borderRadius: 12,
                 display: 'flex', flexDirection: 'column', gap: 8,
               }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -1943,11 +1943,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                       font: T.t3,
                       flex: 2,
                       minWidth: 0,
-                      padding: '8px 10px',
+                      padding: '8px 12px',
                       boxSizing: 'border-box',
                       background: 'var(--atelier-input-bg)',
                       border: '0.5px solid var(--atelier-card-border)',
-                      borderRadius: 2,
+                      borderRadius: 12,
                       color: A.ink,
                       outline: 'none',
                       caretColor: A.interactive,
@@ -1963,11 +1963,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                       font: T.t3,
                       flex: 1,
                       minWidth: 0,
-                      padding: '8px 10px',
+                      padding: '8px 12px',
                       boxSizing: 'border-box',
                       background: 'var(--atelier-input-bg)',
                       border: '0.5px solid var(--atelier-card-border)',
-                      borderRadius: 2,
+                      borderRadius: 12,
                       color: A.ink,
                       outline: 'none',
                       textAlign: 'right',
@@ -1980,7 +1980,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                       the sheet, from the two fields that actually hold her typing. */}
                   {milestones.length > 2 && (
                     <button type="button" onClick={() => setMilestones(prev => prev.filter((_, i) => i !== idx))}
-                      style={{ font: T.t3, padding: '4px 6px', background: 'transparent', border: 'none', cursor: 'pointer', color: A.red, flexShrink: 0 }}>×</button>
+                      style={{ font: T.t3, padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', color: A.red, flexShrink: 0 }}>×</button>
                   )}
                 </div>
                 {/* ⚠ THIS ONE HAD NO ACCESSIBLE NAME AT ALL, not even a weak one:
@@ -1995,11 +1995,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                   style={{
                     font: T.t3,
                     width: '100%',
-                    padding: '8px 10px',
+                    padding: '8px 12px',
                     boxSizing: 'border-box',
                     background: 'var(--atelier-input-bg)',
                     border: '0.5px solid var(--atelier-card-border)',
-                    borderRadius: 2,
+                    borderRadius: 12,
                     color: A.inkSoft,
                     outline: 'none',
                     caretColor: A.interactive,
@@ -2012,10 +2012,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               <button type="button" onClick={() => setMilestones(prev => [...prev, { label: '', pct: '0', due_date: '' }])}
                 style={{
                   font: T.t4,
-                  padding: '6px 12px',
+                  padding: '8px 12px',
                   background: 'transparent',
                   border: '0.5px solid var(--atelier-sheet-border)',
-                  borderRadius: 2,
+                  borderRadius: 12,
                   cursor: 'pointer',
                   color: A.interactiveWarm,
                 }}>+ Add Row</button>
@@ -2051,15 +2051,15 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                     className={canSave && !scheduleSaving ? 'atelier-fab' : undefined}
                     style={{
                       font: T.t4,
-                      padding: '14px 0',
-                      borderRadius: 2,
+                      padding: '16px 0',
+                      borderRadius: 12,
                       border: '0.5px solid var(--atelier-label)',
                       cursor: (canSave && !scheduleSaving) ? 'pointer' : 'default',
                       color: INK_DEEP,
-                      background: !canSave || scheduleSaving ? 'rgba(201,168,76,0.18)' : undefined,
+                      background: !canSave || scheduleSaving ? 'var(--atelier-row-hover)' : undefined,
                       opacity: !canSave || scheduleSaving ? 0.6 : 1,
                       marginTop: 4,
-                    }}>{scheduleSaving ? 'Saving…' : 'Create Schedule'}</button>
+                    }}>{scheduleSaving ? 'Saving…' : 'Create schedule'}</button>
                 </>
               );
             })()}
@@ -2140,7 +2140,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           initialValues={{ wedding_date: dateFix.value }}
           onComplete={async (_cell, value) => {
             const res = await updateLead(dateFix.leadId, { wedding_date: value, wedding_date_precision: 'day' });
-            if (!res.ok) return ('error' in res && res.error) || 'Could not file it — try again.';
+            if (!res.ok) return ('error' in res && res.error) || 'Could not save it. Try again.';
             invalidateSlice('leads');
             return null;
           }}
@@ -2168,7 +2168,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               body.wedding_date_precision = 'day';
             }
             const res = await updateLead(wishboneRow.id, body);
-            if (!res.ok) return ('error' in res && res.error) || 'Could not file it — try again.';
+            if (!res.ok) return ('error' in res && res.error) || 'Could not save it. Try again.';
             invalidateSlice('leads');
             return null;
           }}

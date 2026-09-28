@@ -42,7 +42,8 @@ function mk(resp: MintResponse | 'throw') {
     ok(r === true, 'returns true');
     ok(calls.results[0]?.kind === 'success', 'reports success');
     ok(calls.results[0]?.msg === MINT_SUCCESS_MSG, 'with the founder\'s exact bytes');
-    ok(calls.results[0]?.msg === "They’re on your crew list — assign them from any booking.", 'byte-checked against the veto ledger');
+    // DESIGN-1 · STAGE 1 (by label): the word pass retired the dash (docs/review/REPORT.md W1); the byte moved with it.
+    ok(calls.results[0]?.msg === "They’re on your crew list. Assign them from any booking.", 'byte-checked against the veto ledger');
     ok(calls.refresh === 1, 'and refreshes the roster');
   }
 

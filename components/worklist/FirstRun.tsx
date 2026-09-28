@@ -231,5 +231,5 @@ const FR_CSS = `
 /* R-37.73 ①: the chips are read, not tapped, in Phase 1 — but they are chip-shaped and a
    chip-shaped thing invites a thumb, so they carry a real target rather than teaching that
    some chips are dead. */
-.wl-chip{display:flex;align-items:center;min-height:44px;border:.5px solid var(--atelier-card-border);border-radius:2px;padding:10px 12px;font:var(--wl-t4);color:var(--atelier-ink-dim)}
+.wl-chip{display:flex;align-items:center;min-height:44px;border:.5px solid var(--atelier-card-border);border-radius:12px;padding:12px 12px;font:var(--wl-t4);color:var(--atelier-ink-dim)}
 `;

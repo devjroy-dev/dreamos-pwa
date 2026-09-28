@@ -12,7 +12,6 @@
 
 import type { ReactNode } from 'react';
 import { SheetLayer, sheetBound, useSheetScrollReset, SHEET_BODY_SCROLL, SHEET_BOTTOM, SHEET_SAFE } from '@/components/vendor/SheetLayer';
-import { INK_DEEP } from '@/lib/vendor/theme';
 import type { ListSlice } from '@/hooks/vendor/useLastSlice';
 import { A, T, LABELS, cap, type Row } from './SliceRow';
 
@@ -67,17 +66,17 @@ export function DetailSheet({
         background: 'var(--atelier-sheet-bg)',
         backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
         borderTop: '0.5px solid var(--atelier-sheet-border)',
-        padding: `0 0 calc(20px + ${SHEET_SAFE})`,
+        padding: `0 0 calc(24px + ${SHEET_SAFE})`,
         transform: sel ? 'translateY(0)' : 'translateY(100%)',
         transition: 'transform 320ms cubic-bezier(0.22,1,0.36,1)',
         maxHeight: sheetBound('88dvh'), ...(fullHeight ? { height: sheetBound('88dvh') } : {}), boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
       }}>
         {/* Drag handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
-          <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
+          <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
         </div>
         {/* Calling-card header */}
-        <div style={{ padding: '6px 24px 14px', borderBottom: '0.5px solid var(--atelier-card-border)', flexShrink: 0 }}>
+        <div style={{ padding: '8px 24px 16px', borderBottom: '0.5px solid var(--atelier-card-border)', flexShrink: 0 }}>
           <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass, marginBottom: 4 }}>{LABELS[slice]}</div>
           <div style={{ font: T.t1, color: 'var(--atelier-ink)' }}>{sel?.primary ?? ''}</div>
         </div>
@@ -91,11 +90,11 @@ export function DetailSheet({
           {(sel?.detail ?? []).map((f, ii) => (
             <div key={ii} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-              padding: '10px 0', gap: 14,
+              padding: '12px 0', gap: 16,
               borderBottom: ii < (sel?.detail.length ?? 0) - 1 ? '0.5px solid var(--atelier-card-border)' : 'none',
             }}>
-              <span style={{ font: T.t5, letterSpacing: '0.08em', color: A.inkMute, textTransform: 'uppercase', flexShrink: 0, paddingTop: 3 }}>{f.label}</span>
-              <span style={{ font: T.t3, color: A.ink, textAlign: 'right', whiteSpace: 'pre-line' }}>{f.verbatim ? f.value : cap(f.value)}</span>
+              <span style={{ font: T.t5, color: A.inkMute, flexShrink: 0, paddingTop: 4 }}>{f.label}</span>
+              <span style={{ font: T.t3, color: A.ink, textAlign: 'right', whiteSpace: 'pre-line' }}>{f.value === '\u2014' ? 'Not given' : f.verbatim ? f.value : cap(f.value)}</span>
             </div>
           ))}
 
@@ -109,15 +108,18 @@ export function DetailSheet({
 
           {!confirmDel ? (
             <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" onClick={() => sel && onEditHere(sel)} className="atelier-fab" style={{
+              {/* DESIGN-1: Edit is an outlined secondary (one primary per screen, E3, E12); Delete is
+                  red text on the same outline, the one place red is used (REPORT.md §3, Buttons). */}
+              <button type="button" onClick={() => sel && onEditHere(sel)} style={{
                 font: T.t4,
                 flex: 1,
                 padding: '12px 16px',
-                borderRadius: 2,
+                background: 'transparent',
+                borderRadius: 12,
                 cursor: 'pointer',
-                border: '0.5px solid var(--atelier-label)',
-                color: INK_DEEP,
-              }}>Edit Here</button>
+                border: '1px solid var(--atelier-sheet-border)',
+                color: 'var(--atelier-accent-text)',
+              }}>Edit</button>
 
               {/* ── R-41.70 §A 4 · IT SAYS WHAT IT DELETES ──────────────────
                   On an invoice this button sits directly beneath the payment
@@ -129,8 +131,8 @@ export function DetailSheet({
                 flex: 1,
                 padding: '12px 16px',
                 background: 'transparent',
-                border: '0.5px solid var(--role-critical)',
-                borderRadius: 2,
+                border: '1px solid var(--atelier-sheet-border)',
+                borderRadius: 12,
                 cursor: 'pointer',
                 color: A.red,
               }}>{slice === 'invoices' ? 'Delete invoice' : 'Delete'}</button>
@@ -164,7 +166,7 @@ export function DetailSheet({
                   {slice === 'invoices' ? 'Invoice will be marked cancelled.' :
                    slice === 'leads'    ? 'Leaves your list and your assistant\u2019s memory. Undo for 30 seconds.' :
                    slice === 'events'   ? 'Event will be cancelled.' :
-                   slice === 'expenses' ? 'Expense is set aside — recoverable, never destroyed.' :
+                   slice === 'expenses' ? 'The expense is set aside. You can bring it back.' :
                    'This will be removed.'}
                 </span>
               </div>
@@ -175,7 +177,7 @@ export function DetailSheet({
                   padding: '12px 16px',
                   background: 'transparent',
                   border: '0.5px solid var(--atelier-sheet-border)',
-                  borderRadius: 2,
+                  borderRadius: 12,
                   cursor: 'pointer',
                   color: A.interactiveWarm,
                 }}>Back</button>
@@ -186,7 +188,7 @@ export function DetailSheet({
                   background: 'transparent',
                   opacity: deleting ? 0.5 : 1,
                   border: '0.5px solid var(--role-critical)',
-                  borderRadius: 2,
+                  borderRadius: 12,
                   cursor: deleting ? 'default' : 'pointer',
                   color: 'var(--role-critical)',
                 }}>{deleting ? 'Working…' : 'Confirm'}</button>

@@ -158,12 +158,17 @@ ok(!/color: BRASS/.test(FORM) || 'brass is still used as TEXT — 2.05:1 on Edit
 // the DONE-SCREEN button, so mutating the FORM's submit fill left it green. A
 // cell that passes because a different control happens to match is a cell about
 // that other control. Both brass fills are now named.
-ok(/background: submitting \? `color-mix\(in srgb, \$\{BRASS\} 40%, transparent\)` : BRASS/.test(FORM)
-   || 'the submit button lost its brass fill',
-   '5b.3 brass survives on the SUBMIT control — the one place it belongs');
-ok((FORM.match(/background: BRASS,/g) || []).length >= 1
-   || 'the done-screen button lost its brass fill',
-   '5b.3b brass survives on the done-screen control');
+// DESIGN-1 · STAGE 1 (by label): the two filled buttons moved from brass to the app's one primary
+// (docs/review/REPORT.md §3 "one primary colour for the whole app", P13). The cells keep their shape and
+// their two named controls; the fill they pin is PRIMARY now, and brass is pinned where it stays (the chips).
+ok(/background: submitting \? `color-mix\(in srgb, \$\{PRIMARY\} 40%, transparent\)` : PRIMARY/.test(FORM)
+   || 'the submit button lost its primary fill',
+   '5b.3 the SUBMIT control is filled with the one primary');
+ok((FORM.match(/background: PRIMARY,/g) || []).length >= 1
+   || 'the done-screen button lost its primary fill',
+   '5b.3b the done-screen control is filled with the one primary');
+ok(/background: category === token \? BRASS : 'transparent'/.test(FORM) || 'brass left the chosen chip',
+   '5b.3c brass stays on the chosen chip');
 ok(/color: ATTN/.test(FORM), '5b.4 the marker and the refusal both read from the attention token');
 
 console.log('\n── 6 · the guard: MOVED, verdict-reading, loop-safe ──');

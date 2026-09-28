@@ -21,7 +21,7 @@ export const ENQ = {
   /** E3 · option 1 (default) */
   tdw:            'Your TDW agent answers',
   /** E3b · option 1, its line */
-  tdwLine:        'Couples message TDW’s number. Your agent replies for you and files every enquiry as a lead.',
+  tdwLine:        'Couples message TDW’s number. Your agent replies for you and files every enquiry in Enquiries.',
   /** E4 · option 2 */
   own:            'You answer on your number',
   /** E4b · option 2, its line */
@@ -33,7 +33,7 @@ export const ENQ = {
   /** E6 · consent (a), on the second screen (§7c, twice-stated, FK3) */
   consentPublic:  'This number will be shown on your public page, where anyone can see it.',
   /** E7 · consent (b), on the second screen */
-  consentBypass:  'Enquiries sent there skip TDW: no replies from TDW, and they will not appear in your leads.',
+  consentBypass:  'Enquiries sent there skip TDW: no replies from TDW, and they will not appear in Enquiries.',
   /** E8 · the phone field's label */
   phoneLabel:     'Your WhatsApp number',
   /** E9 · the confirm */

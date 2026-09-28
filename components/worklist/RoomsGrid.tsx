@@ -166,7 +166,7 @@ export function RoomsGrid() {
 
 const GRID_CSS = `
 /* ZIP 14 · F-16.39's cure stands: LONGHAND padding only. This line once read
-   "padding:18px 0 28px", and the shorthand’s horizontal 0 overrode the gutter
+   "padding:16px 0 32px", and the shorthand’s horizontal 0 overrode the gutter
    ".wl-main > *" supplies — flush to both screen edges for twelve ZIPs, in the founder’s
    own screenshots, passed every time by a gate that asserted the rule was PRESENT and
    never that it APPLIED. */
@@ -196,7 +196,7 @@ const GRID_CSS = `
 .wl-bandlabel{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px}
 /* CE-45 FE-1: a shelf is one card holding its rows, as the ruled mock draws it (.list). The card and
    its hairline are the tile’s own tokens; no new colour. */
-.wl-tiles{display:flex;flex-direction:column;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;overflow:hidden}
+.wl-tiles{display:flex;flex-direction:column;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;overflow:hidden}
 /* R-40.98 · THE HEADLINE TILE IS A COLOUR, NOT A SHAPE. The two full-width rules
    that stood here retired with R-40.22 at the founder’s word of 2026-09-07: the
    heads keep every other tile’s shape, size and rung and are told apart by their
@@ -230,18 +230,18 @@ const GRID_CSS = `
 /* F-39.15: lining figures, stated rather than inherited from a family map. s-39.7 note —
    no backticks anywhere in this literal. */
 .wl-tcount{font-variant-numeric:lining-nums tabular-nums}
-.wl-tile{position:relative;background:transparent;border:0;border-top:.5px solid var(--atelier-card-border);border-radius:0;min-height:var(--wl-tile);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;cursor:pointer;text-decoration:none}
+.wl-tile{position:relative;background:transparent;border:0;border-top:.5px solid var(--atelier-card-border);border-radius:0;min-height:var(--wl-tile);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;cursor:pointer;text-decoration:none}
 .wl-tile:first-child{border-top:0}
 /* CE-45 FE-1 · THE HEADLINE IS THE NAME’S INK, as the ruled mock draws it (.row.headline .n): the
    metal, a token theme.ts already holds (role metal, lines 24 and 210). It replaces the accent
    hairline of R-40.98, which belonged to the tile grid this layout retires. */
-.wl-ttext{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wl-ttext{display:flex;flex-direction:column;gap:4px;min-width:0}
 .wl-tdesc{font:var(--wl-t4);color:var(--atelier-ink-mute)}
 /* CE-45 FE-1 HOME_2 · R-45.21: the icon sits before the name; the text takes the row. The icon's
    colour is currentColor from the tokens the shell already emits: ink-dim on a row, the metal on
    the headline pair (the name already takes the metal there). No new colour, no type rung. */
 .wl-ticon{flex:none;width:20px;height:20px;color:var(--atelier-ink-dim)}
-.wl-tilehead .wl-ticon{color:var(--role-metal)}
+.wl-tilehead .wl-ticon{color:var(--atelier-accent-text)}
 .wl-tile .wl-ttext{flex:1}
 .wl-band.wl-top{margin-bottom:0}
 /* t4, NOT t5, and NOT uppercase-tracked. Two rulings meet on this one line and both bind:
@@ -254,7 +254,7 @@ const GRID_CSS = `
 /* REPAIR r5 (FE-1, CE-45): the headline name’s metal rule sits AFTER the name’s own rule, never before
    it: b40 C11's type-floor census reads the FIRST rule naming wl-tname, and a colour-only rule first
    read as a name with no rung. Same selector weight; order now also lets the metal win honestly. */
-.wl-tilehead .wl-tname{color:var(--role-metal)}
+.wl-tilehead .wl-tname{color:var(--atelier-ink)}
 .wl-tile:active{background:var(--atelier-row-hover);border-color:var(--atelier-accent-text)}
 .wl-tile:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 `;

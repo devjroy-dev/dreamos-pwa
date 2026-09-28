@@ -37,7 +37,7 @@ import type { AttentionKind, WorklistTodayResponse } from '@/lib/vendor/types/ve
 
 /** The two bytes reused verbatim from the Leads room's founder-vetoed block. */
 const COPY_REDACTED = {
-  line: 'Upgrade to Essential tier or above to connect with your lead.',
+  line: 'Upgrade to Essential or above to contact this couple.',
   cta:  'See plans',
 };
 
@@ -103,8 +103,15 @@ function dueLine(due: string | null | undefined, wireToday: string): string {
 /** The lead's budget band, as the mock draws it: 「Rs 80,000 – Rs 1,20,000」. */
 function budgetBand(min: number | null, max: number | null): string {
   if (min == null && max == null) return '';
-  if (min != null && max != null) return formatRs(min) + ' \u2013 ' + formatRs(max);
+  if (min != null && max != null) return formatRs(min) + ' to ' + formatRs(max);
   return formatRs(min ?? max);
+}
+
+/** DESIGN-1 · W4: a wire word as a vendor reads it: "part_paid" is "Part paid". */
+function words(w: string | null | undefined): string {
+  if (!w) return '';
+  const t = w.replace(/_/g, ' ');
+  return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
 function Card({ kind, row, wireToday }: { kind: AttentionKind; row: Record<string, unknown>; wireToday: string }) {
@@ -131,13 +138,14 @@ function Card({ kind, row, wireToday }: { kind: AttentionKind; row: Record<strin
     figure  = { value: formatRs(row.amount_owed as number), label: COPY.todayOwedCaption };
   } else if (kind === 'events_today') {
     primary = (row.title as string) || '\u2014';
-    detail  = dot([row.event_time as string, row.kind as string, row.slot as string]);
+    // DESIGN-1 · W4: "10:00 · Shoot", never the wire's "10:00:00 · shoot · morning" (the slot repeated the time).
+    detail  = dot([((row.event_time as string) || '').slice(0, 5), words(row.kind as string)]);
   } else if (kind === 'contract_unsigned') {
     primary = (row.title as string) || '\u2014';
-    detail  = dot([row.state as string, dateLine(row.sent_at as string)]);
+    detail  = dot([words(row.state as string), dateLine(row.sent_at as string)]);
   } else {
     primary = (row.title as string) || '\u2014';
-    detail  = dot([row.state as string, row.priority as string, dateLine(row.due_date as string)]);
+    detail  = dot([words(row.state as string), words(row.priority as string), dateLine(row.due_date as string)]);
   }
 
   // ONE TAP TO THE RECORD (F-39.17). Leads carry the id so the room can open it; the other
@@ -358,7 +366,7 @@ export function TodayDone({ today }: { today: WorklistTodayResponse }) {
 // rungs and tokens only. NO BACKTICKS ANYWHERE IN THESE LITERALS (s-39.7, eighth instance
 // was in this delivery's sibling file).
 const FEED_CSS = `
-.wl-tfeed{padding-top:20px;padding-bottom:24px}
+.wl-tfeed{padding-top:24px;padding-bottom:24px}
 .wl-tsec+.wl-tsec{margin-top:24px}
 .wl-tsechead{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 8px}
 .wl-tsecname{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
@@ -368,15 +376,15 @@ const FEED_CSS = `
    competes for the finger. The figure sits IN the card grid rather than under it in its
    own padded block, which is what made the rejected surface read as a list with a receipt
    stapled to each row. */
-.wl-tcard{display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:12px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:13px 14px;margin-bottom:var(--wl-step);text-decoration:none}
+.wl-tcard{display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:12px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;padding:12px 16px;margin-bottom:var(--wl-step);text-decoration:none}
 .wl-tcprimary{font:var(--wl-t3);color:var(--atelier-ink);display:block}
-.wl-tcdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:3px}
+.wl-tcdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:4px}
 .wl-tcdetail{font-variant-numeric:lining-nums tabular-nums}
 .wl-tcfig{text-align:right;white-space:nowrap}
 .wl-tcfigval{font:var(--wl-t3);color:var(--atelier-ink);display:block}
 .wl-tcfigval{font-variant-numeric:lining-nums tabular-nums}
-.wl-tcfiglab{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:2px}
-.wl-tcgate{grid-column:1/-1;border-top:.5px solid var(--atelier-card-border);margin-top:11px;padding-top:11px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wl-tcfiglab{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:4px}
+.wl-tcgate{grid-column:1/-1;border-top:.5px solid var(--atelier-card-border);margin-top:12px;padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .wl-tcgateline{font:var(--wl-t5);color:var(--atelier-ink-mute)}
 /* F-39.22 RETIRED HERE. This declaration shipped at .32em, carried without re-derivation
    from SliceShell’s own See-plans block — which is main-side and legitimately tracked at
@@ -398,17 +406,17 @@ const FEED_CSS = `
 `;
 
 const REST_CSS = `
-.wl-trest{padding-top:20px;padding-bottom:24px}
-.wl-tdone{padding-bottom:28px}
-.wl-tdonerule{height:.5px;background:var(--role-metal);opacity:.55;margin:0 0 18px}
-.wl-tdonehead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin-bottom:10px}
-.wl-trestrows{border:.5px solid var(--atelier-card-border);border-radius:3px;background:var(--atelier-card-bg)}
-.wl-trestrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 14px}
+.wl-trest{padding-top:24px;padding-bottom:24px}
+.wl-tdone{padding-bottom:32px}
+.wl-tdonerule{height:.5px;background:var(--role-metal);opacity:.55;margin:0 0 16px}
+.wl-tdonehead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin-bottom:12px}
+.wl-trestrows{border:.5px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg)}
+.wl-trestrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:12px 16px}
 .wl-trestrow+.wl-trestrow{border-top:.5px solid var(--atelier-card-border)}
 .wl-trestlabel{font:var(--wl-t4);color:var(--atelier-ink-soft)}
-.wl-trestpart{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:3px}
+.wl-trestpart{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:4px}
 .wl-trestpart{font-variant-numeric:lining-nums tabular-nums}
 .wl-trestn{font:var(--wl-t4);color:var(--atelier-ink)}
 .wl-trestn{font-variant-numeric:lining-nums tabular-nums}
-.wl-trestscope{font:var(--wl-t5);color:var(--atelier-ink-mute);margin-top:10px}
+.wl-trestscope{font:var(--wl-t5);color:var(--atelier-ink-mute);margin-top:12px}
 `;

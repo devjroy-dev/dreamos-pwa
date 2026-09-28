@@ -443,22 +443,22 @@ export function CancelPaymentConfirm({ saving, onConfirm, onClose }: {
 export const SHEET_CSS = `
 .wl-shscrim{position:absolute;inset:0;z-index:20;background:var(--role-scrim);border:none;padding:0}
 .wl-sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;background:var(--role-sheet);
-          border-top:.5px solid var(--atelier-sheet-border);border-radius:3px 3px 0 0;
-          padding:20px var(--wl-gutter) 28px;display:flex;flex-direction:column;gap:14px;
+          border-top:.5px solid var(--atelier-sheet-border);border-radius:12px 3px 0 0;
+          padding:24px var(--wl-gutter) 32px;display:flex;flex-direction:column;gap:16px;
           max-height:100%;overflow-y:auto}
 .wl-shhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .wl-shtitle{font:var(--wl-t1);color:var(--atelier-ink)}
 /* 44px is the tap floor, and the negative offsets pull the GLYPH back to the
    sheet’s optical edge without shrinking the target underneath it. */
-.wl-shx{width:44px;height:44px;margin:-10px calc(var(--wl-gutter) * -1 + 8px) -10px 0;flex:none;
+.wl-shx{width:44px;height:44px;margin:-12px calc(var(--wl-gutter) * -1 + 8px) -12px 0;flex:none;
         display:flex;align-items:center;justify-content:center;background:transparent;border:none;
-        border-radius:3px;cursor:pointer;font:var(--wl-t2);line-height:1;color:var(--atelier-ink-mute)}
+        border-radius:12px;cursor:pointer;font:var(--wl-t2);line-height:1;color:var(--atelier-ink-mute)}
 .wl-shx:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
 .wl-fld{display:block}
 .wl-fl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);
-       display:block;margin-bottom:6px}
+       display:block;margin-bottom:8px}
 .wl-fi{width:100%;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);
-       border-radius:3px;padding:11px 12px;font:var(--wl-t3);color:var(--atelier-ink);display:block;
+       border-radius:12px;padding:12px 12px;font:var(--wl-t3);color:var(--atelier-ink);display:block;
        outline:none;box-sizing:border-box;-webkit-appearance:none;appearance:none}
 .wl-fi:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .wl-fnum{font-variant-numeric:lining-nums tabular-nums}
@@ -469,13 +469,13 @@ export const SHEET_CSS = `
    Nothing else moved out of this sheet. */
 .wl-btn.gho{border:.5px solid var(--atelier-card-border);color:var(--atelier-ink-soft)}
 .wl-btn.dan{border:.5px solid var(--role-critical);color:var(--role-critical)}
-.wl-shrule{border-top:.5px solid var(--atelier-card-border);padding-top:14px;
-           display:flex;flex-direction:column;gap:10px}
+.wl-shrule{border-top:.5px solid var(--atelier-card-border);padding-top:16px;
+           display:flex;flex-direction:column;gap:12px}
 .wl-shnote{font:var(--wl-t5);color:var(--atelier-ink-mute);line-height:1.5;margin:0}
 .wl-shbad{color:var(--role-critical)}
 .wl-shsum{background:var(--atelier-section-bg);border:.5px solid var(--atelier-card-border);
-          border-radius:3px;padding:12px}
+          border-radius:12px;padding:12px}
 .wl-shfig{font:var(--wl-t1);color:var(--role-metal);display:block;margin-top:4px}
 .wl-shfig{font-variant-numeric:lining-nums tabular-nums}
-.wl-asg{border-left:2px solid var(--role-positive);padding-left:10px}
+.wl-asg{border-left:2px solid var(--role-positive);padding-left:12px}
 `;

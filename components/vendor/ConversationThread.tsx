@@ -53,7 +53,7 @@ export function stampOf(iso: string): string {
 // when the messages land.
 export function ConversationWaiting() {
   const bubble = (isIn: boolean, k: number) => (
-    <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: isIn ? 'flex-start' : 'flex-end', marginBottom: 6 }}>
+    <div key={k} style={{ display: 'flex', flexDirection: 'column', alignItems: isIn ? 'flex-start' : 'flex-end', marginBottom: 8 }}>
       <div style={{
         width: isIn ? '56%' : '68%', minHeight: 24, padding: '8px 12px', boxSizing: 'content-box',
         border: `0.5px solid ${isIn ? 'var(--atelier-sheet-border)' : 'var(--atelier-card-border)'}`,
@@ -63,7 +63,7 @@ export function ConversationWaiting() {
     </div>
   );
   return (
-    <div data-lc2="thread-waiting" aria-busy="true" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div data-lc2="thread-waiting" aria-busy="true" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
         <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.muted, textTransform: 'uppercase', marginBottom: 8 }}>Conversation</p>
         {[true, false, true].map((isIn, k) => bubble(isIn, k))}
@@ -75,7 +75,7 @@ export function ConversationWaiting() {
 /** The inbound sender's label: the lead's name, else "Lead" (the one vetoed byte, CE-43). */
 export function inboundSender(leadName?: string | null): string {
   const n = (leadName ?? '').trim();
-  return n || 'Lead';
+  return n || 'Enquiry';
 }
 
 // R-37.70 as amended at R-38.17 — the outbound speaker is 「TDW」, never a persona name.
@@ -100,15 +100,15 @@ export function ConversationThread({ messages, vendorSummary, leadName }: Props)
     }}>{expanded ? THREAD.showFewer : THREAD.showAll}</button>
   ) : null;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Summary card */}
       {vendorSummary && (
         <div style={{
-          backgroundColor: 'rgba(201,168,76,0.08)',
-          border: '0.5px solid rgba(201,168,76,0.25)',
-          borderRadius: 10, padding: '10px 14px',
+          backgroundColor: 'var(--atelier-row-hover)',
+          border: '0.5px solid var(--atelier-card-border)',
+          borderRadius: 12, padding: '12px 16px',
         }}>
-          <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.gold, textTransform: 'uppercase', marginBottom: 5 }}>Summary</p>
+          <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.gold, textTransform: 'uppercase', marginBottom: 4 }}>Summary</p>
           <p style={{ font: RUNG.t3, color: D.cream }}>{vendorSummary}</p>
         </div>
       )}
@@ -125,11 +125,11 @@ export function ConversationThread({ messages, vendorSummary, leadName }: Props)
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: isIn ? 'flex-start' : 'flex-end',
-                marginBottom: 6,
+                marginBottom: 8,
               }}>
                 <div style={{
                   maxWidth: '82%',
-                  backgroundColor: isIn ? 'var(--atelier-input-bg)' : 'rgba(201,168,76,0.12)',
+                  backgroundColor: isIn ? 'var(--atelier-input-bg)' : 'var(--atelier-row-hover)',
                   border: `0.5px solid ${isIn ? 'var(--atelier-sheet-border)' : 'var(--atelier-card-border)'}`,
                   borderRadius: isIn ? '4px 12px 12px 12px' : '12px 4px 12px 12px',
                   padding: '8px 12px',

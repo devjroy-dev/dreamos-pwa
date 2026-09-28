@@ -156,7 +156,7 @@ export function AskSheet({ vendorId, mode, prefill = '', onClose }: {
 // ChatThread and InputBar, carried components with their own type, and bringing them onto
 // the scale is the same sitting that drops this file's ThemeProvider (F-38.3).
 const ASK_CSS = `
-.wl-askcap{display:flex;align-items:center;justify-content:center;min-height:44px;margin:0 var(--wl-gutter, 22px) 8px;border-radius:3px;text-decoration:none;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;background:var(--atelier-accent-text);color:var(--role-ink-deep)}
+.wl-askcap{display:flex;align-items:center;justify-content:center;min-height:44px;margin:0 var(--wl-gutter, 16px) 8px;border-radius:12px;text-decoration:none;font:var(--wl-tb);background:var(--role-primary);color:var(--role-on-primary)}
 .wl-askcap:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
 .wl-asksheet{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;justify-content:flex-end}
 .wl-askscrim{position:absolute;inset:0;background:var(--role-scrim);border:none;cursor:pointer}
@@ -169,12 +169,12 @@ const ASK_CSS = `
 .wl-askpanel{position:relative;display:flex;flex-direction:column;height:85dvh;max-height:85dvh;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-bottom:none;border-radius:12px 12px 0 0;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
 /* R-37.82's gutter, INSIDE the sheet — the sheet is its own scroll column and owns its inset. */
 .wl-askpanel > *{padding-left:var(--wl-gutter);padding-right:var(--wl-gutter)}
-.wl-askgrab{flex-shrink:0;align-self:center;width:38px;height:4px;margin:8px 0 2px;padding:0;border:none;border-radius:2px;background:var(--atelier-ink-fade);cursor:grab;touch-action:none}
-.wl-askhead{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:14px 16px 12px;border-bottom:.5px solid var(--atelier-card-border)}
+.wl-askgrab{flex-shrink:0;align-self:center;width:38px;height:4px;margin:8px 0 4px;padding:0;border:none;border-radius:12px;background:var(--atelier-ink-fade);cursor:grab;touch-action:none}
+.wl-askhead{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px;border-bottom:.5px solid var(--atelier-card-border)}
 .wl-asktitle{font:var(--wl-t2);color:var(--atelier-accent-text)}
 /* R-38.17 the channel note. t5, ink-mute: it is metadata about where the answer lands,
    not a sentence the vendor has to read before typing. It sits under the head’s rule so
    the scroll body still starts at the thread. */
-.wl-askclose{width:44px;height:44px;margin:-10px -10px -10px 0;background:none;border:none;color:var(--atelier-ink-mute);font:var(--wl-t2);cursor:pointer}
+.wl-askclose{width:44px;height:44px;margin:-12px -12px -12px 0;background:none;border:none;color:var(--atelier-ink-mute);font:var(--wl-t2);cursor:pointer}
 .wl-askbody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:180px}
 `;

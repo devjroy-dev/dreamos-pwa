@@ -57,11 +57,11 @@ const input: React.CSSProperties = {
   font: RUNG.t3,
   width: '100%',
   boxSizing: 'border-box',
-  padding: '12px 14px',
+  padding: '12px 16px',
   minHeight: 44,
   background: 'transparent',
   border: '0.5px solid var(--atelier-input-border)',
-  borderRadius: 2,
+  borderRadius: 12,
   color: D.ink,
 };
 
@@ -165,7 +165,7 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
       display: 'block',
       color: D.muted,
       textTransform: 'uppercase',
-      marginBottom: 6,
+      marginBottom: 8,
 }}>{text}</label>
   );
 
@@ -188,14 +188,14 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
         paddingBottom: SHEET_SAFE,
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: 'var(--atelier-ink-dim)' }} />
+          <div style={{ width: 36, height: 4, borderRadius: 12, backgroundColor: 'var(--atelier-ink-dim)' }} />
         </div>
-        <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${D.border}`, flexShrink: 0 }}>
+        <div style={{ padding: '8px 24px 12px', borderBottom: `1px solid ${D.border}`, flexShrink: 0 }}>
           <h2 style={{ font: RUNG.t1, color: D.ink, margin: 0 }}>
             {CLIENT_BOOKING.title}
           </h2>
         </div>
-        <div ref={bodyRef} data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div ref={bodyRef} data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Packet 3f · R-43.16: the field gate is a control that focuses the flagged field; F29 is
               a failure and stays a plain line. */}
           {message && bad && <NeedFirst text={message} onFix={() => { const el = document.getElementById(`cbs-${bad}`); if (el) el.focus(); }} testId="client" />}
@@ -220,7 +220,7 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
               <input id="cbs-fee" style={{ ...input, ...flag('fee') }} inputMode="numeric" value={values.fee} onChange={(e) => set('fee', e.target.value.replace(/[^\d]/g, ''))} />
             </div>
           )}
-          <label data-lc2="advance-switch" style={{ font: RUNG.t3, display: 'flex', alignItems: 'center', gap: 10, color: D.ink, minHeight: 44 }}>
+          <label data-lc2="advance-switch" style={{ font: RUNG.t3, display: 'flex', alignItems: 'center', gap: 12, color: D.ink, minHeight: 44 }}>
             <input type="checkbox" checked={advance} onChange={(e) => setAdvance(e.target.checked)} style={{ width: 20, height: 20, accentColor: D.accent }} />
             {CLIENT_BOOKING.advance}
           </label>
@@ -238,7 +238,7 @@ export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBoo
             background: 'transparent',
             cursor: 'pointer',
             border: `0.5px solid ${D.accent}`,
-            borderRadius: 2,
+            borderRadius: 12,
             color: D.accent,
           }}>{CLIENT_BOOKING.submit}</button>
         </div>

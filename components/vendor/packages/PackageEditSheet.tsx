@@ -151,7 +151,7 @@ export function PackageEditSheet({ open, pkg, focusFee, onClose, onSaved, onToas
           <input id="pkg-mid" inputMode="numeric" disabled={!takeMiddle} style={{ ...inputStyle, opacity: takeMiddle ? 1 : 0.5, ...share('middle_pct') }} value={middle} onChange={(e) => setMiddle(e.target.value.replace(/[^\d]/g, ''))} />
         </div>
       </div>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: T.body, fontSize: 15, color: T.ink, minHeight: 44 }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: T.body, fontSize: '0.9375rem', color: T.ink, minHeight: 44 }}>
         <input type="checkbox" checked={takeMiddle} onChange={(e) => setTakeMiddle(e.target.checked)} style={{ width: 20, height: 20, accentColor: T.accent }} />
         {PACKAGES.fTakeMiddle}
       </label>

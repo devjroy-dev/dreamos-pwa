@@ -205,13 +205,13 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
           people.」 stacked beneath it is one room named twice, which is Team's `SectionLabel`
           finding one room over. It stays on the fallback, where nothing else names this
           surface at all. */}
-      <div style={{ padding: '10px 22px 10px'}}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14 }}>
+      <div style={{ padding: '12px 24px 12px'}}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
           {<div style={{ flex: 1 }} />}
           <button type="button" onClick={() => setShowForm(true)} className="atelier-fab" style={{
-            padding: '8px 14px', borderRadius: 2, cursor: 'pointer',
+            padding: '8px 16px', borderRadius: 12, cursor: 'pointer',
             border: '0.5px solid var(--atelier-label)',
-            fontFamily: F.label, fontWeight: 400, fontSize: 9, color: INK_DEEP,
+            fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP,
             letterSpacing: '0.32em', textTransform: 'uppercase',
             flexShrink: 0, marginTop: 8,
           }}>+ Post</button>
@@ -219,23 +219,23 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', padding: '0 22px', marginBottom: 4 }}>
+      <div style={{ display: 'flex', padding: '0 24px', marginBottom: 4 }}>
         {TAB_ORDER.map(t => (
           <button key={t} type="button" onClick={() => setTab(t)} style={{
             flex: 1, padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: 9,
+            fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: '0.8125rem',
             color: tab === t ? A.interactiveWarm : A.inkMute,
             letterSpacing: '0.32em', textTransform: 'uppercase',
             borderBottom: tab === t ? `0.5px solid ${A.interactive}` : '0.5px solid var(--atelier-card-border)',
             transition: `all 200ms ${EASE}`,
-          }}>{t === 'opportunities' ? 'Opportunities' : t === 'my_posts' ? 'My Posts' : 'Roster'}</button>
+          }}>{t === 'opportunities' ? 'Opportunities' : t === 'my_posts' ? 'My posts' : 'Roster'}</button>
         ))}
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '18px 22px 100px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 24px 96px' }}>
         {loading ? (
-          <div style={{ padding: '60px 20px', textAlign: 'center', fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
+          <div style={{ padding: '64px 24px', textAlign: 'center', fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
         ) : tab === 'opportunities' ? (
           <OpportunitiesTab feed={feed} onRespond={respond} />
         ) : tab === 'my_posts' ? (
@@ -268,10 +268,10 @@ function OpportunitiesTab({ feed, onRespond }: {
 }) {
   if (feed.length === 0) {
     return (
-      <div style={{ padding: '60px 32px', textAlign: 'center' }}>
-        <div style={{ fontFamily: F.display, fontSize: 25, lineHeight: 1.5, color: 'var(--atelier-accent-text)', marginBottom: 16 }}>✦</div>
-        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>Quiet for now.</div>
-        <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55 }}>
+      <div style={{ padding: '64px 32px', textAlign: 'center' }}>
+        <div style={{ fontFamily: F.display, fontSize: '1.75rem', lineHeight: 1.5, color: 'var(--atelier-accent-text)', marginBottom: 16 }}>✦</div>
+        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem', color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>Quiet for now.</div>
+        <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, lineHeight: 1.55 }}>
           No collab opportunities in your area today.<br />
           Post your own to put it out there.
         </div>
@@ -279,7 +279,7 @@ function OpportunitiesTab({ feed, onRespond }: {
     );
   }
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {feed.map(post => <OpportunityCard key={post.id} post={post} onRespond={onRespond} />)}
     </div>
   );
@@ -314,8 +314,8 @@ function OpportunityCard({ post, onRespond }: {
 
   if (responded) {
     return (
-      <div className="atelier-card" style={{ padding: '16px 18px', opacity: 0.6 }}>
-        <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, lineHeight: 1.5 }}>
+      <div className="atelier-card" style={{ padding: '16px 16px', opacity: 0.6 }}>
+        <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkSoft, lineHeight: 1.5 }}>
           You&rsquo;ve expressed interest. We&rsquo;ll let you know if they connect.
         </div>
       </div>
@@ -323,52 +323,52 @@ function OpportunityCard({ post, onRespond }: {
   }
 
   return (
-    <div className="atelier-card" style={{ padding: '18px 20px' }}>
-      <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 6 }}>
+    <div className="atelier-card" style={{ padding: '16px 24px' }}>
+      <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 8 }}>
         Requirement
       </div>
-      <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 6 }}>
+      <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem', color: 'var(--atelier-ink)', lineHeight: 1.15, marginBottom: 8 }}>
         {fmtType(itemsOf(post)[0]?.requirement_type ?? post.requirement_type)} needed
       </div>
       {itemsOf(post).length > 1 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
           {itemsOf(post).slice(1).map((it, n) => (
             <span key={it.id ?? n} style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 8, color: A.brassWarm,
+              fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.brassWarm,
               letterSpacing: '0.28em', textTransform: 'uppercase',
-              border: '0.5px solid var(--atelier-card-border)', borderRadius: 2, padding: '3px 8px',
+              border: '0.5px solid var(--atelier-card-border)', borderRadius: 12, padding: '4px 8px',
             }}>{it.requirement_type.replace(/_/g, ' ')}</span>
           ))}
         </div>
       )}
-      <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkSoft, marginBottom: 12, lineHeight: 1.4 }}>
+      <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkSoft, marginBottom: 12, lineHeight: 1.4 }}>
         {post.city} · {fmtDate(post.event_date)} · {fmtBudget(post.budget_inr, post.payment_period)}
       </div>
 
       {post.details && (
-        <div style={{ fontFamily: F.script, fontWeight: 400, fontSize: 16, color: A.ink, lineHeight: 1.6, marginBottom: 14, letterSpacing: '0.005em' }}>
+        <div style={{ fontFamily: F.script, fontWeight: 400, fontSize: '1rem', color: A.ink, lineHeight: 1.6, marginBottom: 16, letterSpacing: '0.005em' }}>
           {post.details}
         </div>
       )}
 
-      <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 16 }}>
+      <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginBottom: 16 }}>
         {postedBy(post.poster_category, post.posted_ago ?? '')}
       </div>
 
       <div style={{ display: 'flex', gap: 8 }}>
         <button type="button" onClick={() => handle('interested')} disabled={working}
           className="atelier-fab" style={{
-            flex: 2, padding: '11px 0', borderRadius: 2,
+            flex: 2, padding: '12px 0', borderRadius: 12,
             border: '0.5px solid var(--atelier-label)', cursor: working ? 'default' : 'pointer',
-            fontFamily: F.label, fontWeight: 400, fontSize: 10, color: INK_DEEP,
+            fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP,
             letterSpacing: '0.32em', textTransform: 'uppercase',
             opacity: working ? 0.6 : 1,
           }}>Interested</button>
         <button type="button" onClick={() => handle('passed')} disabled={working} style={{
-          flex: 1, padding: '11px 0', background: 'transparent',
-          border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2,
+          flex: 1, padding: '12px 0', background: 'transparent',
+          border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 12,
           cursor: working ? 'default' : 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.interactiveWarm,
+          fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.interactiveWarm,
           letterSpacing: '0.32em', textTransform: 'uppercase',
         }}>Pass</button>
       </div>
@@ -384,11 +384,11 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
 }) {
   if (posts.length === 0) {
     return (
-      <div style={{ padding: '60px 32px', textAlign: 'center' }}>
-        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>
+      <div style={{ padding: '64px 32px', textAlign: 'center' }}>
+        <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem', color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>
           Nothing posted yet.
         </div>
-        <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55 }}>
+        <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, lineHeight: 1.55 }}>
           Tap <span style={{ color: A.brassWarm }}>+ Post</span> to find your second shooter,<br />
           hair stylist, or any collaborator.
         </div>
@@ -397,7 +397,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {posts.map(post => {
         const open = post.state === 'open';
         const stateColor = open ? A.brassWarm : A.inkMute;
@@ -409,25 +409,25 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
         return (
           <div key={post.id} className="atelier-card"
             onClick={tappable ? () => onViewResponses(post.id) : undefined}
-            style={{ padding: '18px 20px', opacity: open ? 1 : 0.55, cursor: tappable ? 'pointer' : 'default' }}>
+            style={{ padding: '16px 24px', opacity: open ? 1 : 0.55, cursor: tappable ? 'pointer' : 'default' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 4 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 6 }}>
+                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 8 }}>
                   My Post
                 </div>
-                <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 20, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>
+                <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.375rem', color: 'var(--atelier-ink)', lineHeight: 1.15 }}>
                   {fmtType(itemsOf(post)[0]?.requirement_type ?? post.requirement_type)} needed
                 </div>
               </div>
               <span style={{
-                fontFamily: F.label, fontWeight: 400, fontSize: 8, color: stateColor,
+                fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: stateColor,
                 letterSpacing: '0.32em', textTransform: 'uppercase',
-                border: `0.5px solid ${stateColor}`, borderRadius: 2, padding: '4px 9px',
+                border: `0.5px solid ${stateColor}`, borderRadius: 12, padding: '4px 8px',
                 flexShrink: 0,
               }}>{post.state?.toUpperCase()}</span>
             </div>
 
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft, marginBottom: 12 }}>
+            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkSoft, marginBottom: 12 }}>
               {post.city} · {fmtDate(post.event_date)} · {fmtBudget(post.budget_inr, post.payment_period)}
             </div>
 
@@ -436,16 +436,16 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                 the same field the server's auto-close reads, so the screen and
                 the state machine can never disagree. */}
             {itemsOf(post).length > 1 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
                 {itemsOf(post).map((it, n) => {
                   const done = !!it.filled_by_response_id;
                   return (
                     <span key={it.id ?? n} style={{
-                      fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                      fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                       color: done ? A.inkMute : A.brassWarm,
                       letterSpacing: '0.28em', textTransform: 'uppercase',
                       border: `0.5px solid ${done ? 'var(--atelier-sheet-border)' : 'var(--atelier-card-border)'}`,
-                      borderRadius: 2, padding: '3px 8px',
+                      borderRadius: 12, padding: '4px 8px',
                       textDecoration: done ? 'line-through' : 'none',
                     }}>{it.requirement_type.replace(/_/g, ' ')}</span>
                   );
@@ -456,12 +456,12 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
             {/* First look, and the auto-close. Both describe state the server
                 owns; neither is computed twice. */}
             {open && inFirstLook(post) && (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
                 Your roster sees this first. Open to everyone in 12 hours.
               </div>
             )}
             {open && !inFirstLook(post) && post.first_look_until && (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>
                 Open to everyone.
               </div>
             )}
@@ -472,7 +472,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                 the screen say something untrue. Derived client-side from data
                 my-posts already sends — no new field, no second source. */}
             {post.state === 'filled' && (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkSoft, marginBottom: 12 }}>
                 {itemsOf(post).every(i => !!i.filled_by_response_id)
                   ? 'All filled. This post is closed.'
                   : 'This post is closed.'}
@@ -480,7 +480,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
             )}
 
             {(post.interested_count ?? 0) > 0 && (
-              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: A.brassWarm, marginBottom: 12 }}>
+              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1rem', lineHeight: 1.5, color: A.brassWarm, marginBottom: 12 }}>
                 {post.interested_count} interested
               </div>
             )}
@@ -494,12 +494,12 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                 <button type="button"
                   onClick={e => { e.stopPropagation(); onViewResponses(post.id); }}
                   style={{
-                    flex: 1, padding: '10px 0',
+                    flex: 1, padding: '12px 0',
                     background: 'transparent',
-                    border: '0.5px solid var(--atelier-input-border)', borderRadius: 2, cursor: 'pointer',
-                    fontFamily: F.label, fontWeight: 400, fontSize: 10, color: A.interactiveWarm,
+                    border: '0.5px solid var(--atelier-input-border)', borderRadius: 12, cursor: 'pointer',
+                    fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: A.interactiveWarm,
                     letterSpacing: '0.32em', textTransform: 'uppercase',
-                  }}>View Responses</button>
+                  }}>View responses</button>
               </div>
             )}
             {open && (
@@ -507,12 +507,12 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
                 <button type="button"
                   onClick={e => { e.stopPropagation(); onMarkFilled(post.id); }}
                   style={{
-                  flex: 1, padding: '10px 0',
+                  flex: 1, padding: '12px 0',
                   background: 'transparent',
-                  border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: 10, color: A.inkSoft,
+                  border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 12, cursor: 'pointer',
+                  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.inkSoft,
                   letterSpacing: '0.32em', textTransform: 'uppercase',
-                }}>Mark Filled</button>
+                }}>Mark filled</button>
               </div>
             )}
           </div>
@@ -548,39 +548,39 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
         <button type="button" onClick={() => setAdding(true)} style={{
-          padding: '8px 14px', background: 'transparent', borderRadius: 2,
+          padding: '8px 16px', background: 'transparent', borderRadius: 12,
           border: '0.5px solid var(--atelier-sheet-border)', cursor: 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: 9, color: A.interactiveWarm,
+          fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.interactiveWarm,
           letterSpacing: '0.32em', textTransform: 'uppercase',
         }}>Add someone</button>
       </div>
 
       {roster.length === 0 ? (
         <div style={{ padding: '48px 32px', textAlign: 'center' }}>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem', color: 'var(--atelier-ink)', lineHeight: 1.2, marginBottom: 8 }}>
             No one on your roster yet.
           </div>
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.inkMute, lineHeight: 1.55 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, lineHeight: 1.55 }}>
             Vendors you connect with here are added automatically.
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {roster.map(r => (
-            <div key={r.id} className="atelier-card" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div key={r.id} className="atelier-card" style={{ padding: '16px 16px', display: 'flex', alignItems: 'center', gap: 16 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 16, color: A.ink, lineHeight: 1.2 }}>{r.name}</div>
-                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>
+                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1rem', color: A.ink, lineHeight: 1.2 }}>{r.name}</div>
+                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
                   {[r.category ? fmtType(r.category) : null, r.phone].filter(Boolean).join(' · ')}
                 </div>
               </div>
               {r.source === 'collab_accepted' && (
                 <span style={{
-                  fontFamily: F.label, fontWeight: 400, fontSize: 8, color: A.brass,
+                  fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: A.brass,
                   letterSpacing: '0.28em', textTransform: 'uppercase',
-                  border: '0.5px solid var(--atelier-card-border)', borderRadius: 2, padding: '3px 8px', flexShrink: 0,
+                  border: '0.5px solid var(--atelier-card-border)', borderRadius: 12, padding: '4px 8px', flexShrink: 0,
                 }}>Collab</span>
               )}
               {/* MINT ONLY. This gives the external an identity on your plane;
@@ -593,10 +593,10 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
                 onClick={r.bridged ? undefined : () => void addToCrew(r.id)}
                 disabled={!!r.bridged || minting === r.id}
                 style={{
-                  padding: '6px 11px', background: 'transparent', borderRadius: 2,
+                  padding: '8px 12px', background: 'transparent', borderRadius: 12,
                   border: '0.5px solid var(--atelier-sheet-border)',
                   cursor: r.bridged || minting === r.id ? 'default' : 'pointer', flexShrink: 0,
-                  fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                   color: r.bridged ? A.inkMute : A.interactiveWarm,
                   letterSpacing: '0.28em', textTransform: 'uppercase',
                   opacity: r.bridged ? 0.45 : (minting === r.id ? 0.6 : 1),
@@ -605,7 +605,7 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
           ))}
           {outcome && (
             <div style={{
-              fontFamily: F.script, fontWeight: 300, fontSize: 16,
+              fontFamily: F.script, fontWeight: 300, fontSize: '1rem',
               color: outcome.kind === 'error' ? A.red : A.inkSoft, lineHeight: 1.5,
             }}>{outcome.msg}</div>
           )}
@@ -649,29 +649,29 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'var(--atelier-overlay)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end' }}>
       <div style={{ width: '100%', maxHeight: '92dvh', overflowY: 'auto', background: 'var(--atelier-sheet-bg)', backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)', borderTop: '0.5px solid var(--atelier-sheet-border)', padding: '0 0 calc(32px + env(safe-area-inset-bottom))' }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 8px' }}>
-          <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
+          <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
         </div>
-        <div style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: 25, color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Add someone</div>
-          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: A.interactiveWarm, fontFamily: F.display, fontSize: 25, lineHeight: 1, cursor: 'pointer', padding: 4 }}>×</button>
+        <div style={{ padding: '0 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem', color: 'var(--atelier-ink)', lineHeight: 1.15 }}>Add someone</div>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: A.interactiveWarm, fontFamily: F.display, fontSize: '1.75rem', lineHeight: 1, cursor: 'pointer', padding: 4 }}>×</button>
         </div>
         <div style={{ padding: '0 24px' }}>
           <Label>Name</Label>
-          <input value={name} onChange={e => setName(e.target.value)} style={{ ...inputStyle, marginBottom: 18 }} />
+          <input value={name} onChange={e => setName(e.target.value)} style={{ ...inputStyle, marginBottom: 16 }} />
           <Label>Phone</Label>
-          <input value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" style={{ ...inputStyle, marginBottom: 18 }} />
+          <input value={phone} onChange={e => setPhone(e.target.value)} inputMode="tel" style={{ ...inputStyle, marginBottom: 16 }} />
           <Label>Category</Label>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 22 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
             {crafts.map(t => (
               <Pill key={t} active={category === t} onClick={() => setCategory(category === t ? '' : t)}>
                 {labelFor(t)}
               </Pill>
             ))}
           </div>
-          {error && <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.red, marginBottom: 14 }}>{error}</div>}
+          {error && <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.red, marginBottom: 16 }}>{error}</div>}
           <button type="button" onClick={submit} disabled={saving} className="atelier-fab" style={{
-            width: '100%', padding: '14px 0', borderRadius: 2, border: '0.5px solid var(--atelier-label)',
-            cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: 10,
+            width: '100%', padding: '16px 0', borderRadius: 12, border: '0.5px solid var(--atelier-label)',
+            cursor: saving ? 'default' : 'pointer', fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem',
             color: INK_DEEP, letterSpacing: '0.5em', textTransform: 'uppercase', opacity: saving ? 0.6 : 1,
           }}>{saving ? 'Saving…' : 'Add to roster'}</button>
         </div>
@@ -685,7 +685,7 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.inkMute, marginBottom: 10 }}>
+    <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase', color: A.inkMute, marginBottom: 12 }}>
       {children}
     </div>
   );
@@ -694,10 +694,10 @@ function Label({ children }: { children: React.ReactNode }) {
 function Pill({ children, active, onClick }: { children: React.ReactNode; active: boolean; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} style={{
-      padding: '7px 13px', borderRadius: 2, cursor: 'pointer',
+      padding: '8px 12px', borderRadius: 12, cursor: 'pointer',
       background: 'transparent',
       border: `0.5px solid ${active ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
-      fontFamily: F.label, fontWeight: 300, fontSize: 9,
+      fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
       color: active ? A.interactiveWarm : A.inkMute,
       letterSpacing: '0.28em', textTransform: 'uppercase',
       transition: `all 180ms ${EASE}`,
@@ -707,11 +707,11 @@ function Pill({ children, active, onClick }: { children: React.ReactNode; active
 }
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '12px 14px', boxSizing: 'border-box',
+  width: '100%', padding: '12px 16px', boxSizing: 'border-box',
   background: 'var(--atelier-input-bg)',
   border: '0.5px solid var(--atelier-input-border)',
-  borderRadius: 2, color: A.ink,
+  borderRadius: 12, color: A.ink,
   fontFamily: 'var(--font-dm-sans), system-ui, sans-serif',
-  fontSize: 16, lineHeight: 1.5, fontWeight: 300, outline: 'none', 
+  fontSize: '1rem', lineHeight: 1.5, fontWeight: 300, outline: 'none', 
   caretColor: A.interactive,
 };

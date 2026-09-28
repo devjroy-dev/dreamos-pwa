@@ -55,7 +55,7 @@ const HELD: readonly { icon: HelpIcon; line: string }[] = [];
 // The four `what` lines this file types, because no home holds them yet. PROPOSED in the
 // read-first of 27 Sept 2026; they wait on the founder's yes like every other new byte.
 const TYPED_WHAT = {
-  rooms:     'Every room of the app, on shelves',
+  rooms:     'Every part of the app, in groups',
   today:     'What needs attention today',
   exchange:  'Gear and services traded with peers',
   responses: 'Replies to one collab post',
@@ -67,7 +67,7 @@ const TYPED_WHAT = {
 const ADS_HELP = {
   what:  'Boosting shows one of your Instagram posts to couples in your city who are planning a wedding, for a daily amount you set and a number of days you choose.',
   pays:  'Meta charges your own card from your own ad account. TDW never charges for ads and never runs one without your tap.',
-  leads: 'Couples who write after seeing the ad land in Leads, and this room tells you what each ad reached, what it cost, and what to try next.',
+  leads: 'Couples who write after seeing the ad land in Enquiries, and this page tells you what each ad reached, what it cost, and what to try next.',
 } as const;
 
 const entry = (what: string, extra: Partial<PageHelp> = {}): PageHelp =>

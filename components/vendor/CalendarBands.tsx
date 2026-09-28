@@ -44,9 +44,9 @@ const A = {
   inkMute:   'var(--atelier-ink-mute)',
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
-  brassLine: 'rgba(201,168,76,0.18)',
-  brassSoft: 'rgba(201,168,76,0.28)',
-  brassRing: 'rgba(201,168,76,0.55)',
+  brassLine: 'var(--atelier-card-border)',
+  brassSoft: 'var(--atelier-row-hover)',
+  brassRing: 'var(--atelier-input-border)',
   terracotta:'var(--role-critical)',
 } as const;
 
@@ -60,7 +60,7 @@ function fmtShort(s: string) {
 // COPY (founder veto ANSWERED YES, 2026-07-22 — all six as proposed):
 const UNTITLED   = 'Untitled wedding';
 const EMPTY_BOARD = "No weddings on the board. Link a booking to a client’s binder and it becomes a band.";
-const LOOSE_LABEL = 'Loose engagements';
+const LOOSE_LABEL = 'Other events';
 
 /** Indian-grouped rupees: 125000 -> "₹1,25,000". */
 function inr(n: number): string {
@@ -90,7 +90,7 @@ function CrewCircle({ c }: { c: BandCrew }) {
   const pending   = c.confirmation === 'pending';
   const declined  = c.confirmation === 'declined';
   const stroke    = declined ? A.terracotta : (pending ? A.brassSoft : A.brassRing);
-  const fill      = declined ? 'transparent' : (pending ? 'transparent' : 'rgba(201,168,76,0.14)');
+  const fill      = declined ? 'transparent' : (pending ? 'transparent' : 'var(--atelier-row-hover)');
   const text      = declined ? A.terracotta : A.brassWarm;
   return (
     <span
@@ -118,8 +118,8 @@ function Pip({ fn, muhurat, onTap }: { fn: BandFunction; muhurat: boolean; onTap
     <button type="button" onClick={() => onTap(fn)}
       aria-label={`${fn.title}, ${fmtShort(fn.date)}${fn.gap ? ', no crew assigned' : ''}`}
       style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-        background: 'none', border: 'none', padding: '2px 0', cursor: 'pointer',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+        background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer',
         minWidth: 62, flexShrink: 0,
       }}>
       {/* the pip itself — a gap is HOLLOW with a hairline pulse */}
@@ -128,13 +128,13 @@ function Pip({ fn, muhurat, onTap }: { fn: BandFunction; muhurat: boolean; onTap
         style={{
           width: 11, height: 11, borderRadius: '50%',
           border: `0.5px ${fn.gap ? 'dashed' : 'solid'} ${fn.gap ? A.brassSoft : A.brassRing}`,
-          background: fn.gap ? 'transparent' : 'rgba(201,168,76,0.16)',
+          background: fn.gap ? 'transparent' : 'var(--atelier-row-hover)',
           position: 'relative',
         }}>
         {/* THE ONE GOLD ON THIS SCREEN — the muhurat diamond (spec §3) */}
         {muhurat && (
           <span style={{
-            position: 'absolute', top: -6, left: '50%', marginLeft: -2.5,
+            position: 'absolute', top: -6, left: '50%', marginLeft: -4,
             width: 5, height: 5, background: 'var(--role-metal)',
             transform: 'rotate(45deg)',
           }} />
@@ -156,7 +156,7 @@ function Pip({ fn, muhurat, onTap }: { fn: BandFunction; muhurat: boolean; onTap
         whiteSpace: 'nowrap',
       }}>{fn.kind}</span>
       {fn.crew.length > 0 && (
-        <span style={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+        <span style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
           {fn.crew.slice(0, 4).map(c => <CrewCircle key={c.member_id} c={c} />)}
         </span>
       )}
@@ -209,10 +209,10 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
     // Skeleton: three quiet lanes. Never an empty state while a read is in flight —
     // "no weddings" and "not loaded yet" are different sentences.
     return (
-      <div style={{ padding: '10px 22px 20px', display: 'flex', flexDirection: 'column', gap: 22 }}>
+      <div style={{ padding: '12px 24px 24px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         {[0, 1, 2].map(i => (
           <div key={i} style={{ opacity: 0.28 - i * 0.07 }}>
-            <div style={{ height: 15, width: 148, background: A.brassLine, borderRadius: 2 }} />
+            <div style={{ height: 15, width: 148, background: A.brassLine, borderRadius: 12 }} />
             <div style={{ height: 0.5, background: A.brassLine, margin: '16px 0 0' }} />
           </div>
         ))}
@@ -226,7 +226,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
     return (
       <div style={{
         font: RUNG.t3,
-        padding: '18px 22px 26px',
+        padding: '16px 24px 24px',
         color: A.inkMute,
       }}>The board could not be read just now.</div>
     );
@@ -239,18 +239,18 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
     return (
       <div style={{
         font: RUNG.t3,
-        padding: '18px 22px 26px',
+        padding: '16px 24px 24px',
         color: A.inkMute,
       }}>{EMPTY_BOARD}</div>
     );
   }
 
   return (
-    <div style={{ padding: '4px 0 20px' }}>
+    <div style={{ padding: '4px 0 24px' }}>
       <style>{`
         @keyframes tdwGapPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.00); }
-          50%      { box-shadow: 0 0 0 3px rgba(201,168,76,0.13); }
+          0%, 100% { box-shadow: 0 0 0 0 var(--atelier-card-border); }
+          50%      { box-shadow: 0 0 0 3px var(--atelier-card-border); }
         }
         .tdw-gap-pulse { animation: tdwGapPulse 2.4s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) { .tdw-gap-pulse { animation: none; } }
@@ -259,8 +259,8 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
       {bands.map((b) => {
         const whisper = whisperFor(b);
         return (
-          <div key={b.binder_id} style={{ padding: '0 22px' }}>
-            <div style={{ padding: '16px 0 10px', borderBottom: `0.5px solid ${A.brassLine}` }}>
+          <div key={b.binder_id} style={{ padding: '0 24px' }}>
+            <div style={{ padding: '16px 0 12px', borderBottom: `0.5px solid ${A.brassLine}` }}>
               {/* THE BAND HEAD — title + money whisper.
                   Band-tap navigation is deliberately ABSENT (CE ruling F4): the 03
                   binder story has no addressable route at HEAD, so this sitting builds
@@ -270,7 +270,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
                 font: RUNG.t2,
                 color: A.ink,
               }}>{b.title ?? UNTITLED}</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 4 }}>
                 <span style={{
                   font: RUNG.t5,
                   letterSpacing: '0.08em',
@@ -291,7 +291,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
             </div>
 
             <div style={{
-              display: 'flex', gap: 14, overflowX: 'auto', padding: '12px 0 4px',
+              display: 'flex', gap: 16, overflowX: 'auto', padding: '12px 0 4px',
               scrollbarWidth: 'none',
             }}>
               {b.functions.map(fn => (
@@ -303,8 +303,8 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
       })}
 
       {loose.length > 0 && (
-        <div style={{ padding: '0 22px', marginTop: bands.length ? 20 : 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 0 8px' }}>
+        <div style={{ padding: '0 24px', marginTop: bands.length ? 20 : 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 0 8px' }}>
             <div style={{
               font: RUNG.t5,
               letterSpacing: '0.08em',
@@ -313,7 +313,7 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
             }}>{LOOSE_LABEL}</div>
             <div style={{ flex: 1, height: '0.5px', background: 'var(--atelier-ink-dim)' }} />
           </div>
-          <div style={{ display: 'flex', gap: 14, overflowX: 'auto', padding: '4px 0', scrollbarWidth: 'none' }}>
+          <div style={{ display: 'flex', gap: 16, overflowX: 'auto', padding: '4px 0', scrollbarWidth: 'none' }}>
             {loose.map(fn => (
               <Pip key={fn.event_id} fn={fn} muhurat={muhuratDates.has(fn.date)} onTap={tapPip} />
             ))}
@@ -327,9 +327,9 @@ export function CalendarBands({ vendorId, from, to, muhuratDates, onOpenDay, onA
       {data?.truncated && (
         <div style={{
           font: RUNG.t3,
-          padding: '10px 22px 0',
+          padding: '12px 24px 0',
           color: A.inkMute,
-        }}>Over 400 entries in this span — the furthest are not drawn.</div>
+        }}>Over 400 entries in this span. The furthest are not shown.</div>
       )}
     </div>
   );

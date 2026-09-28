@@ -29,7 +29,7 @@ const A = {
   inkMute:   'var(--atelier-ink-mute)',
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
-  brassLine: 'rgba(201,168,76,0.18)',
+  brassLine: 'var(--atelier-card-border)',
   red:       'var(--role-critical)',
 } as const;
 const F = {
@@ -170,12 +170,12 @@ export function Header({ vendorName }: { vendorName: string | null }) {
       {/* Brand */}
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flexShrink: 1 }}>
         <span style={{
-          fontFamily: F.label, fontWeight: 300, fontSize: 8,
+          fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
           letterSpacing: '0.42em', textTransform: 'uppercase',
           color: A.brass,
         }}>DreamAi</span>
         <span style={{
-          fontFamily: F.display, fontWeight: 400, fontSize: 20,
+          fontFamily: F.display, fontWeight: 400, fontSize: '1.375rem',
           color: inkColor, letterSpacing: '0.01em', marginTop: 2, lineHeight: 1,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>{headerName}</span>
@@ -193,7 +193,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             background: 'transparent',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', flexShrink: 0, touchAction: 'manipulation',
-            fontFamily: F.label, fontWeight: 500, fontSize: 12, lineHeight: 1,
+            fontFamily: F.label, fontWeight: 500, fontSize: '0.8125rem', lineHeight: 1,
             color: 'var(--role-metal)', letterSpacing: '0.06em',
           }}>
           {initials(displayName)}
@@ -278,7 +278,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             WebkitBackdropFilter: 'blur(32px) saturate(1.6)',
             boxShadow: isLight
               ? `0 8px 24px -4px var(--atelier-card-shadow), 0 0 0 0.5px ${T.sheetBorder}`
-              : '0 16px 40px -8px rgba(0,0,0,0.55), 0 0 0 0.5px rgba(201,168,76,0.32), inset 0 1px 0 var(--atelier-ink-dim)',
+              : '0 16px 40px -8px rgba(0,0,0,0.55), 0 0 0 0.5px var(--atelier-input-border), inset 0 1px 0 var(--atelier-ink-dim)',
             // `overflow: 'hidden'` stood here. It is retired INTO the overflowX/overflowY
             // pair above, which clips the horizontal axis identically and lets the
             // vertical one scroll. The radius clip it was protecting is unchanged:
@@ -287,15 +287,15 @@ export function Header({ vendorName }: { vendorName: string | null }) {
             {/* Calling card header */}
             <div style={{
               padding: '18px 20px 16px',
-              borderBottom: `0.5px solid rgba(201,168,76,0.22)`,
+              borderBottom: `0.5px solid var(--atelier-card-border)`,
             }}>
               <div style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: 8,
+                fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
                 letterSpacing: '0.5em', textTransform: 'uppercase',
                 color: A.brass, marginBottom: 8,
               }}>The Maker</div>
               <div style={{
-                fontFamily: F.display, fontWeight: 400, fontSize: 25,
+                fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem',
                 color: 'var(--atelier-ink)',
                 lineHeight: 1.1, letterSpacing: '0.005em',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -303,7 +303,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
               {subtitle && (
                 <div style={{
                   fontFamily: F.script, fontWeight: 300,
-                  fontSize: 16, lineHeight: 1.5, color: inkMuteColor, marginTop: 5,
+                  fontSize: '1rem', lineHeight: 1.5, color: inkMuteColor, marginTop: 5,
                   letterSpacing: '0.01em',
                 }}>{subtitle}</div>
               )}
@@ -350,7 +350,7 @@ export function Header({ vendorName }: { vendorName: string | null }) {
       <div style={{
         position: 'absolute', left: 20, right: 20, bottom: 0,
         height: '0.5px',
-        background: 'linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.4) 20%, rgba(201,168,76,0.4) 80%, transparent 100%)',
+        background: 'linear-gradient(90deg, transparent 0%, var(--atelier-row-hover) 20%, var(--atelier-row-hover) 80%, transparent 100%)',
         pointerEvents: 'none',
       }} />
     </header>
@@ -366,7 +366,7 @@ function SectionLabel({ children }: { children: React.ReactNode; isLight?: boole
       display: 'flex', alignItems: 'center', gap: 10,
     }}>
       <span style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: 8,
+        fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
         letterSpacing: '0.5em', textTransform: 'uppercase',
         color: 'var(--atelier-label)',
       }}>{children}</span>
@@ -401,20 +401,20 @@ function DItem({ glyph, label, subtitle, onClick, danger, accent, last }: {
       }}>
       <span style={{
         flexShrink: 0, width: 22, textAlign: 'center',
-        fontFamily: F.display, fontWeight: 400, fontSize: 16,
+        fontFamily: F.display, fontWeight: 400, fontSize: '1rem',
         color: glyphColor, lineHeight: 1,
         textShadow: 'none',
         transition: `text-shadow 150ms ${EASE}`,
       }}>{glyph}</span>
       <span style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <span style={{
-          fontFamily: F.script, fontWeight: 500, fontSize: 16,
+          fontFamily: F.script, fontWeight: 500, fontSize: '1rem',
           color, letterSpacing: '0.005em', lineHeight: 1.15,
         }}>{label}</span>
         {subtitle && (
           <span style={{
             fontFamily: F.script, fontWeight: 300,
-            fontSize: 16, lineHeight: 1.5, color: subtitleColor, marginTop: 1,
+            fontSize: '1rem', lineHeight: 1.5, color: subtitleColor, marginTop: 1,
             letterSpacing: '0.01em',
           }}>{subtitle}</span>
         )}

@@ -63,13 +63,15 @@ console.log('══════════════════════�
 console.log('TDW_16 R2 · THE LEADS TRUTH — L1 the row, L2 the timezone');
 console.log('════════════════════════════════════════════════════════════');
 
+// DESIGN-1 · STAGE 1 (by label): the founder byte keeps its words and takes sentence case, 'Enquired via TDW'
+// (docs/review/REPORT.md §5: sentence case, no capitals as a label). Every cell below keys on the new byte.
 H('§1 · L1 — the ENQUIRED VIA TDW row');
 
 // RAW, not stripped, and deliberately: this is the founder's byte (2026-08-22),
 // frozen at the character. A copy pin that tolerated a reworded comment would
 // tolerate a reworded label, which is the thing it exists to refuse.
 ok('1.1 the founder byte is present, character-exact',
-  LEADS_RAW.includes("label:'ENQUIRED VIA TDW'"),
+  LEADS_RAW.includes("label:'Enquired via TDW'"),
   'the label has drifted from the byte the founder froze on 2026-08-22');
 
 ok('1.2 the row is LINKAGE-GATED — it does not render on an unbadged lead',
@@ -77,8 +79,8 @@ ok('1.2 the row is LINKAGE-GATED — it does not render on an unbadged lead',
   'an ungated row would put an em-dash under ARRIVED on every WhatsApp-only lead');
 
 ok('1.3 it reads the SPINE\'s clock, never the lead\'s birthday',
-  /label:'ENQUIRED VIA TDW',value:fmtArrival\(l\.tdw_enquired_at\)/.test(LEADS)
-  && !/label:'ENQUIRED VIA TDW',value:fmtArrival\(l\.created_at\)/.test(LEADS),
+  /label:'Enquired via TDW',value:fmtArrival\(l\.tdw_enquired_at\)/.test(LEADS)
+  && !/label:'Enquired via TDW',value:fmtArrival\(l\.created_at\)/.test(LEADS),
   'F-16.22 restored on the very row built to cure it');
 
 // F-04.10 was born on this handler's dream-os twin: the SELECT carried a field
@@ -94,9 +96,9 @@ ok('1.4 the wire type admits the field (F-04.10, the type half)',
 // in the other they are a contradiction.
 {
   const arrived = LEADS.indexOf("label:'Arrived'");
-  const tdwRow  = LEADS.indexOf("label:'ENQUIRED VIA TDW'");
+  const tdwRow  = LEADS.indexOf("label:'Enquired via TDW'");
   ok('1.5 it sits directly UNDER Arrived, as ruled',
-    arrived > -1 && tdwRow > arrived && !/label:'Wedding date'[\s\S]{0,80}label:'ENQUIRED VIA TDW'/.test(LEADS),
+    arrived > -1 && tdwRow > arrived && !/label:'Wedding date'[\s\S]{0,80}label:'Enquired via TDW'/.test(LEADS),
     `Arrived@${arrived} vs row@${tdwRow}`);
 }
 

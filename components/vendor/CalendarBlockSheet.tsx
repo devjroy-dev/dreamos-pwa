@@ -16,7 +16,7 @@ const SHEET: React.CSSProperties = {
 };
 const D = {
   border: '0.5px solid var(--atelier-card-border)',
-  borderStrong: '0.5px solid rgba(201,168,76,0.35)',
+  borderStrong: '0.5px solid var(--atelier-input-border)',
   muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)',
   gold: 'var(--role-metal)',
@@ -62,12 +62,12 @@ function PillPicker({ options, value, onChange }: {
           <button key={opt} type="button" onClick={() => onChange(opt)} style={{
             font: RUNG.t5,
             letterSpacing: '0.08em',
-            padding: '7px 14px',
+            padding: '8px 16px',
             borderRadius: 999,
             border: 'none',
             cursor: 'pointer',
             background: active ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
-            outline: active ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
+            outline: active ? '0.5px solid var(--atelier-input-border)' : '0.5px solid var(--atelier-input-border)',
             textTransform: 'uppercase',
             color: active ? D.cream : D.muted,
             transition: `all 180ms ${EASE}`,
@@ -172,28 +172,28 @@ export function CalendarBlockSheet({
 
         {/* Drag handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--atelier-label)' }} />
+          <div style={{ width: 36, height: 4, borderRadius: 12, background: 'var(--atelier-label)' }} />
         </div>
 
         {/* Title row */}
-        <div style={{ padding: '6px 24px 16px', borderBottom: D.border }}>
+        <div style={{ padding: '8px 24px 16px', borderBottom: D.border }}>
           <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: 'var(--atelier-accent-text)', textTransform: 'uppercase' }}>
             {dateIso ? fmtDate(dateIso) : ''}
           </p>
-          <h2 style={{ font: RUNG.t1, color: D.cream, marginTop: 2 }}>
+          <h2 style={{ font: RUNG.t1, color: D.cream, marginTop: 4 }}>
             {existingBlock ? 'Blocked date' : 'Block this date'}
           </h2>
         </div>
 
         {/* Body */}
-        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ padding: '24px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* The verdict line — the wire's sentence, verbatim, never softened.
               (F-04.77's cure; the day sheet's own block, styles byte-for-byte.) */}
           {verdict && (
             <div style={{
               font: RUNG.t3,
-              padding: '10px 14px',
-              borderRadius: 10,
+              padding: '12px 16px',
+              borderRadius: 12,
               border: '0.5px solid var(--role-critical)',
               background: 'transparent',
               color: D.red,
@@ -206,7 +206,7 @@ export function CalendarBlockSheet({
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 12, borderBottom: D.border }}>
                 <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: 'var(--atelier-accent-text)', textTransform: 'uppercase' }}>On this day</span>
                 {onDay.map((e) => (
-                  <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                  <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
                     <span style={{ font: RUNG.t3, color: 'var(--atelier-accent-text)', minWidth: 54 }}>
                       {e.event_time ? e.event_time.slice(0, 5) : 'all day'}
                     </span>
@@ -228,7 +228,7 @@ export function CalendarBlockSheet({
               <button type="button" onClick={doUnblock} disabled={working} style={{
                 font: RUNG.t4,
                 width: '100%',
-                padding: '13px 0',
+                padding: '12px 0',
                 background: 'transparent',
                 opacity: working ? 0.5 : 1,
                 border: '0.5px solid var(--role-critical)',
@@ -260,11 +260,11 @@ export function CalendarBlockSheet({
                   style={{
                     font: RUNG.t3,
                     width: '100%',
-                    padding: '11px 14px',
+                    padding: '12px 16px',
                     boxSizing: 'border-box',
                     background: 'var(--atelier-input-bg)',
                     border: '0.5px solid var(--atelier-card-border)',
-                    borderRadius: 10,
+                    borderRadius: 12,
                     color: D.cream,
                     outline: 'none',
                   }}
@@ -274,7 +274,7 @@ export function CalendarBlockSheet({
               <button type="button" onClick={doBlock} disabled={working} style={{
                 font: RUNG.t4,
                 width: '100%',
-                padding: '13px 0',
+                padding: '12px 0',
                 background: working ? 'var(--atelier-input-border)' : 'var(--atelier-accent-text)',
                 border: 'none',
                 borderRadius: 999,
