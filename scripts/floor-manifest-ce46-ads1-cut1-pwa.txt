@@ -1,0 +1,21 @@
+# scripts/floor-manifest-ce46-ads1-cut1-pwa.txt
+# CE-46 · ADS-1 · CUT 1 (dreamos-pwa): the Ads page at /vendor/posts/ads, the Posts room's Ads card, the words' one home,
+# the wire shapes, the doors in the route map, the Ads page's "?" entry (R-46.10 to R-46.14, R-46.13 (a)). Rung b143. BASE: 22e471cf (main;
+# carried from dc8dbdd1, cut1c). F-19.16: a dirty path
+# outside this list is a STOP.
+# A-45.3: TWO new folders, each declared as a folder line: the Ads route (its one file) and scripts/fixtures/ (b143's
+# picture and its provenance sidecar; re-cut 2 of 28 September).
+app/vendor/(shell)/posts/ads/
+app/vendor/(shell)/posts/ads/page.tsx
+scripts/fixtures/
+scripts/fixtures/b143_portrait.jpeg
+scripts/fixtures/b143_portrait.jpeg.source.txt
+app/vendor/(shell)/posts/page.tsx
+components/worklist/AdsCard.tsx
+lib/worklist/ads.ts
+lib/worklist/adsWire.ts
+lib/solutions/routes.ts
+lib/worklist/pageHelp.ts
+scripts/b143_ads1_ads_page_bench.js
+docs/handovers/TDW_CE46_ADS1_1_HANDOVER.md
+scripts/floor-manifest-ce46-ads1-cut1-pwa.txt

@@ -42,6 +42,7 @@ import { IN } from '@/lib/worklist/introductions';
 import { SUNDAY_PREVIEW, FIXTURE_BRIEF, SU } from '@/lib/worklist/sunday';
 import type { SundayDoor, SundayActions } from '@/lib/worklist/sunday';
 import { SundaySection } from '@/components/worklist/SundaySection';
+import { AdsCard } from '@/components/worklist/AdsCard';
 const COPY_PREVIEW_EYEBROW = IN.previewEyebrow;
 const COPY_BACK = IN.back;
 
@@ -156,6 +157,9 @@ function PostsScreen() {
         )}
 
         {/* ── BROADCAST (4b-2) ───────────────────────────────────────────────── */}
+        {/* ── ADS (CE-46 ADS-1, R-46.13 item 2): one card, the tap into /vendor/posts/ads ── */}
+        <AdsCard />
+
         <div className="pst-sec pst-secgap">{PO.sectionBroadcast}</div>
         <p className="pst-lede">{PO.ledeBroadcast}</p>
         <BroadcastSection />

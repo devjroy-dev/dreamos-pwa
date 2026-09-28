@@ -1,0 +1,14 @@
+scripts/fixtures/b143_portrait.jpeg.source.txt · CE-46 · ADS-1 · the provenance of b143's post photograph.
+
+SOURCE        Pexels (https://www.pexels.com), photo id 2058070, by the Pexels contributor whose download handle is "sadman".
+PAGE          https://www.pexels.com/photo/2058070/  (Pexels resolves a photo by its id; not opened from the seat's container,
+              whose egress reaches pexels.com pages only as text)
+LICENCE       https://www.pexels.com/license/  (free to use, commercial use allowed, modification allowed, attribution not required;
+              identifiable people not to be shown endorsing anyone; not to be resold or redistributed as a stock photo)
+HOW MATCHED   by the file itself: the founder downloaded it on pexels.com with Pexels' own Download button on 28 September 2026,
+              and Pexels named the file pexels-sadman-2058070.jpg (its contributor handle and photo id). No visual search was used.
+ORIGINAL      pexels-sadman-2058070.jpg · 3648 x 5472 px · sha256 193cbe8932263761ca9c5896bd374a27a63ab1f7e9d8d01917ea89dbb9b805d7
+THIS FILE     resized by the seat to 1080 x 1620 px (same aspect, 0.6667), JPEG quality 85, to keep the tree light
+              · sha256 ed8afbefcd5de26718019751336499546c7786122fff16dc677b3e75cd529f23
+USE           a test fixture only: rung b143 shows it as a vendor's post in the Ads page's preview and pins that the preview keeps
+              the picture's own shape. It is not shipped to vendors or couples and implies no endorsement.

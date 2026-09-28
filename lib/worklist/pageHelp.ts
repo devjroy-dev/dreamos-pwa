@@ -33,7 +33,7 @@ import { ROW_DESC } from '@/lib/solutions/copy';
 // the replies page's route PATTERN, which is a key, not an address anyone links to.
 import { roomHref } from '@/lib/worklist/rooms';
 import { DATES_HREF, NUMBER_HREF, WEDDING_PAGES_HREF, WEBSITE_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF,
-  PAYMENT_REMINDERS_HREF, INTRODUCTIONS_HREF, POSTS_HREF, EXCHANGE_HREF, SOLUTIONS_INDEX_HREF } from '@/lib/solutions/routes';
+  PAYMENT_REMINDERS_HREF, INTRODUCTIONS_HREF, POSTS_HREF, ADS_HREF, EXCHANGE_HREF, SOLUTIONS_INDEX_HREF } from '@/lib/solutions/routes';
 
 export interface PageHelp {
   /** (The card's heading is the shell's own `title` byte, passed at the mount; it is not typed here.) */
@@ -59,6 +59,15 @@ const TYPED_WHAT = {
   today:     'What needs attention today',
   exchange:  'Gear and services traded with peers',
   responses: 'Replies to one collab post',
+} as const;
+
+// CE-46 ADS-1 · the Ads page's three lines (accepted by the chair 28 September 2026; FE-4's note: they go here, their one
+// home). Line 1 of the Ads card is READ from the Posts & ads row (ROW_DESC.posts), b140 1.2's rule: typed line 1s stay four;
+// these three are the card's "can" lines.
+const ADS_HELP = {
+  what:  'Boosting shows one of your Instagram posts to couples in your city who are planning a wedding, for a daily amount you set and a number of days you choose.',
+  pays:  'Meta charges your own card from your own ad account. TDW never charges for ads and never runs one without your tap.',
+  leads: 'Couples who write after seeing the ad land in Leads, and this room tells you what each ad reached, what it cost, and what to try next.',
 } as const;
 
 const entry = (what: string, extra: Partial<PageHelp> = {}): PageHelp =>
@@ -95,6 +104,7 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   [WEDDING_PAGES_HREF]: entry(ROW_DESC.wedding_pages),
   [GOOGLE_REVIEWS_HREF]: entry(ROW_DESC.google),
   [POSTS_HREF]: entry(ROW_DESC.posts),
+  [ADS_HREF]: entry(ROW_DESC.posts, { can: [{ icon: 'send', line: ADS_HELP.what }, { icon: 'money', line: ADS_HELP.pays }, { icon: 'reply', line: ADS_HELP.leads }] }),
   [DATES_HREF]: entry(ROW_DESC.dates),
   [INTRODUCTIONS_HREF]: entry(ROW_DESC.introductions),
   [REFERRALS_HREF]: entry(ROW_DESC.referrals),

@@ -154,6 +154,8 @@ export const LEADS_API_PATH     = '/api/v2/vendor/leads';
 // 4b-1 adds directly beneath `/introductions`. `GET /cards` is the only door at
 // 4b-1; broadcast (4b-2) and the Sunday brief (4b-3) join the same file.
 export const POSTS_API_PATH = '/api/v2/vendor/posts';
+// CE-46 ADS-1: the Ads page's doors (dream-os src/api/vendor/core.js mounts '/ads' beside '/ig').
+export const ADS_API_PATH = '/api/v2/vendor/ads';
 
 // ── CE-42 · SEAT R7 · 4c-1 · THE COLLAB DOORS, FOR THE SHOOT BOARD ───────────
 // DERIVED, NOT ASSUMED: dream-os `src/api/vendor/core.js` mounts `./collab` at
@@ -259,6 +261,23 @@ export const API = {
   postSunday:          () => `${POSTS_API_PATH}/sunday`,
   postSundayRefresh:   () => `${POSTS_API_PATH}/sunday/refresh`,
   igAuthorizeInsights: () => '/api/v2/vendor/ig/authorize?scope=insights',
+  // ── CE-46 ADS-1 · THE ADS PAGE (R-46.10 to R-46.13) ───────────────────────
+  // dream-os src/api/vendor/ads.js. Every door but the callback is behind flag.ads;
+  // /prepare creates nothing, /run and /manage refuse unless the echo matches.
+  ads:              () => ADS_API_PATH,
+  adsAuthorize:     () => `${ADS_API_PATH}/authorize`,
+  adsCheck:         () => `${ADS_API_PATH}/check`,
+  adsDisconnect:    () => `${ADS_API_PATH}/disconnect`,
+  adsPosts:         () => `${ADS_API_PATH}/posts`,
+  adsSearch:        (kind: 'places' | 'languages' | 'interests' | 'life_events', q: string) =>
+    `${ADS_API_PATH}/search?kind=${encodeURIComponent(kind)}&q=${encodeURIComponent(q)}`,
+  adsStart:         () => `${ADS_API_PATH}/start`,
+  adsPrepare:       () => `${ADS_API_PATH}/prepare`,
+  adsRun:           () => `${ADS_API_PATH}/run`,
+  adsList:          () => `${ADS_API_PATH}/list`,
+  adsManagePrepare: () => `${ADS_API_PATH}/manage/prepare`,
+  adsManage:        () => `${ADS_API_PATH}/manage`,
+  adsResults:       (id?: string) => id ? `${ADS_API_PATH}/results?id=${encodeURIComponent(id)}` : `${ADS_API_PATH}/results`,
   // ── G6 · YOUR OWN NUMBER · CE-45 G6-1 (FK1, chair-ruled 2026-09-24) ──────
   // BOTH DOORS DO NOT EXIST YET: dream-os builds them in cut 2a beside their
   // siblings in src/api/vendor/solutions/index.js. Until then the GET answers
@@ -322,6 +341,9 @@ export const INTRODUCTIONS_HREF = '/vendor/introductions';
 // Not a registry room (no tile), so the address lives HERE on the not-a-room
 // precedent, and `b40` C31 READS this declaration rather than retyping it.
 export const POSTS_HREF = '/vendor/posts';
+// CE-46 ADS-1: the Ads page, a child of the Posts room (R-46.13 item 2). Its one home: the page, the Posts card and the
+// "?" table read it; nobody types the address again.
+export const ADS_HREF = `${POSTS_HREF}/ads`;
 
 // ── CE-42 · SHELL · R-42.12 AMENDED · THE EIGHTH AND NINTH CONSTANTS ───────
 // `Open dates & rates` and `Your own number` were the two hub rows with no
