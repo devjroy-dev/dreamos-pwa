@@ -144,8 +144,9 @@ cell('C1 token completeness, both modes', () => {
     return (m[1].match(/^\s*'[a-z-]+'\s*:/gm) || []).length;
   };
   const g = grab('GRAPHITE'), c = grab('CHALK');
-  if (g !== 33) return 'GRAPHITE has ' + g + ' tokens, expected 33';
-  if (c !== 33) return 'CHALK has ' + c + ' tokens, expected 33';
+  // DESIGN-1 · STAGE 1 (by label): 35, the 33 plus primary and on-primary (docs/review/REPORT.md §4)
+  if (g !== 35) return 'GRAPHITE has ' + g + ' tokens, expected 35';
+  if (c !== 35) return 'CHALK has ' + c + ' tokens, expected 35';
   return null;
 });
 
@@ -410,6 +411,8 @@ cell('C10 every tap target >= 44px', () => {
       // token form is read too, because the grid's values now have one home in theme.ts
       // and the stylesheet reads var(--wl-tile) rather than restating 64.
       let h = m[1].match(/min-height:(\d+)px/) || m[1].match(/height:(\d+)px/);
+      // DESIGN-1 (by label): a button states the one button height, var(--wl-btn-h), BUTTON.height in theme.ts (48)
+      if (!h && /min-height:var\(--wl-btn-h\)/.test(m[1])) { const bh = read('lib/worklist/theme.ts').match(/BUTTON = \{ height: (\d+)/); h = bh ? [null, bh[1]] : null; }
       if (!h && /height:var\(--wl-(tile|row)\)/.test(m[1])) {
         const g = read('lib/worklist/theme.ts').match(/GRID\s*=\s*\{[^}]*?(tile|row):\s*(\d+)/g) || [];
         const t = read('lib/worklist/theme.ts').match(/tile:\s*(\d+)/);
@@ -427,14 +430,15 @@ cell('C10 every tap target >= 44px', () => {
 //    9px on the tile names was the conviction; this makes it unrepeatable.
 cell('C11 type floors hold', () => {
   const rules = [
-    ['components/worklist/RoomsGrid.tsx', 'wl-tname', 12], ['components/worklist/RoomsGrid.tsx', 'wl-bandlabel', 11],
-    ['components/worklist/WorklistShell.tsx', 'wl-seat', 12], ['components/worklist/WorklistShell.tsx', 'wl-lbl', 11],
+    // DESIGN-1 (by label): every floor rises to the review's 13 (nothing a vendor reads is smaller); body stays 14+.
+    ['components/worklist/RoomsGrid.tsx', 'wl-tname', 13], ['components/worklist/RoomsGrid.tsx', 'wl-bandlabel', 13],
+    ['components/worklist/WorklistShell.tsx', 'wl-seat', 13], ['components/worklist/WorklistShell.tsx', 'wl-lbl', 13],
     // AMENDED, LABELLED — ZIP 13 (CE ruling F-4), same deletion as C10's.
     // `wl-sub` was the coin drawer's right-hand micro-label; the rule is gone and
     // the guarded name goes with it. Cell untouched, cell count unchanged.
-    ['components/worklist/AiDock.tsx', 'wl-dockph', 12],  // Arm A: the placeholder is the dock's only type
-    ['components/worklist/WorklistShell.tsx', 'wl-cardtitle', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardbody', 14],
-    ['components/worklist/FirstRun.tsx', 'wl-chip', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardaction', 12],
+    ['components/worklist/AiDock.tsx', 'wl-dockph', 13],  // Arm A: the placeholder is the dock's only type
+    ['components/worklist/WorklistShell.tsx', 'wl-cardtitle', 13], ['components/worklist/WorklistShell.tsx', 'wl-cardbody', 14],
+    ['components/worklist/FirstRun.tsx', 'wl-chip', 13], ['components/worklist/WorklistShell.tsx', 'wl-cardaction', 13],
   ];
   // AMENDED, LABELLED — M-FINISH S1 (R-38.4). AD-HOC px IS GONE FROM THE SHELL: every rule
   // now reads `font:var(--wl-tN)`, the CSS `font` SHORTHAND, so a call site cannot set a
@@ -454,7 +458,7 @@ cell('C11 type floors hold', () => {
     const m = read(f).match(new RegExp('\\.' + c + '\\{([^}]*)\\}'));
     if (!m) { bad.push(c + ' (rule not found)'); continue; }
     let size = null;
-    const rung = m[1].match(/font:var\(--wl-(t\d)\)/);
+    const rung = m[1].match(/font:var\(--wl-(t\d|tn|tb)\)/);   // DESIGN-1: tn and tb are rungs too
     if (rung) size = rungSize(rung[1]);
     else { const sz = m[1].match(/font-size:([\d.]+)px/); if (sz) size = Number(sz[1]); }
     if (size === null) { bad.push(c + ' (names no type rung and sets no size)'); continue; }
@@ -1571,8 +1575,9 @@ cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
   const fabRule = strip(read('components/worklist/WorklistShell.tsx')).match(/\.wl-fab\{([^}]*)\}/);
   if (!fabRule) return 'the wl-fab rule is not in the shell — the seat has no home to assert against';
   if (/#[0-9a-fA-F]{6}|rgba?\(/.test(fabRule[1].replace(/rgba\(0,0,0,\.\d+\)/g, '')))
-    return 'the Add control hard-codes a colour — c-38.11 puts it on var(--atelier-accent-text)';
-  if (!/background:var\(--atelier-accent-text\)/.test(fabRule[1])) return 'the FAB is not on the accent token';
+    return 'the Add control hard-codes a colour — c-38.11 puts it on a token';
+  // DESIGN-1 · STAGE 1 (by label, REPORT.md P3): the filled control paints from the one primary, never the link colour
+  if (!/background:var\(--role-primary\)/.test(fabRule[1])) return 'the FAB is not on the primary token';
   // AND THE FILE THAT LOST THE RULE MUST NOT GROW A SECOND ONE.
   if (/\.wl-fab\{/.test(fab)) return 'AddFab has taken the seat rule back — two homes for one control';
   return null;
@@ -1611,8 +1616,9 @@ cell('C37 the t0 rung survives while its consumer is withheld', () => {
   if (!m) return 'the t0 rung is gone from lib/worklist/theme.ts — Phase 4 will re-invent the numeral at a new size';
   const size = (m[1].match(/size:\s*(\d+)/) || [])[1];
   const weight = (m[1].match(/weight:\s*(\d+)/) || [])[1];
-  if (size !== '46' || weight !== '500')
-    return 'the t0 rung drifted to ' + size + '/' + weight + ' while nothing consumed it — R-37.88 ratified 46/500';
+  // DESIGN-1 · STAGE 1 (by label): t0 is the review's one big figure, 28/600 (docs/review/REPORT.md §5), was 46/500
+  if (size !== '28' || weight !== '600')
+    return 'the t0 rung drifted to ' + size + '/' + weight + ' — DESIGN-1 set 28/600 (R-37.88 ratified 46/500 before it)';
   if (!/'t0'/.test(theme)) return 't0 is not in the RUNGS list, so typeCss never emits it';
   // ── PHASE 4 · THE CONSUMER CAME BACK, AND THE ASSERTION INVERTS WITH IT ────
   // While the numeral was withheld this arm asserted that NOTHING consumed the rung. The
@@ -2194,7 +2200,9 @@ cell('C43 the event card\'s action row does not share a row with its title (F-38
   if (/flex:\s*1,\s*minWidth:\s*0/.test(body))
     return 'the title still claims flex:1 against the controls — it can collapse to nothing';
   // And the actions must actually be their own row rather than inline.
-  if (!/display:\s*'flex',\s*gap:\s*6,\s*marginTop:\s*10/.test(body))
+  // DESIGN-1 · STAGE 1 (by label): at 44 px each the five sit on a grid of equal cells (its break is set by the
+  // viewport and the text size, never by the title, so R-37.22 holds), on the spacing scale (8 between, 12 above)
+  if (!/display:\s*'grid',\s*gridTemplateColumns:\s*'repeat\(auto-fit, minmax\(4\.5rem, 1fr\)\)',\s*gap:\s*8,\s*marginTop:\s*12/.test(body))
     return 'the action row is not a full-width row of its own';
   return null;
 });
@@ -2732,7 +2740,8 @@ cell('C69 the kind line takes counts from the wire and nouns from the one map (D
   const copy = strip(read('lib/worklist/copy.ts'));
   const map = (copy.match(/kindNouns:\s*\{[\s\S]*?\}/) || [''])[0];
   if (!map) { bad.push('kindNouns has no home in copy.ts'); return bad.join(' | '); }
-  const WANT = { lead_unanswered: "'lead', 'leads'", invoice_due: "'invoice', 'invoices'",
+  // DESIGN-1 · STAGE 1 (by label, REPORT.md W5): one word, enquiry
+  const WANT = { lead_unanswered: "'enquiry', 'enquiries'", invoice_due: "'invoice', 'invoices'",
                  events_today: "'event', 'events'", contract_unsigned: "'contract', 'contracts'",
                  team_tasks: "'task', 'tasks'" };
   for (const [k, v] of Object.entries(WANT)) {
@@ -3405,8 +3414,10 @@ cell('C98 the button register has ONE home, in the shell scope, any room (P7.2 A
   // rules into the shell's own scoped CSS, beside .wl-tile and .wl-fab (the F-39.4 FAB shape).
   const shell = strip(read('components/worklist/WorklistShell.tsx'));
   const bad = [];
-  if (!/\.wl-btn\{[\s\S]{0,200}min-height:44px/.test(shell)) bad.push('the shell scope does not declare .wl-btn');
-  if (!/\.wl-btn\.pri\{background:var\(--atelier-accent-text\);color:var\(--role-ink-deep\)\}/.test(shell)) bad.push('the shell scope does not declare .wl-btn.pri with the accent fill and deep ink');
+  // DESIGN-1 · STAGE 1 (by label): the one button is 48 high (var(--wl-btn-h)) and the filled one paints primary on
+  // on-primary (REPORT.md §3 and P3); it was 44 and the accent with the deep ink, the pairing that measured 2.71:1.
+  if (!/\.wl-btn\{[\s\S]{0,200}min-height:var\(--wl-btn-h\)/.test(shell)) bad.push('the shell scope does not declare .wl-btn');
+  if (!/\.wl-btn\.pri\{background:var\(--role-primary\);border-color:var\(--role-primary\);color:var\(--role-on-primary\)\}/.test(shell)) bad.push('the shell scope does not declare .wl-btn.pri with the primary fill and its ink');
   // ...and NOWHERE else. A second declaration is the disease the hoist cured.
   for (const f of ['components/worklist/StudioSheets.tsx', 'components/worklist/TeamTabs.tsx',
                    'components/worklist/SignOutSheet.tsx', 'app/vendor/(shell)/storefront/screen.tsx']) {
@@ -3720,7 +3731,8 @@ cell('C86 mark-paid reports the expense leg, and undefined is not false', () => 
   if (!/logged === false/.test(src))
     bad.push('the surface does not distinguish false from undefined — an older backend would read as a failed expense on every settlement');
   for (const [k, v] of [['studioToastPaidLogged', 'Marked as paid.'],
-                        ['studioToastPaidNoExpense', "Marked as paid — the expense wasn’t logged."]]) {
+                        // DESIGN-1 · STAGE 1 (by label, W1): the byte lost its dash
+                        ['studioToastPaidNoExpense', "Marked as paid. The expense was not logged."]]) {
     if (!copy.includes(v)) bad.push('copy.ts no longer carries the ruled byte 「' + v + '」');
     if (!new RegExp('COPY\\.' + k).test(src)) bad.push('the surface does not read COPY.' + k);
   }
@@ -3787,7 +3799,7 @@ cell('C88 the PDF sentences live in the register, and neither is spelled at a ca
   const bad = [];
   if (!copy.includes("Couldn’t prepare the PDF just now. Try again in a moment."))
     bad.push('the register lost the ruled fallback byte');
-  if (!copy.includes('PDF not ready yet — record the advance first.'))
+  if (!copy.includes('PDF not ready yet. Record the advance first.'))   // DESIGN-1 (by label, W1): no dash
     bad.push('the register lost the unchanged precondition byte');
   if (/'PDF not ready yet — try again in a moment\.'/.test(src))
     bad.push('the retired sentence is spelled inline again — it invents a state the door cannot report');
@@ -4526,7 +4538,7 @@ cell('C115 the Your website page writes the primary register once (Primary), ope
   if (/\bdisabled\b/.test(sf)) bad.push('a disabled control appears (R-40.78: absent, never greyed)');
   if (!/title=\{COPY\.websiteTitle\}/.test(pg)) bad.push('the page does not wear COPY.websiteTitle');
   if (!/websiteTitle: 'Your website',/.test(copy)) bad.push("COPY.websiteTitle is not the vetoed byte 'Your website'");
-  if (!/'SEO \\u2014 found on Google'/.test(sf)) bad.push('the Google section is not headed SEO \u2014 found on Google (R-40.122)');
+  if (!/'SEO: found on Google'/.test(sf)) bad.push('the Google section is not headed SEO: found on Google (R-40.122; DESIGN-1 took the dash out)');
   if (!/\/api\/revalidate\/storefront/.test(sf)) bad.push('the page never rebuilds her public page after a write');
   return bad.length === 0 ? null : bad.join('; ');
 });

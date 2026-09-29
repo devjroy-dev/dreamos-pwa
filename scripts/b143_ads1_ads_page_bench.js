@@ -156,7 +156,7 @@ async function main() {
       await p.close();
       p = await open(mode, 'shut', '/vendor/posts', { wait: '[data-ads-card-line]' });
       ok((await text(p, '[data-ads-card-line]')) === 'You have not run an ad yet. Your ads run from your own Meta ad account and your own card.'
-        && (await p.evaluate(() => Array.from(document.querySelectorAll('.pst-room button')).some((b) => b.textContent === 'Open Ads' && !b.disabled))),
+        && (await p.evaluate(() => Array.from(document.querySelectorAll('.pst-room button')).some((b) => b.textContent === 'Open ads' && !b.disabled))),   // DESIGN-1 (by label): sentence case, ads.ts 'Open ads'
         `${mode} 1.1c shut: the Posts card renders and opens the page`, await text(p, '[data-ads-card-line]'));
       await p.close();
       p = await open(mode, 'connect', '/vendor/posts/ads', { wait: '.ads-room a[href*="dialog/oauth"]' });

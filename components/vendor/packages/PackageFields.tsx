@@ -80,11 +80,12 @@ export function textButton(tone: 'accent' | 'mute' = 'accent'): CSSProperties {
 export function actionButton(tone: 'accent' | 'mute' = 'accent'): CSSProperties {
   const c = tone === 'accent' ? T.accent : T.mute;
   return {
-    font: RUNG.t4,
+    // DESIGN-1: the one button (REPORT.md §3): 48 high, 12px corners, outlined for secondary, at tb
+    font: RUNG.tb,
     background: 'transparent',
-    border: `0.5px solid ${c}`,
+    border: `1px solid ${c}`,
     borderRadius: 12,
-    minHeight: 40,
+    minHeight: 48,
     padding: '0 16px',
     cursor: 'pointer',
     color: c,

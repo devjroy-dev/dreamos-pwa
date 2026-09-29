@@ -80,7 +80,8 @@ export type WorklistMode = 'dark' | 'light';
 //   t0  28/32   600   the one big figure (money owed)
 //   t1  22/28   600   page title, record title
 //   t2  17/23   600   section title, sheet title
-//   t3  16/1.45 400   body, row title, input
+//   t3  16/1.45 400   body, input
+//   tn  16/1.45 500   a row's name, line 1 of the one row (the report's "Body, row title: 400 and 500")
 //   t4  14/20   400   the second line in a row
 //   tb  15/20   600   buttons
 //   t5  13/18   500   small text, labels, pills: the floor, nothing a vendor reads is smaller
@@ -91,6 +92,7 @@ export const TYPE = {
   t1: { size: 22, line: 28 / 22, weight: 600, family: 'body' },
   t2: { size: 17, line: 23 / 17, weight: 600, family: 'body' },
   t3: { size: 16, line: 1.45,    weight: 400, family: 'body' },
+  tn: { size: 16, line: 1.45,    weight: 500, family: 'body' },
   t4: { size: 14, line: 20 / 14, weight: 400, family: 'body' },
   tb: { size: 15, line: 20 / 15, weight: 600, family: 'body' },
   t5: { size: 13, line: 18 / 13, weight: 500, family: 'body' },
@@ -99,7 +101,7 @@ export const TYPE = {
 export type Rung = keyof typeof TYPE;
 
 /** The rungs, in one array, so the bench and the arm read the set rather than a copy. */
-export const RUNGS: readonly Rung[] = ['t0', 't1', 't2', 't3', 't4', 'tb', 't5'] as const;
+export const RUNGS: readonly Rung[] = ['t0', 't1', 't2', 't3', 'tn', 't4', 'tb', 't5'] as const;
 
 /** DESIGN-1: the review's floors. Nothing read under 13; controls at 15; body at 16. */
 export const TYPE_FLOORS = { label: 13, interactive: 15, body: 16 } as const;
@@ -173,9 +175,9 @@ const lh = (n: number) => +n.toFixed(4);
  * t0 is Today's numeral alone and is not offered.
  */
 export const RUNG_FONT = Object.fromEntries(
-  (['t1', 't2', 't3', 't4', 'tb', 't5'] as const).map((k) => [k,
+  (['t1', 't2', 't3', 'tn', 't4', 'tb', 't5'] as const).map((k) => [k,
     `var(--wl-${k}, ${TYPE[k].weight} ${rem(TYPE[k].size)}/${lh(TYPE[k].line)} ${TYPE_ROLE.body})`]),
-) as Record<'t1' | 't2' | 't3' | 't4' | 'tb' | 't5', string>;
+) as Record<'t1' | 't2' | 't3' | 'tn' | 't4' | 'tb' | 't5', string>;
 
 /**
  * Emit the scope's type layer.

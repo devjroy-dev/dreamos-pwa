@@ -731,7 +731,8 @@ section('11. sitting 3 — the room as a vendor uses it');
   // ── RE-CUT AT G3.2 s3 packet 4 (R-40.124 / R-40.125): the Needed list is filled inline; a policy blank is one field.
   ok('each missing row is filled where it is named (R-40.124)', /case 'fee':[\s\S]{0,300}onBlur=\{\(\) => void saveText\(\)\}/.test(src) && /case 'phone':[\s\S]{0,300}onBlur=\{\(\) => void savePhone\(\)\}/.test(src));
   ok('a policy blank is ONE field, saved as the merge on blur (R-40.125)', /async function savePolicyRow\(key: string, v: string\)[\s\S]{0,120}\{ \.\.\.seeds, \.\.\.profile, \[key\]: v \}/.test(src) && !/default: \{[\s\S]{0,600}openProfile\(/.test(src));
-  ok('the per-couple policies are a card with one strong tap (R-40.126)', /Your policies for \{first\}<\/div>[\s\S]{0,900}style=\{\{ \.\.\.CTA, marginTop: 10 \}\}/.test(src) && /Still needed to send: /.test(src));
+  // DESIGN-1 · STAGE 1 (by label): the tap's margin is on the one spacing scale, 12 (was 10)
+  ok('the per-couple policies are a card with one strong tap (R-40.126)', /Your policies for \{first\}<\/div>[\s\S]{0,900}style=\{\{ \.\.\.CTA, marginTop: 12 \}\}/.test(src) && /Still needed to send: /.test(src));
   ok('no Rs is prefixed beside formatRs (F-40.256)', !/Rs \$\{formatRs\(/.test(src));
   // F-40.266 — the sheet asks the name 12.2 promises, and the switch says so when it is empty
   ok('the sheet asks Who attends beside the signatory', /key: 'vendor_signatory_name'[\s\S]{0,300}key: 'named_professional',\s+label: 'Who attends'/.test(src));

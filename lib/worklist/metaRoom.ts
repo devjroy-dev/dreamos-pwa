@@ -24,7 +24,7 @@ export const IG = {
   /** C3 · REUSE H4. */
   connect: 'Connect Instagram',
   /** C4 · REUSE H2 (carried as ruled; see the note above). */
-  professional: 'Instagram only allows this for professional accounts \u2014 business or creator. If yours is personal, switching is free and takes a minute in Instagram\u2019s own settings.',
+  professional: 'Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is free and takes a minute in Instagram\u2019s own settings.',
   /** C5 · the consent statement. */
   consent: 'When a couple messages your Instagram, we reply in your studio\u2019s name within minutes: we answer the question, check your date the way your date check does, take the details, and add the couple to your enquiries. We never confirm a booking or quote a price you have not set. You can switch this off at any time.',
   /** C6 · the consent's two controls. */

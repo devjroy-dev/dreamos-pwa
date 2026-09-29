@@ -147,7 +147,11 @@ const RULED_TRADE = {
 // The founder's bytes (24 Sept 2026), sha256 first 16 hex, carried so a later edit is a fresh veto.
 // REPAIR r4 (FE-1, CE-45): D18 is carried with the TYPOGRAPHIC apostrophe (U+2019), the estate's
 // shipped-byte law (R-40.57, b40 C102); the founder's words are unchanged, only the glyph is the estate's.
-const H_COPY = { navToday: '3a78695388b38b5c', shelfBusiness: '76f68a75f01ed76f', shelfMoney: '5ccc2e8715d7a17c', shelfStudio: '0aa91af2ec4c1fd7', pinnedHead: '57c2c20d41e6bf16', pinnedChange: 'c564d6151af0b34b' };
+// DESIGN-1 · STAGE 1 (by label, the founder's word table of 28 Sept 2026: retire "Rooms", Home reads as the day):
+// navToday 'Home' -> 'Today' (was 3a78695388b38b5c), navRooms 'Rooms' -> 'More', pinnedHead 'Pinned rooms' -> 'Pinned'
+// (was 57c2c20d41e6bf16), pinnedChange 'Change pinned rooms' -> 'Change pinned' (was c564d6151af0b34b). The shelf bytes stand.
+const NAV_ROOMS = 'More';
+const H_COPY = { navToday: '2b065c7c9ce466e5', shelfBusiness: '76f68a75f01ed76f', shelfMoney: '5ccc2e8715d7a17c', shelfStudio: '0aa91af2ec4c1fd7', pinnedHead: 'f20c879465551f0d', pinnedChange: 'fc2d3766f81854f5' };
 const H_ROOM = { support: '81e50b18d2c0ea43', storefront: 'c9529003140a13d9', leads: '6ed99453447975d5', clients: '147ff67b902f0f8b', packages: '5ac4004541fc2013', calendar: 'ace4802cba166d27', events: '44ab8773647cf1af', notes: 'db19c49f8f6a2603', invoices: '5520f77a5ac7e0ec', expenses: 'd52a337c2f297d01', books: 'c2bebc4c8b046867', tds: 'cfc775545be4eda7', portfolio: 'c770d4b25db5b741', team: '8fdce67cbb74c589', couture: '5ec5b4c55960ce39', advisor: '3263e80df03c3bf4', billing: 'ac9b262fbde97683', settings: '28421eb441a5d5da' };
 const H_ROW = { website: 'b1291bdf51d0a58e', wedding_pages: '5802fa27fb15736d', google: '3829cc50cbae2d22', posts: 'f70c5ccaa24633ad', dates: 'becc2a75a6f041a1', introductions: '03b8eb501bbce215', referrals: '5e8933c42ebd55f6', number: 'b4153dd868095658' /* AMENDED BY LABEL · IGD-1 cut 1 · R-45.27 A3; was 9c6c97a21614e055 (D28) */, contracts: 'b2be845480024cae', reminders: '24716217a180687d', collabs: '4ba555d36b7a7487' };
 
@@ -167,8 +171,8 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   catch (e) { ok(false, '1.0 the four modules load', e.message); }
   R = R || {}; RT = RT || {}; WC = WC || {}; SC = SC || {};
   const C = WC.COPY || {};
-  cell('1.1 the right tab reads Home, by the kept key (N0); the left still Rooms', () =>
-    (h16(C.navToday) === H_COPY.navToday && C.navRooms === 'Rooms') || `navToday=${C.navToday}`);
+  cell('1.1 the right tab reads Today, by the kept key (N0); the left reads More (DESIGN-1)', () =>
+    (h16(C.navToday) === H_COPY.navToday && C.navRooms === NAV_ROOMS) || `navToday=${C.navToday}`);
   cell('1.2 the shelf names, the pinned heading and the change control are his bytes (N1 to N3, N8, N9)', () => {
     const bad = ['shelfBusiness', 'shelfMoney', 'shelfStudio', 'pinnedHead', 'pinnedChange'].filter((k) => h16(C[k]) !== H_COPY[k]);
     return bad.length === 0 || 'moved: ' + bad.join(',');
@@ -443,15 +447,17 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
       const ro = probe(mode, 'rooms');
       if (guard(ro, `4.2 ${mode}`)) {
         const c = ro.chrome || {}; const rm = ro.rooms || {};
-        chk(`4.2a ${mode}: the tabs read Rooms then Home, Home at /vendor/today, Rooms current`, () => {
+        chk(`4.2a ${mode}: the tabs read More then Today, Today at /vendor/today, More current (DESIGN-1)`, () => {
           const s = c.seats || [];
-          return (s.length === 2 && s[0].text === 'Rooms' && s[0].href === '/vendor/rooms' && s[0].current === 'page'
+          return (s.length === 2 && s[0].text === NAV_ROOMS && s[0].href === '/vendor/rooms' && s[0].current === 'page'
             && h16(s[1].text) === H_COPY.navToday && s[1].href === '/vendor/today' && s[1].current === null) || JSON.stringify(s);
         });
         const top = (rm.top || []).map((t) => [t.key, t.href, t.head]);
         ok(JSON.stringify(top) === JSON.stringify(RULED_TOP.map((id) => [id, R.roomHref(id), true])), `4.2b ${mode}: Business Solutions and Storefront at the very top, marked headline`, JSON.stringify(top));
-        ok((rm.top || []).length === 2 && rm.top.every((t) => t.nameColor !== rm.inkColor) && !!rm.metal,
-          `4.2c ${mode}: the top pair\u2019s names take the metal, not the shelves\u2019 ink`, JSON.stringify([(rm.top || []).map((t) => t.nameColor), rm.inkColor, rm.metal]));
+        // DESIGN-1 · STAGE 1 (by label, REPORT.md P5): gold is the brand mark's alone; a heading takes the text ink.
+        // So the top pair's names read the shelves' own ink now, and 4.2h's icons the accent, as every row's do.
+        ok((rm.top || []).length === 2 && rm.top.every((t) => t.nameColor === rm.inkColor),
+          `4.2c ${mode}: the top pair\u2019s names take the shelves\u2019 ink (DESIGN-1: gold is the mark\u2019s alone)`, JSON.stringify([(rm.top || []).map((t) => t.nameColor), rm.inkColor, rm.metal]));
         chk(`4.2d ${mode}: three shelves, each row its name, its line and its route, as ruled`, () => {
           const HK = { business: H_COPY.shelfBusiness, money: H_COPY.shelfMoney, studio: H_COPY.shelfStudio };
           const want = Object.entries(RULED_SHELVES).map(([id, tags]) => ({ id, label: HK[id],
@@ -466,9 +472,9 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
           const bad = all.filter((r) => !oneIcon(ro, r.key, r.icons)).map((r) => r.key + ':' + (r.icons || []).map((i) => i.k).join('+'));
           return (all.length === 20 && bad.length === 0) || JSON.stringify({ n: all.length, bad });
         });
-        ok((rm.top || []).length === 2 && rm.top.every((t) => t.icons && t.icons[0] && t.icons[0].color === t.nameColor),
-          `4.2h ${mode}: the top pair\u2019s icons take the metal, as their names do`, JSON.stringify((rm.top || []).map((t) => [t.icons && t.icons[0] && t.icons[0].color, t.nameColor])));
-        ok(c.title === 'Rooms', `4.2f ${mode}: the title reads Rooms (a control: unchanged by the cut, green at the base)`, c.title);
+        ok((rm.top || []).length === 2 && rm.top.every((t) => t.icons && t.icons[0] && t.icons[0].color !== t.nameColor),
+          `4.2h ${mode}: the top pair\u2019s icons take the accent, not the metal (DESIGN-1)`, JSON.stringify((rm.top || []).map((t) => [t.icons && t.icons[0] && t.icons[0].color, t.nameColor])));
+        ok(c.title === NAV_ROOMS, `4.2f ${mode}: the title reads More (DESIGN-1; was Rooms)`, c.title);
         docks.rooms = c.dock; docks.roomsSeat = c.seatTop;
       }
 
@@ -520,7 +526,7 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
           ok(h16(hm.head) === H_COPY.pinnedHead, `4.5b ${mode}: the pins sit under their heading`, hm.head);
           ok(!!hm.change && hm.change.disabled === true && hm.change.chip === 'coming' && h16(hm.change.label) === H_COPY.pinnedChange,
             `4.5c ${mode}: the change control is drawn, stated, disabled and wears Coming (F-19.20; P1(b))`, JSON.stringify(hm.change));
-          ok(h16(c.title) === H_COPY.navToday && JSON.stringify((c.seats || []).map((s) => s.current)) === JSON.stringify([null, 'page']), `4.5d ${mode}: the title reads Home and the Home tab is current`, c.title);
+          ok(h16(c.title) === H_COPY.navToday && JSON.stringify((c.seats || []).map((s) => s.current)) === JSON.stringify([null, 'page']), `4.5d ${mode}: the title reads Today and the Today tab is current (DESIGN-1)`, c.title);
           ok(!!ho.clicked && ho.afterClick === ho.clicked, `4.5e ${mode}: a pinned room opens its room`, JSON.stringify([ho.clicked, ho.afterClick]));
           docks.home = c.dock; docks.homeSeat = c.seatTop;
         }

@@ -49,12 +49,14 @@ function loadTs(rel, src) {
   // "Straight to my WhatsApp", "Couples message the number you type here.", "My own number in TDW app",
   // "Arrives with Own number", "Enter a WhatsApp number with its country code.". tdwLine carries U+2019 (R-40.57).
   const VETOED = { label: 'Where enquiries go', line: 'Choose where couples land when they tap Enquire on WhatsApp on your page.',
-    tdw: 'Your TDW agent answers', tdwLine: 'Couples message TDW\u2019s number. Your agent replies for you and files every enquiry as a lead.',
+    // DESIGN-1 · STAGE 1 (by label): one word for Leads and Enquiries (REPORT.md W5), so tdwLine and consentBypass
+    // say "in Enquiries" where they said "as a lead" and "in your leads". The other bytes of his table stand.
+    tdw: 'Your TDW agent answers', tdwLine: 'Couples message TDW\u2019s number. Your agent replies for you and files every enquiry in Enquiries.',
     own: 'You answer on your number', ownLine: 'Couples message your WhatsApp. You reply yourself; nothing comes to TDW.',
     waba: 'Your TDW agent answers on your number',
     wabaLine: 'Couples message your WhatsApp. Your agent replies for you there. Available once your own number is connected.',
     consentPublic: 'This number will be shown on your public page, where anyone can see it.',
-    consentBypass: 'Enquiries sent there skip TDW: no replies from TDW, and they will not appear in your leads.',
+    consentBypass: 'Enquiries sent there skip TDW: no replies from TDW, and they will not appear in Enquiries.',
     phoneLabel: 'Your WhatsApp number', confirm: 'Yes, send enquiries to this number', phoneInvalid: 'Enter a WhatsApp number.' };
   const PIN = Object.fromEntries(Object.entries(VETOED).map(([k, v]) => [k, sha(v).slice(0, 16)]));
   const off = Object.keys(VETOED).filter((k) => typeof W.ENQ[k] !== 'string' || sha(W.ENQ[k]).slice(0, 16) !== PIN[k]);

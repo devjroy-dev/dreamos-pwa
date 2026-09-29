@@ -325,8 +325,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
               {i === 1 && <span style={{ width: '0.5px', height: 9, background: A.brassLine }} />}
               <button type="button" onClick={() => setView(v)} aria-pressed={view === v}
                 style={{
-                  font: RUNG.t4,
-                  fontWeight: 500,
+                  font: RUNG.tb,
                   background: 'none',
                   border: 'none',
                   padding: '0 12px',

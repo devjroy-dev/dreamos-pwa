@@ -110,6 +110,11 @@ try {
     }
     await p.evaluate(async (n) => { try { await Promise.all([document.fonts.load(`400 14px "${n.dm}"`), document.fonts.load(`500 11px "${n.dm}"`)]); } catch (_e) { /* read below */ } await document.fonts.ready; }, names);
     out.realFaces = await p.evaluate((dm) => document.fonts.check(`500 11px "${dm}"`) && [...document.fonts].some((f) => f.family.replace(/["']/g, '') === dm && f.status === 'loaded'), names.dm);
+    // DESIGN-1 · STAGE 1 (by label): the app's face is Inter, served by next/font; a tree on Inter measures its real
+    // faces when Inter itself is loaded (the npm-pack path above stays for a tree still on DM Sans).
+    const inter = await p.evaluate(async () => { try { await document.fonts.load('500 13px Inter'); } catch (_e) { /* reported below */ } await document.fonts.ready;
+      return /inter/i.test(getComputedStyle(document.querySelector('.wl') || document.body).fontFamily) && [...document.fonts].some((f) => /inter/i.test(f.family) && f.status === 'loaded'); });
+    if (inter) out.realFaces = true;
   } catch (e) { out.errors.push('faces: ' + String(e && e.message).split('\n')[0]); }
 
   // open the sheet from the dock, type, send

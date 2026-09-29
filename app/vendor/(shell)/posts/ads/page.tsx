@@ -255,7 +255,7 @@ function Preview({ media, handle }: { media: Media; handle: string }) {
 
 function Row({ k, v, onChange }: { k: string; v: string; onChange: () => void }) {
   return (
-    <button type="button" className="ads-row" onClick={onChange}>
+    <button type="button" className="ads-row" data-tap44="" onClick={onChange}>
       <span className="ads-rowk">{k}</span>
       <span className="ads-rowv">{v} <span className="ads-change">{ADS.draft.change}</span></span>
     </button>
@@ -487,16 +487,16 @@ function ManageSheet({ ad, onClose, onDone }: { ad: AdRow; onClose: () => void; 
 // Every value an --atelier-* or --role-* token (R-41.140). No apostrophe, no backtick (a template literal, R-40.57).
 const ADS_CSS = `
 .ads-room{padding-top:0;padding-bottom:24px;--ads-pw:120px}   /* the fixed width of the post, ruling (a) */   /* the room head of the shell (FE-4) now gives the top its space */
-.ads-back{display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;margin:-8px 0 4px;min-height:44px;color:var(--atelier-accent-text);font:var(--wl-t3);cursor:pointer}
+.ads-back{display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;margin:-8px 0 0;min-height:44px;color:var(--atelier-accent-text);font:var(--wl-t3);cursor:pointer}
 .ads-back span{font-size:1.375rem;line-height:1}
 .ads-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;padding:12px 16px;margin-bottom:var(--wl-step);min-height:20px}
-.ads-draft{display:flex;flex-direction:column;padding-top:12px;padding-bottom:12px}
+.ads-draft{display:flex;flex-direction:column;padding-top:8px;padding-bottom:12px}
 .ads-state{font:var(--wl-t3);color:var(--atelier-ink-soft);line-height:1.5;margin:0}
 .ads-body{font:var(--wl-t3);color:var(--atelier-ink);line-height:1.5;margin:0 0 8px}
 .ads-foot{font:var(--wl-t5);color:var(--atelier-ink-dim);margin:12px 0 0;line-height:1.5}
 .ads-lbl{display:block;font:var(--wl-t5);letter-spacing:.07em;text-transform:uppercase;color:var(--atelier-label);margin:16px 0 4px}
 .ads-gap{margin-top:12px}.ads-gapsm{margin-top:8px}
-.ads-lead{display:flex;gap:12px;align-items:flex-start;margin:0 0 4px}
+.ads-lead{display:flex;gap:12px;align-items:flex-start;margin:0}
 .ads-why{margin:0;flex:1 1 auto;min-width:0}
 .ads-prev{flex:none;width:var(--ads-pw);display:flex;flex-direction:column}
 .ads-prev>*{max-width:100%}
@@ -508,7 +508,7 @@ const ADS_CSS = `
 .ads-handle{color:var(--atelier-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .ads-sponsored{color:var(--atelier-ink-soft);font-size:.92em}
 .ads-prevfoot{border-top:0;border-radius:0 0 3px 3px;color:var(--atelier-accent-text)}
-.ads-row,.ads-srow,.ads-adrow,.ads-opt{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:40px;padding:8px 0;background:transparent;border:0;border-top:.5px solid var(--atelier-card-border);font:var(--wl-t5);color:var(--atelier-ink);text-align:left;cursor:pointer}
+.ads-row,.ads-srow,.ads-adrow,.ads-opt{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 0;background:transparent;border:0;border-top:.5px solid var(--atelier-card-border);font:var(--wl-t5);color:var(--atelier-ink);text-align:left;cursor:pointer}
 .ads-srow,.ads-opt{font:var(--wl-t4);min-height:48px}
 .ads-adrow{flex-direction:column;align-items:flex-start;gap:4px}
 .ads-rowk{color:var(--atelier-ink-soft);white-space:nowrap}
@@ -519,7 +519,7 @@ const ADS_CSS = `
 .ads-btn:disabled{opacity:.55;cursor:default}
 .ads-ghost{background:transparent;color:var(--atelier-ink-soft);border:.5px solid var(--atelier-card-border)}
 .ads-btn:focus-visible,.ads-row:focus-visible,.ads-srow:focus-visible,.ads-opt:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.ads-run{margin-top:8px}.ads-two{display:flex;gap:8px;margin-top:8px}
+.ads-run{margin-top:4px}.ads-two{display:flex;gap:8px;margin-top:8px}
 .ads-quiet{display:block;margin:12px auto 0;background:transparent;border:0;color:var(--atelier-ink-dim);font:var(--wl-t5);min-height:44px;cursor:pointer}
 .ads-who{font:var(--wl-t4);color:var(--atelier-ink)}
 .ads-adhead{display:flex;align-items:center;gap:12px}

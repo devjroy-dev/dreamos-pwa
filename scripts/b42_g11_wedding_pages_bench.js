@@ -146,8 +146,10 @@ sec('C2 \u00b7 the FAB clearance (R-G11.11 / F-40.27)');
   // CE-45 FE-1 · LABELLED AMENDMENT (the ruled mock, .row.headline .n; BS-1 close): the headline pair is
   // told apart by its NAME taking the metal, a token theme.ts already holds, and nothing else. The
   // R-40.22 accent-border treatment is superseded by the founder's chosen mock.
-  ok('the headline name takes the metal, and nothing else (the ruled mock)',
-    /\.wl-tilehead \.wl-tname\{color:var\(--role-metal\)\}/.test(src) && !/\.wl-tilehead\{border-color/.test(src));
+  // DESIGN-1 · STAGE 1 (by label, docs/review/REPORT.md P5): gold is the brand mark's alone, so the headline's name takes
+  // the text ink like every row's, and the pair is told apart by its icon in the accent, and nothing else.
+  ok('the headline is told apart by its icon in the accent, its name in the ink, and nothing else (DESIGN-1)',
+    /\.wl-tilehead \.wl-ticon\{color:var\(--atelier-accent-text\)\}/.test(src) && /\.wl-tilehead \.wl-tname\{color:var\(--atelier-ink\)\}/.test(src) && !/\.wl-tilehead\{border-color/.test(src));
   ok('the tile renders its headline from the REGISTRY, never from an index',
     // CE-45 FE-1 · LABELLED AMENDMENT: the top pair is ROOMS.filter((r) => r.headline) (repair r6),
     // which reads the registry's own flag exactly as R-40.98 rules.

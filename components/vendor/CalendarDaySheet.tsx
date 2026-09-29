@@ -646,8 +646,7 @@ export function CalendarDaySheet({
 // the button rung, t4, in sentence case; the choice pills (the slots, hold-the-day) stay t5 in capitals.
 function pillBtn(color: string, border?: string): React.CSSProperties {
   return {
-    font: RUNG.t4,
-    fontWeight: 500,
+    font: RUNG.tb,
     background: 'none',
     border: `1px solid ${border ?? 'var(--atelier-card-border)'}`,
     borderRadius: 12,

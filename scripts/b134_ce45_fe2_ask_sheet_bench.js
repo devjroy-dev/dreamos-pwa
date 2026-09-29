@@ -52,16 +52,21 @@ function shapeCells(tag, x) {
   cell(`2.3 ${tag} no raw markdown symbol on glass`, !m.panelWidth ? 'no measure' : (m.raw || []).length ? 'on glass: ' + m.raw.join(' ') : null);
   cell(`2.4 ${tag} the note "TDW replies on WhatsApp." is absent`, m.note === false ? null : 'the note is drawn');
   // §5 · THE RE-DRESS (ruled into this cut): every text in the sheet on the app's rungs, in the real faces
-  const RUNGS = { 24: 'cormorant', 17: 'dmsans', 14: 'dmsans', 12: 'dmsans', 11: 'dmsans' };
+  // DESIGN-1 · STAGE 1 (by label): the app's rungs are the review's scale in Inter, read from lib/worklist/theme.ts TYPE
+  // (size|face|weight), so the cell cannot drift from the scale; the old table (Cormorant 24, DM Sans 17/14/12/11 at
+  // 400 or 500) retired with the faces. Tracking is none anywhere now (5.3), and no control is in capitals (5.4).
+  const TY = (() => { try { const ts = require(path.join(ROOT, 'node_modules/typescript')); const js = ts.transpileModule(fs.readFileSync(path.join(ROOT, 'lib/worklist/theme.ts'), 'utf8'), { compilerOptions: { module: 1, target: 7 } }).outputText;
+    const mod = { exports: {} }; new Function('module', 'exports', 'require', js)(mod, mod.exports, require); return mod.exports.TYPE; } catch (_e) { return {}; } })();
+  const RUNGS = new Set(Object.values(TY).map((t) => `${t.size}|inter|${t.weight}`));
   const ty = m.type || [];
-  const off = ty.filter((n) => RUNGS[n.size] !== n.f || !['400', '500'].includes(String(n.weight)));
-  cell(`5.1 ${tag} every text in the sheet sits on a rung (size, face, weight 400/500)`, !ty.length ? 'no text measured' : off.length ? off.slice(0, 3).map((n) => `"${n.txt}" ${n.f} ${n.size} ${n.weight}`).join(' | ') : null);
+  const off = ty.filter((n) => !RUNGS.has(`${n.size}|${n.f}|${n.weight}`));
+  cell(`5.1 ${tag} every text in the sheet sits on a rung (size, face, weight), Inter`, !ty.length ? 'no text measured' : off.length ? off.slice(0, 3).map((n) => `"${n.txt}" ${n.f} ${n.size} ${n.weight}`).join(' | ') : null);
   const ital = ty.filter((n) => n.italic);
   cell(`5.2 ${tag} nothing is italic`, ital.length ? ital.slice(0, 3).map((n) => `"${n.txt}"`).join(' | ') : null);
-  const trk = ty.filter((n) => n.ls !== 'normal' && parseFloat(n.ls) !== 0 && n.size !== 11);
-  cell(`5.3 ${tag} tracking only on t5`, trk.length ? trk.slice(0, 3).map((n) => `"${n.txt}" ${n.size}px ls ${n.ls}`).join(' | ') : null);
-  const caps = ty.filter((n) => n.control && n.size > 11 && n.tt === 'uppercase');
-  cell(`5.4 ${tag} F5: no control above t5 is set in capitals`, caps.length ? caps.slice(0, 3).map((n) => `"${n.txt}"`).join(' | ') : null);
+  const trk = ty.filter((n) => n.ls !== 'normal' && parseFloat(n.ls) !== 0);
+  cell(`5.3 ${tag} no tracking (DESIGN-1)`, trk.length ? trk.slice(0, 3).map((n) => `"${n.txt}" ${n.size}px ls ${n.ls}`).join(' | ') : null);
+  const caps = ty.filter((n) => n.control && n.tt === 'uppercase');
+  cell(`5.4 ${tag} F5 (DESIGN-1: every rung): no control is set in capitals`, caps.length ? caps.slice(0, 3).map((n) => `"${n.txt}"`).join(' | ') : null);
 }
 
 async function startDev() {

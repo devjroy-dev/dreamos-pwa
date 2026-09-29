@@ -206,7 +206,7 @@ function PackagesScreen() {
 .pkg-item dt{font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.8125rem;color:var(--atelier-ink-mute)}
 .pkg-item dd{margin:0px 0 0;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.875rem;line-height:1.45;color:var(--atelier-ink)}
 .pkg-actions{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
-.pkg-act{background:transparent;border:.5px solid var(--atelier-accent-text);border-radius:12px;padding:0 16px;min-height:40px;cursor:pointer;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.875rem;color:var(--atelier-accent-text)}
+.pkg-act{background:transparent;border:1px solid var(--atelier-accent-text);border-radius:12px;padding:0 16px;min-height:48px;cursor:pointer;font:var(--wl-tb);color:var(--atelier-accent-text)}
 .pkg-act--quiet{color:var(--atelier-ink-mute);border-color:var(--atelier-ink-mute)}
 .pkg-act--right{margin-left:auto}
 .pkg-confirm p{margin:16px 0 0;font-family:var(--font-dm-sans),system-ui,sans-serif;font-size:0.875rem;line-height:1.5;color:var(--atelier-ink)}

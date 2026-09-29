@@ -256,13 +256,13 @@ export function SolutionsStyles() {
    The lede, the can-do lines and the aside line were all t3 and nothing on the surface was a
    heading, so the screen read as one paragraph with a button in it. Four existing rungs now do
    the work theme.ts defines them for, and the three t3 roles keep their bytes:
-   .sol-kicker is the room eyebrow, t5 uppercase at .08em in ink-dim (theme.ts: section eyebrows).
+   .sol-kicker is the room eyebrow, t5 in ink-dim (DESIGN-1: sentence case, no tracking; it was uppercase at .08em).
    .sol-title is the one t1 on the surface, reading the same byte the shell seat shows (A1, the
    Advisor precedent). .sol-subhead heads the can-do list, and now carries the space above the
    list, so .sol-can margin goes 16px 0 0 to 0. The hub eyebrow .sol-eyebrow stays at ink-mute,
    untouched (B1). No backticks and no straight apostrophes here: b40 C102 reads this literal. */
-.sol-kicker{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:0 0 8px}
-.sol-subhead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-dim);margin:24px 0 12px}
+.sol-kicker{font:var(--wl-t5);color:var(--atelier-ink-dim);margin:0 0 8px}
+.sol-subhead{font:var(--wl-t5);color:var(--atelier-ink-dim);margin:24px 0 12px}
 .sol-can{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;max-width:46ch}
 .sol-can li{position:relative;padding-left:16px;font:var(--wl-t3);color:var(--atelier-ink)}
 .sol-can li::before{content:"";position:absolute;left:2px;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--atelier-ink-dim)}

@@ -101,7 +101,8 @@ function copyCells(code) {
     r.a12 = !!B && B.confirm === 'Confirm booking' && B.receivedOn === 'Advance received on';
     r.a13 = !!B && B.booked === 'Booked. The client, the event and the invoice are ready.';
     r.f29 = !!B && B.failed === 'Could not confirm the booking.';
-    r.c4c5 = C.added === 'Added. The client, the event and the invoice are ready.' && C.savedAsLead === 'Saved as a lead. Finish the booking from Leads.';
+    // DESIGN-1 · STAGE 1 (by label, W5): C5 says enquiry, one word for Leads and Enquiries
+    r.c4c5 = C.added === 'Added. The client, the event and the invoice are ready.' && C.savedAsLead === 'Saved as an enquiry. Finish the booking from Enquiries.';
     r.d3 = typeof m.paymentMarked === 'function'
       && m.paymentMarked({ client: 'Sarah', label: '30% one month before the first function (optional)', amount: 'Rs 24,000', date: '18 September 2026', nextDue: '5 February 2027' })
         === 'Payment marked: Sarah · 30% one month before the first function (optional) · Rs 24,000 · 18 September 2026. Next due 5 February 2027.';
@@ -264,10 +265,12 @@ function cardCells(code, editCode) {
       && s.indexOf('data-lc2="lead-package-controls"') > s.indexOf('data-lc2="lead-package-attached"')
       && s.indexOf('data-lc2="lead-package-attached"') > 0,
     // 3d · F-43.97
-    column: /data-lc2="lead-package-controls" style=\{\{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 \}\}>\s*<button type="button" style=\{actionButton\(\)\} onClick=\{\(\) => setSheetOpen\(true\)\}>\s*\{lp \? LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach\}/.test(s),
-    pair: /data-lc2="lead-booking-controls" style=\{\{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 \}\}/.test(s)
+    // DESIGN-1 · STAGE 1 (by label): the three layout cells read the one spacing scale (gap 10 -> 12, margin 14 -> 16,
+    // padding 18 -> 16); the structure they pin is unchanged
+    column: /data-lc2="lead-package-controls" style=\{\{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 \}\}>\s*<button type="button" style=\{actionButton\(\)\} onClick=\{\(\) => setSheetOpen\(true\)\}>\s*\{lp \? LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach\}/.test(s),
+    pair: /data-lc2="lead-booking-controls" style=\{\{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 \}\}/.test(s)
       && (s.match(/style=\{\{ \.\.\.actionButton\(\), width: '100%' \}\} onClick=\{\(\) => book\(/g) || []).length === 2,
-    hairline: /data-lc2="lead-package" style=\{\{ paddingBottom: 18, marginBottom: 8, borderBottom: `0\.5px solid \$\{T\.card\}` \}\}/.test(s)
+    hairline: /data-lc2="lead-package" style=\{\{ paddingBottom: 16, marginBottom: 8, borderBottom: `0\.5px solid \$\{T\.card\}` \}\}/.test(s)
       && (s.match(/LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach/g) || []).length === 1,
     // [restated, 3f · R-43.16] each A2 control only books; it never opens the attach sheet.
     both: /onClick=\{\(\) => book\('booking_confirmed'\)\}>\{LEAD_PACKAGE\.bookingConfirmed\}/.test(s) && /onClick=\{\(\) => book\('advance_paid'\)\}>\{LEAD_PACKAGE\.advancePaid\}/.test(s)
@@ -510,8 +513,9 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   const threadStubs = () => ({ react: { useState: (v) => [v, () => {}] }, 'react/jsx-runtime': { jsx: () => null, jsxs: () => null, Fragment: null }, '@/lib/worklist/packages': loadModule(src.copy), '@/lib/worklist/theme': loadModule(read('lib/worklist/theme.ts')) });
   let thread = null;
   try { thread = loadModule(threadSrc.replace(/^'use client';/, ''), threadStubs()); sender = thread.inboundSender; } catch (e) { console.log('  (thread did not load: ' + e.message + ')'); }
-  ok(typeof sender === 'function' && sender('Sarah') === 'Sarah' && sender('  Riya  ') === 'Riya' && sender('') === 'Lead' && sender(null) === 'Lead' && sender(undefined) === 'Lead',
-    '§10.9 point 7: the inbound sender is the lead\'s name, else "Lead"');
+  // DESIGN-1 · STAGE 1 (by label, W5): the fallback is "Enquiry", one word for Leads and Enquiries (was "Lead")
+  ok(typeof sender === 'function' && sender('Sarah') === 'Sarah' && sender('  Riya  ') === 'Riya' && sender('') === 'Enquiry' && sender(null) === 'Enquiry' && sender(undefined) === 'Enquiry',
+    '§10.9 point 7: the inbound sender is the lead\'s name, else "Enquiry"');
   ok(!/'Bride'/.test(strip(threadSrc)) && /isIn \? inboundSender\(leadName\) : 'TDW'/.test(strip(threadSrc)), '§10.10 point 7: "Bride" has left the vendor\'s thread');
   ok(c4.leadName, '§10.11 point 7: the shell hands the lead\'s own name to the thread');
 
@@ -544,7 +548,9 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   ok(/data-lc2="client-booking-sheet" inert=\{!open\}/.test(cbs) && !/aria-hidden=\{!open\}/.test(cbs), '§11.10 F-43.94: the Clients sheet is inert when closed, not aria-hidden');
   // The thread carried three rgba literals before 3d (cf027b31: the summary block's two, the outbound
   // bubble's one). 3d adds none, so the count stays three.
-  ok((strip(threadSrc).match(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/g) || []).length === 3, '§11.11 the thread adds no colour literal (its three pre-existing ones are carried)');
+  // DESIGN-1 · STAGE 1 (by label): all three were the old gold at an alpha and became token reads (b59's ruling J, the
+  // palette's gold moved), so the thread carries none now, and still adds none
+  ok((strip(threadSrc).match(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/g) || []).length === 0, '§11.11 the thread adds no colour literal (the three it carried became token reads)');
 
   sec('§12 · packet 3e');
   // ── F-43.100 · the four-line toast, measured ───────────────────────────────────────────────
@@ -558,16 +564,18 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   const tcss = (toastSrc.match(/\.wl-toastmsg\{[^}]*\}/) || [''])[0];
   ok(/-webkit-line-clamp:4/.test(tcss) && /white-space:normal/.test(tcss) && !/nowrap/.test(tcss) && /overflow:hidden/.test(tcss),
     '§12.1 F-43.100: the message wraps and clips only past the fourth line');
-  const geom = /max-width:calc\(100vw - 40px\)/.test(toastSrc) && /\.wl-toast\{[^}]*padding:10px 18px/.test(toastSrc)
+  // DESIGN-1 · STAGE 1 (by label): the toast's padding is on the spacing scale, 12 and 16 (was 10 and 18), so its text
+  // width at 374 is 374 - 40 - 32 - 6 - 8 = 288 (was 284), and its message is t3, 16px (was 14). §12.3 measures at those.
+  const geom = /max-width:calc\(100vw - 40px\)/.test(toastSrc) && /\.wl-toast\{[^}]*padding:12px 16px/.test(toastSrc)
     && /\.wl-toastdot\{width:6px;/.test(toastSrc) && /\.wl-toast\{[^}]*gap:8px/.test(toastSrc);
-  ok(geom, '§12.2 F-43.100: the 284px text width is the toast\'s own geometry at 374px');
+  ok(geom, '§12.2 F-43.100: the 288px text width is the toast\'s own geometry at 374px');
   let measure = null;
   let fontRefused = null;
   try {
     const fontFile = path.join(ROOT, '..', 'dream-os', 'tools', 'card_fonts', 'DMSans-Medium.woff2');
     measure = readWoff2Advance(fs.readFileSync(fontFile));
   } catch (e) { fontRefused = e.message; console.log('  (font not read: ' + e.message + ' — the sibling dream-os must be present)'); }
-  const linesAt = (text, width) => { let n = 1, cur = ''; for (const wd of text.split(' ')) { const t = cur ? cur + ' ' + wd : wd; if (measure(t, 14) <= width) cur = t; else { n++; cur = wd; } } return n; };
+  const linesAt = (text, width) => { let n = 1, cur = ''; for (const wd of text.split(' ')) { const t = cur ? cur + ' ' + wd : wd; if (measure(t, 16) <= width) cur = t; else { n++; cur = wd; } } return n; };
   const cm = c1.err ? null : loadModule(src.copy);
   const vetoed = cm ? [
     cm.CLIENT_BOOKING.added,
@@ -578,7 +586,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     cm.paymentMarked({ client: 'Riya Test', label: cm.scheduleLabel('final', 70), amount: 'Rs 56,000', date: '17 September 2026', nextDue: '6 March 2027' }),
     cm.paymentMarked({ client: 'Riya Test', label: 'x', amount: 'Rs 56,000', date: '17 September 2026', nextDue: null }),
   ] : [];
-  const counts = measure && geom ? vetoed.map((t) => linesAt(t, 374 - 40 - 36 - 6 - 8)) : [];
+  const counts = measure && geom ? vetoed.map((t) => linesAt(t, 374 - 40 - 32 - 6 - 8)) : [];
   if (counts.length) console.log('  (measured lines: ' + counts.join(', ') + ')');
   ok(counts.length === 7 && counts.every((n) => n <= 4) && counts[0] <= 2 && counts[5] > 2,
     '§12.3 F-43.100: C4, A13, C5, D3 (every milestone label, the longest included) and D4 render whole in four lines at 374px; D3 needs more than two');
@@ -589,7 +597,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   ok(/export function AttachSheet\(/.test(strip(src.card)), '§12.6 F-43.102: the one attach sheet is shared, not copied');
   ok(c4.detailFollows, '§12.7 F-43.101: the open invoice detail follows its refetched row; the schedule\'s Paid refetches the list');
   const binderSrc = strip(read('components/vendor/slices/BinderCard.tsx'));
-  ok(/\) : binder\.booked_lead \? null : \(\s*<div[^>]*>\s*No story yet — it grows as you talk in chat\./.test(binderSrc)
+  ok(/\) : binder\.booked_lead \? null : \(\s*<div[^>]*>\s*No story yet\. It grows as you talk in chat\./.test(binderSrc)   // DESIGN-1 (W1): no dash
     && /booked_lead\?: boolean;/.test(src.api), '§12.8 point 5 (a): "No story yet" is not shown on a client with a booked lead behind it');
   ok(!/Attach a package|Attach package'/.test(strip(src.booking)), '§12.9 no new byte: the sheet reuses A2\'s Attach package from the copy home');
 
@@ -676,17 +684,20 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     '§14.4 item 1: Confirm booking and Attach package are never disabled; on a tap with something missing nothing is sent, the toast names it, and the chips at the top each open their own fix');
   const mc = read('components/vendor/MissingChips.tsx');
   ok(/onPick: \(key: string\) => void;/.test(mc) && !/onPick\?:/.test(mc) && /onClick=\{\(\) => onPick\(c\.key\)\}/.test(mc)
-    && /if \(cells\.length === 0\) return null;/.test(mc) && /Still missing — tap to complete:/.test(mc),
+    && /if \(cells\.length === 0\) return null;/.test(mc) && /Add what is missing:/.test(mc),   // DESIGN-1 (W1): the lead-in, no dash
     '§14.5 one chips component: each chip opens its own cell, and nothing renders when nothing is missing');
   const binder = strip(read('components/vendor/slices/BinderCard.tsx'));
   ok(c4.chipsTop && /const first = start && missing\.includes\(start\) \? start : \(missing\[0\] \?\? null\);/.test(wb)
-    && /onClick=\{e => \{ e\.stopPropagation\(\); setWishboneStart\(c\); setWishboneOpen\(true\); \}\}/.test(binder)
+    // DESIGN-1 (by label): on the client card the chips are buttons in the opened row, no longer spans inside the row's button
+    && /onClick=\{\(\) => \{ setWishboneStart\(c\); setWishboneOpen\(true\); \}\}/.test(binder)
     && /start=\{wishboneStart\}/.test(binder),
     '§14.6 F-43.108: a tapped chip opens its own cell, on the lead detail and on the client card');
   const dsrc = strip(read('components/vendor/slices/DetailSheet.tsx'));
   const nameAt = binder.indexOf("{binder.client ?? 'Unnamed'}</div>");
   const chipsAt = binder.indexOf('{chips.length > 0 && (');
-  const moneyAt = binder.indexOf('{hasMoney && (');
+  // DESIGN-1 · STAGE 1 (by label, the one row): the client card's chips open with the row, first in it, above the money
+  // bar that moved there with them; the row at rest is the name, one line of facts and the money due
+  const moneyAt = binder.indexOf('{hasMoney && total > 0 && (');
   ok(c4.chipsTop && /\{detailTop\}\s*\{detailMissing\}\s*\{\(sel\?\.detail/.test(dsrc)
     && nameAt > 0 && chipsAt > nameAt && moneyAt > chipsAt,
     '§14.7 F-43.109: the chips sit at the top, under the package card on the lead detail and under the name on the client card');
@@ -1007,7 +1018,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     const t1 = mut(toastSrc, '-webkit-line-clamp:4', '-webkit-line-clamp:2');
     const tc = t1 && (t1.match(/\.wl-toastmsg\{[^}]*\}/) || [''])[0];
     ok(!!tc && !/-webkit-line-clamp:4/.test(tc), '§9 M32 F-43.100: the clamp back at two → §12.1 RED');
-    const two = measure ? vetoed.map((t) => linesAt(t, 284)).filter((n) => n > 2).length : 0;
+    const two = measure ? vetoed.map((t) => linesAt(t, 288)).filter((n) => n > 2).length : 0;
     ok(two > 0, '§9 M33 F-43.100: at two lines the measured D3 would be cut → §12.3 bites');
     const b1 = mut(src.booking, "{need && <NeedFirst text={needText(need.code)} onFix={fixFor(need.code)} testId=\"booking\" />}", "{need && <p role=\"alert\">{needText(need.code)}</p>}");
     ok(b1 !== null && !bookingCells(b1).attachOffer, '§9 M34 [re-aimed, 3f] the refusal as a dead line → §12.4 RED');

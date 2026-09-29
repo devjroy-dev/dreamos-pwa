@@ -239,8 +239,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 40 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div data-row-name="" style={{
-              font: T.t3,
-              fontWeight: 500,
+              font: T.tn,
               color: A.ink,
               overflowWrap: 'anywhere',
             }}>{binder.client ?? 'Unnamed'}</div>
@@ -259,7 +258,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             </div>
           </div>
           {hasMoney && (
-            <span data-row-right="" style={{ font: T.t4, fontWeight: 500, color: pend > 0 ? A.ink : A.inkMute, flexShrink: 0, textAlign: 'right' }}>
+            <span data-row-right="" style={{ font: T.t4, color: pend > 0 ? A.ink : A.inkMute, flexShrink: 0, textAlign: 'right' }}>
               {total > 0 ? (pend > 0 ? `${fmtINR(pend)} due` : 'Settled') : amountWordsAdjacent(amt ?? total)}
             </span>
           )}
@@ -271,6 +270,9 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
       {/* Expand — the story timeline + actions */}
       {open && (
         <div style={{ padding: '0 var(--slice-inset, 16px) 16px' }}>
+          {/* data-row-open: what the one row moved here from its resting face (the chips, the money bar, the twin's
+              door); the benches read the marker to tell a moved thing from a new one. */}
+          <div data-row-open="">
           {/* Missing-cell chips — render truth; taps AWAKE (TDW_04 A1). DESIGN-1 moved them from under
               the name into the opened row; each still opens its own cell (F-43.108). */}
           {chips.length > 0 && (
@@ -316,6 +318,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
               marginBottom: 12,
             }}>Also an enquiry · {cap(crossLead.state)} ›</a>
           )}
+          </div>
           {timeline.length > 0 ? (
             <div style={{ borderLeft: '0.5px solid var(--atelier-input-border)', paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {timeline.map((line, i) => (

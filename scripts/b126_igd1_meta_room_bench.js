@@ -53,12 +53,16 @@ function loadTs(rel, src) {
 }
 
 // THE FOUNDER'S BYTES (his table, 25 Sept 2026, "ok"), pinned by the first 16 hex of sha256.
+// DESIGN-1 · STAGE 1 (by label, the founder's word rules: no dashes, no he or she, one word for enquiries): three bytes
+// moved. IG.professional loses its dash, as the portfolio's H2 it is carried from does (was 551602b858cce1f7);
+// IG.consent reads "we answer the question, ... take the details, and add the couple to your enquiries" (was
+// 60f754a4cd5c1967); QUIET.line reads "we stay quiet in that chat for" (was db24a8f488684f78).
 const VETOED = {
   'SECTIONS.number': 'a625fc8d7c9d0554', 'SECTIONS.instagram': '47b83aeaab4df5cd',
-  'IG.lede': '94a11debf3564f16', 'IG.connect': '59641f41ef18e824', 'IG.professional': '551602b858cce1f7',
-  'IG.consent': '60f754a4cd5c1967', 'IG.turnOn': '5a1f096a0d8d7674', 'IG.notNow': 'a0e63d7c7125d29a',
+  'IG.lede': '94a11debf3564f16', 'IG.connect': '59641f41ef18e824', 'IG.professional': 'a38fda05ebe7a3c1',
+  'IG.consent': 'a7b5fd2a868e7787', 'IG.turnOn': '5a1f096a0d8d7674', 'IG.notNow': 'a0e63d7c7125d29a',
   'IG.on': '6f265681872973a4', 'IG.paused': '8d99ae133c50edd5', 'IG.waiting': '7f17bd6b067cc030', 'IG.turnOff': '06f0e210b27d4d62',
-  'QUIET.line': 'db24a8f488684f78', 'QUIET.labels': '89222666feeac835',
+  'QUIET.line': 'a41c1a3078272075', 'QUIET.labels': '89222666feeac835',
 };
 const ROW_LABEL = 'WhatsApp and Instagram';
 const ROW_LINE = 'Enquiries on WhatsApp and Instagram, answered in the studio\u2019s name';

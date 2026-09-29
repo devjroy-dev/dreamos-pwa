@@ -176,7 +176,11 @@ function probe(mode, route, depth, seen) {
   logLine(`probe ${mode} ${route} ${depth} ${seen} rc=${r.status}\n${(r.stdout || '').slice(-1600)}\n${(r.stderr || '').slice(-600)}`);
   try { return JSON.parse((r.stdout || '').trim().split('\n').pop()); } catch (_e) { return { errors: ['no JSON from the probe: ' + (r.stderr || '').slice(-200)] }; }
 }
-const TYPE = { t1: [24, 500, 'Cormorant'], t2: [17, 500, 'DM Sans'], t3: [14, 400, 'DM Sans'], t4: [12, 500, 'DM Sans'], t5: [11, 500, 'DM Sans'] };
+// DESIGN-1 · STAGE 1 (by label): the rungs are the review's scale in Inter, read from lib/worklist/theme.ts TYPE so the
+// cells cannot drift from it (was Cormorant 24/500, DM Sans 17/500, 14/400, 12/500, 11/500).
+const TYPE = (() => { try { const ts = require(P('node_modules/typescript')); const js = ts.transpileModule(read('lib/worklist/theme.ts'), { compilerOptions: { module: 1, target: 7 } }).outputText;
+  const mod = { exports: {} }; new Function('module', 'exports', 'require', js)(mod, mod.exports, require);
+  return Object.fromEntries(Object.entries(mod.exports.TYPE).map(([k, t]) => [k, [t.size, t.weight, 'Inter']])); } catch (_e) { return {}; } })();
 const onRung = (t, k) => t && Math.abs(t.size - TYPE[k][0]) < 0.5 && t.weight === TYPE[k][1] && t.family.startsWith(TYPE[k][2]);
 const anyRung = (t) => Object.keys(TYPE).some((k) => onRung(t, k));
 
@@ -233,10 +237,10 @@ function glassCells(tag, x, route, help, depth, seen) {
     cell(`3.1 ${tag} every text on the card sits on a rung (size, face, weight) in the real faces`, !x.realFaces ? 'the real faces did not load' : off.length ? off.slice(0, 3).map((t) => `"${t.txt}" ${t.size}/${t.weight} ${t.family}`).join(' | ') : null);
     const ital = c.texts.filter((t) => t.italic);
     cell(`3.2 ${tag} nothing is italic`, ital.length ? ital.map((t) => `"${t.txt}"`).join(' | ') : null);
-    const trk = c.texts.filter((t) => t.ls !== 'normal' && parseFloat(t.ls) !== 0 && Math.abs(t.size - 11) > 0.5);
-    cell(`3.3 ${tag} tracking only on t5`, trk.length ? trk.slice(0, 3).map((t) => `"${t.txt}" ls ${t.ls}`).join(' | ') : null);
-    const caps = c.texts.filter((t) => t.control && (t.tt === 'uppercase' || !onRung(t, 't4')));
-    cell(`3.4 ${tag} F5: the two controls at t4 in sentence case`, caps.length ? caps.map((t) => `"${t.txt}" ${t.tt}`).join(' | ') : null);
+    const trk = c.texts.filter((t) => t.ls !== 'normal' && parseFloat(t.ls) !== 0);
+    cell(`3.3 ${tag} no tracking (DESIGN-1)`, trk.length ? trk.slice(0, 3).map((t) => `"${t.txt}" ls ${t.ls}`).join(' | ') : null);
+    const caps = c.texts.filter((t) => t.control && (t.tt === 'uppercase' || !onRung(t, 'tb')));
+    cell(`3.4 ${tag} F5: the two controls at tb (DESIGN-1: a button is tb) in sentence case`, caps.length ? caps.map((t) => `"${t.txt}" ${t.tt}`).join(' | ') : null);
     const icons = c.icons.filter((i) => Math.round(i.w) !== 18 || !/rgb/.test(i.stroke));
     if (e.can.length) cell(`3.5 ${tag} every line icon is 18px in a token ink`, icons.length ? `${icons.length} off` : null);
   }

@@ -366,8 +366,10 @@ const SHELL_CSS = `
    their label's hit area; a switch draws its own 44 px area (its room's stylesheet). */
 .wl button:not(.wl-sw):not(.yw-toggle),.wl [role=button],.wl [role=tab],.wl select,.wl summary,.wl a,
 .wl input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]){min-height:44px!important}
-/* DESIGN-1 · every button is 48 high (REPORT.md §3, Buttons), the 44 floor's taller twin. */
-.wl button:not(.wl-sw):not(.yw-toggle){min-height:var(--wl-btn-h)!important}
+/* DESIGN-1 · every button is 48 high (REPORT.md §3, Buttons), the 44 floor's taller twin. The two round icon
+   controls, the "?" and the profile coin, keep their 44 circle (R-38.5), and a key and value row that a card
+   lists (data-tap44, the Ads settings) is a row at the 44 floor, not a button. */
+.wl button:not(.wl-sw):not(.yw-toggle):not(.wl-helpq):not(.wl-coin):not([data-tap44]){min-height:var(--wl-btn-h)!important}
 .wl button:not(.wl-sw):not(.yw-toggle),.wl [role=button],.wl [role=tab],.wl a{min-width:44px!important}
 /* R-38.5 the edge. The header’s horizontal padding IS the gutter, so the wordmark’s left
    edge, the first tile’s border, the dock field’s border and Billing’s plan card all
@@ -376,7 +378,7 @@ const SHELL_CSS = `
 /* DESIGN-1 · P1: the header clears the notch when installed. viewport-fit=cover and the
    black-translucent status bar (app/layout.tsx) draw the app under the status bar; the inset
    is zero in a browser tab, so the 16 stands there. */
-.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:max(16px, env(safe-area-inset-top)) var(--wl-gutter) 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
+.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:max(12px, env(safe-area-inset-top)) var(--wl-gutter) 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
 .wl-hstack{display:flex;flex-direction:column;gap:4px;min-width:0}
 .wl-house{font:500 1.0625rem/1.2 var(--font-brand), Georgia, serif;color:var(--atelier-ink)}
 .wl-lbl{font:var(--wl-t5);color:var(--atelier-ink-mute)}
@@ -388,7 +390,7 @@ const SHELL_CSS = `
    half of the edge cell. The seats' TEXT is centred, so the text-edge cell reads the
    wordmark, the grid, the dock and the plan card, and this one reads the boxes. */
 .wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
-.wl-seat{flex:1;min-height:56px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t5);font-size:min(0.875rem, 14px);font-weight:600;color:var(--atelier-ink-mute)}
+.wl-seat{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t5);font-size:min(0.8125rem, 14px);color:var(--atelier-ink-mute)}
 .wl-seat.on{color:var(--atelier-accent-text)}
 .wl-seat:active{background:var(--atelier-row-hover)}
 .wl-coin:active{background:var(--atelier-row-hover)}

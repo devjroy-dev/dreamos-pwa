@@ -43,6 +43,9 @@ export const T = {
   t1: 'var(--wl-t1)',
   t2: 'var(--wl-t2)',
   t3: 'var(--wl-t3)',
+  // DESIGN-1: the row's name (16/500) and the button (15/600), the two rungs the review's scale adds.
+  tn: 'var(--wl-tn)',
+  tb: 'var(--wl-tb)',
   t4: 'var(--wl-t4)',
   t5: 'var(--wl-t5)',
 } as const;
@@ -286,8 +289,7 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div data-row-name="" style={{
-            font: T.t3,
-            fontWeight: 500,
+            font: T.tn,
             color: A.ink,
             overflowWrap: 'anywhere',
           }}>{row.primary}</div>

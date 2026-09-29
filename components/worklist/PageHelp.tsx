@@ -173,9 +173,9 @@ function HelpCard({ title, help, onClose }: { title: string; help: NonNullable<R
 // inset (b140 2.7 caught the doubled 32px on the first run).
 export const PAGE_HELP_CSS = `
 .wl-roomhead{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.wl-roomtitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0;padding:16px 0 12px;min-width:0}
+.wl-roomtitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0;padding:16px 0 8px;min-width:0}
 .wl-roomtitle-none{padding:0;flex:1}
-.wl-helpq{width:44px;height:44px;min-width:44px;min-height:44px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;margin:0 -12px 0 0;padding:0;touch-action:manipulation}
+.wl-helpq{width:44px;height:44px;min-width:44px;min-height:44px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;margin:0 -11px 0 0;padding:0;touch-action:manipulation}
 .wl-helpqring{width:22px;height:22px;border:1px solid var(--atelier-ink-mute);border-radius:50%;display:flex;align-items:center;justify-content:center;font:var(--wl-t4);color:var(--atelier-ink-mute)}
 .wl-helpq[data-first="1"]::after{content:"";position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--atelier-accent-text)}
 .wl-helpq:active .wl-helpqring{background:var(--atelier-row-hover)}
