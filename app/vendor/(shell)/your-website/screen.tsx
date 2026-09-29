@@ -52,7 +52,7 @@ const C = {
   openPage:    'Open',
   back:        'Your website',
   fixHead:     'What to fix',
-  fixSub:      'A couple reads your page in about a second. These are the gaps the couple sees.',
+  fixSub:      'A couple reads your page in about a second. These are the gaps she sees.',
   fixNone:     'Nothing to fix. Your page is complete.',
   fixCover:    'Add a cover photo',              fixCoverD:   'The first thing a couple sees',
   fixAbout:    'Write two lines about your work', fixAboutD:  'In your own words',
@@ -75,7 +75,7 @@ const C = {
   wedHead:     COPY.storefrontWeddingsLabel,
   wedSub:      'Only pages you published and the couple agreed to.',
   wedNone:     'None yet. Publish one from Wedding pages.',
-  gHead:       'SEO: found on Google',
+  gHead:       'SEO \u2014 found on Google',
   gSub:        'What Google shows for you, and what people typed to get there.',
   gRow:        'Found on Google',
   gRowD:       'Not connected yet', gRowDon: 'Connected',
@@ -86,7 +86,7 @@ const C = {
   gConnectP:   'One tap, the same Google account as your reviews. Then this page shows how often you appear, what people typed, and three things to do.',
   gOff:        'Google connection is being set up. Come back in a few days.',
   gConnected:  'Connected to Google',
-  gEmpty:      'Connected to Google. Google reports in a few days; come back after the weekend.',
+  gEmpty:      'Connected to Google. Google reports in a few days \u2014 come back after the weekend.',
   gLast:       'The last 28 days',
   gSeen:       'Times you appeared on Google', gOpened: 'Times someone opened your page',
   gPrev:       (n: number) => `the 28 before: ${n}`,
@@ -128,61 +128,61 @@ type Sheet = null | 'about' | 'city' | 'rate' | 'cover' | 'wedding' | 'venue' | 
 // plus this room's layout glue. No new colour. ────────────────────────────────
 const CSS = `
 .yw-sec{flex-shrink:0}
-.yw-sect{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:24px 0 8px;border-top:.5px solid var(--role-metal);margin-top:24px}
+.yw-sect{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:22px 0 6px;border-top:.5px solid var(--role-metal);margin-top:20px}
 .yw-sect.first{border-top:none;margin-top:8px}
 .yw-note{font:var(--wl-t5);line-height:1.5;letter-spacing:0;text-transform:none;color:var(--atelier-ink-mute);padding-top:8px;max-width:34ch}
-.yw-rechead{display:block;width:100%;text-align:left;padding:16px 0 16px;background:none;border:none;cursor:pointer;color:inherit}
-.yw-eyebrow{font:var(--wl-t5);color:var(--atelier-ink-mute)}
+.yw-rechead{display:block;width:100%;text-align:left;padding:18px 0 14px;background:none;border:none;cursor:pointer;color:inherit}
+.yw-eyebrow{font:var(--wl-t5);letter-spacing:.14em;text-transform:uppercase;color:var(--role-metal)}
 .yw-rectitle{font:var(--wl-t1);color:var(--atelier-ink);margin-top:4px}
 .yw-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:12px 0;border-bottom:.5px solid var(--atelier-card-border);width:100%;background:none;border-left:none;border-right:none;border-top:none;text-align:left;color:inherit;cursor:pointer;text-decoration:none}
-.yw-rowtext{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 auto}
+.yw-rowtext{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 auto}
 .yw-rowlabel{font:var(--wl-t3);color:var(--atelier-ink)}
 .yw-roweyebrow{font:var(--wl-t5);color:var(--atelier-ink-mute)}
-.yw-chev{font-family:var(--font-italiana),"GFS Didot",Georgia,serif;font-size:1rem;line-height:1;color:var(--atelier-label);flex-shrink:0}
+.yw-chev{font-family:var(--font-italiana),"GFS Didot",Georgia,serif;font-size:16px;line-height:1;color:var(--atelier-label);flex-shrink:0}
 .yw-done .yw-rowlabel{color:var(--atelier-ink-fade)}
 .yw-done .yw-chev{visibility:hidden}
-.yw-window{flex-shrink:0;display:block;width:100%;margin-top:16px;border:.5px solid var(--atelier-card-border);border-radius:12px;overflow:hidden;background:#F8F7F5;position:relative;height:312px;padding:0;cursor:pointer}
+.yw-window{flex-shrink:0;display:block;width:100%;margin-top:16px;border:.5px solid var(--atelier-card-border);border-radius:3px;overflow:hidden;background:#F8F7F5;position:relative;height:312px;padding:0;cursor:pointer}
 .yw-window iframe{position:absolute;left:0;top:0;width:374px;height:342px;border:0;transform-origin:0 0;transform:scale(.914);pointer-events:none;background:#F8F7F5}
-.yw-under{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:8px}
+.yw-under{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:6px}
 .yw-addr{font:var(--wl-t3);color:var(--atelier-ink-mute);word-break:break-all;min-width:0}
 .yw-link{font:var(--wl-t4);color:var(--atelier-accent-text);white-space:nowrap;padding:8px 0;min-height:44px;display:inline-flex;align-items:center;flex-shrink:0;background:none;border:none;cursor:pointer}
 .yw-full{position:relative;flex:1;min-height:600px;padding:0!important}
 .yw-full iframe{width:100%;height:100%;min-height:600px;border:0;background:#F8F7F5}
-.yw-acts{display:flex;gap:8px;margin-top:16px}
+.yw-acts{display:flex;gap:8px;margin-top:14px}
 .yw-acts>button{flex:1}
-.yw-second{flex:1;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:12px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);display:flex;align-items:center;justify-content:center;text-decoration:none}
+.yw-second{flex:1;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);display:flex;align-items:center;justify-content:center;text-decoration:none}
 .yw-big{font:var(--wl-t2);color:var(--atelier-ink);word-break:break-all;margin-top:8px}
-.yw-qr{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;margin-top:16px}
-.yw-qr img{width:112px;height:112px;background:#FFFFFF;border:.5px solid var(--atelier-card-border);border-radius:12px;padding:8px}
-.yw-fl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);display:block;margin:16px 0 8px}
-.yw-fi{width:100%;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:12px;padding:12px 12px;font:var(--wl-t3);color:var(--atelier-ink);display:block;outline:none;box-sizing:border-box;-webkit-appearance:none;appearance:none}
+.yw-qr{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;margin-top:14px}
+.yw-qr img{width:112px;height:112px;background:#FFFFFF;border:.5px solid var(--atelier-card-border);border-radius:3px;padding:8px}
+.yw-fl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);display:block;margin:14px 0 6px}
+.yw-fi{width:100%;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:3px;padding:11px 12px;font:var(--wl-t3);color:var(--atelier-ink);display:block;outline:none;box-sizing:border-box;-webkit-appearance:none;appearance:none}
 textarea.yw-fi{resize:none;min-height:88px;font-family:inherit}
 .yw-count{font:var(--wl-t5);color:var(--atelier-ink-fade);letter-spacing:0;text-transform:none;text-align:right;margin-top:4px;font-variant-numeric:lining-nums tabular-nums}
 .yw-nums{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.yw-num{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;padding:12px 16px}
-.yw-num b{display:block;font:var(--wl-t0);font-size:1.75rem;line-height:1;color:var(--atelier-ink);font-variant-numeric:lining-nums tabular-nums;font-weight:500}
+.yw-num{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:12px 14px}
+.yw-num b{display:block;font:var(--wl-t0);font-size:34px;line-height:1;color:var(--atelier-ink);font-variant-numeric:lining-nums tabular-nums;font-weight:500}
 .yw-num span{display:block;font:var(--wl-t5);color:var(--atelier-ink-mute);letter-spacing:0;text-transform:none;margin-top:8px;line-height:1.4}
 .yw-num em{font-style:normal;color:var(--atelier-ink-soft)}
-.yw-q{display:grid;grid-template-columns:1fr auto;column-gap:12px;padding:12px 0;border-bottom:.5px solid var(--atelier-card-border);font:var(--wl-t3);color:var(--atelier-ink)}
+.yw-q{display:grid;grid-template-columns:1fr auto;column-gap:12px;padding:11px 0;border-bottom:.5px solid var(--atelier-card-border);font:var(--wl-t3);color:var(--atelier-ink)}
 .yw-q span:last-child{font:var(--wl-t5);color:var(--atelier-ink-mute);letter-spacing:0;text-transform:none;font-variant-numeric:lining-nums tabular-nums;align-self:center}
-.yw-gbtn{display:flex;align-items:center;justify-content:center;gap:12px;min-height:48px;margin-top:16px;border-radius:12px;background:var(--atelier-header-bg);border:.5px solid var(--atelier-card-border);font:var(--wl-t4);color:var(--atelier-ink);width:100%;letter-spacing:.02em;cursor:pointer}
-.yw-gdone{display:flex;align-items:center;gap:12px;margin-top:16px;font:var(--wl-t3);color:var(--atelier-ink-soft)}
+.yw-gbtn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin-top:14px;border-radius:3px;background:var(--atelier-header-bg);border:.5px solid var(--atelier-card-border);font:var(--wl-t4);color:var(--atelier-ink);width:100%;letter-spacing:.02em;cursor:pointer}
+.yw-gdone{display:flex;align-items:center;gap:10px;margin-top:14px;font:var(--wl-t3);color:var(--atelier-ink-soft)}
 .yw-gicon{width:18px;height:18px;flex-shrink:0}
-.yw-switchrow{display:flex;align-items:center;gap:16px;padding:16px 0 8px;width:100%;background:none;border:none;cursor:pointer;color:inherit;text-align:left}
+.yw-switchrow{display:flex;align-items:center;gap:14px;padding:14px 0 6px;width:100%;background:none;border:none;cursor:pointer;color:inherit;text-align:left}
 .yw-switchrow span:first-child{flex:1;min-width:0;font:var(--wl-t3);color:var(--atelier-ink)}
 .yw-toggle{width:46px;min-width:46px;height:27px;border-radius:14px;position:relative;background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);transition:background 140ms ease}
 .yw-toggle::after{content:"";position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--atelier-ink-fade)}
 .yw-toggle.on{background:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 .yw-toggle.on::after{left:auto;right:2px;background:var(--role-ink-deep)}
 .yw-fine{font:var(--wl-t5);color:var(--atelier-ink-mute);letter-spacing:0;text-transform:none;line-height:1.55;max-width:34ch;margin-top:4px}
-.yw-empty{font:var(--wl-t3);color:var(--atelier-ink-mute);padding:16px 0 0}
+.yw-empty{font:var(--wl-t3);color:var(--atelier-ink-mute);padding:14px 0 0}
 .yw-scrim{position:fixed;inset:0;background:var(--atelier-overlay);z-index:20;border:none;cursor:pointer}
-.yw-sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--role-sheet);border-top:.5px solid var(--atelier-sheet-border);border-radius:12px 3px 0 0;padding:24px var(--wl-gutter) 32px;display:flex;flex-direction:column;gap:16px;max-height:92vh;overflow-y:auto}
+.yw-sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--role-sheet);border-top:.5px solid var(--atelier-sheet-border);border-radius:3px 3px 0 0;padding:20px var(--wl-gutter) 28px;display:flex;flex-direction:column;gap:14px;max-height:92vh;overflow-y:auto}
 .yw-shhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .yw-shtitle{font:var(--wl-t1);color:var(--atelier-ink)}
-.yw-shx{width:44px;height:44px;margin:-12px calc(var(--wl-gutter) * -1 + 8px) -12px 0;flex:none;display:flex;align-items:center;justify-content:center;background:transparent;border:none;border-radius:12px;cursor:pointer;font:var(--wl-t2);line-height:1;color:var(--atelier-ink-mute)}
+.yw-shx{width:44px;height:44px;margin:-10px calc(var(--wl-gutter) * -1 + 8px) -10px 0;flex:none;display:flex;align-items:center;justify-content:center;background:transparent;border:none;border-radius:3px;cursor:pointer;font:var(--wl-t2);line-height:1;color:var(--atelier-ink-mute)}
 .yw-shp{font:var(--wl-t3);color:var(--atelier-ink-mute);max-width:34ch}
-.yw-toast{position:fixed;left:var(--wl-gutter);right:var(--wl-gutter);bottom:150px;z-index:30;background:var(--role-ink-deep);color:#ECEFEF;font:var(--wl-t4);padding:12px 16px;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.yw-toast{position:fixed;left:var(--wl-gutter);right:var(--wl-gutter);bottom:150px;z-index:30;background:var(--role-ink-deep);color:#EDEEEF;font:var(--wl-t4);padding:12px 14px;border-radius:3px;box-shadow:0 2px 12px rgba(0,0,0,.3)}
 `;
 
 // ── ONE PRIMARY REGISTER, ONE HOME ────────────────────────────────────────────
@@ -481,8 +481,8 @@ function DateSwitch({ cap, revalidate }: { cap: 'ruled_off' | 'unmapped' | null 
   // byte renders its own sentence (R-40.78: absent, never greyed).
   const reason = cap;
   const body = reason === undefined ? null
-    : reason === 'ruled_off' ? <div className="yw-fine" style={{ marginTop: 16 }}>{COPY.storefrontDateRuledOff}</div>
-    : reason === 'unmapped'  ? <div className="yw-fine" style={{ marginTop: 16 }}>{COPY.storefrontDateUnmapped}</div>
+    : reason === 'ruled_off' ? <div className="yw-fine" style={{ marginTop: 14 }}>{COPY.storefrontDateRuledOff}</div>
+    : reason === 'unmapped'  ? <div className="yw-fine" style={{ marginTop: 14 }}>{COPY.storefrontDateUnmapped}</div>
     : (
       <>
         <button type="button" className="yw-switchrow" role="switch" aria-checked={live === true} aria-label={COPY.storefrontDateSwitch} onClick={toggle}>
@@ -547,7 +547,7 @@ function AddressScreen({ address, pageUrl, handle, p2Live, rechead, say }: {
           {qr ? <img src={qr} alt={C.qrLine} /> : <div style={{ width: 112, height: 112 }} aria-busy="true" />}
           <div>
             <div className="yw-note" style={{ paddingTop: 0 }}>{C.qrLine}</div>
-            <div className="yw-acts" style={{ marginTop: 12 }}><button type="button" className="yw-second" onClick={download}>{C.qrDl}</button></div>
+            <div className="yw-acts" style={{ marginTop: 10 }}><button type="button" className="yw-second" onClick={download}>{C.qrDl}</button></div>
           </div>
         </div>
       </div>
@@ -690,8 +690,8 @@ function FixSheet({ kind, close, say, card, values, onSaved }: {
   const head: [string, string] = kind === 'about' ? [C.aboutH, C.aboutP] : kind === 'city' ? [C.cityH, C.cityP] : kind === 'rate' ? [C.rateH, C.rateP]
     : kind === 'cover' ? [C.coverH, C.coverP]
     : kind === 'venue' ? [C.fixVenue, C.venueSheet]
-    : kind === 'photos' ? ['Portfolio', 'Opens your Portfolio.']
-    : [C.fixWedding, 'Opens Wedding pages. Make a new page there, with its venue and city.'];
+    : kind === 'photos' ? ['Portfolio', 'Opens your Portfolio room.']
+    : [C.fixWedding, 'Opens the Wedding pages room. Make a new page there \u2014 with its venue and city.'];
   const editable = kind === 'about' || kind === 'city' || kind === 'rate';
 
   return (

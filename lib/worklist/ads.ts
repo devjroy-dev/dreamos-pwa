@@ -30,7 +30,7 @@ export const ADS = {
     running: '{post} is running. {reach} people have seen it today.',          // the approved shape (gap 1, the chair's yes)
     runningNoName: 'Your ad is running. {reach} people have seen it today.',  // only when her post had no caption
     last: 'Your last ad reached {reach} people and {enquiries} wrote to you.',
-    open: 'Open ads',
+    open: 'Open Ads',
   },
 
   connect: {

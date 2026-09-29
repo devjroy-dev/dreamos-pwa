@@ -109,7 +109,7 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNee
     // with spacing and a hairline before the detail rows. One aligned control column follows the
     // package: Attach package / Change package full width, then the two booking controls as an
     // exactly equal pair (a two-column grid). Tokens only, so Chalk and Graphite both resolve.
-    <div data-lc2="lead-package" style={{ paddingBottom: 16, marginBottom: 8, borderBottom: `0.5px solid ${T.card}` }}>
+    <div data-lc2="lead-package" style={{ paddingBottom: 18, marginBottom: 8, borderBottom: `0.5px solid ${T.card}` }}>
       <div>{eyebrow}</div>
       {lp && (
         <div data-lc2="lead-package-attached" style={{ marginTop: 8 }}>
@@ -117,7 +117,7 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNee
             <span style={{ font: RUNG.t2, color: T.ink }}>{lp.snapshot.name}</span>
             <span style={{ font: RUNG.t2, color: T.ink, whiteSpace: 'nowrap' }}>{formatRs(lp.total)}</span>
           </div>
-          <ul style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <ul style={{ listStyle: 'none', margin: '10px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {lp.schedule.map((row) => (
               <li key={row.kind} style={{ font: RUNG.t3, color: T.ink }}>
                 {scheduleRow(row.kind, row.pct, formatRs(row.amount), row.due_on)}
@@ -134,12 +134,12 @@ export function LeadPackageCard({ leadId, booked = false, onBook, onToast, onNee
         </div>
       )}
       {lp !== undefined && (
-        <div data-lc2="lead-package-controls" style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
+        <div data-lc2="lead-package-controls" style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
           <button type="button" style={actionButton()} onClick={() => setSheetOpen(true)}>
             {lp ? LEAD_PACKAGE.change : LEAD_PACKAGE.attach}
           </button>
           {!booked && onBook && (
-            <div data-lc2="lead-booking-controls" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div data-lc2="lead-booking-controls" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <button type="button" style={{ ...actionButton(), width: '100%' }} onClick={() => book('booking_confirmed')}>{LEAD_PACKAGE.bookingConfirmed}</button>
               <button type="button" style={{ ...actionButton(), width: '100%' }} onClick={() => book('advance_paid')}>{LEAD_PACKAGE.advancePaid}</button>
             </div>
@@ -435,7 +435,7 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
       {/* F-44.6 · R-44.13: the couple's own payment shape, between the fee and the name,
           in the package page's order. PackageEditSheet's own labels; no new word. */}
       {chosen && (<>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 11 }}>
           <div>
             <FieldLabel text={PACKAGES.fDeposit} htmlFor="att-dep" />
             <input id="att-dep" inputMode="numeric" style={{ ...inputStyle, ...(bad === 'deposit_pct' ? flagged : {}) }}
@@ -447,7 +447,7 @@ export function AttachSheet({ open, leadId, current, onClose, onAttached, onToas
               value={middlePct} onChange={(e) => setMiddlePct(e.target.value.replace(/[^\d]/g, ''))} />
           </div>
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
           <input type="checkbox" checked={middleOn} onChange={(e) => setMiddleOn(e.target.checked)} />
           <span style={toggleText}>{PACKAGES.fTakeMiddle}</span>
         </label>

@@ -8,13 +8,13 @@
 // held-rooms row), so a vendor on Expenses sees Money lit and can step to Invoices, TDS or Books in one tap. A tab's
 // first room is where its seat goes. Every address is read from the registry (roomHref) or the solutions routes,
 // never typed twice.
-import { roomHref } from '@/lib/worklist/rooms';
+import { roomHref } from '@/v2/lib/worklist/rooms';
 import {
   PAYMENT_REMINDERS_HREF, REFERRALS_HREF, WEBSITE_HREF, WEDDING_PAGES_HREF, GOOGLE_REVIEWS_HREF, POSTS_HREF,
   EXCHANGE_HREF, INTRODUCTIONS_HREF, NUMBER_HREF, SOLUTIONS_INDEX_HREF,
-} from '@/lib/solutions/routes';
-import { ENQ } from '@/lib/worklist/enquiryRouting';
-import type { RoomKey } from '@/lib/solutions/copy';
+} from '@/v2/lib/solutions/routes';
+import { ENQ } from '@/v2/lib/worklist/enquiryRouting';
+import type { RoomKey } from '@/v2/lib/solutions/copy';
 
 export type TabId = 'today' | 'enquiries' | 'calendar' | 'clients' | 'money';
 
@@ -74,7 +74,9 @@ export function heldRoomFor(tab: Tab, pathname: string): HeldRoom | null {
   return tab.rooms.find((r) => !r.href.includes('#') && (pathname === pathOf(r.href) || pathname.startsWith(pathOf(r.href) + '/'))) ?? null;
 }
 
-export const MORE_HREF = '/vendor/rooms';
+// The layout switch: More has its own address in the v2 tree. /vendor/rooms stays today's (main's manifest opens the app
+// there), and in the v2 tree it goes to Today, the first tab.
+export const MORE_HREF = '/vendor/more';
 
 /** A More row: a room by its address, or Support, which opens TDW on WhatsApp (the drawer's own act). `room` or `row`
  *  names the registry entry whose icon and one line the row reads (lib/worklist/icons.ts, ROOM_DESC, ROW_DESC). */

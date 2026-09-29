@@ -100,9 +100,9 @@ export const V2 = {
   // copy on the estate's money surface. Her last read before the mandate screen is the
   // ongoing price with no mention of the free month — flagged to the founder, his to reopen.
   confirm: (label: string, price: string) =>
-    `This opens a Razorpay page to approve ${label} at ${price}. You approve once; it renews every month until you cancel.`,
+    `This opens a Razorpay page to approve ${label} — ${price}. You approve once; it renews every month until you cancel.`,
   cancelWarn: (label: string) =>
-    `Cancel ${label}? Your plan stops and you move to Basic. This can’t be undone; starting again means setting up a new monthly payment.`,
+    `Cancel ${label}? Your plan stops and you move to Basic. This can’t be undone — starting again means setting up a new monthly payment.`,
   cancelYes: 'Cancel my plan',
   cancelNo:  'Keep my plan',
   upgradeExplain: (label: string, price: string) =>
@@ -116,9 +116,9 @@ export const V2 = {
   // surface without mounting a toast silently swallows all five — a failed cancel that
   // looks like nothing happened. HONEST CONTROLS (CE-209): the mount is asserted by cell
   // at every caller, not trusted.
-  mintFailed:   "Couldn’t reach Razorpay just now. Nothing has changed. Try again in a moment.",
-  cancelFailed: "Couldn’t cancel just now. Your plan is unchanged. Try again in a moment.",
+  mintFailed:   "Couldn’t reach Razorpay just now. Nothing has changed — try again in a moment.",
+  cancelFailed: "Couldn’t cancel just now. Your plan is unchanged — try again in a moment.",
   mintFailedAfterCancel: (label: string) =>
-    `Your old plan is already stopped and the new one didn’t open. You’re on Basic for now. Tap ${label} again to finish.`,
+    `Your old plan is already stopped and the new one didn’t open. You’re on Basic for now — tap ${label} again to finish.`,
   notOpenYet: 'Plan changes are not open yet.',
 };

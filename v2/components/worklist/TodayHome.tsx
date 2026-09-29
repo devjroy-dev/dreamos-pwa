@@ -11,15 +11,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { useTodayFeed } from '@/lib/worklist/feed';
-import { roomHref } from '@/lib/worklist/rooms';
-import { HOME, shortDate, longDate, dayHeading, agoWords, sentence, OPEN_ENQUIRY } from '@/lib/worklist/home';
-import { useCrew, crewWords, CREW_WORDS, type CrewFunction } from '@/lib/worklist/crew';
-import { fetchDay, fetchLeadsWhole, fetchLeadDetail, fetchEvents, fetchInvoices } from '@/lib/vendor/api/vendor';
+import { useTodayFeed } from '@/v2/lib/worklist/feed';
+import { roomHref } from '@/v2/lib/worklist/rooms';
+import { HOME, shortDate, longDate, dayHeading, agoWords, sentence, OPEN_ENQUIRY } from '@/v2/lib/worklist/home';
+import { useCrew, crewWords, CREW_WORDS, type CrewFunction } from '@/v2/lib/worklist/crew';
+import { fetchDay, fetchLeadsWhole, fetchLeadDetail, fetchEvents, fetchInvoices } from '@/v2/lib/vendor/api/vendor';
 import type { LeadsResponse, VendorDayResponse, VendorEvent, InvoicesResponse } from '@/lib/vendor/types/vendor';
 import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 import { formatRs } from '@/lib/vendor/format';
-import { COPY } from '@/lib/worklist/copy';
+import { COPY } from '@/v2/lib/worklist/copy';
 
 type LeadRow = LeadsResponse['leads'][number];
 type Answer = { kind: 'free' | 'booked' | 'enquiry'; lines: string[]; hot: boolean };

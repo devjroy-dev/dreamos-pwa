@@ -128,7 +128,7 @@ function usable(p) { try { return !!p && fs.statSync(p).isFile(); } catch (_e) {
 export async function browser() {
   let bin = process.env.CHROME_BIN;
   if (!usable(bin)) { for (const c of ['/opt/pw-browsers/chromium-1194/chrome-linux/chrome', '/opt/pw-browsers/chromium']) if (usable(c)) { bin = c; break; } }
-  return puppeteer.launch({ executablePath: bin, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage', '--font-render-hinting=none'] });
+  return puppeteer.launch({ executablePath: bin, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage', '--font-render-hinting=none', ...(process.env.CHROME_ARGS ? process.env.CHROME_ARGS.split(' ') : [])] });
 }
 
 // The real faces (the b123 method): DM Sans and Cormorant Garamond from @fontsource, under the names next/font gave them.

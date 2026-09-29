@@ -159,8 +159,8 @@ export default function AdvisorPage() {
       </ThemeProvider>
       <style>{`
 .wl-advroom{display:flex;flex-direction:column;height:100%;min-height:0}
-.wl-advchip{align-self:flex-start;font:var(--wl-t5);letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-accent-text);border:1px solid var(--atelier-accent-text);border-radius:999px;padding:4px 12px;margin:8px 0 4px}
-.wl-adv{padding-top:24px;padding-bottom:8px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.wl-advchip{align-self:flex-start;font:var(--wl-t5);letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-accent-text);border:1px solid var(--atelier-accent-text);border-radius:999px;padding:4px 10px;margin:8px 0 2px}
+.wl-adv{padding-top:20px;padding-bottom:8px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .wl-advbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
 .wl-advnote{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0;max-width:52ch}
 .wl-advthread{flex:1;min-height:0;overflow-y:auto;padding-top:12px}

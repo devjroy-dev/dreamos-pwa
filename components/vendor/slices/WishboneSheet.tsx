@@ -143,7 +143,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
       <div data-lc2="wishbone-sheet" data-sheet-body="" style={{
         position: 'fixed', left: 0, right: 0, bottom: SHEET_BOTTOM, zIndex: z.panel,
         background: 'var(--atelier-sheet-bg)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
-        borderTop: '0.5px solid var(--atelier-sheet-border)', padding: `16px 24px calc(24px + ${SHEET_SAFE})`,
+        borderTop: '0.5px solid var(--atelier-sheet-border)', padding: `18px 22px calc(26px + ${SHEET_SAFE})`,
         maxHeight: sheetBound('88dvh'), boxSizing: 'border-box', ...SHEET_BODY_SCROLL,
       }}>
         <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>
@@ -154,14 +154,14 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
         </div>
 
         {/* The chips — the same render truth the cards carry, now tappable */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
           {remaining.map(c => (
             <button key={c} type="button" onClick={() => { setActive(c); setValue((initialValues && initialValues[c]) || ''); setError(null); }} style={{
               font: T.t4,
               color: c === active ? A.ink : A.inkMute,
               border: `0.5px solid ${c === active ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-dim)'}`,
-              borderRadius: 12,
-              padding: '4px 8px',
+              borderRadius: 2,
+              padding: '3px 8px',
               background: 'transparent',
               cursor: 'pointer',
             }}>+ {chipLabel(c)}</button>
@@ -169,7 +169,7 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
         </div>
 
         {active && (
-          <div style={{ marginTop: 16 }}>
+          <div style={{ marginTop: 14 }}>
             {victorOnly ? (
               <div style={{ font: T.t3, color: A.inkSoft }}>
                 Money is edited in chat — the witnessed door. Say it there and it files with the full trail.
@@ -185,39 +185,39 @@ export function WishboneSheet({ missing, personLabel, onComplete, onDone, initia
                 style={{
                   font: T.t3,
                   width: '100%',
-                  padding: '12px 12px',
+                  padding: '10px 12px',
                   boxSizing: 'border-box',
                   background: 'var(--atelier-input-bg)',
                   border: '0.5px solid var(--atelier-card-border)',
-                  borderRadius: 12,
+                  borderRadius: 2,
                   color: A.ink,
                 }}
               />
             )}
             {error && (
-              <div style={{ font: T.t3, color: 'var(--role-critical)', marginTop: 8 }}>{error}</div>
+              <div style={{ font: T.t3, color: 'var(--role-critical)', marginTop: 6 }}>{error}</div>
             )}
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
               {!victorOnly && (
                 <button type="button" onClick={save} disabled={saving} className={!saving ? 'atelier-fab' : undefined} style={{
                   font: T.t4,
                   flex: 1,
-                  padding: '12px 16px',
-                  borderRadius: 12,
+                  padding: '11px 14px',
+                  borderRadius: 2,
                   cursor: saving ? 'default' : 'pointer',
                   border: '0.5px solid var(--atelier-label)',
                   opacity: saving ? 0.6 : 1,
-                  background: saving ? 'var(--atelier-row-hover)' : undefined,
+                  background: saving ? 'rgba(201,168,76,0.18)' : undefined,
                   color: INK_DEEP,
                 }}>{saving ? 'Filing…' : 'File it'}</button>
               )}
               <button type="button" onClick={() => tellVictor(active)} style={{
                 font: T.t4,
                 flex: 1,
-                padding: '12px 16px',
+                padding: '11px 14px',
                 background: 'transparent',
                 border: '0.5px solid var(--atelier-sheet-border)',
-                borderRadius: 12,
+                borderRadius: 2,
                 cursor: 'pointer',
                 color: A.interactiveWarm,
               }}>{victorOnly ? 'Send to chat' : 'Ask in chat instead'}</button> {/* A4 copy law: persona-free chrome */}

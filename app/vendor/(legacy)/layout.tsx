@@ -44,23 +44,7 @@ export default function LegacyLayout({ children }: { children: React.ReactNode }
   return (
     <ThemeProvider>
       <ServiceWorkerRegistrar />
-      {/* DESIGN-1 · THE LEGACY PAGES TAKE THE APP'S TYPE (docs/review/REPORT.md §5, E14). Onboarding,
-          Discover and the PIN screens keep their own theme for now, but not their own faces: every
-          face variable they name resolves to Inter here, in sentence case with no tracking, and every
-          control is at least 44 px. `display: contents` so the wrapper adds no box to their layout. */}
-      <div className="tdw-legacy" style={{ display: 'contents' }}>
-        <style>{LEGACY_TYPE_CSS}</style>
-        {children}
-      </div>
+      {children}
     </ThemeProvider>
   );
 }
-
-const LEGACY_TYPE_CSS =
-  '.tdw-legacy{--font-dm-sans:var(--font-inter);--font-cormorant:var(--font-inter);--font-italiana:var(--font-inter);--font-jost:var(--font-inter)}' +
-  '.tdw-legacy *{letter-spacing:normal!important;text-transform:none!important;font-variant-numeric:tabular-nums!important}' +
-  '.tdw-legacy *:not(em):not(i){font-style:normal!important}' +
-  '.tdw-legacy button,.tdw-legacy input,.tdw-legacy select,.tdw-legacy textarea{font-family:inherit}' +
-  '.tdw-legacy button,.tdw-legacy [role=button],.tdw-legacy a,.tdw-legacy select,' +
-  '.tdw-legacy input:not([type=checkbox]):not([type=radio]):not([type=hidden]){min-height:44px!important}' +
-  '.tdw-legacy button,.tdw-legacy [role=button],.tdw-legacy a{min-width:44px!important}';

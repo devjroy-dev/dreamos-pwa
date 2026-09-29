@@ -1,8 +1,5 @@
 "use client";
-// app/w/page.tsx — THE BARE SHELL RESOLVES TO TODAY (DESIGN-1 stage 3; was Rooms, R-37.75).
-//
-// DESIGN-1 · STAGE 3: the re-taste the note below promised. Today is the day's work now (stage 2) and the first of
-// the five tabs; the directory became More, behind the coin. The manifest, this index and the front door agree.
+// app/w/page.tsx — THE BARE SHELL RESOLVES TO ROOMS (R-37.75).
 //
 // The manifest's start_url points straight at /w/rooms, so a home-screen launch never comes
 // through here. This exists so that NO entry path disagrees with the manifest: a typed URL, a
@@ -18,6 +15,6 @@ import { useRouter } from 'next/navigation';
 
 export default function WorklistIndex() {
   const router = useRouter();
-  useEffect(() => { router.replace('/vendor/today'); }, [router]);
+  useEffect(() => { router.replace('/vendor/rooms'); }, [router]);
   return <div style={{ minHeight: '100dvh', background: 'var(--atelier-page-bg)' }} aria-busy="true" />;
 }

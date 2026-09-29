@@ -1,7 +1,7 @@
 'use client';
 // app/vendor/list/[slice]/events.tsx — TDW_03 P1 · TDW_04 A3 (L-3 cross-chip)
 // Events slice module. TDW_04 A3: each calendar row that names a binder wears
-// the cross-chip — "Also a client · <client> · <stage>" — display-only, reading
+// the cross-chip — "In your books · <client> · <stage>" — display-only, reading
 // the binder the event itself points to (linked_binder_id, wired in this same
 // delivery). Reads, never writes; tapping jumps to the twin's slice.
 // DISCLOSED: an event with no linked_binder_id wears no chip — absence means
@@ -17,8 +17,6 @@ import { amountWordsAdjacent } from '@/lib/vendor/cabinet';
 import { API_BASE } from '@/lib/vendor/api/_base';
 import type { VendorEvent } from '@/lib/vendor/types/vendor';
 import type { CabinetBinder } from '@/lib/vendor/api/vendor';
-import { useCrew, crewWords } from '@/lib/worklist/crew';
-import { istPlusDaysISO } from '@/lib/vendor/istDay';
 
 function baseRows(events: VendorEvent[]): Row[] {
   return events.map(ev => ({ id: ev.id, primary: ev.title, secondary: ev.kind, meta: fmtDate(ev.event_date)+(ev.event_time?` · ${ev.event_time.slice(0,5)}`:''), badge: ev.state, sortDate: ev.event_date, twinBinderId: ev.linked_binder_id ?? undefined, aiPrimer: `About ${ev.title} on ${fmtDate(ev.event_date)}: `, deletePrimer: `Delete the event "${ev.title}" on ${fmtDate(ev.event_date)} (id: ${ev.id}).`, detail: [{label:'Kind',value:ev.kind},{label:'Date',value:fmtDate(ev.event_date)},{label:'Time',value:ev.event_time?ev.event_time.slice(0,5):'—'},{label:'State',value:ev.state},{label:'Notes',value:ev.notes??'—',verbatim:true}] }));
@@ -41,18 +39,11 @@ export default function EventsSlice({ vendorId }: { vendorId: string }) {
     return m;
   }, [cab.data]);
 
-  // DESIGN-1 · STAGE 2: the crew rides every event row (REPORT.md E6), from the bands door's one read for a
-  // year either side of today. A function the bands door does not know (a cancelled one) carries no crew line.
-  const crew = useCrew(vendorId, istPlusDaysISO(-365), istPlusDaysISO(365));
-
   const toRows = useCallback((events: VendorEvent[]): Row[] => {
-    return baseRows(events).map(r0 => {
-      const row = crew.byEvent.has(r0.id) ? { ...r0, crew: { words: crewWords(crew.byEvent.get(r0.id)) } } : r0;
+    return baseRows(events).map(row => {
       const b = row.twinBinderId ? binderById.get(row.twinBinderId) : undefined;
       if (!b) return row;
-      // DESIGN-1 · STAGE 2: the chip is stage 1's, unchanged (the crew is ADDED to the row's facts; nothing the chip said
-      // is taken away, which the founder did not ask for).
-      const bits = ['Also a client'];
+      const bits = ['In your books'];
       if (b.client) bits.push(b.client);
       if (b.stage) bits.push(cap(b.stage));
       const recv = b.amount_received ?? 0;
@@ -63,7 +54,7 @@ export default function EventsSlice({ vendorId }: { vendorId: string }) {
       // a crossed room's import graph, not only the ones it mounts.
       return { ...row, crossChip: bits.join(' · '), crossChipHref: roomHref('clients') };
     });
-  }, [binderById, crew]);
+  }, [binderById]);
 
   return <SliceScreen slice="events" vendorId={vendorId} useData={useEventsData} toRows={toRows} deleteRequest={deleteRequest} />;
 }

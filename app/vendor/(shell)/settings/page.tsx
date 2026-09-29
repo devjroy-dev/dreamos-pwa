@@ -29,7 +29,6 @@ import { useSettings } from '@/hooks/vendor/useSettings';
 import { updateMe } from '@/lib/vendor/api/vendor';
 import { RF } from '@/lib/worklist/referrals';
 import { ENQ, ENQ_CANCEL, ENQ_FAILED, phoneLooksRight } from '@/lib/worklist/enquiryRouting';   // CE-45 G6-1 FE_2
-import { ENQUIRY_ROUTING_ID } from '@/lib/worklist/tabs';   // DESIGN-1 stage 3: the Enquiries tab's link to this section
 import { EXCHANGE } from '@/lib/worklist/exchange';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { WlToast } from '@/components/worklist/WlToast';
@@ -172,12 +171,6 @@ function EnquiryRoutingRow() {
   const [busy, setBusy] = useState(false);
   const live = routing ?? current.enquiry_routing;
   const livePhone = phone ?? current.enquiry_phone;
-  // DESIGN-1 · STAGE 3: the Enquiries tab lists this section by its heading and links here by its anchor; the section
-  // draws after the settings read, so the page is brought to it once it stands (a hash only scrolls to what exists).
-  useEffect(() => {
-    if (loading || typeof window === 'undefined' || window.location.hash !== '#' + ENQUIRY_ROUTING_ID) return;
-    document.getElementById(ENQUIRY_ROUTING_ID)?.scrollIntoView({ block: 'start' });
-  }, [loading]);
 
   async function write(body: { enquiry_routing: 'tdw' | 'own_number'; enquiry_phone?: string }) {
     if (busy) return false;
@@ -210,7 +203,7 @@ function EnquiryRoutingRow() {
 
   if (step === 'consent') {
     return (
-      <div className="wl-set" id={ENQUIRY_ROUTING_ID} data-enquiry-row="consent">
+      <div className="wl-set" data-enquiry-row="consent">
         <SCard register="rungs" title={ENQ.label}>
         <div className="wl-swrow" style={{ cursor: 'default' }}>
           <span className="wl-swtext">
@@ -253,7 +246,7 @@ function EnquiryRoutingRow() {
   );
 
   return (
-    <div className="wl-set" id={ENQUIRY_ROUTING_ID} data-enquiry-row="list" role="radiogroup" aria-label={ENQ.label}>
+    <div className="wl-set" data-enquiry-row="list" role="radiogroup" aria-label={ENQ.label}>
       {/* FE_2b · his ask: "Where enquiries go should read as header to the three options". The settings section
           header itself (SCard, the "Business" heading's component, same register), E2 under it, the options beneath. */}
       <SCard register="rungs" title={ENQ.label}>
@@ -353,21 +346,21 @@ export default function ShellSettingsPage() {
       <SettingsScreen chrome={false} ToastView={WlToast} />
       <style>{`
 .wl-set{padding-top:16px}
-.wl-setrow{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--wl-row);padding:0 16px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;text-decoration:none;touch-action:manipulation}
+.wl-setrow{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--wl-row);padding:0 16px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;text-decoration:none;touch-action:manipulation}
 .wl-setrowlabel{flex:1;font:var(--wl-t3);color:var(--atelier-ink)}
-.wl-setrowchev{color:var(--atelier-ink-dim);font-size:0.875rem;line-height:1;flex-shrink:0}
+.wl-setrowchev{color:var(--atelier-ink-dim);font-size:14px;line-height:1;flex-shrink:0}
 .wl-setrow:active{background:var(--atelier-row-hover)}
 .wl-setrow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.wl-swrow{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 16px;cursor:pointer;touch-action:manipulation}
-.wl-swrow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px;border-radius:12px}
-.wl-swtext{display:flex;flex-direction:column;gap:4px;min-width:0}
+.wl-swrow{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:14px 16px;cursor:pointer;touch-action:manipulation}
+.wl-swrow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px;border-radius:3px}
+.wl-swtext{display:flex;flex-direction:column;gap:5px;min-width:0}
 .wl-swlabel{font:var(--wl-t3);color:var(--atelier-ink)}
 .wl-swline{font:var(--wl-t5);color:var(--atelier-ink-mute);line-height:1.5;max-width:38ch}
-.wl-sw{flex:0 0 auto;width:46px;height:27px;border-radius:14px;position:relative;margin-top:4px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);transition:background 140ms ease}
+.wl-sw{flex:0 0 auto;width:46px;height:27px;border-radius:14px;position:relative;margin-top:2px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);transition:background 140ms ease}
 .wl-sw.on{background:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 .wl-sw>span{position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--atelier-ink-fade)}
 .wl-sw.on>span{left:auto;right:2px;background:var(--role-ink-deep)}
-.wl-erin{font:var(--wl-t3);color:var(--atelier-ink);background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;padding:12px 12px;margin-top:4px;width:100%;max-width:38ch;box-sizing:border-box}
+.wl-erin{font:var(--wl-t3);color:var(--atelier-ink);background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:10px 12px;margin-top:4px;width:100%;max-width:38ch;box-sizing:border-box}
       `}</style>
     </WorklistShell>
   );

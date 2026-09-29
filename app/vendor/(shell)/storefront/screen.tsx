@@ -90,7 +90,7 @@ function Chevron() {
   return (
     <span style={{
       color: 'var(--atelier-label)',
-      fontFamily: F.display, fontSize: '1rem', lineHeight: 1,
+      fontFamily: F.display, fontSize: 16, lineHeight: 1,
       flexShrink: 0,
     }}>›</span>
   );
@@ -103,11 +103,11 @@ function SectionLabel({ label, first }: { label: string; first?: boolean }) {
       display: 'flex', alignItems: 'center', gap: 12,
     }}>
       <span style={{
-        fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+        fontFamily: F.label, fontWeight: 300, fontSize: 9,
         letterSpacing: '0.5em', textTransform: 'uppercase',
         color: A.brass,
       }}>{label}</span>
-      <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
+      <span style={{ flex: 1, height: '0.5px', background: 'rgba(201,168,76,0.22)' }} />
     </div>
   );
 }
@@ -125,12 +125,12 @@ const SECTIONS: Item[] = [
   // reasoned about again. It is a `roomHref` call rather than a re-spelled `/vendor/portfolio`
   // for the same reason it was wrong the first time: a literal spells a destination, and
   // the registry IS the one place that knows where a room lives.
-  { href: roomHref('portfolio'),    label: 'Portfolio', description: 'Images and photo library',           glyph: '▣' },
+  { href: roomHref('portfolio'),    label: 'Portfolio', description: 'images and photo library',           glyph: '▣' },
   // NOT A ROOM. `/vendor/discover` is a carried surface with no registry entry and no
   // crossing chartered this block, so it stays a literal and is DECLARED in
   // `INTERIM_VENDOR_LINKS` instead — counted, so it cannot grow quietly, rather than
   // explained, which is the shape the S2 ZIP bounce convicted.
-  { href: '/vendor/discover',       label: 'Discover',  description: 'Your profile on The Dream Wedding',  glyph: '◈' },
+  { href: '/vendor/discover',       label: 'Discover',  description: 'your profile on The Dream Wedding',  glyph: '◈' },
   // R-37.87 (ZIP 14): Collab's row is REMOVED here because it now has its own tile in the
   // shell's bottom band. One home, or it is two — and two doors to one room is the disease
   // the sixteen-tile grid was ruled to end. The SURFACE is untouched and the route is
@@ -140,7 +140,7 @@ const SECTIONS: Item[] = [
 function StoreRow({ item }: { item: Item }) {
   return (
     <Link href={item.href} style={{
-      display: 'flex', alignItems: 'center', padding: '16px var(--slice-inset, 16px)', gap: 16,
+      display: 'flex', alignItems: 'center', padding: '16px var(--slice-inset, 24px)', gap: 18,
       textDecoration: 'none',
       borderBottom: '0.5px solid var(--atelier-card-border)',
     }}>
@@ -148,19 +148,19 @@ function StoreRow({ item }: { item: Item }) {
         flexShrink: 0,
         width: 36, height: 36,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem',
+        fontFamily: F.display, fontWeight: 400, fontSize: 25,
         color: A.brassWarm, lineHeight: 1,
       }}>{item.glyph}</span>
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontFamily: F.script, fontWeight: 500, fontSize: '1.375rem',
+          fontFamily: F.script, fontWeight: 500, fontSize: 20,
           color: A.ink, letterSpacing: '0.005em', lineHeight: 1.15,
         }}>{item.label}</div>
         {item.description && (
           <div style={{
             fontFamily: F.script, fontWeight: 300,
-            fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4, letterSpacing: '0.01em',
+            fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2, letterSpacing: '0.01em',
           }}>{item.description}</div>
         )}
       </div>
@@ -171,7 +171,7 @@ function StoreRow({ item }: { item: Item }) {
 
 export function StorefrontScreen({ vendorId }: { vendorId: string }) {
   return (
-    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', overflowX: 'clip' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
       <div style={{ flex: 1, paddingBottom: 40 }}>
         <BioBlock vendorId={vendorId} />
         {/* ── THE SECTION LABEL IS THE OLD LAYOUT'S CHROME, RETIRED IN THE SHELL ──
@@ -268,16 +268,16 @@ function BioBlock({ vendorId }: { vendorId: string }) {
     return (
       <div style={{ borderBottom: '0.5px solid var(--atelier-card-border)', paddingBottom: 8 }}>
         <SectionLabel label="Complete your bio" first />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '0 var(--slice-inset, 16px)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 var(--slice-inset, 24px)' }}>
           <Reserve ghost><Meter score={0} /></Reserve>
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
             {/* 23px = the loaded title's 20px Cormorant at lineHeight 1.15 */}
             <Reserve h={23} w="52%" />
             {/* 24px = the loaded subtitle's 16px Cormorant at lineHeight 1.5 */}
             <Reserve h={24} w="72%" />
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 16, padding: '12px var(--slice-inset, 16px) 4px' }}>
+        <div style={{ display: 'flex', gap: 18, padding: '10px var(--slice-inset, 24px) 4px' }}>
           {/* 13px = the loaded readout's 9px Jost line box */}
           <Reserve h={13} w={124} />
         </div>
@@ -297,7 +297,7 @@ function BioBlock({ vendorId }: { vendorId: string }) {
     <div style={{ borderBottom: '0.5px solid var(--atelier-card-border)', paddingBottom: 8 }}>
       {/* FOUNDER-VETOED heading (relay #2 slate). */}
       <SectionLabel label="Complete your bio" first />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '0 var(--slice-inset, 16px)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 var(--slice-inset, 24px)' }}>
         <Meter score={score} />
         {/* F-P72.C (founder walk, 2026-09-04): this row read as a ROW — title, hint, chevron —
             the same grammar as Portfolio and Discover below. But those two are DOORS and this
@@ -307,21 +307,21 @@ function BioBlock({ vendorId }: { vendorId: string }) {
             KEEP the row grammar on purpose — one call per screen, or the contrast that makes a
             call read as one is gone (founder: Discover becomes a call when Block 09 ports it). */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1.375rem', color: A.ink, lineHeight: 1.15 }}>Your bio</div>
+          <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: 20, color: A.ink, lineHeight: 1.15 }}>Your bio</div>
           {/* The drawer's own vetoed byte, carried. */}
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>How couples see you</div>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginTop: 2 }}>How couples see you</div>
         </div>
       </div>
       {/* The shell's button register, read from its one home (WorklistShell's SHELL_CSS, hoisted
           at P7.2 Arm C). The two properties below are this SITE's, not the register's: the
           margin that seats the call under the meter, and the link's own text-decoration. */}
       <Link href="/vendor/discover/profile" className="wl-btn pri"
-            style={{ textDecoration: 'none', margin: '12px var(--slice-inset, 16px) 0' }}>
+            style={{ textDecoration: 'none', margin: '12px var(--slice-inset, 24px) 0' }}>
         {COPY.storefrontBioCta}
       </Link>
       {/* Live counts under the same roof (readouts, not copy): */}
-      <div style={{ display: 'flex', gap: 16, padding: '12px var(--slice-inset, 16px) 4px' }}>
-        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: A.inkMute }}>
+      <div style={{ display: 'flex', gap: 18, padding: '10px var(--slice-inset, 24px) 4px' }}>
+        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: A.inkMute }}>
           {approved} photos live{pending > 0 ? ` · ${pending} pending` : ''}
         </span>
       </div>
@@ -469,13 +469,13 @@ function PublicPageBand() {
   return (
     <>
       <SectionLabel label={COPY.storefrontPublicLabel} />
-      <div style={{ padding: '0 var(--slice-inset, 16px)' }}>
+      <div style={{ padding: '0 var(--slice-inset, 24px)' }}>
         {handle ? (
           <a
             href={`${SITE_BASE}/v/${handle.toLowerCase()}`}
             target="_blank" rel="noopener noreferrer"
             style={{
-              fontFamily: F.script, fontWeight: 400, fontSize: '1rem', lineHeight: 1.5,
+              fontFamily: F.script, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
               color: A.brass, textDecoration: 'underline', textUnderlineOffset: 3,
               wordBreak: 'break-all', display: 'block',
             }}
@@ -502,8 +502,8 @@ function PublicPageBand() {
             room reporting an absence she can already see on her own page. */}
         {weddingCount !== null && weddingCount > 0 && (
           <p style={{
-            fontFamily: F.script, fontWeight: 300, fontSize: '0.8125rem', lineHeight: 1.55,
-            color: A.inkMute, margin: '16px 0 0',
+            fontFamily: F.script, fontWeight: 300, fontSize: 13, lineHeight: 1.55,
+            color: A.inkMute, margin: '14px 0 0',
           }}>
             {`${COPY.storefrontWeddingsLabel}: ${weddingCount}`}
           </p>
@@ -519,14 +519,14 @@ function PublicPageBand() {
               onClick={toggle}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
               style={{
-                display: 'flex', alignItems: 'center', gap: 16,
-                padding: '16px 0 8px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '14px 0 6px', cursor: 'pointer',
                 opacity: busy ? 0.6 : 1,
               }}
             >
               <span style={{
                 flex: 1, minWidth: 0,
-                fontFamily: F.script, fontWeight: 400, fontSize: '1rem', lineHeight: 1.4, color: A.ink,
+                fontFamily: F.script, fontWeight: 400, fontSize: 16, lineHeight: 1.4, color: A.ink,
               }}>{COPY.storefrontDateSwitch}</span>
               <span style={{
                 width: 46, minWidth: 46, height: 27, borderRadius: 14, position: 'relative',
@@ -543,7 +543,7 @@ function PublicPageBand() {
             </div>
             {/* D4 sits beside the switch in BOTH states — see its comment in copy.ts. */}
             <p style={{
-              fontFamily: F.script, fontWeight: 300, fontSize: '0.8125rem', lineHeight: 1.55,
+              fontFamily: F.script, fontWeight: 300, fontSize: 13, lineHeight: 1.55,
               color: A.inkMute, margin: 0, maxWidth: '34ch',
             }}>{COPY.storefrontDateStanding}</p>
 
@@ -562,9 +562,9 @@ function PublicPageBand() {
             {pulseRows.length > 0 && (
               <>
                 <p style={{
-                  fontFamily: F.label, fontWeight: 500, fontSize: '0.8125rem',
+                  fontFamily: F.label, fontWeight: 500, fontSize: 11,
                   letterSpacing: '.16em', textTransform: 'uppercase',
-                  color: A.brassWarm, margin: '24px 0 12px',
+                  color: A.brassWarm, margin: '20px 0 10px',
                 }}>{COPY.storefrontPulseLabel}</p>
                 <div style={{
                   border: '.5px solid var(--atelier-card-border)',
@@ -573,7 +573,7 @@ function PublicPageBand() {
                 }}>
                   {pulseRows.map((r, i) => (
                     <div key={r.key} style={{
-                      padding: '8px 0',
+                      padding: '9px 0',
                       borderTop: i === 0 ? undefined : '.5px solid var(--atelier-card-border)',
                     }}>
                       {/* ── R-42.11 · ONE SENTENCE, ONE TEXT NODE ───────────
@@ -590,13 +590,13 @@ function PublicPageBand() {
                           number would put the emphasis back in a smaller form
                           and re-open the same reading. The row is prose. */}
                       <span style={{
-                        fontFamily: F.script, fontSize: '0.9375rem', lineHeight: 1.5, color: A.ink,
+                        fontFamily: F.script, fontSize: 15, lineHeight: 1.5, color: A.ink,
                       }}>{r.line}</span>
                     </div>
                   ))}
                   <p style={{
-                    fontFamily: F.script, fontSize: '0.8125rem', lineHeight: 1.5,
-                    color: 'var(--atelier-ink-fade)', margin: '12px 0 0', paddingTop: 12,
+                    fontFamily: F.script, fontSize: 11.5, lineHeight: 1.5,
+                    color: 'var(--atelier-ink-fade)', margin: '12px 0 0', paddingTop: 11,
                     borderTop: '.5px solid var(--atelier-card-border)',
                   }}>{COPY.storefrontPulseFine}</p>
                 </div>
@@ -620,15 +620,15 @@ function PublicPageBand() {
                 every vendor whose week was genuinely quiet. */}
             {pulseFailed && (
               <p style={{
-                fontFamily: F.script, fontWeight: 300, fontSize: '0.8125rem', lineHeight: 1.55,
-                color: 'var(--atelier-ink-fade)', margin: '24px 0 0', maxWidth: '34ch',
+                fontFamily: F.script, fontWeight: 300, fontSize: 13, lineHeight: 1.55,
+                color: 'var(--atelier-ink-fade)', margin: '20px 0 0', maxWidth: '34ch',
               }}>{COPY.storefrontPulseFailed}</p>
             )}
           </>
         ) : (
           <p style={{
-            fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5,
-            color: A.inkMute, margin: '12px 0 4px', maxWidth: '30ch',
+            fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
+            color: A.inkMute, margin: '12px 0 2px', maxWidth: '30ch',
           }}>
             {reason === 'ruled_off' ? COPY.storefrontDateRuledOff : COPY.storefrontDateUnmapped}
           </p>

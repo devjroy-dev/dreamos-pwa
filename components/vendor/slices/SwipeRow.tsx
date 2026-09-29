@@ -105,7 +105,7 @@ export function SwipeRow({ children, right, left, disabled }: {
           display: 'flex',
           alignItems: 'center',
           justifyContent: dx > 0 ? 'flex-start' : 'flex-end',
-          padding: '0 var(--slice-inset, 16px)',
+          padding: '0 var(--slice-inset, 22px)',
           textTransform: 'uppercase',
           color: reveal.destructive ? 'var(--role-critical)' : 'var(--atelier-accent-text)',
           opacity: revealOn ? 1 : 0.45,

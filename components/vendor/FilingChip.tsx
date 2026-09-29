@@ -52,24 +52,24 @@ export function FilingChip({ beat, onRetry }: { beat: FilingBeat; onRetry?: () =
   const glyph = failed ? '!' : phase === 'undone' ? '\u21BA' : '\u2713';
   const glyphColor = failed ? TERRACOTTA : phase === 'undone' ? INK_DIM : BRASS;
   const text = isError
-    ? beat.summary || "That did not save. Nothing was changed."
-    : phase === 'undone' ? `${beat.summary}. Undone.`
+    ? beat.summary || "That didn’t land — nothing was changed."
+    : phase === 'undone' ? `${beat.summary} — undone.`
     : beat.summary || 'Filed';
 
   const pill: React.CSSProperties = {
-    fontFamily: 'Jost, system-ui, sans-serif', fontSize: '0.8125rem', fontWeight: 500,
+    fontFamily: 'Jost, system-ui, sans-serif', fontSize: 10, fontWeight: 500,
     letterSpacing: '0.08em', textTransform: 'uppercase',
-    padding: '4px 12px 4px', borderRadius: 999, cursor: 'pointer',
+    padding: '3px 11px 2px', borderRadius: 999, cursor: 'pointer',
     background: 'transparent', lineHeight: '14px', whiteSpace: 'nowrap',
   };
 
   return (
-    <div className="fchip-wrap" style={{ padding: '4px 24px 4px 40px' }}>
+    <div className="fchip-wrap" style={{ padding: '2px 22px 4px 38px' }}>
       <div
         className="fchip"
         style={{
-          position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 8,
-          maxWidth: '100%', padding: '8px 12px 8px 12px', borderRadius: 12,
+          position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 9,
+          maxWidth: '100%', padding: '7px 12px 8px 10px', borderRadius: 10,
           background: SURFACE, border: `1px solid ${HAIRLINE}`,
           borderLeft: `2px solid ${spine}`,
           opacity: phase === 'undone' || phase === 'expired' ? 0.72 : 1,
@@ -79,9 +79,9 @@ export function FilingChip({ beat, onRetry }: { beat: FilingBeat; onRetry?: () =
         <span aria-hidden style={{
           width: 16, height: 16, borderRadius: '50%', flex: 'none',
           border: `1px solid ${glyphColor}`, color: glyphColor,
-          fontSize: '1rem', lineHeight: '14px', textAlign: 'center', fontWeight: 600,
+          fontSize: 16, lineHeight: '14px', textAlign: 'center', fontWeight: 600,
         }}>{glyph}</span>
-        <span style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: '1rem', lineHeight: 1.35, color: failed ? TERRACOTTA : INK }}>
+        <span style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: 16, lineHeight: 1.35, color: failed ? TERRACOTTA : INK }}>
           {text}
         </span>
         {isError && onRetry && (
@@ -91,7 +91,7 @@ export function FilingChip({ beat, onRetry }: { beat: FilingBeat; onRetry?: () =
           <button onClick={doUndo} style={{ ...pill, border: `1px solid ${PILL_EDGE}`, color: PILL_INK }}>Undo</button>
         )}
         {phase === 'undoing' && (
-          <span style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: '1rem', lineHeight: 1.5, color: INK_DIM }}>…</span>
+          <span style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: INK_DIM }}>…</span>
         )}
         {phase === 'undo_failed' && (
           <button onClick={doUndo} style={{ ...pill, border: `1px solid ${TERRACOTTA}55`, color: TERRACOTTA }}>Retry undo</button>
@@ -99,7 +99,7 @@ export function FilingChip({ beat, onRetry }: { beat: FilingBeat; onRetry?: () =
         {!isError && beat.undo && phase === 'live' && (
           <span aria-hidden className="fchip-drain" style={{
             position: 'absolute', left: 8, right: 8, bottom: 0, height: 2,
-            borderRadius: 12, background: `${BRASS}59`, transformOrigin: 'left',
+            borderRadius: 2, background: `${BRASS}59`, transformOrigin: 'left',
           }} />
         )}
       </div>

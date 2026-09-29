@@ -26,7 +26,7 @@ const needFirstStyle: CSSProperties = {
   border: 'none',
   borderBottom: '1px dashed var(--atelier-accent-text)',
   borderRadius: 0,
-  padding: '4px 0',
+  padding: '2px 0',
   margin: 0,
   minHeight: 32,
   cursor: 'pointer',

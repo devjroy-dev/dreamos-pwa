@@ -55,8 +55,8 @@ const HELD: readonly { icon: HelpIcon; line: string }[] = [];
 // The four `what` lines this file types, because no home holds them yet. PROPOSED in the
 // read-first of 27 Sept 2026; they wait on the founder's yes like every other new byte.
 const TYPED_WHAT = {
-  rooms:     'Every part of the app, in groups',
-  today:     'Your day: a date to check, enquiries to answer, today\u2019s functions and money due',
+  rooms:     'Every room of the app, on shelves',
+  today:     'What needs attention today',
   exchange:  'Gear and services traded with peers',
   responses: 'Replies to one collab post',
 } as const;
@@ -67,23 +67,7 @@ const TYPED_WHAT = {
 const ADS_HELP = {
   what:  'Boosting shows one of your Instagram posts to couples in your city who are planning a wedding, for a daily amount you set and a number of days you choose.',
   pays:  'Meta charges your own card from your own ad account. TDW never charges for ads and never runs one without your tap.',
-  leads: 'Couples who write after seeing the ad land in Enquiries, and this page tells you what each ad reached, what it cost, and what to try next.',
-} as const;
-
-// DESIGN-1 · STAGE 2 · THE PORTFOLIO'S EXPLANATIONS, MOVED OFF THE PAGE (the founder, 29 Sept 2026: "make the photos the
-// page"). The founder-vetted bytes of app/vendor/(shell)/portfolio/screen.tsx's COPY, word for word, their one home now;
-// the screen reads H2 and H12 from here. H3, G1 and G3 are read ON THE PAGE (the founder's correction of 29 Sept 2026 on H3;
-// tdw07_p3 pins G1 and G3 as rendered by the reorder state), so they are not repeated here. None is reworded.
-export const PORTFOLIO_HELP = {
-  H2: "Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is free and takes a minute in Instagram’s own settings.",
-  F4: 'Couples see your approved photos. The rest are with our team.',
-  H12: 'Photos are copied into your portfolio, so they stay put even if your Instagram changes.',
-} as const;
-
-// DESIGN-1 · STAGE 2: the Collab responses page's explanation, moved off the page word for word (it was typed inline in
-// app/vendor/(shell)/collab/[post_id]/responses/screen.tsx, above the list).
-export const RESPONSES_HELP = {
-  identity: 'Their identity is revealed to you because you posted the requirement. Tap Connect to share contact details with both of you.',
+  leads: 'Couples who write after seeing the ad land in Leads, and this room tells you what each ad reached, what it cost, and what to try next.',
 } as const;
 
 const entry = (what: string, extra: Partial<PageHelp> = {}): PageHelp =>
@@ -91,23 +75,11 @@ const entry = (what: string, extra: Partial<PageHelp> = {}): PageHelp =>
 
 /**
  * Every surface under app/vendor/(shell)/ that draws, by pathname. /vendor itself redirects
- * to /vendor/today (DESIGN-1 stage 3) and draws nothing (app/vendor/(shell)/page.tsx), so it has no entry.
+ * to /vendor/rooms and draws nothing (app/vendor/(shell)/page.tsx), so it has no entry.
  */
 export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
-  // DESIGN-1 · STAGE 3: More is the coin's page. Each line names only what the page draws: the pinned rooms, the
-  // founder's five groups of rows, and the account rows at the foot (Report an issue, Graphite and Chalk, Sign out).
-  '/vendor/rooms':                          entry(TYPED_WHAT.rooms, { can: [
-    { icon: 'list', line: 'Every room outside the five tabs, in groups: Your business, Get found, Work together, Messages and Help. Tap a row to open it.' },
-    { icon: 'switch', line: 'Under Your account: Report an issue, Graphite or Chalk for dark or light, and Sign out.' },
-  ], connects: 'Pinned, at the top, holds the rooms you use most.',
-    app: 'The five tabs at the bottom hold the daily work: Today, Enquiries, Calendar, Clients and Money. Your initials, top right, open More.' }),
-  // DESIGN-1 · STAGE 2: Home is the day's work (docs/review/REPORT.md §3). Each line names only a control the page
-  // draws: Check and Open in calendar (the Check a date box), This week (the Today section's head).
-  '/vendor/today':                          entry(TYPED_WHAT.today, { can: [
-    { icon: 'calendar', line: 'Pick a day and tap Check. It answers Free all day, Booked or Enquiry, says what is on it, and Open in calendar goes to that day.' },
-    { icon: 'reply', line: 'Reply to lists new enquiries with their last message and how long they have waited. Tap one to open it and reply.' },
-    { icon: 'list', line: 'Today lists each function with its time, place and crew. Tap This week for the next seven days.' },
-  ], connects: 'Money due opens Invoices. Your pinned rooms are in More: tap your initials, top right.' }),
+  '/vendor/rooms':                          entry(TYPED_WHAT.rooms, { app: '' }),
+  '/vendor/today':                          entry(TYPED_WHAT.today),
   [roomHref('leads')]: entry(ROOM_DESC.leads),
   [roomHref('packages')]: entry(ROOM_DESC.packages),
   [roomHref('clients')]: entry(ROOM_DESC.clients),
@@ -118,11 +90,7 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   [roomHref('notes')]: entry(ROOM_DESC.notes),
   [roomHref('calendar')]: entry(ROOM_DESC.calendar),
   [roomHref('storefront')]: entry(ROOM_DESC.storefront),
-  // Each line names only what the page draws: Upload and the Instagram button beside it, the All filter, the photos.
-  [roomHref('portfolio')]: entry(ROOM_DESC.portfolio, { can: [
-    { icon: 'add', line: PORTFOLIO_HELP.H2 },
-    { icon: 'read', line: PORTFOLIO_HELP.F4 },
-  ], connects: PORTFOLIO_HELP.H12 }),
+  [roomHref('portfolio')]: entry(ROOM_DESC.portfolio),
   [roomHref('couture')]: entry(ROOM_DESC.couture),
   [roomHref('team')]: entry(ROOM_DESC.team),
   [roomHref('contracts')]: entry(ROW_DESC.contracts),
@@ -142,7 +110,7 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   [REFERRALS_HREF]: entry(ROW_DESC.referrals),
   [PAYMENT_REMINDERS_HREF]: entry(ROW_DESC.reminders),
   [roomHref('collab')]: entry(ROW_DESC.collabs),
-  '/vendor/collab/[post_id]/responses':     entry(TYPED_WHAT.responses, { can: [{ icon: 'share', line: RESPONSES_HELP.identity }] }),
+  '/vendor/collab/[post_id]/responses':     entry(TYPED_WHAT.responses),
   [EXCHANGE_HREF]: entry(TYPED_WHAT.exchange),
 };
 

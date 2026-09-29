@@ -31,11 +31,11 @@ export const inputStyle: CSSProperties = {
   font: RUNG.t3,
   width: '100%',
   boxSizing: 'border-box',
-  padding: '12px 16px',
+  padding: '12px 14px',
   minHeight: 44,
   background: 'transparent',
   border: `0.5px solid ${T.input}`,
-  borderRadius: 12,
+  borderRadius: 2,
   color: T.ink,
 };
 export const flagged: CSSProperties = { borderColor: T.accent, borderWidth: 1.5 };
@@ -46,7 +46,7 @@ export const plainValue: CSSProperties = {
   font: RUNG.t3,
   color: 'var(--atelier-ink)',
   margin: 0,
-  padding: '4px 0 4px',
+  padding: '3px 0 2px',
 };
 /** The toggle's own label text, beside the middle-payment checkbox. */
 export const toggleText: CSSProperties = {
@@ -56,7 +56,7 @@ export const toggleText: CSSProperties = {
 
 export function FieldLabel({ text, htmlFor }: { text: string; htmlFor?: string }) {
   return (
-    <label htmlFor={htmlFor} style={{ font: RUNG.t4, display: 'block', color: T.mute, marginBottom: 8 }}>
+    <label htmlFor={htmlFor} style={{ font: RUNG.t4, display: 'block', color: T.mute, marginBottom: 6 }}>
       {text}
     </label>
   );
@@ -80,13 +80,12 @@ export function textButton(tone: 'accent' | 'mute' = 'accent'): CSSProperties {
 export function actionButton(tone: 'accent' | 'mute' = 'accent'): CSSProperties {
   const c = tone === 'accent' ? T.accent : T.mute;
   return {
-    // DESIGN-1: the one button (REPORT.md §3): 48 high, 12px corners, outlined for secondary, at tb
-    font: RUNG.tb,
+    font: RUNG.t4,
     background: 'transparent',
-    border: `1px solid ${c}`,
-    borderRadius: 12,
-    minHeight: 48,
-    padding: '0 16px',
+    border: `0.5px solid ${c}`,
+    borderRadius: 2,
+    minHeight: 40,
+    padding: '0 14px',
     cursor: 'pointer',
     color: c,
   };
@@ -100,7 +99,7 @@ export function primaryButton(): CSSProperties {
     background: 'transparent',
     cursor: 'pointer',
     border: `0.5px solid ${T.accent}`,
-    borderRadius: 12,
+    borderRadius: 2,
     color: T.accent,
   };
 }
@@ -127,9 +126,9 @@ export function Sheet({ open, title, onClose, children, footer, testId }: {
         maxHeight: sheetBound('90dvh'), boxSizing: 'border-box', display: 'flex', flexDirection: 'column', paddingBottom: SHEET_SAFE,
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 12, backgroundColor: T.dim }} />
+          <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: T.dim }} />
         </div>
-        <div style={{ padding: '8px 24px 12px', borderBottom: `1px solid ${T.sheetBorder}`, flexShrink: 0 }}>
+        <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${T.sheetBorder}`, flexShrink: 0 }}>
           <h2 style={{ font: RUNG.t1, color: T.ink, margin: 0 }}>{title}</h2>
         </div>
         <div ref={bodyRef} data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -163,7 +162,7 @@ export function IdentityFields({ name, description, items, onName, onDescription
       </div>
       <div>
         <FieldLabel text={PACKAGES.fIncluded} />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {items.map((it, i) => (
             <div key={i} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(0,3fr)', gap: 8 }}>
               <input aria-label={PACKAGES.fItem} placeholder={PACKAGES.fItem} style={{ ...inputStyle, ...(badField === 'line_items' && !it.label.trim() ? flagged : {}) }} value={it.label} onChange={(e) => setItem(i, 'label', e.target.value)} />

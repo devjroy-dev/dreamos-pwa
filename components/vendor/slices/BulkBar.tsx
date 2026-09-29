@@ -26,8 +26,8 @@ export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: Bu
       position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 50,
       background: 'var(--atelier-sheet-bg)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
       borderTop: '0.5px solid var(--atelier-sheet-border)',
-      padding: '12px 16px calc(16px + env(safe-area-inset-bottom))',
-      display: 'flex', alignItems: 'center', gap: 12,
+      padding: '12px 18px calc(14px + env(safe-area-inset-bottom))',
+      display: 'flex', alignItems: 'center', gap: 10,
     }}>
       <span style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--atelier-accent-text)' }}>
         {selectedCount} selected
@@ -36,8 +36,8 @@ export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: Bu
         {actions.map(a => (
           <button key={a.key} type="button" disabled={busy} onClick={() => onAction(a.key)} style={{
             font: T.t4,
-            padding: '8px 12px',
-            borderRadius: 12,
+            padding: '9px 12px',
+            borderRadius: 2,
             cursor: busy ? 'default' : 'pointer',
             border: `0.5px solid ${a.destructive ? 'var(--role-critical)' : 'var(--atelier-sheet-border)'}`,
             background: 'transparent',
@@ -47,8 +47,8 @@ export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: Bu
         ))}
         <button type="button" onClick={onCancel} style={{
           font: T.t4,
-          padding: '8px 12px',
-          borderRadius: 12,
+          padding: '9px 12px',
+          borderRadius: 2,
           cursor: 'pointer',
           border: 'none',
           background: 'transparent',

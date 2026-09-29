@@ -90,9 +90,9 @@ const DOCK_CSS = `
    12px against a 22px header, which is exactly the kind of near-miss that reads as
    sloppiness without ever being nameable by eye. */
 .wl-dock{flex-shrink:0;padding:8px var(--wl-gutter);background:var(--atelier-header-bg);border-top:.5px solid var(--atelier-card-border)}
-.wl-dockfield{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:999px;padding:12px 8px 12px 16px;cursor:pointer;text-align:left;touch-action:manipulation}
-.wl-dockph{flex:1;font:var(--wl-t3);color:var(--atelier-ink-mute);overflow-wrap:anywhere}
-.wl-docksend{width:28px;height:28px;flex-shrink:0;border-radius:50%;background:var(--role-primary);color:var(--role-on-primary);display:flex;align-items:center;justify-content:center;font:var(--wl-t4)}
+.wl-dockfield{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:999px;padding:10px 8px 10px 16px;cursor:pointer;text-align:left;touch-action:manipulation}
+.wl-dockph{flex:1;font:var(--wl-t3);color:var(--atelier-ink-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-docksend{width:28px;height:28px;flex-shrink:0;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);display:flex;align-items:center;justify-content:center;font:var(--wl-t4)}
 .wl-dockfield:active{background:var(--atelier-row-hover)}
 .wl-dockfield:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 `;

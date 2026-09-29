@@ -124,10 +124,10 @@ export function useSignOut() {
 const SHEET_CSS = `
 .tdw-signout{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;justify-content:flex-end}
 .tdw-signout .tdw-soscrim{position:absolute;inset:0;background:var(--role-scrim);border:none;cursor:pointer}
-.tdw-signout .tdw-sopanel{position:relative;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-bottom:none;border-radius:12px 12px 0 0;padding:24px 16px calc(16px + env(safe-area-inset-bottom))}
+.tdw-signout .tdw-sopanel{position:relative;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-bottom:none;border-radius:12px 12px 0 0;padding:20px 16px calc(16px + env(safe-area-inset-bottom))}
 .tdw-signout .tdw-soline{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 16px}
 .tdw-signout .tdw-sorow{display:flex;gap:8px}
-.tdw-signout .tdw-sobtn{flex:1;min-height:44px;padding:12px 12px;border-radius:12px;cursor:pointer;background:transparent;border:.5px solid var(--atelier-input-border);color:var(--atelier-accent-text);font:var(--wl-t4);touch-action:manipulation}
+.tdw-signout .tdw-sobtn{flex:1;min-height:44px;padding:10px 12px;border-radius:2px;cursor:pointer;background:transparent;border:.5px solid var(--atelier-input-border);color:var(--atelier-accent-text);font:var(--wl-t4);touch-action:manipulation}
 .tdw-signout .tdw-sobtn.danger{border-color:var(--role-critical);color:var(--role-critical)}
 .tdw-signout .tdw-sobtn:active{background:var(--atelier-row-hover)}
 .tdw-signout .tdw-sobtn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}

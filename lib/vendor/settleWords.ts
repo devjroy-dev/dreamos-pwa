@@ -58,7 +58,7 @@ export const NO_AMOUNT_QUOTED    = 'No amount quoted';
 // kind this estate keeps finding.
 export function suggestionLine(amountInr: number, functions: number, rateInr: number): string {
   const unit = functions === 1 ? 'event' : 'events';
-  return `Rs ${fmt(amountInr)} suggested: ${functions} ${unit} at Rs ${fmt(rateInr)} each`;
+  return `Rs ${fmt(amountInr)} suggested — ${functions} ${unit} at Rs ${fmt(rateInr)} each`;
 }
 
 // ── THE JOINED SENTENCE  [CE-39 · 2c-Studio · veto sheet §B3, ratified] ─────

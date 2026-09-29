@@ -1,0 +1,117 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
+'use client';
+// app/vendor/list/[slice]/clients.tsx — TDW_03 P2 · binder cards
+// The Clients slice reads the records plane raw: cabinet.clients, the same
+// population the P1 adapter flattened — presentation upgraded to the story.
+// Chrome stays SliceShell (Door + search + FAB); the list is BinderCards via
+// renderList. AddSheet behavior unchanged until P5. No DetailSheet here —
+// the card expands in place.
+
+import { useMemo, useState } from 'react';
+import { useCabinetData, useLeadsData } from '@/v2/hooks/vendor/useVendorData';
+import { phoneKey } from '@/v2/lib/vendor/cabinet';
+import { SliceShell } from '@/v2/components/vendor/slices/SliceShell';
+import { BinderCard } from '@/v2/components/vendor/slices/BinderCard';
+import { Masthead } from '@/v2/components/vendor/slices/Masthead'; // TDW_04 A3
+import { deriveClients } from '@/v2/lib/vendor/derive'; // TDW_04 A3: THE derivation
+import { A, T } from '@/v2/components/vendor/slices/SliceRow';
+import { LEGACY_ROOM_HEAD } from '@/v2/lib/worklist/copy';
+import { ClientBookingSheet } from '@/v2/components/vendor/ClientBookingSheet'; // CE-43 LC-2 (R-43.5)
+import { WlToast } from '@/v2/components/worklist/WlToast';
+import { useToast } from '@/hooks/vendor/useToast';
+import type { ToastKind } from '@/hooks/vendor/useToast';
+
+export default function ClientsSlice({ vendorId }: { vendorId: string }) {
+  // The same pairing as SliceScreen's, for the same reason — see the note at the WlToast
+  // import in SliceShell.tsx. This slice drives SliceShell directly, so it carries its own
+  // mount; it does NOT carry its own copy of the predicate. `useInShell` is imported from
+  // the one file that defines it, because a pathname test written twice is a decision with
+  // two homes, and the second one is the one that stops agreeing. That file is
+  // `hooks/vendor/useInShell.ts` since §4-3 — the sentence above is unchanged, only the
+  // address it points at moved, and it moved so three rooms outside this family could read
+  // it without importing this family.
+  const ToastView = WlToast;
+  const cab = useCabinetData(vendorId);
+  const typedLeads = useLeadsData(vendorId); // R1(b): the typed plane, for the cross-chip
+  const leadByPhone = useMemo(() => {
+    const m = new Map<string, { state: string }>();
+    for (const l of typedLeads.data ?? []) {
+      const k = phoneKey(l.phone);
+      if (k && !m.has(k)) m.set(k, { state: l.state });
+    }
+    return m;
+  }, [typedLeads.data]);
+  const [query, setQuery] = useState('');
+  const [addOpen, setAddOpen] = useState(false);
+  const { toast, show: showToast } = useToast();
+
+  const binders = useMemo(() => {
+    const all = cab.data?.clients ?? [];
+    if (!query.trim()) return all;
+    const q = query.trim().toLowerCase();
+    return all.filter(b =>
+      (b.client ?? '').toLowerCase().includes(q) ||
+      (b.stage ?? '').toLowerCase().includes(q) ||
+      (b.note ?? '').toLowerCase().includes(q));
+  }, [cab.data, query]);
+
+  const empty = !cab.loading && !cab.error && binders.length === 0;
+
+  return (
+    <SliceShell
+      slice="clients"
+      query={query}
+      setQuery={setQuery}
+      loading={cab.loading}
+      error={cab.error}
+      rows={[]}
+      onSelect={() => {}}
+      onAdd={() => setAddOpen(true)}
+      // TDW_04 A3 (P5/ST-4): this slice drives SliceShell directly (binder cards,
+      // not rows), so it composes its own masthead — from the SAME derivation the
+      // hub and the other mastheads read.
+      masthead={<Masthead line={LEGACY_ROOM_HEAD.clients(deriveClients(cab.data).count)} value={deriveClients(cab.data).count} />}
+      renderList={
+        <>
+          {empty && (
+            <div style={{
+              font: T.t3,
+              padding: '40px 24px',
+              textAlign: 'center',
+              color: A.inkMute,
+            }}>
+              {query
+                ? <>Nothing matching <span style={{ color: A.brassWarm }}>&ldquo;{query}&rdquo;</span></>
+                : <>Your client stories live here.<br/>
+                    <span style={{ color: A.brassWarm }}>Tell your assistant about a client, even just a name, and a record opens.</span></>}
+            </div>
+          )}
+          {binders.map(b => (
+            <BinderCard
+              key={b.id}
+              binder={b}
+              onChanged={cab.refresh}
+              onToast={(msg, kind, opts) => showToast(msg, kind, opts)}
+              crossLead={(() => { const k = phoneKey(b.phone); return k ? leadByPhone.get(k) : undefined; })()}
+            />
+          ))}
+        </>
+      }
+    >
+      <ToastView toast={toast} />
+      {/* CE-43 LC-2 · R-43.5: Add opens the booking sheet (a lead born booked), not the
+          public.clients create (F-43.46). AddSheet is untouched; its clients schema stays for
+          the demo route. Packet 3: the sheet books the walk-in (POST /clients/direct) and the
+          cabinet refetches, so the client appears on this page a moment later. */}
+      <ClientBookingSheet
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onDone={cab.refresh}
+        onToast={(msg: string, kind?: ToastKind) => showToast(msg, kind)}
+      />
+    </SliceShell>
+  );
+}

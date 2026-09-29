@@ -17,6 +17,7 @@ import { cookies } from 'next/headers';
 import { MODE_COOKIE, asMode } from '@/lib/worklist/mode';
 import { WorklistBoot } from './WorklistBoot';
 import { ServiceWorkerRegistrar } from '@/components/vendor/ServiceWorkerRegistrar';
+import { LayoutSwitch } from '@/components/worklist/LayoutSwitch';   // DESIGN-1: the layout switch, at the shell's root
 
 // ── F-39.16 · THE IDENTITY IS COMPUTED PER BUILD, OUTSIDE ANY CACHED CHUNK ──
 //
@@ -66,7 +67,7 @@ export default async function WorklistLayout({ children }: { children: React.Rea
   return (
     <WorklistBoot initialMode={mode}>
       <div hidden data-tdw-commit={commit} />
-      <ServiceWorkerRegistrar />{children}
+      <ServiceWorkerRegistrar /><LayoutSwitch tree="classic" />{children}
     </WorklistBoot>
   );
 }

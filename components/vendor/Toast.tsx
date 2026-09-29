@@ -121,7 +121,7 @@ export function Toast({ toast }: { toast: ToastState | null }) {
           background: 'transparent',
           border: 'none',
           cursor: 'pointer',
-          padding: '4px 4px',
+          padding: '2px 4px',
           // One accent, both kinds, both modes (8.42:1 Graphite, 6.51:1 Chalk).
           // WlToast.tsx:102 already draws its action this way; the two toasts now
           // agree on the affordance, which is what R-40.129 ② asks of the kind.

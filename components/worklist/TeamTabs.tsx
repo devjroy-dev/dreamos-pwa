@@ -479,7 +479,7 @@ export function TeamTabs({ vendorName }: { vendorName: string | null }) {
           than the glyph, because a floating control whose accessible name is
           「add」 tells a screen reader nothing about which of three lists it
           acts on. */}
-      <Fab label={COPY.teamAddSuffix.charAt(0).toUpperCase() + COPY.teamAddSuffix.slice(1) + ' to ' + current.label} onClick={onFab} />
+      <Fab label={current.label + ' — ' + COPY.teamAddSuffix} onClick={onFab} />
 
       {sheet && sheet.k === 'member' && (
         <MemberSheet editing={sheet.editing} draft={memberDraft} setDraft={setMemberDraft}
@@ -715,32 +715,32 @@ function isToday(iso: string | null): boolean {
 // rules and the numeral rule comes second.
 const TEAM_CSS = `
 .wl-tm{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
-.wl-tabs{display:flex;gap:24px;padding:16px 0 12px;border-bottom:.5px solid var(--role-metal)}
+.wl-tabs{display:flex;gap:20px;padding:14px 0 12px;border-bottom:.5px solid var(--role-metal)}
 .wl-tab{background:none;border:none;padding:0;cursor:pointer;font:var(--wl-t4);
         letter-spacing:.06em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-tab.on{color:var(--atelier-ink)}
-.wl-tab:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px;border-radius:12px}
+.wl-tab:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px;border-radius:2px}
 .wl-tmbody{flex:1;min-height:0;padding-bottom:24px}
 .wl-rsec{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
-         padding:16px 0 8px;font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;
+         padding:18px 0 8px;font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;
          color:var(--atelier-ink-mute)}
 .wl-rsec span{color:var(--atelier-ink-soft)}
 .wl-rsec span{font-variant-numeric:lining-nums tabular-nums}
 .wl-row{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:12px;width:100%;
-        padding:12px 0;border-top:.5px solid var(--atelier-card-border);text-align:left}
+        padding:11px 0;border-top:.5px solid var(--atelier-card-border);text-align:left}
 .wl-rowbtn{background:none;border:none;border-top:.5px solid var(--atelier-card-border);cursor:pointer}
 .wl-rowbtn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .wl-rprimary{display:block;font:var(--wl-t3);color:var(--atelier-ink)}
-.wl-rdetail{display:block;margin-top:4px;font:var(--wl-t5);color:var(--atelier-ink-mute)}
+.wl-rdetail{display:block;margin-top:3px;font:var(--wl-t5);color:var(--atelier-ink-mute)}
 .wl-rfig{font:var(--wl-t3);color:var(--atelier-ink);white-space:nowrap}
 .wl-rfig{font-variant-numeric:lining-nums tabular-nums}
-.wl-rfoot{grid-column:1 / -1;display:flex;gap:8px;margin-top:12px}
-.wl-rbtn{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 16px;
-         border-radius:12px;background:transparent;border:.5px solid var(--atelier-accent-text);
+.wl-rfoot{grid-column:1 / -1;display:flex;gap:8px;margin-top:10px}
+.wl-rbtn{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 14px;
+         border-radius:3px;background:transparent;border:.5px solid var(--atelier-accent-text);
          color:var(--atelier-accent-text);font:var(--wl-t5);letter-spacing:.08em;
          text-transform:uppercase;cursor:pointer}
 .wl-rbtn.dan{border-color:var(--role-critical);color:var(--role-critical)}
 .wl-rbtn:disabled{opacity:.5;cursor:not-allowed}
 .wl-rbtn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
-.wl-rempty{padding:24px 0;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.wl-rempty{padding:22px 0;font:var(--wl-t4);color:var(--atelier-ink-mute)}
 `;

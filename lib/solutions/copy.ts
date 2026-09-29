@@ -323,9 +323,9 @@ export const COPY = {
   // ── THE EMPTY STATES (R-19.2: the empty state is the product's real first
   //    state, not a placeholder). Each says what the row will do and what the
   //    vendor's one next action is. None of them apologises.
-  googleEmpty:     'Connect your Google listing and we keep your name, hours and photos in step with your page, and ask each couple for a review after their date.',
+  googleEmpty:     'Connect your Google listing and we keep your name, hours and photos in step with your rooms — and ask each couple for a review after their date.',
   websiteEmpty:    'Every vendor gets an address on our domain. Search for your own name here and we buy it, wire it up and put your page on it.',
-  seoEmpty:        'Once your page is live we make it findable (structured, fast, indexed) and show you what couples searched to reach it.',
+  seoEmpty:        'Once your page is live we make it findable — structured, fast, indexed — and show you what couples searched to reach it.',
   marketingEmpty:  'Posts and ad briefs written from your own portfolio and calendar. Nothing goes out without you sending it.',
   proofEmpty:      'The three documents you send most: a rate card, a one-page profile, and answers to what couples always ask.',
   benchmarksEmpty: 'How your reply time and enquiries compare with your category in your city. We never show another vendor\u2019s numbers.',

@@ -57,13 +57,13 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
   return (
     <div style={{
       background: inNote
-        ? (T.isLight ? 'var(--atelier-card-border)' : 'var(--atelier-card-border)')
+        ? (T.isLight ? 'rgba(201,168,76,0.07)' : 'rgba(201,168,76,0.06)')
         : T.headerBg,
       backdropFilter: 'blur(28px) saturate(1.6)',
       WebkitBackdropFilter: 'blur(28px) saturate(1.6)',
-      borderTop: `0.5px solid ${inNote ? 'var(--atelier-input-border)' : T.brassLine}`,
-      padding: '12px 16px calc(16px + env(safe-area-inset-bottom))',
-      display: 'flex', alignItems: 'flex-end', gap: 12,
+      borderTop: `0.5px solid ${inNote ? 'rgba(201,168,76,0.45)' : T.brassLine}`,
+      padding: '12px 16px calc(14px + env(safe-area-inset-bottom))',
+      display: 'flex', alignItems: 'flex-end', gap: 10,
       transition: 'background 220ms cubic-bezier(0.22,1,0.36,1), border-color 220ms cubic-bezier(0.22,1,0.36,1)',
     }}>
       {/* Note-mode toggle — sticky; lights up when on */}
@@ -73,7 +73,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
           onClick={() => setNoteMode(m => !m)}
           aria-label="Note to self"
           aria-pressed={inNote}
-          title={inNote ? 'Note to self: on' : 'Note to self'}
+          title={inNote ? 'Note to self — on' : 'Note to self'}
           style={{
             width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
             border: `0.5px solid ${inNote ? 'var(--atelier-label)' : T.inputBorder}`,
@@ -105,7 +105,7 @@ export function InputBar({ onSend, onSendNote, disabled, placeholder, initialVal
           borderRadius: 999,
           background: T.inputBg,
           color: T.ink,
-          padding: '12px 16px',
+          padding: '12px 18px',
           // ZIP 14 · F-16.38 CURE (R-37.83 / R-37.84 (7)). The old input chrome —
           // Cormorant + a value-keyed italic — survived inside the risen chat and the
           // founder read it as "the chat ai looks same". The render arm measured the

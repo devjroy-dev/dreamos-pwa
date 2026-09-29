@@ -137,7 +137,7 @@ function SolutionsIndexScreen() {
       <style>{`
 /* Carried from the surface this page replaced, byte-for-byte in its properties.
    R-38.5: the column owns the gutter — vertical only, no horizontal inset. */
-.wl-supportaction{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:12px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
+.wl-supportaction{background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-supportaction:active{background:var(--atelier-row-hover)}
 .wl-supportaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
       `}</style>

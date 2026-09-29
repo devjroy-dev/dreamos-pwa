@@ -117,17 +117,17 @@ function ReportIssueSheet({ room, onClose }: { room: string; onClose: () => void
 const SHEET_CSS = `
 .tdw-report{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;justify-content:flex-end}
 .tdw-report .tdw-rpscrim{position:absolute;inset:0;background:var(--role-scrim);border:none;cursor:pointer}
-.tdw-report .tdw-rppanel{position:relative;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-bottom:none;border-radius:12px 12px 0 0;padding:16px var(--wl-gutter, 16px) calc(32px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px}
-.tdw-report .tdw-rpgrip{width:36px;height:4px;border-radius:12px;background:var(--atelier-card-border);margin:0 auto 4px}
+.tdw-report .tdw-rppanel{position:relative;background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-bottom:none;border-radius:12px 12px 0 0;padding:14px var(--wl-gutter, 22px) calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px}
+.tdw-report .tdw-rpgrip{width:36px;height:4px;border-radius:2px;background:var(--atelier-card-border);margin:0 auto 2px}
 .tdw-report .tdw-rptitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0}
-.tdw-report .tdw-rppre{border-top:.5px solid var(--atelier-card-border);padding-top:16px}
+.tdw-report .tdw-rppre{border-top:.5px solid var(--atelier-card-border);padding-top:14px}
 .tdw-report .tdw-rprow{display:flex;justify-content:space-between;align-items:baseline;min-height:36px;gap:16px}
 .tdw-report .tdw-rpk{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .tdw-report .tdw-rpv{font:var(--wl-t3);color:var(--atelier-ink);text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .tdw-report .tdw-rpmono{font-variant-numeric:lining-nums tabular-nums;color:var(--atelier-accent-text)}
-.tdw-report .tdw-rpfield{display:flex;flex-direction:column;gap:8px}
+.tdw-report .tdw-rpfield{display:flex;flex-direction:column;gap:6px}
 .tdw-report .tdw-rpfl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-label)}
-.tdw-report .tdw-rpin{min-height:120px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:12px;padding:12px;font:var(--wl-t3);color:var(--atelier-ink);outline:none;box-sizing:border-box;resize:none;-webkit-appearance:none;appearance:none}
+.tdw-report .tdw-rpin{min-height:120px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:3px;padding:12px;font:var(--wl-t3);color:var(--atelier-ink);outline:none;box-sizing:border-box;resize:none;-webkit-appearance:none;appearance:none}
 .tdw-report .tdw-rpin::placeholder{color:var(--atelier-ink-fade)}
 .tdw-report .tdw-rpin:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .tdw-report .tdw-rpsend{min-height:48px}

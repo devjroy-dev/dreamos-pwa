@@ -1,0 +1,50 @@
+// R-37.80: the selected chip is a CONTROL, so it carries the signal, not the metal. It sat
+// outside ZIP 5’s split because it reads a raw CSS variable rather than A.brass — a whole
+// class the classifier was structurally blind to. Converted here with its class-mates below.
+'use client';
+// components/vendor/slices/FilterRail.tsx — TDW_04 A4 (P4's rail, built).
+// Sticky chips under search. Per-slice sets (owner supplies chips+counts);
+// single-select; tap the active chip again to clear. Pure presentational.
+
+import type { ListSlice } from '@/hooks/vendor/useLastSlice';
+
+export interface FilterChip { key: string; label: string; count?: number }
+
+export interface FilterRailProps {
+  slice: ListSlice;
+  chips: FilterChip[];
+  active: string | null;
+  onSelect: (key: string | null) => void;
+}
+
+import { T } from './SliceRow';
+
+export function FilterRail({ chips, active, onSelect }: FilterRailProps) {
+  if (!chips.length) return null;
+  return (
+    <div style={{
+      display: 'flex', gap: 8, overflowX: 'auto', padding: '4px var(--slice-inset, 16px) 12px',
+      scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
+    }}>
+      {chips.map(c => {
+        const on = active === c.key;
+        return (
+          <button key={c.key} type="button" onClick={() => onSelect(on ? null : c.key)} style={{
+            font: T.t5,
+            letterSpacing: '0.08em',
+            flexShrink: 0,
+            padding: '8px 12px',
+            borderRadius: 999,
+            cursor: 'pointer',
+            border: `0.5px solid ${on ? 'var(--atelier-accent-text)' : 'var(--atelier-card-border)'}`,
+            background: on ? 'var(--atelier-row-hover)' : 'transparent',
+            textTransform: 'uppercase',
+            color: on ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-mute)',
+          }}>
+            {c.label}{c.count != null ? ` · ${c.count}` : ''}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

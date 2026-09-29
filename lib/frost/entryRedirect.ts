@@ -12,11 +12,10 @@
 // for session reads). A vendor session wins if both are somehow present: the
 // vendor shell is the surface the founder walks first (kickoff §7).
 
-// DESIGN-1 · STAGE 3: a vendor lands on Today, the first of the five tabs (was /vendor/rooms).
-export type EntryDestination = '/vendor/today' | '/frost' | null;
+export type EntryDestination = '/vendor/rooms' | '/frost' | null;
 
 export function entryRedirectFor(hasVendorSession: boolean, hasCoupleSession: boolean): EntryDestination {
-  if (hasVendorSession) return '/vendor/today';
+  if (hasVendorSession) return '/vendor/rooms';
   if (hasCoupleSession) return '/frost';
   return null;
 }

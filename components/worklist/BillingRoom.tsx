@@ -259,7 +259,7 @@ const BILL_CSS = `
 /* R-38.5 · THE EDGE. The plan card’s left border is one of the four x values the text-edge
    cell reads — with the wordmark, the first tile and the dock field. It takes NO
    horizontal margin of its own; the column’s gutter is the only inset on this axis. */
-.wl-billcard{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;padding:16px;min-height:96px;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.wl-billcard{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px;min-height:96px;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .wl-billlead{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-billname{font:var(--wl-t2);color:var(--atelier-ink)}
 /* t2 since F-44.219 (the surface's one t1 is the shell's head). font-variant-numeric AFTER the shorthand, which
@@ -274,21 +274,21 @@ const BILL_CSS = `
    (The word above was written between backticks on the first cut — inside a JS template
    literal, which ends it. ZIP 14 owned this exact mistake twice and named it: writing
    ABOUT a syntax inside that syntax. The type floor caught it again, immediately.) */
-.wl-chipstatus{margin-top:8px;display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;border:.5px solid var(--atelier-card-border);font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
+.wl-chipstatus{margin-top:8px;display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;border:.5px solid var(--atelier-card-border);font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-chipstatus.live{color:var(--atelier-accent-text);border-color:var(--atelier-accent-text)}
 .wl-chipstatus.caution{color:var(--role-caution);border-color:var(--role-caution)}
 .wl-plans{display:flex;flex-direction:column;gap:8px}
 .wl-billoffer{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0}
-.wl-planrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;width:100%;min-height:var(--wl-row);padding:12px 16px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;cursor:pointer;text-align:left;touch-action:manipulation}
+.wl-planrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;width:100%;min-height:var(--wl-row);padding:12px 16px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;cursor:pointer;text-align:left;touch-action:manipulation}
 .wl-planrow[aria-expanded="true"]{border-color:var(--atelier-accent-text)}
 .wl-planname{font:var(--wl-t3);color:var(--atelier-ink)}
 .wl-planprice{font:var(--wl-t4);color:var(--atelier-ink-mute);text-align:right}
 .wl-planprice{font-variant-numeric:tabular-nums}
 .wl-planchev{flex-shrink:0;font:var(--wl-t4);color:var(--atelier-ink-dim);line-height:1}
 .wl-planrow[aria-expanded="true"] .wl-planchev{color:var(--atelier-accent-text)}
-.wl-planconfirm{padding:12px 4px 4px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.wl-planconfirm{padding:12px 2px 4px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
 .wl-billbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0}
-.wl-billaction{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 16px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:12px;cursor:pointer;font:var(--wl-t4);color:var(--atelier-accent-text);text-decoration:none;touch-action:manipulation}
+.wl-billaction{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 16px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;font:var(--wl-t4);color:var(--atelier-accent-text);text-decoration:none;touch-action:manipulation}
 .wl-billaction.danger{border-color:var(--role-critical);color:var(--role-critical)}
 .wl-billaction:active{background:var(--atelier-row-hover)}
 .wl-billaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}

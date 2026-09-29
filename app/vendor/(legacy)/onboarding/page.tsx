@@ -205,11 +205,6 @@ export default function VendorOnboardingPage() {
   const INK    = T.ink;
   const MUTE   = T.inkMute;
   const BRASS  = T.brass;
-  // DESIGN-1 · THE ONE PRIMARY (docs/review/REPORT.md §3, P4, P13): the filled buttons take Teal Ledger's
-  // primary and its ink, in the mode this page is in. The legacy theme has no token for it yet, so the two
-  // palette values are named here once. Brass stays on the chosen chips.
-  const PRIMARY    = T.isLight ? '#0B6B5A' : '#4DBBA4';
-  const ON_PRIMARY = T.isLight ? '#FFFFFF' : '#0A1A16';
   // ── ARC OB · OB-P · THE ATTENTION TOKEN, WITNESSED NOT REMEMBERED ─────────
   // Founder caught 「 Still needed 」 and the refusal reading too faint on the
   // light theme. Derived from lib/vendor/theme.ts rather than adjusted by eye:
@@ -245,12 +240,12 @@ export default function VendorOnboardingPage() {
     border: 'none', borderBottom: `1px solid ${BORDER}`,
     outline: 'none',
     fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)',
-    fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: INK,
+    fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: INK,
     padding: '8px 0', marginBottom: 20, boxSizing: 'border-box',
   };
   const lbl: React.CSSProperties = {
     fontFamily: 'var(--font-jost, system-ui, sans-serif)',
-    fontWeight: 200, fontSize: '0.8125rem', letterSpacing: '0.22em',
+    fontWeight: 200, fontSize: 8, letterSpacing: '0.22em',
     textTransform: 'uppercase', color: MUTE,
     display: 'block', marginBottom: 6,
   };
@@ -268,7 +263,7 @@ export default function VendorOnboardingPage() {
   );
 
   const Toast = toast ? (
-    <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${BRASS}`, borderRadius: 100, padding: '10px 20px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontSize: '1rem', lineHeight: 1.5, color: ATTN, whiteSpace: 'nowrap', zIndex: 99 }}>
+    <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${BRASS}`, borderRadius: 100, padding: '10px 20px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontSize: 16, lineHeight: 1.5, color: ATTN, whiteSpace: 'nowrap', zIndex: 99 }}>
       {toast}
     </div>
   ) : null;
@@ -282,21 +277,21 @@ export default function VendorOnboardingPage() {
     return (
       <div style={{ position: 'fixed', inset: 0, background: T.headerBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px' }}>
         {Toast}
-        <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.75rem', lineHeight: 1.5, color: INK, margin: '0 0 8px', textAlign: 'center' }}>
+        <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: 31, lineHeight: 1.5, color: INK, margin: '0 0 8px', textAlign: 'center' }}>
           You&apos;re all set, {name.split(' ')[0]}.
         </p>
-        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: '1rem', color: MUTE, textAlign: 'center', lineHeight: 1.6, margin: '0 0 28px', maxWidth: 320 }}>
+        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, color: MUTE, textAlign: 'center', lineHeight: 1.6, margin: '0 0 28px', maxWidth: 320 }}>
           Your PA is ready. Share your TDW link — that&apos;s where clients message you.
         </p>
         {tdwLink && (
           <div style={{ background: BG, border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: '16px 20px', width: '100%', maxWidth: 360, marginBottom: 24 }}>
             <p style={{ ...lbl, marginBottom: 8 }}>Your TDW link</p>
-            <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: METAL, letterSpacing: '0.04em', wordBreak: 'break-all', margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: METAL, letterSpacing: '0.04em', wordBreak: 'break-all', margin: 0 }}>
               {tdwLink}
             </p>
             <button
               onClick={() => { navigator.clipboard.writeText(tdwLink); showToast('Copied!'); }}
-              style={{ marginTop: 12, background: 'transparent', border: `0.5px solid ${BORDER}`, borderRadius: 6, padding: '6px 14px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: MUTE, cursor: 'pointer' }}
+              style={{ marginTop: 12, background: 'transparent', border: `0.5px solid ${BORDER}`, borderRadius: 6, padding: '6px 14px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 300, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: MUTE, cursor: 'pointer' }}
             >
               Copy link
             </button>
@@ -304,7 +299,7 @@ export default function VendorOnboardingPage() {
         )}
         <button
           onClick={() => router.replace('/vendor')}
-          style={{ width: '100%', maxWidth: 360, height: 52, background: PRIMARY, border: 'none', borderRadius: 12, fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 600, fontSize: '0.9375rem', color: ON_PRIMARY, cursor: 'pointer' }}
+          style={{ width: '100%', maxWidth: 360, height: 52, background: BRASS, border: 'none', borderRadius: 100, fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 400, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#0C0A09', cursor: 'pointer' }}
         >
           Open your studio →
         </button>
@@ -318,19 +313,19 @@ export default function VendorOnboardingPage() {
       {Toast}
       <div style={{ maxWidth: 480, margin: '0 auto', padding: 'calc(env(safe-area-inset-top, 0px) + 40px) 28px calc(env(safe-area-inset-bottom, 0px) + 40px)' }}>
 
-        <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 200, fontSize: '0.8125rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: METAL, margin: '0 0 12px' }}>
+        <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 200, fontSize: 8, letterSpacing: '0.3em', textTransform: 'uppercase', color: METAL, margin: '0 0 12px' }}>
           The Dream Wedding
         </p>
-        <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.75rem', color: INK, lineHeight: 1.15, margin: '0 0 6px' }}>
+        <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: 25, color: INK, lineHeight: 1.15, margin: '0 0 6px' }}>
           Let&apos;s set up your studio.
         </p>
-        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: '1rem', color: MUTE, lineHeight: 1.6, margin: '0 0 36px' }}>
+        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, color: MUTE, lineHeight: 1.6, margin: '0 0 36px' }}>
           Two minutes. Your clients will use this to reach you.
         </p>
 
         {/* THE SERVER'S REFUSAL — verbatim, above the boxes it is about */}
         {refusal && (
-          <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: ATTN, background: T.cardBg, border: `0.5px solid ${ATTN}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 28px' }}>
+          <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: ATTN, background: T.cardBg, border: `0.5px solid ${ATTN}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 28px' }}>
             {refusal}
           </p>
         )}
@@ -353,7 +348,7 @@ export default function VendorOnboardingPage() {
                 border: `0.5px solid ${category === token ? BRASS : BORDER}`,
                 borderRadius: 100, padding: '8px 14px', cursor: 'pointer',
                 fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)',
-                fontWeight: 300, fontSize: '1rem', lineHeight: 1.2,
+                fontWeight: 300, fontSize: 16, lineHeight: 1.2,
                 color: category === token ? '#0C0A09' : INK,
                 transition: 'all 150ms ease',
               }}
@@ -380,7 +375,7 @@ export default function VendorOnboardingPage() {
                 border: `0.5px solid ${area === token ? BRASS : BORDER}`,
                 borderRadius: 100, padding: '8px 14px', cursor: 'pointer',
                 fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)',
-                fontWeight: 300, fontSize: '1rem', lineHeight: 1.2,
+                fontWeight: 300, fontSize: 16, lineHeight: 1.2,
                 color: area === token ? '#0C0A09' : INK,
                 transition: 'all 150ms ease',
               }}
@@ -428,11 +423,10 @@ export default function VendorOnboardingPage() {
           style={{
             width: '100%', height: 52, borderRadius: 100, border: 'none',
             cursor: submitting ? 'default' : 'pointer',
-            // DESIGN-1: the app's one primary, not gold. The old dark ink on light brass measured 4.13.
-            background: submitting ? `color-mix(in srgb, ${PRIMARY} 40%, transparent)` : PRIMARY,
-            color: ON_PRIMARY,
+            background: submitting ? `color-mix(in srgb, ${BRASS} 40%, transparent)` : BRASS,
+            color: '#0C0A09',
             fontFamily: 'var(--font-jost, system-ui, sans-serif)',
-            fontWeight: 400, fontSize: '0.8125rem', letterSpacing: '0.2em', textTransform: 'uppercase',
+            fontWeight: 400, fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase',
             transition: 'all 200ms ease',
           }}
         >

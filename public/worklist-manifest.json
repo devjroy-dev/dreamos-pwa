@@ -2,7 +2,7 @@
   "name": "TDW Worklist β",
   "short_name": "Worklist",
   "description": "The Dream Wedding — vendor worklist",
-  "start_url": "/vendor/today",
+  "start_url": "/vendor/rooms",
   "scope": "/",
   "display": "standalone",
   "background_color": "#141516",

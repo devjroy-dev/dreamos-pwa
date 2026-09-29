@@ -87,7 +87,7 @@ type ProfileSection = { head: string; rows: ProfileRow[]; onTheDay?: string; foo
 
 const PROFILE_SECTIONS: ProfileSection[] = [
   { head: 'Your business', rows: [
-    { key: 'vendor_category_words', label: 'What you do', why: 'How your business is described in the agreement, for example “a makeup and hair business”.' },
+    { key: 'vendor_category_words', label: 'What you do', why: 'How your business is described in the agreement — “a makeup and hair business”.' },
     { key: 'vendor_signatory_name', label: 'Who signs for you', why: 'The name on your signature line. Usually you.' },
     // F-40.266: the name clause 12.2 promises — a PROFILE token beside the signatory (register v3 §0-ter).
     { key: 'named_professional',    label: 'Who attends', why: 'The person the couple is booking to be there in person. Leave it empty and the agreement makes no such promise.' },
@@ -110,8 +110,8 @@ const PROFILE_SECTIONS: ProfileSection[] = [
     { key: 'postpone_window_months', label: 'Move within', unit: 'months', why: 'If the couple postpones, how many months later you’ll still honour the booking.', numeric: true },
     // The four slab labels are generated from her thresholds — see `slabLabels`.
     { key: 'cancel_tier_1_pct', label: 'More than 90 days before', unit: '% you keep', why: 'If they cancel this early, the share of the fee you keep.', numeric: true },
-    { key: 'cancel_tier_2_pct', label: '60 to 90 days before', unit: '% you keep', why: '', numeric: true },
-    { key: 'cancel_tier_3_pct', label: '30 to 60 days before', unit: '% you keep', why: '', numeric: true },
+    { key: 'cancel_tier_2_pct', label: '60–90 days before', unit: '% you keep', why: '', numeric: true },
+    { key: 'cancel_tier_3_pct', label: '30–60 days before', unit: '% you keep', why: '', numeric: true },
     { key: 'cancel_tier_4_pct', label: 'Under 30 days before', unit: '% you keep', why: '', numeric: true },
     { key: 'refund_days',       label: 'Refund within', unit: 'days', why: 'If you owe them money back, how many days you take to pay it.', numeric: true },
     { key: 'deposit_refundable', label: 'Is the deposit refundable?', why: 'Whether the deposit comes back if they cancel. Most vendors say no.' },
@@ -130,7 +130,7 @@ const PROFILE_SECTIONS: ProfileSection[] = [
   ] },
   { head: 'Tax', rows: [
     { key: 'gst_treatment', label: 'GST', why: 'Whether your fee already includes GST, or GST is added on top.' },
-    { key: 'gst_pct',       label: 'Rate', unit: '%', why: 'Your GST rate. Leave it empty if you’re not registered; the tax clause is then left out.', numeric: true },
+    { key: 'gst_pct',       label: 'Rate', unit: '%', why: 'Your GST rate. Leave it empty if you’re not registered — the tax clause is then left out.', numeric: true },
   ], foot: 'Your GSTIN lives in Settings. Add it there and the tax clause prints.' },
 ];
 
@@ -138,7 +138,7 @@ const PROFILE_SECTIONS: ProfileSection[] = [
 function slabLabels(f: ContractProfileFields): [string, string, string, string] {
   const d = (k: string, fallback: string) => { const v = (f[k] || '').trim(); return v === '' ? fallback : v; };
   const t1 = d('cancel_tier_1_days', '90'), t2 = d('cancel_tier_2_days', '60'), t3 = d('cancel_tier_3_days', '30');
-  return [`More than ${t1} days before`, `${t2} to ${t1} days before`, `${t3} to ${t2} days before`, `Under ${t3} days before`];
+  return [`More than ${t1} days before`, `${t2}–${t1} days before`, `${t3}–${t2} days before`, `Under ${t3} days before`];
 }
 
 // ══ THE CLAUSE SWITCHES — keys are the renderer's `CLAUSE_SWITCHES`, read at
@@ -212,45 +212,45 @@ const SCRIM: React.CSSProperties = { position: 'fixed', inset: 0, background: 'v
 const SHEET: React.CSSProperties = {
   width: '100%', maxHeight: '82dvh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
   background: 'var(--atelier-sheet-bg)', borderTop: `0.5px solid var(--atelier-sheet-border)`,
-  padding: '16px 16px calc(32px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 4,
+  padding: '14px 16px calc(28px + env(safe-area-inset-bottom))', display: 'flex', flexDirection: 'column', gap: 4,
 };
-const GRAB: React.CSSProperties = { width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)', margin: '0 auto 12px' };
-const H3: React.CSSProperties = { fontFamily: F.title, fontWeight: 500, fontSize: '1.0625rem', lineHeight: 1.3, color: A.ink, margin: '24px 0 4px' };
-const HINT: React.CSSProperties = { fontFamily: F.body, fontWeight: 400, fontSize: '0.8125rem', lineHeight: 1.45, color: A.inkMute, margin: '4px 0 8px' };
+const GRAB: React.CSSProperties = { width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)', margin: '0 auto 12px' };
+const H3: React.CSSProperties = { fontFamily: F.title, fontWeight: 500, fontSize: 17, lineHeight: 1.3, color: A.ink, margin: '22px 0 4px' };
+const HINT: React.CSSProperties = { fontFamily: F.body, fontWeight: 400, fontSize: 13, lineHeight: 1.45, color: A.inkMute, margin: '2px 0 8px' };
 const TAP: React.CSSProperties = {
   display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left',
-  padding: '16px 0', border: 0, borderBottom: `0.5px solid ${A.hair}`, background: 'transparent', color: A.ink,
-  fontFamily: F.body, fontWeight: 400, fontSize: '0.9375rem', lineHeight: 1.35, cursor: 'pointer',
+  padding: '14px 0', border: 0, borderBottom: `0.5px solid ${A.hair}`, background: 'transparent', color: A.ink,
+  fontFamily: F.body, fontWeight: 400, fontSize: 15, lineHeight: 1.35, cursor: 'pointer',
 };
-const SUB: React.CSSProperties = { display: 'block', fontFamily: F.body, fontSize: '0.8125rem', lineHeight: 1.4, color: A.inkMute, marginTop: 4 };
-const RIGHT: React.CSSProperties = { fontFamily: F.body, fontWeight: 500, fontSize: '0.8125rem', color: A.inkMute, whiteSpace: 'nowrap', flexShrink: 0 };
-const BTN: React.CSSProperties = { display: 'block', width: '100%', padding: '16px 0', marginTop: 12, borderRadius: 12, fontFamily: F.body, fontWeight: 500, fontSize: '0.875rem', cursor: 'pointer', textAlign: 'center' };
+const SUB: React.CSSProperties = { display: 'block', fontFamily: F.body, fontSize: 12.5, lineHeight: 1.4, color: A.inkMute, marginTop: 2 };
+const RIGHT: React.CSSProperties = { fontFamily: F.body, fontWeight: 500, fontSize: 12, color: A.inkMute, whiteSpace: 'nowrap', flexShrink: 0 };
+const BTN: React.CSSProperties = { display: 'block', width: '100%', padding: '14px 0', marginTop: 12, borderRadius: 2, fontFamily: F.body, fontWeight: 500, fontSize: 14, cursor: 'pointer', textAlign: 'center' };
 const CTA: React.CSSProperties   = { ...BTN, background: A.accent, color: 'var(--role-ink-deep)', border: 0 };
 const GHOST: React.CSSProperties = { ...BTN, background: 'transparent', color: A.accent, border: `0.5px solid ${A.accent}` };
 const QUIET: React.CSSProperties = { ...BTN, background: 'transparent', color: A.inkMute, border: `0.5px solid ${A.hair}` };
 const INPUT: React.CSSProperties = {
-  width: '100%', marginTop: 8, padding: '8px 12px', boxSizing: 'border-box', background: 'var(--atelier-input-bg)',
-  border: `0.5px solid ${A.hair}`, borderRadius: 12, color: A.ink, fontFamily: F.body, fontWeight: 400, fontSize: '0.9375rem', lineHeight: 1.4, outline: 'none',
+  width: '100%', marginTop: 6, padding: '9px 10px', boxSizing: 'border-box', background: 'var(--atelier-input-bg)',
+  border: `0.5px solid ${A.hair}`, borderRadius: 2, color: A.ink, fontFamily: F.body, fontWeight: 400, fontSize: 15, lineHeight: 1.4, outline: 'none',
   caretColor: A.accent,
 };
-const TAG: React.CSSProperties = { fontFamily: F.body, fontWeight: 500, fontSize: '0.8125rem', lineHeight: 1, color: A.caution, whiteSpace: 'nowrap' };
+const TAG: React.CSSProperties = { fontFamily: F.body, fontWeight: 500, fontSize: 11, lineHeight: 1, color: A.caution, whiteSpace: 'nowrap' };
 
 const Blk = ({ children }: { children: React.ReactNode }) => <div style={{ padding: '0 16px' }}>{children}</div>;
 const Scroll = ({ children, fab }: { children: React.ReactNode; fab?: boolean }) => (
-  <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', paddingBottom: fab ? 110 : 40 }}>{children}</div>
+  <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: fab ? 110 : 40, WebkitOverflowScrolling: 'touch' }}>{children}</div>
 );
 
 /** A screen's header: back chevron, title in Cormorant, one line under it. */
 function Head({ title, sub, onBack }: { title: string; sub?: string; onBack?: () => void }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 16px 12px', borderBottom: `0.5px solid ${A.hair}`, flexShrink: 0 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px 12px', borderBottom: `0.5px solid ${A.hair}`, flexShrink: 0 }}>
       {onBack && (
         <button type="button" onClick={onBack} aria-label="Back"
-                style={{ background: 'none', border: 0, color: A.ink, fontFamily: F.body, fontSize: '1.375rem', lineHeight: 1, padding: '0 4px 0 0', cursor: 'pointer', width: 28 }}>{'‹'}</button>
+                style={{ background: 'none', border: 0, color: A.ink, fontFamily: F.body, fontSize: 22, lineHeight: 1, padding: '0 4px 0 0', cursor: 'pointer', width: 28 }}>{'‹'}</button>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.1, color: A.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
-        {sub ? <div style={{ fontFamily: F.body, fontSize: '0.8125rem', lineHeight: 1.3, color: A.inkMute, letterSpacing: '0.02em' }}>{sub}</div> : null}
+        <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.1, color: A.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
+        {sub ? <div style={{ fontFamily: F.body, fontSize: 11, lineHeight: 1.3, color: A.inkMute, letterSpacing: '0.02em' }}>{sub}</div> : null}
       </div>
     </div>
   );
@@ -267,19 +267,19 @@ function Field({ label, unit, why, value, placeholder, onChange, onBlur, readOnl
   mark?: 'Yours' | 'Default' | 'Needed' | null; inputMode?: 'numeric' | 'tel' | 'decimal'; multiline?: boolean;
 }) {
   const control = readOnly
-    ? <div style={{ fontFamily: F.body, fontSize: '0.9375rem', lineHeight: 1.4, color: value ? A.ink : A.inkFade, marginTop: 4 }}>{value || placeholder || ''}</div>
+    ? <div style={{ fontFamily: F.body, fontSize: 15, lineHeight: 1.4, color: value ? A.ink : A.inkFade, marginTop: 2 }}>{value || placeholder || ''}</div>
     : multiline
       ? <textarea value={value} placeholder={placeholder} onChange={e => onChange?.(e.target.value)} onBlur={onBlur}
                   style={{ ...INPUT, resize: 'none', minHeight: 64 }} />
       : <input value={value} placeholder={placeholder} inputMode={inputMode} onChange={e => onChange?.(e.target.value)} onBlur={onBlur} style={INPUT} />;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '12px 0', borderBottom: `0.5px solid ${A.hair}` }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, fontFamily: F.body, fontWeight: 500, fontSize: '0.875rem', lineHeight: 1.3, color: A.ink }}>
-        <span>{label}{unit ? <span style={{ fontWeight: 400, fontSize: '0.8125rem', color: 'var(--atelier-ink-dim)' }}> {unit}</span> : null}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '11px 0', borderBottom: `0.5px solid ${A.hair}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, fontFamily: F.body, fontWeight: 500, fontSize: 14, lineHeight: 1.3, color: A.ink }}>
+        <span>{label}{unit ? <span style={{ fontWeight: 400, fontSize: 12, color: 'var(--atelier-ink-dim)' }}> {unit}</span> : null}</span>
         {required ? <span style={TAG}>{required}</span>
           : mark ? <span style={{ ...TAG, color: MARK_COLOUR[mark] }}>{MARK_WORD[mark]}</span> : null}
       </div>
-      {why ? <div style={{ fontFamily: F.body, fontSize: '0.8125rem', lineHeight: 1.4, color: A.inkMute }}>{why}</div> : null}
+      {why ? <div style={{ fontFamily: F.body, fontSize: 12.5, lineHeight: 1.4, color: A.inkMute }}>{why}</div> : null}
       {control}
     </div>
   );
@@ -292,16 +292,16 @@ function ChoiceRow({ label, why, options, value, mark, onPick }: {
   mark?: 'Yours' | 'Default' | 'Needed' | null; onPick: (v: string) => void;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '12px 0', borderBottom: `0.5px solid ${A.hair}` }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, fontFamily: F.body, fontWeight: 500, fontSize: '0.875rem', color: A.ink }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '11px 0', borderBottom: `0.5px solid ${A.hair}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, fontFamily: F.body, fontWeight: 500, fontSize: 14, color: A.ink }}>
         <span>{label}</span>
         {mark ? <span style={{ ...TAG, color: MARK_COLOUR[mark] }}>{MARK_WORD[mark]}</span> : null}
       </div>
-      {why ? <div style={{ fontFamily: F.body, fontSize: '0.8125rem', lineHeight: 1.4, color: A.inkMute }}>{why}</div> : null}
-      <div style={{ display: 'inline-flex', alignSelf: 'flex-start', border: `0.5px solid ${A.hair}`, borderRadius: 12, overflow: 'hidden', marginTop: 8 }}>
+      {why ? <div style={{ fontFamily: F.body, fontSize: 12.5, lineHeight: 1.4, color: A.inkMute }}>{why}</div> : null}
+      <div style={{ display: 'inline-flex', alignSelf: 'flex-start', border: `0.5px solid ${A.hair}`, borderRadius: 2, overflow: 'hidden', marginTop: 6 }}>
         {options.map(([key, text]) => (
           <button key={key} type="button" onClick={() => onPick(key)}
-                  style={{ fontFamily: F.body, fontWeight: 500, fontSize: '0.8125rem', padding: '8px 16px', border: 0, cursor: 'pointer',
+                  style={{ fontFamily: F.body, fontWeight: 500, fontSize: 13, padding: '9px 14px', border: 0, cursor: 'pointer',
                            background: value === key ? 'var(--atelier-row-hover)' : 'transparent', color: value === key ? A.ink : 'var(--atelier-ink-dim)' }}>{text}</button>
         ))}
       </div>
@@ -336,23 +336,23 @@ function Thread({ c, policiesSet }: { c: Contract; policiesSet: boolean }) {
   const cur = st >= 6 ? 6 : st >= 5 ? 4 : st >= 3 ? 3 : 1;
   const doneUpto = st >= 6 ? 6 : st >= 5 ? 4 : st >= 3 ? 3 : policiesSet ? 0 : -1;
   return (
-    <div style={{ margin: '16px 16px 4px', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ margin: '14px 16px 4px', display: 'flex', flexDirection: 'column' }}>
       {THREAD_STEPS.map(([w, s], i) => {
         const done = i <= doneUpto && i !== cur, here = i === cur;
         const dotStyle: React.CSSProperties = {
-          width: 10, height: 10, borderRadius: '50%', marginTop: 4, flexShrink: 0, position: 'relative',
+          width: 10, height: 10, borderRadius: '50%', marginTop: 5, flexShrink: 0, position: 'relative',
           border: `1.5px solid ${done ? A.green : here ? A.metal : A.inkFade}`, background: done ? A.green : here ? A.metal : 'transparent',
         };
         return (
           <div key={w} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', minHeight: 30 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={dotStyle} />
-              {i < THREAD_STEPS.length - 1 && <div style={{ width: 1.5, flex: 1, minHeight: 14, background: A.hair, marginTop: 4 }} />}
+              {i < THREAD_STEPS.length - 1 && <div style={{ width: 1.5, flex: 1, minHeight: 14, background: A.hair, marginTop: 2 }} />}
             </div>
-            <div style={{ fontFamily: F.body, fontSize: '0.8125rem', lineHeight: 1.4, color: here ? A.ink : done ? A.inkSoft : A.inkMute, fontWeight: here ? 500 : 400 }}>
+            <div style={{ fontFamily: F.body, fontSize: 13, lineHeight: 1.4, color: here ? A.ink : done ? A.inkSoft : A.inkMute, fontWeight: here ? 500 : 400 }}>
               {w}
-              {i === 0 && !policiesSet ? <span style={{ display: 'block', fontSize: '0.8125rem', color: A.inkMute, fontWeight: 400 }}>not set up yet. Suggested values are used until you do</span> : null}
-              {here && s ? <span style={{ display: 'block', fontSize: '0.8125rem', color: A.inkMute, fontWeight: 400 }}>{s}</span> : null}
+              {i === 0 && !policiesSet ? <span style={{ display: 'block', fontSize: 12, color: A.inkMute, fontWeight: 400 }}>not set up yet — suggested values are used until you do</span> : null}
+              {here && s ? <span style={{ display: 'block', fontSize: 12, color: A.inkMute, fontWeight: 400 }}>{s}</span> : null}
             </div>
           </div>
         );
@@ -615,7 +615,7 @@ export function ContractsScreen() {
     const r = res as { sign_url: string; sent: boolean };
     // Never a false done: while the template is dark nothing was sent, and the link goes to the clipboard.
     if (r.sent) show(`Sent to ${clientFirstName(c)}`, 'success');
-    else { try { await navigator.clipboard.writeText(r.sign_url); show('Link copied. Sending is not open yet', 'success'); } catch { show(r.sign_url, 'success'); } }
+    else { try { await navigator.clipboard.writeText(r.sign_url); show('Link copied — sending is not open yet', 'success'); } catch { show(r.sign_url, 'success'); } }
     const list = await fetchAllContracts();
     if (list.ok) {
       const all = (list as { contracts: Contract[] }).contracts; setContracts(all);
@@ -655,7 +655,7 @@ export function ContractsScreen() {
       const { contract_id, upload_url } = urlRes as { contract_id: string; upload_url: string };
       setUploadProgress('Uploading file…');
       const up = await fetch(upload_url, { method: 'PUT', body: file, headers: { 'Content-Type': 'application/pdf' } });
-      if (!up.ok) { show('Upload failed. Check the file is a PDF', 'error'); setUploading(false); return; }
+      if (!up.ok) { show('Upload failed — check the file is a PDF', 'error'); setUploading(false); return; }
       setUploadProgress('Finishing…');
       const fin = await finalizeContract(contract_id);
       if (!fin.ok) { show((fin as { error?: string }).error ?? 'Failed', 'error'); setUploading(false); return; }
@@ -719,9 +719,9 @@ export function ContractsScreen() {
         return <Field key={r.key} label="Their WhatsApp number" required={need} why="The agreement is sent here. It’s saved on their client record." value={phone} placeholder="98xxx xxxxx" inputMode="tel" onChange={setPhone} onBlur={() => void savePhone()} />;
       case 'functions':
         return (
-          <div key={r.key} style={{ padding: '12px 0', borderBottom: `0.5px solid ${A.hair}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontFamily: F.body, fontWeight: 500, fontSize: '0.875rem', color: A.ink }}><span>{r.label}</span><span style={TAG}>{need}</span></div>
-            <div style={{ fontFamily: F.body, fontSize: '0.8125rem', lineHeight: 1.4, color: A.inkMute }}>Each function is a row on the agreement.</div>
+          <div key={r.key} style={{ padding: '11px 0', borderBottom: `0.5px solid ${A.hair}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontFamily: F.body, fontWeight: 500, fontSize: 14, color: A.ink }}><span>{r.label}</span><span style={TAG}>{need}</span></div>
+            <div style={{ fontFamily: F.body, fontSize: 12.5, lineHeight: 1.4, color: A.inkMute }}>Each function is a row on the agreement.</div>
             <button type="button" onClick={() => setFnOpen(true)} style={{ ...GHOST, marginTop: 8 }}>Add a function</button>
           </div>
         );
@@ -753,29 +753,29 @@ export function ContractsScreen() {
     return (
       <>
         <Scroll fab>
-          <div style={{ margin: '16px 16px 0', padding: '16px 16px 12px', border: `0.5px solid ${A.hair}`, borderRadius: 12, background: 'var(--atelier-card-bg)' }}>
-            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.0625rem', lineHeight: 1.25, color: A.ink }}>
+          <div style={{ margin: '16px 16px 0', padding: '14px 14px 12px', border: `0.5px solid ${A.hair}`, borderRadius: 2, background: 'var(--atelier-card-bg)' }}>
+            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 17, lineHeight: 1.25, color: A.ink }}>
               {policiesSet ? 'Your contract policies' : 'Set up your contract policies'}
             </div>
-            <div style={{ ...HINT, margin: '4px 0 0' }}>
+            <div style={{ ...HINT, margin: '3px 0 0' }}>
               {policiesSet
                 ? 'Your prices, notice periods and what’s never included. They go onto every agreement you send.'
                 : 'Once. Then every agreement starts filled in, and you only add the couple, the dates and the fee.'}
             </div>
-            <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
-              <button type="button" onClick={() => void openProfile(false)} style={{ background: 'none', border: 0, padding: 0, fontFamily: F.body, fontWeight: 500, fontSize: '0.8125rem', color: A.accent, cursor: 'pointer' }}>{policiesSet ? 'Edit' : 'Set up'}</button>
-              <button type="button" disabled={saving} onClick={() => void doStandard()} style={{ background: 'none', border: 0, padding: 0, fontFamily: F.body, fontWeight: 500, fontSize: '0.8125rem', color: A.accent, cursor: 'pointer' }}>{policiesSet ? 'See the standard agreement' : 'See the standard agreement first'}</button>
+            <div style={{ display: 'flex', gap: 16, marginTop: 10 }}>
+              <button type="button" onClick={() => void openProfile(false)} style={{ background: 'none', border: 0, padding: 0, fontFamily: F.body, fontWeight: 500, fontSize: 13, color: A.accent, cursor: 'pointer' }}>{policiesSet ? 'Edit' : 'Set up'}</button>
+              <button type="button" disabled={saving} onClick={() => void doStandard()} style={{ background: 'none', border: 0, padding: 0, fontFamily: F.body, fontWeight: 500, fontSize: 13, color: A.accent, cursor: 'pointer' }}>{policiesSet ? 'See the standard agreement' : 'See the standard agreement first'}</button>
             </div>
           </div>
           {loading ? (
             <div style={{ ...HINT, padding: '40px 16px', textAlign: 'center' }}>Loading…</div>
           ) : contracts.length === 0 ? (
             <div style={{ padding: '80px 32px 0', textAlign: 'center' }}>
-              <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.2, color: A.ink }}>No agreements yet.</div>
-              <div style={{ ...HINT, marginTop: 8 }}>Start one from a client, or from a name and a number.</div>
+              <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 24, lineHeight: 1.2, color: A.ink }}>No agreements yet.</div>
+              <div style={{ ...HINT, marginTop: 6 }}>Start one from a client, or from a name and a number.</div>
             </div>
           ) : (
-            <div style={{ marginTop: 16 }}>
+            <div style={{ marginTop: 18 }}>
               {contracts.map(c => {
                 const fns = manualFns((c.terms as Record<string, unknown>) ?? {});
                 const fee = (c.terms as Record<string, unknown> | undefined)?.fee_total;
@@ -783,16 +783,16 @@ export function ContractsScreen() {
                 const pillColour = st >= 5 ? A.green : st === 3 ? A.metal : st === 7 ? A.red : 'var(--atelier-ink-dim)';
                 return (
                   <div key={c.id} onClick={() => (isComposed(c) ? openRecord(c) : setSelected(c))}
-                       style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 16px', borderBottom: `0.5px solid ${A.hair}`, cursor: 'pointer' }}>
+                       style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: `0.5px solid ${A.hair}`, cursor: 'pointer' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: '0.9375rem', lineHeight: 1.25, color: A.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isComposed(c) ? clientName(c) : c.title}</div>
-                      <div style={{ fontFamily: F.body, fontSize: '0.8125rem', lineHeight: 1.3, color: A.inkMute }}>
+                      <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 15, lineHeight: 1.25, color: A.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isComposed(c) ? clientName(c) : c.title}</div>
+                      <div style={{ fontFamily: F.body, fontSize: 12.5, lineHeight: 1.3, color: A.inkMute }}>
                         {isComposed(c)
                           ? `${fns[0] ? `${fns[0].title} · ${fns[0].date}` : 'No dates yet'}${fee ? ` · ${formatRs(Number(fee))}` : ''}`
                           : `Uploaded · ${new Date(c.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`}
                       </div>
                     </div>
-                    <span style={{ fontFamily: F.body, fontWeight: 500, fontSize: '0.8125rem', lineHeight: 1, padding: '4px 8px', borderRadius: 12, border: `0.5px solid ${pillColour}`, color: pillColour, whiteSpace: 'nowrap' }}>
+                    <span style={{ fontFamily: F.body, fontWeight: 500, fontSize: 11, lineHeight: 1, padding: '5px 8px', borderRadius: 2, border: `0.5px solid ${pillColour}`, color: pillColour, whiteSpace: 'nowrap' }}>
                       {st === 6 ? 'Date held' : stateWord(c.state)}
                     </span>
                   </div>
@@ -819,7 +819,7 @@ export function ContractsScreen() {
         <Scroll>
           <Blk>
             {over
-              ? <div style={{ margin: '12px 0 4px', padding: '12px 12px', borderLeft: `2px solid ${A.metal}`, fontFamily: F.body, fontSize: '0.8125rem', lineHeight: 1.45, color: A.inkSoft, background: 'var(--atelier-row-hover)' }}>These are your policies. Changes here apply to this agreement only.</div>
+              ? <div style={{ margin: '12px 0 4px', padding: '10px 12px', borderLeft: `2px solid ${A.metal}`, fontFamily: F.body, fontSize: 13, lineHeight: 1.45, color: A.inkSoft, background: 'var(--atelier-row-hover)' }}>These are your policies. Changes here apply to this agreement only.</div>
               : <div style={{ ...HINT, marginTop: 12 }}>Asked once, used on every agreement. Anything you leave empty is left out of the agreement — nothing prints blank.{annexMap?.seeded ? ` Suggested values are starting points for a ${seeds.vendor_category_words || 'business like yours'}; keep them or change them.` : ''}</div>}
             {profileState === 'loading' && <div style={HINT}>Loading…</div>}
             {profileState === 'failed' && <div style={{ ...HINT, color: A.red }}>We couldn’t load your policies.</div>}
@@ -870,9 +870,9 @@ export function ContractsScreen() {
         <Scroll>
           <Blk>
             <Field label="Their name" why="The bride or groom you’re speaking to. Their partner’s name comes later." value={newName} placeholder="e.g. Priya Sharma" onChange={setNewName} />
-            <Field label="WhatsApp number" why="Where the agreement is sent. It goes on their client record too, so you type it once." value={newPhone} placeholder="98xxx xxxxx" inputMode="tel" onChange={setNewPhone} />
+            <Field label="WhatsApp number" why="Where the agreement is sent. It goes on their client record too — you type it once." value={newPhone} placeholder="98xxx xxxxx" inputMode="tel" onChange={setNewPhone} />
             <button type="button" disabled={saving} onClick={() => void doNewPerson()} style={CTA}>Start the agreement</button>
-            <div style={HINT}>The couple is added to your Clients the moment you tap this.</div>
+            <div style={HINT}>She’s added to your Clients the moment you tap this.</div>
           </Blk>
         </Scroll>
       </>
@@ -893,7 +893,7 @@ export function ContractsScreen() {
                   <span style={RIGHT}>{c.from === 'client' ? 'Client' : 'Cabinet'}</span>
                 </button>
               ))}
-            <div style={{ ...HINT, marginTop: 12 }}>People you’ve booked or confirmed in your Cabinet show here too. Picking one adds them to your clients.</div>
+            <div style={{ ...HINT, marginTop: 12 }}>People you’ve booked or confirmed in your Cabinet show here too. Picking one adds her to your clients.</div>
             <button type="button" onClick={() => go('newPerson')} style={GHOST}>Someone not on this list</button>
           </Blk>
         </Scroll>
@@ -929,15 +929,15 @@ export function ContractsScreen() {
             <div style={H3}>Functions and dates</div>
             <div style={HINT}>Each function is a row on the agreement. A function outside {vendorCity || 'your city'} brings your travel and stay terms in.</div>
             {fns.map((f, i) => (
-              <div key={`${f.title}-${i}`} style={{ padding: '12px 0', borderBottom: `0.5px solid ${A.hair}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <div key={`${f.title}-${i}`} style={{ padding: '10px 0', borderBottom: `0.5px solid ${A.hair}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                 <div>
-                  <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: '0.875rem', color: A.ink }}>{f.title}</div>
-                  <div style={{ fontFamily: F.body, fontSize: '0.8125rem', color: A.inkMute }}>{f.date}{f.time ? ` · ${f.time}` : ''}{f.venue ? ` · ${f.venue}` : ''}{f.city ? `, ${f.city}` : ''}</div>
+                  <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 14, color: A.ink }}>{f.title}</div>
+                  <div style={{ fontFamily: F.body, fontSize: 12.5, color: A.inkMute }}>{f.date}{f.time ? ` · ${f.time}` : ''}{f.venue ? ` · ${f.venue}` : ''}{f.city ? `, ${f.city}` : ''}</div>
                 </div>
-                <button type="button" onClick={() => void removeFn(i)} aria-label="Remove" style={{ background: 'none', border: 0, color: A.inkFade, fontSize: '1.0625rem', cursor: 'pointer' }}>{'×'}</button>
+                <button type="button" onClick={() => void removeFn(i)} aria-label="Remove" style={{ background: 'none', border: 0, color: A.inkFade, fontSize: 18, cursor: 'pointer' }}>{'×'}</button>
               </div>
             ))}
-            {fns.length === 0 && fnPlaces(terms).length === 0 && <div style={{ ...HINT, color: A.caution }}>No functions yet. At least one is needed to send.</div>}
+            {fns.length === 0 && fnPlaces(terms).length === 0 && <div style={{ ...HINT, color: A.caution }}>No functions yet — at least one is needed to send.</div>}
             <button type="button" onClick={() => setFnOpen(true)} style={GHOST}>Add a function</button>
 
             <div style={H3}>Fee and deposit</div>
@@ -956,13 +956,13 @@ export function ContractsScreen() {
               <>
                 {offered.map((a: AnnexOption) => (
                   <button key={a.key} type="button" disabled={saving} onClick={() => void toggleAnnex(a.key)} style={TAP}>
-                    <span>{a.label}<span style={SUB}>Your trade, attached unless you say otherwise</span></span>
+                    <span>{a.label}<span style={SUB}>Your trade — attached unless you say otherwise</span></span>
                     <span style={{ ...RIGHT, color: annexes[a.key] ? A.green : A.inkMute }}>{annexes[a.key] ? 'Attached' : 'Not attached'}</span>
                   </button>
                 ))}
                 <button type="button" onClick={() => setMoreOpen(true)} style={TAP}>
                   <span>Add another service<span style={SUB}>Photography, décor, planning, mehendi, venue, or something else</span></span>
-                  <span style={{ color: A.inkFade, fontSize: '1.0625rem' }}>{'›'}</span>
+                  <span style={{ color: A.inkFade, fontSize: 18 }}>{'›'}</span>
                 </button>
               </>
             ) : (
@@ -980,14 +980,14 @@ export function ContractsScreen() {
 
             {/* R-40.126: one prominent tap, no guessing the path. A card, not a row — and when a
                 policy is still Needed it says so here, on the record, before Preview finds it. */}
-            <div style={{ margin: '24px 0 0', padding: '16px 16px 12px', border: `0.5px solid ${policyGap ? A.caution : A.metal}`, borderRadius: 12, background: 'var(--atelier-card-bg)' }}>
-              <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.0625rem', lineHeight: 1.25, color: A.ink }}>Your policies for {first}</div>
-              <div style={{ ...HINT, margin: '4px 0 0' }}>
+            <div style={{ margin: '22px 0 0', padding: '14px 14px 12px', border: `0.5px solid ${policyGap ? A.caution : A.metal}`, borderRadius: 2, background: 'var(--atelier-card-bg)' }}>
+              <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 17, lineHeight: 1.25, color: A.ink }}>Your policies for {first}</div>
+              <div style={{ ...HINT, margin: '3px 0 0' }}>
                 {hasOv ? 'Some policies are changed for this agreement only. Your saved policies are untouched.' : 'These are your policies. Change any of them here and it applies to this agreement only.'}
               </div>
-              {policyGap ? <div style={{ ...HINT, color: A.caution, margin: '8px 0 0' }}>{policyGap}</div> : null}
-              <button type="button" onClick={() => void openProfile(true)} style={{ ...CTA, marginTop: 12 }}>
-                {policiesSet ? `See or change them for ${first}` : 'Suggested values are in use. Set yours'}
+              {policyGap ? <div style={{ ...HINT, color: A.caution, margin: '6px 0 0' }}>{policyGap}</div> : null}
+              <button type="button" onClick={() => void openProfile(true)} style={{ ...CTA, marginTop: 10 }}>
+                {policiesSet ? `See or change them for ${first}` : 'Suggested values are being used — set yours'}
               </button>
             </div>
 
@@ -1000,7 +1000,7 @@ export function ContractsScreen() {
                 sw.key === 'extra_hours' ? (p.overtime_rate && p.overtime_unit ? `Rs ${p.overtime_rate} an ${p.overtime_unit}` : 'Set your rate in policies')
                 : sw.key === 'late_payment' ? (p.late_interest_pct && p.late_grace_days ? `${p.late_interest_pct}% a month after ${p.late_grace_days} days` : 'Set it in policies')
                 : sw.key === 'tax_block' ? `${p.gst_pct}% · ${p.gst_treatment === 'inclusive' ? 'included' : 'added on top'}`
-                : sw.key === 'named_professional' ? (p.named_professional ? `${p.named_professional} attends; a substitute only if ill` : 'Set Who attends in your policies. Nothing prints until you do')
+                : sw.key === 'named_professional' ? (p.named_professional ? `${p.named_professional} attends; a substitute only if ill` : 'Set Who attends in your policies — nothing prints until you do')
                 : sw.key === 'portfolio_use' ? 'They can say no now or later'
                 : `On — a function is outside ${vendorCity}. ${p.travel_and_stay_terms || ''}`;
               const on = switchOn(terms, sw.key);
@@ -1011,11 +1011,11 @@ export function ContractsScreen() {
                 </button>
               );
             })}
-            {!(p.gst_pct && p.gst_treatment) && <div style={HINT}>Tax clause: left out. Add your GST rate in your policies and your GSTIN in Settings.</div>}
+            {!(p.gst_pct && p.gst_treatment) && <div style={HINT}>Tax clause: left out — add your GST rate in your policies and your GSTIN in Settings.</div>}
             {/* ⚠ VETO — a byte not on the prototype. Clause 10 has no switch anywhere in the estate; the line stands where one would be looked for. */}
             <div style={HINT}>The wedding page isn’t a switch here — that one is {first}’s, in her own account.</div>
 
-            <button type="button" style={{ ...GHOST, marginTop: 24 }} onClick={() => go('send')}>Preview and send</button>
+            <button type="button" style={{ ...GHOST, marginTop: 22 }} onClick={() => go('send')}>Preview and send</button>
             <div style={{ ...HINT, textAlign: 'center' }}>Everything here saves as you type.</div>
           </Blk>
         </Scroll>
@@ -1041,7 +1041,7 @@ export function ContractsScreen() {
             <Field label="Functions" value={fns.length ? fns.map(f => `${f.title} · ${f.date}`).join(', ') : (fnPlaces(terms).length ? `${fnPlaces(terms).length} from the calendar` : '')} placeholder="None yet" readOnly />
             <Field label="Fee" value={feeS ? `${formatRs(Number(feeS))}${depositRs() ? `, deposit ${depositRs()} on signing` : ''}` : ''} placeholder="Not filled" readOnly />
             <Field label="Included" value={(annexMap?.offered ?? []).concat(annexMap?.others ?? []).filter(a => annexes[a.key]).map(a => a.label).join(', ')} placeholder="Nothing attached" readOnly />
-            <Field label="Signed for you by" value={p.vendor_signatory_name || ''} placeholder="Not set. See your policies" readOnly />
+            <Field label="Signed for you by" value={p.vendor_signatory_name || ''} placeholder="Not set — in your policies" readOnly />
             <button type="button" disabled={saving} onClick={() => void doPreview(c)} style={GHOST}>Read the PDF</button>
             {missing.length ? (
               <>
@@ -1049,12 +1049,12 @@ export function ContractsScreen() {
                 {/* R-40.124: each blank is filled HERE, where it is named — never a tap that leaves the screen.
                     R-40.125: a policy blank is one field, never the 28-row sheet. The same writers as the record. */}
                 {missing.map(r => neededField(r))}
-                <div style={{ ...HINT, marginTop: 12 }}>Fill these and the send button appears here.</div>
+                <div style={{ ...HINT, marginTop: 10 }}>Fill these and the send button appears here.</div>
               </>
             ) : (
               <>
                 <div style={H3}>Send</div>
-                <div style={HINT}>{first} gets a WhatsApp message with a link. She reads the whole agreement, taps <i>I agree</i>, and confirms with a code sent to the same number. You’ll see it here the moment they do.</div>
+                <div style={HINT}>{first} gets a WhatsApp message with a link. She reads the whole agreement, taps <i>I agree</i>, and confirms with a code sent to the same number. You’ll see it here the moment she does.</div>
                 <button type="button" disabled={saving} onClick={() => void doSendToCouple(c)} style={CTA}>Send to {first} on WhatsApp</button>
                 <div style={{ ...HINT, textAlign: 'center' }}>Until sending opens at Meta, this copies the link for you to paste.</div>
               </>
@@ -1078,7 +1078,7 @@ export function ContractsScreen() {
         <Scroll>
           <Thread c={c} policiesSet={policiesSet} />
           <Blk>
-            {st === 3 && <><div style={H3}>Waiting for {first}</div><div style={HINT}>The couple has the link on WhatsApp. When they agree, this changes on its own. You can still read the PDF; you can’t change it now — cancel and start again if something’s wrong.</div></>}
+            {st === 3 && <><div style={H3}>Waiting for {first}</div><div style={HINT}>She has the link on WhatsApp. When she agrees, this changes on its own. You can still read the PDF; you can’t change it now — cancel and start again if something’s wrong.</div></>}
             {st === 5 && <>
               <div style={H3}>{first} signed</div>
               <div style={HINT}>The agreement is sealed with her code. {dep} is now due to you — she pays you directly, by UPI or bank, as printed on the agreement. Nothing comes through TDW.</div>
@@ -1097,7 +1097,7 @@ export function ContractsScreen() {
   const canUpload = title.trim().length > 0 && file !== null;
 
   return (
-    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', minHeight: 0 }}>
       <Toast toast={toast} />
       {view === 'room' && Room()}
       {view === 'policies' && PolicySheet({ over: false })}
@@ -1113,10 +1113,10 @@ export function ContractsScreen() {
         <div style={SCRIM} onClick={() => setStartOpen(false)}>
           <div onClick={e => e.stopPropagation()} style={SHEET}>
             <div style={GRAB} />
-            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Start an agreement</div>
-            <button type="button" onClick={() => void openPicker()} style={TAP}><span>From a client<span style={SUB}>Someone already in your Clients or booked in your Cabinet</span></span><span style={{ color: A.inkFade, fontSize: '1.0625rem' }}>{'›'}</span></button>
-            <button type="button" onClick={() => go('newPerson')} style={TAP}><span>Someone new<span style={SUB}>A name and a WhatsApp number. They become a client as you go.</span></span><span style={{ color: A.inkFade, fontSize: '1.0625rem' }}>{'›'}</span></button>
-            <button type="button" onClick={() => { setStartOpen(false); setUploadOpen(true); setTitle(''); setFile(null); }} style={TAP}><span>Upload my own PDF<span style={SUB}>If you already have a signed or preferred contract</span></span><span style={{ color: A.inkFade, fontSize: '1.0625rem' }}>{'›'}</span></button>
+            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Start an agreement</div>
+            <button type="button" onClick={() => void openPicker()} style={TAP}><span>From a client<span style={SUB}>Someone already in your Clients or booked in your Cabinet</span></span><span style={{ color: A.inkFade, fontSize: 18 }}>{'›'}</span></button>
+            <button type="button" onClick={() => go('newPerson')} style={TAP}><span>Someone new<span style={SUB}>A name and a WhatsApp number. She becomes a client as you go.</span></span><span style={{ color: A.inkFade, fontSize: 18 }}>{'›'}</span></button>
+            <button type="button" onClick={() => { setStartOpen(false); setUploadOpen(true); setTitle(''); setFile(null); }} style={TAP}><span>Upload my own PDF<span style={SUB}>If you already have a signed or preferred contract</span></span><span style={{ color: A.inkFade, fontSize: 18 }}>{'›'}</span></button>
             <div style={{ ...HINT, marginTop: 12 }}>The standard agreement is the wedding-services contract every TDW vendor sends. <button type="button" onClick={() => { setStartOpen(false); void doStandard(); }} style={{ background: 'none', border: 0, padding: 0, font: 'inherit', color: A.accent, cursor: 'pointer' }}>Read it</button> before you fill anything.</div>
           </div>
         </div>
@@ -1127,15 +1127,15 @@ export function ContractsScreen() {
         <div style={SCRIM} onClick={() => setFnOpen(false)}>
           <div onClick={e => e.stopPropagation()} style={SHEET}>
             <div style={GRAB} />
-            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Add a function</div>
+            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Add a function</div>
             <Field label="Function" value={fnDraft.title} placeholder="e.g. Sangeet, Wedding, Reception" onChange={v => setFnDraft({ ...fnDraft, title: v })} />
-            <div style={{ padding: '12px 0', borderBottom: `0.5px solid ${A.hair}` }}>
-              <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: '0.875rem', color: A.ink }}>Date</div>
+            <div style={{ padding: '11px 0', borderBottom: `0.5px solid ${A.hair}` }}>
+              <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 14, color: A.ink }}>Date</div>
               <input type="date" value={fnDraft.date} onChange={e => setFnDraft({ ...fnDraft, date: e.target.value })} style={INPUT} />
             </div>
-            <div style={{ padding: '12px 0', borderBottom: `0.5px solid ${A.hair}` }}>
-              <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: '0.875rem', color: A.ink }}>Start time</div>
-              <div style={{ fontFamily: F.body, fontSize: '0.8125rem', color: A.inkMute }}>When you need to be there.</div>
+            <div style={{ padding: '11px 0', borderBottom: `0.5px solid ${A.hair}` }}>
+              <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 14, color: A.ink }}>Start time</div>
+              <div style={{ fontFamily: F.body, fontSize: 12.5, color: A.inkMute }}>When you need to be there.</div>
               <input type="time" value={fnDraft.time || ''} onChange={e => setFnDraft({ ...fnDraft, time: e.target.value })} style={INPUT} />
             </div>
             <Field label="Venue" value={fnDraft.venue || ''} placeholder="e.g. The Leela, Gurugram" onChange={v => setFnDraft({ ...fnDraft, venue: v })} />
@@ -1150,7 +1150,7 @@ export function ContractsScreen() {
         <div style={SCRIM} onClick={() => setMoreOpen(false)}>
           <div onClick={e => e.stopPropagation()} style={SHEET}>
             <div style={GRAB} />
-            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Add another service</div>
+            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Add another service</div>
             <div style={HINT}>Only if you’re providing it. Each one adds a page to the agreement.</div>
             {annexMap.others.map((a: AnnexOption) => (
               <button key={a.key} type="button" disabled={saving} onClick={() => void toggleAnnex(a.key)} style={TAP}>
@@ -1168,10 +1168,10 @@ export function ContractsScreen() {
         <div style={SCRIM} onClick={() => !uploading && setUploadOpen(false)}>
           <div onClick={e => e.stopPropagation()} style={SHEET}>
             <div style={GRAB} />
-            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Upload my own PDF</div>
-            <Field label="Title" value={title} placeholder="For example: Booking contract, Priya Sharma" onChange={setTitle} />
-            <div style={{ padding: '12px 0' }}>
-              <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: '0.875rem', color: A.ink }}>The PDF</div>
+            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>Upload my own PDF</div>
+            <Field label="Title" value={title} placeholder="e.g. Booking contract — Priya Sharma" onChange={setTitle} />
+            <div style={{ padding: '11px 0' }}>
+              <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: 14, color: A.ink }}>The PDF</div>
               <input ref={fileRef} type="file" accept="application/pdf" style={{ display: 'none' }} onChange={e => setFile(e.target.files?.[0] || null)} />
               <button type="button" onClick={() => fileRef.current?.click()} style={{ ...INPUT, textAlign: 'left', cursor: 'pointer', color: file ? A.ink : A.inkMute }}>{file ? file.name : 'Choose a PDF…'}</button>
             </div>
@@ -1186,7 +1186,7 @@ export function ContractsScreen() {
         <div style={SCRIM} onClick={() => setSelected(null)}>
           <div onClick={e => e.stopPropagation()} style={SHEET}>
             <div style={GRAB} />
-            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>{selected.title}</div>
+            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: 22, lineHeight: 1.15, color: A.ink, marginBottom: 4 }}>{selected.title}</div>
             <div style={HINT}>{stateWord(selected.state)}{selected.file_size ? ` · ${Math.round(selected.file_size / 1024)} KB` : ''}{selected.sent_at ? ` · sent ${new Date(selected.sent_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}{selected.signed_at ? ` · signed ${new Date(selected.signed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}</div>
             <button type="button" onClick={() => void doDownload(selected)} className="atelier-fab" style={{ ...CTA, color: INK_DEEP }}>Download</button>
             {selected.state === 'draft' && <button type="button" disabled={saving} onClick={() => void doMarkSent(selected)} style={GHOST}>Mark as sent</button>}

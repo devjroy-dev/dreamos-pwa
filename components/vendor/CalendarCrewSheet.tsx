@@ -24,7 +24,7 @@ const SHEET: React.CSSProperties = {
 };
 const D = {
   border: '0.5px solid var(--atelier-card-border)',
-  borderStrong: '0.5px solid var(--atelier-input-border)',
+  borderStrong: '0.5px solid rgba(201,168,76,0.35)',
   muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)',
   gold: 'var(--role-metal)',
@@ -33,7 +33,7 @@ const D = {
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 // COPY (founder veto standing — proposals ship unless vetoed):
-const EMPTY_STATE = 'No one on your team yet. Add crew in Team.';
+const EMPTY_STATE = 'No one on your team yet — add crew in Studio.';
 
 // ── F10(b)'s THREE BYTES LEFT WITH THE LEG — F-38.61, founder walk 2026-08-29 ──
 // `POST_TO_COLLAB`, `PAST_DATE` and `NO_CITY` moved to `CalendarDaySheet.tsx`, which owns the
@@ -139,15 +139,15 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
       }}>
         {/* Drag handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 12, background: 'var(--atelier-label)' }} />
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--atelier-label)' }} />
         </div>
 
         {/* Title */}
-        <div style={{ padding: '8px 24px 16px', borderBottom: D.border }}>
+        <div style={{ padding: '6px 24px 16px', borderBottom: D.border }}>
           <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: 'var(--atelier-accent-text)', textTransform: 'uppercase' }}>
             {event ? event.title : ''}
           </p>
-          <h2 style={{ font: RUNG.t1, color: D.cream, marginTop: 4 }}>
+          <h2 style={{ font: RUNG.t1, color: D.cream, marginTop: 2 }}>
             Assign crew
           </h2>
         </div>
@@ -164,10 +164,10 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
               return (
                 <button key={m.id} type="button" onClick={() => toggle(m.id)} style={{
                   display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', cursor: 'pointer',
-                  padding: '12px 16px', borderRadius: 12,
+                  padding: '11px 14px', borderRadius: 12,
                   background: on ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
                   border: 'none',
-                  outline: on ? '0.5px solid var(--atelier-input-border)' : '0.5px solid var(--atelier-input-border)',
+                  outline: on ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
                 }}>
                   {/* selection dot */}
                   <span style={{
@@ -186,7 +186,7 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ font: RUNG.t3, display: 'block', color: D.cream }}>{m.name}</span>
                     {(m.role || rate(m)) && (
-                      <span style={{ font: RUNG.t5, letterSpacing: '0.08em', display: 'block', marginTop: 4, textTransform: 'uppercase', color: D.muted }}>
+                      <span style={{ font: RUNG.t5, letterSpacing: '0.08em', display: 'block', marginTop: 2, textTransform: 'uppercase', color: D.muted }}>
                         {m.role || 'crew'}{rate(m) ? ` · ${rate(m)}` : ''}
                       </span>
                     )}
@@ -201,7 +201,7 @@ export function CalendarCrewSheet({ open, event, onClose, onToast, onRefresh }: 
         <div style={{ padding: '12px 24px 0' }}>
           <button type="button" disabled={working || !event} onClick={() => void save()} style={{
             font: RUNG.t4,
-            padding: '12px 0',
+            padding: '13px 0',
             width: '100%',
             border: 'none',
             borderRadius: 999,

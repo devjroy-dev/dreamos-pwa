@@ -133,11 +133,20 @@ export function pinsForTrade(category: string | null | undefined): readonly Shel
   return (category && Object.prototype.hasOwnProperty.call(TRADE_PINS, category)) ? TRADE_PINS[category] : DEFAULT_PINS;
 }
 
-// ── DESIGN-1 · STAGE 3 · THE SHELVES RETIRED WITH THEIR READER ─────────────────────────────────────────────────────
-// SHELVES (Business, Money and Studio of six each, CE-45 FE-1, R-45.19) stood here. The founder's five tabs and More
-// replaced them (docs/review/REPORT.md §3): the daily rooms are tabs, every other room is a row in More's groups, both
-// in lib/worklist/tabs.ts. The top pair's `headline` flags and the room fields below are kept: they still describe the
-// rooms, and nothing else was ruled away.
+/**
+ * CE-45 FE-1 · ROOMS, AS THE FOUNDER RULED IT (BS-1 close; R-45.19). The top pair in the headline
+ * ink, then three shelves of at most six. Business Solutions opens its own page (P3), where the
+ * eleven rows sit in four groups (HUB_GROUPS, lib/solutions/copy.ts). Contracts & deposits and
+ * Payment reminders sit on Money AS WELL AS under Get paid: one home behind two rows (R-45.19),
+ * each resolving through ROOM_HREFS to the one route. Collab is reached only through its row,
+ * "Hire, collab & barter", under Work together (q3).
+ * The top pair is HEADLINE_TILES_EXPECTED below, read, never retyped.
+ */
+export const SHELVES: readonly { id: 'business' | 'money' | 'studio'; items: readonly ShelfItem[] }[] = [
+  { id: 'business', items: [{ room: 'leads' }, { room: 'clients' }, { room: 'packages' }, { room: 'calendar' }, { room: 'events' }, { room: 'notes' }] },
+  { id: 'money',    items: [{ room: 'invoices' }, { room: 'expenses' }, { room: 'books' }, { room: 'tds' }, { row: 'contracts' }, { row: 'reminders' }] },
+  { id: 'studio',   items: [{ room: 'portfolio' }, { room: 'team' }, { room: 'couture' }, { room: 'advisor' }, { room: 'billing' }, { room: 'settings' }] },
+] as const;
 
 // \u00a74-2 \u00b7 CALENDAR CROSSED FIRST, AND ONE AT A TIME IS THE RULE HERE. The list family
 // crossed together because six rooms were ONE definition mounted six times; the remaining
@@ -165,7 +174,7 @@ export const ROOMS: readonly Room[] = [
   // other files and two benches already spell. Renaming it would buy a tidier
   // symbol and cost a route, a redirect and every reader of both.
   { id: 'support',   label: 'Business Solutions', band: 'work', href: '/vendor/support', pinnable: false, headline: true },
-  { id: 'leads',     label: 'Enquiries', band: 'work', href: '/vendor/leads',     pinnable: true  },
+  { id: 'leads',     label: 'Leads',     band: 'work', href: '/vendor/leads',     pinnable: true  },
   // ── CE-43 · LC-2 · F18 · THE PACKAGES ROOM, BESIDE LEADS (chair-ruled 2026-09-17) ──
   // A package is quoted to a lead, so the room sits next to the room it serves. An
   // INSERTION, founder-worded through the chair: every id after it shifts one index, and

@@ -1,0 +1,315 @@
+'use client';
+import { RUNG_FONT as RUNG } from '@/v2/lib/worklist/theme'; // CE-45 FE-2 (the Ask TDW sheet cut): the app's own type (F7)
+import { FilingChip } from '@/v2/components/vendor/FilingChip';
+import { useEffect, useRef, useState } from 'react';
+import { pressedStyle, touchBox44 } from '@/lib/vendor/controls';
+import { MessageBubble } from './MessageBubble';
+import type { ChatMessage } from '@/v2/hooks/vendor/useChat';
+import { useT } from '@/lib/vendor/ThemeContext';
+
+// CE-45 FE-2 (the Ask TDW sheet cut): the local face constant F is retired; every site reads a rung (F7).
+
+interface Props {
+  messages: ChatMessage[];
+  loading: boolean;
+  onConfirm: (id: string) => void;
+  onCancel:  (id: string) => void;
+  onChipTap: (text: string, displayText?: string) => void;
+  // TDW_06 M-3 — THE REPORT CHIP'S OWN WIRE. Deliberately NOT onChipTap: that prop is wired
+  // to `send` at app/vendor/page.tsx, so routing the chip through it would post the label
+  // into the thread as a vendor message. The chip calls the glitch-report route instead.
+  onReportGlitch?: () => Promise<void> | void;
+  scrollRef?: React.RefObject<HTMLDivElement | null>;
+}
+
+
+export function ChatThread({ messages, loading, onChipTap, onReportGlitch, scrollRef, onRetryLast }: Props & { onRetryLast?: () => void }) {
+  const T = useT();
+  // SLOT FIVE, founder-vetoed: after one tap the chip DIMS AND DISABLES. No new words — the
+  // InputBar's own disabled pattern. A second tap would file a second finding against the
+  // same turn and inflate the very measurement this week exists to take.
+  const [reported, setReported] = useState<Record<string, boolean>>({});
+  // ── TDW_09 P2C · L2 — F-09.22's touch floor + F-09.21's pressed acknowledgment
+  //    on the two chat chips. KEYED, not boolean: the clarify chips render from a
+  //    .map and the report chip is per-message, so one shared boolean would light
+  //    every chip at once. One keyed press state per file, no new shared API —
+  //    the same law the sanctuary hook implements, at a surface that needs only
+  //    the state. Reduced-motion read inline, mirroring app/vendor/page.tsx.
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const h = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+  const pressHandlers = (key: string) => ({
+    onPointerDown: () => setPressedKey(key),
+    onPointerUp: () => setPressedKey(null),
+    onPointerCancel: () => setPressedKey(null),
+    onPointerLeave: () => setPressedKey(null),
+  });
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Expose scroll container via scrollRef
+  useEffect(() => {
+    if (scrollRef && containerRef.current) {
+      (scrollRef as React.MutableRefObject<HTMLDivElement | null>).current = containerRef.current;
+    }
+  }, [scrollRef]);
+
+  // The streaming reply grows by mutating the LAST message's text (count stays
+  // constant), so we also key the scroll on the tail's length. And we only follow
+  // when the user is already near the bottom — if they've scrolled up to read
+  // history, we leave them be rather than yanking them back down mid-stream.
+  const tail = messages[messages.length - 1];
+  const tailLen = tail ? tail.text.length : 0;
+  // Also follow when a deliberation beat lands with no text yet — otherwise the turn's
+  // first visible motion sits below the fold and the user has to scroll by hand.
+  // TDW_06 F-06.133: this line's ORIGINAL subject (the pair-at-work line) is deleted with
+  // `PairWork`; the EXPRESSION is byte-unmoved because its behaviour is still correct — a
+  // FilingChip can land beat-first, and the scroll must follow it. Comment corrected rather
+  // than left lying (the F-06.85 class); zero behavioural bytes moved.
+  const tailDelib = tail?.deliberation?.length ?? 0;
+  const prevCount = useRef(0);
+  useEffect(() => {
+    const c = containerRef.current;
+    const newTurn = messages.length > prevCount.current; // you just sent / a bubble was added
+    prevCount.current = messages.length;
+    // A NEW turn always lands at the bottom — you just typed, you expect to see it. Only
+    // mid-stream growth respects the gate, so reading history isn't yanked.
+    if (c && !newTurn) {
+      const nearBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 160;
+      if (!nearBottom) return;
+    }
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages.length, tailLen, tailDelib]);
+
+
+  return (
+    <div
+      ref={containerRef}
+      className="hide-scrollbar"
+      style={{ flex: 1, overflowY: 'auto', paddingTop: 12, paddingBottom: 64 /* TDW UI fix 2026-07-14: clear the fixed 'Your books' handle (bottom:76, h:40) so the FilingChips never sit under it (TDW_06 F-06.133: PairWork removed; comment corrected, padding byte-unmoved) */ }}
+    >
+      {messages.map((m, idx) => (
+        <div key={m.id ?? idx}>
+          {/* ── R-41.142 · THE ROOM SEAM ────────────────────────────────────────
+              One hairline where consecutive ANSWERED rooms differ, naming the room
+              the thread ENTERS. Teal into Advisor, card-border grey into Business.
+              A rule line and never a bubble, the same shape D-7's fresh-thread seam
+              already uses — the scrollback above stays where it was.
+
+              DRAWN FROM THE MESSAGES' OWN room FIELDS, never from a pathname and
+              never from the request's assertion (R-41.141's rule, carried): the
+              assertion is what was ASKED for, and a seam must mark what HAPPENED.
+
+              ONLY ASSISTANT MESSAGES CARRY A ROOM. A user's turn has none of its
+              own, so `prevRoom` walks back to the last message that has one — a
+              naive idx-1 compare would draw a seam at every user turn.
+
+              NULL IS CONSULT AND DRAWS NOTHING. The engine leaves the mode undefined
+              there deliberately, so an unmarked stretch is the truth; folding it to
+              business would put the estate in a room it was kept out of. */}
+          {(() => {
+            if (!m.room) return null;
+            let prevRoom: string | null = null;
+            for (let k = idx - 1; k >= 0; k -= 1) {
+              if (messages[k].room) { prevRoom = messages[k].room as string; break; }
+            }
+            if (prevRoom === null || prevRoom === m.room) return null;
+            const advisor = m.room === 'advisor';
+            const line = advisor ? 'var(--atelier-accent-text)' : 'var(--atelier-card-border)';
+            const ink  = advisor ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-mute)';
+            return (
+              <div aria-label={`Entering the ${m.room} room`} style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '16px 24px 12px',
+              }}>
+                <span style={{ flex: 1, height: '1px', background: line }} />
+                <span style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: ink }}>
+                  {m.room === 'advisor' ? 'Advisor' : 'Business'}
+                </span>
+                <span style={{ flex: 1, height: '1px', background: line }} />
+              </div>
+            );
+          })()}
+          {/* TDW_06 D-7 — the fresh-thread seam. A rule line, never a bubble:
+              the scrollback above it stays exactly where it was (the visible
+              truth D-7 requires), and the new thread continues beneath. Copy
+              ("Fresh thread") is on the veto-on-sight list; persona-free per
+              the A4 copy law. */}
+          {m.divider ? (
+            <div aria-label="Fresh thread starts here" style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '16px 24px 12px',
+            }}>
+              <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-card-border)' }} />
+              <span style={{
+                font: RUNG.t5,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase' as const,
+                color: 'var(--atelier-ink-mute)',
+                whiteSpace: 'nowrap',
+              }}>Fresh thread</span>
+              <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-card-border)' }} />
+            </div>
+          ) : (
+          <>
+          <MessageBubble message={m} />
+
+          {/* TDW_06 F-06.133 (founder-ruled twice; CE closing arc, fork C-1(b)) — THE WORK
+              DRAWER IS REMOVED OUTRIGHT. `PairWork` is DELETED WHOLE, both branches: the
+              collapsed expansion drawer AND its own three-dot streaming line. The
+              working state is `TypingDots` alone (MessageBubble.tsx:149, `streaming && !text`)
+              — ONE animation, ONE home, no caption, zero new bytes. THREE vendor-facing strings
+              died with it — the drawer label + chevron, the streaming caption, and the beat
+              renderer's prose — all three vetoed for deletion verbatim 「 approve all 」.
+              THE BYTES THEMSELVES ARE DELIBERATELY NOT QUOTED HERE: the removal proof asserts
+              their absence from this file COMMENTS INCLUDED (M-2c §5.9's precedent, which is
+              the stricter arm), and this comment's first draft reproduced two of them and was
+              convicted by that cell. Naming a deleted string is not the same act as keeping it.
+              WHAT SURVIVES, and it is a DIFFERENT SURFACE: the FilingChip map below. It reads
+              the same `deliberation` array but only `operator_action`/`error` beats CARRYING
+              `summary` — F-04.41's verified-write chip, untouched by this movement.
+              THE ORPHANED BEATS STAY ON THE WIRE BY RULING: `handoff`, `operator_report`, and
+              summary-less `operator_action` (chat.js translateBeat :263/:278/:291) now have no
+              renderer. DISPLAY DIES, DATA LIVES — the engine is 0-line and `useChat` still
+              collects every beat, so the trace lives on in engine.messages.tool_calls and the
+              guard log exactly as the ruling requires. */}
+          {(m.deliberation ?? [])
+            .filter((b: any) => (b.kind === 'operator_action' || b.kind === 'error') && b.summary)
+            .map((b: any, i: number) => (
+              <FilingChip key={`chip-${i}`} beat={b} onRetry={onRetryLast} isLight={T.isLight} />
+            ))}
+          {/* Clarify chips — brass in dark, oxblood in light */}
+          {m.clarify?.options && m.clarify.options.length > 0 && (
+            <div style={{
+              display: 'flex', flexWrap: 'wrap', gap: 8,
+              padding: '4px 24px 8px 40px',
+            }}>
+              {m.clarify.options.map((opt, i) => {
+                const label = typeof opt === 'string' ? opt : opt.label;
+                const value = typeof opt === 'string' ? opt : opt.value;
+                return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => onChipTap(value, label)}
+                  {...pressHandlers(`clarify:${m.id}:${i}`)}
+                  style={{
+                    font: RUNG.t4,
+                    // height 32 is UNMOVED — touchBox44 grows the hit box with
+                    // transparent padding and cancels it with negative margin, so
+                    // the visible chip is byte-identical. The spread sits BESIDE
+                    // the height, never replacing it.
+                    height: 32,
+                    paddingInline: 16,
+                    ...touchBox44(32),
+                    ...pressedStyle(pressedKey === `clarify:${m.id}:${i}`, reducedMotion),
+                    WebkitTapHighlightColor: 'transparent',
+                    background: 'var(--atelier-input-bg)',
+                    border: '0.5px solid var(--atelier-card-border)',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    color: T.isLight ? T.accent : 'var(--atelier-label)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >{label}</button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* TDW_06 M-3 — THE REPORT CHIP. Mirrors the suggestions block's position and
+              register; renders ONLY on a reply the wire guard actually replaced. On the demo
+              surface (app/demo/vendor/[handle]/studio/page.tsx renders this same component
+              through useDemoChat) `intercepted` is never set, so the chip is dormant there BY
+              CONSTRUCTION — asserted as a negative cell, never assumed. */}
+          {m.intercepted && (
+            <div style={{ padding: '4px 24px 12px 40px' }}>
+              <button
+                type="button"
+                disabled={!!reported[m.id]}
+                onClick={async () => {
+                  if (reported[m.id]) return;
+                  setReported((prev) => ({ ...prev, [m.id]: true }));
+                  try { await onReportGlitch?.(); } catch { /* the chip never throws at the vendor */ }
+                }}
+                {...pressHandlers(`report:${m.id}`)}
+                style={{
+                  font: RUNG.t4,
+                  // height 30 UNMOVED — see the clarify chip's note.
+                  height: 30,
+                  paddingInline: 12,
+                  ...touchBox44(30),
+                  ...pressedStyle(pressedKey === `report:${m.id}` && !reported[m.id], reducedMotion),
+                  WebkitTapHighlightColor: 'transparent',
+                  background: 'transparent',
+                  border: '0.5px dashed var(--atelier-card-border)',
+                  borderRadius: 12,
+                  cursor: reported[m.id] ? 'default' : 'pointer',
+                  opacity: reported[m.id] ? 0.4 : 1,
+                  color: 'var(--atelier-accent-text)',
+                  whiteSpace: 'nowrap',
+                }}
+              >REPORT THIS GLITCH</button>
+            </div>
+          )}
+
+          {/* Proactive suggestions (3.0-C2) — optional next-steps under a
+              completed action. Lighter/ghost styling distinguishes them from
+              clarify (which is a blocking question). Includes optional intro. */}
+          {m.suggestions?.suggestions && m.suggestions.suggestions.length > 0 && (
+            <div style={{ padding: '4px 24px 12px 40px' }}>
+              {m.suggestions.intro && (
+                <div style={{
+                  font: RUNG.t3,
+                  color: 'var(--atelier-ink-dim)',
+                  margin: '4px 0 8px',
+                }}>{m.suggestions.intro}</div>
+              )}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {m.suggestions.suggestions.map((opt, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => onChipTap(opt.value, opt.label)}
+                    {...pressHandlers(`suggest:${m.id}:${i}`)}
+                    style={{
+                      font: RUNG.t4,
+                      // F-09.103 — the THIRD sub-44 chip in this file. The charter's
+                      // L2 named two; this one routes through the same onChipTap and
+                      // was on no roster. Adopting two and declaring the floor held
+                      // would leave the bench asserting a floor the file does not have.
+                      // Height 30 UNMOVED, as above.
+                      height: 30,
+                      paddingInline: 12,
+                      ...touchBox44(30),
+                      ...pressedStyle(pressedKey === `suggest:${m.id}:${i}`, reducedMotion),
+                      WebkitTapHighlightColor: 'transparent',
+                      background: 'transparent',
+                      border: '0.5px dashed var(--atelier-card-border)',
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                      color: 'var(--atelier-accent-text)',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >{opt.label}</button>
+                ))}
+              </div>
+            </div>
+          )}
+          </>
+          )}
+        </div>
+      ))}
+
+      {/* The working blob now lives inside the streaming bubble (it shows while
+          the AI message is streaming but still empty), so no separate indicator. */}
+
+      <div ref={bottomRef} />
+    </div>
+  );
+}

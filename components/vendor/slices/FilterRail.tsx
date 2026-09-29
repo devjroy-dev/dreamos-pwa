@@ -23,7 +23,7 @@ export function FilterRail({ chips, active, onSelect }: FilterRailProps) {
   if (!chips.length) return null;
   return (
     <div style={{
-      display: 'flex', gap: 8, overflowX: 'auto', padding: '4px var(--slice-inset, 16px) 12px',
+      display: 'flex', gap: 6, overflowX: 'auto', padding: '2px var(--slice-inset, 22px) 10px',
       scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
     }}>
       {chips.map(c => {
@@ -33,11 +33,11 @@ export function FilterRail({ chips, active, onSelect }: FilterRailProps) {
             font: T.t5,
             letterSpacing: '0.08em',
             flexShrink: 0,
-            padding: '8px 12px',
+            padding: '6px 11px',
             borderRadius: 999,
             cursor: 'pointer',
             border: `0.5px solid ${on ? 'var(--atelier-accent-text)' : 'var(--atelier-card-border)'}`,
-            background: on ? 'var(--atelier-row-hover)' : 'transparent',
+            background: on ? 'rgba(201,168,76,0.12)' : 'transparent',
             textTransform: 'uppercase',
             color: on ? 'var(--atelier-accent-text)' : 'var(--atelier-ink-mute)',
           }}>

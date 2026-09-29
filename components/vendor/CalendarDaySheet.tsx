@@ -1,6 +1,5 @@
 'use client';
 import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
-import { useCrew, crewWords, CREW_WORDS } from '@/lib/worklist/crew';
 // components/vendor/CalendarDaySheet.tsx
 // TDW_04 B6 surfaces S2 — item 4, P5's day sheet: "the platform thesis in one
 // surface." One round trip (GET /vendor/day/:vendorId/:date) feeds:
@@ -74,7 +73,7 @@ const NO_CITY        = 'Add a city to your profile before posting.';
 
 const D = {
   border: '0.5px solid var(--atelier-card-border)',
-  borderStrong: '0.5px solid var(--atelier-input-border)',
+  borderStrong: '0.5px solid rgba(201,168,76,0.35)',
   muted: 'var(--atelier-ink-mute)',
   cream: 'var(--atelier-ink)',
   gold: 'var(--atelier-accent-text)',
@@ -128,7 +127,6 @@ interface Props {
 export function CalendarDaySheet({
   open, dateIso, vendorId, muhuratLocal, onClose, onToast, onRefresh, onAddBooking, onFullDayBlock, onEdit, onAssignCrew,
 }: Props) {
-  const crew = useCrew(vendorId, dateIso, dateIso);   // DESIGN-1 · STAGE 2: this day's crew, by event
   const router = useRouter();
   const { openAsk } = useAsk();
   const [day, setDay] = useState<VendorDayResponse | null>(null);
@@ -343,35 +341,35 @@ export function CalendarDaySheet({
         transform: open ? 'translateY(0)' : 'translateY(100%)',
         transition: `transform 320ms ${EASE}`,
         maxHeight: '86dvh', display: 'flex', flexDirection: 'column',
-        paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
+        paddingBottom: 'calc(20px + env(safe-area-inset-bottom))',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 12, background: 'var(--atelier-label)' }} />
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--atelier-label)' }} />
         </div>
 
         {/* Header */}
-        <div style={{ padding: '8px 24px 16px', borderBottom: D.border }}>
+        <div style={{ padding: '6px 24px 14px', borderBottom: D.border }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <div>
               <p style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.gold, textTransform: 'uppercase' }}>
                 {fmtDate(dateIso)}
               </p>
-              <h2 style={{ font: RUNG.t1, color: D.cream, marginTop: 4 }}>
+              <h2 style={{ font: RUNG.t1, color: D.cream, marginTop: 2 }}>
                 {fullDayBlock ? 'Blocked day' : 'The day'}
               </h2>
             </div>
             <button type="button" onClick={() => { onClose(); onAddBooking(dateIso); }} style={{
               font: RUNG.t4,
-              border: '0.5px solid var(--atelier-input-border)',
+              border: '0.5px solid rgba(201,168,76,0.4)',
               background: 'none',
               borderRadius: 999,
-              padding: '8px 16px',
+              padding: '7px 14px',
               cursor: 'pointer',
               color: D.gold,
             }}>+ Booking</button>
           </div>
           {hotNote && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 8 }}>
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: D.terracotta, boxShadow: 'none' }} />
               <span style={{ font: RUNG.t3, color: D.terracotta }}>{hotNote}</span>
             </div>
@@ -379,14 +377,14 @@ export function CalendarDaySheet({
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
 
           {/* The verdict line — the wire's sentence, verbatim, never softened. */}
           {verdict && (
             <div style={{
               font: RUNG.t3,
-              padding: '12px 16px',
-              borderRadius: 12,
+              padding: '10px 14px',
+              borderRadius: 10,
               border: '0.5px solid var(--role-critical)',
               background: 'transparent',
               color: D.red,
@@ -409,9 +407,9 @@ export function CalendarDaySheet({
 
           {/* Blocks — the held slots, named, beside the bookings (Q-S-4). */}
           {blocks.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {blocks.map((b) => (
-                <div key={b.id} style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+                <div key={b.id} style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
                   <span style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: D.muted, minWidth: 64 }}>
                     {b.slot === 'full_day' ? 'All day' : b.slot}
                   </span>
@@ -435,7 +433,7 @@ export function CalendarDaySheet({
                 {SLOT_HEADINGS[g.slot ?? '_none']}
               </span>
               {g.rows.map((ev) => (
-                <div key={ev.id} className="atelier-card" style={{ padding: '12px 16px' }}>
+                <div key={ev.id} className="atelier-card" style={{ padding: '12px 14px' }}>
                   {/* ── F-38.p9 · THE ACTIONS TOOK THEIR OWN ROW, AND THE ARITHMETIC IS WHY ──
                       Founder walk, 2026-08-29, on the cut that added the fifth pill:
                       「all working but the layout fucked」. He was right and it was not a
@@ -470,19 +468,12 @@ export function CalendarDaySheet({
                       295px in 322px, nothing shrinking, and the title stops competing with
                       the buttons entirely. */}
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginBottom: 4 }}>
-                      {ev.kind ? ev.kind.charAt(0).toUpperCase() + ev.kind.slice(1) : ''}{ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}{ev.state === 'done' ? ' · Done' : ''}
+                    <div style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginBottom: 3 }}>
+                      {ev.kind}{ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}{ev.state === 'done' ? ' · done' : ''}
                     </div>
                     <div style={{ font: RUNG.t3, color: D.cream }}>{ev.title}</div>
-                    {/* DESIGN-1 · STAGE 2: the crew on the card itself, by first name, no tap needed (REPORT.md E6, E8).
-                        The Crew button below still assigns them. */}
-                    {crew.byEvent.has(ev.id) && (
-                      <div data-day-crew="" style={{ font: RUNG.t4, marginTop: 4, color: crewWords(crew.byEvent.get(ev.id)) ? 'var(--atelier-ink-mute)' : 'var(--role-critical)' }}>
-                        {crewWords(crew.byEvent.get(ev.id)) ?? CREW_WORDS.none}
-                      </div>
-                    )}
                     {ev.binder_name && (
-                      <div style={{ font: RUNG.t5, letterSpacing: '0.08em', marginTop: 4, display: 'inline-block', padding: '4px 8px', borderRadius: 999, border: '0.5px solid var(--atelier-card-border)', textTransform: 'uppercase', color: D.gold }}>
+                      <div style={{ font: RUNG.t5, letterSpacing: '0.08em', marginTop: 4, display: 'inline-block', padding: '3px 9px', borderRadius: 999, border: '0.5px solid rgba(201,168,76,0.28)', textTransform: 'uppercase', color: D.gold }}>
                         {ev.binder_name}
                       </div>
                     )}
@@ -494,29 +485,25 @@ export function CalendarDaySheet({
                       No `flexShrink: 0` and no `flex: 1` on anything: the row owns the full
                       card width now, so there is nothing for the pills to compete with and
                       nothing to protect them from. */}
-                  {/* DESIGN-1: at 44 px each the five no longer fit one flex line at 360, so they sit
-                      on a grid of equal cells. It breaks at a point set by the viewport and the text
-                      size, never by the title, so every card puts every control in the same place
-                      (R-37.22 holds). Cancel is neutral: red is Delete's alone. */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(4.5rem, 1fr))', gap: 8, marginTop: 12 }}>
-                    <button type="button" onClick={() => { clearVerdict(); setMoveId(moveId === ev.id ? null : ev.id); setMoveDate(''); setMoveSlot(''); }} style={pillBtn('var(--atelier-accent-text)')}>Move</button>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                    <button type="button" onClick={() => { clearVerdict(); setMoveId(moveId === ev.id ? null : ev.id); setMoveDate(''); setMoveSlot(''); }} style={pillBtn(D.gold)}>Move</button>
                     <button type="button" onClick={() => { onClose(); onAssignCrew(ev); }} style={pillBtn('var(--atelier-label)')}>Crew</button>
                     <button type="button" onClick={() => postToCollab(ev)} style={pillBtn('var(--atelier-label)')}>{POST_TO_COLLAB}</button>
                     <button type="button" onClick={() => { onClose(); onEdit(ev); }} style={pillBtn('var(--atelier-label)')}>Edit</button>
-                    <button type="button" onClick={() => void doCancel(ev)} style={pillBtn('var(--atelier-ink)')}>Cancel</button>
+                    <button type="button" onClick={() => void doCancel(ev)} style={pillBtn('var(--role-critical)', 'var(--role-critical)')}>Cancel</button>
                   </div>
 
                   {/* The Move picker + inline verdict (item 4's centrepiece) */}
                   {moveId === ev.id && (
-                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: D.border, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: D.border, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <input type="date" value={moveDate} onChange={(e) => setMoveDate(e.target.value)} style={{
                         font: RUNG.t3,
                         width: '100%',
-                        padding: '12px 12px',
+                        padding: '10px 13px',
                         boxSizing: 'border-box',
                         background: 'var(--atelier-input-bg)',
                         border: '0.5px solid var(--atelier-card-border)',
-                        borderRadius: 12,
+                        borderRadius: 10,
                         color: D.cream,
                         outline: 'none',
                       }} />
@@ -525,12 +512,12 @@ export function CalendarDaySheet({
                           <button key={key} type="button" onClick={() => setMoveSlot(moveSlot === key ? '' : key)} style={{
                             font: RUNG.t5,
                             letterSpacing: '0.08em',
-                            padding: '8px 12px',
+                            padding: '6px 12px',
                             borderRadius: 999,
                             cursor: 'pointer',
                             background: moveSlot === key ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
                             border: 'none',
-                            outline: moveSlot === key ? '0.5px solid var(--atelier-input-border)' : '0.5px solid var(--atelier-input-border)',
+                            outline: moveSlot === key ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
                             textTransform: 'uppercase',
                             color: moveSlot === key ? D.cream : D.muted,
                           }}>{label}</button>
@@ -538,7 +525,7 @@ export function CalendarDaySheet({
                       </div>
                       <button type="button" disabled={working || !moveDate} onClick={() => void doMove(ev)} style={{
                         font: RUNG.t4,
-                        padding: '12px 0',
+                        padding: '11px 0',
                         width: '100%',
                         border: 'none',
                         borderRadius: 999,
@@ -555,7 +542,7 @@ export function CalendarDaySheet({
 
           {/* Followup projection — C7's quiet italic lines */}
           {(day?.followups?.length ?? 0) > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 4, borderTop: D.border }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, paddingTop: 4, borderTop: D.border }}>
               {day!.followups.map((f) => (
                 <div key={f.id} style={{ font: RUNG.t3, color: D.muted }}>
                   Follow up{f.client ? ` — ${f.client}` : ''}{f.note ? `: ${f.note}` : ''}{f.repeat_every ? ` (repeats ${f.repeat_every})` : ''}
@@ -569,7 +556,7 @@ export function CalendarDaySheet({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4, borderTop: D.border }}>
               <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.gold, textTransform: 'uppercase' }}>Money due</span>
               {day!.milestones.map((m) => (
-                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ font: RUNG.t3, flex: 1, color: D.cream }}>
                     {rupees(m.amount_due)} due{m.client_name ? ` — ${m.client_name}` : ''}{m.of ? ` (${m.ordinal} of ${m.of})` : ''}
                   </span>
@@ -582,7 +569,7 @@ export function CalendarDaySheet({
           )}
 
           {/* Actions: the block toggles + the full-day flow + the ask primer */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 8, borderTop: D.border }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 8, borderTop: D.border }}>
             <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.muted, textTransform: 'uppercase' }}>
               Hold the day
             </span>
@@ -597,12 +584,12 @@ export function CalendarDaySheet({
                     style={{
                       font: RUNG.t5,
                       letterSpacing: '0.08em',
-                      padding: '8px 16px',
+                      padding: '8px 14px',
                       borderRadius: 999,
                       cursor: working || (!!fullDayBlock && !own) ? 'default' : 'pointer',
                       background: held ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
                       border: 'none',
-                      outline: held ? '0.5px solid var(--atelier-input-border)' : '0.5px solid var(--atelier-input-border)',
+                      outline: held ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
                       opacity: !!fullDayBlock && !own ? 0.5 : 1,
                       textTransform: 'uppercase',
                       color: held ? D.cream : D.muted,
@@ -611,14 +598,14 @@ export function CalendarDaySheet({
               })}
               <button type="button" disabled={working} onClick={() => { onClose(); onFullDayBlock(dateIso); }} style={{
                 font: RUNG.t4,
-                padding: '8px 16px',
+                padding: '8px 14px',
                 borderRadius: 999,
                 cursor: 'pointer',
                 background: fullDayBlock ? 'var(--atelier-input-border)' : 'var(--atelier-input-bg)',
                 border: 'none',
-                outline: fullDayBlock ? '0.5px solid var(--atelier-input-border)' : '0.5px solid var(--atelier-input-border)',
+                outline: fullDayBlock ? '0.5px solid rgba(201,168,76,0.45)' : '0.5px solid var(--atelier-input-border)',
                 color: fullDayBlock ? D.cream : D.muted,
-              }}>{fullDayBlock ? 'Day blocked. Manage' : 'Block day'}</button>
+              }}>{fullDayBlock ? 'Day blocked — manage' : 'Block day'}</button>
             </div>
 
             <button type="button" onClick={() => {
@@ -655,11 +642,11 @@ export function CalendarDaySheet({
 // the button rung, t4, in sentence case; the choice pills (the slots, hold-the-day) stay t5 in capitals.
 function pillBtn(color: string, border?: string): React.CSSProperties {
   return {
-    font: RUNG.tb,
+    font: RUNG.t4,
     background: 'none',
-    border: `1px solid ${border ?? 'var(--atelier-card-border)'}`,
-    borderRadius: 12,
-    padding: '0 4px',
+    border: `0.5px solid ${border ?? 'rgba(201,168,76,0.28)'}`,
+    borderRadius: 999,
+    padding: '5px 10px',
     cursor: 'pointer',
     color,
   };

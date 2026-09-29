@@ -1,0 +1,60 @@
+'use client';
+// components/vendor/slices/BulkBar.tsx — TDW_04 A2 (P4's bar, built).
+// Bottom action bar in select mode: count, per-slice actions, cancel.
+// Sequential execution + the `n done · m failed (retry)` summary live with the
+// SliceScreen owner (state stays with the owner, per the tenancy pattern).
+
+import type { ListSlice } from '@/hooks/vendor/useLastSlice';
+
+export interface BulkAction { key: string; label: string; destructive?: boolean }
+
+export interface BulkBarProps {
+  slice: ListSlice;
+  selectedCount: number;
+  actions: BulkAction[];
+  onAction: (key: string) => void;
+  onCancel: () => void;
+  busy?: boolean;
+}
+
+import { T } from './SliceRow';
+
+export function BulkBar({ selectedCount, actions, onAction, onCancel, busy }: BulkBarProps) {
+  if (selectedCount === 0) return null;
+  return (
+    <div style={{
+      position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 50,
+      background: 'var(--atelier-sheet-bg)', backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
+      borderTop: '0.5px solid var(--atelier-sheet-border)',
+      padding: '12px 16px calc(16px + env(safe-area-inset-bottom))',
+      display: 'flex', alignItems: 'center', gap: 12,
+    }}>
+      <span style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--atelier-accent-text)' }}>
+        {selectedCount} selected
+      </span>
+      <div style={{ flex: 1, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        {actions.map(a => (
+          <button key={a.key} type="button" disabled={busy} onClick={() => onAction(a.key)} style={{
+            font: T.t4,
+            padding: '8px 12px',
+            borderRadius: 12,
+            cursor: busy ? 'default' : 'pointer',
+            border: `0.5px solid ${a.destructive ? 'var(--role-critical)' : 'var(--atelier-sheet-border)'}`,
+            background: 'transparent',
+            opacity: busy ? 0.5 : 1,
+            color: a.destructive ? 'var(--role-critical)' : 'var(--atelier-accent-text)',
+          }}>{a.label}</button>
+        ))}
+        <button type="button" onClick={onCancel} style={{
+          font: T.t4,
+          padding: '8px 12px',
+          borderRadius: 12,
+          cursor: 'pointer',
+          border: 'none',
+          background: 'transparent',
+          color: 'var(--atelier-ink-mute)',
+        }}>Cancel</button>
+      </div>
+    </div>
+  );
+}

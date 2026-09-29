@@ -70,11 +70,11 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
   const inputStyle: React.CSSProperties = {
     font: T.t3,
     width: '100%',
-    padding: '8px 12px',
+    padding: '9px 11px',
     boxSizing: 'border-box',
     background: 'var(--atelier-input-bg)',
     border: '0.5px solid var(--atelier-card-border)',
-    borderRadius: 12,
+    borderRadius: 2,
     color: A.ink,
     outline: 'none',
     caretColor: A.interactive,
@@ -103,13 +103,13 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
         borderTop: '0.5px solid var(--atelier-sheet-border)',
         boxSizing: 'border-box', display: 'flex', flexDirection: 'column', maxHeight: sheetBound('85dvh'),
       }}>
-        <div data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '24px 24px 12px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '20px 24px 12px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
-            <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
+            <div style={{ width: 36, height: 3, borderRadius: 2, background: 'var(--atelier-label)' }} />
           </div>
-          <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>Edit client</div>
+          <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>Edit Binder</div>
           <div style={{ font: T.t1, color: 'var(--atelier-ink)' }}>{binder.client ?? 'Unnamed'}</div>
-          <div style={{ font: T.t3, color: A.inkMute, marginTop: -8 }}>
+          <div style={{ font: T.t3, color: A.inkMute, marginTop: -6 }}>
             Money is edited in chat — the witnessed door. Everything else lives here.
           </div>
 
@@ -120,7 +120,7 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
           <div>
             <span style={labelStyle}>Add to the story</span>
             <textarea style={{ ...inputStyle, minHeight: 64, resize: 'vertical' }}
-              placeholder="A line added under what is there. The story grows."
+              placeholder="A line added beneath what stands — the story grows."
               value={fields.note ?? ''} onChange={set('note')} />
           </div>
 
@@ -131,12 +131,12 @@ function EditSheet({ binder, onClose, onSaved, onFail }: {
             style={{
               font: T.t4,
               width: '100%',
-              padding: '16px 0',
-              borderRadius: 12,
+              padding: '14px 0',
+              borderRadius: 2,
               border: '0.5px solid var(--atelier-label)',
               cursor: dirty && !saving ? 'pointer' : 'default',
               color: INK_DEEP,
-              background: !dirty || saving ? 'var(--atelier-row-hover)' : undefined,
+              background: !dirty || saving ? 'rgba(201,168,76,0.18)' : undefined,
               opacity: !dirty || saving ? 0.6 : 1,
             }}>{saving ? 'Saving…' : 'Save'}</button>
         </div>
@@ -230,36 +230,112 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
       <SwipeRow right={swipeRight} left={swipeLeft}>
       <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} style={{
         width: '100%', display: 'block', textAlign: 'left',
-        padding: '16px var(--slice-inset, 16px) 16px', background: 'transparent', border: 'none', cursor: 'pointer',
+        padding: '16px var(--slice-inset, 22px) 14px', background: 'transparent', border: 'none', cursor: 'pointer',
       }}>
-        {/* ── DESIGN-1 · THE ONE ROW (docs/review/REPORT.md §3; P8, P14) ─────────────────────
-            Line 1 the name; line 2 one line of facts (the stage, the money in, the twin, the last
-            touch); on the right one thing, the money still due. What the card used to stack under
-            the name (the missing-cell chips, the bar, the twin's link) opens with the row, below. */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 40 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div data-row-name="" style={{
-              font: T.tn,
-              color: A.ink,
-              overflowWrap: 'anywhere',
-            }}>{binder.client ?? 'Unnamed'}</div>
-            <div data-row-facts="" style={{
-              font: T.t4,
-              color: A.inkMute,
-              marginTop: 4,
-              overflowWrap: 'anywhere',
-            }}>
-              {binder.stage && <span style={{ color: TONE_COLOR[tone] }}>{cap(binder.stage)}</span>}
-              {[
-                hasMoney && total > 0 ? `${fmtINR(recv)} in` : '',
-                crossLead ? `Also an enquiry · ${cap(crossLead.state)}` : '',
-                touched || '',
-              ].filter(Boolean).map((w, i) => <span key={i}>{binder.stage || i ? ' · ' : ''}{w}</span>)}
-            </div>
+        {/* Line 1 — the name */}
+        <div style={{
+          font: T.t2,
+          color: A.ink,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>{binder.client ?? 'Unnamed'}</div>
+
+        {/* Missing-cell chips — render truth; taps AWAKE (TDW_04 A1, the P3
+            charter landing). Tap → WishboneSheet: inline through the POST /edit
+            door for client/phone/date; `amount` routes to Victor only (the
+            witnessed-door law — donna_edit refuses money by design).
+            CE-43 LC-2 packet 3g: F-43.109 moves them directly under the name, above the money and
+            stage lines, and they are absent when nothing is missing. F-43.108: each chip opens its
+            own cell. They stay spans with role="button" because the whole card is a <button>. */}
+        {chips.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}
+            onClick={e => { e.stopPropagation(); setWishboneStart(undefined); setWishboneOpen(true); }}>
+            {chips.map(c => (
+              <span key={c} role="button" data-cell={c}
+                onClick={e => { e.stopPropagation(); setWishboneStart(c); setWishboneOpen(true); }}
+                style={{
+                font: T.t4,
+                color: A.inkMute,
+                border: '0.5px solid var(--atelier-ink-dim)',
+                borderRadius: 2,
+                padding: '3px 8px',
+                cursor: 'pointer',
+              }}>+ {c}</span>
+            ))}
+            {overflow > 0 && (
+              <span style={{
+                font: T.t4,
+                color: A.inkMute,
+                padding: '3px 2px',
+              }}>+{overflow} more</span>
+            )}
           </div>
-          {hasMoney && (
-            <span data-row-right="" style={{ font: T.t4, color: pend > 0 ? A.ink : A.inkMute, flexShrink: 0, textAlign: 'right' }}>
-              {total > 0 ? (pend > 0 ? `${fmtINR(pend)} due` : 'Settled') : amountWordsAdjacent(amt ?? total)}
+        )}
+
+        {/* Line 2 — THE money story */}
+        {hasMoney && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ font: T.t3, color: A.ink }}>
+                {amountWordsAdjacent(amt ?? total)}
+              </span>
+              {binder.direction && (
+                <span aria-label={binder.direction === 'in' ? 'money in' : 'money out'} style={{
+                  font: T.t5,
+                  letterSpacing: '0.08em',
+                  color: A.inkMute,
+                  textTransform: 'uppercase',
+                }}>{binder.direction === 'in' ? '↓ in' : '↑ out'}</span>
+              )}
+            </div>
+            {total > 0 && (
+              <>
+                <div aria-hidden style={{ display: 'flex', height: 2, borderRadius: 1, overflow: 'hidden', marginTop: 6 }}>
+                  <span style={{ width: `${recvPct}%`, background: 'var(--atelier-accent-text)' }} />
+                  <span style={{ width: `${100 - recvPct}%`, background: 'var(--atelier-ink-dim)', opacity: 0.35 }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                  <span style={{ font: T.t4, color: A.inkMute }}>{fmtINR(recv)} in</span>
+                  <span style={{ font: T.t4, color: A.inkMute }}>{pend > 0 ? `${fmtINR(pend)} due` : 'settled'}</span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* R1(b) cross-plane whisper — the postcard from 16's spine */}
+        {crossLead && (
+          // TDW_04 A3 (L-3): the whisper becomes a door — tap jumps to the twin's
+          // canonical slice. Still reads-only; nothing is linked or merged (16's
+          // spine still owns the real join).
+          // R-38.1 CURE (S2 ZIP bounce). The destination is asked of the registry's
+          // address book rather than spelled here — same reasoning as the tier gate; a
+          // cross-plane whisper is still a door out of this room.
+          <a href={roomHref('leads')} onClick={e => e.stopPropagation()} style={{
+            font: T.t5,
+            letterSpacing: '0.08em',
+            display: 'inline-block',
+            textDecoration: 'none',
+            color: A.interactiveWarm,
+            textTransform: 'uppercase',
+            marginTop: 6,
+          }}>Also a lead · {cap(crossLead.state)} ›</a>
+        )}
+
+        {/* Line 3 — stage word (manifest tone) + last touch */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 8 }}>
+          {binder.stage && (
+            <span style={{
+              font: T.t5,
+              letterSpacing: '0.08em',
+              color: TONE_COLOR[tone],
+              textTransform: 'uppercase',
+            }}>{cap(binder.stage)}</span>
+          )}
+          {touched && (
+            <span style={{ font: T.t4, color: A.inkMute }}>
+              {touched}
             </span>
           )}
         </div>
@@ -269,58 +345,9 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
 
       {/* Expand — the story timeline + actions */}
       {open && (
-        <div style={{ padding: '0 var(--slice-inset, 16px) 16px' }}>
-          {/* data-row-open: what the one row moved here from its resting face (the chips, the money bar, the twin's
-              door); the benches read the marker to tell a moved thing from a new one. */}
-          <div data-row-open="">
-          {/* Missing-cell chips — render truth; taps AWAKE (TDW_04 A1). DESIGN-1 moved them from under
-              the name into the opened row; each still opens its own cell (F-43.108). */}
-          {chips.length > 0 && (
-            <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-              {chips.map(c => (
-                <button type="button" key={c} data-cell={c}
-                  onClick={() => { setWishboneStart(c); setWishboneOpen(true); }}
-                  style={{
-                  font: T.t4,
-                  color: A.inkMute,
-                  background: 'transparent',
-                  border: '1px solid var(--atelier-ink-dim)',
-                  borderRadius: 12,
-                  padding: '4px 12px',
-                  cursor: 'pointer',
-                }}>+ {c}</button>
-              ))}
-              {overflow > 0 && (
-                <span style={{ font: T.t4, color: A.inkMute, padding: '4px 4px', alignSelf: 'center' }}>+{overflow} more</span>
-              )}
-            </div>
-          )}
-          {hasMoney && total > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <div aria-hidden style={{ display: 'flex', height: 4, borderRadius: 2, overflow: 'hidden' }}>
-                <span style={{ width: `${recvPct}%`, background: 'var(--atelier-accent-text)' }} />
-                <span style={{ width: `${100 - recvPct}%`, background: 'var(--atelier-ink-dim)', opacity: 0.35 }} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                <span style={{ font: T.t4, color: A.inkMute }}>{fmtINR(recv)} in</span>
-                <span style={{ font: T.t4, color: A.inkMute }}>{pend > 0 ? `${fmtINR(pend)} due` : 'Settled'}</span>
-              </div>
-            </div>
-          )}
-          {/* R1(b) cross-plane whisper — the door to the twin's room (TDW_04 A3), in the opened row. */}
-          {crossLead && (
-            <a href={roomHref('leads')} style={{
-              font: T.t4,
-              display: 'inline-flex',
-              alignItems: 'center',
-              textDecoration: 'none',
-              color: A.interactiveWarm,
-              marginBottom: 12,
-            }}>Also an enquiry · {cap(crossLead.state)} ›</a>
-          )}
-          </div>
+        <div style={{ padding: '0 var(--slice-inset, 22px) 16px' }}>
           {timeline.length > 0 ? (
-            <div style={{ borderLeft: '0.5px solid var(--atelier-input-border)', paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ borderLeft: '0.5px solid rgba(201,168,76,0.35)', paddingLeft: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {timeline.map((line, i) => (
                 <div key={i} style={{
                   font: T.t3,
@@ -332,16 +359,16 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             // CE-43 LC-2 packet 3e · point 5 (a): not shown on a client with a booked lead behind
             // it; the booking summary on the client card lands in LC-3 (F-43.90).
             <div style={{ font: T.t3, color: A.inkMute }}>
-              No story yet. It grows as you talk in chat.
+              No story yet — it grows as you talk in chat.
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
             <button type="button" onClick={askVictor} className="atelier-fab" style={{
               font: T.t4,
               flex: 1,
-              padding: '12px 16px',
-              borderRadius: 12,
+              padding: '11px 14px',
+              borderRadius: 2,
               cursor: 'pointer',
               border: '0.5px solid var(--atelier-label)',
               color: INK_DEEP,
@@ -349,30 +376,30 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             <button type="button" onClick={() => setEditOpen(true)} style={{
               font: T.t4,
               flex: 1,
-              padding: '12px 16px',
+              padding: '11px 14px',
               background: 'transparent',
               border: '0.5px solid var(--atelier-sheet-border)',
-              borderRadius: 12,
+              borderRadius: 2,
               cursor: 'pointer',
               color: A.interactiveWarm,
             }}>Edit</button>
             {!hideConfirm ? (
               <button type="button" onClick={() => setHideConfirm(true)} style={{
                 font: T.t4,
-                padding: '12px 16px',
+                padding: '11px 14px',
                 background: 'transparent',
                 border: '0.5px solid var(--atelier-sheet-border)',
-                borderRadius: 12,
+                borderRadius: 2,
                 cursor: 'pointer',
                 color: 'var(--atelier-ink-mute)',
               }}>Hide</button>
             ) : (
               <button type="button" onClick={() => { void hide(); }} style={{
                 font: T.t4,
-                padding: '12px 16px',
+                padding: '11px 14px',
                 background: 'transparent',
                 border: '0.5px solid var(--role-critical)',
-                borderRadius: 12,
+                borderRadius: 2,
                 cursor: 'pointer',
                 color: 'var(--role-critical)',
               }}>Sure?</button>
@@ -402,7 +429,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
             // victorOnly in the sheet) — all three are BinderEditFields keys.
             const fields: BinderEditFields = { [cell]: value };
             const res = await editBinder(binder.id, fields);
-            if (!res.ok) return res.error || 'Could not save it. Try again.';
+            if (!res.ok) return res.error || 'Could not file it — try again.';
             onToast('Filed.', 'success'); // F-04.5 (CE-ruled): human words at the boundary — the door's raw reply (record UUID aboard) stays in the ledger, not the toast
             onChanged();
             return null;

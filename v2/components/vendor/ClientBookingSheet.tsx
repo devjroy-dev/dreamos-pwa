@@ -1,0 +1,248 @@
+'use client';
+import { RUNG_FONT as RUNG } from '@/v2/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
+// components/vendor/ClientBookingSheet.tsx — CE-43 · LC-2 · THE CLIENTS ADD SHEET, RE-SHAPED (R-43.5).
+//
+// No path creates a client without a lead. A walk-in is a lead born booked, so the Clients
+// room's Add opens THIS sheet, which asks what the lead's booking act asks: name, phone,
+// wedding date, package (the default preselected), the fee when the package has none (F8(a)),
+// the advance received and the day it arrived.
+//
+// PACKET 3 (live). `Add client` posts dream-os POST /api/v2/vendor/clients/direct: the lead is
+// created (source `direct`), the chosen package is attached, and the promotion act books it
+// (dream-os docs/handovers/TDW_CE43_LC2_P3_HANDOVER.md §2). Outcomes: C4 and the sheet closes;
+// C5 (`saved_as_lead`: the lead exists, the booking did not finish) and the sheet closes, since
+// the finish is on Leads; F29 for anything else, the sheet stays open with what she typed.
+// A missing name, date or package, or a field the door names, flags the field with the packet 2
+// byte `Check the highlighted field.`.
+// F28(b): `Advance received` is yes or no (a switch, the P9 pattern); its amount is always the
+// package's deposit; `Received on` shows only on yes, today (IST) by default.
+//
+// ── THE CONTROL INVENTORY (CE-115) ───────────────────────────────────────────
+// Replaces `AddSheet slice="clients"` as the Clients room's create surface. Its controls:
+//   · Name, Phone, Email, Notes fields → Name and Phone KEPT; Email and Notes REMOVED BY
+//     RULING (R-43.5's field list, C2); Wedding date, Package, Fee, Advance received,
+//     Received on ADDED.
+//   · `Ask TDW →` (the chat door in AddSheet's header) → REMOVED BY RULING: the sheet's act
+//     is the booking, and a chat detour would file the half client R-43.5 forbids.
+//   · `All details ↓` and the draft-first chips → REMOVED BY RULING: a promotion needs every
+//     field at once; there is no draft client.
+//   · `Add client` → KEPT (C3), its act MOVED from `POST /vendor/clients` to the promotion
+//     (live at packet 3).
+//   · PACKET 3: `Advance received` MOVED from an amount field to a yes/no switch (F28(b));
+//     `Received on` now shows only on yes.
+//   · The backdrop tap closes → KEPT.
+// AddSheet itself is UNTOUCHED (ruled): the demo route still renders its clients schema.
+//
+// ── THE BYTES ────────────────────────────────────────────────────────────────
+// C1 to C5 and F29 are founder-vetoed (lib/worklist/packages.ts; the record is the handover's
+// Appendix). The package select's empty option reads `Select…`, AddSheet's existing byte,
+// carried rather than coined. C-43.15 applies to package names upstream.
+// Tokens only (R-42.6).
+import { SheetLayer, sheetBound, useSheetScrollReset, SHEET_BODY_SCROLL, SHEET_BOTTOM, SHEET_SAFE } from '@/components/vendor/SheetLayer';
+import { useEffect, useMemo, useState } from 'react';
+import { fetchPackages, createDirectClient, type VendorPackage, type DirectClientInput } from '@/v2/lib/vendor/api/vendor';
+import { CLIENT_BOOKING, BOOKING, PACKAGE_FAILURES } from '@/v2/lib/worklist/packages';
+import { refreshAfterBooking } from '@/v2/components/vendor/packages/BookingSheet';
+import { istTodayISO } from '@/lib/vendor/istDay';
+import { NeedFirst } from '@/v2/components/vendor/NeedFirst';
+import { selectStyle } from '@/lib/vendor/controls';
+import type { ToastKind } from '@/hooks/vendor/useToast';
+
+const D = {
+  card: 'var(--atelier-sheet-top)', border: 'var(--atelier-sheet-border)',
+  muted: 'var(--atelier-ink-mute)', ink: 'var(--atelier-ink)', accent: 'var(--atelier-accent-text)',
+};
+
+const input: React.CSSProperties = {
+  font: RUNG.t3,
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '12px 16px',
+  minHeight: 44,
+  background: 'transparent',
+  border: '0.5px solid var(--atelier-input-border)',
+  borderRadius: 12,
+  color: D.ink,
+};
+
+export interface ClientBookingSheetProps {
+  open: boolean;
+  onClose: () => void;
+  onToast: (msg: string, kind?: ToastKind) => void;
+  /** Called after C4 or C5, once the slices are refreshed. */
+  onDone?: () => void;
+}
+
+type Field = 'name' | 'phone' | 'weddingDate' | 'packageId' | 'fee' | 'receivedOn';
+const EMPTY: Record<Field, string> = { name: '', phone: '', weddingDate: '', packageId: '', fee: '', receivedOn: '' };
+const WIRE_FIELD: Record<string, Field> = { name: 'name', wedding_date: 'weddingDate', package_id: 'packageId', fee: 'fee', total: 'fee', received_on: 'receivedOn' };
+
+export function ClientBookingSheet({ open, onClose, onToast, onDone }: ClientBookingSheetProps) {
+  const [packages, setPackages] = useState<VendorPackage[] | null>(null);
+  const [values, setValues] = useState<Record<Field, string>>(EMPTY);
+  const [advance, setAdvance] = useState(false);
+  const [bad, setBad] = useState<Field | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setBad(null); setMessage(null); setBusy(false);
+    setValues((v) => (v.receivedOn ? v : { ...v, receivedOn: istTodayISO() }));
+    let alive = true;
+    void fetchPackages().then((r) => {
+      if (!alive || !r || !r.ok) return;
+      setPackages(r.packages);
+      const def = r.packages.find((p) => p.is_default);
+      setValues((v) => (v.packageId ? v : { ...v, packageId: def ? def.id : '' }));
+    }).catch(() => { /* the select stays empty; submit then flags the package field */ });
+    return () => { alive = false; };
+  }, [open]);
+
+  const chosen = useMemo(
+    () => (packages || []).find((p) => p.id === values.packageId) || null,
+    [packages, values.packageId],
+  );
+  // F8(a): the sheet asks for the fee when the chosen package has none.
+  const needsFee = !!chosen && chosen.total == null;
+
+  const set = (k: Field, v: string) => setValues((prev) => ({ ...prev, [k]: v }));
+
+  const gate = (f: Field) => { setBad(f); setMessage(PACKAGE_FAILURES.fieldGate); };
+
+  async function submit() {
+    if (busy) return;
+    if (values.name.trim().length < 2) return gate('name');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(values.weddingDate)) return gate('weddingDate');
+    if (!chosen) return gate('packageId');
+    if (needsFee && !(Number(values.fee) > 0)) return gate('fee');
+    if (advance && !/^\d{4}-\d{2}-\d{2}$/.test(values.receivedOn)) return gate('receivedOn');
+    const body: DirectClientInput = {
+      name: values.name.trim(),
+      wedding_date: values.weddingDate,
+      package_id: chosen.id,
+      advance_received: advance,
+    };
+    if (values.phone.trim()) body.phone = values.phone.trim();
+    if (needsFee) body.fee = Number(values.fee);
+    if (advance) body.received_on = values.receivedOn;
+    setBusy(true); setBad(null); setMessage(null);
+    try {
+      const r = await createDirectClient(body);
+      if (r && r.ok) {
+        refreshAfterBooking();
+        onToast(CLIENT_BOOKING.added, 'success');
+        setValues(EMPTY); setAdvance(false);
+        onDone?.();
+        onClose();
+        return;
+      }
+      const err = r && 'error' in r ? r.error : undefined;
+      if (err === 'saved_as_lead') {
+        refreshAfterBooking();
+        onToast(CLIENT_BOOKING.savedAsLead, 'error');
+        setValues(EMPTY); setAdvance(false);
+        onDone?.();
+        onClose();
+        return;
+      }
+      const field = r && !r.ok && 'field' in r && r.field ? WIRE_FIELD[r.field] : undefined;
+      if (err === 'invalid' && field) gate(field);
+      else setMessage(BOOKING.failed);
+    } catch {
+      setMessage(BOOKING.failed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const flag = (f: Field): React.CSSProperties => (bad === f ? { borderColor: D.accent, borderWidth: 1.5 } : {});
+
+  const label = (text: string) => (
+    <label style={{
+      font: RUNG.t5,
+      letterSpacing: '0.08em',
+      display: 'block',
+      color: D.muted,
+      textTransform: 'uppercase',
+      marginBottom: 8,
+}}>{text}</label>
+  );
+
+  const bodyRef = useSheetScrollReset<HTMLDivElement>(open);
+  return (
+    // Packet 3j · F-43.116: mounted through the one vendor layer (components/vendor/SheetLayer.tsx).
+    <SheetLayer open={open} testId="client-booking-sheet">{(z) => (<>
+      {open && (
+        <div onClick={onClose}
+          style={{ position: 'fixed', inset: 0, zIndex: z.scrim, backgroundColor: 'var(--atelier-overlay)' }} />
+      )}
+      {/* CE-43 LC-2 packet 3d · F-43.94 (chair YES): inert, not aria-hidden (F-43.89's cure). */}
+      <div data-lc2="client-booking-sheet" inert={!open} style={{
+        position: 'fixed', bottom: SHEET_BOTTOM, left: 0, right: 0, zIndex: z.panel,
+        backgroundColor: D.card, borderTopLeftRadius: 20, borderTopRightRadius: 20,
+        borderTop: `1px solid ${D.border}`,
+        transform: open ? 'translateY(0)' : 'translateY(100%)',
+        transition: 'transform 320ms cubic-bezier(0.22,1,0.36,1)',
+        maxHeight: sheetBound('88dvh'), boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
+        paddingBottom: SHEET_SAFE,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 12, backgroundColor: 'var(--atelier-ink-dim)' }} />
+        </div>
+        <div style={{ padding: '8px 24px 12px', borderBottom: `1px solid ${D.border}`, flexShrink: 0 }}>
+          <h2 style={{ font: RUNG.t1, color: D.ink, margin: 0 }}>
+            {CLIENT_BOOKING.title}
+          </h2>
+        </div>
+        <div ref={bodyRef} data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Packet 3f · R-43.16: the field gate is a control that focuses the flagged field; F29 is
+              a failure and stays a plain line. */}
+          {message && bad && <NeedFirst text={message} onFix={() => { const el = document.getElementById(`cbs-${bad}`); if (el) el.focus(); }} testId="client" />}
+          {message && !bad && <p role="alert" style={{ font: RUNG.t3, margin: 0, color: D.accent }}>{message}</p>}
+          <div>{label(CLIENT_BOOKING.name)}
+            <input id="cbs-name" style={{ ...input, ...flag('name') }} value={values.name} onChange={(e) => set('name', e.target.value)} autoComplete="off" />
+          </div>
+          <div>{label(CLIENT_BOOKING.phone)}
+            <input style={input} type="tel" inputMode="tel" value={values.phone} onChange={(e) => set('phone', e.target.value)} />
+          </div>
+          <div>{label(CLIENT_BOOKING.weddingDate)}
+            <input id="cbs-weddingDate" style={{ ...input, ...flag('weddingDate') }} type="date" value={values.weddingDate} onChange={(e) => set('weddingDate', e.target.value)} />
+          </div>
+          <div>{label(CLIENT_BOOKING.pkg)}
+            <select id="cbs-packageId" style={selectStyle({ ...input, ...flag('packageId') })} value={values.packageId} onChange={(e) => set('packageId', e.target.value)}>
+              <option value="">Select…</option>
+              {(packages || []).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          {needsFee && (
+            <div>{label(CLIENT_BOOKING.fee)}
+              <input id="cbs-fee" style={{ ...input, ...flag('fee') }} inputMode="numeric" value={values.fee} onChange={(e) => set('fee', e.target.value.replace(/[^\d]/g, ''))} />
+            </div>
+          )}
+          <label data-lc2="advance-switch" style={{ font: RUNG.t3, display: 'flex', alignItems: 'center', gap: 12, color: D.ink, minHeight: 44 }}>
+            <input type="checkbox" checked={advance} onChange={(e) => setAdvance(e.target.checked)} style={{ width: 20, height: 20, accentColor: D.accent }} />
+            {CLIENT_BOOKING.advance}
+          </label>
+          {advance && (
+            <div>{label(CLIENT_BOOKING.receivedOn)}
+              <input id="cbs-receivedOn" style={{ ...input, ...flag('receivedOn') }} type="date" value={values.receivedOn} onChange={(e) => set('receivedOn', e.target.value)} />
+            </div>
+          )}
+        </div>
+        <div style={{ padding: '12px 24px 16px', borderTop: `1px solid ${D.border}`, flexShrink: 0 }}>
+          <button type="button" onClick={() => { void submit(); }} aria-busy={busy} style={{
+            font: RUNG.t4,
+            width: '100%',
+            minHeight: 48,
+            background: 'transparent',
+            cursor: 'pointer',
+            border: `0.5px solid ${D.accent}`,
+            borderRadius: 12,
+            color: D.accent,
+          }}>{CLIENT_BOOKING.submit}</button>
+        </div>
+      </div>
+    </>)}</SheetLayer>
+  );
+}

@@ -114,7 +114,7 @@ export const RF = {
   // half that stops a false-done; and it neither apologises nor blames her — she
   // did a reasonable thing and the world was already in that state.
   refusalAlreadyHas:
-    'They already have this enquiry: the same number is in their enquiries. Nothing was forwarded.',
+    'They already have this enquiry — the same number is on their leads. Nothing was forwarded.',
   refusalClose: 'Close',
 
   // ── D · THE ROOM (veto sheet §D) ──────────────────────────────────────────
@@ -128,7 +128,7 @@ export const RF = {
   // D6. `Both ways` is the load-bearing phrase. A vendor can picture giving work
   // away; she cannot picture the room being where it comes back, and that is the
   // only reason she would open it twice.
-  emptyBody: "When you pass an enquiry to a peer, it’s counted here, both ways.",
+  emptyBody: "When you pass an enquiry to a peer, it’s counted here — both ways.",
   // R-38.2's inheritance: a failed read leaves the room standing with one
   // sentence rather than an empty page. Billing paid for that lesson.
   unavailable: "We couldn’t load your forwards just now.",

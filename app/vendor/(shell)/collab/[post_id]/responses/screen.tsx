@@ -212,30 +212,31 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
   }
 
   return (
-    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       {/* Page header */}
-      <div style={{ padding: '16px 24px 0', borderBottom: `0.5px solid ${D.borderCol}` }}>
+      <div style={{ padding: '16px 20px 0', borderBottom: `0.5px solid ${D.borderCol}` }}>
         <button type="button" onClick={() => router.back()} style={{
-          background: 'none', border: 'none', color: D.muted, fontSize: '1.375rem', lineHeight: 1.5,
+          background: 'none', border: 'none', color: D.muted, fontSize: 20, lineHeight: 1.5,
           cursor: 'pointer', padding: '0 0 12px', display: 'block',
         }}>←</button>
-        <h1 style={{ font: 'var(--wl-t1)', color: D.cream, marginBottom: 8 }}>
+        <h1 style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 25, lineHeight: 1.5, color: D.cream, marginBottom: 6 }}>
           Interested vendors
         </h1>
-        {/* DESIGN-1 stage 2 (the founder, 29 Sept: the list is the page): the explanation that stood here moved, word for
-            word, to this page's "?" card (lib/worklist/pageHelp.ts RESPONSES_HELP). */}
-        <div style={{ paddingBottom: 8 }} />
+        <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, lineHeight: 1.6, paddingBottom: 16 }}>
+          Their identity is revealed to you because you posted the requirement.
+          Tap Connect to share contact details with both of you.
+        </p>
       </div>
 
       {/* Content */}
-      <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', padding: '16px 16px 80px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 80px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {loading ? (
-          <div style={{ padding: '64px 0', textAlign: 'center' }}>
-            <p style={{ fontFamily: F.display, fontStyle: 'italic', fontSize: '1rem', lineHeight: 1.5, color: D.muted }}>Loading…</p>
+          <div style={{ padding: '60px 0', textAlign: 'center' }}>
+            <p style={{ fontFamily: F.display, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: D.muted }}>Loading…</p>
           </div>
         ) : responses.length === 0 ? (
-          <div style={{ padding: '64px 16px', textAlign: 'center' }}>
-            <p style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: '1.375rem', color: D.muted, lineHeight: 1.6 }}>
+          <div style={{ padding: '60px 16px', textAlign: 'center' }}>
+            <p style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 20, color: D.muted, lineHeight: 1.6 }}>
               No responses yet.
             </p>
           </div>
@@ -243,20 +244,20 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
           <div key={r.response_id} style={{
             ...CARD, borderRadius: 12,
             border: r.state === 'accepted' ? '0.5px solid var(--atelier-sheet-border)' : `0.5px solid ${D.borderCol}`,
-            padding: '16px',
+            padding: '18px',
           }}>
             {/* Vendor info */}
-            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', marginBottom: 14 }}>
               {r.vendor.hero_photo && (
                 <img src={r.vendor.hero_photo} alt={r.vendor.name ?? 'vendor'}
-                  style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover', flexShrink: 0,
+                  style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover', flexShrink: 0,
                     border: '0.5px solid var(--atelier-card-border)' }} />
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: '1.375rem', lineHeight: 1.5, color: D.cream, marginBottom: 4 }}>
+                <p style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream, marginBottom: 3 }}>
                   {r.vendor.name || 'A vendor'}
                 </p>
-                <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: D.gold, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                <p style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.gold, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
                   {r.vendor.category} · {r.vendor.city}
                   {r.vendor.open_to_travel && ' · Travels'}
                 </p>
@@ -266,7 +267,7 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
             {/* Action */}
             {r.state === 'accepted' ? (
               <>
-                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: D.gold, fontStyle: 'italic' }}>
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.gold, fontStyle: 'italic' }}>
                   ✦ Connected — contact details shared with both of you.
                 </p>
                 {/* THE SETTLE ROW (A3). Brass-line, not gold: the connected
@@ -275,9 +276,9 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
                   onClick={() => void openStub(r.vendor.id, r.vendor.name || 'A vendor', r.response_id)}
                   disabled={preparing === r.response_id}
                   style={{
-                    marginTop: 12, width: '100%', padding: '12px 0',
+                    marginTop: 12, width: '100%', padding: '10px 0',
                     background: 'transparent', border: `0.5px solid ${D.borderCol}`,
-                    borderRadius: 999, fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+                    borderRadius: 999, fontFamily: F.label, fontWeight: 300, fontSize: 10,
                     letterSpacing: '0.2em', textTransform: 'uppercase',
                     color: D.cream, cursor: preparing === r.response_id ? 'default' : 'pointer',
                     opacity: preparing === r.response_id ? 0.6 : 1,
@@ -288,10 +289,10 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
             ) : (
               <button type="button" onClick={() => handleConnect(r.response_id)}
                 disabled={connecting === r.response_id} style={{
-                  width: '100%', padding: '12px 0',
-                  background: connecting === r.response_id ? 'var(--atelier-input-border)' : D.gold,
+                  width: '100%', padding: '11px 0',
+                  background: connecting === r.response_id ? 'rgba(201,168,76,0.4)' : D.gold,
                   border: 'none', borderRadius: 999,
-                  fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem',
+                  fontFamily: F.label, fontWeight: 400, fontSize: 10,
                   letterSpacing: '0.2em', textTransform: 'uppercase',
                   color: D.onMetal, cursor: connecting === r.response_id ? 'default' : 'pointer',
                 }}>
@@ -319,9 +320,9 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
           onClick={() => setStub(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             ...CARD, width: '100%', borderRadius: '16px 16px 0 0',
-            padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: '1.375rem', lineHeight: 1.5, color: D.cream }}>{SETTLE_TITLE}</div>
-            <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: D.muted }}>{stub.name}</div>
+            padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ fontFamily: F.display, fontWeight: 300, fontSize: 20, lineHeight: 1.5, color: D.cream }}>{SETTLE_TITLE}</div>
+            <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted }}>{stub.name}</div>
 
             <div>
               <div style={LABEL}>{FUNCTION_LABEL}</div>
@@ -342,22 +343,22 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
             </div>
 
             {suggestion && (
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '1rem', color: D.muted, margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, margin: 0, lineHeight: 1.6 }}>
                 {suggestionLine(suggestion.amount_inr, suggestion.functions, suggestion.rate_inr)}
                 <br />{EDIT_BEFORE_SAVING}
               </p>
             )}
             {!suggestion && suggestReason === 'no_rate' && (
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: D.muted, margin: 0 }}>{NO_RATE_ON_FILE}</p>
+              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: D.muted, margin: 0 }}>{NO_RATE_ON_FILE}</p>
             )}
 
             <button type="button" onClick={doSettle}
               disabled={!canSettle({ teamMemberId: stub.memberId, amount, linkedEventId: eventId || null, description: '', notes: note }) || saving}
               style={{
-                padding: '12px 0', border: 'none', borderRadius: 12,
-                backgroundColor: canSettle({ teamMemberId: stub.memberId, amount, linkedEventId: eventId || null, description: '', notes: note }) && !saving ? D.gold : 'var(--atelier-input-border)',
+                padding: '13px 0', border: 'none', borderRadius: 8,
+                backgroundColor: canSettle({ teamMemberId: stub.memberId, amount, linkedEventId: eventId || null, description: '', notes: note }) && !saving ? D.gold : 'rgba(201,168,76,0.3)',
                 cursor: saving ? 'not-allowed' : 'pointer',
-                fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: D.onMetal,
+                fontFamily: F.label, fontWeight: 400, fontSize: 10, color: D.onMetal,
                 letterSpacing: '0.2em', textTransform: 'uppercase',
               }}>
               {LOG_ACTION}
@@ -370,11 +371,11 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
 }
 
 const LABEL: React.CSSProperties = {
-  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: D.muted,
-  letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 8,
+  fontFamily: F.label, fontWeight: 300, fontSize: 9, color: D.muted,
+  letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6,
 };
 const INPUT: React.CSSProperties = {
-  width: '100%', padding: '12px 16px', backgroundColor: 'var(--atelier-input-bg)',
-  border: `0.5px solid var(--atelier-input-border)`, borderRadius: 12, color: D.cream,
-  fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',
+  width: '100%', padding: '11px 14px', backgroundColor: 'var(--atelier-input-bg)',
+  border: `0.5px solid var(--atelier-input-border)`, borderRadius: 8, color: D.cream,
+  fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5, outline: 'none', boxSizing: 'border-box',
 };

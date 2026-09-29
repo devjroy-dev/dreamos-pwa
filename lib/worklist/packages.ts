@@ -206,5 +206,5 @@ export const CLIENT_BOOKING = {
   /** C4 · the walk-in is booked. */
   added: 'Added. The client, the event and the invoice are ready.',
   /** C5 · the lead was saved but the booking did not finish. */
-  savedAsLead: 'Saved as an enquiry. Finish the booking from Enquiries.',
+  savedAsLead: 'Saved as a lead. Finish the booking from Leads.',
 } as const;

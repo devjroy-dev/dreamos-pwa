@@ -1,0 +1,303 @@
+'use client';
+import { RUNG_FONT as RUNG } from '@/v2/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
+// components/vendor/NotesBody.tsx — TDW_06 P7d (item 4): the owner_notes body, ONE source of truth.
+// The chrome-free notes surface (list · search · create · detail sheet · Send-to-Chat · delete).
+// Rendered by BOTH the business-screen NOTES tab (app/vendor/list/[slice]/notes.tsx) and the
+// studio door (app/vendor/studio/notes/page.tsx) — same reader (GET /api/v2/vendor/notes via
+// fetchNotes), same render, so the two doors can never diverge. No Header here: each caller
+// supplies its own chrome (the tab bar on the business screen; the studio hub's own frame).
+//
+// TAP-TO-CHAT is the 128f882 signpost: "Send to Chat" -> openAsk(body) since CE-39 S2/6 (was a /vendor?draft= push
+// + encodeURIComponent(body)). The chat screen feeds ?draft= into InputBar initialValue (composer
+// prefill, visible text, NO hidden injection) and clears the param. It lands in the CURRENT room
+// at the CURRENT mode — this component neither knows nor changes victor_mode.
+
+import { useEffect, useState } from 'react';
+import { useAsk } from '@/lib/worklist/askContext';
+import { Fab } from '@/v2/components/worklist/Fab';
+import { Toast } from '@/v2/components/vendor/Toast';
+import { useToast } from '@/hooks/vendor/useToast';
+import { fetchNotes, createNote, deleteNote, type OwnerNote } from '@/v2/lib/vendor/api/vendor';
+
+const D = {
+  // TDW_09 F-09.34 — COLOUR ONLY, and renamed from `border` on purpose.
+  // It used to hold the whole shorthand ('0.5px solid var(...)') while most
+  // readers re-prefixed it, producing '0.5px solid 0.5px solid var(...)': a
+  // declaration that parses, then becomes INVALID AT COMPUTED-VALUE TIME once
+  // var() substitutes, so `border` computes to its initial value and NO EDGE
+  // RENDERS AT ALL. 22 sites across 5 files. The rename is the guard: any
+  // reader I failed to migrate is now a tsc error, not a silent missing border.
+  borderCol: 'var(--atelier-card-border)', muted: 'var(--atelier-ink-mute)',
+  cream: 'var(--atelier-ink)', red: 'var(--role-critical)',
+};
+  // TDW_09 R-S2/R-S3 — the FIELD boundary, not the card hairline. `card-border`
+  // is a panel edge (1.79:1 espresso / 1.40:1 paper); a control's edge has to
+  // clear WCAG 1.4.11's 3:1 or the control is not identifiable as one. On paper
+  // the fill cannot help — inputBg over the white sheet is 1.09:1 — so this edge
+  // is the only thing that says `field`.
+const inputStyle: React.CSSProperties = {
+  font: RUNG.t3,
+  width: '100%',
+  padding: '12px 16px',
+  backgroundColor: 'var(--atelier-input-bg)',
+  border: `0.5px solid var(--atelier-input-border)`,
+  borderRadius: 12,
+  color: D.cream,
+  outline: 'none',
+  boxSizing: 'border-box',
+};
+
+function fmtDate(iso: string): string {
+  try { return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); }
+  catch { return ''; }
+}
+
+export function NotesBody() {
+  const { toast, show } = useToast();
+  const { openAsk } = useAsk();
+  const [notes, setNotes]     = useState<OwnerNote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery]     = useState('');
+  const [selected, setSelected] = useState<OwnerNote | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [draft, setDraft]     = useState('');
+  const [saving, setSaving]   = useState(false);
+
+  // ── R-38.17 item 5 · THE ADD SHEET OPENS FROM THE ADDRESS ──────────────────
+  //
+  // The shell's Add control (components/worklist/AddFab.tsx) has a Note leg, and Notes is
+  // the one room in the family with no `AddSheet` of its own — its composer is this
+  // component's own `addOpen`. So the leg navigates to /w/notes?add=1 and this reads it.
+  // It calls the EXISTING setter and adds no second way to open the composer; a parameter
+  // that opened its own copy of the sheet would be two homes for one surface.
+  //
+  // ⚠ DEVIATION FROM THE RULED SHAPE, DISCLOSED AND RATIFY-OR-REVERT. The ruling says one
+  // useEffect over `useSearchParams`. This reads `window.location.search` instead, and the
+  // reason is the estate's own precedent on this exact parameter class:
+  // app/vendor/calendar/page.tsx:280-282 reads its `?block=` leg the same way and states
+  // why — 「no useSearchParams: keeps the page free of a Suspense boundary」. Under Next 16
+  // `useSearchParams` in a client component forces a Suspense boundary at every caller or
+  // the statically-prerendered route deopts, and THIS COMPONENT HAS THREE CALLERS, two of
+  // them outside this seat's contention grant (app/vendor/list/[slice]/notes.tsx and
+  // app/vendor/studio/notes/page.tsx). Choosing the hook would have meant editing two
+  // out-of-scope files to add boundaries, to read one integer.
+  // The revert is five lines if the chair prefers the hook.
+  //
+  // IT RUNS ONCE, ON MOUNT. The parameter is an instruction to open, not a state to keep
+  // in sync — re-running it on every navigation would re-open the composer behind a vendor
+  // who had just dismissed it.
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get('add') === '1') setAddOpen(true);
+    } catch { /* no-op: an unreadable address is not a reason to fail a page */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    fetchNotes().then(r => {
+      if (r.ok) setNotes((r as { notes: OwnerNote[] }).notes);
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const filtered = query.trim()
+    ? notes.filter(n => n.body.toLowerCase().includes(query.trim().toLowerCase()))
+    : notes;
+
+  async function doCreate() {
+    const body = draft.trim();
+    if (!body || saving) return;
+    setSaving(true);
+    const res = await createNote(body);
+    if (!res.ok) { show((res as { error?: string }).error ?? 'Failed', 'error'); }
+    else {
+      show('Noted', 'success');
+      setNotes(prev => [(res as { note: OwnerNote }).note, ...prev]);
+      setAddOpen(false); setDraft('');
+    }
+    setSaving(false);
+  }
+
+  async function doDelete(note: OwnerNote) {
+    setSaving(true);
+    const res = await deleteNote(note.id);
+    if (!res.ok) { show((res as { error?: string }).error ?? 'Failed', 'error'); }
+    else { show('Deleted', 'success'); setNotes(prev => prev.filter(n => n.id !== note.id)); setSelected(null); }
+    setSaving(false);
+  }
+
+  const canSave = draft.trim().length > 0;
+
+  return (
+    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative' }}>
+      <Toast toast={toast} />
+
+      {/* Search */}
+      <div style={{ padding: '16px var(--slice-inset, 16px) 12px', flexShrink: 0 }}>
+        <input
+          value={query} onChange={e => setQuery(e.target.value)}
+          placeholder="Search your notes"
+          style={{ font: RUNG.t3, ...inputStyle, borderRadius: 999 }}
+        />
+      </div>
+
+      {loading ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: D.muted, textTransform: 'uppercase' }}>Loading</span>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, textAlign: 'center', gap: 8 }}>
+          <span style={{ font: RUNG.t2, color: D.cream }}>
+            {query.trim() ? 'Nothing matches' : 'No notes yet'}
+          </span>
+          {!query.trim() && (
+            <span style={{ font: RUNG.t3, color: D.muted, maxWidth: 260 }}>
+              Anything you jot to yourself lands here — a thought to pick up later, kept just for you.
+            </span>
+          )}
+        </div>
+      ) : (
+        <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', padding: '4px var(--slice-inset, 16px) 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {filtered.map(note => (
+            // TDW_06 P7e: a paper card via the design system's own .atelier-card class, so it
+            // wears each theme's card treatment (bg · border · lift · the per-theme inset
+            // highlight) — dark, light and flair all correct, nothing hardcoded. The only
+            // note-specific touches: a thin accent margin-rule down the left (the jotted
+            // notebook cue) and compact padding + a 2-line clamp so more notes fit. Date kept,
+            // quiet, in the corner — all colours are theme tokens.
+            <div key={note.id} onClick={() => setSelected(note)} className="atelier-card" style={{
+              borderLeft: '2px solid var(--atelier-accent-text)',
+              padding: '12px 12px 12px 16px',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'flex-start', gap: 12,
+            }}>
+              <div style={{
+                font: RUNG.t3,
+                flex: 1,
+                minWidth: 0,
+                color: 'var(--atelier-ink)',
+                overflowWrap: 'anywhere',   // DESIGN-1: the note is shown whole; nothing is cut at the large text setting
+              }}>{note.body}</div>
+              <span style={{
+                font: RUNG.t5,
+                letterSpacing: '0.08em',
+                color: 'var(--atelier-ink-mute)',
+                textTransform: 'uppercase',
+                flexShrink: 0,
+                paddingTop: 4,
+                whiteSpace: 'nowrap',
+              }}>{fmtDate(note.created_at)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+{/* ── CE-39 S2/6 · F-39.4 · THIS IS THE ONE THE FOUNDER SAW ─────────────────
+          52px at right 24, bottom 80, and NO TREE AWARENESS AT ALL — so inside the shell
+          it painted ON the ask dock. That is F-38.59 exactly: the finding SliceShell was
+          cured for at §4-4, live in a third file, through the whole of that sitting and
+          this one. It survived because b40's C39 stops at the first file a /w route
+          imports and this component is one hop further out; the handover's §6 carries the
+          lesson and the cell now walks the graph.
+          The shell arm draws the one seat and names no number. The /vendor arm keeps its
+          80 — Notes is mounted by the old list tree and by the studio, both of which die
+          at Phase 7, and deleting the button there would take the only way to write a note
+          with it. Disclosed as s-39.8: the ruling named SliceShell's carve-out and this
+          component has the identical dual-tree property. */}
+      {<Fab label="New note" onClick={() => setAddOpen(true)} />}
+
+      {/* Detail sheet */}
+      {selected && (
+        /* `data-wl-notesheet` is an INSTRUMENT HANDLE, not chrome: wl_render's C-R19 asserts
+           this sheet is GONE after Send to Chat (F-39.7), and an absence cell needs a name to
+           look for. The seat's first cut asserted a selector that did not exist anywhere —
+           vacuously true, and the hollow-green shape in miniature. Added rather than dropped,
+           because the claim is worth making. */
+        <div data-wl-notesheet style={{ position: 'fixed', inset: 0, zIndex: 20, display: 'flex', alignItems: 'flex-end', background: 'var(--atelier-overlay-bg)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setSelected(null)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width: '100%', background: 'var(--atelier-sheet-top)',
+            borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTop: '0.5px solid var(--atelier-card-border)',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+            padding: '0 0 calc(24px + env(safe-area-inset-bottom))',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 12, background: 'var(--atelier-label)' }} />
+            </div>
+            <div style={{ padding: '16px 24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ font: RUNG.t3, color: D.cream, margin: 0, whiteSpace: 'pre-wrap' }}>{selected.body}</p>
+              <span style={{ font: RUNG.t5, letterSpacing: '0.08em', color: 'var(--atelier-accent-text)', textTransform: 'uppercase' }}>{fmtDate(selected.created_at)}</span>
+              {/* CE-39 S2/6 · F-38.47: the note BODY is the prefill, and it never leaves
+                  memory — this is the door that refused arm (b), a URL param, because a
+                  note in a URL is a note in the history and the referrer. The ask door
+                  (lib/worklist/askContext.tsx) opens the sheet in place inside the shell
+                  and makes today's push on the /vendor tree.
+
+                  ── CE-39 S2/9 · F-39.7 · AND IT DISMISSES ITSELF NOW ──────────────
+                  This detail sheet is z-index 20 and the ask sheet is 40, so this door
+                  LOOKED correct on the walk while carrying the identical defect to the
+                  wishbone's: it left its own surface mounted underneath, and closing the
+                  chat returned the vendor to a stale sheet about a note she had just
+                  finished discussing. **The z-index was hiding it, not curing it** — which
+                  is why the cell added this sitting asserts the DISMISSAL and not the
+                  stacking. Same edit, same reason, same one-line shape as Calendar's. */}
+              <button type="button" onClick={() => { setSelected(null); openAsk(selected.body); }} style={{
+                font: RUNG.t4,
+                width: '100%',
+                padding: '12px 0',
+                background: 'var(--role-primary)',
+                border: 'none',
+                borderRadius: 12,
+                cursor: 'pointer',
+                color: 'var(--role-on-primary)',
+              }}>Send to chat</button>
+              <button type="button" onClick={() => doDelete(selected)} disabled={saving} style={{
+                font: RUNG.t4,
+                width: '100%',
+                padding: '12px 0',
+                background: 'transparent',
+                opacity: saving ? 0.5 : 1,
+                border: '0.5px solid var(--role-critical)',
+                borderRadius: 999,
+                cursor: saving ? 'default' : 'pointer',
+                color: D.red,
+              }}>{saving ? 'Working…' : 'Delete'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create sheet */}
+      {addOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 20, display: 'flex', alignItems: 'flex-end', background: 'var(--atelier-overlay-bg)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }} onClick={() => setAddOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width: '100%', background: 'var(--atelier-sheet-top)',
+            borderTopLeftRadius: 20, borderTopRightRadius: 20, borderTop: '0.5px solid var(--atelier-card-border)',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+            padding: '0 0 calc(24px + env(safe-area-inset-bottom))',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 12, background: 'var(--atelier-label)' }} />
+            </div>
+            <div style={{ padding: '16px 24px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ font: RUNG.t1, color: D.cream }}>Note to self</div>
+              <textarea
+                value={draft} onChange={e => setDraft(e.target.value)} autoFocus rows={4}
+                placeholder="Jot it down, just for you"
+                style={{ ...inputStyle, resize: 'none', minHeight: 96 }}
+              />
+              <button type="button" onClick={doCreate} disabled={!canSave || saving} style={{
+                font: RUNG.t4,
+                width: '100%',
+                padding: '12px 0',
+                background: canSave && !saving ? 'var(--atelier-accent-text)' : 'var(--atelier-input-border)',
+                border: 'none',
+                borderRadius: 999,
+                cursor: canSave && !saving ? 'pointer' : 'not-allowed',
+                color: 'var(--role-ink-on-metal)',
+              }}>{saving ? 'Saving…' : 'Save note'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -45,7 +45,7 @@
 //                 is the single home for all three and is untouched.
 //
 // ── CE-39 S2/6 · THE BODY CROSSES TYPOGRAPHICALLY, AND ONLY INSIDE THE SHELL ──
-// This block used to declare a gap: AtelierForm set its labels in Jost at 8px with
+// This block used to declare a gap: AtelierForm set its labels in Jost at 9px with
 // .42em–.5em tracking, R-38.4 retires that from the shell, and Settings was NAMED as
 // excluded from the render arm's tuple cell rather than captured and quietly passed over.
 // That gap closes here. It closes as a VARIANT and not a sweep (bank §2, chair-accepted):
@@ -181,11 +181,11 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
   //       pairing, twice — the display serif has no drawn glyph for either character.
   //   t1  the capacity numeral. NOT t0: 「ONE ELEMENT PER APP」 and it is Today's.
   const T = {
-    body:    register === 'rungs' ? { font: 'var(--wl-t3)' } : { fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5 },
-    caption: register === 'rungs' ? { font: 'var(--wl-t5)' } : { fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.32em', textTransform: 'uppercase' as const },
-    button:  register === 'rungs' ? { font: 'var(--wl-t4)' } : { fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.28em', textTransform: 'uppercase' as const },
-    numeral: register === 'rungs' ? { font: 'var(--wl-t1)' } : { fontFamily: F.display, fontSize: '1.75rem', lineHeight: 1 },
-    glyph:   register === 'rungs' ? { font: 'var(--wl-t2)' } : { fontFamily: F.body, fontSize: '1.375rem', lineHeight: 1 },
+    body:    register === 'rungs' ? { font: 'var(--wl-t3)' } : { fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5 },
+    caption: register === 'rungs' ? { font: 'var(--wl-t5)' } : { fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.32em', textTransform: 'uppercase' as const },
+    button:  register === 'rungs' ? { font: 'var(--wl-t4)' } : { fontFamily: F.label, fontWeight: 300, fontSize: 8, letterSpacing: '0.28em', textTransform: 'uppercase' as const },
+    numeral: register === 'rungs' ? { font: 'var(--wl-t1)' } : { fontFamily: F.display, fontSize: 31, lineHeight: 1 },
+    glyph:   register === 'rungs' ? { font: 'var(--wl-t2)' } : { fontFamily: F.body, fontSize: 20, lineHeight: 1 },
   };
 
   if (loading) return (
@@ -210,9 +210,9 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
     <div ref={signOutAnchor} style={chrome ? { flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 } : { flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
       <ToastView toast={toast} />
       {chrome && (
-        <div style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-          <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: '1.375rem', lineHeight: 1 }}>‹</button>
-          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Settings</span>
+        <div style={{ padding: '12px 22px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+          <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: A.interactiveWarm, fontFamily: F.display, fontSize: 20, lineHeight: 1 }}>‹</button>
+          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>Settings</span>
         </div>
       )}
 
@@ -236,7 +236,7 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
             admin detail view — neither is rendered or scored by Discover.
             Deep links hold: this route persists, with its remaining fields. */}
         <SCard register={register} title="Business">
-          <SField register={register} label="Your name" value={current.name} onChange={v => update({ name: v })} placeholder="Dev Roy" />
+          <SField register={register} label="Your Name" value={current.name} onChange={v => update({ name: v })} placeholder="Dev Roy" />
           <SField register={register} label="Style notes" value={current.style_notes} onChange={v => update({ style_notes: v })} multiline />
           <SaveBtn register={register}
             dirty={isDirty(['name', 'style_notes'])}
@@ -268,13 +268,13 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
             couples see you. This button opens the EDITOR. One byte on two rows with two
             destinations is the drift this file exists to refuse. New byte, in the copy
             register's one home, listed in the seat's inventory for the founder's veto. */}
-        <SCard register={register} title="Discover profile">
+        <SCard register={register} title="Discover Profile">
           <button type="button" onClick={() => router.push('/vendor/discover/profile')} style={{
             background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer', textAlign: 'left',
             minHeight: 44, color: A.interactiveWarm,
             ...(register === 'rungs'
               ? { font: 'var(--wl-t3)' }
-              : { fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5 }),
+              : { fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5 }),
           }}>{COPY.settingsEditProfile}</button>
         </SCard>
 
@@ -341,14 +341,14 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
             0 is a lawful posture and saves as 0, never coerced (Q-SP-1).
             All strings below are on the founder's veto-on-sight list. */}
         {current.capacity_applicable && (
-          <SCard register={register} title="Working capacity">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <SCard register={register} title="Working Capacity">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <button type="button" aria-label="Fewer" onClick={() => {
                 const base = current.slot_capacity === '' ? (current.capacity_default ?? 0) : Number(current.slot_capacity);
                 update({ slot_capacity: String(Math.max(0, base - 1)) });
               }} style={{
                 width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
-                background: 'none', border: '0.5px solid var(--atelier-input-border)',
+                background: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
                 /* F-09.121 CURED — see F-09.119 (app/vendor/tds/page.tsx FAB).
                    Same disease: −/+ set in the display serif, which has no drawn
                    glyph for either. Cured as a PAIR (Fork 4(a)) — curing one and
@@ -361,7 +361,7 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
                     ? (current.capacity_default != null ? String(current.capacity_default) : '—')
                     : current.slot_capacity}
                 </div>
-                <div style={{ ...T.caption, color: A.brassWarm, marginTop: 4 }}>
+                <div style={{ ...T.caption, color: A.brassWarm, marginTop: 5 }}>
                   {current.slot_capacity === ''
                     ? (current.capacity_default != null ? 'Category default' : 'Not counting yet')
                     : 'Bookings per slot'}
@@ -372,7 +372,7 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
                 update({ slot_capacity: String(base + 1) });
               }} style={{
                 width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
-                background: 'none', border: '0.5px solid var(--atelier-input-border)',
+                background: 'none', border: '0.5px solid rgba(201,168,76,0.35)',
                 /* F-09.121 CURED — see F-09.119 (app/vendor/tds/page.tsx FAB).
                    Same disease: −/+ set in the display serif, which has no drawn
                    glyph for either. Cured as a PAIR (Fork 4(a)) — curing one and
@@ -385,7 +385,7 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
             </div>
             {current.slot_capacity !== '' && (
               <button type="button" onClick={() => update({ slot_capacity: '' })} style={{
-                marginTop: 8, background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                marginTop: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0,
                 ...T.button, color: A.interactiveWarm,
               }}>Use category default{current.capacity_default != null ? ` (${current.capacity_default})` : ''}</button>
             )}
@@ -402,15 +402,15 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
 
         
 
-        <SCard register={register} title="TDW enquiry link">
+        <SCard register={register} title="TDW Enquiry Link">
           <SField register={register} label="Handle" value={current.routing_handle} onChange={v => update({ routing_handle: v.toUpperCase().replace(/[^A-Z0-9]/g, '') })} placeholder="YOURHANDLE" />
           {handle && (
             <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ ...T.body, color: A.inkMute, flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{waLink}</div>
+              <div style={{ ...T.body, color: A.inkMute, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{waLink}</div>
               <button type="button" onClick={() => navigator.clipboard.writeText(waLink).then(() => show('Link copied', 'success'))}
                 style={{
-                  background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 12,
-                  padding: '4px 12px', cursor: 'pointer',
+                  background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 2,
+                  padding: '5px 10px', cursor: 'pointer',
                   ...T.button, color: A.interactiveWarm, flexShrink: 0,
                 }}>Copy</button>
             </div>
@@ -418,7 +418,7 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
           <SaveBtn register={register} dirty={isDirty(['routing_handle'])} loading={saving === 'tdwlink'} onSave={saveHandle} />
         </SCard>
 
-        <SCard register={register} title="Invoice settings">
+        <SCard register={register} title="Invoice Settings">
           <SField register={register} label="Invoice prefix" value={current.invoice_prefix} onChange={v => update({ invoice_prefix: v })} placeholder="TDW/DEV550" />
           {prefixCounter != null && (
             <div style={{ ...T.body, color: A.inkMute, marginTop: 4 }}>
@@ -432,7 +432,7 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
           />
         </SCard>
 
-        <SCard register={register} title="Morning briefing">
+        <SCard register={register} title="Morning Briefing">
           <SToggle register={register} label="Enable WhatsApp briefing" value={current.briefing_enabled} onChange={v => update({ briefing_enabled: v })} />
           <SaveBtn register={register}
             dirty={isDirty(['briefing_enabled'])}
@@ -446,7 +446,7 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
             reachable from the profile coin. What stays is a line telling a
             vendor who looks for billing in Settings where it went — in the
             interface's own voice, with the route one tap away. That shape is
-            NOT invented here: it is the `<SCard register={register} title="Discover profile">`
+            NOT invented here: it is the `<SCard register={register} title="Discover Profile">`
             precedent earlier in this same file, which did exactly this when its
             fields left.
 
@@ -511,7 +511,7 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
               minHeight: 44, color: A.interactiveWarm,
               ...(register === 'rungs'
                 ? { font: 'var(--wl-t3)' }
-                : { fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5 }),
+                : { fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5 }),
             }}>{COPY.settingsManageSubscription}</button>
           </SCard>
         </div>
@@ -552,12 +552,12 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
             the same key the drawer row carries. 「Sign Out」 in Title Case went with the
             engraved register that carried it. */}
         <button type="button" onClick={askSignOut} style={{
-          width: '100%', minHeight: 44, padding: '16px 0', marginTop: 24,
-          background: 'transparent', border: '0.5px solid var(--role-critical)', borderRadius: 12,
+          width: '100%', minHeight: 44, padding: '14px 0', marginTop: 24,
+          background: 'transparent', border: '0.5px solid var(--role-critical)', borderRadius: 2,
           cursor: 'pointer', color: A.red,
           ...(register === 'rungs'
             ? { font: 'var(--wl-t4)' }
-            : { fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase' }),
+            : { fontFamily: F.label, fontWeight: 300, fontSize: 10, letterSpacing: '0.42em', textTransform: 'uppercase' }),
         }}>{COPY.drawerSignOut}</button>
       </div>
       {signOutSheet}

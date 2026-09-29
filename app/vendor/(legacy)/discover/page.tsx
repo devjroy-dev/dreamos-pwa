@@ -157,7 +157,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             padding: '0 24px 24px',
           }}>
             <div style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+              fontFamily: F.label, fontWeight: 300, fontSize: 9,
               letterSpacing: '0.42em', textTransform: 'uppercase',
               color: '#C9A84C', marginBottom: 14,
             }}>Your Portfolio</div>
@@ -168,13 +168,13 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 (the curation is of vendors, at the Discover approval queue),
                 and the demand side is couples everywhere in this product. */}
             <div style={{
-              fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem',
+              fontFamily: F.display, fontWeight: 400, fontSize: 39,
               color: '#F0E6D2', lineHeight: 1.08, letterSpacing: '0.005em',
               marginBottom: 10,
             }}>Appear before couples<br />planning their wedding.</div>
             <div style={{
               fontFamily: F.script, fontWeight: 300,
-              fontSize: '1rem', lineHeight: 1.5, color: 'rgba(240,230,210,0.78)',
+              fontSize: 16, lineHeight: 1.5, color: 'rgba(240,230,210,0.78)',
               letterSpacing: '0.01em',
             }}>A curated stage, not a marketplace.</div>
           </div>
@@ -201,15 +201,15 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         }}>
           <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em',
+              fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em',
               textTransform: 'uppercase', color: A.brassWarm,
             }}>Discover Profile</span>
             <span style={{
               fontFamily: F.script, fontWeight: 300,
-              fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.01em',
+              fontSize: 16, lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.01em',
             }}>How couples see you</span>
           </span>
-          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.brassWarm }}>›</span>
+          <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.brassWarm }}>›</span>
         </button>
 
         {/* ── 4-cell ledger ──────────────────────────────────────── */}
@@ -236,12 +236,12 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   }} />
                 )}
                 <div style={{
-                  fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem',
+                  fontFamily: F.display, fontWeight: 400, fontSize: 49,
                   lineHeight: 1, letterSpacing: '-0.01em',
                   color: accent ? color : 'var(--atelier-ink-dim)',
                 }}>{value}</div>
                 <div style={{
-                  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8,
                   letterSpacing: '0.36em', textTransform: 'uppercase',
                   color: A.brassWarm, marginTop: 12, /* F-09.87's species, the Discover page's own member (founder second shoot 2026-08-07): theme-blind gold-alpha ink, pale ochre on Paper; the label role themes */
                 }}>{label}</div>
@@ -255,7 +255,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           {loading ? (
             <div style={{
               fontFamily: F.script, fontWeight: 300,
-              fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 20,
+              fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 20,
             }}>Loading…</div>
           ) : state === 'not_requested' ? (
             portfolioTotal < floor ? (
@@ -266,7 +266,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                     background: 'transparent',
                     border: `0.5px solid rgba(201,168,76,0.4)`,
                     borderRadius: 2, cursor: 'pointer',
-                    fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+                    fontFamily: F.label, fontWeight: 300, fontSize: 10,
                     color: A.interactiveWarm, letterSpacing: '0.42em', textTransform: 'uppercase',
                     marginBottom: 10,
                   }}>
@@ -274,7 +274,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 </button>
                 <div style={{
                   fontFamily: F.script, fontWeight: 300,
-                  fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, textAlign: 'center',
+                  fontSize: 16, lineHeight: 1.5, color: A.inkMute, textAlign: 'center',
                 }}>
                   Upload at least {floor} pieces to request access. You have {portfolioTotal}.
                 </div>
@@ -286,7 +286,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   width: '100%', padding: '15px 0',
                   borderRadius: 2, cursor: 'pointer',
                   border: '0.5px solid var(--atelier-label)',
-                  fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem',
+                  fontFamily: F.label, fontWeight: 400, fontSize: 10,
                   color: INK_DEEP, letterSpacing: '0.5em', textTransform: 'uppercase',
                 }}>
                 Request Access
@@ -299,13 +299,13 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               background: 'linear-gradient(90deg, rgba(201,168,76,0.05) 0%, transparent 100%)',
             }}>
               <div style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+                fontFamily: F.label, fontWeight: 300, fontSize: 8,
                 letterSpacing: '0.42em', textTransform: 'uppercase',
                 color: A.brass, marginBottom: 6,
               }}>Under Review</div>
               <div style={{
                 fontFamily: F.script, fontWeight: 300,
-                fontSize: '1rem', color: A.inkSoft, lineHeight: 1.5, /* same shoot's species: pinned cream on the THEMED page — cream-on-cream on Paper; the hero's pinned creams sit on the SCRIM and stay (per-site law). Both state-card italics cured together: the other card was one state away from the same invisibility. */
+                fontSize: 16, color: A.inkSoft, lineHeight: 1.5, /* same shoot's species: pinned cream on the THEMED page — cream-on-cream on Paper; the hero's pinned creams sit on the SCRIM and stay (per-site law). Both state-card italics cured together: the other card was one state away from the same invisibility. */
               }}>
                 {COPY.discoverApplicationPending}
               </div>
@@ -319,13 +319,13 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 : 'linear-gradient(90deg, rgba(224,188,110,0.06) 0%, transparent 100%)',
             }}>
               <div style={{
-                fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+                fontFamily: F.label, fontWeight: 300, fontSize: 8,
                 letterSpacing: '0.42em', textTransform: 'uppercase',
                 color: approvedButHidden ? A.red : A.brassWarm, marginBottom: 6,
               }}>{approvedButHidden ? 'Hidden For Now' : 'Approved'}</div>
               <div style={{
                 fontFamily: F.script, fontWeight: 300,
-                fontSize: '1rem', color: A.inkSoft, lineHeight: 1.5, /* same shoot's species: pinned cream on the THEMED page — cream-on-cream on Paper; the hero's pinned creams sit on the SCRIM and stay (per-site law). Both state-card italics cured together: the other card was one state away from the same invisibility. */
+                fontSize: 16, color: A.inkSoft, lineHeight: 1.5, /* same shoot's species: pinned cream on the THEMED page — cream-on-cream on Paper; the hero's pinned creams sit on the SCRIM and stay (per-site law). Both state-card italics cured together: the other card was one state away from the same invisibility. */
               }}>
                 {approvedButHidden
                   ? 'You\u2019re approved, but your profile is hidden from couples right now. We\u2019ll be in touch.'
@@ -352,13 +352,13 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 marginBottom: 14,
               }}>
                 <div style={{
-                  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8,
                   letterSpacing: '0.42em', textTransform: 'uppercase',
                   color: A.red, marginBottom: 6,
                 }}>Hidden</div>
                 <div style={{
                   fontFamily: F.script, fontWeight: 300,
-                  fontSize: '1rem', color: A.inkSoft, lineHeight: 1.5,
+                  fontSize: 16, color: A.inkSoft, lineHeight: 1.5,
                 }}>
                   Your profile is hidden from couples right now. You can apply again
                   whenever you&apos;re ready.
@@ -370,7 +370,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   width: '100%', padding: '14px 0',
                   borderRadius: 2, cursor: 'pointer',
                   border: '0.5px solid var(--atelier-label)',
-                  fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem',
+                  fontFamily: F.label, fontWeight: 400, fontSize: 10,
                   color: INK_DEEP, letterSpacing: '0.42em', textTransform: 'uppercase',
                 }}>
                 Re-apply
@@ -385,13 +385,13 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 marginBottom: 14,
               }}>
                 <div style={{
-                  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+                  fontFamily: F.label, fontWeight: 300, fontSize: 8,
                   letterSpacing: '0.42em', textTransform: 'uppercase',
                   color: A.red, marginBottom: 6,
                 }}>Not Approved</div>
                 <div style={{
                   fontFamily: F.script, fontWeight: 300,
-                  fontSize: '1rem', color: A.inkSoft, lineHeight: 1.5,
+                  fontSize: 16, color: A.inkSoft, lineHeight: 1.5,
                 }}>{status?.last_decision_reason ?? 'Application not approved.'}</div>
               </div>
               <button type="button" onClick={() => router.push('/vendor/discover/submit')}
@@ -400,7 +400,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   width: '100%', padding: '14px 0',
                   borderRadius: 2, cursor: 'pointer',
                   border: '0.5px solid var(--atelier-label)',
-                  fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem',
+                  fontFamily: F.label, fontWeight: 400, fontSize: 10,
                   color: INK_DEEP, letterSpacing: '0.42em', textTransform: 'uppercase',
                 }}>
                 Re-apply
@@ -413,18 +413,18 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
         {collection.length > 0 && (
           <div style={{ padding: '36px 22px 32px' }}>
             <div style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+              fontFamily: F.label, fontWeight: 300, fontSize: 9,
               letterSpacing: '0.5em', textTransform: 'uppercase',
               color: A.brass, marginBottom: 6,
             }}>The Collection</div>
             <div style={{
-              fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem',
+              fontFamily: F.display, fontWeight: 400, fontSize: 25,
               color: 'var(--atelier-ink)', lineHeight: 1.1, marginBottom: 4,
               letterSpacing: '0.005em',
             }}>Your latest work</div>
             <div style={{
               fontFamily: F.script, fontWeight: 300,
-              fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginBottom: 18,
+              fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 18,
               letterSpacing: '0.01em',
             }}>As couples will see it, curated.</div>
 
@@ -458,7 +458,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 background: 'transparent',
                 border: `0.5px solid rgba(201,168,76,0.32)`,
                 borderRadius: 2, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+                fontFamily: F.label, fontWeight: 300, fontSize: 10,
                 color: A.interactiveWarm, letterSpacing: '0.42em', textTransform: 'uppercase',
               }}>
               Manage Collection
@@ -471,7 +471,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           <div style={{ padding: '40px 24px', textAlign: 'center' }}>
             <div style={{
               fontFamily: F.script, fontWeight: 300,
-              fontSize: '1rem', color: A.inkMute, lineHeight: 1.5,
+              fontSize: 16, color: A.inkMute, lineHeight: 1.5,
             }}>
               Your collection is empty.<br />
               <button type="button" onClick={() => router.push('/vendor/portfolio')}
@@ -480,7 +480,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   background: 'none',
                   border: '0.5px solid rgba(201,168,76,0.4)',
                   borderRadius: 2, cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+                  fontFamily: F.label, fontWeight: 300, fontSize: 9,
                   color: A.interactiveWarm, letterSpacing: '0.36em', textTransform: 'uppercase',
                 }}>Upload your first piece</button>
             </div>

@@ -1,0 +1,316 @@
+'use client';
+import { RUNG_FONT as RUNG } from '@/v2/lib/worklist/theme'; // CE-45 FE-2 (the Ask TDW sheet cut): the app's own type (F7)
+import { useState, type ReactNode } from 'react';
+import type { ChatMessage } from '@/v2/hooks/vendor/useChat';
+import { useT } from '@/lib/vendor/ThemeContext';
+import { TypingDots } from './TypingDots';
+
+const A = { brass: 'var(--role-metal)', brassWarm: 'var(--atelier-label)' } as const;
+// CE-45 FE-2 (the Ask TDW sheet cut): the local face constant F is retired; every site reads a rung (F7).
+
+function toE164(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return '91' + digits;
+  return digits;
+}
+
+
+// (Draft-guessing removed — a plain Copy now lives on every AI message.)
+
+// ── Myra's prose renderer ────────────────────────────────────────────────
+// Ported from dreamai's desk renderer (paragraphs + **bold**), adapted for Myra:
+// adds list rendering and auto-emphasis of Rs amounts in the theme accent.
+// No dependency — a small hand-rolled inline parser, exactly how dreamai did it.
+type Tok = ReturnType<typeof import('@/lib/vendor/ThemeContext').useT>;
+
+// Inline: **bold**, *italic* / _italic_, `code`, and Rs amounts in the accent.
+function emphasizeRs(seg: string, T: Tok, salt: string): ReactNode[] {
+  // matches: Rs 1,00,000  /  Rs 75000  /  Rs 2.55 lakh  /  Rs 1.2 cr
+  const parts = seg.split(/(Rs\.?\s?[\d,]+(?:\.\d+)?(?:\s?(?:lakh|cr|crore|k))?)/gi);
+  return parts.map((p, i) => {
+    if (/^Rs\.?\s?[\d,]/i.test(p)) {
+      return <span key={`${salt}r${i}`} style={{ color: T.accent, fontWeight: 500 }}>{p}</span>;
+    }
+    return <span key={`${salt}n${i}`}>{p}</span>;
+  });
+}
+// Italic emphasis — founder-ruled WHOLE REGISTER (TDW_06 economics sitting open,
+// verbatim: "it should be italics. thats victors voice reserved"): *word* / _word_
+// stays in the italic register; WEIGHT alone (500) is the emphasis. The earlier
+// upright-inversion rationale is retired with the ruling — same warrant as the
+// **bold** branch below (ZIP 8), extended by his word to em, the Rs accent, and
+// headings. `code` deliberately stays upright — not on his list, machine text.
+function italicNodes(text: string, T: Tok, salt: string): ReactNode[] {
+  const out: ReactNode[] = [];
+  const re = /\*(?!\s)([^*\n]+?)\*|_(?!\s)([^_\n]+?)_/g;
+  let last = 0; let m: RegExpExecArray | null; let k = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out.push(<span key={`${salt}t${k++}`}>{emphasizeRs(text.slice(last, m.index), T, `${salt}${k}`)}</span>);
+    const inner = m[1] !== undefined ? m[1] : (m[2] as string);
+    out.push(<em key={`${salt}i${k++}`} style={{ fontStyle: 'normal', fontWeight: 500 }}>{emphasizeRs(inner, T, `${salt}${k}`)}</em>);
+    last = re.lastIndex;
+  }
+  if (last < text.length) out.push(<span key={`${salt}t${k++}`}>{emphasizeRs(text.slice(last), T, `${salt}${k}`)}</span>);
+  return out;
+}
+// Inline: split on **bold** and `code` first (strong delimiters), italics handled within
+// the runs between them — so * inside ** is never mis-paired.
+function inlineNodes(text: string, T: Tok, salt: string): ReactNode[] {
+  const out: ReactNode[] = [];
+  // `\x60` IS THE BACKTICK, and the escape is the whole edit — the pattern this
+  // regex matches is byte-for-byte what it always matched (proven both ways at
+  // the cut, nine inputs including the empty and adjacent-delimiter cases).
+  // WHY: the estate's one comment scanner does not know a regex literal from
+  // code, so the two bare backticks here opened a phantom template string and
+  // every comment BELOW this line survived stripping — twelve of them. C32 then
+  // convicted this file of putting a persona name on a shell surface, when line
+  // 71 is prose about a founder ruling on italic register. Cause, not symptom:
+  // the escape re-syncs the scanner and the eleven other comments go quiet too.
+  // F-39.42 owns the general case (33 lexer divergences, no cell reads the list).
+  const re = /\*\*(.+?)\*\*|\x60([^\x60]+?)\x60/g;
+  let last = 0; let m: RegExpExecArray | null; let k = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out.push(<span key={`${salt}t${k++}`}>{italicNodes(text.slice(last, m.index), T, `${salt}${k}`)}</span>);
+    if (m[1] !== undefined) {
+      // Founder-ruled (2026-07-18, the riders smoke): **bold** keeps the bubble's
+      // italic register — WEIGHT alone is the emphasis. The dreamai-ported
+      // inversion (upright bold) read as a second voice breaking Victor's serif
+      // on the live screens. His word arrived at the economics sitting's open:
+      // the WHOLE register is italic — em, Rs accent, and headings joined (this ZIP).
+      out.push(<strong key={`${salt}b${k++}`} style={{ fontWeight: 500 }}>{italicNodes(m[1], T, `${salt}${k}`)}</strong>);
+    } else {
+      out.push(<code key={`${salt}c${k++}`} style={{ font: 'inherit', background: 'var(--atelier-input-bg)', padding: '0px 4px', borderRadius: 12 }}>{m[2]}</code>);
+    }
+    last = re.lastIndex;
+  }
+  if (last < text.length) out.push(<span key={`${salt}t${k++}`}>{italicNodes(text.slice(last), T, `${salt}${k}`)}</span>);
+  return out;
+}
+// Block: blank-line-separated. A run of -/*/+/• lines is a bulleted list; a run of
+// "1." / "1)" lines is numbered; a #/##/### line is a heading; else a paragraph.
+// ── CE-45 FE-2 · THE ASK TDW SHEET CUT: NO MARKDOWN SYMBOL REACHES THE GLASS ────────────────────────────
+// ASK-1's app lane sends plain sentences (its code removes bold, headings, fences, bullet markers and dashes);
+// the Advisor room's replies carry markdown. What this renderer does not draw as structure is reduced to its
+// words BEFORE the blocks are read, so no raw symbol shows at phone size: a link shows its text, a table row
+// its cells joined by a middle dot (its separator row dropped), a rule line or a code fence is dropped, and a
+// quote marker is stripped. Words are never changed, only the markup around them.
+function plainMarkdown(text: string): string {
+  return (text || '').split('\n').map((line) => {
+    // F-44.201 (CE-46 FE-3): the fence is spelled \x60 so no backtick sits inside a regex literal (b40 C102's lexer
+    // reads a backtick anywhere outside a comment as a template string's edge; three of them here made it read the
+    // rest of this file as prose and count three comment apostrophes as shipped bytes)
+    if (/^\s*(\x60{3}|~~~)/.test(line)) return null;                               // a code fence
+    if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) return null;                      // a rule: ---, ***, ___
+    if (/^\s*\|?(\s*:?-{2,}:?\s*\|)+\s*:?-{0,}:?\s*\|?\s*$/.test(line)) return null;  // a table's separator row
+    let l = line.replace(/^\s*>\s?/, '');                                           // a quote marker
+    if (/^\s*\|.*\|\s*$/.test(l)) l = l.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim()).filter(Boolean).join(' \u00b7 ');
+    l = l.replace(/\[([^\]]+)\]\((?:[^)\s]+)\)/g, '$1');                           // a link: its text
+    // a heading stands alone in its own block (the renderer draws a heading only when it does), and a
+    // level past 3 is read as 3 (the renderer's deepest), so no '#' is ever left on the glass
+    if (/^\s*#{1,6}\s+/.test(l)) return '\n' + l.replace(/^\s*#{4,6}\s+/, '### ') + '\n';
+    return l;
+  }).filter((l) => l !== null).join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\n+/, '');
+}
+
+const BULLET = /^\s*[-*+•]\s+/;
+const NUMBERED = /^\s*\d+[.)]\s+/;
+const HEADING = /^\s*#{1,3}\s+/;
+function renderProse(text: string, T: Tok): ReactNode[] {
+  const pStyle = {
+    font: RUNG.t3,
+    color: T.ink,
+    margin: 0,
+    whiteSpace: 'pre-wrap' as const,
+    overflowWrap: 'anywhere' as const,
+    // a long unbroken string (a link, a long number) wraps inside the bubble
+  };
+  const blocks = plainMarkdown(text).split(/\n\n+/);
+  const out: ReactNode[] = [];
+  blocks.forEach((block, bi) => {
+    const lines = block.split('\n');
+    const nonEmpty = lines.filter((l) => l.trim() !== '');
+    const isBullet = nonEmpty.length > 0 && nonEmpty.every((l) => BULLET.test(l));
+    const isNumbered = nonEmpty.length > 0 && nonEmpty.every((l) => NUMBERED.test(l));
+    const isHeading = nonEmpty.length === 1 && HEADING.test(nonEmpty[0]);
+    if (isBullet) {
+      const items = nonEmpty.map((l) => l.replace(BULLET, ''));
+      out.push(
+        <ul key={`ul${bi}`} style={{ ...pStyle, margin: 0, paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {items.map((it, ii) => (
+            <li key={`li${bi}-${ii}`} style={{ listStyleType: 'disc' }}>{inlineNodes(it, T, `${bi}-${ii}-`)}</li>
+          ))}
+        </ul>
+      );
+    } else if (isNumbered) {
+      const items = nonEmpty.map((l) => l.replace(NUMBERED, ''));
+      out.push(
+        <ol key={`ol${bi}`} style={{ ...pStyle, margin: 0, paddingLeft: 24, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {items.map((it, ii) => (
+            <li key={`oli${bi}-${ii}`} style={{ listStyleType: 'decimal' }}>{inlineNodes(it, T, `${bi}-${ii}-`)}</li>
+          ))}
+        </ol>
+      );
+    } else if (isHeading) {
+      const level = (nonEmpty[0].match(/^#{1,3}/) || ['#'])[0].length;
+      out.push(
+        <p key={`h${bi}`} style={{ font: RUNG.t2, ...pStyle }}>
+          {inlineNodes(nonEmpty[0].replace(HEADING, ''), T, `${bi}-h-`)}
+        </p>
+      );
+    } else {
+      out.push(<p key={`p${bi}`} style={pStyle}>{inlineNodes(block, T, `${bi}-`)}</p>);
+    }
+  });
+  return out;
+}
+
+function AiMessageText({ text, streaming, T }: { text: string; streaming?: boolean; T: ReturnType<typeof import('@/lib/vendor/ThemeContext').useT> }) {
+  const [copied, setCopied] = useState(false);
+
+  function copy() {
+    try {
+      navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback
+    }
+  }
+
+  // Before the first word lands, the blob breathes in place of the empty line
+  // (the working mark); it gives way to the reply as soon as text arrives.
+  if (streaming && !text) return <TypingDots />;
+
+  return (
+    <>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {renderProse(text, T)}
+      </div>
+      <button
+        type="button"
+        onClick={copy}
+        aria-label={copied ? "Copied" : "Copy message"}
+        title={copied ? "Copied" : "Copy"}
+        style={{
+          marginTop: 8,
+          width: 24, height: 24, padding: 0,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          background: "transparent", border: "none", cursor: "pointer",
+          color: copied
+            ? (T.isLight ? T.accent : "var(--role-metal)")
+            : 'var(--atelier-ink-mute)',
+          transition: "color 200ms",
+        }}
+      >
+        {copied ? (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+        )}
+      </button>
+    </>
+  );
+}
+
+
+interface MessageBubbleProps { message: ChatMessage; }
+
+export function MessageBubble({ message }: MessageBubbleProps) {
+  const T = useT();
+  const isUser  = message.role === 'user';
+  const contact = message.contact;
+
+  if (isUser) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 24px' }}>
+        <div style={{
+          maxWidth: '80%', padding: '12px 16px',
+          borderRadius: '14px 14px 4px 14px',
+          background: 'var(--atelier-input-bg)',
+          border: '0.5px solid var(--atelier-card-border)',
+          boxShadow: 'none',
+        }}>
+          <p style={{
+            font: RUNG.t3,
+            color: T.ink,
+            margin: 0,
+            whiteSpace: 'pre-wrap',
+          }}>{message.text}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const hairline = T.isLight
+    ? 'var(--atelier-accent-text)'
+    : 'linear-gradient(180deg, transparent 0%, var(--atelier-input-border) 25%, var(--atelier-input-border) 50%, var(--atelier-input-border) 75%, transparent 100%)';
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '8px 24px' }}>
+      <div style={{ maxWidth: '92%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ padding: '8px 16px 4px 16px', position: 'relative' }}>
+          {/* R-41.142 — THE ADVISOR EDGE IS THIS HAIRLINE, RECOLOURED. The bubble
+              already draws a left rule; giving the room a SECOND one would put two
+              elements on one edge and let them disagree. When the message was
+              answered in the advisor room it thickens to 2px and takes the accent,
+              so the room reads on every reply rather than only at the seam.
+              `message.room` is the ENGINE'S resolved value (R-41.142), null in
+              consult — and null draws the ordinary hairline, which is the truth. */}
+          <span aria-hidden style={{
+            position: 'absolute', left: 4, top: 12, bottom: 12,
+            width: message.room === 'advisor' ? 2 : 1,
+            background: message.room === 'advisor' ? 'var(--atelier-accent-text)' : hairline,
+          }} />
+          <div style={{
+            font: RUNG.t5,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: T.isLight ? T.accent : 'var(--atelier-input-border)',
+            marginBottom: 8,
+          }}>TDW</div>
+          <AiMessageText text={message.text} streaming={message.streaming} T={T} />
+        </div>
+        {contact?.phone && (
+          <div style={{ display: 'flex', gap: 8, paddingLeft: 16 }}>
+            <a href={`https://wa.me/${toE164(contact.phone)}${contact.draft ? `?text=${encodeURIComponent(contact.draft)}` : ''}`}
+              target="_blank" rel="noopener noreferrer" style={{
+                font: RUNG.t4,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 16px',
+                background: 'transparent',
+                border: '0.5px solid var(--atelier-sheet-border)',
+                borderRadius: 12,
+                textDecoration: 'none',
+                color: 'var(--role-positive)',
+              }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--role-positive)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.532 5.849L0 24l6.318-1.658A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.003-1.371l-.359-.213-3.72.976.994-3.634-.234-.374A9.818 9.818 0 1112 21.818z"/></svg>
+              WhatsApp {contact.name.split(' ')[0]}
+            </a>
+            <a href={`tel:${contact.phone}`} style={{
+              font: RUNG.t4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 16px',
+              background: T.inputBg,
+              border: `0.5px solid ${T.inputBorder}`,
+              borderRadius: 12,
+              textDecoration: 'none',
+              color: T.inkMute,
+            }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.67a16 16 0 006.29 6.29l1.03-1.34a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+              Call
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

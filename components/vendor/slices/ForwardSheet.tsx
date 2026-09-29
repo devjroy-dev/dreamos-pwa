@@ -119,7 +119,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
   const panel: React.CSSProperties = {
     position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 61,
     background: 'var(--atelier-sheet-bg)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
-    borderTop: '0.5px solid var(--atelier-sheet-border)', padding: '16px 24px 24px', maxHeight: '92%', overflowY: 'auto',
+    borderTop: '0.5px solid var(--atelier-sheet-border)', padding: '18px 22px 26px', maxHeight: '92%', overflowY: 'auto',
   };
 
   return (
@@ -161,9 +161,9 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                 boxSizing: 'border-box',
                 background: 'var(--atelier-input-bg)',
                 border: '0.5px solid var(--atelier-input-border)',
-                borderRadius: 12,
-                padding: '12px 12px',
-                margin: '12px 0 4px',
+                borderRadius: 3,
+                padding: '10px 12px',
+                margin: '10px 0 2px',
                 color: A.ink,
               }}
             />
@@ -176,8 +176,8 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                   letterSpacing: '0.08em',
                   ...label,
                   color: A.inkMute,
-                  marginTop: 16,
-                  paddingTop: 12,
+                  marginTop: 14,
+                  paddingTop: 10,
                   borderTop: '0.5px solid var(--atelier-card-border)',
                 }}>
                   {g.key === 'worked_with' ? RF.groupWorkedWith
@@ -188,7 +188,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                   <button key={p.id} type="button" onClick={() => { setChosen(p); setPicking(false); }} style={{
                     display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center',
                     background: 'transparent', border: 'none',
-                    padding: '12px 0', cursor: 'pointer', textAlign: 'left',
+                    padding: '11px 0', cursor: 'pointer', textAlign: 'left',
                   }}>
                     <span>
                       {/* HER NAME OR NOTHING — never an invented one. */}
@@ -198,7 +198,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                           public storefront card — which is the whole argument
                           R-40.107 rests on. Nothing else: no rating, no distance,
                           no count of forwards, and never a phone. */}
-                      <span style={{ ...label, display: 'block', marginTop: 4 }}>
+                      <span style={{ ...label, display: 'block', marginTop: 2 }}>
                         {[p.category, p.city].filter(Boolean).join(' \u00b7 ') || '\u2014'}
                       </span>
                     </span>
@@ -221,7 +221,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                 and a control pointing at a door this sheet cannot open is worse
                 than none. */}
             {result && result.searching && result.groups.length === 0 ? (
-              <p style={{ font: T.t4, color: A.inkMute, marginTop: 16 }}>
+              <p style={{ font: T.t4, color: A.inkMute, marginTop: 14 }}>
                 {RF.searchNoMatch}
               </p>
             ) : null}
@@ -239,15 +239,15 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                 is nothing to retry against this peer, and a live Forward button
                 beneath a refusal invites her to press it again. */}
             {refusal ? (
-              <div style={{ border: '0.5px solid var(--role-caution)', borderLeftWidth: 2, borderRadius: 12, padding: 12, marginBottom: 12 }}>
+              <div style={{ border: '0.5px solid var(--role-caution)', borderLeftWidth: 2, borderRadius: 3, padding: 12, marginBottom: 12 }}>
                 <p style={{ font: T.t3, color: A.ink, margin: 0 }}>{refusal}</p>
               </div>
             ) : null}
             {error ? (
-              <p style={{ font: T.t4, color: A.inkMute, marginBottom: 12 }}>{error}</p>
+              <p style={{ font: T.t4, color: A.inkMute, marginBottom: 10 }}>{error}</p>
             ) : null}
 
-            <span style={{ ...label, display: 'block', marginBottom: 4 }}>{RF.fieldPeer}</span>
+            <span style={{ ...label, display: 'block', marginBottom: 5 }}>{RF.fieldPeer}</span>
             <button type="button" onClick={() => setPicking(true)} disabled={sending} style={{
               font: T.t3,
               display: 'flex',
@@ -256,8 +256,8 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
               alignItems: 'center',
               background: 'var(--atelier-input-bg)',
               border: `0.5px solid ${chosen ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
-              borderRadius: 12,
-              padding: '12px 12px',
+              borderRadius: 3,
+              padding: '10px 12px',
               marginBottom: 12,
               cursor: 'pointer',
               color: chosen ? A.ink : A.inkDim,
@@ -275,7 +275,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
 
             {!refusal ? (
               <>
-                <span style={{ ...label, display: 'block', marginBottom: 4 }}>{RF.fieldNote}</span>
+                <span style={{ ...label, display: 'block', marginBottom: 5 }}>{RF.fieldNote}</span>
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
@@ -287,8 +287,8 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                     boxSizing: 'border-box',
                     background: 'var(--atelier-input-bg)',
                     border: '0.5px solid var(--atelier-card-border)',
-                    borderRadius: 12,
-                    padding: '12px 12px',
+                    borderRadius: 3,
+                    padding: '10px 12px',
                     color: A.ink,
                     marginBottom: 12,
                     resize: 'none',
@@ -304,7 +304,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                 minHeight: 48,
                 background: 'transparent',
                 border: '0.5px solid var(--atelier-card-border)',
-                borderRadius: 12,
+                borderRadius: 3,
                 cursor: 'pointer',
                 color: A.inkSoft,
               }}>{RF.refusalClose}</button>
@@ -315,7 +315,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                   width: '100%',
                   minHeight: 48,
                   border: 'none',
-                  borderRadius: 12,
+                  borderRadius: 3,
                   background: chosen && !sending ? 'var(--atelier-accent-text)' : 'var(--atelier-card-border)',
                   color: chosen && !sending ? 'var(--role-ink-deep)' : A.inkDim,
                   cursor: chosen && !sending ? 'pointer' : 'default',
@@ -324,7 +324,7 @@ export function ForwardSheet({ leadId, personLabel, onDone, onForwarded }: Props
                 {/* B6 · R-G51.7 SAID OUT LOUD BEFORE SHE TAPS, NOT DISCOVERED
                     AFTER. She will otherwise assume TDW told the couple, and
                     find out it did not when the couple asks. */}
-                <p style={{ font: T.t4, color: A.inkDim, marginTop: 16 }}>
+                <p style={{ font: T.t4, color: A.inkDim, marginTop: 14 }}>
                   {RF.sheetStandingLine}
                 </p>
               </>

@@ -201,7 +201,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
 
         <button type="button" onClick={() => router.push('/vendor/discover')} style={{
           background: 'none', border: 'none', padding: '14px 0', cursor: 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em',
+          fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.42em',
           textTransform: 'uppercase', color: A.interactiveWarm,
         }}>‹ Discover</button>
 
@@ -221,7 +221,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
         <button type="button" onClick={() => router.push('/vendor/discover/preview')} style={{
           display: 'block', width: '100%', margin: '18px 0 0', padding: '13px 0',
           background: 'none', border: `0.5px solid ${A.interactiveWarm}`, borderRadius: 2,
-          cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+          cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: 9,
           letterSpacing: '0.32em', textTransform: 'uppercase', color: A.interactiveWarm,
         }}>
           See your profile as couples do
@@ -233,7 +233,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             {hints.map((h) => (
               <div key={h.term} style={{
                 fontFamily: F.script, fontWeight: 300,
-                fontSize: '1rem', lineHeight: 1.5, color: A.inkSoft, letterSpacing: '0.01em',
+                fontSize: 16, lineHeight: 1.5, color: A.inkSoft, letterSpacing: '0.01em',
               }}>· {HINT_COPY[h.term](gaps[h.term])}</div>
             ))}
           </div>
@@ -241,7 +241,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
 
         {/* ── PHOTOS: P3's slot. This screen states the truth and links out. ── */}
         <SCard title="Portfolio">
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkSoft }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
             {/* FOUNDER-VETOED 2026-07-29 (copy slot 3, 「 go 」). BOTH numbers, one line —
                 F-07.4's two readings can never contradict each other on a screen that
                 shows them together. The gate counts uploaded; the feed shows approved. */}
@@ -249,7 +249,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           </div>
           <button type="button" onClick={() => router.push('/vendor/portfolio')} style={{
             alignSelf: 'flex-start', background: 'none', padding: '6px 0', border: 'none', cursor: 'pointer',
-            fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.36em',
+            fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.36em',
             textTransform: 'uppercase', color: A.interactiveWarm,
           }}>Manage photos ›</button>
         </SCard>
@@ -266,7 +266,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           {/* FOUNDER-VETOED 2026-07-29 (copy slot 6, 「 go 」). business_name is the one
               field the ruling sent here despite a second consumer — the card headline AND
               the invoice letterhead. The vendor is told, rather than surprised. */}
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             This is the name couples see and the name on your invoices.
           </div>
           <SField label="City" value={current.city} onChange={(v) => update({ city: v })} />
@@ -327,7 +327,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           </div>
           <SToggle label="Show starting price on Discover"
                    value={current.rate_display} onChange={(v) => update({ rate_display: v })} />
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
             {/* The register law (tokens.ts:41): always "Rs", never the glyph, never k/L/Cr.
                 formatRs is the on-register donor; lib/vendor/cabinet.ts's short form is not. */}
             {current.rate_display
@@ -356,7 +356,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
           {/* FOUNDER-VETOED 2026-07-29 (copy slot 1, 「 go 」). Shown ALWAYS, not only while
               paused: consequences a vendor reads before acting are the point. This switch
               retires the founder-run UPDATE that P1's smoke card step ⑤ required. */}
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkSoft }}>
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkSoft }}>
             Hidden from Discover. Your approval stays. Enquiries already in flight still reach you.
           </div>
           <SaveBtn dirty={isDirty(['discover_paused'])} loading={saving === 'pause'}
@@ -399,7 +399,7 @@ function TagEditor({ category, value, onChange }: {
                 padding: '7px 14px', borderRadius: 2, cursor: 'pointer',
                 background: on ? 'rgba(201,168,76,0.18)' : 'transparent',
                 border: `0.5px solid ${on ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.22)'}`,
-                fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+                fontFamily: F.label, fontWeight: 300, fontSize: 9,
                 color: on ? 'var(--atelier-label)' : A.inkMute,
                 letterSpacing: '0.28em', textTransform: 'uppercase',
               }}>{tag}</button>
@@ -415,7 +415,7 @@ function TagEditor({ category, value, onChange }: {
                 padding: '7px 14px', borderRadius: 2, cursor: 'pointer',
                 background: 'transparent',
                 border: '0.5px dashed rgba(201,168,76,0.4)',
-                fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1,
+                fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1,
                 color: A.ink,
               }}>{tag} ×</button>
           ))}
@@ -427,16 +427,16 @@ function TagEditor({ category, value, onChange }: {
           placeholder="Add your own word"
           style={{ flex: 1, padding: '10px 12px', boxSizing: 'border-box',
             background: 'var(--atelier-input-bg)', border: '0.5px solid rgba(201,168,76,0.28)',
-            borderRadius: 2, fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5,
+            borderRadius: 2, fontFamily: F.body, fontWeight: 300, fontSize: 16, lineHeight: 1.5,
             color: A.ink, outline: 'none', caretColor: 'var(--atelier-accent-text)' }} />
         <button type="button" onClick={addCustom} style={{
           padding: '10px 16px', borderRadius: 2, cursor: 'pointer',
           background: 'transparent', border: '0.5px solid var(--atelier-label)',
-          fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', letterSpacing: '0.32em',
+          fontFamily: F.label, fontWeight: 400, fontSize: 9, letterSpacing: '0.32em',
           textTransform: 'uppercase', color: 'var(--atelier-label)' }}>Add</button>
       </div>
       {/* FOUNDER-VETOED (relay #2 slate + RIDER4 §5): the custom-tag honesty byte. */}
-      <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
+      <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute }}>
         Your own words are shown on your profile, but couples can&rsquo;t filter by them yet.
       </div>
     </div>

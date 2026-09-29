@@ -61,7 +61,7 @@ const EVENT_KINDS: { label: string; value: string }[] = [
 
 const SCHEMAS: Record<ListSlice, { title: string; editTitle: string; fields: FieldDef[]; submit: string }> = {
   leads: {
-    title: 'New enquiry', editTitle: 'Edit enquiry',
+    title: 'New lead', editTitle: 'Edit lead',
     fields: [
       { key: 'name',         label: 'Name',         type: 'text',     required: true },
       { key: 'phone',        label: 'Phone',        type: 'phone' },
@@ -71,7 +71,7 @@ const SCHEMAS: Record<ListSlice, { title: string; editTitle: string; fields: Fie
       { key: 'budget_max',   label: 'Budget max',   type: 'currency' },
       { key: 'notes',        label: 'Notes',        type: 'textarea' },
     ],
-    submit: 'Add enquiry',
+    submit: 'Add lead',
   },
   clients: {
     title: 'New client', editTitle: 'Edit client',
@@ -123,8 +123,8 @@ const SCHEMAS: Record<ListSlice, { title: string; editTitle: string; fields: Fie
 
 const ADD_PRIMERS: Record<ListSlice, string> = {
   clients:  'What are the details of the new client? Give me their name and phone number to start.',
-  leads:    "Tell me about the new enquiry. Paste it or describe it and I’ll log it.",
-  invoices: 'Give me the details for the invoice: client name, total amount and any advance.',
+  leads:    "Tell me about the new enquiry — paste it or describe it and I’ll log it.",
+  invoices: 'Give me the details for the invoice — client name, total amount, and any advance?',
   events:   "What’s the event? Give me a title, date, and time if you have it.",
   expenses: 'What did you spend on? Give me the amount and what it was for.',
 };
@@ -260,7 +260,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
     if (!validate() || submitting) return;
     // Guard: existingId must be a real UUID in edit mode
     if (isEdit && (!existingId || existingId === 'undefined')) {
-      onToast('Could not find that record. Please try again.', 'error');
+      onToast('Could not identify record — please try again.', 'error');
       return;
     }
     setSubmitting(true);
@@ -301,7 +301,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
         if (isEdit) {
           const r = await updateInvoice(existingId!, body as UpdateInvoiceRequest);
           if (!r.ok && (r as {error?:string;code?:string}).code === 'INVOICE_LOCKED') {
-            onToast('This invoice has payments. Cancel it and issue a new one to edit.', 'error');
+            onToast('Invoice has payments — cancel and re-issue to edit.', 'error');
             setSubmitting(false);
             return;
           }
@@ -380,7 +380,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
 
   function finishDraft() {
     const n = missingKeys.length;
-    onToast(n === 0 ? 'Filed.' : n === 1 ? 'Saved. 1 detail to add' : `Saved. ${n} details to add`, 'success');
+    onToast(n === 0 ? 'Filed.' : n === 1 ? 'Filed — 1 detail pending' : `Filed — ${n} details pending`, 'success');
     onClose();
   }
 
@@ -415,11 +415,11 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
       }}>
         {/* Handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 36, height: 4, borderRadius: 12, backgroundColor: 'var(--atelier-ink-dim)' }} />
+          <div style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: 'var(--atelier-ink-dim)' }} />
         </div>
 
         {/* Header */}
-        <div style={{ padding: '8px 24px 12px', borderBottom: `1px solid ${D.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '6px 24px 12px', borderBottom: `1px solid ${D.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h2 style={{ font: RUNG.t1, color: D.cream }}>
             {isEdit ? schema.editTitle : schema.title}
           </h2>
@@ -435,7 +435,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
         </div>
 
         {/* Fields */}
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* TDW_04 A4 draft-first: create shows the essential field(s); "All
               details ↓" reveals the rest; edit unchanged. In the chips phase
               only the tapped chip's field renders. */}
@@ -447,7 +447,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
             })
             .map((f, idx) => (
             <div key={f.key}>
-              <label style={{ font: RUNG.t5, letterSpacing: '0.08em', display: 'block', color: errors[f.key] ? D.red : D.muted, textTransform: 'uppercase', marginBottom: 8 }}>
+              <label style={{ font: RUNG.t5, letterSpacing: '0.08em', display: 'block', color: errors[f.key] ? D.red : D.muted, textTransform: 'uppercase', marginBottom: 6 }}>
                 {f.label}{f.required && <span style={{ color: D.gold }}> *</span>}
               </label>
               {f.type === 'textarea' ? (
@@ -504,7 +504,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              padding: '4px 0',
+              padding: '2px 0',
               color: D.gold,
               textAlign: 'left',
             }}>Block this day instead →</button>
@@ -517,7 +517,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              padding: '4px 0',
+              padding: '2px 0',
               color: D.muted,
               textAlign: 'left',
             }}>{showAll ? 'Fewer details ↑' : 'All details ↓'}</button>
@@ -525,18 +525,18 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
 
           {/* TDW_04 A4: the chips phase — filed; the gaps offered, never demanded */}
           {phase === 'chips' && (
-            <div style={{ borderTop: `0.5px solid ${D.border}`, paddingTop: 16 }}>
-              <div style={{ font: RUNG.t3, color: D.muted, marginBottom: 12 }}>
+            <div style={{ borderTop: `0.5px solid ${D.border}`, paddingTop: 14 }}>
+              <div style={{ font: RUNG.t3, color: D.muted, marginBottom: 10 }}>
                 Filed. Anything else while it&rsquo;s open?
               </div>
               {missingKeys.length > 0 && !chipField && (
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {missingKeys.map(k => {
                     const f = schema.fields.find(x => x.key === k)!;
                     return (
                       <button key={k} type="button" onClick={() => setChipField(k)} style={{
                         font: RUNG.t4,
-                        padding: '8px 12px',
+                        padding: '7px 12px',
                         borderRadius: 999,
                         cursor: 'pointer',
                         border: `0.5px solid ${D.border}`,
@@ -551,7 +551,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
                 <button type="button" disabled={chipSaving} onClick={() => { void saveChip(chipField); }} style={{
                   font: RUNG.t4,
                   marginTop: 8,
-                  padding: '8px 16px',
+                  padding: '9px 16px',
                   borderRadius: 999,
                   cursor: chipSaving ? 'default' : 'pointer',
                   border: 'none',
@@ -573,7 +573,7 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
             style={{
               font: RUNG.t4,
               width: '100%',
-              padding: '16px 0',
+              padding: '14px 0',
               backgroundColor: phase === 'chips' ? D.gold : submitting || !requiredMet ? 'var(--atelier-input-border)' : D.gold,
               border: 'none',
               borderRadius: 999,
@@ -594,11 +594,11 @@ function inputStyle(hasError: boolean): React.CSSProperties {
   return {
     font: RUNG.t3,
     width: '100%',
-    padding: '12px 16px',
+    padding: '11px 14px',
     boxSizing: 'border-box',
     backgroundColor: 'var(--atelier-input-bg)',
     border: `0.5px solid ${hasError ? 'var(--role-critical)' : 'var(--atelier-sheet-border)'}`,
-    borderRadius: 12,
+    borderRadius: 10,
     color: 'var(--atelier-ink)',
     outline: 'none',
     

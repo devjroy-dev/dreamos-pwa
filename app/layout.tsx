@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Italiana, Cormorant_Garamond, DM_Sans, Jost, Inter } from 'next/font/google';
+import { Italiana, Cormorant_Garamond, DM_Sans, Jost } from 'next/font/google';
 import './globals.css';
 import './globals-v2.css';
 
@@ -31,16 +31,6 @@ const dmSans = DM_Sans({
   display: 'swap',
 });
 
-// DESIGN-1 · Inter, the vendor app's one family (docs/review/REPORT.md §5, option A). Three
-// weights, Latin, self-hosted by next/font like the faces above. `display: 'block'` rather than
-// 'swap': the founder's rule is Inter, never a fallback, and a swap paints the fallback first.
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-inter',
-  display: 'block',
-});
-
 const jost = Jost({
   subsets: ['latin'],
   weight: ['200', '300', '400', '500'],
@@ -68,14 +58,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${italiana.variable} ${cormorant.variable} ${dmSans.variable} ${jost.variable} ${inter.variable}`}
+      className={`${italiana.variable} ${cormorant.variable} ${dmSans.variable} ${jost.variable}`}
     >
       <head>
-        {/* DESIGN-1: the serif's own face under a name the vendor shell never overrides, for the
-            TDW name alone. Inside the shell every other face variable resolves to Inter
-            (lib/worklist/theme.ts typeCss). A style rule, not a style prop, because the
-            pre-hydration script below writes html's own style attribute. */}
-        <style>{`:root{--font-brand:${cormorant.style.fontFamily}}`}</style>
         {/* Fraunces + JetBrains Mono + Italianno — Frost/Sanctuary only (not vendor) */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

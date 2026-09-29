@@ -13,6 +13,7 @@ import type { NextRequest } from 'next/server';
 // F-44.238: this file keeps the deprecated `middleware` convention on purpose;
 // the rename to `proxy.ts` is its own later cut, ruled by the chair.
 import { decide } from '@/lib/public/vendorHost';
+import { LAYOUT_COOKIE, layoutForRequest } from '@/lib/worklist/layoutSwitch';
 
 const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.in';
 
@@ -63,6 +64,17 @@ export function middleware(request: NextRequest) {
   const d = decide(host, path, SITE_BASE, url.search);
   if (d && d.kind === 'rewrite') { url.pathname = d.pathname; return NextResponse.rewrite(url); }
   if (d && d.kind === 'redirect') return NextResponse.redirect(d.url, 302);
+
+  // ── DESIGN-1 · THE LAYOUT SWITCH (lib/worklist/layoutSwitch.ts) ───────────────────────────────────────────────────
+  // A vendor whose layout is v2 is served the v2 route tree at the same address; everyone else, untouched. The v2 tree
+  // has no address of its own: a direct /v2/... goes back to the address it mirrors.
+  if (path === '/v2' || path.startsWith('/v2/')) { url.pathname = path.slice(3) || '/'; return NextResponse.redirect(url, 302); }
+  if (path === '/vendor' || path.startsWith('/vendor/')) {
+    if (layoutForRequest(request.cookies.get(LAYOUT_COOKIE)?.value, process.env.TDW_LAYOUT_DEFAULT) === 'v2') {
+      url.pathname = '/v2' + path;
+      return NextResponse.rewrite(url);
+    }
+  }
 
   return NextResponse.next();
 }

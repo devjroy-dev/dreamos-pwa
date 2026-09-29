@@ -288,37 +288,37 @@ function IntroductionsScreen() {
 
    No backtick appears in this block. It is a template literal and a backtick in
    a CSS comment closes the string. */
-.itr-room{padding-top:24px;padding-bottom:32px}
+.itr-room{padding-top:20px;padding-bottom:28px}
 .itr-lede{font:var(--wl-t3);color:var(--atelier-ink-soft);line-height:1.5;margin:0 0 16px}
 .itr-sec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px}
-.itr-secgap{margin-top:24px}
-.itr-empty{font:var(--wl-t3);color:var(--atelier-ink-mute);margin:0 0 16px}
-.itr-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;padding:16px;margin-bottom:var(--wl-step)}
+.itr-secgap{margin-top:22px}
+.itr-empty{font:var(--wl-t3);color:var(--atelier-ink-mute);margin:0 0 18px}
+.itr-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:14px;margin-bottom:var(--wl-step)}
 .itr-preview{background:var(--atelier-section-bg)}
-.itr-lbl{display:block;font:var(--wl-t5);letter-spacing:.07em;text-transform:uppercase;color:var(--atelier-label);margin-bottom:4px}
-.itr-field{display:block;width:100%;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:12px;padding:12px;min-height:44px;font:var(--wl-t3);color:var(--atelier-ink);margin-bottom:12px}
+.itr-lbl{display:block;font:var(--wl-t5);letter-spacing:.07em;text-transform:uppercase;color:var(--atelier-label);margin-bottom:5px}
+.itr-field{display:block;width:100%;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:2px;padding:11px;min-height:44px;font:var(--wl-t3);color:var(--atelier-ink);margin-bottom:13px}
 .itr-field:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.itr-btn{width:100%;padding:12px;min-height:44px;border-radius:12px;font:var(--wl-t3);cursor:pointer;touch-action:manipulation}
-.itr-primary{background:var(--role-primary);color:var(--role-on-primary);border:1px solid var(--role-primary)}
+.itr-btn{width:100%;padding:12px;min-height:44px;border-radius:2px;font:var(--wl-t3);cursor:pointer;touch-action:manipulation}
+.itr-primary{background:var(--role-metal);color:var(--role-ink-on-metal);border:.5px solid var(--role-metal)}
 .itr-primary:active{background:var(--atelier-row-hover)}
 .itr-primary:disabled{cursor:default;opacity:.6}
 .itr-primary:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 /* CORRECTION 1. One line, and the overflow is an ellipsis rather than a wrap or
    a name cut in TypeScript: she is approving a message TO that person. */
 .itr-send{margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.itr-back{display:block;width:100%;margin-top:16px;padding:12px;min-height:44px;background:transparent;border:none;cursor:pointer;font:var(--wl-t4);color:var(--atelier-accent-text);text-align:center;touch-action:manipulation}
+.itr-back{display:block;width:100%;margin-top:14px;padding:12px;min-height:44px;background:transparent;border:none;cursor:pointer;font:var(--wl-t4);color:var(--atelier-accent-text);text-align:center;touch-action:manipulation}
 .itr-back:active{background:var(--atelier-row-hover)}
 .itr-back:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .itr-eyebrow{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin-bottom:8px}
 .itr-body{font:var(--wl-t3);color:var(--atelier-ink);line-height:1.55;margin:0}
-.itr-btnchip{margin-top:12px;text-align:center;padding:8px;border:.5px solid var(--atelier-card-border);border-radius:12px;color:var(--atelier-accent-text);font:var(--wl-t4)}
-.itr-link{margin-top:8px;font:var(--wl-t5);color:var(--atelier-ink-fade);text-align:center;word-break:break-all}
-.itr-refusal{font:var(--wl-t5);color:var(--role-critical);line-height:1.5;margin:4px 0 12px;max-width:40ch}
+.itr-btnchip{margin-top:12px;text-align:center;padding:9px;border:.5px solid var(--atelier-card-border);border-radius:2px;color:var(--atelier-accent-text);font:var(--wl-t4)}
+.itr-link{margin-top:6px;font:var(--wl-t5);color:var(--atelier-ink-fade);text-align:center;word-break:break-all}
+.itr-refusal{font:var(--wl-t5);color:var(--role-critical);line-height:1.5;margin:2px 0 12px;max-width:40ch}
 .itr-row{display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:12px}
 .itr-rowtext{min-width:0}
 .itr-who{font:var(--wl-t3);color:var(--atelier-ink);display:block}
-.itr-meta{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:4px}
-.itr-chip{font:var(--wl-t5);padding:4px 8px;border:.5px solid var(--atelier-card-border);border-radius:12px;color:var(--atelier-ink-mute);white-space:nowrap}
+.itr-meta{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:3px}
+.itr-chip{font:var(--wl-t5);padding:4px 9px;border:.5px solid var(--atelier-card-border);border-radius:2px;color:var(--atelier-ink-mute);white-space:nowrap}
 .itr-ok{color:var(--role-positive);border-color:var(--role-positive)}
 .itr-bad{color:var(--role-critical);border-color:var(--role-critical)}
       `}</style>

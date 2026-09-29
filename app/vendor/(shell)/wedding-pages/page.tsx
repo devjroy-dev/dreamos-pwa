@@ -797,23 +797,23 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
 function WeddingPagesStyles() {
   return (
     <style>{`
-.wp-room{padding-top:24px;padding-bottom:32px}
+.wp-room{padding-top:20px;padding-bottom:28px}
 .wp-sec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px;display:flex;justify-content:space-between}
 .wp-sec+.wp-row{margin-bottom:var(--wl-step)}
 /* ── G1.3 · the two new sections, the sheet’s own idiom ── */
-.wp-g13{margin-top:24px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
-.wp-note{font:var(--wl-t5);line-height:1.5;color:var(--atelier-ink-mute);margin:0 0 12px}
+.wp-g13{margin-top:22px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
+.wp-note{font:var(--wl-t5);line-height:1.5;color:var(--atelier-ink-mute);margin:0 0 10px}
 .wp-note.wp-err{color:var(--role-critical)}
 .wp-probe{font:var(--wl-t5);line-height:1.5;color:var(--atelier-ink-mute);
-  margin:0 0 12px;padding:12px 12px;border:.5px dashed var(--atelier-card-border);border-radius:12px}
+  margin:0 0 10px;padding:11px 12px;border:.5px dashed var(--atelier-card-border);border-radius:2px}
 .wp-two{display:flex;gap:8px}
 .wp-two>*{flex:1;text-align:center;text-decoration:none}
 .wp-row{display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:12px;width:100%;text-align:left;
-        background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;
-        padding:12px 16px;margin-bottom:var(--wl-step);cursor:pointer;min-height:44px}
+        background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;
+        padding:13px 14px;margin-bottom:var(--wl-step);cursor:pointer;min-height:44px}
 .wp-rprimary{font:var(--wl-t3);color:var(--atelier-ink);display:block}
-.wp-rdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:4px}
-.wp-rstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap;padding-top:4px}
+.wp-rdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:3px}
+.wp-rstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap;padding-top:2px}
 .wp-rstate.live{color:var(--atelier-accent-text)}
 .wp-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding-bottom:80px}
 .wp-eh{font:var(--wl-t2);color:var(--atelier-ink)}
@@ -821,26 +821,26 @@ function WeddingPagesStyles() {
 .wp-scrim{position:fixed;inset:0;background:var(--atelier-overlay);z-index:20}
 .wp-sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;border-radius:14px 14px 0 0;max-width:520px;margin:0 auto;
           background:linear-gradient(180deg,var(--atelier-sheet-top) 0%,var(--atelier-sheet-bot) 100%);
-          border-top:.5px solid var(--atelier-sheet-border);padding:16px var(--wl-gutter) 24px;max-height:92%;overflow-y:auto}
+          border-top:.5px solid var(--atelier-sheet-border);padding:18px var(--wl-gutter) 22px;max-height:92%;overflow-y:auto}
 .wp-shhead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
 .wp-shtitle{font:var(--wl-t1);color:var(--atelier-ink)}
 .wp-shx{font:var(--wl-t2);color:var(--atelier-ink-fade);line-height:1;background:none;border:none;cursor:pointer;min-width:44px;min-height:44px}
-.wp-fl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);display:block;margin-bottom:4px}
+.wp-fl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);display:block;margin-bottom:5px}
 /* AddSheet’s gold asterisk, in the shell’s own token rather than a hex literal. */
 .wp-req{color:var(--role-metal)}
-.wp-fi{background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;
-       padding:12px 12px;font:var(--wl-t3);color:var(--atelier-ink);margin-bottom:12px;width:100%;min-height:44px;display:block}
+.wp-fi{background:var(--atelier-input-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;
+       padding:10px 12px;font:var(--wl-t3);color:var(--atelier-ink);margin-bottom:12px;width:100%;min-height:44px;display:block}
 .wp-pick{border-color:var(--atelier-input-border)}
 .wp-derived{color:var(--atelier-ink-mute)}
 .wp-btn{width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;
-        background:var(--role-primary);color:var(--role-on-primary);border:none;border-radius:12px;
-        font:var(--wl-tb);cursor:pointer}
+        background:var(--atelier-accent-text);color:var(--role-ink-deep);border:none;border-radius:3px;
+        font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 .wp-btn[disabled]{opacity:.55}
-.wp-err{font:var(--wl-t5);color:var(--role-critical);margin-bottom:12px}
+.wp-err{font:var(--wl-t5);color:var(--role-critical);margin-bottom:10px}
 /* F-40.239 · the door's own words, one step quieter than the sentence above and
    in the room's muted ink, not the critical one: it is EVIDENCE, not a second
    alarm. It wraps and breaks, because a Meta error is long and unbroken. */
-.wp-errdetail{font:var(--wl-t5);color:var(--atelier-ink-fade);margin:-8px 0 12px;
+.wp-errdetail{font:var(--wl-t5);color:var(--atelier-ink-fade);margin:-6px 0 10px;
   line-height:1.45;word-break:break-word}
 /* ── G1.2 · THE PHOTOGRAPH STRIP ────────────────────────────────────────────
    Four across, square, inside the sheet the vendor already has open. The remove
@@ -849,46 +849,46 @@ function WeddingPagesStyles() {
    have to learn which one she is in.
    NO BACKTICKS IN THIS BLOCK — it lives inside a template literal, and a pair of
    them closes it silently (e-7/e-8, twice in one sitting). */
-.wp-upgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
-.wp-upcell{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden}
+.wp-upgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px}
+.wp-upcell{position:relative;aspect-ratio:1;border-radius:2px;overflow:hidden}
 .wp-upimg{width:100%;height:100%;object-fit:cover;display:block}
 .wp-upx{position:absolute;top:3px;right:3px;width:22px;height:22px;border:none;border-radius:50%;
         background:var(--atelier-overlay-bg);color:var(--atelier-ink);opacity:.88;
-        font:400 0.8125rem/1 var(--font-inter),system-ui;cursor:pointer;padding:0}
+        font:400 13px/1 "DM Sans",system-ui;cursor:pointer;padding:0}
 .wp-upx[disabled]{opacity:.4}
-.wp-uphero{position:absolute;left:3px;bottom:3px;padding:4px 4px;border-radius:1px;
+.wp-uphero{position:absolute;left:3px;bottom:3px;padding:2px 5px;border-radius:1px;
            background:var(--role-metal);color:var(--role-ink-on-metal);
-           font:500 0.8125rem/1.2 var(--font-inter),system-ui;letter-spacing:.10em;text-transform:uppercase}
-.wp-upadd{aspect-ratio:1;border-radius:12px;border:.5px dashed var(--atelier-card-border);
+           font:500 8px/1.2 "DM Sans",system-ui;letter-spacing:.10em;text-transform:uppercase}
+.wp-upadd{aspect-ratio:1;border-radius:2px;border:.5px dashed var(--atelier-card-border);
           display:flex;align-items:center;justify-content:center;cursor:pointer;
-          color:var(--atelier-ink-mute);font:400 1.375rem/1 var(--font-inter),system-ui}
-.wp-upempty{padding:16px 0;text-align:center;color:var(--atelier-ink-mute);font:var(--wl-t3)}
-.wp-upbusy{font:var(--wl-t5);color:var(--atelier-ink-dim);margin-bottom:12px}
-.wp-uperr{font:var(--wl-t5);color:var(--role-critical);margin-bottom:12px}
+          color:var(--atelier-ink-mute);font:400 20px/1 "DM Sans",system-ui}
+.wp-upempty{padding:14px 0;text-align:center;color:var(--atelier-ink-mute);font:var(--wl-t3)}
+.wp-upbusy{font:var(--wl-t5);color:var(--atelier-ink-dim);margin-bottom:10px}
+.wp-uperr{font:var(--wl-t5);color:var(--role-critical);margin-bottom:10px}
 /* ── THE CONSENT ASK ────────────────────────────────────────────────────────
    Set off from the credit form above it by a rule, because it addresses a
    different person: the credits reach vendors, this reaches the couple.
    NO BACKTICKS IN THIS BLOCK — it lives inside a template literal (e-7/e-8). */
-.wp-consent{margin-top:16px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
-.wp-consentnote{font:var(--wl-t5);color:var(--atelier-ink-dim);margin-top:12px}
+.wp-consent{margin-top:18px;padding-top:16px;border-top:.5px solid var(--atelier-card-border)}
+.wp-consentnote{font:var(--wl-t5);color:var(--atelier-ink-dim);margin-top:10px}
 /* The link is long and must be selectable whole — a truncated address a vendor
    cannot copy is worse than no link at all. */
-.wp-consenturl{font:var(--wl-t5);color:var(--atelier-accent-text);margin-top:8px;
+.wp-consenturl{font:var(--wl-t5);color:var(--atelier-accent-text);margin-top:6px;
                word-break:break-all;user-select:all}
 /* The picker’s truncation tell (R-G12.8). Quiet: it is a fact about the list,
    not a warning about her data. */
-.wp-pickernote{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:-4px 0 12px;line-height:1.45}
-.wp-clist{margin-top:16px}
+.wp-pickernote{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:-2px 0 12px;line-height:1.45}
+.wp-clist{margin-top:14px}
 .wp-crow{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;
-         border-top:.5px solid var(--atelier-card-border);padding:8px 0}
+         border-top:.5px solid var(--atelier-card-border);padding:9px 0}
 .wp-crole{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);display:block}
-.wp-cname{font:var(--wl-t3);color:var(--atelier-ink);display:block;margin-top:4px}
+.wp-cname{font:var(--wl-t3);color:var(--atelier-ink);display:block;margin-top:2px}
 .wp-cstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap}
 .wp-cstate.on{color:var(--atelier-accent-text)}
 .wp-cstate.no{color:var(--atelier-ink-fade)}
-.wp-pubrow{border-top:.5px solid var(--atelier-card-border);margin-top:16px;padding-top:16px}
-.wp-live{font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-accent-text);text-align:center;padding:8px 0}
-.wp-wait{font:var(--wl-t5);color:var(--atelier-ink-fade);line-height:1.5;text-align:center;padding:8px 0}
+.wp-pubrow{border-top:.5px solid var(--atelier-card-border);margin-top:14px;padding-top:14px}
+.wp-live{font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-accent-text);text-align:center;padding:6px 0}
+.wp-wait{font:var(--wl-t5);color:var(--atelier-ink-fade);line-height:1.5;text-align:center;padding:6px 0}
     `}</style>
   );
 }

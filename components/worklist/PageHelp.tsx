@@ -173,7 +173,7 @@ function HelpCard({ title, help, onClose }: { title: string; help: NonNullable<R
 // inset (b140 2.7 caught the doubled 32px on the first run).
 export const PAGE_HELP_CSS = `
 .wl-roomhead{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.wl-roomtitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0;padding:16px 0 8px;min-width:0}
+.wl-roomtitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0;padding:16px 0 10px;min-width:0}
 .wl-roomtitle-none{padding:0;flex:1}
 .wl-helpq{width:44px;height:44px;min-width:44px;min-height:44px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;margin:0 -11px 0 0;padding:0;touch-action:manipulation}
 .wl-helpqring{width:22px;height:22px;border:1px solid var(--atelier-ink-mute);border-radius:50%;display:flex;align-items:center;justify-content:center;font:var(--wl-t4);color:var(--atelier-ink-mute)}
@@ -184,12 +184,12 @@ export const PAGE_HELP_CSS = `
 .wl-helpscrim{position:absolute;inset:0;background:var(--role-scrim);border:none;cursor:pointer}
 .wl-helpcard{position:relative;margin:0 var(--wl-gutter);background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-radius:12px;padding:16px;max-height:60dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 8px 28px var(--atelier-card-shadow)}
 .wl-helpname{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 8px}
-.wl-helpwhat{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0 0 16px}
-.wl-helpdo{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:12px}
+.wl-helpwhat{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0 0 14px}
+.wl-helpdo{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:10px}
 .wl-helpdo li{display:flex;gap:12px;align-items:flex-start;font:var(--wl-t3);color:var(--atelier-ink)}
-.wl-helpicon{width:18px;height:18px;flex-shrink:0;margin-top:0px;stroke:var(--atelier-accent-text);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.wl-helpicon{width:18px;height:18px;flex-shrink:0;margin-top:1px;stroke:var(--atelier-accent-text);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .wl-helplink{font:var(--wl-t4);color:var(--atelier-ink-mute);margin:0 0 16px}
 .wl-helpacts{display:flex;gap:8px}
 .wl-helpacts .wl-cardaction{flex:1;margin-top:0}
-.wl-helpacts .pri{background:var(--role-primary);border-color:transparent;color:var(--role-on-primary)}
+.wl-helpacts .pri{background:var(--atelier-accent-text);border-color:transparent;color:var(--role-ink-deep)}
 `;

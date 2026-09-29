@@ -11,7 +11,7 @@
 // critical ink (REPORT.md: "No crew yet" in red). Words, not glyphs: a tick and a clock are not in Inter,
 // and a glyph in a fallback face is the one thing the stage's face rule forbids.
 import { useEffect, useState } from 'react';
-import { fetchBands } from '@/lib/vendor/api/vendor';
+import { fetchBands } from '@/v2/lib/vendor/api/vendor';
 import type { BandCrew, BandFunction } from '@/lib/vendor/types/vendor';
 
 export const CREW_WORDS = {

@@ -33,7 +33,6 @@ import { AskProvider, type AskApi } from '@/lib/worklist/askContext';
 import { AiDock } from '@/components/worklist/AiDock';
 import { AccountDrawer } from '@/components/worklist/AccountDrawer';
 import { RoomHead, RoomHeadProvider, PAGE_HELP_CSS } from '@/components/worklist/PageHelp';
-import { TABS, tabFor, heldRoomFor, MORE_HREF, TAB_WORDS } from '@/lib/worklist/tabs';
 
 const SCOPE = '.wl';
 
@@ -64,7 +63,9 @@ export function WorklistShell({ title, children }: {
   // comes from the layout's provider, which does not remount when the route changes — the
   // mode survives the walk by construction rather than by being restored after it.
   const { mode, setMode } = useMode();
+  const [coinOpen, setCoinOpen] = useState(false);
   const initials = useVendorInitials();
+  const close = () => setCoinOpen(false);
   // ── F-38.20 · THE DRAWER OWNS ITS OWN DISMISSAL ───────────────────────────
   // `close()` used to be the FIRST thing the row handlers did, which is why the
   // acknowledgement beat did nothing when it was added: the drawer scheduled its exit for
@@ -132,11 +133,8 @@ export function WorklistShell({ title, children }: {
     };
   }, []);
 
-  // DESIGN-1 · STAGE 3: the seat that is lit is the tab holding this room (lib/worklist/tabs.ts); on More and the
-  // rooms under it no seat is lit and the coin is current instead.
-  const tab = tabFor(pathname);
-  const onMore = pathname === MORE_HREF;
-  const held = tab && tab.rooms.length > 1 && pathname !== tab.rooms[0].href ? heldRoomFor(tab, pathname) : null;
+  const onToday = pathname.startsWith('/vendor/today');
+  const onRooms = !onToday;
 
   return (
     <AskProvider value={ask}>
@@ -149,7 +147,7 @@ export function WorklistShell({ title, children }: {
     }}>
       <style>{scopeCss(SCOPE) + typeCss(SCOPE) + SHELL_CSS + PAGE_HELP_CSS}</style>
 
-      <header className="wl-hdr" style={{ position: 'relative', zIndex: 5 }}>
+      <header className="wl-hdr" style={{ position: 'relative', zIndex: coinOpen ? 21 : 5 }}>
         {/* R-38.4: the wordmark is t2, DM SANS. It was Cormorant at 17/400 and CE-38's own
             first draft kept it there — struck at relay #1, because Cormorant-at-17 is a
             seventh tuple and the whole warrant of a closed set is that it is closed.
@@ -170,11 +168,23 @@ export function WorklistShell({ title, children }: {
             vendor with no name yet gets the glyph rather than an empty circle.
             R-38.5/CE-38 relay #2: the coin stays 44 — at the tap floor, with the
             stale "this is 46 with air" comment retired alongside the rule it lied about. */}
-        {/* DESIGN-1 · STAGE 3: THE COIN IS MORE (the founder's ruling on docs/review/REPORT.md §3). It opens the More
-            page, where every room outside the five tabs sits in the founder's groups, above the account rows the coin's
-            menu used to hold (one definition, AccountDrawer, mounted there). Still 44, still the vendor's initials. */}
-        <Link href={MORE_HREF} className="wl-coin" aria-label={TAB_WORDS.moreLabel}
-              aria-current={onMore ? 'page' : undefined}>{initials || '\u25ce'}</Link>
+        <button type="button" className="wl-coin" aria-label="Your profile" aria-expanded={coinOpen}
+                onClick={() => setCoinOpen((v) => !v)}>{initials || '\u25ce'}</button>
+        {coinOpen && (
+          <>
+            <button type="button" className="wl-drawerscrim" aria-label="Close menu" onClick={close} />
+            {/* ZIP 14 · F-16.37's cure stands: this block is a CHILD of the <header> it
+                anchors to, not its sibling. `.wl-drawer` is position:absolute with
+                top:calc(100% + 8px); when the two were siblings that resolved against the
+                initial containing block, so 100% meant one whole viewport down. */}
+            <div className="wl-drawer">
+              {/* ONE DEFINITION, TWO MOUNTS. See components/worklist/AccountDrawer.tsx —
+                  the carried rooms mount the same component through Header.tsx, so the
+                  founder meets one menu behind one medallion everywhere in the estate. */}
+              <AccountDrawer mode={mode} onPickMode={pick} onClose={close} room={title} />
+            </div>
+          </>
+        )}
       </header>
 
       {/* ── CE-46 · FE-4 · THE ROOM'S HEAD HAS ONE DRAWER (Fork A (3), ruled 27 Sept 2026) ──
@@ -188,25 +198,7 @@ export function WorklistShell({ title, children }: {
           solutions kicker, the Advisor's intro) is the room's, unchanged. F-44.219: Calendar and
           Today set the head's line to their own (the month; the status line) through RoomHeadProvider,
           so those two pages keep one t1 with the "?" on it, and no room draws a second. */}
-      <RoomHeadProvider><main className="wl-main"><RoomHead title={title} />
-        {/* DESIGN-1 · STAGE 3: THE HELD ROOMS. A tab that holds more than one room lists them under the head of each
-            room it holds but its first (Home, Enquiries, Clients and Invoices keep their page to their work), so
-            Expenses, TDS and Books are one tap from each other and from Invoices. */}
-        {tab && held && (
-          <nav className="wl-held" aria-label={TAB_WORDS.heldRooms(tab.label)}>
-            {tab.rooms.map((r) => (
-              <Link key={r.href} href={r.href} className="wl-heldlink" aria-current={r === held ? 'page' : undefined}>{r.label}</Link>
-            ))}
-          </nav>
-        )}
-        {children}
-        {onMore && (
-          <section className="wl-moreacct" aria-label={TAB_WORDS.account}>
-            <h2 className="wl-moreh">{TAB_WORDS.account}</h2>
-            <AccountDrawer mode={mode} onPickMode={pick} onClose={() => {}} room={title} inline />
-          </section>
-        )}
-      </main></RoomHeadProvider>
+      <RoomHeadProvider><main className="wl-main"><RoomHead title={title} />{children}</main></RoomHeadProvider>
 
       {/* ── R-41.139 · THE DOCK IS NOT MOUNTED ON /vendor/advisor ────────────────
           NOT MOUNTED, not hidden. A first cut of this hid it from the page's own
@@ -231,13 +223,11 @@ export function WorklistShell({ title, children }: {
           moved and this note stands where it stood, because a reader looking for the
           estate's build id will look here first. */}
 
-      {/* DESIGN-1 · STAGE 3: FIVE TABS, in the report's order (docs/review/REPORT.md §3, "Five tabs"). Each seat goes
-          to its tab's first room and is lit on every room the tab holds. */}
       <nav className="wl-nav" aria-label="Sections">
-        {TABS.map((t) => (
-          <Link key={t.id} href={t.rooms[0].href} className={'wl-seat' + (tab?.id === t.id ? ' on' : '')}
-                aria-current={tab?.id === t.id ? 'page' : undefined}>{t.label}</Link>
-        ))}
+        <Link href="/vendor/rooms" className={'wl-seat' + (onRooms ? ' on' : '')}
+              aria-current={onRooms ? 'page' : undefined}>{COPY.navRooms}</Link>
+        <Link href="/vendor/today" className={'wl-seat' + (onToday ? ' on' : '')}
+              aria-current={onToday ? 'page' : undefined}>{COPY.navToday}</Link>
       </nav>
     </div>
     </AskProvider>
@@ -251,17 +241,8 @@ export function WorklistShell({ title, children }: {
 // INSIDE that syntax. ZIP 14 ⑧ named the family; naming it did not stop it. The rule is
 // mechanical now: selectors in these comments are written in words, not in code marks.
 const SHELL_CSS = `
-/* DESIGN-1 · STAGE 3: the coin is a link to More now (it opened a dropdown menu); the menu’s two rules retired with it.
-   THE HELD ROOMS: a tab’s rooms in one wrapping row under the head, 44 high, outlined, the current one filled with the
-   accent ink. Spacing on the scale. */
-.wl-held{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 16px}
-.wl-heldlink{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--atelier-card-border);font:var(--wl-tb);color:var(--atelier-ink);text-decoration:none;background:var(--atelier-card-bg)}
-.wl-heldlink[aria-current="page"]{border-color:var(--atelier-accent-text);color:var(--atelier-accent-text)}
-.wl-heldlink:active{background:var(--atelier-row-hover)}
-.wl-heldlink:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.wl-moreacct{padding:24px 0 32px}
-.wl-moreh{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 8px}
-.wl-coin[aria-current="page"]{background:var(--role-metal);color:var(--role-ink-on-metal)}
+.wl-drawerscrim{position:fixed;inset:0;z-index:19;background:var(--role-scrim);border:none;cursor:pointer}
+.wl-drawer{position:absolute;top:calc(100% + var(--wl-step));right:var(--wl-gutter);z-index:20}
 /* R-37.82 the gutter law, raised 12 to 16 (R-38.5). ONE horizontal gutter, owned by the
    scroll column. Every element inherits it; no component sets its own horizontal margin or
    width, ever. The founder’s misalignment existed because rows chose their own inset, and
@@ -279,17 +260,17 @@ const SHELL_CSS = `
 /* SHARED CARD CHROME, ONE HOME. Used by the first-run cards, the Today empty state and
    Billing. A class used by three components and owned by one is a single-home violation
    wearing CSS; the shell emits them, because the shell is what every surface is inside. */
-.wl-card{background:var(--atelier-card-bg);border:1px solid var(--atelier-card-border);border-radius:var(--wl-btn-r);padding:16px;margin:0 0 8px}
+.wl-card{background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:3px;padding:16px;margin:0 0 8px}
 /* ── H-1(b) · F-38.40b · THE LEAD CARD’S INTERIOR REJOINS THE OTHERS ────────
    The accent border was added to the box without compensating the padding, so this
    card’s contents painted at gutter + 2 + 16 = 34 while every other card’s painted at
    gutter + .5 + 16 = 32.5. Three card titles, three x values, where the whole point of
    a card set is one. 1.5px is small and it is exactly the kind of thing an eye reads as
    「something is off」 without being able to name it. */
-.wl-card-lead{border-left:2px solid var(--atelier-accent-text);padding-left:16px}
+.wl-card-lead{border-left:2px solid var(--atelier-accent-text);padding-left:14.5px}
 .wl-cardtitle{font:var(--wl-t4);color:var(--atelier-accent-text);margin:0 0 8px}
 .wl-cardbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0}
-.wl-cardaction{margin-top:12px;background:transparent;border:1px solid var(--atelier-input-border);border-radius:var(--wl-btn-r);cursor:pointer;padding:0 16px;min-height:var(--wl-btn-h);font:var(--wl-tb);color:var(--atelier-accent-text);touch-action:manipulation}
+.wl-cardaction{margin-top:12px;background:transparent;border:.5px solid var(--atelier-input-border);border-radius:2px;cursor:pointer;padding:12px 16px;min-height:44px;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
 .wl-cardaction:active{background:var(--atelier-row-hover)}
 .wl-cardaction:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 /* ── THE BUTTON REGISTER, ONE HOME, ANY ROOM (P7.2 Arm C, chair ruling 2026-09-04) ──────
@@ -301,19 +282,13 @@ const SHELL_CSS = `
    where .wl-tile and .wl-fab already live, and both rooms read the class. This is what the
    F-39.4 FAB ruling did for the seat: one register, one home, any room.
    The values are byte-identical to the ones TeamTabs shipped. */
-.wl-btn{flex:1;min-height:var(--wl-btn-h);display:flex;align-items:center;justify-content:center;border-radius:var(--wl-btn-r);
-        font:var(--wl-tb);cursor:pointer;border:1px solid var(--atelier-input-border);
-        background:transparent;color:var(--atelier-ink)}
+.wl-btn{flex:1;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:3px;
+        font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;
+        background:transparent}
 .wl-btn2{flex:2}
 .wl-btn:disabled{opacity:.5;cursor:not-allowed}
 .wl-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
-.wl-btn.pri{background:var(--role-primary);border-color:var(--role-primary);color:var(--role-on-primary)}
-/* DESIGN-1 · the estate’s filled button (.atelier-fab, globals.css) takes the one primary inside the
-   shell: no gold, no gradient, no borrowed link colour (REPORT.md §4, P3, P4, P13). globals.css pins
-   its own colours as important, so this rule has to be too. */
-.wl .atelier-fab{background:var(--role-primary)!important;border:1px solid var(--role-primary)!important;color:var(--role-on-primary)!important;box-shadow:none!important}
-/* The calendar’s today coin: the palette’s solid metal, the ground its ink (today-coin-ink) was measured on. */
-.wl .atelier-today-coin{background:var(--role-metal)!important;box-shadow:none!important}
+.wl-btn.pri{background:var(--atelier-accent-text);color:var(--role-ink-deep)}
 
 /* ── THE FAB’S SEAT · 56px, bottom-right, ONE GUTTER IN, 16px CLEAR OF THE DOCK ────
    ── THE OFFSET IS MEASURED NOW, NOT REMEMBERED  [relay #3 item 4] ────────────
@@ -344,7 +319,7 @@ const SHELL_CSS = `
    above is unchanged and still the warrant; what changed is that it now has one home,
    GRID.fab in lib/worklist/theme.ts, emitted by typeCss as two variables this rule reads.
    Nothing else in the shell may name a FAB size or a bottom offset. */
-.wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(var(--wl-fab-bottom) + env(safe-area-inset-bottom));z-index:18;width:var(--wl-fab);height:var(--wl-fab);border:none;border-radius:50%;background:var(--role-primary);color:var(--role-on-primary);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
+.wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(var(--wl-fab-bottom) + env(safe-area-inset-bottom));z-index:18;width:var(--wl-fab);height:var(--wl-fab);border:none;border-radius:50%;background:var(--atelier-accent-text);color:var(--role-ink-deep);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
 /* ── THE PRESS IS GEOMETRIC, AND THAT IS A RULING RATHER THAN A SHORTCUT ──────
    F-38.14 measured the press FILL to 1.5:1 after 1.1:1 was convicted as an acknowledgement
    nobody could see. That floor is a ratio between a row’s pressed fill and the ground it
@@ -356,60 +331,30 @@ const SHELL_CSS = `
    changes to the control itself, both survive on any ground, and C-R18 measures the
    painted rect rather than reading this rule. NO NEW COLOUR TOKEN WAS INVENTED FOR A
    PRESSED STATE, and that refusal is the point of the paragraph. */
-/* DESIGN-1: globals.css’s light-theme blanket (html.theme-light, color inherit, 0-3-1) outranks this
-   class when the html element still carries theme-light from a legacy page; the glyph keeps its ink. */
-.wl .wl-fab,.wl .wl-btn.pri,.wl .wl-docksend{color:var(--role-on-primary)!important}
 .wl-fab:active{transform:scale(.94);box-shadow:0 1px 4px rgba(0,0,0,.28)}
 .wl-fab:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
 /* TOUCH. Two defects in the first cut, both found on the founder’s device and neither
    visible in a desktop render: no pressed state anywhere, and no touch-action, so the
    browser held every tap for the double-tap-zoom gesture before dispatching the click. */
-.wl{font:var(--wl-t3);touch-action:manipulation;-webkit-tap-highlight-color:rgba(92,196,174,0.16)}
-/* DESIGN-1 · THE REPORT’S TYPE RULES, HELD AT THE SCOPE (docs/review/REPORT.md §5).
-   Sentence case and no letter-spacing on every byte inside the shell, and even-width figures
-   for money and times. They are held here, once, rather than trusted to each module: the
-   estate’s older modules carry their own tracking and capitals inline (the engraved register),
-   and an inline style outranks any class. No italic outside a written emphasis (em, i).
-   The font shorthand resets font-variant-numeric,
-   which is why the figures rule is important and not a plain inherit. */
-.wl,.wl *{font-variant-numeric:tabular-nums!important;letter-spacing:normal!important;text-transform:none!important}
-.wl *:not(em):not(i){font-style:normal!important}
+.wl{font:var(--wl-t3);touch-action:manipulation;-webkit-tap-highlight-color:rgba(104,201,180,0.16)}
 .wl button,.wl a{touch-action:manipulation}
-/* DESIGN-1: a form control does not inherit its face by default (the user agent gives it Arial); here it does. */
-.wl button,.wl input,.wl select,.wl textarea{font-family:inherit}
-/* DESIGN-1 · P2 · THE 44 PX FLOOR, HELD AT THE SCOPE. The review measured 87 controls under 44
-   across the rooms, each sized by its own module (a 32 px chip here, a 28 px sort there). The
-   floor is one rule: every control inside the shell is at least 44 by 44, whatever its module
-   wrote inline, which is why it is important. A link inside a sentence stays a line of text
-   (min-height does not act on an inline box), as WCAG 2.5.8 allows. Checkboxes and radios take
-   their label’s hit area; a switch draws its own 44 px area (its room’s stylesheet). */
-.wl button:not(.wl-sw):not(.yw-toggle),.wl [role=button],.wl [role=tab],.wl select,.wl summary,.wl a,
-.wl input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]){min-height:44px!important}
-/* DESIGN-1 · every button is 48 high (REPORT.md §3, Buttons), the 44 floor’s taller twin. The two round icon
-   controls, the "?" and the profile coin, keep their 44 circle (R-38.5), and a key and value row that a card
-   lists (data-tap44, the Ads settings) is a row at the 44 floor, not a button. */
-.wl button:not(.wl-sw):not(.yw-toggle):not(.wl-helpq):not(.wl-coin):not([data-tap44]){min-height:var(--wl-btn-h)!important}
-.wl button:not(.wl-sw):not(.yw-toggle),.wl [role=button],.wl [role=tab],.wl a{min-width:44px!important}
 /* R-38.5 the edge. The header’s horizontal padding IS the gutter, so the wordmark’s left
    edge, the first tile’s border, the dock field’s border and Billing’s plan card all
    resolve to one x. It was 22px here and 12px everywhere else, which is the misalignment
    the founder kept seeing and no cell could name. */
-/* DESIGN-1 · P1: the header clears the notch when installed. viewport-fit=cover and the
-   black-translucent status bar (app/layout.tsx) draw the app under the status bar; the inset
-   is zero in a browser tab, so the 16 stands there. */
-.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:max(12px, env(safe-area-inset-top)) var(--wl-gutter) 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
-.wl-hstack{display:flex;flex-direction:column;gap:4px;min-width:0}
-.wl-house{font:500 1.0625rem/1.2 var(--font-brand), Georgia, serif;color:var(--atelier-ink)}
-.wl-lbl{font:var(--wl-t5);color:var(--atelier-ink-mute)}
+.wl-hdr{flex-shrink:0;background:var(--atelier-header-bg);padding:16px var(--wl-gutter);display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--atelier-card-border)}
+.wl-hstack{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wl-house{font:var(--wl-t2);color:var(--atelier-ink)}
+.wl-lbl{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-lblrow{display:flex;align-items:baseline;gap:8px;min-width:0}
-.wl-beta{font:var(--wl-t5);color:var(--atelier-accent-text);flex-shrink:0}
-.wl-coin{text-decoration:none;background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+.wl-beta{font:var(--wl-t5);letter-spacing:.12em;text-transform:uppercase;color:var(--atelier-accent-text);flex-shrink:0}
+.wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 /* R-38.5: the nav’s content box shares the main column’s left edge, which is the container
    half of the edge cell. The seats' TEXT is centred, so the text-edge cell reads the
    wordmark, the grid, the dock and the plan card, and this one reads the boxes. */
 .wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
-.wl-seat{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t5);font-size:min(0.8125rem, 14px);color:var(--atelier-ink-mute)}
+.wl-seat{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t4);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute)}
 .wl-seat.on{color:var(--atelier-accent-text)}
 .wl-seat:active{background:var(--atelier-row-hover)}
 .wl-coin:active{background:var(--atelier-row-hover)}
