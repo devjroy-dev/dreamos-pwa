@@ -35,6 +35,7 @@ export function GetFoundCard() {
 }
 
 const GF_CSS = `
+.wl-gf{padding-top:0;padding-bottom:32px}
 .wl-gf-card{border:1px solid var(--atelier-card-border);border-radius:12px;padding:16px;background:var(--atelier-card-bg)}
 .wl-gf-eyebrow{margin:0 0 4px;font:var(--wl-t5);color:var(--atelier-ink-mute)}
 .wl-gf-line{margin:0 0 12px;font:var(--wl-tb);color:var(--atelier-ink)}

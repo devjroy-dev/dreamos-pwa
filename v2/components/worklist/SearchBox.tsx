@@ -112,7 +112,7 @@ export function SearchBox({ canAsk }: { canAsk: boolean }) {
 }
 
 const SEARCH_CSS = `
-.wl-search{position:relative;padding:0 var(--wl-gutter, 16px) 8px;flex:0 0 auto;z-index:4}
+.wl-search{position:relative;padding:8px var(--wl-gutter, 16px);flex:0 0 auto;z-index:4}
 .wl-sfield{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--atelier-input-border);background:var(--atelier-card-bg);color:var(--atelier-ink-mute)}
 .wl-sfield:focus-within{border-color:var(--atelier-accent-text)}
 .wl-sinput{flex:1;min-width:0;min-height:44px;border:0;background:transparent;color:var(--atelier-ink);font:var(--wl-tb);outline:none;-webkit-appearance:none;appearance:none}

@@ -113,6 +113,13 @@ export function answer(route) {
   if (route === '/api/v2/vendor/studio/team') return TEAM;
   if (route === '/api/v2/vendor/packages') return PACKAGES;
   if (route === `/api/v2/vendor/chat/history/${V}`) return { ok: true, messages: [] };
+  // DESIGN-1 stage 3: the search door's answer for "meera" (dream-os src/api/vendor/search.js), for the search shots
+  if (route === '/api/v2/vendor/search') return { ok: true, q: 'meera', groups: [
+    { kind: 'enquiries', total: 1, items: [{ id: 'lead-meera', title: 'Meera Kapoor', sub: '2026-12-14 \u00b7 Jaipur' }] },
+    { kind: 'clients', total: 1, items: [{ id: 'client-meera', title: 'Meera & Arjun', sub: '98765 43210' }] },
+    { kind: 'events', total: 2, items: [{ id: 'ev-1', title: 'Meera & Arjun sangeet', sub: '2026-12-13' }, { id: 'ev-2', title: 'Meera & Arjun wedding', sub: '2026-12-14' }] },
+    { kind: 'notes', total: 1, items: [{ id: 'n-1', title: 'Call Meera about the album', sub: null }] },
+  ] };
   const dm = route.match(/^\/api\/v2\/vendor\/day\/[^/]+\/(\d{4}-\d{2}-\d{2})$/);
   if (dm) { const d = dm[1]; const all = [...BANDS.bands.flatMap((b) => b.functions.map((f) => ({ ...f, binder_name: b.title, linked_binder_id: b.binder_id }))), ...BANDS.loose];
     const events = all.filter((f) => f.date === d).map((f) => ({ id: f.event_id, title: f.title, kind: f.kind, slot: f.slot, event_time: f.event_time, state: 'upcoming', notes: null, lead_id: null, linked_binder_id: f.linked_binder_id || null, binder_name: f.binder_name || null, assigned_member_ids: (f.crew || []).map((c) => c.member_id) }));
