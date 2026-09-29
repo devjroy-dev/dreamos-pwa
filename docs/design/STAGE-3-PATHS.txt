@@ -273,6 +273,7 @@ scripts/obp_vendor_form.proof.mjs
 scripts/obp_vendor_form_v2.proof.mjs
 scripts/rosterMint.proof.ts
 scripts/rosterMint_v2.proof.ts
+scripts/run-roster-mint-v2-proof.sh
 scripts/tdw07_p4a_ig.proof.mjs
 scripts/tdw07_p4a_ig_v2.proof.mjs
 scripts/tdw16_r2_leads_truth.proof.mjs
