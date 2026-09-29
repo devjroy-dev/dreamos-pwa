@@ -121,6 +121,8 @@ const COPY = {
   // These are the only two vendor-facing strings in this sitting not yet vetoed.
   G4: 'Move up',
   G5: 'Move down',
+  G1: 'Press and drag to reorder. The first photo is your cover.',
+  G3: 'Switch to All to reorder. Filters show only some of your photos.',
   G2: 'Order saved',
   // H1/H2/H3/H12 are FOUNDER-VETOED AND PARKED, not rendered this sitting (CE §B).
   // They are kept here so the action sitting inherits an executed veto instead of
@@ -130,9 +132,11 @@ const COPY = {
   // PERMANENT FALLBACK, NEVER A WALL". These are the founder's own bytes,
   // chosen over the drafted alternative, and they sit ABOVE the connect action
   // on the screen — position in a paragraph is instruction (TDW_06 doctrine).
-  // DESIGN-1 stage 2: the explanations F4, G1, G3, H2 and H12 moved, word for word, to the page's "?" card
-  // (lib/worklist/pageHelp.ts PORTFOLIO_HELP, their one home now); H3 is read from there too, for the ?ig=cancelled toast.
-  H3: PORTFOLIO_HELP.H3,
+  // DESIGN-1 stage 2: F4, H2 and H12 are read from the page's "?" card (lib/worklist/pageHelp.ts PORTFOLIO_HELP, their one
+  // home); H3, G1 and G3 stay on the page (the founder's ruling on H3; tdw07_p3 §9.5/§9.6 on G1 and G3).
+  H3: 'Instagram is just the quicker way. Uploading from your phone works exactly the same, always.',
+  H2: PORTFOLIO_HELP.H2,
+  H12: PORTFOLIO_HELP.H12,
   H4: 'Connect Instagram',
 
   // ── TDW_07 P4a · THE SECOND COPY CARD — FOUNDER-VETOED 2026-07-30 「 all ok 」
@@ -878,13 +882,13 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
           THE UPLOAD ACTION IS WHY THE ROW ITSELF SURVIVES BOTH WAYS. It is this screen's
           one filled gold and the only way a photo gets in. The spacer takes over the
           label's `flex: 1` so Upload stays exactly where the thumb already knows it. */}
-      <div style={{ padding: '12px var(--slice-inset, 16px) 0', display: 'flex', gap: 8, alignItems: 'stretch' }}>
+      <div style={{ padding: '12px var(--slice-inset, 16px) 0', display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'stretch' }}>
         {/* THE SCREEN'S ONE FILLED GOLD. Disabled at the cap; the sentence below
             says why, so the control is never mysteriously dead. */}
         <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading || full}
           className="atelier-fab"
           style={{
-            flex: 1, minHeight: 48,
+            flex: 1, minHeight: 48, order: 2,
             padding: '8px 16px', borderRadius: 12,
             cursor: (uploading || full) ? 'default' : 'pointer',
             border: '0.5px solid var(--atelier-label)',
@@ -903,9 +907,19 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
             ig_import_enabled; absence is the safe state, TDW_07 P4a). Unlinked or expired: Connect Instagram, the
             submitted surface's own control (its notes follow). Linked: Import from Instagram, disabled at the cap. */}
         {ig && ig.ig_import_enabled && (
-          (!ig.connected || ig.connection_state === 'expired') ? (
-            <>
-            {/* THE CONNECT CONTROL — a real link over a destination that
+          <>
+            {ig.connected && ig.connection_state !== 'expired' && (
+              <button type="button" className="wl-btn" disabled={igBusy !== null || full} onClick={igOpenPicker}
+                style={{ order: 3, color: A.interactiveWarm, opacity: (igBusy || full) ? 0.4 : 1, cursor: (igBusy || full) ? 'default' : 'pointer' }}>{COPY.H1}</button>
+            )}
+            {/* ── H3, THE FOUNDER'S RULING, READ ON THE PAGE BEFORE THE CONNECT BUTTON (29 Sept 2026, restating TDW_06's
+                doctrine: position in a paragraph is instruction; the vendor is told the truth before being sold to).
+                It is the one short line above the grid, on its own row above Upload and the Instagram button (order 1),
+                and it comes before Connect Instagram in the source and in reading order. */}
+            <p style={{ order: 1, flexBasis: '100%', margin: 0, fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: A.inkSoft }}>{COPY.H3}</p>
+            {(!ig.connected || ig.connection_state === 'expired') && (
+              <>
+                {/* THE CONNECT CONTROL — a real link over a destination that
                 already exists. No onClick, no await, nothing between the
                 finger and the navigation.
 
@@ -924,22 +938,20 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 re-mints and does not navigate — an honest second state
                 rather than a hrefless anchor, which would be a dead
                 control. */}
-              {igAuthUrl ? (
-                <a href={igAuthUrl}
-                  style={{
-                    flex: 1, minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center',
-                    borderRadius: 12, border: '1px solid var(--atelier-input-border)', background: 'transparent',
-                    font: 'var(--wl-tb)', color: A.interactiveWarm, textDecoration: 'none', cursor: 'pointer',
-                  }}>{COPY.H4}</a>
-              ) : (
-                <button type="button" className="wl-btn" disabled={igBusy !== null} onClick={igConnectRetry}
-                  style={{ color: A.interactiveWarm, opacity: igBusy ? 0.4 : 1, cursor: igBusy ? 'default' : 'pointer' }}>{COPY.H4}</button>
-              )}
-            </>
-          ) : (
-            <button type="button" className="wl-btn" disabled={igBusy !== null || full} onClick={igOpenPicker}
-              style={{ color: A.interactiveWarm, opacity: (igBusy || full) ? 0.4 : 1, cursor: (igBusy || full) ? 'default' : 'pointer' }}>{COPY.H1}</button>
-          )
+                {igAuthUrl ? (
+                  <a href={igAuthUrl}
+                    style={{
+                      order: 3, flex: 1, minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center',
+                      borderRadius: 12, border: '1px solid var(--atelier-input-border)', background: 'transparent',
+                      font: 'var(--wl-tb)', color: A.interactiveWarm, textDecoration: 'none', cursor: 'pointer',
+                    }}>{COPY.H4}</a>
+                ) : (
+                  <button type="button" className="wl-btn" disabled={igBusy !== null} onClick={igConnectRetry}
+                    style={{ order: 3, color: A.interactiveWarm, opacity: igBusy ? 0.4 : 1, cursor: igBusy ? 'default' : 'pointer' }}>{COPY.H4}</button>
+                )}
+              </>
+            )}
+          </>
         )}
       </div>
       {/* Filter pills — restored (CE §0.2 (a)). Ghost/bordered only: the screen's
@@ -958,30 +970,15 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
         ))}
       </div>
 
-      {/* ── THE ONE LINE ────────────────────────────────────────────────────────────────────────────────────────
-          The one that matters most, and only one: an expired Instagram link says so (a real state, TDW_07 §1.7); on an
-          iPhone home-screen app the press-and-hold instruction stands beside Connect Instagram, because a plain tap is
-          caught by the Instagram app (R-1, anchor-only); otherwise the count, or at the cap the cap sentence. */}
-      {/* The one line: whichever state line renders first hides the count after it (.pf-line ~ .pf-count), so there is
-          only ever one. H19 keeps its own gate, the one call site of isIosStandalone() (TDW_07 P4b R-1, anchor-only). */}
-      <style>{'.pf-one .pf-line ~ .pf-count{display:none}'}</style>
-      <div className="pf-one" style={{ padding: '8px var(--slice-inset, 16px) 0' }}>
-        {ig && ig.ig_import_enabled && ig.connection_state === 'expired' && (
-          <p className="pf-line" style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: A.red, margin: 0 }}>{COPY.H11}</p>
-        )}
-        {ig && ig.ig_import_enabled && !ig.connected && (
-          <>
-            {isIosStandalone() && igAuthUrl && (
-              <p className="pf-line" style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: A.inkMute, margin: 0 }}>{COPY.H19}</p>
-            )}
-          </>
-        )}
-        {cap > 0 && (
-          <p className="pf-count" style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: full ? A.inkSoft : A.inkMute, margin: 0 }}>
-            {full ? COPY.A2(cap) : COPY.A1(images.length, cap)}
-          </p>
-        )}
-      </div>
+      {/* ── THE ONE LINE ABOVE THE GRID ───────────────────────────────────────────────────────────────────────────
+          H3 when the Instagram import is wired (drawn with the buttons above). Otherwise the count, or at the cap the cap
+          sentence. Every other line (the count when H3 stands, the reorder hint, an expired link, the iPhone
+          instruction) is read under the grid. */}
+      {!(ig && ig.ig_import_enabled) && cap > 0 && (
+        <p style={{ padding: '8px var(--slice-inset, 16px) 0', fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: full ? A.inkSoft : A.inkMute, margin: 0 }}>
+          {full ? COPY.A2(cap) : COPY.A1(images.length, cap)}
+        </p>
+      )}
       <div
         ref={scrollRef}
         style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px var(--slice-inset, 16px) 32px', touchAction: dragId ? 'none' : 'auto' }}
@@ -1063,6 +1060,34 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
           </div>
         )}
 
+        {/* ── UNDER THE GRID: the lines that are not the one above it ──────────────────────────────────────────── */}
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {ig && ig.ig_import_enabled && cap > 0 && (
+            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: full ? A.inkSoft : A.inkMute, margin: 0 }}>
+              {full ? COPY.A2(cap) : COPY.A1(images.length, cap)}
+            </p>
+          )}
+          {images.length > 1 && canReorder && (
+            <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: A.inkMute }}>
+              {COPY.G1}
+            </div>
+          )}
+          {images.length > 1 && !canReorder && (
+            <div style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: A.inkMute }}>
+              {COPY.G3}
+            </div>
+          )}
+          {ig && ig.ig_import_enabled && ig.connection_state === 'expired' && (
+            <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: A.red, margin: 0 }}>{COPY.H11}</p>
+          )}
+          {ig && ig.ig_import_enabled && !ig.connected && (
+            <>
+              {isIosStandalone() && igAuthUrl && (
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: A.inkMute, margin: 0 }}>{COPY.H19}</p>
+              )}
+            </>
+          )}
+        </div>
         {/* DESIGN-1 · STAGE 2: below the grid now: the couples preview, the linked handle and Disconnect, and the
             probe ladder. The Instagram action itself stands beside Upload, behind the same gate. The notes on that gate:
             ── THE IG ENTRY DOES NOT RENDER THIS SITTING — CE §B, TIGHTENED ──

@@ -44,27 +44,40 @@ about the pins was deleted.
 
 ### Portfolio: the photos are the page (the founder, 29 Sept)
 Before, a vendor with photos saw the Upload row, a full-width preview button, the filters, and up to four lines of
-explanation before the first photo, which started 469 px down an 812 px screen. Now, above the grid:
-- **One row of buttons:** Upload, and beside it Import from Instagram (Connect Instagram until an account is
-  linked). The Instagram button keeps its gate: it shows only when the server reports the import wired.
+explanation before the first photo, which started 469 px down an 812 px screen.
+
+**Corrected by the founder (29 Sept, its own commit):** "Instagram is just the quicker way. Uploading from your phone
+works exactly the same, always." is a founder ruling that must be read ON THE PAGE, before the Connect button. It is the
+one short line allowed above the grid, and `tdw07_p4a_ig` is back to its original cells, passing unchanged (69/69).
+
+Now, top to bottom:
+- **The one line:** "Instagram is just the quicker way…" (when the server reports the Instagram import wired; it sits
+  above the buttons, so it is read before Connect Instagram). When the import is not wired there is no Instagram
+  button and no H3; the one line is then the count ("9 of 40 photos"), or at the cap the cap sentence.
+- **One row of buttons:** Upload, and beside it Connect Instagram (Import from Instagram once an account is linked),
+  behind its gate.
 - **The filters,** in one row at every width (at 360 they wrapped to two rows before).
-- **At most one short line:** the count ("9 of 40 photos"), or at the cap the cap sentence; an expired Instagram
-  link or, on an iPhone home-screen app, the press-and-hold instruction beside Connect Instagram take its place.
+- **The grid**, edge to edge inside the 16 px margin (it starts at 300 px with the line, 281 px without it).
+- **Under the grid:** the count (when H3 took the line), the reorder hint (G1 or G3, by the reorder state), an
+  expired Instagram link (H11), the press-and-hold instruction on an iPhone home-screen app (H19), then "See your
+  profile as couples do", "Connected as @…" and Disconnect Instagram.
 
-The grid starts at 281 px, edge to edge inside the 16 px margin, at 374 and 360, both themes. Below the grid: "See
-your profile as couples do", "Connected as @…" and Disconnect Instagram.
+**Sentences a bench pins as read on the page, which stay on the page:**
+| Sentence | Pinned by |
+|---|---|
+| H3 "Instagram is just the quicker way. Uploading from your phone works exactly the same, always." | `tdw07_p4a_ig` §1.5, §1.6 (above the Connect action, under its heading in source); `tdw07_p3_portfolio` §6.H-rendered |
+| G1 "Press and drag to reorder. The first photo is your cover." | `tdw07_p3_portfolio` §9.5 (renders when reordering is live) |
+| G3 "Switch to All to reorder. Filters show only some of your photos." | `tdw07_p3_portfolio` §9.6 (renders when a filter is on) |
+| H11 (expired link) and H19 (the iPhone instruction) | `tdw07_p4a_ig` §1.7, `tdw07_p4b_probe` §1.5, §5.3, §5.5 (rendered, by state) |
 
-Every explanation moved to the page's "?" card, word for word, into `PORTFOLIO_HELP` in `lib/worklist/pageHelp.ts`
-(their one home now; the screen reads H3 from there for its "?ig=cancelled" toast):
-- "Instagram is just the quicker way. Uploading from your phone works exactly the same, always." followed by
-  "Instagram only allows this for professional accounts (business or creator). …"
-- "Press and drag to reorder. The first photo is your cover." followed by "Switch to All to reorder. Filters show
-  only some of your photos."
+(`tdw07_p3_portfolio` is red on main, reading files that moved long ago; its pins are kept all the same.)
+
+**Moved to the "?" card, word for word** (`PORTFOLIO_HELP` in `lib/worklist/pageHelp.ts`, their one home; no bench
+pins them as rendered, only their bytes, which the screen's COPY still carries as reads of that home):
+- "Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is
+  free and takes a minute in Instagram's own settings."
 - "Couples see your approved photos. The rest are with our team."
 - The connects line: "Photos are copied into your portfolio, so they stay put even if your Instagram changes."
-
-Sentences on one subject share a line; none is reworded. On a 374×812 phone the card reaches its 60% height and its
-two buttons need a short scroll inside it (b140's fit check passes).
 
 Screenshots: `shots/stage-2/portfolio/` (before at 374; after at 374 and 360, both themes, linked and unlinked, below
 the grid, and the "?" card), taken against fixtures (9 photos, a 40-photo cap) because the mock account has none.
@@ -134,12 +147,8 @@ Each by label, with a note in the bench. None was loosened.
 - **b122**: the pins scene reads More, where the pins now stand (4.5a: above the rooms; 4.5d: More's title and
   seat; 4.7: the list below does not move when they arrive); a new `today` scene gives Home's own chrome to the
   dock cells (4.6a/b).
-- **tdw07_p4a_ig** (Portfolio): §1.5 and §1.6 pinned the earlier doctrine that H3 is read on the page before the
-  Connect action. By the founder's word H3 left the page; the cells now hold that H3 is read FIRST in the Portfolio
-  "?" card (before the account rule) and renders nowhere on the page, and that the Instagram action keeps its gate
-  beside Upload. §5.1 for H2, H3 and H12 now holds their exact bytes in `PORTFOLIO_HELP`, stricter than the slot names
-  it read before. The mutation ledger's V-2 was rewritten and checked by hand: putting H2 before H3 in the card turns
-  §1.5 red (restored byte for byte after).
+- **tdw07_p4a_ig** (Portfolio): amended once, then restored to its original cells by the founder's correction; it
+  passes unchanged, 69/69.
 - **b126**: 1.2 reads the portfolio's H2 where it lives now (`PORTFOLIO_HELP`), still byte for byte against the Meta
   room's sentence.
 - **tdw07_p4b_probe**: unchanged. The Connect anchor and the iPhone instruction keep the exact shapes it pins.
