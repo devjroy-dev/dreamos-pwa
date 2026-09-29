@@ -501,7 +501,7 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
         chk(`4.2a ${mode}: the tabs read Today, Enquiries, Calendar, Clients, Money, to their first rooms; on More none is current and the coin is (DESIGN-1 stage 3)`, () => {
           const s = c.seats || [];
           return (JSON.stringify(s.map((x) => [x.text, x.href])) === JSON.stringify(RULED_TABS) && s.every((x) => x.current === null)
-            && !!c.coin && c.coin.href === '/vendor/rooms' && c.coin.current === 'page') || JSON.stringify([s, c.coin]);
+            && !!c.coin && c.coin.href === '/vendor/more' && c.coin.current === 'page')   /* DESIGN-1 · THE LAYOUT SWITCH (by label): More's v2 address */ || JSON.stringify([s, c.coin]);
         });
         const mg = ro.more || [];
         const moreText = (label) => { const r = (TB.MORE_GROUPS || []).flatMap((g) => g.rows).find((x) => x.label === label) || {};

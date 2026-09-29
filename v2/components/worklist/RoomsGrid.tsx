@@ -139,7 +139,9 @@ const MORE_CSS = `
 .wl-morerow:active{background:var(--atelier-row-hover)}
 .wl-morerow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
 .wl-moreicon{flex:none;width:24px;height:24px;color:var(--atelier-accent-text)}
-.wl-moretext{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+/* the one row is 64 tall even with no line (Influencer exchange, Support): the shell's tap floor (!important, 44 and 48)
+   outranks .wl-morerow's min-height, so the text column holds 40 and the row's 12 + 12 padding makes 64 */
+.wl-moretext{flex:1;min-width:0;min-height:40px;justify-content:center;display:flex;flex-direction:column;gap:4px}
 .wl-morename{font:var(--wl-tn);color:var(--atelier-ink);overflow-wrap:anywhere}
 .wl-moredesc{font:var(--wl-t4);color:var(--atelier-ink-mute);overflow-wrap:anywhere}
 `;

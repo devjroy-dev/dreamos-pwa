@@ -1,3 +1,4 @@
+// DESIGN-1 · THE LAYOUT SWITCH (by label): the More scenes open /vendor/more, More's address in the v2 tree.
 // DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b122_home_shelves_probe.mjs. The original at its own path proves the classic
 // tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
 // scripts/lib/b122_home_shelves_probe_v2.mjs · TDW CE-45 · FE-1 · HOME AND SHELVES · cut one.
@@ -113,7 +114,7 @@ try {
     await settle(1500);
     out.chrome = await chrome();
   } else if (SCENARIO === 'rooms') {
-    await p.goto(`http://localhost:${PORT}/vendor/rooms`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+    await p.goto(`http://localhost:${PORT}/vendor/more`, { waitUntil: 'domcontentloaded', timeout: 90000 });
     // DESIGN-1 · STAGE 3 (by label): the rooms page is More; its list (.wl-more) replaced the bands.
     await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-more')), 60000);
     await settle(2500);
@@ -190,7 +191,7 @@ try {
     // DESIGN-1 · STAGE 2 (by label): the pinned rooms were KEPT and moved under More (the founder: "kept, moved under More,
     // not deleted"), so the pins scene reads them where they now stand, above the rooms directory on /vendor/rooms. The
     // anchor they stand above is the directory (.wl-bands), which took the place Today's masthead held; Home has none.
-    await p.goto(`http://localhost:${PORT}/vendor/rooms`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+    await p.goto(`http://localhost:${PORT}/vendor/more`, { waitUntil: 'domcontentloaded', timeout: 90000 });
     if (trade === 'slow') {
       await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-more') && !!document.querySelector('.wl-pins')), 60000);
       await settle(600);

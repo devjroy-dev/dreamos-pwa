@@ -124,3 +124,15 @@ if os.path.exists('scripts/rosterMint_v2.proof.ts'):
     open('scripts/run-roster-mint-v2-proof.sh', 'w', encoding='utf8').write(w)
     os.chmod('scripts/run-roster-mint-v2-proof.sh', os.stat(W).st_mode)
     print('wrapper scripts/run-roster-mint-v2-proof.sh')
+
+# b122's More scenes: in the v2 tree More has its own address; /vendor/rooms only redirects to Today
+PR = 'scripts/lib/b122_home_shelves_probe_v2.mjs'
+s = open(PR, encoding='utf8').read()
+n = s.count("await p.goto(`http://localhost:${PORT}/vendor/rooms`")
+if n != 2: sys.exit(f'{PR}: expected two /vendor/rooms scenes, found {n}')
+s = s.replace("await p.goto(`http://localhost:${PORT}/vendor/rooms`", "await p.goto(`http://localhost:${PORT}/vendor/more`")
+s = s.replace("// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy", "// DESIGN-1 · THE LAYOUT SWITCH (by label): the More scenes open /vendor/more, More's address in the v2 tree.\n// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy", 1)
+open(PR, 'w', encoding='utf8').write(s); print('patched', PR)
+patch('scripts/b122_ce45_home_shelves_bench_v2.js', [
+    ("c.coin.href === '/vendor/rooms' && c.coin.current === 'page')", "c.coin.href === '/vendor/more' && c.coin.current === 'page')   /* DESIGN-1 · THE LAYOUT SWITCH (by label): More's v2 address */"),
+])
