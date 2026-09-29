@@ -64,7 +64,11 @@ function routes() {
   walk('v2/app/vendor/(shell)', '');
   // the one that draws nothing: a redirect to Rooms (read, never assumed)
   const redirect = code(read('v2/app/vendor/(shell)/page.tsx'));
-  const drawn = out.filter((r) => !(r === '/vendor' && /router\.replace\('\/vendor\/rooms'\)/.test(redirect)));
+  // DESIGN-1 · STAGE 3 (by label): in the v2 tree the bare shell and /vendor/rooms (where the shared manifest and front
+  // door land) both go to Today and draw nothing; each is READ as a redirect, never assumed.
+  const roomsRedirect = code(read('v2/app/vendor/(shell)/rooms/page.tsx'));
+  const drawn = out.filter((r) => !(r === '/vendor' && /router\.replace\('\/vendor\/(rooms|today)'\)/.test(redirect))
+    && !(r === '/vendor/rooms' && /router\.replace\('\/vendor\/today'\)/.test(roomsRedirect) && !/<WorklistShell/.test(roomsRedirect)));
   return drawn.sort();
 }
 
@@ -99,12 +103,15 @@ function sourceCells() {
     reads !== keys.length - 4 || typed !== 4 ? `${reads} read, ${typed} typed, ${keys.length} entries` : null);
   const wl = code(read('v2/components/worklist/WorklistShell.tsx')); const ph = code(read('v2/components/worklist/PageHelp.tsx'));
   const bad = [];
-  if ((wl.match(/<RoomHead /g) || []).length !== 1 || !/<RoomHeadProvider><main className="wl-main"><RoomHead title=\{title\} \/>\{children\}<\/main><\/RoomHeadProvider>/.test(wl)) bad.push('the shell does not mount RoomHead exactly once above children, inside the override provider');
+  // DESIGN-1 · STAGE 3 (by label): the head is still the first child of the main column, above the room; the held-rooms
+  // row (a tab's other rooms, WorklistShell) sits between it and the room, and on More the account rows follow the room.
+  if ((wl.match(/<RoomHead /g) || []).length !== 1 || !/<RoomHeadProvider><main className="wl-main"><RoomHead title=\{title\} \/>\s*(\{\s*\}\s*)?\{tab && held && \([\s\S]*?\)\}\s*\{children\}[\s\S]*?<\/main><\/RoomHeadProvider>/.test(wl)) bad.push('the shell does not mount RoomHead exactly once above children, inside the override provider');
   if (!/const headLine = override === undefined \? title : override;/.test(ph) || !/<h1 data-room-title="" className="wl-roomtitle">\{headLine\}<\/h1>/.test(ph)) bad.push('RoomHead does not draw the shell byte (or the F-44.219 override) as the title');
   // F-44.219: exactly two rooms mount RoomHeadTitle, Calendar (the month) and Today (the status line); nothing else may
   const mounts = [];
   const walk0 = (dir) => { for (const e of fs.readdirSync(P(dir), { withFileTypes: true })) { const rel = dir + '/' + e.name; if (e.isDirectory()) { if (e.name !== 'node_modules') walk0(rel); } else if (/\.tsx$/.test(e.name) && /<RoomHeadTitle /.test(code(read(rel)))) mounts.push(rel); } };
-  ['app', 'components'].forEach(walk0);
+  // DESIGN-1 · THE LAYOUT SWITCH (by label): the v2 tree's own files (the classic tree is main's, proved by the original)
+  ['v2/app', 'v2/components'].forEach(walk0);
   if (mounts.sort().join() !== ['v2/app/vendor/(shell)/calendar/screen.tsx', 'v2/app/vendor/(shell)/today/page.tsx'].join()) bad.push('RoomHeadTitle mounted by: ' + mounts.join(', '));
   if (!/<RoomHeadTitle line=\{MONTHS\[month\]\} \/>/.test(code(read('v2/app/vendor/(shell)/calendar/screen.tsx')))) bad.push('Calendar does not hand the month to the head');
   // DESIGN-1 · STAGE 2 (by label): Home's resting line retired with TodayCards (docs/review/REPORT.md §3); the head now
@@ -118,7 +125,7 @@ function sourceCells() {
   }
   const solMounts = [];
   const walk = (dir) => { for (const e of fs.readdirSync(P(dir), { withFileTypes: true })) { const rel = dir + '/' + e.name; if (e.isDirectory()) { if (e.name !== 'node_modules') walk(rel); } else if (/\.tsx$/.test(e.name) && /className="sol-title"/.test(code(read(rel)))) solMounts.push(rel); } };
-  ['app', 'components'].forEach(walk);
+  ['v2/app', 'v2/components'].forEach(walk);   // DESIGN-1 · THE LAYOUT SWITCH (by label): the v2 tree
   if (solMounts.length) bad.push('.sol-title still mounted: ' + solMounts.join(', '));
   cell('1.3 the room\u2019s head has one drawer: the shell mounts RoomHead once above the room, and no room draws a title h1 of its own', bad.length ? bad.join(' | ') : null);
   const refs = [];
@@ -127,7 +134,10 @@ function sourceCells() {
   cell('1.4 the carousel is gone: no components/vendor/TipsCarousel.tsx, no reader in app/ components/ lib/ hooks/ (comment-stripped), no tipsOpen in Header',
     has('components/vendor/TipsCarousel.tsx') ? 'the file exists' : refs.length ? 'readers: ' + refs.join(', ') : /tipsOpen/.test(code(read('v2/components/vendor/Header.tsx'))) ? 'tipsOpen survives in Header' : null);
   const effect = /useEffect\(\(\) => \{ setFirst\(!readSeen\(seenKey\)\); \}, \[seenKey\]\);/.test(ph);
-  const renderRead = (ph.match(/readSeen\(/g) || []).length;
+  // DESIGN-1 · STAGES 3 TO 5 (by label): two readers now, the room's "?" and a surface's (HelpButton: the search, the Book
+  // sheet, Cancel booking); every read outside the definition is that same after-mount effect, never a render read.
+  const effects = (ph.match(/useEffect\(\(\) => \{ setFirst\(!readSeen\(seenKey\)\); \}, \[seenKey\]\);/g) || []).length;
+  const renderRead = (ph.match(/readSeen\(/g) || []).length - effects + 1;
   const stated = /ruled this per-phone key outside \u00a78's native clause/.test(read('v2/components/worklist/PageHelp.tsx'));
   cell('1.5 the seen key is read in an effect after mount, never during render, and the site states the chair\u2019s ruling on \u00a78',
     !effect ? 'no effect reads the key' : renderRead !== 2 ? `readSeen called ${renderRead} times (its definition and the effect are the two)` : !stated ? 'the ruling is not stated at the site' : null);

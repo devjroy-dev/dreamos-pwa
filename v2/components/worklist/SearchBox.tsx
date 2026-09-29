@@ -7,6 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { getJson } from '@/lib/vendor/api/_base';
 import { useAsk } from '@/lib/worklist/askContext';
+import { HelpButton } from '@/v2/components/worklist/PageHelp'; // DESIGN-1: the search's "?"
+import { SHEET_HELP } from '@/v2/lib/worklist/pageHelp';
 import {
   SEARCH_WORDS as W, MIN_CHARS, matchTools, isQuestion, recordHref, readRecent, saveRecent, type ResultKind,
 } from '@/v2/lib/worklist/search';
@@ -59,6 +61,7 @@ export function SearchBox({ canAsk }: { canAsk: boolean }) {
   return (
     <div className="wl-search" ref={boxRef} role="search">
       <style>{SEARCH_CSS}</style>
+      <div className="wl-srow0">
       <div className="wl-sfield">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
         <input ref={inputRef} type="search" className="wl-sinput" aria-label={W.label} placeholder={W.placeholder}
@@ -67,6 +70,9 @@ export function SearchBox({ canAsk }: { canAsk: boolean }) {
                onFocus={() => setOpen(true)}
                onKeyDown={(e) => { if (e.key === 'Escape') { setOpen(false); inputRef.current?.blur(); } if (e.key === 'Enter' && question) ask(); }} />
         {q && <button type="button" className="wl-sclear" aria-label={W.clear} onClick={() => { setQ(''); inputRef.current?.focus(); }}>{'×'}</button>}
+      </div>
+      {/* DESIGN-1: the search's own "?" (lib/worklist/pageHelp.ts SHEET_HELP.search) */}
+      <HelpButton id="surface:search" title={SHEET_HELP.search.title} help={SHEET_HELP.search.help} />
       </div>
 
       {open && (text.length < MIN_CHARS ? recent.length > 0 : true) && (
@@ -113,7 +119,8 @@ export function SearchBox({ canAsk }: { canAsk: boolean }) {
 
 const SEARCH_CSS = `
 .wl-search{position:relative;padding:8px var(--wl-gutter, 16px);flex:0 0 auto;z-index:4}
-.wl-sfield{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--atelier-input-border);background:var(--atelier-card-bg);color:var(--atelier-ink-mute)}
+.wl-srow0{display:flex;align-items:center;gap:4px}
+.wl-sfield{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--atelier-input-border);background:var(--atelier-card-bg);color:var(--atelier-ink-mute)}
 .wl-sfield:focus-within{border-color:var(--atelier-accent-text)}
 .wl-sinput{flex:1;min-width:0;min-height:44px;border:0;background:transparent;color:var(--atelier-ink);font:var(--wl-tb);outline:none;-webkit-appearance:none;appearance:none}
 .wl-sinput::-webkit-search-cancel-button{display:none}

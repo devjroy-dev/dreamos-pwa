@@ -12,6 +12,8 @@ import { packageDate } from '@/v2/lib/worklist/packages';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { Sheet, actionButton, T } from './PackageFields';
 import { refreshAfterBooking } from './BookingSheet';
+import { HelpButton } from '@/v2/components/worklist/PageHelp'; // DESIGN-1: the sheet's "?"
+import { SHEET_HELP } from '@/v2/lib/worklist/pageHelp';
 
 export function CancelBookingSheet({ open, binderId, name, onClose, onDone, onToast }: {
   open: boolean; binderId: string; name: string;
@@ -55,6 +57,7 @@ export function CancelBookingSheet({ open, binderId, name, onClose, onDone, onTo
 
   return (
     <Sheet open={open} testId="cancel-booking-sheet" title={BOOK.cancelTitle(name)} onClose={onClose}
+      aside={<HelpButton id="sheet:cancel-booking" title={SHEET_HELP.cancelBooking.title} help={SHEET_HELP.cancelBooking.help} layered />}
       footer={(
         <>
           <button type="button" style={actionButton('mute')} onClick={onClose}>{BOOK.keep}</button>

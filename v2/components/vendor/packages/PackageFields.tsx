@@ -106,8 +106,10 @@ export function primaryButton(): CSSProperties {
 }
 
 /** A bottom sheet in normal flow of the shell's overlay layer. */
-export function Sheet({ open, title, onClose, children, footer, testId }: {
+export function Sheet({ open, title, onClose, children, footer, testId, aside }: {
   open: boolean; title: string; onClose: () => void; children: ReactNode; footer: ReactNode; testId: string;
+  /** DESIGN-1: a control on the title's line at its right edge (the sheet's "?") */
+  aside?: ReactNode;
 }) {
   // Packet 3j · F-43.116: the sheet mounts through the one vendor layer (components/vendor/SheetLayer.tsx):
   // portaled, stacked by open order, inert beneath a higher sheet, bounded by the visible viewport and
@@ -129,8 +131,9 @@ export function Sheet({ open, title, onClose, children, footer, testId }: {
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
           <div style={{ width: 36, height: 4, borderRadius: 12, backgroundColor: T.dim }} />
         </div>
-        <div style={{ padding: '8px 24px 12px', borderBottom: `1px solid ${T.sheetBorder}`, flexShrink: 0 }}>
+        <div style={{ padding: '8px 24px 12px', borderBottom: `1px solid ${T.sheetBorder}`, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <h2 style={{ font: RUNG.t1, color: T.ink, margin: 0 }}>{title}</h2>
+          {aside}
         </div>
         <div ref={bodyRef} data-sheet-body="" style={{ flex: 1, ...SHEET_BODY_SCROLL, padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {children}

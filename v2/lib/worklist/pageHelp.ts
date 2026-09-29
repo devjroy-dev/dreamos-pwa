@@ -110,15 +110,33 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
     // DESIGN-1 stage 3: the Get found card (lib/worklist/getFound.ts), drawn only while one of the three is not set up.
     { icon: 'switch', line: 'When your website, Google reviews or posts and ads is not set up yet, one card at the end says so and opens it. Hide puts it away.' },
   ], connects: 'Money due opens Invoices. Your pinned rooms are in More: tap your initials, top right.' }),
-  [roomHref('leads')]: entry(ROOM_DESC.leads),
+  // DESIGN-1 · THE FIVE TABS' CARDS (the founder: what the page does, its steps, what it connects to, naming only what
+  // the screen draws). Line 1 stays the registry's (b140 1.2); the lines below name this screen's own controls.
+  [roomHref('leads')]: entry(ROOM_DESC.leads, { can: [
+    { icon: 'list', line: 'Search enquiries, or tap New, Contacted, Quoted or Booked to see only those. Recent changes the order.' },
+    { icon: 'reply', line: 'Tap an enquiry to open it: WhatsApp or Call the couple, Attach package, Forward to a peer or Mark lost.' },
+    { icon: 'add', line: 'Booking confirmed or Advance paid opens Book: the dates, the package and the invoice in one step. The + button adds an enquiry.' },
+  ], connects: 'A booked enquiry becomes a client in Clients, its dates go on your Calendar and its invoice into Money.' }),
   [roomHref('packages')]: entry(ROOM_DESC.packages),
-  [roomHref('clients')]: entry(ROOM_DESC.clients),
-  [roomHref('invoices')]: entry(ROOM_DESC.invoices),
+  [roomHref('clients')]: entry(ROOM_DESC.clients, { can: [
+    { icon: 'list', line: 'Search clients. Each card shows what has come in and what is still due.' },
+    { icon: 'read', line: 'Tap a client to open the card: Ask in chat, Edit or Hide. On a booked client, Cancel booking asks before removing its dates or an unpaid invoice.' },
+    { icon: 'add', line: 'The + button adds a client who booked without an enquiry.' },
+  ], connects: 'A client\u2019s invoices are in Money and the dates are on your Calendar.' }),
+  [roomHref('invoices')]: entry(ROOM_DESC.invoices, { can: [
+    { icon: 'list', line: 'Search invoices, or tap Overdue, Unpaid or Part paid to see only those. Recent changes the order.' },
+    { icon: 'money', line: 'Mark paid records a payment on that invoice. Tap an invoice to open it.' },
+    { icon: 'add', line: 'The + button makes an invoice.' },
+  ], connects: 'Payment reminders, Expenses, TDS and Books are the rest of Money: type their name in the search box at the top.' }),
   [roomHref('expenses')]: entry(ROOM_DESC.expenses),
   [roomHref('books')]: entry(ROOM_DESC.books),
   [roomHref('events')]: entry(ROOM_DESC.events),
   [roomHref('notes')]: entry(ROOM_DESC.notes),
-  [roomHref('calendar')]: entry(ROOM_DESC.calendar),
+  [roomHref('calendar')]: entry(ROOM_DESC.calendar, { can: [
+    { icon: 'calendar', line: 'Month shows the dates and Weddings lists each wedding. The arrows move a month; Good dates shows or hides the good dates.' },
+    { icon: 'list', line: 'Tap a day to see what is on it and to block it. Coming up lists the next functions.' },
+    { icon: 'add', line: 'The + button adds an event.' },
+  ], connects: 'Every booking puts each of its dates here as its own event.' }),
   [roomHref('storefront')]: entry(ROOM_DESC.storefront),
   // Each line names only what the page draws: Upload and the Instagram button beside it, the All filter, the photos.
   [roomHref('portfolio')]: entry(ROOM_DESC.portfolio, { can: [
@@ -162,3 +180,24 @@ export function helpFor(pathname: string): PageHelp | null {
 export function helpSeenKey(pathname: string): string {
   return 'tdw_help_seen:' + helpKey(pathname);
 }
+
+// ── DESIGN-1 · STAGES 3 AND 4 · THE CARDS FOR WHAT IS NOT A PAGE (components/worklist/PageHelp.tsx HelpButton) ──────
+// The founder: every page, tab and sheet of the new layout has its "?". The same card, the same shape; each line names
+// only what that surface draws.
+export const SHEET_HELP = {
+  search: { title: 'Search or ask', help: entry('One box for everything: your enquiries, clients, events, invoices, packages, notes and crew, and the pages of the app.', { can: [
+    { icon: 'list', line: 'Type a name, part of a phone number (the last four digits work) or a page such as TDS or website. Results come grouped by kind; tap one to open it.' },
+    { icon: 'reply', line: 'Ask a question and the last row is Ask TDW about this, which opens the assistant with your words.' },
+    { icon: 'read', line: 'Tap the empty box to see your recent searches.' },
+  ], connects: 'The Ask TDW bar at the bottom of the page is the same assistant.' }) },
+  book: { title: 'Book', help: entry('Book turns an enquiry into a client in one step: the dates, the package and the invoice together.', { can: [
+    { icon: 'calendar', line: 'Each date goes on your calendar as its own event. Add a date for each function.' },
+    { icon: 'money', line: 'With a package attached, its payment plan is shown and Change plan edits it. With none, pick one, or No package, enter an amount.' },
+    { icon: 'send', line: 'Confirm booking makes the invoice. Then the confirmation is ready: Copy it or Send on WhatsApp. Nothing is sent unless you tap. Undo takes it all back for ten seconds.' },
+  ], connects: 'The client appears in Clients, the dates on your Calendar and the invoice in Money.' }) },
+  cancelBooking: { title: 'Cancel booking', help: entry('Cancel booking takes a client back to your enquiries.', { can: [
+    { icon: 'calendar', line: 'Tick the dates line to take the booking\u2019s dates off your calendar.' },
+    { icon: 'money', line: 'Tick the invoice line to remove the unpaid invoice. An invoice with payments on it stays.' },
+    { icon: 'read', line: 'Nothing is removed unless you tick it. Keep booking closes this with no change.' },
+  ], connects: 'The couple stays in Enquiries, ready to book again.' }) },
+} as const;

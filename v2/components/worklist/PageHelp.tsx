@@ -38,7 +38,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { COPY } from '@/v2/lib/worklist/copy';
-import { helpFor, helpSeenKey, type HelpIcon } from '@/v2/lib/worklist/pageHelp';
+import { helpFor, helpSeenKey, type HelpIcon, type PageHelp as PageHelpEntry } from '@/v2/lib/worklist/pageHelp';
+import { SheetLayer } from '@/components/vendor/SheetLayer';
 import { useAsk } from '@/lib/worklist/askContext';
 
 // ── F-44.219 (ruled 28 Sept 2026) · THE TWO EXCEPTION ROOMS ────────────────────────────────────────
@@ -132,7 +133,31 @@ export function RoomHead({ title }: { title: string }) {
   );
 }
 
-function HelpCard({ title, help, onClose }: { title: string; help: NonNullable<ReturnType<typeof helpFor>>; onClose: () => void }) {
+// DESIGN-1 · STAGES 3 TO 5: the same "?" and the same card for a surface that is not a room (the search box, the Book
+// sheet, Cancel booking): its words live in lib/worklist/pageHelp.ts SHEET_HELP, its seen key is its own id. Inside a
+// sheet (`layered`) the card goes up through the one vendor layer (SheetLayer), one level above the sheet it explains.
+export function HelpButton({ id, title, help, layered = false }: { id: string; title: string; help: PageHelpEntry; layered?: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [first, setFirst] = useState(false);
+  const qRef = useRef<HTMLButtonElement>(null);
+  const seenKey = 'tdw_help_seen:' + id;
+  useEffect(() => { setFirst(!readSeen(seenKey)); }, [seenKey]);
+  const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => { qRef.current?.focus(); }); }, []);
+  const openCard = useCallback(() => { setOpen(true); if (first) { writeSeen(seenKey); setFirst(false); } }, [first, seenKey]);
+  return (
+    <>
+      <button ref={qRef} type="button" className="wl-helpq" aria-label={COPY.helpAria} data-help-id={id}
+              aria-haspopup="dialog" aria-expanded={open} data-first={first ? '1' : '0'} onClick={openCard}>
+        <span className="wl-helpqring" aria-hidden="true">?</span>
+      </button>
+      {open && (layered
+        ? <SheetLayer open testId={'help-' + id}>{(z) => <HelpCard title={title} help={help} onClose={close} zIndex={z.panel} />}</SheetLayer>
+        : <HelpCard title={title} help={help} onClose={close} />)}
+    </>
+  );
+}
+
+function HelpCard({ title, help, onClose, zIndex }: { title: string; help: PageHelpEntry; onClose: () => void; zIndex?: number }) {
   const { openAsk } = useAsk();
   // Escape closes, and the scrim closes. A card with no way out is a trap (AskSheet's own rule).
   useEffect(() => {
@@ -142,7 +167,7 @@ function HelpCard({ title, help, onClose }: { title: string; help: NonNullable<R
   }, [onClose]);
   const ask = () => { onClose(); openAsk(COPY.helpAskPrefill(title)); };
   return (
-    <div className="wl-help" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="wl-help" role="dialog" aria-modal="true" aria-label={title} style={zIndex != null ? { zIndex } : undefined}>
       <button type="button" className="wl-helpscrim" aria-label={COPY.helpClose} onClick={onClose} />
       <div className="wl-helpcard">
         <h2 className="wl-helpname">{title}</h2>

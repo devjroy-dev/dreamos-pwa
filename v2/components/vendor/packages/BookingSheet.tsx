@@ -32,6 +32,8 @@ import { istTodayISO } from '@/lib/vendor/istDay';
 import type { ToastKind } from '@/hooks/vendor/useToast';
 import { Sheet, FieldLabel, inputStyle, flagged, actionButton, primaryButton, T } from './PackageFields';
 import { AttachSheet } from './LeadPackageCard';
+import { HelpButton } from '@/v2/components/worklist/PageHelp'; // DESIGN-1: the sheet's "?"
+import { SHEET_HELP } from '@/v2/lib/worklist/pageHelp';
 
 type RefusalCode = keyof typeof LEAD_PACKAGE.refusals;
 const isRefusal = (c: unknown): c is RefusalCode => typeof c === 'string' && c in LEAD_PACKAGE.refusals;
@@ -201,7 +203,7 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
     const first = firstName(leadName);
     const draft = confirmationDraft({ first, dates: booked.sent, total: booked.p.total ?? invoiceAmount, invoice: booked.p.invoice_number || null });
     return (
-      <Sheet open={open} testId="booking-sheet" title={BOOK.bookedTitle} onClose={onClose}
+      <Sheet open={open} testId="booking-sheet" title={BOOK.bookedTitle} onClose={onClose} aside={<HelpButton id="sheet:book" title={SHEET_HELP.book.title} help={SHEET_HELP.book.help} layered />}
         footer={(
           <>
             {left > 0 && <button type="button" data-book-undo="" style={actionButton('mute')} onClick={() => { void undo(); }} aria-busy={busy}>{BOOK.undo(left)}</button>}
@@ -221,7 +223,7 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
   // ── 1 · BOOK ─────────────────────────────────────────────────────────────────────────
   return (
     <>
-    <Sheet open={open} testId="booking-sheet" title={BOOK.title} onClose={onClose}
+    <Sheet open={open} testId="booking-sheet" title={BOOK.title} onClose={onClose} aside={<HelpButton id="sheet:book" title={SHEET_HELP.book.title} help={SHEET_HELP.book.help} layered />}
       footer={(
         <>
           <button type="button" style={actionButton('mute')} onClick={onClose}>{PACKAGES.cancel}</button>
