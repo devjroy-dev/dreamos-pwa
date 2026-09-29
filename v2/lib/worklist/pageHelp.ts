@@ -127,7 +127,7 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
     { icon: 'list', line: 'Search invoices, or tap Overdue, Unpaid or Part paid to see only those. Recent changes the order.' },
     { icon: 'money', line: 'Mark paid records a payment on that invoice. Tap an invoice to open it.' },
     { icon: 'add', line: 'The + button makes an invoice.' },
-  ], connects: 'Payment reminders, Expenses, TDS and Books are the rest of Money: type their name in the search box at the top.' }),
+  ], connects: 'The row under the heading opens the rest of Money: Payment reminders, Expenses, TDS and Books.' }),
   [roomHref('expenses')]: entry(ROOM_DESC.expenses),
   [roomHref('books')]: entry(ROOM_DESC.books),
   [roomHref('events')]: entry(ROOM_DESC.events),

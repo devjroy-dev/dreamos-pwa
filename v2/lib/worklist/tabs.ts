@@ -56,6 +56,11 @@ export const TABS: readonly Tab[] = [
 
 const pathOf = (href: string) => href.split('#')[0];
 
+/** The founder (after stage 4): the tabs whose first room also shows the row of the tab's rooms. Money: Invoices lists
+ *  Payment reminders, Expenses, TDS and Books, which are nowhere else but the search. The other tabs keep their first
+ *  page to its work. */
+export const ROW_ON_FIRST: readonly TabId[] = ['money'];
+
 /** The tab a path belongs to: the tab holding a room whose address the path is, or sits under. A room reached
  *  through an in-page anchor (Where enquiries go, in Settings) does not light a tab: Settings is More's. */
 export function tabFor(pathname: string): Tab | null {

@@ -33,7 +33,7 @@ import { AskProvider, type AskApi } from '@/lib/worklist/askContext';
 import { AiDock } from '@/v2/components/worklist/AiDock';
 import { AccountDrawer } from '@/v2/components/worklist/AccountDrawer';
 import { RoomHead, RoomHeadProvider, PAGE_HELP_CSS } from '@/v2/components/worklist/PageHelp';
-import { TABS, tabFor, heldRoomFor, MORE_HREF, TAB_WORDS } from '@/v2/lib/worklist/tabs';
+import { TABS, tabFor, heldRoomFor, MORE_HREF, TAB_WORDS, ROW_ON_FIRST } from '@/v2/lib/worklist/tabs';
 import { SearchBox } from '@/v2/components/worklist/SearchBox';
 
 const SCOPE = '.wl';
@@ -137,7 +137,8 @@ export function WorklistShell({ title, children }: {
   // rooms under it no seat is lit and the coin is current instead.
   const tab = tabFor(pathname);
   const onMore = pathname === MORE_HREF;
-  const held = tab && tab.rooms.length > 1 && pathname !== tab.rooms[0].href ? heldRoomFor(tab, pathname) : null;
+  // the founder: Money's row shows on Invoices too (ROW_ON_FIRST); the other tabs' first pages keep to their work
+  const held = tab && tab.rooms.length > 1 && (pathname !== tab.rooms[0].href || ROW_ON_FIRST.includes(tab.id)) ? heldRoomFor(tab, pathname) : null;
 
   return (
     <AskProvider value={ask}>
