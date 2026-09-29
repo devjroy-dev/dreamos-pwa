@@ -240,6 +240,9 @@ export const setCapabilityAutoOn = (key: string, auto_on: boolean, walk_ref?: st
 export const checkCapability     = (key: string) => adminPost<{ row: CapabilityRow; result: unknown }>(`/api/v2/admin/capabilities/${encodeURIComponent(key)}/check`);
 export const sweepCapabilities   = () => adminPost<{ checked: number; moved: number }>('/api/v2/admin/capabilities/sweep');
 export const getWabaTemplates    = () => adminGet<{ count: number; pages: number; truncated: boolean; evidence: string; templates: WabaTemplate[] }>('/api/v2/admin/capabilities/waba_templates');
+// DESIGN-1 · THE SWITCHES: the vendor layout's master and per-vendor list (dream-os src/api/admin/capabilities.js)
+export const getLayoutSwitch     = () => adminGet<import('./layoutSwitchCopy').LayoutState>('/api/v2/admin/capabilities/layout');
+export const setLayoutMaster     = (to: 'on' | 'off') => adminPost<{ master: import('./layoutSwitchCopy').LayoutMaster }>('/api/v2/admin/capabilities/layout/master', { to });
 
 // ── MODEL ROUTES (CE-41 seat F, R-41.85) ──────────────────────────────────────
 // The panel holds NO list of lane keys, providers or models. All three come down
