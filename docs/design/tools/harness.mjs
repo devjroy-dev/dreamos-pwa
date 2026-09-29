@@ -108,6 +108,8 @@ export function answer(route) {
   if (route === `/api/v2/vendor/events/${V}`) return EVENTS;
   if (route === `/api/v2/vendor/bands/${V}`) return BANDS;
   if (route === `/api/v2/vendor/cabinet/${V}`) return CABINET;
+  // DESIGN-1 stage 5b: the typed roster (public.clients), for a found client; Meera's number is her binder's
+  if (route === `/api/v2/vendor/clients/${V}`) return { ok: true, total: 1, clients: [{ id: 'client-meera', name: 'Meera and Kunal', phone: '+91 98111 00005', email: null, notes: null, created_at: '2026-09-01T05:00:00.000Z' }] };
   if (route === `/api/v2/vendor/leads/${V}`) return LEADS;
   if (route === `/api/v2/vendor/money/invoices/${V}`) return INVOICES;
   if (route === '/api/v2/vendor/studio/team') return TEAM;

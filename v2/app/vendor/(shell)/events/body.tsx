@@ -28,7 +28,8 @@ function deleteRequest(sel: Row) {
   return { url: `${API_BASE}/api/v2/vendor/events/${sel.id}/cancel`, method: 'PATCH' };
 }
 
-export default function EventsSlice({ vendorId }: { vendorId: string }) {
+// DESIGN-1 · STAGE 5b: with recordId, the same screen draws that one event as its page (SliceScreen's record mode)
+export default function EventsSlice({ vendorId, recordId }: { vendorId: string; recordId?: string }) {
   const cab = useCabinetData(vendorId);
 
   // Every binder this vendor holds, by id — the calendar row names one directly,
@@ -65,5 +66,5 @@ export default function EventsSlice({ vendorId }: { vendorId: string }) {
     });
   }, [binderById, crew]);
 
-  return <SliceScreen slice="events" vendorId={vendorId} useData={useEventsData} toRows={toRows} deleteRequest={deleteRequest} />;
+  return <SliceScreen slice="events" vendorId={vendorId} recordId={recordId} useData={useEventsData} toRows={toRows} deleteRequest={deleteRequest} />;
 }

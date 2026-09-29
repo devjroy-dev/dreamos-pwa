@@ -1612,8 +1612,26 @@ export function fetchAllContracts(): Promise<{ ok: boolean; contracts: Contract[
  * `GET /api/v2/vendor/clients/:vendorId` is `resolveVendor` mode B: the path id
  * must match the JWT's, so it is not a second authority, only a second address.
  */
-export function fetchTypedClients(vendorId: string, limit = 100): Promise<{ ok: boolean; clients: Client[]; total: number } | ApiErr> {
-  return getJson(`/api/v2/vendor/clients/${vendorId}?limit=${limit}`);
+export function fetchTypedClients(vendorId: string, limit = 100, offset = 0): Promise<{ ok: boolean; clients: Client[]; total: number } | ApiErr> {
+  // DESIGN-1 · STAGE 5b: the door's own offset, for findTypedClient below (0 sends the address as it always was)
+  return getJson(`/api/v2/vendor/clients/${vendorId}?limit=${limit}${offset ? `&offset=${offset}` : ''}`);
+}
+
+/**
+ * DESIGN-1 · STAGE 5b · ONE TYPED CLIENT, BY HER ID. The search names a client by her `public.clients` id; her page
+ * reads the Clients list's own records, so the list needs her number to find it (lib/worklist/record.ts,
+ * foundClientPage). The roster door above, paged at its own ceiling of 100, until she is found or the roster ends.
+ * Nothing new is asked of any door, and nothing new is sent.
+ */
+export async function findTypedClient(vendorId: string, clientId: string, maxPages = 20): Promise<Client | null> {
+  for (let page = 0; page < maxPages; page++) {
+    const r = await fetchTypedClients(vendorId, 100, page * 100);
+    if (!r || !r.ok || !('clients' in r) || !Array.isArray(r.clients)) return null;
+    const hit = r.clients.find((c) => c.id === clientId);
+    if (hit) return hit;
+    if (r.clients.length < 100) return null;
+  }
+  return null;
 }
 
 /**

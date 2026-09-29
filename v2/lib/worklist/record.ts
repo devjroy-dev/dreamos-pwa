@@ -13,6 +13,11 @@ export const clientHref = (id: string) => `/vendor/clients/${encodeURIComponent(
 /** The pages' route patterns (their "?" cards key on these). */
 export const ENQUIRY_ROUTE = '/vendor/leads/[id]';
 export const CLIENT_ROUTE = '/vendor/clients/[id]';
+// DESIGN-1 · STAGE 5b: the invoice and the event, the same shape
+export const invoiceHref = (id: string) => `/vendor/invoices/${encodeURIComponent(id)}`;
+export const eventHref = (id: string) => `/vendor/events/${encodeURIComponent(id)}`;
+export const INVOICE_ROUTE = '/vendor/invoices/[id]';
+export const EVENT_ROUTE = '/vendor/events/[id]';
 
 export const RECORD = {
   back: (list: string) => `Back to ${list}`,
@@ -59,6 +64,7 @@ export const RECORD = {
   hide: 'Hide',
   hideSure: 'Hide: sure?',
   hidden: (name: string) => `${name} hidden.`,
+  hiddenState: 'Hidden',
   restored: 'Restored.',
   // history lines
   hFrom: 'From them',
@@ -67,10 +73,35 @@ export const RECORD = {
   hEvent: (title: string) => `On the calendar: ${title}`,
   hInvoice: (n: string, amount: number) => `Invoice ${n}, ${formatRs(amount)}`,
   hNote: 'Note',
+  // DESIGN-1 · STAGE 5b · the invoice and the event
+  invoices: 'Invoices',
+  events: 'Events',
+  sendWa: 'Send on WhatsApp',
+  pdf: 'Download PDF',
+  pdfBusy: 'Fetching…',
+  markDone: 'Mark done',
+  made: 'Made',
+  dueOn: 'Due',
+  overdue: 'Overdue',
+  schedule: 'Payment schedule',
+  date: 'Date',
+  time: 'Time',
+  crew: 'Crew',
+  kind: 'Kind',
+  enquiry: 'Enquiry',
+  client: 'Client',
+  cancelInvoice: 'Cancel invoice',
+  cancelInvoiceSure: 'Cancel invoice: sure?',
+  cancelEvent: 'Cancel event',
+  cancelEventSure: 'Cancel event: sure?',
+  cancelledDone: (what: string) => `${what} cancelled.`,
+  hMade: 'Invoice made',
+  hPaid: (label: string, amount: number) => `${label} paid, ${formatRs(amount)}`,
+  hReminded: (label: string) => `Reminder sent for ${label}`,
   statusOf: (state: string) => state ? state.charAt(0).toUpperCase() + state.slice(1) : '',
 } as const;
 
-export type NextAction = { kind: 'reply' | 'book' | 'client' | 'invoice' | 'message'; label: string } | null;
+export type NextAction = { kind: 'reply' | 'book' | 'client' | 'invoice' | 'message' | 'send' | 'pdf' | 'done'; label: string } | null;
 
 /** The one next action on an enquiry, from its state: answer a new one, book one in talks, open a booked one's client. */
 export function enquiryNext(state: string | null | undefined, hasPhone: boolean): NextAction {
@@ -85,6 +116,22 @@ export function enquiryNext(state: string | null | undefined, hasPhone: boolean)
 export function clientNext(pending: number | null | undefined, hasPhone: boolean): NextAction {
   if ((pending ?? 0) > 0) return { kind: 'invoice', label: RECORD.openInvoice };
   return hasPhone ? { kind: 'message', label: RECORD.messageWa } : null;
+}
+
+/** DESIGN-1 · STAGE 5b: the one next action on an invoice. E12's likely next step, as the sheet had it: send it on
+ *  WhatsApp when there is a number, else download the PDF; a cancelled invoice has none. */
+export function invoiceNext(state: string | null | undefined, hasPhone: boolean): NextAction {
+  if (String(state || '').toLowerCase() === 'cancelled') return null;
+  return hasPhone ? { kind: 'send', label: RECORD.sendWa } : { kind: 'pdf', label: RECORD.pdf };
+}
+
+/** DESIGN-1 · STAGE 5b: the one next action on an event. On or after its day, mark it done; before it, open its client
+ *  when the calendar row names one; done or cancelled, none. */
+export function eventNext(state: string | null | undefined, date: string | null | undefined, today: string, hasClient: boolean): NextAction {
+  const s = String(state || '').toLowerCase();
+  if (s === 'done' || s === 'cancelled') return null;
+  if (date && String(date).slice(0, 10) <= today) return { kind: 'done', label: RECORD.markDone };
+  return hasClient ? { kind: 'client', label: RECORD.openClient } : null;
 }
 
 export type HistoryItem = { at: string; kind: 'in' | 'out' | 'received' | 'event' | 'invoice' | 'note'; text: string };
@@ -106,6 +153,21 @@ export function historyOf(p: {
   return [...dated, ...(p.notes || []).map((n) => ({ at: '', kind: 'note' as const, text: n }))];
 }
 
+/** DESIGN-1 · STAGE 5b: an invoice's history, newest first: made, then each milestone paid and each reminder that
+ *  went (sent_at: it reached WhatsApp; a row alone is not a send, F-41.15). */
+export function invoiceHistory(p: {
+  created_at?: string | null;
+  schedule?: ReadonlyArray<{ milestone_label: string; state: string; paid_at: string | null; paid_amount: number | null; amount_due: number; sent_at?: string | null }> | null;
+}): HistoryItem[] {
+  const out: HistoryItem[] = [];
+  for (const m of p.schedule || []) {
+    if (m.state === 'paid' && m.paid_at) out.push({ at: m.paid_at, kind: 'invoice', text: RECORD.hPaid(m.milestone_label, m.paid_amount ?? m.amount_due) });
+    if (m.sent_at) out.push({ at: m.sent_at, kind: 'out', text: RECORD.hReminded(m.milestone_label) });
+  }
+  if (p.created_at) out.push({ at: p.created_at, kind: 'received', text: RECORD.hMade });
+  return out.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+}
+
 /** THE CLIENT'S LEAD (the founder): matched by the normalised number, the estate's own fold (phoneKey, the R1(b) key),
  *  and linked ONLY when exactly one lead has it. None, or two or more sharing the number, links nothing rather than
  *  guess; a client or a lead with no usable number never matches. */
@@ -113,6 +175,27 @@ export function linkedLeadFor<T extends { phone: string | null | undefined }>(cl
   const k = phoneKey(clientPhone);
   if (!k) return null;
   const hits = leads.filter((l) => phoneKey(l.phone) === k);
+  return hits.length === 1 ? hits[0] : null;
+}
+
+/** DESIGN-1 · STAGE 5b · A FOUND CLIENT'S PAGE. The search names a client by her typed-plane id (public.clients), not the
+ *  id her page reads; the page is the one client in the Clients list with her number, by the same rule as above. An id
+ *  the typed read does not hold, a client with no number, or a number two clients share: no page (the list, as before). */
+export function foundClientPage<B extends { phone: string | null | undefined }>(
+  wantId: string | null | undefined, typed: ReadonlyArray<{ id: string; phone: string | null | undefined }>, binders: readonly B[],
+): B | null {
+  const t = wantId ? typed.find((c) => c.id === wantId) : undefined;
+  return t ? linkedLeadFor(t.phone, binders) : null;
+}
+
+/** DESIGN-1 · STAGE 5b (a 5a fix) · THE CLIENT'S INVOICE. Open the invoice opens the one invoice still owed with the
+ *  client's number (the same fold, exactly one, a cancelled one never counts); with none or several, no one invoice. */
+export function owedInvoiceFor<I extends { client_phone?: string | null; amount_owed: number; state: string }>(
+  clientPhone: string | null | undefined, invoices: readonly I[],
+): I | null {
+  const k = phoneKey(clientPhone);
+  if (!k) return null;
+  const hits = invoices.filter((i) => phoneKey(i.client_phone) === k && Number(i.amount_owed) > 0 && i.state !== 'cancelled');
   return hits.length === 1 ? hits[0] : null;
 }
 

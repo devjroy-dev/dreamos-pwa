@@ -36,7 +36,8 @@ function makeDeleteRequest(vendorId: string) {
   });
 }
 
-export default function InvoicesSlice({ vendorId }: { vendorId: string }) {
+// DESIGN-1 · STAGE 5b: with recordId, the same screen draws that one invoice as its page (SliceScreen's record mode)
+export default function InvoicesSlice({ vendorId, recordId }: { vendorId: string; recordId?: string }) {
   // TDW_04 A3 (L-3): the cross-chip reaches invoices — a money row whose client
   // shares a phone with a typed enquiry says so, and jumps there. Display-only;
   // phone-asymmetric twins wear no chip (disclosed, per ST-2).
@@ -61,5 +62,5 @@ export default function InvoicesSlice({ vendorId }: { vendorId: string }) {
 
   const deleteRequest = useCallback(makeDeleteRequest(vendorId), [vendorId]);
 
-  return <SliceScreen slice="invoices" vendorId={vendorId} useData={useInvoicesData} toRows={toRowsChipped} deleteRequest={deleteRequest} />;
+  return <SliceScreen slice="invoices" vendorId={vendorId} recordId={recordId} useData={useInvoicesData} toRows={toRowsChipped} deleteRequest={deleteRequest} />;
 }

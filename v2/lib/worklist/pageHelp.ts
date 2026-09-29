@@ -58,6 +58,9 @@ const TYPED_WHAT = {
   // DESIGN-1 · STAGE 5a: the two record pages have no registry line of their own
   enquiry:   'One enquiry, whole: who, when, the money and everything said so far',
   client:    'One client, whole: the dates, the money and the story so far',
+  // DESIGN-1 · STAGE 5b
+  invoice:   'One invoice, whole: what it asks for, what has come in, and each payment and reminder',
+  event:     'One event, whole: the day, the crew, the client and the booking behind it',
   rooms:     'Every part of the app, in groups',
   today:     'Your day: a date to check, enquiries to answer, today\u2019s functions and money due',
   exchange:  'Gear and services traded with peers',
@@ -130,12 +133,18 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   ], connects: 'A client\u2019s invoices are in Money and the dates are on your Calendar.' }),
   [roomHref('invoices')]: entry(ROOM_DESC.invoices, { can: [
     { icon: 'list', line: 'Search invoices, or tap Overdue, Unpaid or Part paid to see only those. Recent changes the order.' },
-    { icon: 'money', line: 'Mark paid records a payment on that invoice. Tap an invoice to open it.' },
+    // DESIGN-1 · STAGE 5b: an invoice opens as its own page (its own card, below)
+    { icon: 'money', line: 'Mark paid records a payment on that invoice. Tap an invoice to open its page.' },
     { icon: 'add', line: 'The + button makes an invoice.' },
   ], connects: 'The row under the heading opens the rest of Money: Payment reminders, Expenses, TDS and Books.' }),
   [roomHref('expenses')]: entry(ROOM_DESC.expenses),
   [roomHref('books')]: entry(ROOM_DESC.books),
-  [roomHref('events')]: entry(ROOM_DESC.events),
+  // DESIGN-1 · STAGE 5b: an event opens as its own page (its own card, below)
+  [roomHref('events')]: entry(ROOM_DESC.events, { can: [
+    { icon: 'list', line: 'Search events, or tap This week, Later or Done to see only those. Recent changes the order.' },
+    { icon: 'read', line: 'Tap an event to open its page: the day, the crew, the money and the history, with the next step on top.' },
+    { icon: 'add', line: 'Swipe an event right to mark it done, or left to cancel it. The + button adds an event.' },
+  ], connects: 'Every event is on your Calendar too, and a booking puts each of its dates here.' }),
   [roomHref('notes')]: entry(ROOM_DESC.notes),
   [roomHref('calendar')]: entry(ROOM_DESC.calendar, { can: [
     { icon: 'calendar', line: 'Month shows the dates and Weddings lists each wedding. The arrows move a month; Good dates shows or hides the good dates.' },
@@ -180,6 +189,17 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
     { icon: 'list', line: 'Dates, Money, Notes and History read top to bottom. History has the messages, invoices, dates and notes, newest first.' },
     { icon: 'edit', line: 'At the end: Enquiries (when one enquiry has this number), Ask in chat, Edit, Hide and, for a booked client, Cancel booking.' },
   ], connects: 'Back to Clients returns to the list where you left it.' }),
+  // DESIGN-1 · STAGE 5b · the invoice and the event (components/vendor/records/SliceRecord.tsx)
+  '/vendor/invoices/[id]': entry(TYPED_WHAT.invoice, { can: [
+    { icon: 'send', line: 'The button on top is the next step: Send on WhatsApp sends the invoice to the client. With no number it is Download PDF.' },
+    { icon: 'money', line: 'Money shows the total, what has come in and what is still due. Under it, the payment schedule: Add makes one; on each part, Remind, Edit and Paid; Remove schedule takes it off.' },
+    { icon: 'edit', line: 'At the end: Download PDF, Mark paid, Enquiry and Client (when one has this number), Ask in chat, Edit and Cancel invoice.' },
+  ], connects: 'Back to Invoices returns to the list where you left it. A reminder you send is kept in Payment reminders.' }),
+  '/vendor/events/[id]': entry(TYPED_WHAT.event, { can: [
+    { icon: 'calendar', line: 'The button on top is the next step: Mark done once the day has come, or Open the client before it.' },
+    { icon: 'list', line: 'Dates has the day, the time and the crew. Money is the client\u2019s: what has come in and what is still due. History is the booking\u2019s, newest first.' },
+    { icon: 'edit', line: 'At the end: Mark done, Enquiry, Client, Ask in chat, Edit and Cancel event.' },
+  ], connects: 'Back to Events returns to the list where you left it. The event is on your Calendar too.' }),
 };
 
 /** The dynamic routes (a collab's responses; stage 5a's enquiry and client pages), folded onto their patterns. Anything else keys by its own pathname. */
@@ -189,6 +209,9 @@ export function helpKey(pathname: string): string {
   // DESIGN-1 · STAGE 5a: the two record pages fold onto their patterns too
   if (/^\/vendor\/leads\/[^/[]+\/?$/.test(pathname)) return '/vendor/leads/[id]';
   if (/^\/vendor\/clients\/[^/[]+\/?$/.test(pathname)) return '/vendor/clients/[id]';
+  // DESIGN-1 · STAGE 5b: and the invoice's and the event's
+  if (/^\/vendor\/invoices\/[^/[]+\/?$/.test(pathname)) return '/vendor/invoices/[id]';
+  if (/^\/vendor\/events\/[^/[]+\/?$/.test(pathname)) return '/vendor/events/[id]';
   return pathname.replace(/\/+$/, '') || pathname;
 }
 

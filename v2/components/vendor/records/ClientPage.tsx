@@ -8,7 +8,7 @@
 // (linkedLeadFor, the founder's rule); with none or several, the page shows no linked enquiry rather than guess.
 import { useEffect, useMemo, useState } from 'react';
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
-import { useLeadsData, useCabinetData, useEventsData } from '@/v2/hooks/vendor/useVendorData';
+import { useLeadsData, useCabinetData, useEventsData, useInvoicesData } from '@/v2/hooks/vendor/useVendorData';
 import { fetchLeadDetail } from '@/v2/lib/vendor/api/vendor';
 import type { LeadDetailResponse } from '@/lib/vendor/types/vendor';
 import { formatRs } from '@/lib/vendor/format';
@@ -19,10 +19,9 @@ import { EditSheet } from '@/v2/components/vendor/slices/BinderCard';
 import { CancelBookingSheet } from '@/v2/components/vendor/packages/CancelBookingSheet';
 import { noteTimeline } from '@/v2/lib/vendor/cabinet';
 import { waLink, BOOK } from '@/v2/lib/worklist/book';
-import { RECORD, clientNext, historyOf, dayOf, enquiryHref, linkedLeadFor } from '@/v2/lib/worklist/record';
+import { RECORD, clientNext, historyOf, dayOf, enquiryHref, invoiceHref, linkedLeadFor, owedInvoiceFor } from '@/v2/lib/worklist/record';
 import { roomHref } from '@/v2/lib/worklist/rooms';
 import { BackLink, Status, NextButton, Section, Facts, History, Jobs, RECORD_CSS } from '@/v2/components/worklist/RecordPage';
-import { useRouter } from 'next/navigation';
 import { hideBinder, unarchiveBinder } from '@/v2/lib/vendor/api/vendor';
 
 function AskButton({ name }: { name: string }) {
@@ -34,12 +33,17 @@ export function ClientPage({ vendorId, id }: { vendorId: string; id: string }) {
   const cab = useCabinetData(vendorId);
   const leads = useLeadsData(vendorId);
   const events = useEventsData(vendorId);
+  const invoices = useInvoicesData(vendorId);
   const binder = useMemo(() => (cab.data?.clients ?? []).find((b) => b.id === id) ?? null, [cab.data, id]);
   const lead = useMemo(() => (binder ? linkedLeadFor(binder.phone, leads.data ?? []) : null), [binder, leads.data]);
   const [detail, setDetail] = useState<LeadDetailResponse | null>(null);
   const [sheet, setSheet] = useState<'edit' | 'cancel' | null>(null);
   const [hideAsk, setHideAsk] = useState(false);
-  const router = useRouter();
+  // DESIGN-1 · STAGE 5b (a 5a fix): a hidden client's page stays, reading Hidden, so the Undo on its toast is still in
+  // reach; the list is refreshed when she leaves (it was refreshed at once, and the page then left with its Undo).
+  const [hiddenNow, setHiddenNow] = useState(false);
+  const refreshCab = cab.refresh;
+  useEffect(() => { if (!hiddenNow) return; return () => { refreshCab(); }; }, [hiddenNow, refreshCab]);
   const { toast, show } = useToast();
 
   const leadId = lead ? lead.id : null;
@@ -49,6 +53,10 @@ export function ClientPage({ vendorId, id }: { vendorId: string; id: string }) {
     void fetchLeadDetail(leadId).then((r) => { if (live && r && 'ok' in r && r.ok) setDetail(r as LeadDetailResponse); }).catch(() => {});
     return () => { live = false; };
   }, [leadId]);
+
+  // DESIGN-1 · STAGE 5b (a 5a fix): Open the invoice opens THE invoice: the one still owed with this client's number
+  // (the estate's phone fold, exactly one), from the Invoices room's own read; with none or several, the Invoices list.
+  const owedInvoice = useMemo(() => (binder ? owedInvoiceFor(binder.phone, invoices.data ?? []) : null), [binder, invoices.data]);
 
   const list = roomHref('clients');
   if (!binder) {
@@ -71,9 +79,8 @@ export function ClientPage({ vendorId, id }: { vendorId: string; id: string }) {
     setHideAsk(false);
     const res = await hideBinder(binder.id);
     if (!res.ok) { show(res.error || 'Could not hide.', 'error'); return; }
-    cab.refresh();
-    show(RECORD.hidden(name), 'success', { action: { label: 'Undo', onAction: async () => { const r = await unarchiveBinder(binder.id); if (r.ok) { cab.refresh(); show(RECORD.restored, 'success'); } } }, durationMs: 30000 });
-    router.push(list);
+    setHiddenNow(true);
+    show(RECORD.hidden(name), 'success', { action: { label: 'Undo', onAction: async () => { const r = await unarchiveBinder(binder.id); if (r.ok) { setHiddenNow(false); show(RECORD.restored, 'success'); } } }, durationMs: 30000 });
   }
   const mine = (events.data ?? []).filter((e) => e.linked_binder_id === binder.id && e.state !== 'cancelled');
   const items = historyOf({
@@ -87,8 +94,8 @@ export function ClientPage({ vendorId, id }: { vendorId: string; id: string }) {
       {/* one block inside the column, so the column's gutter holds for the whole page (buttons included) */}
       <div className="rp-page">
       <BackLink list={list} label={RECORD.clients} />
-      <Status text={binder.stage ? RECORD.statusOf(binder.stage) : ''} />
-      {next && next.kind === 'invoice' && <NextButton label={next.label} href={`${roomHref('invoices')}?invoice=${encodeURIComponent(binder.id)}`} />}
+      <Status text={hiddenNow ? RECORD.hiddenState : binder.stage ? RECORD.statusOf(binder.stage) : ''} />
+      {next && next.kind === 'invoice' && <NextButton label={next.label} href={owedInvoice ? invoiceHref(owedInvoice.id) : roomHref('invoices')} />}
       {next && next.kind === 'message' && <NextButton label={next.label} href={waLink(binder.phone, '')} external />}
 
       <Section head={RECORD.datesHead} id="dates">
@@ -106,7 +113,7 @@ export function ClientPage({ vendorId, id }: { vendorId: string; id: string }) {
         {lead && <a className="rp-job" href={enquiryHref(lead.id)} data-record-lead={lead.id}>{RECORD.enquiries}</a>}
         <AskButton name={name} />
         <button type="button" className="rp-job" onClick={() => setSheet('edit')}>{RECORD.edit}</button>
-        {hideAsk
+        {hiddenNow ? null : hideAsk
           ? <button type="button" className="rp-job warn" onClick={() => { void hide(); }}>{RECORD.hideSure}</button>
           : <button type="button" className="rp-job" onClick={() => setHideAsk(true)}>{RECORD.hide}</button>}
         {binder.booked_lead && <button type="button" className="rp-job warn" data-cancel-booking="" onClick={() => setSheet('cancel')}>{BOOK.cancel}</button>}

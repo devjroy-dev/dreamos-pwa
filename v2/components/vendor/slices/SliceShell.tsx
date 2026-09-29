@@ -70,7 +70,7 @@ import { WishboneSheet , chipLabel } from './WishboneSheet'; // TDW_04 A1: leads
 import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
 import type { ScheduleMilestone } from '@/lib/vendor/types/vendor';
 import { ConversationThread } from '@/v2/components/vendor/ConversationThread';
-import type { ConversationMessage } from '@/lib/vendor/types/vendor';
+import type { ConversationMessage, Invoice, VendorEvent } from '@/lib/vendor/types/vendor';
 import { A, T, LABELS, WaIcon, SliceRow, cap, type Row } from './SliceRow';
 
 // TDW_04 A1 (L-1, ST-1) — the lane declarations, house voice, LOCKED wording:
@@ -89,7 +89,8 @@ import { updateMilestone, deleteSchedule } from '@/v2/lib/vendor/api/vendor';
 
 import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 import { useRouter } from 'next/navigation'; // DESIGN-1 · STAGE 5a
-import { enquiryHref, saveListScroll } from '@/v2/lib/worklist/record';
+import { enquiryHref, invoiceHref, eventHref, saveListScroll, RECORD } from '@/v2/lib/worklist/record';
+import { SliceRecord } from '@/v2/components/vendor/records/SliceRecord';
 // ── F-40.141 · THE FLAG THAT OUTLIVED ITS REASON ──────────────────────────
 // It read `false` from the day it was written, and its comment said why: opening
 // an invoice would fire a 404 at a route that was not built. The route WAS
@@ -370,9 +371,12 @@ export interface SliceScreenProps<T extends { id: string }> {
       successMessage (optional) overrides the door's raw reply — some doors
       answer in tool-display prose with record ids aboard (founder-ruled polish). */
   deleteRequest: (sel: Row) => { url: string; method: string; body?: string; successMessage?: string } | 'unsupported';
+  /** DESIGN-1 · STAGE 5b: set, the screen draws this one record as its page (SliceRecord) instead of the list and its
+      sheet; every act on the page is this screen's own handler. Invoices and events. */
+  recordId?: string;
 }
 
-export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData, toRows, deleteRequest }: SliceScreenProps<T>) {
+export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData, toRows, deleteRequest, recordId }: SliceScreenProps<T>) {
   // ONE DERIVATION, TWO READERS. `useInShell` was called inline for the toast alone; the
   // F-39.11 focus arm below needs the same fact, and calling the hook twice in one
   // component is two statements of one thing that a later edit can let disagree.
@@ -534,6 +538,28 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     }
   }, [sel, slice]);
 
+  // DESIGN-1 · STAGE 5b: Send on WhatsApp, one handler for the invoice sheet and the invoice's page. Unchanged: it
+  // fetches the PDF's address, then opens wa.me with the client's number and the link in the draft.
+  async function sendInvoiceOnWa(row: Row) {
+    try {
+      const res = await fetchInvoicePdf(row.id);
+      const pdfRes = res as { ok: boolean; pdf_url?: string; error?: string };
+      if (pdfRes.ok && pdfRes.pdf_url) {
+        const phone   = (row.client_phone ?? '').replace(/\D/g, '');
+        const message = encodeURIComponent(`Hi ${row.primary}, please find your booking confirmation for ${row.secondary ?? 'your invoice'} here: ${pdfRes.pdf_url}`);
+        window.open(`https://wa.me/${phone}?text=${message}`, '_blank', 'noopener');
+      } else {
+        // UNCHANGED WORDING, REHOMED. A real precondition is not
+        // the same defect as an invented state — this sentence names
+        // something the vendor can actually do. It moves to the
+        // register for the one-home law alone.
+        showToast(pdfRes.error ?? COPY.studioPdfNoAdvance, 'error');
+      }
+    } catch {
+      showToast('Could not fetch the PDF. Try again.', 'error');
+    }
+  }
+
   async function downloadInvoicePdf() {
     if (!sel || pdfBusy) return;
     setPdfBusy(true);
@@ -656,6 +682,19 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     return out;
   }, [rawRows, query, hiddenIds, badgeOverride, filterKey, sortKey, slice]);
 
+  // ── DESIGN-1 · STAGE 5b · RECORD MODE ───────────────────────────────────────────────────────────────────────────
+  // The page's row is read from the whole list (no search or filter applies to a page), with its pending state on it.
+  // `sel` follows it, so every handler below that reads `sel` (the schedule, the PDF, Edit) serves the page as it
+  // serves the sheet; the sheet itself is never opened in record mode.
+  const recRow = useMemo(() => {
+    if (!recordId) return null;
+    const r = rawRows.find((x) => x.id === recordId);
+    return r ? (badgeOverride[r.id] ? { ...r, badge: badgeOverride[r.id] } : r) : null;
+  }, [recordId, rawRows, badgeOverride]);
+  useEffect(() => {
+    if (recRow && (!sel || sel.id !== recRow.id)) setSel(recRow);
+  }, [recRow, sel]);
+
   // TDW_04 A4 (F-04.14, CE-RATIFIED — returns ruled after the A3.2 revert):
   // slice→slice navigation REMOUNTS (A2's verdict), so the optimistic badge
   // reverted while its write sat in the 30s window — read as data loss.
@@ -718,6 +757,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     if (!want || focusedRef.current === want) return;
     // DESIGN-1 · STAGE 5a: ?lead=<id> (Today's cards, the search) opens the enquiry's page
     if (slice === 'leads') { focusedRef.current = want; router.replace(enquiryHref(want)); return; }
+    // DESIGN-1 · STAGE 5b: ?invoice=<id> and ?event=<id> (Today's cards, the search) open the record's page
+    if (slice === 'invoices' || slice === 'events') { focusedRef.current = want; router.replace(slice === 'invoices' ? invoiceHref(want) : eventHref(want)); return; }
     if (!rows.some((r) => r.id === want)) return;
     const el = document.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(want)}"]`);
     if (!el) return;
@@ -812,6 +853,24 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
         if (!res.ok || !data.ok) { unhideRow(row.id); showToast(data.error ?? 'Delete failed. The row is back.', 'error'); }
       },
       toastMsg: req.successMessage ?? 'Removed.',
+    });
+  }
+
+  // DESIGN-1 · STAGE 5b: Cancel from the record's page. The same door as the sheet's confirm (deleteRequest), the same
+  // 30-second Undo; but the page stays, reading Cancelled, so the Undo on its toast is still in reach.
+  function cancelHere(row: Row) {
+    const req = deleteRequest(row);
+    if (req === 'unsupported') { showToast('Can’t cancel from here yet. Use the chat.', 'error'); return; }
+    undoableMutation({
+      apply:  () => setBadge(row.id, 'cancelled'),
+      revert: () => setBadge(row.id, null),
+      commit: async () => {
+        const res = await fetch(req.url, { method: req.method, headers: { 'Content-Type': 'application/json', ...getAuthHeader() }, body: req.body });
+        const data = await res.json().catch(() => ({ ok: false, error: 'Server error.' }));
+        setBadge(row.id, null);   // the bus refetch is the truth now
+        if (!res.ok || !data.ok) showToast(data.error ?? `Could not cancel ${row.primary}.`, 'error');
+      },
+      toastMsg: RECORD.cancelledDone(row.primary),
     });
   }
 
@@ -1074,6 +1133,9 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           <SliceRow row={row} slice={slice} onSelect={() => selectMode ? toggleSelected(row)
             // DESIGN-1 · STAGE 5a: an enquiry opens as its own page; the list keeps its place for Back
             : slice === 'leads' ? (saveListScroll(roomHref('leads')), router.push(enquiryHref(row.id)))
+            // DESIGN-1 · STAGE 5b: an invoice and an event open as their own pages too
+            : slice === 'invoices' ? (saveListScroll(roomHref('invoices')), router.push(invoiceHref(row.id)))
+            : slice === 'events' ? (saveListScroll(roomHref('events')), router.push(eventHref(row.id)))
             : (setSel(row), setConfirmDel(false))} />
         </SwipeRow>
         {slice === 'invoices' && !selectMode && (row.payAmount ?? 0) > 0 && !packagePayBlocked(row) && (
@@ -1173,75 +1235,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     </div>
   ) : null;
 
-  // Per-slice detail extras — verbatim from the monofile; P2/P4/P5 migrate
-  // these into their modules as those phases rebuild them.
-  const detailExtra = (
-    <>
-      {/* Invoice payment schedule */}
-      {slice === 'invoices' && sel && (
-        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid var(--atelier-card-border)' }}>
-          {/* DESIGN-1 · E12: one primary on the sheet, the likely next step (Send on WhatsApp); the PDF
-              is the outlined secondary. The order is unchanged. */}
-          <button type="button" onClick={downloadInvoicePdf} disabled={pdfBusy}
-            style={{
-              font: T.t4,
-              width: '100%',
-              marginBottom: 8,
-              padding: '12px 16px',
-              background: 'transparent',
-              border: '1px solid var(--atelier-sheet-border)',
-              borderRadius: 12,
-              cursor: pdfBusy ? 'default' : 'pointer',
-              opacity: pdfBusy ? 0.6 : 1,
-              color: 'var(--atelier-accent-text)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-            }}>
-            {pdfBusy ? 'Fetching…' : '↓ Download PDF'}
-          </button>
-
-          {/* Send on WhatsApp — only shown when client has a phone number.
-              Fetches the PDF URL, then opens wa.me pre-loaded with the
-              client's number and the PDF link in the draft message. */}
-          {sel.client_phone && (
-            <button type="button"
-              onClick={async () => {
-                try {
-                  const res = await fetchInvoicePdf(sel.id);
-                  const pdfRes = res as { ok: boolean; pdf_url?: string; error?: string };
-                  if (pdfRes.ok && pdfRes.pdf_url) {
-                    const phone   = (sel.client_phone ?? '').replace(/\D/g, '');
-                    const message = encodeURIComponent(`Hi ${sel.primary}, please find your booking confirmation for ${sel.secondary ?? 'your invoice'} here: ${pdfRes.pdf_url}`);
-                    window.open(`https://wa.me/${phone}?text=${message}`, '_blank', 'noopener');
-                  } else {
-                    // UNCHANGED WORDING, REHOMED. A real precondition is not
-                    // the same defect as an invented state — this sentence names
-                    // something the vendor can actually do. It moves to the
-                    // register for the one-home law alone.
-                    showToast(pdfRes.error ?? COPY.studioPdfNoAdvance, 'error');
-                  }
-                } catch {
-                  showToast('Could not fetch the PDF. Try again.', 'error');
-                }
-              }}
-              className="atelier-fab"
-              style={{
-                font: T.t4,
-                width: '100%',
-                marginBottom: 16,
-                padding: '12px 16px',
-                borderRadius: 12,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-              }}>
-              ↗ Send on WhatsApp
-            </button>
-          )}
+  // DESIGN-1 · STAGE 5b: the invoice's payment schedule, one panel for two readers: the invoice sheet below and the
+  // invoice's page (SliceRecord, record mode). Moved here unchanged from the sheet's body.
+  const schedulePanel = slice === 'invoices' && sel ? (
+        <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
             <span style={{ font: T.t5, color: A.inkMute }}>Payment schedule</span>
             <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
@@ -1409,6 +1406,61 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
               </div>
             </div>
           ))}
+        </>
+  ) : null;
+
+  // Per-slice detail extras — verbatim from the monofile; P2/P4/P5 migrate
+  // these into their modules as those phases rebuild them.
+  const detailExtra = (
+    <>
+      {/* Invoice payment schedule */}
+      {slice === 'invoices' && sel && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid var(--atelier-card-border)' }}>
+          {/* DESIGN-1 · E12: one primary on the sheet, the likely next step (Send on WhatsApp); the PDF
+              is the outlined secondary. The order is unchanged. */}
+          <button type="button" onClick={downloadInvoicePdf} disabled={pdfBusy}
+            style={{
+              font: T.t4,
+              width: '100%',
+              marginBottom: 8,
+              padding: '12px 16px',
+              background: 'transparent',
+              border: '1px solid var(--atelier-sheet-border)',
+              borderRadius: 12,
+              cursor: pdfBusy ? 'default' : 'pointer',
+              opacity: pdfBusy ? 0.6 : 1,
+              color: 'var(--atelier-accent-text)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}>
+            {pdfBusy ? 'Fetching…' : '↓ Download PDF'}
+          </button>
+
+          {/* Send on WhatsApp — only shown when client has a phone number.
+              Fetches the PDF URL, then opens wa.me pre-loaded with the
+              client's number and the PDF link in the draft message. */}
+          {sel.client_phone && (
+            <button type="button"
+              onClick={() => { void sendInvoiceOnWa(sel); }}
+              className="atelier-fab"
+              style={{
+                font: T.t4,
+                width: '100%',
+                marginBottom: 16,
+                padding: '12px 16px',
+                borderRadius: 12,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}>
+              ↗ Send on WhatsApp
+            </button>
+          )}
+          {schedulePanel}
         </div>
       )}
 
@@ -1608,6 +1660,590 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     </>
   );
 
+  // DESIGN-1 · STAGE 5b: everything the list mounts beside its rows (the toast, the edit sheet, the schedule's sheets,
+  // the record sheet), one mount for both faces: the list, and the record's page.
+  const body = (
+    <>
+        <ToastView toast={toast} />
+        <AddSheet
+          open={addOpen}
+          slice={slice}
+          onClose={() => { setAddOpen(false); setEditRow(null); }}
+          onToast={(msg: string, kind?: ToastKind) => showToast(msg, kind)}
+          existing={editRow}
+          existingId={editRow?.id as string | undefined}
+        />
+
+        {/* Schedule builder sheet */}
+        {/* ══════════════════════════════════════════════════════════════════
+            G3.4 · THE CONFIRM SHEET — THE TAP IS NOT THE SEND
+            ══════════════════════════════════════════════════════════════════
+            ⚠ SHE SEES THE EXACT WORDS BEFORE THEY LEAVE. F-39.70/.71's law: no
+            message goes to a client until the vendor has read it and said yes to
+            THOSE words. This is why the control opens a sheet instead of firing.
+
+            The body below is `tdw_payment_reminder`'s FILED bytes (R-40.76, Meta
+            ID 1781270206634381) with the four variables substituted — the same
+            composition the backend performs, transcribed because that home is in
+            the other repo. If the two ever disagree, this preview is the lie and
+            the backend is the truth; the bench asserts them identical.
+
+            DISMISSING SENDS NOTHING. Silence never means yes.  */}
+        {/* ══ F-40.215 / R-41.61 · THE EDIT SHEET (mock S3/S4) ══════════════════
+            The three fields `PATCH /schedules/:milestoneId` has accepted since
+            G3.4 s1. The AMOUNT is shown and never typed: the door recomputes it
+            from the share and the invoice total, and a second arithmetic on this
+            side would be a second home for one number. A refusal prints the DOOR's
+            own sentence — `Percentages would sum to 110, not 100.` — because the
+            number is Postgres's answer, not this surface's guess. */}
+        {editMs && sel && (
+          <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+            onClick={() => { if (!editBusy) setEditMs(null); }}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width: '100%', background: 'var(--atelier-sheet-bg)',
+              backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+              borderTop: '0.5px solid var(--atelier-card-border)',
+              borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
+            }}>
+              <div style={{ font: T.t1, color: A.ink, marginBottom: 8 }}>{editMs.milestone_label}</div>
+              <div style={{ font: T.t3, color: A.inkMute, marginBottom: 16 }}>
+                {COPY.studioMsEditTitle}
+              </div>
+
+              <label style={msLabel}>{COPY.studioMsLabel}</label>
+              <input value={editLabel} onChange={e => { setEditLabel(e.target.value); setEditErr(null); }} style={msInput} />
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <label style={msLabel}>{COPY.studioMsShare}</label>
+                  <input value={editPct} inputMode="numeric" onChange={e => { setEditPct(e.target.value); setEditErr(null); }}
+                    style={{ ...msInput, borderColor: editErr ? 'var(--role-critical)' : 'var(--atelier-card-border)' }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <label style={msLabel}>{COPY.studioMsAmount}</label>
+                  {/* ⚠ NOT COMPUTED HERE, AND THAT IS THE POINT. The amount is the
+                      door's arithmetic over the invoice total (`schedules.js:33`),
+                      and this surface does not hold that total — `Row` carries no
+                      money. Reproducing the formula would be a second home for one
+                      number and the first divergence would be a figure a client was
+                      invoiced for. So: the milestone's CURRENT amount while the
+                      share is untouched, and an honest sentence the moment it is. */}
+                  <div style={{ ...msInput, color: A.inkMute }}>
+                    {Number(editPct) === editMs.pct
+                      ? `Rs ${editMs.amount_due.toLocaleString('en-IN')}`
+                      : 'Recomputed on save'}
+                  </div>
+                </div>
+              </div>
+
+              <label style={msLabel}>{COPY.studioMsDue}</label>
+              <input type="date" value={editDue} onChange={e => { setEditDue(e.target.value); setEditErr(null); }} style={msInput} />
+
+              {editErr && (
+                <p style={{ font: T.t3, color: A.red, margin: '12px 0 0' }}>{editErr}</p>
+              )}
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                <button type="button" disabled={editBusy} onClick={() => setEditMs(null)} style={{
+                  font: T.t4,
+                  flex: 1,
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  border: '0.5px solid var(--atelier-card-border)',
+                  color: A.inkDim,
+                }}>{COPY.studioMsCancel}</button>
+                <button type="button" disabled={editBusy} className="atelier-fab" onClick={async () => {
+                  setEditBusy(true); setEditErr(null);
+                  const patch: { milestone_label?: string; pct?: number; due_date?: string | null } = {};
+                  if (editLabel !== editMs.milestone_label) patch.milestone_label = editLabel.trim();
+                  if (Number(editPct) !== editMs.pct) patch.pct = Number(editPct);
+                  if ((editDue || null) !== editMs.due_date) patch.due_date = editDue || null;
+                  if (!Object.keys(patch).length) { setEditBusy(false); setEditMs(null); return; }
+                  const res = await updateMilestone(editMs.id, patch) as { ok: boolean; error?: string };
+                  if (res.ok) {
+                    // RE-READ, never a local patch: the door recomputes `amount_due`
+                    // and may re-share nothing else, and only it knows the result.
+                    const again = await fetchSchedule(sel.id);
+                    if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
+                    showToast(COPY.studioMsSaved, 'success');
+                    setEditMs(null);
+                  } else {
+                    // The door's own sentence, printed as it came.
+                    setEditErr(res.error ?? COPY.studioMsSaveFailed);
+                  }
+                  setEditBusy(false);
+                }} style={{
+                  font: T.t4,
+                  flex: 1,
+                  padding: '12px 16px',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  border: '0.5px solid var(--atelier-label)',
+                  color: INK_DEEP,
+                }}>{COPY.studioMsSave}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══ F-40.215 · REMOVE THE SCHEDULE (mock S5) ══════════════════════════
+            The sheet's own question shape, aimed at the schedule rather than the
+            invoice. The second line tells her what she KEEPS: 0139's rows outlive
+            their milestone (ON DELETE SET NULL, R-G34.6), so reminders already sent
+            stay in her record. */}
+        {removeSchedule && sel && schedule && (
+          <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+            onClick={() => { if (!removeBusy) setRemoveSchedule(false); }}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width: '100%', background: 'var(--atelier-sheet-bg)',
+              backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+              borderTop: '0.5px solid var(--atelier-card-border)',
+              borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
+            }}>
+              <div style={{ font: T.t3, color: A.inkSoft, textAlign: 'center', padding: '8px 0' }}>
+                Remove the schedule for <span style={{ color: A.ink }}>{sel.primary}</span>?
+                <span style={{ font: T.t4, display: 'block', color: A.inkMute, marginTop: 8 }}>
+                  The {schedule.length === 1 ? 'milestone goes' : `${schedule.length} milestones go`}. Reminders already sent stay in your record.
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <button type="button" disabled={removeBusy} onClick={() => setRemoveSchedule(false)} style={{
+                  font: T.t4,
+                  flex: 1,
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  border: '0.5px solid var(--atelier-card-border)',
+                  color: A.inkDim,
+                }}>{COPY.studioScheduleKeep}</button>
+                <button type="button" disabled={removeBusy} onClick={async () => {
+                  setRemoveBusy(true);
+                  const res = await deleteSchedule(sel.id) as { ok: boolean; error?: string; code?: string };
+                  if (res.ok) {
+                    const again = await fetchSchedule(sel.id);
+                    if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
+                    showToast(COPY.studioScheduleGone, 'success');
+                  } else {
+                    // F-43.86 (b1): the package refusal speaks the room's own byte, never the door's text.
+                    showToast(res.code === 'PACKAGE_SCHEDULE' ? COPY.studioScheduleRemoveFailed : (res.error ?? COPY.studioScheduleRemoveFailed), 'error');
+                  }
+                  setRemoveBusy(false); setRemoveSchedule(false);
+                }} style={{
+                  font: T.t4,
+                  flex: 1,
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  border: '1px solid var(--atelier-sheet-border)',
+                  color: A.ink,
+                }}>{COPY.studioScheduleRemove}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {remindMs && sel && (
+          <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+            onClick={() => { if (!remindBusy) setRemindMs(null); }}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width: '100%',
+              background: 'var(--atelier-sheet-bg)',
+              backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+              borderTop: '0.5px solid var(--atelier-card-border)',
+              borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <span style={{ font: T.t5, letterSpacing: '0.08em', color: A.brass, textTransform: 'uppercase' }}>
+                  {COPY.studioReminderTitle}
+                </span>
+                <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
+              </div>
+
+              {/* WHO IT GOES TO, BEFORE WHAT IT SAYS. A vendor checks the number
+                  first; the message is only worth reading once she knows where it
+                  is bound. */}
+              <div style={{ font: T.t3, color: A.inkMute, marginBottom: 12 }}>
+                This goes to {sel.primary} on {sel.client_phone ?? '\u2014'}.
+              </div>
+
+              <div style={{
+                font: T.t3,
+                padding: '12px 16px',
+                background: 'var(--atelier-input-bg)',
+                border: '0.5px solid var(--atelier-card-border)',
+                borderRadius: 12,
+                color: A.ink,
+              }}>
+                {reminderPreview(sel.primary, remindMs, vendorBusinessName)}
+              </div>
+
+              <div style={{ font: T.t3, color: A.inkMute, margin: '12px 0 16px', maxWidth: '40ch' }}>
+                {COPY.studioReminderRails}
+              </div>
+
+              <button type="button" disabled={remindBusy} className="atelier-fab"
+                onClick={async () => {
+                  setRemindBusy(true);
+                  try {
+                    const res = await sendReminder(remindMs.id) as { ok: boolean; sent?: boolean; skipped?: boolean; failed?: boolean; reason?: string | null; reason_text?: string | null; error?: string };
+                    if (res.ok && res.sent) {
+                      // ⚠ THE ROW IS MARKED ONLY WHEN THE DOOR SAYS SENT. A skipped
+                      // send leaves the control standing, because the reminder did
+                      // not go and a surface that hid it would be reporting a
+                      // delivery that never happened (F-39.70/.71).
+                      // RE-READ, NEVER A LOCAL FLAG. The door is the only thing that
+                      // knows a reminder landed; asking it again is one request and it
+                      // keeps this surface incapable of disagreeing with the row.
+                      const again = await fetchSchedule(sel.id);
+                      if ((again as { ok: boolean }).ok) {
+                        setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
+                      }
+                      showToast(COPY.studioReminderDone, 'success');
+                    } else if (res.ok && res.skipped) {
+                      // ── F-41.17 · PLAIN WORDS ON HER GLASS ────────────────
+                      // `reason` is the register's own sentence — the log's word,
+                      // and what she read on 2026-09-08:
+                      // `flag.payment_reminder_send is off on the switchboard`.
+                      // `reason_text` is the door's sentence for a person. The key
+                      // is never printed here; the fallback is this room's own copy.
+                      showToast(res.reason_text ?? COPY.studioReminderDark, 'error');
+                    } else {
+                      // R-41.70 §D 18: the row says "Didn't go"; the toast says why.
+                      showToast(res.reason_text ?? (res.failed ? COPY.studioReminderRetry : COPY.studioReminderFailed), 'error');
+                    }
+                  } catch {
+                    showToast(COPY.studioReminderFailed, 'error');
+                  } finally {
+                    setRemindBusy(false);
+                    setRemindMs(null);
+                  }
+                }}
+                style={{
+                  font: T.t4,
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: 12,
+                  border: '0.5px solid var(--atelier-label)',
+                  cursor: remindBusy ? 'default' : 'pointer',
+                  opacity: remindBusy ? 0.6 : 1,
+                  color: INK_DEEP,
+                }}>
+                {remindBusy ? 'Sending\u2026' : COPY.studioReminderSend}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {scheduleOpen && sel && (
+          <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+            onClick={() => setScheduleOpen(false)}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width: '100%',
+              background: 'var(--atelier-sheet-bg)',
+              backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+              borderTop: '0.5px solid var(--atelier-sheet-border)',
+              padding: '24px 24px calc(24px + env(safe-area-inset-bottom))',
+              display: 'flex', flexDirection: 'column', gap: 12, maxHeight: '85vh', overflowY: 'auto',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+                <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
+              </div>
+              <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>Payment schedule</div>
+              <div style={{ font: T.t1, color: 'var(--atelier-ink)', marginBottom: 4 }}>Add milestones</div>
+              <div style={{ font: T.t3, color: A.inkMute, marginTop: -4, marginBottom: 4 }}>
+                Must sum to 100%. Amounts computed from invoice total.
+              </div>
+
+              {milestones.map((ms, idx) => (
+                <div key={idx} style={{
+                  padding: '12px 16px',
+                  background: 'var(--atelier-row-hover)',
+                  border: '0.5px solid var(--atelier-card-border)',
+                  borderRadius: 12,
+                  display: 'flex', flexDirection: 'column', gap: 8,
+                }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {/* ── F-40.201 · `minWidth: 0` IS THE WHOLE OVERFLOW ────────────
+                        A flex child defaults to `min-width: auto`, and for an <input>
+                        that is its INTRINSIC width — the browser's own `size=20`, about
+                        twenty characters. At 374 the sheet's content box is ~298px and
+                        two inputs that refuse to shrink below ~170px each cannot fit, so
+                        the row ran past the sheet and the percent value was pushed out of
+                        sight. `flex: 2` was never the problem; the floor under it was.
+                        ── F-40.137's class · the accessible name ─────────────────────
+                        `placeholder` is not a label: it disappears the moment she types,
+                        and a screen reader announces an edit box with no name. */}
+                    <input
+                      value={ms.label}
+                      onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, label: e.target.value } : m))}
+                      placeholder="Booking"
+                      aria-label={`Milestone ${idx + 1} name`}
+                      style={{
+                        font: T.t3,
+                        flex: 2,
+                        minWidth: 0,
+                        padding: '8px 12px',
+                        boxSizing: 'border-box',
+                        background: 'var(--atelier-input-bg)',
+                        border: '0.5px solid var(--atelier-card-border)',
+                        borderRadius: 12,
+                        color: A.ink,
+                        outline: 'none',
+                        caretColor: A.interactive,
+                      }}
+                    />
+                    <input
+                      type="number"
+                      value={ms.pct}
+                      onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, pct: e.target.value } : m))}
+                      placeholder="%"
+                      aria-label={`Milestone ${idx + 1} share, percent`}
+                      style={{
+                        font: T.t3,
+                        flex: 1,
+                        minWidth: 0,
+                        padding: '8px 12px',
+                        boxSizing: 'border-box',
+                        background: 'var(--atelier-input-bg)',
+                        border: '0.5px solid var(--atelier-card-border)',
+                        borderRadius: 12,
+                        color: A.ink,
+                        outline: 'none',
+                        textAlign: 'right',
+                        caretColor: A.interactive,
+                      }}
+                    />
+                    {/* ── F-40.201 · THE DUPLICATED `%` IS GONE ─────────────────────
+                        The input's own placeholder already says `%`, and this span was
+                        `flexShrink: 0` — it took its width FIRST, on the tightest row in
+                        the sheet, from the two fields that actually hold her typing. */}
+                    {milestones.length > 2 && (
+                      <button type="button" onClick={() => setMilestones(prev => prev.filter((_, i) => i !== idx))}
+                        style={{ font: T.t3, padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', color: A.red, flexShrink: 0 }}>×</button>
+                    )}
+                  </div>
+                  {/* ⚠ THIS ONE HAD NO ACCESSIBLE NAME AT ALL, not even a weak one:
+                      `type="date"` IGNORES `placeholder` outright, so the field a screen
+                      reader met was an unlabelled date picker. Dark since it was written,
+                      live since G3.4 flipped the flag. */}
+                  <input
+                    type="date"
+                    value={ms.due_date}
+                    aria-label={`Milestone ${idx + 1} due date`}
+                    onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, due_date: e.target.value } : m))}
+                    style={{
+                      font: T.t3,
+                      width: '100%',
+                      padding: '8px 12px',
+                      boxSizing: 'border-box',
+                      background: 'var(--atelier-input-bg)',
+                      border: '0.5px solid var(--atelier-card-border)',
+                      borderRadius: 12,
+                      color: A.inkSoft,
+                      outline: 'none',
+                      caretColor: A.interactive,
+                    }}
+                  />
+                </div>
+              ))}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                <button type="button" onClick={() => setMilestones(prev => [...prev, { label: '', pct: '0', due_date: '' }])}
+                  style={{
+                    font: T.t4,
+                    padding: '8px 12px',
+                    background: 'transparent',
+                    border: '0.5px solid var(--atelier-sheet-border)',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    color: A.interactiveWarm,
+                  }}>+ Add Row</button>
+                <span style={{
+                  font: T.t5,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: Math.abs(milestones.reduce((s,m) => s + Number(m.pct||0), 0) - 100) < 0.01 ? A.green : A.red,
+                }}>{milestones.reduce((s,m) => s + Number(m.pct||0), 0)}% of 100%</span>
+              </div>
+
+              {(() => {
+                const total = milestones.reduce((s,m) => s + Number(m.pct||0), 0);
+                const canSave = Math.abs(total - 100) < 0.01 && milestones.every(m => m.label.trim());
+                return (
+                  <>
+                    {/* CE-43 LC-2 packet 3f · R-43.16: the gate line focuses the field that fixes it. */}
+                    {!canSave && (
+                      <NeedFirst
+                        testId="schedule"
+                        text={Math.abs(total - 100) > 0.01 ? `Percentages must sum to 100% (currently ${total}%)` : 'All milestones need a label'}
+                        onFix={() => {
+                          const unlabelled = milestones.findIndex((m) => !m.label.trim());
+                          const target = Math.abs(total - 100) > 0.01
+                            ? 'input[aria-label="Milestone 1 share, percent"]'
+                            : `input[aria-label="Milestone ${unlabelled + 1} name"]`;
+                          const el = document.querySelector<HTMLInputElement>(target);
+                          if (el) el.focus();
+                        }}
+                      />
+                    )}
+                    <button type="button" onClick={doCreateSchedule} disabled={!canSave || scheduleSaving}
+                      className={canSave && !scheduleSaving ? 'atelier-fab' : undefined}
+                      style={{
+                        font: T.t4,
+                        padding: '16px 0',
+                        borderRadius: 12,
+                        border: '0.5px solid var(--atelier-label)',
+                        cursor: (canSave && !scheduleSaving) ? 'pointer' : 'default',
+                        color: INK_DEEP,
+                        background: !canSave || scheduleSaving ? 'var(--atelier-row-hover)' : undefined,
+                        opacity: !canSave || scheduleSaving ? 0.6 : 1,
+                        marginTop: 4,
+                      }}>{scheduleSaving ? 'Saving…' : 'Create schedule'}</button>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
+        {/* TDW_04 A2: select-mode bar (long-press a row to enter) */}
+        <BulkBar slice={slice} selectedCount={selected.size} actions={bulkActions} busy={bulkBusy}
+          onAction={(k) => { void runBulk(k); }} onCancel={() => setSelected(new Set())} />
+
+        <DetailSheet
+          slice={slice}
+          sel={recordId ? null : sel}   // DESIGN-1 · STAGE 5b: a page never opens the sheet
+          onClose={() => { setSel(null); setConfirmDel(false); }}
+          onEditHere={onEditHere}
+          confirmDel={confirmDel}
+          setConfirmDel={setConfirmDel}
+          deleting={deleting}
+          deleteMsg={deleteMsg}
+          setDeleteMsg={setDeleteMsg}
+          confirmDelete={confirmDelete}
+          detailExtra={detailExtra}
+          detailTop={detailTop}
+          detailMissing={missingTop}
+          bodyLoading={slice === 'leads' && !!sel && !(leadPkg && leadPkg.id === sel.id)}
+          fullHeight={slice === 'leads'}
+          footerExtra={footerExtra}
+        />
+
+        {/* ── BLOCK 19 G5.1 — THE FORWARD SHEET ─────────────────────────────
+            A SIBLING of the record sheet, not a nest: the record closes when this
+            opens, which is what the ratified frame draws — the leads list behind
+            the scrim and ONE sheet in front of it.
+
+            On success the slice is invalidated so the row comes back carrying its
+            `forwarded_to` stamp and the control retires with its act. F2's lesson,
+            inherited: a raw fetch that does not refetch through the bus leaves the
+            surface lying about what just happened. */}
+        {forwardRow && (
+          <ForwardSheet
+            leadId={forwardRow.id}
+            personLabel={forwardRow.primary}
+            onDone={() => setForwardRow(null)}
+            onForwarded={() => {
+              setForwardRow(null);
+              invalidateSlice('leads');
+              showToast('Forwarded.', 'success');
+            }}
+          />
+        )}
+
+        {/* CE-43 LC-2 packet 3 · THE BOOKING SHEET (A12), one mount for both openers: the lead
+            card's A2 controls and the swipe-right Booked (F15(a)). On success the sheet has
+            already refreshed the slices; the open detail reads booked at once. */}
+        {slice === 'leads' && (
+          <BookingSheet
+            open={!!booking}
+            leadId={booking ? booking.leadId : null}
+            initialKind={booking ? booking.kind : 'booking_confirmed'}
+            onClose={() => setBooking(null)}
+            onBooked={() => {
+              // DESIGN-1 · STAGE 4: the sheet stays open on its Booked step (the draft, Send on WhatsApp, Undo) until Done
+              const id = booking ? booking.leadId : null;
+              if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));
+            }}
+            onToast={(m, k) => showToast(m, k)}
+            onNeedWeddingDate={openDateFix}
+            leadFacts={leadFactsOf(booking ? booking.leadId : null)}
+            // DESIGN-1 · STAGE 4: the name and number the confirmation draft and its WhatsApp link read
+            leadName={leadOf(booking ? booking.leadId : null).name}
+            leadPhone={leadOf(booking ? booking.leadId : null).phone}
+          />
+        )}
+
+        {/* CE-43 LC-2 packet 3f · R-43.16: the wedding-date completion a refusal line opens. */}
+        {dateFix && (
+          <WishboneSheet
+            missing={['wedding_date']}
+            personLabel={dateFix.name}
+            initialValues={{ wedding_date: dateFix.value }}
+            onComplete={async (_cell, value) => {
+              const res = await updateLead(dateFix.leadId, { wedding_date: value, wedding_date_precision: 'day' });
+              if (!res.ok) return ('error' in res && res.error) || 'Could not save it. Try again.';
+              invalidateSlice('leads');
+              return null;
+            }}
+            onDone={() => setDateFix(null)}
+          />
+        )}
+
+        {/* TDW_04 A1 — the wishbone, leads plane. */}
+        {wishboneRow && (
+          <WishboneSheet
+            missing={wishboneRow.draftMissing ?? []}
+            personLabel={wishboneRow.primary}
+            start={wishboneStart}
+            onComplete={async (cell, value) => {
+              // Cells here ∈ LEAD_EXPECTED = name/phone/wedding_date/wedding_city/
+              // budget_max — all UpdateLeadRequest keys; budget is numeric.
+              const body: Record<string, string | number> = { [cell]: cell === 'budget_max' ? Number(value) : value };
+              // ── F-43.122 (CE-44) · A DATE FILED HERE IS A DAY ──────────────────
+              // This route built its body from the cell key alone and could carry no
+              // precision, so a wedding date filed through a chip landed with whatever
+              // precision already stood — driven in a browser at F-43.117's probe, it
+              // PATCHed {"wedding_date":"2027-03-14"} with none. The `dateFix` route at
+              // :2102 has always sent 'day'. Now all three pwa date-write routes do.
+              if (cell === 'wedding_date' && /^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
+                body.wedding_date_precision = 'day';
+              }
+              const res = await updateLead(wishboneRow.id, body);
+              if (!res.ok) return ('error' in res && res.error) || 'Could not save it. Try again.';
+              invalidateSlice('leads');
+              return null;
+            }}
+            onDone={() => { setWishboneRow(null); setWishboneStart(undefined); setSel(null); }}
+          />
+        )}
+    </>
+  );
+
+  if (recordId && (slice === 'invoices' || slice === 'events')) {
+    const raw = (d.data ?? []).find((x) => x.id === recordId) as unknown as (Invoice | VendorEvent | undefined);
+    const side = recRow ? swipeSidesFor(recRow).right : undefined;
+    const canPay = !!recRow && slice === 'invoices' && (recRow.payAmount ?? 0) > 0 && !packagePayBlocked(recRow);
+    const canDone = !!recRow && slice === 'events' && (recRow.badge ?? '').toLowerCase() === 'upcoming';
+    return (
+      <>
+        <SliceRecord slice={slice} vendorId={vendorId} row={recRow} raw={raw ?? null} loading={loading}
+          schedulePanel={schedulePanel} schedule={schedule} pdfBusy={pdfBusy}
+          onSend={() => { if (recRow) void sendInvoiceOnWa(recRow); }}
+          onPdf={() => { void downloadInvoicePdf(); }}
+          onMarkPaid={canPay && side ? () => side.onTrigger() : undefined}
+          onDone={canDone && side ? () => side.onTrigger() : undefined}
+          onEdit={() => { if (recRow) onEditHere(recRow); }}
+          onCancel={() => { if (recRow) cancelHere(recRow); }} />
+        {body}
+      </>
+    );
+  }
+
   return (
     <SliceShell
       slice={slice}
@@ -1635,563 +2271,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       ) : undefined}
       onAdd={onAdd}
     >
-      <ToastView toast={toast} />
-      <AddSheet
-        open={addOpen}
-        slice={slice}
-        onClose={() => { setAddOpen(false); setEditRow(null); }}
-        onToast={(msg: string, kind?: ToastKind) => showToast(msg, kind)}
-        existing={editRow}
-        existingId={editRow?.id as string | undefined}
-      />
-
-      {/* Schedule builder sheet */}
-      {/* ══════════════════════════════════════════════════════════════════
-          G3.4 · THE CONFIRM SHEET — THE TAP IS NOT THE SEND
-          ══════════════════════════════════════════════════════════════════
-          ⚠ SHE SEES THE EXACT WORDS BEFORE THEY LEAVE. F-39.70/.71's law: no
-          message goes to a client until the vendor has read it and said yes to
-          THOSE words. This is why the control opens a sheet instead of firing.
-
-          The body below is `tdw_payment_reminder`'s FILED bytes (R-40.76, Meta
-          ID 1781270206634381) with the four variables substituted — the same
-          composition the backend performs, transcribed because that home is in
-          the other repo. If the two ever disagree, this preview is the lie and
-          the backend is the truth; the bench asserts them identical.
-
-          DISMISSING SENDS NOTHING. Silence never means yes.  */}
-      {/* ══ F-40.215 / R-41.61 · THE EDIT SHEET (mock S3/S4) ══════════════════
-          The three fields `PATCH /schedules/:milestoneId` has accepted since
-          G3.4 s1. The AMOUNT is shown and never typed: the door recomputes it
-          from the share and the invoice total, and a second arithmetic on this
-          side would be a second home for one number. A refusal prints the DOOR's
-          own sentence — `Percentages would sum to 110, not 100.` — because the
-          number is Postgres's answer, not this surface's guess. */}
-      {editMs && sel && (
-        <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
-          onClick={() => { if (!editBusy) setEditMs(null); }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            width: '100%', background: 'var(--atelier-sheet-bg)',
-            backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
-            borderTop: '0.5px solid var(--atelier-card-border)',
-            borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
-          }}>
-            <div style={{ font: T.t1, color: A.ink, marginBottom: 8 }}>{editMs.milestone_label}</div>
-            <div style={{ font: T.t3, color: A.inkMute, marginBottom: 16 }}>
-              {COPY.studioMsEditTitle}
-            </div>
-
-            <label style={msLabel}>{COPY.studioMsLabel}</label>
-            <input value={editLabel} onChange={e => { setEditLabel(e.target.value); setEditErr(null); }} style={msInput} />
-
-            <div style={{ display: 'flex', gap: 8 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <label style={msLabel}>{COPY.studioMsShare}</label>
-                <input value={editPct} inputMode="numeric" onChange={e => { setEditPct(e.target.value); setEditErr(null); }}
-                  style={{ ...msInput, borderColor: editErr ? 'var(--role-critical)' : 'var(--atelier-card-border)' }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <label style={msLabel}>{COPY.studioMsAmount}</label>
-                {/* ⚠ NOT COMPUTED HERE, AND THAT IS THE POINT. The amount is the
-                    door's arithmetic over the invoice total (`schedules.js:33`),
-                    and this surface does not hold that total — `Row` carries no
-                    money. Reproducing the formula would be a second home for one
-                    number and the first divergence would be a figure a client was
-                    invoiced for. So: the milestone's CURRENT amount while the
-                    share is untouched, and an honest sentence the moment it is. */}
-                <div style={{ ...msInput, color: A.inkMute }}>
-                  {Number(editPct) === editMs.pct
-                    ? `Rs ${editMs.amount_due.toLocaleString('en-IN')}`
-                    : 'Recomputed on save'}
-                </div>
-              </div>
-            </div>
-
-            <label style={msLabel}>{COPY.studioMsDue}</label>
-            <input type="date" value={editDue} onChange={e => { setEditDue(e.target.value); setEditErr(null); }} style={msInput} />
-
-            {editErr && (
-              <p style={{ font: T.t3, color: A.red, margin: '12px 0 0' }}>{editErr}</p>
-            )}
-
-            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-              <button type="button" disabled={editBusy} onClick={() => setEditMs(null)} style={{
-                font: T.t4,
-                flex: 1,
-                padding: '12px 16px',
-                background: 'transparent',
-                borderRadius: 12,
-                cursor: 'pointer',
-                border: '0.5px solid var(--atelier-card-border)',
-                color: A.inkDim,
-              }}>{COPY.studioMsCancel}</button>
-              <button type="button" disabled={editBusy} className="atelier-fab" onClick={async () => {
-                setEditBusy(true); setEditErr(null);
-                const patch: { milestone_label?: string; pct?: number; due_date?: string | null } = {};
-                if (editLabel !== editMs.milestone_label) patch.milestone_label = editLabel.trim();
-                if (Number(editPct) !== editMs.pct) patch.pct = Number(editPct);
-                if ((editDue || null) !== editMs.due_date) patch.due_date = editDue || null;
-                if (!Object.keys(patch).length) { setEditBusy(false); setEditMs(null); return; }
-                const res = await updateMilestone(editMs.id, patch) as { ok: boolean; error?: string };
-                if (res.ok) {
-                  // RE-READ, never a local patch: the door recomputes `amount_due`
-                  // and may re-share nothing else, and only it knows the result.
-                  const again = await fetchSchedule(sel.id);
-                  if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
-                  showToast(COPY.studioMsSaved, 'success');
-                  setEditMs(null);
-                } else {
-                  // The door's own sentence, printed as it came.
-                  setEditErr(res.error ?? COPY.studioMsSaveFailed);
-                }
-                setEditBusy(false);
-              }} style={{
-                font: T.t4,
-                flex: 1,
-                padding: '12px 16px',
-                borderRadius: 12,
-                cursor: 'pointer',
-                border: '0.5px solid var(--atelier-label)',
-                color: INK_DEEP,
-              }}>{COPY.studioMsSave}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ══ F-40.215 · REMOVE THE SCHEDULE (mock S5) ══════════════════════════
-          The sheet's own question shape, aimed at the schedule rather than the
-          invoice. The second line tells her what she KEEPS: 0139's rows outlive
-          their milestone (ON DELETE SET NULL, R-G34.6), so reminders already sent
-          stay in her record. */}
-      {removeSchedule && sel && schedule && (
-        <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
-          onClick={() => { if (!removeBusy) setRemoveSchedule(false); }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            width: '100%', background: 'var(--atelier-sheet-bg)',
-            backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
-            borderTop: '0.5px solid var(--atelier-card-border)',
-            borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
-          }}>
-            <div style={{ font: T.t3, color: A.inkSoft, textAlign: 'center', padding: '8px 0' }}>
-              Remove the schedule for <span style={{ color: A.ink }}>{sel.primary}</span>?
-              <span style={{ font: T.t4, display: 'block', color: A.inkMute, marginTop: 8 }}>
-                The {schedule.length === 1 ? 'milestone goes' : `${schedule.length} milestones go`}. Reminders already sent stay in your record.
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-              <button type="button" disabled={removeBusy} onClick={() => setRemoveSchedule(false)} style={{
-                font: T.t4,
-                flex: 1,
-                padding: '12px 16px',
-                background: 'transparent',
-                borderRadius: 12,
-                cursor: 'pointer',
-                border: '0.5px solid var(--atelier-card-border)',
-                color: A.inkDim,
-              }}>{COPY.studioScheduleKeep}</button>
-              <button type="button" disabled={removeBusy} onClick={async () => {
-                setRemoveBusy(true);
-                const res = await deleteSchedule(sel.id) as { ok: boolean; error?: string; code?: string };
-                if (res.ok) {
-                  const again = await fetchSchedule(sel.id);
-                  if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
-                  showToast(COPY.studioScheduleGone, 'success');
-                } else {
-                  // F-43.86 (b1): the package refusal speaks the room's own byte, never the door's text.
-                  showToast(res.code === 'PACKAGE_SCHEDULE' ? COPY.studioScheduleRemoveFailed : (res.error ?? COPY.studioScheduleRemoveFailed), 'error');
-                }
-                setRemoveBusy(false); setRemoveSchedule(false);
-              }} style={{
-                font: T.t4,
-                flex: 1,
-                padding: '12px 16px',
-                background: 'transparent',
-                borderRadius: 12,
-                cursor: 'pointer',
-                border: '1px solid var(--atelier-sheet-border)',
-                color: A.ink,
-              }}>{COPY.studioScheduleRemove}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {remindMs && sel && (
-        <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
-          onClick={() => { if (!remindBusy) setRemindMs(null); }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            width: '100%',
-            background: 'var(--atelier-sheet-bg)',
-            backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
-            borderTop: '0.5px solid var(--atelier-card-border)',
-            borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <span style={{ font: T.t5, letterSpacing: '0.08em', color: A.brass, textTransform: 'uppercase' }}>
-                {COPY.studioReminderTitle}
-              </span>
-              <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
-            </div>
-
-            {/* WHO IT GOES TO, BEFORE WHAT IT SAYS. A vendor checks the number
-                first; the message is only worth reading once she knows where it
-                is bound. */}
-            <div style={{ font: T.t3, color: A.inkMute, marginBottom: 12 }}>
-              This goes to {sel.primary} on {sel.client_phone ?? '\u2014'}.
-            </div>
-
-            <div style={{
-              font: T.t3,
-              padding: '12px 16px',
-              background: 'var(--atelier-input-bg)',
-              border: '0.5px solid var(--atelier-card-border)',
-              borderRadius: 12,
-              color: A.ink,
-            }}>
-              {reminderPreview(sel.primary, remindMs, vendorBusinessName)}
-            </div>
-
-            <div style={{ font: T.t3, color: A.inkMute, margin: '12px 0 16px', maxWidth: '40ch' }}>
-              {COPY.studioReminderRails}
-            </div>
-
-            <button type="button" disabled={remindBusy} className="atelier-fab"
-              onClick={async () => {
-                setRemindBusy(true);
-                try {
-                  const res = await sendReminder(remindMs.id) as { ok: boolean; sent?: boolean; skipped?: boolean; failed?: boolean; reason?: string | null; reason_text?: string | null; error?: string };
-                  if (res.ok && res.sent) {
-                    // ⚠ THE ROW IS MARKED ONLY WHEN THE DOOR SAYS SENT. A skipped
-                    // send leaves the control standing, because the reminder did
-                    // not go and a surface that hid it would be reporting a
-                    // delivery that never happened (F-39.70/.71).
-                    // RE-READ, NEVER A LOCAL FLAG. The door is the only thing that
-                    // knows a reminder landed; asking it again is one request and it
-                    // keeps this surface incapable of disagreeing with the row.
-                    const again = await fetchSchedule(sel.id);
-                    if ((again as { ok: boolean }).ok) {
-                      setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
-                    }
-                    showToast(COPY.studioReminderDone, 'success');
-                  } else if (res.ok && res.skipped) {
-                    // ── F-41.17 · PLAIN WORDS ON HER GLASS ────────────────
-                    // `reason` is the register's own sentence — the log's word,
-                    // and what she read on 2026-09-08:
-                    // `flag.payment_reminder_send is off on the switchboard`.
-                    // `reason_text` is the door's sentence for a person. The key
-                    // is never printed here; the fallback is this room's own copy.
-                    showToast(res.reason_text ?? COPY.studioReminderDark, 'error');
-                  } else {
-                    // R-41.70 §D 18: the row says "Didn't go"; the toast says why.
-                    showToast(res.reason_text ?? (res.failed ? COPY.studioReminderRetry : COPY.studioReminderFailed), 'error');
-                  }
-                } catch {
-                  showToast(COPY.studioReminderFailed, 'error');
-                } finally {
-                  setRemindBusy(false);
-                  setRemindMs(null);
-                }
-              }}
-              style={{
-                font: T.t4,
-                width: '100%',
-                padding: '12px 16px',
-                borderRadius: 12,
-                border: '0.5px solid var(--atelier-label)',
-                cursor: remindBusy ? 'default' : 'pointer',
-                opacity: remindBusy ? 0.6 : 1,
-                color: INK_DEEP,
-              }}>
-              {remindBusy ? 'Sending\u2026' : COPY.studioReminderSend}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {scheduleOpen && sel && (
-        <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
-          onClick={() => setScheduleOpen(false)}>
-          <div onClick={e => e.stopPropagation()} style={{
-            width: '100%',
-            background: 'var(--atelier-sheet-bg)',
-            backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
-            borderTop: '0.5px solid var(--atelier-sheet-border)',
-            padding: '24px 24px calc(24px + env(safe-area-inset-bottom))',
-            display: 'flex', flexDirection: 'column', gap: 12, maxHeight: '85vh', overflowY: 'auto',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
-              <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
-            </div>
-            <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>Payment schedule</div>
-            <div style={{ font: T.t1, color: 'var(--atelier-ink)', marginBottom: 4 }}>Add milestones</div>
-            <div style={{ font: T.t3, color: A.inkMute, marginTop: -4, marginBottom: 4 }}>
-              Must sum to 100%. Amounts computed from invoice total.
-            </div>
-
-            {milestones.map((ms, idx) => (
-              <div key={idx} style={{
-                padding: '12px 16px',
-                background: 'var(--atelier-row-hover)',
-                border: '0.5px solid var(--atelier-card-border)',
-                borderRadius: 12,
-                display: 'flex', flexDirection: 'column', gap: 8,
-              }}>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {/* ── F-40.201 · `minWidth: 0` IS THE WHOLE OVERFLOW ────────────
-                      A flex child defaults to `min-width: auto`, and for an <input>
-                      that is its INTRINSIC width — the browser's own `size=20`, about
-                      twenty characters. At 374 the sheet's content box is ~298px and
-                      two inputs that refuse to shrink below ~170px each cannot fit, so
-                      the row ran past the sheet and the percent value was pushed out of
-                      sight. `flex: 2` was never the problem; the floor under it was.
-                      ── F-40.137's class · the accessible name ─────────────────────
-                      `placeholder` is not a label: it disappears the moment she types,
-                      and a screen reader announces an edit box with no name. */}
-                  <input
-                    value={ms.label}
-                    onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, label: e.target.value } : m))}
-                    placeholder="Booking"
-                    aria-label={`Milestone ${idx + 1} name`}
-                    style={{
-                      font: T.t3,
-                      flex: 2,
-                      minWidth: 0,
-                      padding: '8px 12px',
-                      boxSizing: 'border-box',
-                      background: 'var(--atelier-input-bg)',
-                      border: '0.5px solid var(--atelier-card-border)',
-                      borderRadius: 12,
-                      color: A.ink,
-                      outline: 'none',
-                      caretColor: A.interactive,
-                    }}
-                  />
-                  <input
-                    type="number"
-                    value={ms.pct}
-                    onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, pct: e.target.value } : m))}
-                    placeholder="%"
-                    aria-label={`Milestone ${idx + 1} share, percent`}
-                    style={{
-                      font: T.t3,
-                      flex: 1,
-                      minWidth: 0,
-                      padding: '8px 12px',
-                      boxSizing: 'border-box',
-                      background: 'var(--atelier-input-bg)',
-                      border: '0.5px solid var(--atelier-card-border)',
-                      borderRadius: 12,
-                      color: A.ink,
-                      outline: 'none',
-                      textAlign: 'right',
-                      caretColor: A.interactive,
-                    }}
-                  />
-                  {/* ── F-40.201 · THE DUPLICATED `%` IS GONE ─────────────────────
-                      The input's own placeholder already says `%`, and this span was
-                      `flexShrink: 0` — it took its width FIRST, on the tightest row in
-                      the sheet, from the two fields that actually hold her typing. */}
-                  {milestones.length > 2 && (
-                    <button type="button" onClick={() => setMilestones(prev => prev.filter((_, i) => i !== idx))}
-                      style={{ font: T.t3, padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', color: A.red, flexShrink: 0 }}>×</button>
-                  )}
-                </div>
-                {/* ⚠ THIS ONE HAD NO ACCESSIBLE NAME AT ALL, not even a weak one:
-                    `type="date"` IGNORES `placeholder` outright, so the field a screen
-                    reader met was an unlabelled date picker. Dark since it was written,
-                    live since G3.4 flipped the flag. */}
-                <input
-                  type="date"
-                  value={ms.due_date}
-                  aria-label={`Milestone ${idx + 1} due date`}
-                  onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, due_date: e.target.value } : m))}
-                  style={{
-                    font: T.t3,
-                    width: '100%',
-                    padding: '8px 12px',
-                    boxSizing: 'border-box',
-                    background: 'var(--atelier-input-bg)',
-                    border: '0.5px solid var(--atelier-card-border)',
-                    borderRadius: 12,
-                    color: A.inkSoft,
-                    outline: 'none',
-                    caretColor: A.interactive,
-                  }}
-                />
-              </div>
-            ))}
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-              <button type="button" onClick={() => setMilestones(prev => [...prev, { label: '', pct: '0', due_date: '' }])}
-                style={{
-                  font: T.t4,
-                  padding: '8px 12px',
-                  background: 'transparent',
-                  border: '0.5px solid var(--atelier-sheet-border)',
-                  borderRadius: 12,
-                  cursor: 'pointer',
-                  color: A.interactiveWarm,
-                }}>+ Add Row</button>
-              <span style={{
-                font: T.t5,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: Math.abs(milestones.reduce((s,m) => s + Number(m.pct||0), 0) - 100) < 0.01 ? A.green : A.red,
-              }}>{milestones.reduce((s,m) => s + Number(m.pct||0), 0)}% of 100%</span>
-            </div>
-
-            {(() => {
-              const total = milestones.reduce((s,m) => s + Number(m.pct||0), 0);
-              const canSave = Math.abs(total - 100) < 0.01 && milestones.every(m => m.label.trim());
-              return (
-                <>
-                  {/* CE-43 LC-2 packet 3f · R-43.16: the gate line focuses the field that fixes it. */}
-                  {!canSave && (
-                    <NeedFirst
-                      testId="schedule"
-                      text={Math.abs(total - 100) > 0.01 ? `Percentages must sum to 100% (currently ${total}%)` : 'All milestones need a label'}
-                      onFix={() => {
-                        const unlabelled = milestones.findIndex((m) => !m.label.trim());
-                        const target = Math.abs(total - 100) > 0.01
-                          ? 'input[aria-label="Milestone 1 share, percent"]'
-                          : `input[aria-label="Milestone ${unlabelled + 1} name"]`;
-                        const el = document.querySelector<HTMLInputElement>(target);
-                        if (el) el.focus();
-                      }}
-                    />
-                  )}
-                  <button type="button" onClick={doCreateSchedule} disabled={!canSave || scheduleSaving}
-                    className={canSave && !scheduleSaving ? 'atelier-fab' : undefined}
-                    style={{
-                      font: T.t4,
-                      padding: '16px 0',
-                      borderRadius: 12,
-                      border: '0.5px solid var(--atelier-label)',
-                      cursor: (canSave && !scheduleSaving) ? 'pointer' : 'default',
-                      color: INK_DEEP,
-                      background: !canSave || scheduleSaving ? 'var(--atelier-row-hover)' : undefined,
-                      opacity: !canSave || scheduleSaving ? 0.6 : 1,
-                      marginTop: 4,
-                    }}>{scheduleSaving ? 'Saving…' : 'Create schedule'}</button>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
-
-      {/* TDW_04 A2: select-mode bar (long-press a row to enter) */}
-      <BulkBar slice={slice} selectedCount={selected.size} actions={bulkActions} busy={bulkBusy}
-        onAction={(k) => { void runBulk(k); }} onCancel={() => setSelected(new Set())} />
-
-      <DetailSheet
-        slice={slice}
-        sel={sel}
-        onClose={() => { setSel(null); setConfirmDel(false); }}
-        onEditHere={onEditHere}
-        confirmDel={confirmDel}
-        setConfirmDel={setConfirmDel}
-        deleting={deleting}
-        deleteMsg={deleteMsg}
-        setDeleteMsg={setDeleteMsg}
-        confirmDelete={confirmDelete}
-        detailExtra={detailExtra}
-        detailTop={detailTop}
-        detailMissing={missingTop}
-        bodyLoading={slice === 'leads' && !!sel && !(leadPkg && leadPkg.id === sel.id)}
-        fullHeight={slice === 'leads'}
-        footerExtra={footerExtra}
-      />
-
-      {/* ── BLOCK 19 G5.1 — THE FORWARD SHEET ─────────────────────────────
-          A SIBLING of the record sheet, not a nest: the record closes when this
-          opens, which is what the ratified frame draws — the leads list behind
-          the scrim and ONE sheet in front of it.
-
-          On success the slice is invalidated so the row comes back carrying its
-          `forwarded_to` stamp and the control retires with its act. F2's lesson,
-          inherited: a raw fetch that does not refetch through the bus leaves the
-          surface lying about what just happened. */}
-      {forwardRow && (
-        <ForwardSheet
-          leadId={forwardRow.id}
-          personLabel={forwardRow.primary}
-          onDone={() => setForwardRow(null)}
-          onForwarded={() => {
-            setForwardRow(null);
-            invalidateSlice('leads');
-            showToast('Forwarded.', 'success');
-          }}
-        />
-      )}
-
-      {/* CE-43 LC-2 packet 3 · THE BOOKING SHEET (A12), one mount for both openers: the lead
-          card's A2 controls and the swipe-right Booked (F15(a)). On success the sheet has
-          already refreshed the slices; the open detail reads booked at once. */}
-      {slice === 'leads' && (
-        <BookingSheet
-          open={!!booking}
-          leadId={booking ? booking.leadId : null}
-          initialKind={booking ? booking.kind : 'booking_confirmed'}
-          onClose={() => setBooking(null)}
-          onBooked={() => {
-            // DESIGN-1 · STAGE 4: the sheet stays open on its Booked step (the draft, Send on WhatsApp, Undo) until Done
-            const id = booking ? booking.leadId : null;
-            if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));
-          }}
-          onToast={(m, k) => showToast(m, k)}
-          onNeedWeddingDate={openDateFix}
-          leadFacts={leadFactsOf(booking ? booking.leadId : null)}
-          // DESIGN-1 · STAGE 4: the name and number the confirmation draft and its WhatsApp link read
-          leadName={leadOf(booking ? booking.leadId : null).name}
-          leadPhone={leadOf(booking ? booking.leadId : null).phone}
-        />
-      )}
-
-      {/* CE-43 LC-2 packet 3f · R-43.16: the wedding-date completion a refusal line opens. */}
-      {dateFix && (
-        <WishboneSheet
-          missing={['wedding_date']}
-          personLabel={dateFix.name}
-          initialValues={{ wedding_date: dateFix.value }}
-          onComplete={async (_cell, value) => {
-            const res = await updateLead(dateFix.leadId, { wedding_date: value, wedding_date_precision: 'day' });
-            if (!res.ok) return ('error' in res && res.error) || 'Could not save it. Try again.';
-            invalidateSlice('leads');
-            return null;
-          }}
-          onDone={() => setDateFix(null)}
-        />
-      )}
-
-      {/* TDW_04 A1 — the wishbone, leads plane. */}
-      {wishboneRow && (
-        <WishboneSheet
-          missing={wishboneRow.draftMissing ?? []}
-          personLabel={wishboneRow.primary}
-          start={wishboneStart}
-          onComplete={async (cell, value) => {
-            // Cells here ∈ LEAD_EXPECTED = name/phone/wedding_date/wedding_city/
-            // budget_max — all UpdateLeadRequest keys; budget is numeric.
-            const body: Record<string, string | number> = { [cell]: cell === 'budget_max' ? Number(value) : value };
-            // ── F-43.122 (CE-44) · A DATE FILED HERE IS A DAY ──────────────────
-            // This route built its body from the cell key alone and could carry no
-            // precision, so a wedding date filed through a chip landed with whatever
-            // precision already stood — driven in a browser at F-43.117's probe, it
-            // PATCHed {"wedding_date":"2027-03-14"} with none. The `dateFix` route at
-            // :2102 has always sent 'day'. Now all three pwa date-write routes do.
-            if (cell === 'wedding_date' && /^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
-              body.wedding_date_precision = 'day';
-            }
-            const res = await updateLead(wishboneRow.id, body);
-            if (!res.ok) return ('error' in res && res.error) || 'Could not save it. Try again.';
-            invalidateSlice('leads');
-            return null;
-          }}
-          onDone={() => { setWishboneRow(null); setWishboneStart(undefined); setSel(null); }}
-        />
-      )}
+      {body}
     </SliceShell>
   );
 }

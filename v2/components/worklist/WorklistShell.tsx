@@ -140,7 +140,7 @@ export function WorklistShell({ title, children }: {
   const onMore = pathname === MORE_HREF;
   // the founder: Money's row shows on Invoices too (ROW_ON_FIRST); the other tabs' first pages keep to their work
   // DESIGN-1 · STAGE 5a: a record's page (an enquiry, a client) is its own page, with no row of rooms above it
-  const isRecord = /^\/vendor\/(leads|clients)\/[^/]+\/?$/.test(pathname);
+  const isRecord = /^\/vendor\/(leads|clients|invoices|events)\/[^/]+\/?$/.test(pathname);   // DESIGN-1 · STAGE 5b: + invoices, events
   const held = tab && !isRecord && tab.rooms.length > 1 && (pathname !== tab.rooms[0].href || ROW_ON_FIRST.includes(tab.id)) ? heldRoomFor(tab, pathname) : null;
   // DESIGN-1 · STAGE 5a: back from a record, the list stands where it stood (RecordPage.restoreListScroll)
   useEffect(() => { restoreListScroll(pathname); }, [pathname]);

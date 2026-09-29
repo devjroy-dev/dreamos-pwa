@@ -107,4 +107,6 @@ export const RECORD_CSS = `
 .rp-job{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--atelier-card-border);background:transparent;color:var(--atelier-accent-text);font:var(--wl-tb);text-decoration:none;display:inline-flex;align-items:center;touch-action:manipulation}
 .rp-job.warn{color:var(--role-critical);border-color:var(--role-critical)}
 .rp-job:active{background:var(--atelier-row-hover)}
+.rp-job:disabled{opacity:.6}
+.rp-sched{margin-top:12px}
 `;

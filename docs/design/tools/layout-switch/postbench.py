@@ -145,3 +145,12 @@ for _p in ('scripts/b81_lc2_p2_room_bench_v2.js', 'scripts/b82_lc2_p3_booking_be
     if "'@/lib/vendor/api/_base': { getJson: rec('GET')" not in _s and _s.count(_a) == 1:
         _s = _s.replace(_a, _a + "      // DESIGN-1 · THE LAYOUT SWITCH (by label): the v2 copy of the client reaches the shared _base by its @/ path (as b80's)\n      '@/lib/vendor/api/_base': { getJson: rec('GET'), postJson: rec('POST'), patchJson: rec('PATCH'), deleteJson: rec('DELETE'), API_BASE: '', getAuthHeader: () => ({}), handleResponse: async () => ({}) },\n")
         open(_p, 'w', encoding='utf8').write(_s); print('patched', _p)
+
+# tdw41's --mutate copies components/ and lib/ into its scratch tree; the v2 copy reads v2/, so it crashed on every
+# mutation (a split miss, found at 5b). The scratch tree carries v2/ too.
+T41 = 'scripts/tdw41_g34s2_pwa_v2.proof.mjs'
+_s = open(T41, encoding='utf8').read()
+_a = "    execSync(`cp -r ${ROOT}/components ${ROOT}/lib ${scratch}/`);\n"
+if _s.count(_a) == 1:
+    _s = _s.replace(_a, "    // DESIGN-1 · THE LAYOUT SWITCH (by label): the v2 copy's files live under v2/, so the scratch tree carries it too\n    execSync(`cp -r ${ROOT}/components ${ROOT}/lib ${ROOT}/v2 ${scratch}/`);\n")
+    open(T41, 'w', encoding='utf8').write(_s); print('patched', T41)

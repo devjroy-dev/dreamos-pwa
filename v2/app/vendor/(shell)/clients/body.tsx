@@ -10,8 +10,11 @@
 // renderList. AddSheet behavior unchanged until P5. No DetailSheet here —
 // the card expands in place.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCabinetData, useLeadsData } from '@/v2/hooks/vendor/useVendorData';
+import { findTypedClient } from '@/v2/lib/vendor/api/vendor';
+import { clientHref, foundClientPage } from '@/v2/lib/worklist/record';
 import { phoneKey } from '@/v2/lib/vendor/cabinet';
 import { SliceShell } from '@/v2/components/vendor/slices/SliceShell';
 import { BinderCard } from '@/v2/components/vendor/slices/BinderCard';
@@ -46,6 +49,25 @@ export default function ClientsSlice({ vendorId }: { vendorId: string }) {
   }, [typedLeads.data]);
   const [query, setQuery] = useState('');
   const [addOpen, setAddOpen] = useState(false);
+
+  // ── DESIGN-1 · STAGE 5b · A FOUND CLIENT OPENS HER PAGE ──────────────────────────────────────────────────────────
+  // The search hands this list `?client=<id>`, the client's id in the typed plane (public.clients), which is not the id
+  // her page reads. The page is resolved HERE, from the records this list already uses and nothing new on any wire:
+  // her number, from the typed roster door (findTypedClient, only while a `?client=` is waiting), against this list's
+  // own clients, by the estate's phone fold, and only when exactly one has it (foundClientPage, the founder's rule).
+  // With none or several, or no number, she stays on the list, as before.
+  const router = useRouter();
+  const [wantClient] = useState<string | null>(() => (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('client')));
+  const resolvedRef = useRef(false);
+  useEffect(() => {
+    if (!wantClient || resolvedRef.current || !cab.data) return;
+    resolvedRef.current = true;
+    const binders = cab.data.clients ?? [];
+    void findTypedClient(vendorId, wantClient).then((typed) => {
+      const binder = foundClientPage(wantClient, typed ? [typed] : [], binders);
+      if (binder) router.replace(clientHref(binder.id));
+    }).catch(() => { /* she stays on the list, as before */ });
+  }, [wantClient, cab.data, vendorId, router]);
   const { toast, show: showToast } = useToast();
 
   const binders = useMemo(() => {

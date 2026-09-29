@@ -136,7 +136,8 @@ mut('M7 Undo removes every event of the lead → 2.7 RED', () => sheetCells(S.re
 mut('M8 Cancel booking with both answers ticked → 3.3 RED', () => cancelCells(C, K.replace('const [rmEvents, setRmEvents] = useState(false);', 'const [rmEvents, setRmEvents] = useState(true);')).unticked);
 mut('M9 a paid invoice offered for removal → 3.4 RED', () => cancelCells(C, K.replace('plan.invoice.paid\n            ? <p data-cancel-kept=""', 'false\n            ? <p data-cancel-kept=""')).paidKept);
 mut('M10 Cancel booking with no ask first → 3.2 RED', () => cancelCells(C, K.replace('unbookBooking({ binder_id: binderId, dry_run: true })', 'Promise.resolve({ ok: true, plan: null })')).asksFirst);
-mut('M11 the room closes the sheet on booking → 2.8 RED', () => stayCells(read(SHELL).replace("            if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));\n          }}", "            setBooking(null);\n            if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));\n          }}"), read(SHEET)).stays);
+// DESIGN-1 · STAGE 5b (by label): the room's sheets moved into one shared block (list and record page), two spaces deeper
+mut('M11 the room closes the sheet on booking → 2.8 RED', () => stayCells(read(SHELL).replace("              if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));\n            }}", "              setBooking(null);\n              if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));\n            }}"), read(SHEET)).stays);
 mut('M12 the reset keyed on the leadFacts object → 2.9 RED', () => stayCells(read(SHELL), S.replace('}, [open, initialKind, leadId, wd]);', '}, [open, initialKind, leadId, leadFacts]);')).keyed);
 console.log(`\n${fail ? 'RED' : 'GREEN'} — d1 book (v2) ${pass}/${pass + fail}${fail ? '\n  ' + failed.join('\n  ') : ''}`);
 process.exit(fail ? 1 : 0);

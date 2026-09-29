@@ -46,6 +46,12 @@ const CARDS = [
   { key: '/vendor/clients', names: [], files: ['v2/components/vendor/slices/BinderCard.tsx', 'v2/lib/worklist/book.ts'] },
   { key: '/vendor/invoices', names: ['Overdue', 'Unpaid', 'Part paid', 'Recent', 'Mark paid', 'Payment reminders', 'Expenses', 'TDS', 'Books'], files: ['v2/lib/worklist/tabs.ts', SHELL, 'v2/components/vendor/slices/SliceRow.tsx', 'lib/vendor/slices/invoices.ts', 'v2/lib/vendor/slices/invoices.ts', 'v2/components/vendor/slices/SortControl.tsx', 'lib/vendor/sort.ts', 'v2/lib/worklist/copy.ts', 'v2/components/vendor/slices/FilterRail.tsx'] },
   { key: '/vendor/calendar', names: ['Month', 'Weddings', 'Good dates', 'Coming up'], files: ['v2/app/vendor/(shell)/calendar/screen.tsx'] },
+  // DESIGN-1 · STAGE 5b (by label): the Events list's card is full now, and the invoice's and the event's pages have theirs
+  { key: '/vendor/events', names: ['This week', 'Later', 'Done', 'Recent'], files: [SHELL, 'v2/components/vendor/slices/FilterRail.tsx'] },
+  { key: '/vendor/invoices/[id]', names: ['Send on WhatsApp', 'Download PDF', 'Add', 'Remind', 'Edit', 'Paid', 'Remove schedule', 'Mark paid', 'Enquiry', 'Client', 'Ask in chat', 'Cancel invoice'],
+    files: ['v2/lib/worklist/record.ts', 'v2/components/vendor/records/SliceRecord.tsx', SHELL, 'v2/lib/worklist/copy.ts'] },
+  { key: '/vendor/events/[id]', names: ['Mark done', 'Open the client', 'Enquiry', 'Client', 'Ask in chat', 'Edit', 'Cancel event'],
+    files: ['v2/lib/worklist/record.ts', 'v2/components/vendor/records/SliceRecord.tsx'] },
 ];
 const SURFACES = [
   { key: 'search', names: ['Ask TDW about this'], files: ['v2/lib/worklist/search.ts'], mount: ['v2/components/worklist/SearchBox.tsx', /<HelpButton id="surface:search" title=\{SHEET_HELP\.search\.title\} help=\{SHEET_HELP\.search\.help\} \/>/] },

@@ -89,7 +89,8 @@ function loadPageHelp() {
 
 // DESIGN-1 · STAGE 5a (by label): the dynamic routes are visited at a real record of the fixture (b123_fixtures:
 // lead-0001, bind-0001), as the collab's responses always were at p1
-const AT = { '/vendor/collab/[post_id]/responses': '/vendor/collab/p1/responses', '/vendor/leads/[id]': '/vendor/leads/lead-0001', '/vendor/clients/[id]': '/vendor/clients/bind-0001' };
+// DESIGN-1 · STAGE 5b (by label): and the invoice's and the event's pages, at inv-0001 and ev-0001
+const AT = { '/vendor/collab/[post_id]/responses': '/vendor/collab/p1/responses', '/vendor/leads/[id]': '/vendor/leads/lead-0001', '/vendor/clients/[id]': '/vendor/clients/bind-0001', '/vendor/invoices/[id]': '/vendor/invoices/inv-0001', '/vendor/events/[id]': '/vendor/events/ev-0001' };
 function sourceCells() {
   const R = routes();
   const help = loadPageHelp();
@@ -102,9 +103,10 @@ function sourceCells() {
   const src = code(read('v2/lib/worklist/pageHelp.ts'));
   const reads = (src.match(/entry\(ROOM_DESC\.\w+/g) || []).length + (src.match(/entry\(ROW_DESC\.\w+/g) || []).length;
   const typed = (src.match(/entry\(TYPED_WHAT\.\w+/g) || []).length;
-  cell('1.2 line 1 is READ from ROOM_DESC and ROW_DESC (the founder\u2019s bytes), typed only for the six with no home',
+  cell('1.2 line 1 is READ from ROOM_DESC and ROW_DESC (the founder\u2019s bytes), typed only for the eight with no home',
     // DESIGN-1 · STAGE 5a (by label): six typed now, the enquiry's and the client's pages having no registry line
-    reads !== keys.length - 6 || typed !== 6 ? `${reads} read, ${typed} typed, ${keys.length} entries` : null);
+    // DESIGN-1 · STAGE 5b (by label): eight, the invoice's and the event's pages likewise
+    reads !== keys.length - 8 || typed !== 8 ? `${reads} read, ${typed} typed, ${keys.length} entries` : null);
   const wl = code(read('v2/components/worklist/WorklistShell.tsx')); const ph = code(read('v2/components/worklist/PageHelp.tsx'));
   const bad = [];
   // DESIGN-1 · STAGE 3 (by label): the head is still the first child of the main column, above the room; the held-rooms

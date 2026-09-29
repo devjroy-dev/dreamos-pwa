@@ -1,6 +1,6 @@
-// docs/design/tools/recordshots.mjs · DESIGN-1 stage 5a: the enquiry and the client as pages, on the v2 tree
+// docs/design/tools/recordshots.mjs · DESIGN-1 stages 5a and 5b: the records as pages, on the v2 tree
 // (TDW_LAYOUT_DEFAULT=v2). Opens each from its list with a real tap, shoots the page, taps Back and measures that the
-// list stands where it stood. usage: PORT=4100 node docs/design/tools/recordshots.mjs
+// list stands where it stood. usage: PORT=4100 STAGE=5b node docs/design/tools/recordshots.mjs (STAGE defaults to 5a)
 import { browser, open, shot, sleep } from './harness.mjs';
 const b = await browser();
 const tapRow = async (p, sel, re) => {
@@ -9,7 +9,12 @@ const tapRow = async (p, sel, re) => {
   return box ? box.y0 : null;
 };
 const report = [];
-for (const [list, sel, re, tag] of [['/vendor/leads', '[data-row-id]', 'Aanya', 'enquiry'], ['/vendor/clients', '[data-client-open]', 'Meera', 'client']]) {
+const STAGE = process.env.STAGE || '5a';
+const TARGETS = {
+  '5a': [['/vendor/leads', '[data-row-id]', 'Aanya', 'enquiry'], ['/vendor/clients', '[data-client-open]', 'Meera', 'client']],
+  '5b': [['/vendor/invoices', '[data-row-id]', 'Aanya', 'invoice'], ['/vendor/events', '[data-row-id]', 'Sangeet', 'event']],
+}[STAGE];
+for (const [list, sel, re, tag] of TARGETS) {
   for (const mode of ['dark', 'light']) for (const vp of ['ios', 'android']) {
     const w = vp === 'ios' ? 374 : 360;
     const p = await open(b, list, { mode, vp, dpr: 2, settle: 1500 });
@@ -20,11 +25,14 @@ for (const [list, sel, re, tag] of [['/vendor/leads', '[data-row-id]', 'Aanya', 
     const ok = tapAt != null; const before2 = tapAt;
     await sleep(2500);
     const at = await p.evaluate(() => location.pathname);
-    console.log('shot', await shot(p, `shots/stage-5a/${tag}-${mode}-${w}.png`));
-    console.log('shot', await shot(p, `shots/stage-5a/${tag}-full-${mode}-${w}.png`, { fullPage: false }));
+    console.log('shot', await shot(p, `shots/stage-${STAGE}/${tag}-${mode}-${w}.png`));
+    console.log('shot', await shot(p, `shots/stage-${STAGE}/${tag}-full-${mode}-${w}.png`, { fullPage: false }));
+    await p.evaluate(() => { const m = document.querySelector('main.wl-main'); m.scrollTop = Math.round((m.scrollHeight - m.clientHeight) / 2); });
+    await sleep(400);
+    console.log('shot', await shot(p, `shots/stage-${STAGE}/${tag}-mid-${mode}-${w}.png`));
     await p.evaluate(() => { const m = document.querySelector('main.wl-main'); m.scrollTop = m.scrollHeight; });
     await sleep(400);
-    console.log('shot', await shot(p, `shots/stage-5a/${tag}-end-${mode}-${w}.png`));
+    console.log('shot', await shot(p, `shots/stage-${STAGE}/${tag}-end-${mode}-${w}.png`));
     const back = await p.evaluate(() => { const a = document.querySelector('[data-record-back]'); if (!a) return false; a.click(); return true; });
     await sleep(2500);
     const after = await p.evaluate(() => ({ path: location.pathname, y: document.querySelector('main.wl-main') ? document.querySelector('main.wl-main').scrollTop : -1 }));

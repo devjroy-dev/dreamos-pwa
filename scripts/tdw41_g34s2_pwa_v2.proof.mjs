@@ -118,7 +118,8 @@ function mutate() {
     ['M3 a failed row stops offering Remind', SHELL, "{ms.state === 'pending' && !ms.sent_at && (", "{ms.state === 'pending' && !ms.sent_at && !ms.reminder_failed && (", 'Remind comes back for it'],
     ['M4 the register key leaks to the toast (F-41.17 returns)', SHELL, 'showToast(res.reason_text ?? COPY.studioReminderDark', 'showToast(res.reason ?? COPY.studioReminderDark', 'the room prints reason_text'],
     ['M5 the sheet computes the amount itself', SHELL, "'Recomputed on save'", "`Rs ${Math.round((sel.amount_total ?? 0) * Number(editPct) / 100)}`", 'the amount is NOT computed on this side'],
-    ['M6 Save stops re-reading the door', SHELL, 'const again = await fetchSchedule(sel.id);\n                  if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);\n                  showToast(COPY.studioMsSaved', 'showToast(COPY.studioMsSaved', 'Save patches only what changed'],
+    // DESIGN-1 · STAGE 5b (by label): the room's sheets moved into one shared block (list and record page), two spaces deeper
+    ['M6 Save stops re-reading the door', SHELL, 'const again = await fetchSchedule(sel.id);\n                    if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);\n                    showToast(COPY.studioMsSaved', 'showToast(COPY.studioMsSaved', 'Save patches only what changed'],
     ['M7 the wrapper starts sending amount_due', API, 'patch: { milestone_label?: string; pct?: number; due_date?: string | null },', 'patch: { milestone_label?: string; pct?: number; due_date?: string | null; amount_due?: number },', 'never sends amount_due'],
     ['M8 the invoice button forgets what it deletes', SHEET, "slice === 'invoices' ? 'Delete invoice' : 'Delete'", "'Delete'", 'names what it deletes'],
     ['M9 Remove schedule appears on an empty schedule', SHELL, 'schedule && schedule.length > 0 && !removeSchedule', 'schedule && !removeSchedule', 'only when a schedule exists'],
@@ -127,7 +128,8 @@ function mutate() {
   let bad = 0;
   for (const [id, file, from, to, frag] of MUT) {
     const scratch = fs.mkdtempSync('/tmp/g34m-');
-    execSync(`cp -r ${ROOT}/components ${ROOT}/lib ${scratch}/`);
+    // DESIGN-1 · THE LAYOUT SWITCH (by label): the v2 copy's files live under v2/, so the scratch tree carries it too
+    execSync(`cp -r ${ROOT}/components ${ROOT}/lib ${ROOT}/v2 ${scratch}/`);
     const p = path.join(scratch, file); const s = fs.readFileSync(p, 'utf8');
     const n = s.split(from).length - 1;
     if (n !== 1) { console.log(`  ??     ${id} — target matched ${n} times`); bad++; fs.rmSync(scratch, { recursive: true, force: true }); continue; }

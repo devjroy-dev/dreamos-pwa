@@ -1,4 +1,5 @@
 // DESIGN-1 · STAGE 5a (by label): a record page's seen key is its card's pattern (one card for every enquiry, every client).
+// DESIGN-1 · STAGE 5b (by label): and every invoice, every event.
 // DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b140_page_help_probe.mjs. The original at its own path proves the classic
 // tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
 // scripts/lib/b140_page_help_probe_v2.mjs · TDW CE-46 · FE-4 · the "?" on every surface · b140's browser arm.
@@ -89,7 +90,7 @@ try {
 
   // the seen key is set or cleared BEFORE the room mounts, so the dot's effect reads the state under test
   await p.evaluateOnNewDocument((route, seen) => {
-    const key = 'tdw_help_seen:' + (/^\/vendor\/collab\/[^/]+\/responses\/?$/.test(route) ? '/vendor/collab/[post_id]/responses' : /^\/vendor\/leads\/[^/]+\/?$/.test(route) ? '/vendor/leads/[id]' : /^\/vendor\/clients\/[^/]+\/?$/.test(route) ? '/vendor/clients/[id]' : route);
+    const key = 'tdw_help_seen:' + (/^\/vendor\/collab\/[^/]+\/responses\/?$/.test(route) ? '/vendor/collab/[post_id]/responses' : /^\/vendor\/leads\/[^/]+\/?$/.test(route) ? '/vendor/leads/[id]' : /^\/vendor\/clients\/[^/]+\/?$/.test(route) ? '/vendor/clients/[id]' : /^\/vendor\/invoices\/[^/]+\/?$/.test(route) ? '/vendor/invoices/[id]' : /^\/vendor\/events\/[^/]+\/?$/.test(route) ? '/vendor/events/[id]' : route);
     try { if (seen === 'seen') localStorage.setItem(key, '1'); else localStorage.removeItem(key); } catch (_e) { /* read below */ }
   }, ROUTE, SEEN);
 
@@ -171,7 +172,7 @@ try {
   await settle(350);
   out.open = await measureCard();
   out.firstAfterOpen = await p.evaluate(() => (document.querySelector('.wl-roomhead .wl-helpq') || {}).dataset?.first ?? null);
-  out.storedAfterOpen = await p.evaluate((route) => { const key = 'tdw_help_seen:' + (/^\/vendor\/collab\/[^/]+\/responses\/?$/.test(route) ? '/vendor/collab/[post_id]/responses' : /^\/vendor\/leads\/[^/]+\/?$/.test(route) ? '/vendor/leads/[id]' : /^\/vendor\/clients\/[^/]+\/?$/.test(route) ? '/vendor/clients/[id]' : route); try { return localStorage.getItem(key); } catch (_e) { return 'unreadable'; } }, ROUTE);
+  out.storedAfterOpen = await p.evaluate((route) => { const key = 'tdw_help_seen:' + (/^\/vendor\/collab\/[^/]+\/responses\/?$/.test(route) ? '/vendor/collab/[post_id]/responses' : /^\/vendor\/leads\/[^/]+\/?$/.test(route) ? '/vendor/leads/[id]' : /^\/vendor\/clients\/[^/]+\/?$/.test(route) ? '/vendor/clients/[id]' : /^\/vendor\/invoices\/[^/]+\/?$/.test(route) ? '/vendor/invoices/[id]' : /^\/vendor\/events\/[^/]+\/?$/.test(route) ? '/vendor/events/[id]' : route); try { return localStorage.getItem(key); } catch (_e) { return 'unreadable'; } }, ROUTE);
 
   // ── CLOSE by Got it ──────────────────────────────────────────────────────────────────────────────────
   await p.evaluate(() => { const bt = [...document.querySelectorAll('.wl-helpacts button')].find((e) => /got it/i.test(e.textContent)); if (bt) bt.click(); });
