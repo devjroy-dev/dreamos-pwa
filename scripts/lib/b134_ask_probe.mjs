@@ -163,7 +163,8 @@ try {
             weight: cs.fontWeight, italic: cs.fontStyle === 'italic', ls: cs.letterSpacing, tt: cs.textTransform,
             control: !!el.closest('button, a[href]') });
         }
-        const ta = panel.querySelector('textarea'); if (ta) { const cs = getComputedStyle(ta); rows.push({ txt: '(the message box)', size: parseFloat(cs.fontSize), f: /dm.?sans/i.test(cs.fontFamily) ? 'dmsans' : cs.fontFamily.split(',')[0], weight: cs.fontWeight, italic: cs.fontStyle === 'italic', ls: cs.letterSpacing, tt: cs.textTransform, control: true }); }
+        // DESIGN-1 · STAGE 1: the message box's face is read as the text rows read theirs (lower case), so Inter is 'inter' on both.
+        const ta = panel.querySelector('textarea'); if (ta) { const cs = getComputedStyle(ta); rows.push({ txt: '(the message box)', size: parseFloat(cs.fontSize), f: /dm.?sans/i.test(cs.fontFamily) ? 'dmsans' : cs.fontFamily.toLowerCase().split(',')[0], weight: cs.fontWeight, italic: cs.fontStyle === 'italic', ls: cs.letterSpacing, tt: cs.textTransform, control: true }); }
         return rows;
       })(),
       lists: [...body.querySelectorAll('ul, ol')].length,
