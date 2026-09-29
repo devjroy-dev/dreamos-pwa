@@ -233,9 +233,37 @@ pages replace it) are named in the census.
 - Also: `shots/stage-3/search/` and `shots/stage-3/portfolio-scroll/`.
 - The classic layout's screenshots are `main`'s. The pixel proof above shows they are unchanged.
 
-## The floor
+## What ran here, and what is left for the landing floor
 
-STAGE3_FLOOR
+By the founder's and the chair's ruling, the whole floor does not run in this session. It runs once, in the
+founder's Codespace, when the branches land. Here only the benches that read the files this stage changed, and the
+`d1_` benches, ran, one at a time, in the foreground.
+
+| Bench | Result here |
+|---|---|
+| `d1_layout_switch_bench.mjs` | 19/19 |
+| `d1_stage3_bench_v2.mjs` | 37/37 |
+| dream-os `d1_search_bench.js` | 22/22 |
+| dream-os `b0185_layout_switch_bench.js` | 13/13 |
+| `b40_worklist_shell_bench_v2.js` | main's two reds only (C50, C102), at main's cells |
+| `b42_g11_wedding_pages_bench_v2.js` | 168/170: main's two reds only (the mock and ae30180 byte cells) |
+| `b59_seven_ink_census_v2.js` | 20/20 |
+| `b80_lc2_p1_shell_bench_v2.js` | 47/47 |
+| `b122_ce45_home_shelves_bench_v2.js` | its More cells all green once More's rows held 64 (found and fixed here); red only on 3.5 (main's: the sibling repo is absent) and on 4.99, whose one red was a leftover dev server of mine, not the bench's (it was green on the run before) |
+| `run-roster-mint-v2-proof.sh` (rosterMint_v2) | 22/22 |
+| the classic originals of b40, b42, b59, b80 and b122 (static) | as on main |
+| `b20_a3_assistance_pwa.proof.mjs` | 204/204 |
+
+**Left for the landing floor** (the whole floor, `bash scripts/run-floor.sh`, keys unset, alone):
+
+- every dev-server `_v2` copy not run above: b123_v2, b125_v2, b126_v2, b134_v2, b140_v2, b143_v2, b57_v2, b77_v2,
+  b81_v2, b82_v2, obp_vendor_form_v2, tdw07_p4a_ig_v2, tdw16_r2_leads_truth_v2, tdw41_g34s2_pwa_v2 and
+  `d1_home_bench_v2.js`;
+- b123 and b123_v2 (by ruling, at landing only);
+- the classic originals, which should read exactly as on main (43 red, 1 error, 7 refused at `85c66ef`); each
+  `_v2` copy of a bench that is red on main should be red on main's cells only;
+- the full OFF-versus-main pixel set (every vendor page, 374 and 360, both themes;
+  `docs/design/tools/offcompare.mjs`), of which this session ran the chair's eight pages: 16 of 16 identical.
 
 ## Benches updated, and why
 
