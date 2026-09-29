@@ -52,6 +52,7 @@
 import VendorProfileContent, { PROFILE_PALETTE, HERO_PALETTE } from '@/components/shared/VendorProfileContent';
 import { heroSelectRules } from '@/lib/public/heroSelectRules.mjs';
 import { stripMetaPlaceholder } from '@/lib/public/metaPlaceholder';
+import { publicUrlFor } from '@/lib/public/vendorHost';
 // R-G11.15 · the two bytes this leaf shares with the wedding page now live in
 // one home. Nothing is re-voiced; these read exactly as they read before.
 import { PUBLIC_MISS, PUBLIC_COLOPHON, PUBLIC_COLOPHON_LEAD, PUBLIC_ENQUIRE_LABEL, PUBLIC_DATE_CHECK, PUBLIC_WEDDINGS_LABEL } from '@/lib/public/copy';
@@ -326,12 +327,14 @@ export async function generateMetadata(
     title,
     description,
     other: { 'tdw-build': BUILD },
-    alternates: { canonical: `${SITE_BASE}/v/${card.handle}` },
+    // WEB-1 cut 3 · Google is told her short address (the founder, 28 September); a handle with
+    // no short address keeps /v/<handle>. The /v/ page and the short address serve the same page.
+    alternates: { canonical: publicUrlFor(card.handle, SITE_BASE) },
     openGraph: {
       title,
       description,
       type: 'website',
-      url: `${SITE_BASE}/v/${card.handle}`,
+      url: publicUrlFor(card.handle, SITE_BASE),
       siteName: 'The Dream Wedding',
       images: hero ? [{ url: hero.url, alt: hero.caption || name }] : [],
     },
@@ -450,7 +453,7 @@ export default async function PublicVendorPage(
           '@context': 'https://schema.org',
           '@type': 'LocalBusiness',
           name: card.business_name || undefined,
-          url: `${SITE_BASE}/v/${card.handle}`,
+          url: publicUrlFor(card.handle, SITE_BASE),
           description: (card.meta && card.meta.description) || card.about || undefined,   // G3.1 s2 · the same byte Google's snippet shows
           image: gallery.length > 0 ? gallery[0].url : undefined,
           address: card.city

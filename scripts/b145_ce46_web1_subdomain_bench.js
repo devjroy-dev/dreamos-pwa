@@ -63,14 +63,18 @@ ok(!/\/v\/\$\{p\.handle\}\/\$\{p\.slug\}/.test(sm), '3.3 the address that never 
 sec('4  the storefront editor reads SITE_BASE (F-44.239)');
 const sf = stripComments(read('app/vendor/(shell)/storefront/screen.tsx'));
 ok(/const SITE_BASE = process\.env\.NEXT_PUBLIC_SITE_BASE \?\? 'https:\/\/thedreamwedding\.in';/.test(sf), '4.1 SITE_BASE declared once, the room\'s spelling');
-ok(/href=\{`\$\{SITE_BASE\}\/v\/\$\{handle\.toLowerCase\(\)\}`\}/.test(sf), '4.2 the link is built from SITE_BASE');
-ok(/`\$\{SITE_BASE\.replace\(\/\^https\?:\\\/\\\/\/, ''\)\}\/v\/\$\{handle\.toLowerCase\(\)\}`/.test(sf), '4.3 the visible address is SITE_BASE without its scheme, as the Your website room prints it');
+// ── AMENDED, LABELLED — WEB-1 cut 3 (b147), 28 September: the founder ruled her SHORT address the one
+// TDW shows. The row now reads publicUrlFor(handle, SITE_BASE) (lib/public/vendorHost.ts), still from
+// SITE_BASE and still no literal (4.4); b147 drives publicUrlFor itself. The pin moves with the code.
+ok(/href=\{publicUrlFor\(handle, SITE_BASE\)\}/.test(sf) && /import \{ publicUrlFor \} from '@\/lib\/public\/vendorHost';/.test(sf), '4.2 the link is built from SITE_BASE through publicUrlFor (amended at cut 3)');
+// read RAW: the comment stripper's declared H2 hole eats a regex literal's `//` tail (scripts/lib/stripComments.mjs)
+ok(read('app/vendor/(shell)/storefront/screen.tsx').includes("{publicUrlFor(handle, SITE_BASE).replace(/^https?:\\/\\//, '')}"), '4.3 the visible address is the same URL without its scheme, as the Your website room prints it (amended at cut 3)');
 ok(!/https:\/\/thedreamwedding\.in\/v\//.test(sf) && !/`thedreamwedding\.in\/v\//.test(sf), '4.4 no literal address remains in the editor');
 
 sec('5  mutations: every cure reverted in memory reddens its own cell');
 const mSm = sm.replace('/v/${p.handle}/w/${p.slug}', '/v/${p.handle}/${p.slug}');
 ok(!/\/v\/\$\{p\.handle\}\/w\/\$\{p\.slug\}/.test(mSm) && /\/v\/\$\{p\.handle\}\/\$\{p\.slug\}/.test(mSm), '5.1 the sitemap reverted to the wrong address fails 3.2 and 3.3');
-const mSf = sf.replace('href={`${SITE_BASE}/v/${handle.toLowerCase()}`}', 'href={`https://thedreamwedding.in/v/${handle.toLowerCase()}`}');
+const mSf = sf.replace('href={publicUrlFor(handle, SITE_BASE)}', 'href={`https://thedreamwedding.in/v/${handle.toLowerCase()}`}');
 ok(/https:\/\/thedreamwedding\.in\/v\//.test(mSf), '5.2 the literal restored in the editor fails 4.2 and 4.4');
 const mMw = mw.replace('const d = decide(host, path, SITE_BASE, url.search);', 'const d = null;');
 ok(!/const d = decide\(/.test(mMw), '5.3 the edge with the decision removed fails 2.2');
