@@ -89,7 +89,12 @@ try {
       const q = document.querySelector('section[data-meta-room="quiet"]');
       const txt = (el) => (el ? [...el.querySelectorAll('p,h1,h2,li')].filter(vis).map((e) => e.textContent.trim()) : null);
       const btn = (el) => (el ? [...el.querySelectorAll('button')].filter(vis).map((e) => e.textContent.trim()) : null);
-      const sel = q ? q.querySelector('select') : null;
+      // RE-PINNED BY LABEL · CE-46 G6-4 (b151): the quiet control is a radiogroup of four cells now (F-g, the mock approved
+      // 28 Sept 2026), not a browser select. The chosen cell's label maps back to its minutes, so every cell reads as before.
+      const radios = q ? [...q.querySelectorAll('[role="radio"]')] : [];
+      const MIN = { '1 hour': '60', '2 hours': '120', '4 hours': '240', '8 hours': '480' };
+      const chosen = radios.find((r) => r.getAttribute('aria-checked') === 'true');
+      const sel = radios.length ? { value: chosen ? MIN[chosen.textContent.trim()] || null : null, options: radios } : null;
       return {
         title: (document.querySelector('h1[data-room-title]') || {}).textContent || null, // CE-46 FE-4: the shell's head
         g6: txt(g6), g6buttons: btn(g6),
@@ -120,7 +125,8 @@ try {
   if (SC === 'rOn') { out.tapped.push(await tap(TAPS.turnOff)); await settle(1500); await read('after'); }
   if (SC === 'rOff') { out.tapped.push(await tap(TAPS.turnOn)); await settle(700); await read('consent'); }
   if (SC === 'rPaused') { out.tapped.push(await tap(TAPS.paused)); await settle(2000); }
-  if (SC === 'rQuiet') { await p.select('section[data-meta-room="quiet"] select', '240'); await settle(1500); await read('after'); }
+  // RE-PINNED BY LABEL · CE-46 G6-4 (b151): the choice is a tap on the 4 hours cell (the radiogroup), not a select.
+  if (SC === 'rQuiet') { await p.evaluate(() => { const b = [...document.querySelectorAll('section[data-meta-room="quiet"] [role="radio"]')].find((x) => x.textContent.trim() === '4 hours'); if (b) b.click(); }); await settle(1500); await read('after'); }
 } catch (e) {
   out.errors.push(`probe: ${String(e && e.message).split('\n')[0]}`);
 } finally { await b.close(); }

@@ -73,14 +73,20 @@ function loadTs(rel, src) {
     cancel: 'a0e63d7c7125d29a', connecting: 'f30c2ee0d49c456c', pending: 'bca103ca42a323f1',
     // AMENDED BY LABEL · F-44.166's cut (F-44.172): `active` is his final byte, "Enquiries to this number are now answered here, by your personal TDW agent." (was
     // 1db668753387524b, "…answered here, in your voice.").
-    active: 'a736be2aa9e03afb', suspended: 'f5f494a6cd724cb4', movedOut: '2bdb248a7d6a4c2b',
+    // AMENDED BY LABEL · CE-46 G6-4 (b151), F-f: `active` is the kickoff's line, ruled to REPLACE (was a736be2aa9e03afb).
+    active: '3426ac22ca6f28a2', suspended: 'f5f494a6cd724cb4', movedOut: '2bdb248a7d6a4c2b',
     stopped: '9a6a919ed3fe7efe', metaError: 'ee3a6c55876debe6', expired: 'd11460af28f8c376',
+    // AMENDED BY LABEL · CE-46 G6-4 (b151): ten slots for the room finished, ruled 28 Sept 2026 (F-b, F-c, F-e; R8 and R9 on the mock).
+    wayShared: 'd26fb20ffb405441', wayMoved: 'fa101a26871a19ff', remove: '3c423b75cc4fecfc', removeShared: '54537d5b0a11983b',
+    removeMoved: '3aea1edae27fec60', removeGo: 'c3812fc4acb861d5', removeCancel: '19766ed6ccb2f4a3', removing: '6c17453375f9b964',
+    removeRefused: '1ad7ef59f14c99de', finishInApp: '870da2e24e9d3c2e',
   };
   const FLOW = loadTs(BYTES).FLOW;
   const flowKeys = Object.keys(FLOW);
   const off = flowKeys.filter((k) => typeof FLOW[k] !== 'string' || sha(FLOW[k]).slice(0, 16) !== VETOED[k]);
-  ok(flowKeys.length === 18 && Object.keys(VETOED).length === 18 && off.length === 0 && flowKeys.every((k) => k in VETOED),
-    '1.1 every one of the eighteen slots holds the founder\u2019s vetoed byte, pinned by sha (O1 to O11)', off.join(','));
+  // AMENDED BY LABEL · CE-46 G6-4 (b151): was eighteen slots; the room finished adds ten (twenty-eight).
+  ok(flowKeys.length === 28 && Object.keys(VETOED).length === 28 && off.length === 0 && flowKeys.every((k) => k in VETOED),
+    '1.1 every one of the twenty-eight slots holds the founder\u2019s ruled byte, pinned by sha (O1 to O11; the room finished, CE-46 G6-4)', off.join(','));
   ok(!/PH-/.test(BYTES_SRC) && !all.some(([, s]) => /PH-/.test(strip(s))) && !Object.values(FLOW).some((v) => /\b(Victor|Donna|Harvey|Mira)\b|\u2014|\w'\w/.test(v)),
     '1.2 no placeholder byte in the tree; no persona, em dash or straight apostrophe in any flow byte');
   ok(!all.some(([, s]) => /\b(Victor|Donna|Harvey|Mira)\b/.test(s)) && !/\b(Victor|Donna|Harvey|Mira)\b/.test(page), '1.3 no persona name in any file this cut touches (b40 C32)');
@@ -226,8 +232,9 @@ function loadTs(rel, src) {
           `4.cancel ${mode}: a stop posts nothing and says so in her words`, JSON.stringify(last.texts));
         if (sc === 'sNoSdk') ok(o.posts.length === 0 && last.step === 'room' && last.texts.includes(loadTs('lib/solutions/copy.ts').COPY.surfaceUnavailable),
           `4.nosdk ${mode}: when Meta's script is refused, nothing is posted and the room says it could not load (COPY.surfaceUnavailable)`, JSON.stringify(last.texts));
-        if (sc === 'sStatus') ok(sc0.step === 'status' && sc0.status === 'active' && sc0.texts.includes('Connected') && sc0.texts.includes(PH('active')) && sc0.buttons.length === 0,
-          `4.status ${mode}: a number on file shows its state and chip, and no control this cut`, JSON.stringify(sc0));
+        // AMENDED BY LABEL · CE-46 G6-4 (b151): the status screen gains its one control, Remove this number (b151 drives it).
+        if (sc === 'sStatus') ok(sc0.step === 'status' && sc0.status === 'active' && sc0.texts.includes('Connected') && sc0.texts.includes(PH('active')) && JSON.stringify(sc0.buttons) === JSON.stringify([PH('remove')]),
+          `4.status ${mode}: a number on file shows its state and chip, and one control: Remove this number`, JSON.stringify(sc0));
       }
 
       sec('5  mutations of production code');

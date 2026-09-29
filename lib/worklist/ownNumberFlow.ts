@@ -62,6 +62,27 @@ export type OwnNumberFlowCopy = {
   metaError: string | null;
   /** O11 · the thirty-second code expired before we could use it */
   expired: string | null;
+  // CE-46 G6-4 · THE ROOM FINISHED (F-b, F-c, F-e, F-f ruled 28 September 2026). {number} is her display number, DATA.
+  /** R1 · the way line on the box, shared (F-e, his words) */
+  wayShared: string | null;
+  /** R2 · the way line on the box, moved (F-e, his words) */
+  wayMoved: string | null;
+  /** R3 · the button under the box (the kickoff's words) */
+  remove: string | null;
+  /** R4 · the sheet, shared way (F-b) */
+  removeShared: string | null;
+  /** R5 · the sheet, moved way (F-b) */
+  removeMoved: string | null;
+  /** R6 · the sheet's destructive button, second and outlined (F-b) */
+  removeGo: string | null;
+  /** R7 · the sheet's cancel (F-b) */
+  removeCancel: string | null;
+  /** R8 · while removing: no control (PROPOSED, for his yes) */
+  removing: string | null;
+  /** R9 · Meta refused: nothing changed (PROPOSED, for his yes) */
+  removeRefused: string | null;
+  /** R10 · S6, shared way only, until Meta says she disconnected (F-c) */
+  finishInApp: string | null;
 };
 
 export const FLOW: OwnNumberFlowCopy = {
@@ -79,13 +100,29 @@ export const FLOW: OwnNumberFlowCopy = {
   pending:        'We are finishing the connection. This can take a few minutes.',
   // F-44.172 (his final words, 25 September; R-45.30): "in your voice" replaced. Its truth half is held by R-45.32
   // (flag.own_number stays off for every vendor but DEV440 until 2b makes answering real).
-  active:         'Enquiries to this number are now answered here, by your personal TDW agent.',
+  // CE-46 G6-4 F-f (ruled 28 Sept 2026): the kickoff's line REPLACES F-44.172's.
+  active:         'Connected. TDW answers for you on this number.',
   suspended:      'Paused. Meta flagged messages from this number, so we have stopped sending from it until its rating recovers.',
   movedOut:       'This number is no longer connected here.',
   stopped:        'You stopped before finishing, so nothing was connected.',
   metaError:      'Meta could not finish connecting your number. If you contact us, quote the code below.',
   expired:        'That took too long to finish. Please try again.',
+  wayShared:      'Works on your phone and in TDW app.',
+  wayMoved:       'Works only in TDW app.',
+  remove:         'Remove this number',
+  removeShared:   'TDW will stop answering on {number}. Your WhatsApp Business app keeps working. To finish, open WhatsApp Business: Settings, Account, Business Platform, Disconnect.',
+  removeMoved:    'TDW will stop answering on {number} and it will stop working through TDW. To use it in the WhatsApp app again, set it up there with this number.',
+  removeGo:       'Remove',
+  removeCancel:   'Cancel',
+  removing:       'Removing your number.',
+  removeRefused:  'This number could not be removed just now. Nothing has changed. Please try again.',
+  finishInApp:    'Finish removing {number} in WhatsApp Business: Settings, Account, Business Platform, Disconnect.',
 };
+
+/** Pure: a FLOW line with her number put in. The number is data, never copy. */
+export function withNumber(line: string | null, number: string): string {
+  return String(line || '').split('{number}').join(number);
+}
 
 /** True only when EVERY flow byte is the founder's. One null keeps the room a shell. */
 export function flowBytesReady(copy: OwnNumberFlowCopy = FLOW): boolean {

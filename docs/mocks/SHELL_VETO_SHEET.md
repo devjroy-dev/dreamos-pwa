@@ -16,7 +16,7 @@ string against this table by value; a byte that is not here does not ship.
 | N1 | /vendor/number · lede | — | Enquiries come to your own WhatsApp number, answered even when you’re busy. | 77 | 3444169777d015d2 |
 | N2 | /vendor/number · can-do | — | Put your own number on your page instead of ours. | 49 | 64fd193014b5281f |
 | N3 | /vendor/number · can-do | — | Have enquiries answered in your voice while you work. | 53 | da5adc586f2f531e |
-| N4 | /vendor/number · can-do | — | Turn a missed call into a WhatsApp reply. | 41 | 83f310b0ab3df667 |
+| N4 | /vendor/number · can-do · STRUCK CE-46 G6-4 (Q-a), returns with the missed-call bridge | — | ~~Turn a missed call into a WhatsApp reply.~~ not shipped | 41 | — |
 | N5 | /vendor/number · CTA | `BUTTONS.connect` | Connect — **carried, zero new byte** (spec §9) | 7 | — |
 | T1 | both CTAs, on tap · `COPY.launchingSoon` | — | Launching soon. | 15 | 2b687c5eae064560 |
 | C1 | hub chip on `dates` and `number` · `CHIPS.coming` | `CHIPS.coming` | Coming — **carried, zero new byte** (register 1a) | 6 | — |
