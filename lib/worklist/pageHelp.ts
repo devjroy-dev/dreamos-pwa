@@ -82,6 +82,12 @@ export const PORTFOLIO_HELP = {
   H12: 'Photos are copied into your portfolio, so they stay put even if your Instagram changes.',
 } as const;
 
+// DESIGN-1 · STAGE 2: the Collab responses page's explanation, moved off the page word for word (it was typed inline in
+// app/vendor/(shell)/collab/[post_id]/responses/screen.tsx, above the list).
+export const RESPONSES_HELP = {
+  identity: 'Their identity is revealed to you because you posted the requirement. Tap Connect to share contact details with both of you.',
+} as const;
+
 const entry = (what: string, extra: Partial<PageHelp> = {}): PageHelp =>
   ({ what, can: HELD, connects: '', ...extra });
 
@@ -133,7 +139,7 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   [REFERRALS_HREF]: entry(ROW_DESC.referrals),
   [PAYMENT_REMINDERS_HREF]: entry(ROW_DESC.reminders),
   [roomHref('collab')]: entry(ROW_DESC.collabs),
-  '/vendor/collab/[post_id]/responses':     entry(TYPED_WHAT.responses),
+  '/vendor/collab/[post_id]/responses':     entry(TYPED_WHAT.responses, { can: [{ icon: 'share', line: RESPONSES_HELP.identity }] }),
   [EXCHANGE_HREF]: entry(TYPED_WHAT.exchange),
 };
 

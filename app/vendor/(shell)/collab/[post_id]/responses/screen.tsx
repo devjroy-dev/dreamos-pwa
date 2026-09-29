@@ -222,10 +222,9 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
         <h1 style={{ font: 'var(--wl-t1)', color: D.cream, marginBottom: 8 }}>
           Interested vendors
         </h1>
-        <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '1rem', color: D.muted, lineHeight: 1.6, paddingBottom: 16 }}>
-          Their identity is revealed to you because you posted the requirement.
-          Tap Connect to share contact details with both of you.
-        </p>
+        {/* DESIGN-1 stage 2 (the founder, 29 Sept: the list is the page): the explanation that stood here moved, word for
+            word, to this page's "?" card (lib/worklist/pageHelp.ts RESPONSES_HELP). */}
+        <div style={{ paddingBottom: 8 }} />
       </div>
 
       {/* Content */}
