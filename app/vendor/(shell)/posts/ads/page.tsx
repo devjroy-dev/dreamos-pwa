@@ -27,6 +27,12 @@ import {
 } from '@/lib/worklist/adsWire';
 
 const MINT_REFRESH_MS = 8 * 60 * 1000;
+// R-46.16: the example pictures ship under public/ with their Pexels sources beside them; they live only in this room.
+// EXAMPLE_POST has no Meta id, so /run can never accept it (dream-os answers ADS_NOT_HER_POST), and the room never
+// sends it: with no posts, Run is disabled.
+const EXAMPLE_RESULT = '/examples/ads/example-couple.jpg';
+const EXAMPLE_POST: Media = { id: 'example', caption: '', type: 'IMAGE', url: '/examples/ads/example-portrait.jpg', at: null,
+  likes: null, comments: null, eligible: false };
 // The Posts room's name is ROOM_ROWS' own label (R-40.1), read by key so the back row and the room never disagree.
 const ROOM_TITLE = ROOM_ROWS.find((r) => r.key === 'posts')?.label ?? '';
 const isIosStandalone = () => typeof navigator !== 'undefined' && (navigator as Navigator & { standalone?: boolean }).standalone === true;
@@ -82,6 +88,7 @@ function AdsScreen() {
 // ═══ THE CONNECT ════════════════════════════════════════════════════════════════════════════════════════════════
 function Connect({ live }: { live: boolean }) {
   const [href, setHref] = useState<string | null>(null);
+  const [before, setBefore] = useState(false);
   const ios = isIosStandalone();   // client-only: this page renders after the session loads
   const mint = useCallback(() => {
     getJson<{ ok: boolean; authorize_url?: string }>(API.adsAuthorize()).then((r) => setHref(r && r.authorize_url ? r.authorize_url : null), () => setHref(null));
@@ -98,11 +105,22 @@ function Connect({ live }: { live: boolean }) {
       <p className="ads-state ads-gap">{ADS.connect.body2}</p>
       {!live
         ? <button type="button" className="ads-btn ads-primary ads-gap" disabled aria-disabled="true" data-soon>{ADS.comingSoon}</button>
-        : href
-          ? <a className="ads-btn ads-primary ads-gap" href={href}>{ADS.connect.cta}</a>
-          : <button type="button" className="ads-btn ads-primary ads-gap" onClick={() => mint()}>{ADS.connect.cta}</button>}
-      {live && ios && href ? <p className="ads-foot">{ADS.connect.iphone}</p> : null}
+        : <button type="button" className="ads-btn ads-primary ads-gap" data-connect onClick={() => { if (!href) mint(); setBefore(true); }}>{ADS.connect.cta}</button>}
       <p className="ads-state ads-gap">{ADS.gaps.intro}</p>
+      {before ? (
+        <div className="ads-over" role="dialog" aria-modal="true" data-before-meta>
+          <div className="ads-sheet">
+            <p className="ads-q">{ADS.connect.sheetQ}</p>
+            <p className="ads-body ads-gapsm">{ADS.connect.sheetBody}</p>
+            {ios && href ? <p className="ads-foot">{ADS.connect.iphone}</p> : null}
+            <div className="ads-two ads-gap">
+              <button type="button" className="ads-btn ads-ghost" onClick={() => setBefore(false)}>{ADS.connect.back}</button>
+              {href ? <a className="ads-btn ads-primary" href={href} data-continue>{ADS.connect.sheetGo}</a>
+                : <button type="button" className="ads-btn ads-primary" disabled aria-busy="true">{ADS.connect.sheetGo}</button>}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -113,7 +131,8 @@ function Gaps({ gap, onCheck }: { gap: Gap; onCheck: () => void }) {
   let line = ''; let tap = ''; let url = '';
   if (gap.gap === 'scopes' || gap.gap === 'expired') { line = gap.gap === 'scopes' ? ADS.gaps.scopes : ADS.connect.body1; }
   else if (gap.gap === 'page') { line = ADS.gaps.page; tap = ADS.gaps.pageTap; url = META_SCREENS.page; }
-  else if (gap.gap === 'link') { line = fill(ADS.gaps.link, { page: gap.page?.name || '', ig: gap.ig?.username || '' }); tap = ADS.gaps.linkTap; url = META_SCREENS.link; }
+  else if (gap.gap === 'link') { line = fill(ADS.gaps.link, { page: gap.page?.name || '' }); tap = ADS.gaps.linkTap; url = META_SCREENS.link; }
+  else if (gap.gap === 'choose') return <Chooser gap={gap} onDone={onCheck} />;
   else if (gap.gap === 'ad_account') {
     if (gap.inactive) { line = fill(ADS.gaps.inactive, { name: gap.account?.name || '' }); tap = ADS.gaps.inactiveTap; }
     else { line = ADS.gaps.account; tap = ADS.gaps.accountTap; }
@@ -123,8 +142,43 @@ function Gaps({ gap, onCheck }: { gap: Gap; onCheck: () => void }) {
   return (
     <div className="ads-card">
       <p className="ads-state">{line}</p>
+      {gap.gap === 'link' ? <p className="ads-foot" data-link-switch>{ADS.gaps.linkSwitch}</p> : null}
       {tap ? <button type="button" className="ads-btn ads-primary ads-gap" onClick={() => open(url)}>{tap}</button> : null}
       <button type="button" className="ads-quiet" onClick={onCheck}>{ADS.gaps.again}</button>
+    </div>
+  );
+}
+
+
+// ═══ THE CHOOSER (cut1e 2, e2): her tap, never the first found ════════════════════════════════════════════════════
+function Chooser({ gap, onDone }: { gap: Gap; onDone: () => void }) {
+  const pages = gap.choose?.pages || []; const accounts = gap.choose?.accounts || [];
+  const [page, setPage] = useState<string | null>(null);
+  const [account, setAccount] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const C = ADS.choose;
+  const ready = (!pages.length || page) && (!accounts.length || account);
+  const mark = (on: boolean) => <span className={`ads-mark${on ? ' ads-on' : ''}`} aria-hidden="true">{on ? '\u2713' : ''}</span>;
+  function save() {
+    setBusy(true);
+    postJson<{ ok: boolean }>(API.adsChoose(), { ...(page ? { page_id: page } : {}), ...(account ? { ad_account_id: account } : {}) })
+      .then(() => { setBusy(false); onDone(); }, () => setBusy(false));
+  }
+  return (
+    <div className="ads-over" role="dialog" aria-modal="true" data-chooser>
+      <div className="ads-sheet">
+        {pages.length ? (<>
+          <p className="ads-q">{C.pageQ}</p>
+          <p className="ads-body ads-gapsm">{fill(C.pageBody, { n: pages.length })}</p>
+          {pages.map((p) => <button type="button" key={p.id} className="ads-opt" aria-pressed={page === p.id} onClick={() => setPage(p.id)}><span className="ads-optt">{p.name}</span>{mark(page === p.id)}</button>)}
+        </>) : null}
+        {accounts.length ? (<>
+          <p className="ads-q ads-gap">{C.accountQ}</p>
+          <p className="ads-body ads-gapsm">{fill(C.accountBody, { n: accounts.length })}</p>
+          {accounts.map((a) => <button type="button" key={a.id} className="ads-opt" aria-pressed={account === a.id} onClick={() => setAccount(a.id)}><span className="ads-optt">{a.name}</span>{mark(account === a.id)}</button>)}
+        </>) : null}
+        <button type="button" className="ads-btn ads-primary ads-gap" data-choose-go disabled={!ready || busy} onClick={save}>{accounts.length ? C.useAccount : C.usePage}</button>
+      </div>
     </div>
   );
 }
@@ -154,8 +208,13 @@ function Ready({ handle, onDisconnected }: { handle: string; onDisconnected: () 
 
   const why = media && start.suggestion && media.id === start.suggestion.id
     ? (media.insights ? fill(ADS.draft.whyShort, { saves: media.insights.saves.toLocaleString('en-IN'), reach: media.insights.reach.toLocaleString('en-IN') })
-      : fill(ADS.draft.whyLikes, { post: firstLine(media.caption), date: shortDate(media.at), likes: media.likes, comments: media.comments }))
+      : media.basis === 'newest' || media.likes === null ? ADS.draft.whyNewest
+        : fill(ADS.draft.whyLikes, { post: firstLine(media.caption), date: shortDate(media.at), likes: media.likes ?? 0, comments: media.comments ?? 0 }))
     : null;
+  // R-46.16: no posts of her own. The example preview (the estate's mark over it), the approved line beside it, the
+  // no-posts line, and Run disabled; an example never reaches /prepare or /run.
+  const noPosts = !posts.some((m) => m.eligible) && !start.suggestion;
+  const lastWithResults = list.find((a) => (a.last_insights || []).length > 0) || null;
 
   async function onRun() {
     setNotice(null);
@@ -180,18 +239,33 @@ function Ready({ handle, onDisconnected }: { handle: string; onDisconnected: () 
       <div className="ads-card ads-draft">
         {/* R-46.13 as ruled (a): the post WHOLE on the left at a fixed width, its own aspect; the one sentence beside it. */}
         <div className="ads-lead">
-          {media && media.url ? <Preview media={media} handle={handle} /> : null}
-          {why ? <p className="ads-body ads-why">{why}</p> : null}
+          {noPosts ? <Preview media={EXAMPLE_POST} handle={handle} example />
+            : media && media.url ? <Preview media={media} handle={handle} /> : null}
+          {noPosts ? <p className="ads-body ads-why" data-example-line>{ADS.examples.previewLine}</p>
+            : why ? <p className="ads-body ads-why">{why}</p> : null}
         </div>
+        {noPosts ? <p className="ads-foot" data-no-posts>{ADS.examples.noPosts}</p> : null}
+        {noPosts ? (
+          <div className="ads-sample" data-sample-result>
+            <div className="ads-mediabox ads-samplepic">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={EXAMPLE_RESULT} alt="" className="ads-samplethumb" />
+              <span aria-hidden="true" className="ads-mark-wm" data-watermark>{ADS.examples.mark}</span>
+            </div>
+            <p className="ads-body">{ADS.examples.sampleResult}</p>
+          </div>
+        ) : null}
         <Row k={ADS.draft.rows.who} v={whoLine(s)} onChange={() => setSheet({ q: 'places' })} />
         <Row k={ADS.draft.rows.where} v={whereLine(s)} onChange={() => setSheet({ q: 'instagram' })} />
         <Row k={ADS.draft.rows.amount} v={amountLine(s)} onChange={() => setSheet({ q: 'amount' })} />
         <Row k={ADS.draft.rows.dates} v={datesLine(s)} onChange={() => setSheet({ q: 'end' })} />
-        <button type="button" className="ads-btn ads-primary ads-run" data-run onClick={() => void onRun()}>{ADS.draft.run}</button>
+        <button type="button" className="ads-btn ads-primary ads-run" data-run disabled={noPosts} aria-disabled={noPosts} onClick={() => { if (!noPosts) void onRun(); }}>{ADS.draft.run}</button>
         <button type="button" className="ads-btn ads-ghost ads-two" onClick={() => setSheet('all')}>{ADS.draft.allSettings}</button>
         {min ? <p className="ads-foot">{fill(ADS.draft.minimum, { min: rsBare(min) })}</p> : null}
         {notice ? <p className="ads-foot" role="alert">{notice}</p> : null}
       </div>
+
+      {lastWithResults ? <LastAd ad={lastWithResults} /> : null}
 
       {list.length ? (
         <div className="ads-card">
@@ -238,15 +312,44 @@ function adSentence(a: AdRow): string {
   return ADS.running.reviewing;
 }
 
+
+// ═══ YOUR LAST AD (S6, e4 with G3's five figures): the result in sentences ═══════════════════════════════════════
+function LastAd({ ad }: { ad: AdRow }) {
+  const d: Day[] = ad.last_insights || [];
+  const sum = (k: 'impressions' | 'reach' | 'clicks' | 'conversations') => d.reduce((n, x) => n + (Number(x[k]) || 0), 0);
+  const spentMinor = Math.round(d.reduce((n, x) => n + x.spend, 0) * 100);
+  const enq = sum('conversations');
+  const post = ad.settings && ad.settings.post;
+  const v = { impressions: sum('impressions').toLocaleString('en-IN'), reach: sum('reach').toLocaleString('en-IN'), places: placesLine(ad.settings),
+    clicks: sum('clicks').toLocaleString('en-IN'), enquiries: enq, spent: rsBare(spentMinor), each: enq ? rsBare(Math.round(spentMinor / enq)) : '0' };
+  return (
+    <div className="ads-card" data-last-ad>
+      <span className="ads-lbl">{ADS.results.label}</span>
+      {post && post.url ? (
+        <div className="ads-adhead">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="ads-adthumb" src={post.url} alt="" />
+          <span className="ads-who">{post.caption_line || shortDate(ad.created_at)}</span>
+        </div>
+      ) : null}
+      <p className="ads-body ads-gapsm" data-result-line>{fill(ADS.results.story, v)}</p>
+      {enq ? <p className="ads-foot">{fill(ADS.results.inLeads, { enquiries: enq })}</p> : null}
+    </div>
+  );
+}
+
 // ═══ THE PREVIEW: THE POST WHOLE AT ITS OWN ASPECT (R-46.13) ═══════════════════════════════════════════════════════
 // The image is never cropped: height fills the room the draft leaves, width follows the picture's own ratio, and the
 // frame (the handle line, "Sponsored" on its own line, Send message) follows the picture's width and cannot widen it.
-function Preview({ media, handle }: { media: Media; handle: string }) {
+function Preview({ media, handle, example = false }: { media: Media; handle: string; example?: boolean }) {
   return (
-    <div className="ads-prev" data-preview>
+    <div className="ads-prev" data-preview data-example={example ? 'true' : undefined}>
       <div className="ads-prevhead"><span className="ads-dot" aria-hidden="true" /><span className="ads-handle">{handle}</span><span className="ads-sponsored">{ADS.preview.sponsored}</span></div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img data-media src={media.url || ''} alt="" className="ads-media" />
+      <div className="ads-mediabox">
+        <img data-media src={media.url || ''} alt="" className="ads-media" />
+        {example ? <span aria-hidden="true" className="ads-mark-wm" data-watermark>{ADS.examples.mark}</span> : null}
+      </div>
       <div className="ads-prevfoot">{ADS.preview.send}</div>
     </div>
   );
@@ -400,16 +503,18 @@ function Question({ q, s, posts, onDone, onBack }: { q: string; s: Settings; pos
 
 function PostChooser({ posts, current, onPick }: { posts: Media[]; current: string | null; onPick: (id: string) => void }) {
   const Q = ADS.q;
-  const [f, setF] = useState<'all' | 'posts' | 'reels'>('all');
+  const [f, setF] = useState<'all' | 'instagram' | 'facebook'>('all');
   const isReel = (m: Media) => m.type === 'VIDEO' || m.type === 'REELS';
-  const shown = posts.filter((m) => (f === 'all' ? true : f === 'reels' ? isReel(m) : !isReel(m)));
+  const isFb = (m: Media) => m.source === 'facebook';
+  const shown = posts.filter((m) => (f === 'all' ? true : f === 'facebook' ? isFb(m) : !isFb(m)));
   return (<>
-    <div className="ads-chips">{(['all', 'posts', 'reels'] as const).map((k) => <button type="button" key={k} className={`ads-chip${f === k ? ' ads-chipon' : ''}`} onClick={() => setF(k)}>{Q.postFilter[k]}</button>)}</div>
+    <p className="ads-foot" data-post-kinds>{Q.postKinds}</p>
+    <div className="ads-chips">{(['all', 'instagram', 'facebook'] as const).map((k) => <button type="button" key={k} className={`ads-chip${f === k ? ' ads-chipon' : ''}`} onClick={() => setF(k)}>{Q.postFilter[k]}</button>)}</div>
     <div className="ads-grid">{shown.map((m) => (
       <button type="button" key={m.id} className={`ads-tile${m.id === current ? ' ads-tileon' : ''}`} disabled={!m.eligible} onClick={() => onPick(m.id)} aria-pressed={m.id === current}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {m.url ? <img src={m.url} alt="" /> : null}
-        {isReel(m) ? <span className="ads-reel">{Q.reel}</span> : null}
+        <span className="ads-reel">{isFb(m) ? Q.markFacebook : isReel(m) ? Q.reel : Q.markInstagram}</span>
         {!m.eligible ? <span className="ads-note ads-inel">{Q.notEligible}</span> : null}
       </button>))}</div>
   </>);
@@ -501,6 +606,13 @@ const ADS_CSS = `
 .ads-prev{flex:none;width:var(--ads-pw);display:flex;flex-direction:column}
 .ads-prev>*{max-width:100%}
 .ads-media{display:block;width:var(--ads-pw);height:auto;background:var(--atelier-section-bg)}
+.ads-mediabox{position:relative;width:var(--ads-pw)}
+.ads-sample{display:flex;gap:12px;align-items:center;margin:8px 0 4px;padding-top:8px;border-top:.5px solid var(--atelier-card-border)}
+.ads-samplepic{width:64px;flex:none}
+.ads-samplethumb{display:block;width:64px;height:64px;object-fit:cover;object-position:50% 50%;border-radius:2px}
+.ads-samplepic .ads-mark-wm{right:3px;bottom:3px;letter-spacing:.08em}
+/* R-46.16 watermark as TYPE (R-41.134: the house mark on a screen is type, never the monogram picture) */
+.ads-mark-wm{position:absolute;right:6px;bottom:5px;font:var(--wl-t5);letter-spacing:.12em;line-height:1;color:var(--role-metal);opacity:.78;text-shadow:0 0 3px var(--atelier-overlay);pointer-events:none}
 .ads-prev{position:relative}
 .ads-prevhead,.ads-prevfoot{box-sizing:border-box;width:var(--ads-pw);border:.5px solid var(--atelier-card-border);background:var(--atelier-section-bg);padding:5px 8px;font:var(--wl-t5)}
 .ads-prevhead{display:grid;grid-template-columns:16px 1fr;column-gap:6px;border-bottom:0;border-radius:3px 3px 0 0}

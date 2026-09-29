@@ -1,0 +1,21 @@
+# scripts/floor-manifest-ce46-ads1-cut1e-pwa.txt
+# CE-46 · ADS-1 · cut1e (dreamos-pwa): the short screen before Meta (S2, e1), the chooser (e2, nothing preselected),
+# the corrected gap cards (e3; Make my ad account to Ads Manager), the last ad in sentences with five figures (e4),
+# Facebook Page posts in the picker (e5), R-46.16's examples with the estate's mark and Run disabled with no posts,
+# the approved money and connect words. Rung b143 (75/0 states, M1 to M8). BASE: 24bfc645 (main; carried from 85c66ef5 after FE-4; pageHelp.ts merged onto its bytes).
+# F-19.16: a dirty path outside this list is a STOP. A-45.3: ONE new folder, declared as a folder line.
+app/vendor/(shell)/posts/ads/page.tsx
+lib/solutions/routes.ts
+lib/worklist/ads.ts
+lib/worklist/adsWire.ts
+lib/worklist/pageHelp.ts
+scripts/b143_ads1_ads_page_bench.js
+public/examples/
+public/examples/ads/SOURCES.txt
+public/examples/ads/example-portrait.jpg
+public/examples/ads/example-couple.jpg
+public/examples/ads/example-hands.jpg
+public/examples/ads/example-bouquet.jpg
+public/examples/ads/example-couple-2.jpg
+docs/handovers/TDW_CE46_ADS1_1_HANDOVER.md
+scripts/floor-manifest-ce46-ads1-cut1e-pwa.txt

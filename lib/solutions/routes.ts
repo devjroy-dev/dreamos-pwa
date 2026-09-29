@@ -272,6 +272,7 @@ export const API = {
   adsSearch:        (kind: 'places' | 'languages' | 'interests' | 'life_events', q: string) =>
     `${ADS_API_PATH}/search?kind=${encodeURIComponent(kind)}&q=${encodeURIComponent(q)}`,
   adsStart:         () => `${ADS_API_PATH}/start`,
+  adsChoose:        () => `${ADS_API_PATH}/choose`,   // cut1e 2: her Page or ad account, her tap
   adsPrepare:       () => `${ADS_API_PATH}/prepare`,
   adsRun:           () => `${ADS_API_PATH}/run`,
   adsList:          () => `${ADS_API_PATH}/list`,

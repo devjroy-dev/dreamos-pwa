@@ -55,3 +55,32 @@ shell; the floor runs it whole. A run killed mid-mutation restores the file (SIG
 ## OPEN, NAMED
 - The shell's Ask bar placeholder carries a dash (FE-4's).
 - FE-4's pageHelp entry for /vendor/posts/ads: the three "?" lines, through the chair.
+
+## CUT1E (29 September 2026) · base 24bfc645 (carried from 85c66ef5 after FE-4's "?" cards)
+- e1: Connect opens one short screen before Meta ("Connect your Meta ad account to TDW?", "Meta will show you what TDW
+  asks for. Keep every switch on. On the Pages screen, keep your business Page ticked."); its Continue is the pre-minted
+  link (no await; F-44.235 kept); the iPhone line sits on that screen.
+- e2: the chooser for gap 'choose' (Pages and/or ad accounts), nothing preselected, the button waits for her tap;
+  POST /ads/choose.
+- e3: the link card names the switch into the Page; Make my ad account opens Ads Manager (read 29 September 2026).
+- e4: "Your last ad" card with the five figures in sentences (S6 was never drawn by cut1d; now it is).
+- e5: the post picker shows All, Instagram, Facebook; each tile marked; the line saying where each kind sends people.
+- R-46.16: with no posts, the example preview and a sample result card, each with the estate's mark
+  (public/brand/monogram-gold.png) in one corner; the two approved lines; Run disabled; an example never reaches
+  /prepare or /run. The five pictures ship under public/examples/ads/ with SOURCES.txt (Pexels ids and contributors).
+- Words: the approved cut1e lines in lib/worklist/ads.ts. The money splices ("Meta takes ... from your ad account's
+  payment method" in body1, the plan, the confirm, the card's none line and the "?" pays line), the Pages twin of the
+  chooser's body, and the sample result line are marked in the file for the chair's veto.
+b143: states 75/0 both themes (8.1 to 8.7 new); mutations M1 to M8 red and restored (M6 watermark, M7 Run on an
+example, M8 the chooser preselecting, new). b42, tdw_f0774_readers, b40 failing cells identical to 85c66ef5; b140 1.1 to
+1.7 green.
+- The carry onto 24bfc645: FE-4 reshaped the Ads "?" entry (app, can steps, connects) and kept ADS_HELP byte for
+  byte; cut1e changes only ADS_HELP.pays there (the founder's ok to the money line). FE-4's step "To start: tap Connect
+  ad account. Meta opens in its own window; come back when it is done." predated the restored screen before Meta. The
+  founder's yes through the chair (29 September 2026), folded into cut1e3: that step now reads "To start: tap Connect ad
+  account, then Continue to Meta. Meta opens in its own window; come back when it is done.", and ADS_HELP.what reads "one
+  of your Instagram or Facebook posts".
+- cut1e4: cut1e3's floor showed one delta, ce41_brand_family ("no screen surface draws the lockup or the monogram",
+  R-41.134): the watermark drew public/brand/monogram-gold.png. Now the watermark is the house name set as type
+  (ADS.examples.mark "TDW", t5, letter-spaced, the metal token at .78 with a faint shadow), same corner, both themes;
+  ce41_brand_family 19/0. b143 M6 re-aimed at the typed mark.

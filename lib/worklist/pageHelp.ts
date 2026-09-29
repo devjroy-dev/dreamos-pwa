@@ -63,8 +63,8 @@ const TYPED_WHAT = {
 // home). Line 1 of the Ads card is READ from the Posts & ads row (ROW_DESC.posts), b140 1.2's rule: typed line 1s stay four;
 // these three are the card's "can" lines.
 const ADS_HELP = {
-  what:  'Boosting shows one of your Instagram posts to couples in your city who are planning a wedding, for a daily amount you set and a number of days you choose.',
-  pays:  'Meta charges your own card from your own ad account. TDW never charges for ads and never runs one without your tap.',
+  what:  'Boosting shows one of your Instagram or Facebook posts to couples in your city who are planning a wedding, for a daily amount you set and a number of days you choose.',
+  pays:  'Meta takes the amount from your ad account\u2019s payment method. TDW never charges for ads and never runs one without your tap.',   // cut1e 5, the founder's ok (29 September 2026)
   leads: 'Couples who write after seeing the ad land in Leads, and this room tells you what each ad reached, what it cost, and what to try next.',
 } as const;
 
@@ -214,7 +214,7 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
     app: ADS_HELP.what + ' ' + ADS_HELP.pays,
     // ADS-1's four lines, VERBATIM, read by ADS-1 from the live page at 85c66ef5 (relayed by the chair 29 Sept 2026).
     // ADS-1's cut1e later updates the first to the restored consent sheet.
-    can: how(['switch', 'To start: tap Connect ad account. Meta opens in its own window; come back when it is done.'],
+    can: how(['switch', 'To start: tap Connect ad account, then Continue to Meta. Meta opens in its own window; come back when it is done.'],
              ['send', 'To run an ad: check the post at the top, tap Change beside Who sees it, Where it appears, Amount or Dates if you want, then tap Run this ad and confirm.'],
              ['read', 'To see it as couples will: the post at the top is shown the way couples see it.'],
              ['edit', 'To stop an ad: tap the ad under Your ads, then Pause this ad or End it now.']),
