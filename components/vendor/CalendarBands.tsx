@@ -95,6 +95,7 @@ function CrewName({ c }: { c: BandCrew }) {
   const declined  = c.confirmation === 'declined';
   return (
     <span
+      data-crew=""
       aria-label={`${c.name}, ${c.confirmation}`}
       style={{
         font: RUNG.t5,
@@ -149,7 +150,7 @@ function Pip({ fn, muhurat, onTap }: { fn: BandFunction; muhurat: boolean; onTap
           {fn.crew.map(c => <CrewName key={c.member_id} c={c} />)}
         </span>
       ) : (
-        <span style={{ font: RUNG.t5, color: 'var(--role-critical)', whiteSpace: 'nowrap' }}>{CREW_WORDS.none}</span>
+        <span data-crew="" style={{ font: RUNG.t5, color: 'var(--role-critical)', whiteSpace: 'nowrap' }}>{CREW_WORDS.none}</span>
       )}
     </button>
   );

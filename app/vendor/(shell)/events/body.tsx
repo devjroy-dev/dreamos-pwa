@@ -12,7 +12,8 @@ import { roomHref } from '@/lib/worklist/rooms';
 import { useCallback, useMemo } from 'react';
 import { useEventsData, useCabinetData } from '@/hooks/vendor/useVendorData';
 import { SliceScreen } from '@/components/vendor/slices/SliceShell';
-import { fmtDate, type Row } from '@/components/vendor/slices/SliceRow';
+import { fmtDate, cap, type Row } from '@/components/vendor/slices/SliceRow';
+import { amountWordsAdjacent } from '@/lib/vendor/cabinet';
 import { API_BASE } from '@/lib/vendor/api/_base';
 import type { VendorEvent } from '@/lib/vendor/types/vendor';
 import type { CabinetBinder } from '@/lib/vendor/api/vendor';
@@ -49,9 +50,18 @@ export default function EventsSlice({ vendorId }: { vendorId: string }) {
       const row = crew.byEvent.has(r0.id) ? { ...r0, crew: { words: crewWords(crew.byEvent.get(r0.id)) } } : r0;
       const b = row.twinBinderId ? binderById.get(row.twinBinderId) : undefined;
       if (!b) return row;
-      // DESIGN-1 · STAGE 2: the twin is named in two words; the client's name is the title's, and its stage and
-      // money are the Clients row's. The row's one line of facts carries the crew now, which is what it is for.
-      return { ...row, crossChip: 'Also a client', crossChipHref: roomHref('clients') };
+      // DESIGN-1 · STAGE 2: the chip is stage 1's, unchanged (the crew is ADDED to the row's facts; nothing the chip said
+      // is taken away, which the founder did not ask for).
+      const bits = ['Also a client'];
+      if (b.client) bits.push(b.client);
+      if (b.stage) bits.push(cap(b.stage));
+      const recv = b.amount_received ?? 0;
+      if (recv > 0) bits.push(`${amountWordsAdjacent(recv)} in`);
+      // R-38.1 CURE (S2 ZIP bounce, scope widened by founder word). The whisper's
+      // destination is asked of the registry rather than spelled here \u2014 a cross-plane
+      // chip is a door out of this room, and R-38.11 amended by label covers every file in
+      // a crossed room's import graph, not only the ones it mounts.
+      return { ...row, crossChip: bits.join(' · '), crossChipHref: roomHref('clients') };
     });
   }, [binderById, crew]);
 

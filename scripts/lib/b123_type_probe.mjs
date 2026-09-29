@@ -247,7 +247,7 @@ try {
         const cs = getComputedStyle(el);
         let scroller = false; for (let a = el; a && a !== root; a = a.parentElement) { const ox = getComputedStyle(a).overflowX; if (ox === 'auto' || ox === 'scroll') { scroller = true; break; } }
         // DESIGN-1: `open` marks what a client row shows only when opened (data-row-open), `sheet` a record sheet's own node
-        nodes.push({ txt, scope: si, grid: !!el.closest('[data-cal-grid]'), next: !!el.closest('[data-cal-next]'), fab: !!el.closest('.wl-fab'), open: !!el.closest('[data-row-open]'), sheet: !!el.closest('[data-lc2="detail-sheet"]'), size: Math.round(parseFloat(cs.fontSize) * 100) / 100, f: fam(cs.fontFamily), wt: Number(cs.fontWeight),
+        nodes.push({ txt, scope: si, crew: !!el.closest('[data-crew],[data-row-crew],[data-cal-crew],[data-day-crew]') || /, (pending|confirmed|declined)$/.test(el.getAttribute('aria-label') || ''), grid: !!el.closest('[data-cal-grid]'), next: !!el.closest('[data-cal-next]'), fab: !!el.closest('.wl-fab'), open: !!el.closest('[data-row-open]'), sheet: !!el.closest('[data-lc2="detail-sheet"]'), size: Math.round(parseFloat(cs.fontSize) * 100) / 100, f: fam(cs.fontFamily), wt: Number(cs.fontWeight),
           ls: cs.letterSpacing, tt: cs.textTransform, fs: cs.fontStyle, later: !!el.closest(LATER), strip: !!(strip && strip.contains(el)),
           scroller, left: Math.round(r.left), right: Math.round(r.right), top: (() => { const rg = document.createRange(); rg.selectNodeContents(t); return Math.round((rg.getBoundingClientRect().top - mainTop) * 10) / 10; })() });
       }
@@ -258,7 +258,7 @@ try {
         const r = c.getBoundingClientRect(); if (r.width === 0 && r.height === 0) continue;
         if (offGlass(c)) continue;
         const cs = getComputedStyle(c);
-        controls.push({ tag: c.tagName.toLowerCase(), role: c.getAttribute('role') || '', name: (c.getAttribute('aria-label') || c.textContent || c.getAttribute('placeholder') || '').replace(/\s+/g, ' ').trim(),
+        controls.push({ crewWords: [...c.querySelectorAll('[data-crew],[data-row-crew],[data-cal-crew],[data-day-crew],[aria-label]')].filter((e) => e.matches('[data-crew],[data-row-crew],[data-cal-crew],[data-day-crew]') || /, (pending|confirmed|declined)$/.test(e.getAttribute('aria-label') || '')).map((e) => e.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean), tag: c.tagName.toLowerCase(), role: c.getAttribute('role') || '', name: (c.getAttribute('aria-label') || c.textContent || c.getAttribute('placeholder') || '').replace(/\s+/g, ' ').trim(),
           href: c.getAttribute('href') || '', tt: cs.textTransform, size: Math.round(parseFloat(cs.fontSize) * 100) / 100, later: !!c.closest(LATER), strip: !!(strip && strip.contains(c)), open: !!c.closest('[data-row-open]'),
           // DESIGN-1: the name as its words, each text node apart (textContent glues a row's lines into one word)
           words: (c.getAttribute('aria-label') || [...(function* tn(n) { for (const k of n.childNodes) { if (k.nodeType === 3) yield k.textContent; else yield* tn(k); } })(c)].map((x) => x.trim()).filter(Boolean).join(' ') || c.getAttribute('placeholder') || '').replace(/\s+/g, ' ').trim() });

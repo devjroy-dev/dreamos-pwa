@@ -154,6 +154,13 @@ function d1BaseNodes(nodes) {
   return out;
 }
 const D1_TWIN = /^(In your books|Also a lead|Also an enquiry)\b/;
+// DESIGN-1 · STAGE 2 (by label; docs/review/REPORT.md §2 (e) and E6/E7: the crew wherever an event shows). The Events
+// rows, Coming up, the day sheet and the Weddings board ADD the crew in words (first names, "(not replied yet)",
+// "(declined)", "No crew yet"), and the board's initials ring gave way to the first name. 3.1 and 3.2 compare everything
+// else against the base exactly as before, with the crew taken off both sides (the base's crew was its initials); and
+// 3.1c, a new cell, holds that the crew IS drawn, in words, on each Events and Calendar scene, so the excusal is not a hole.
+const STAGE2 = fs.existsSync(P('lib/worklist/crew.ts'));
+const CREW_LINE = /^(No crew yet|\((not replied yet|declined)\)|[A-Z][a-z]+( \((not replied yet|declined)\))?(, [A-Z][a-z]+( \((not replied yet|declined)\))?)*)$/;
 
 // ══ §1 · THE SOURCE ════════════════════════════════════════════════════════════════════════
 function sourceCells(tag = '') {
@@ -393,8 +400,13 @@ function sceneCells(room, scene, mode, c, b, f5 = new Map()) {
     const C = cut(c, false), Bs = cut(b, true);
     if (DESIGN1) {
       // DESIGN-1 (by label, the list above): the words compared as a set per scene, after the stage's listed changes
-      const bw = d1Tokens(d1BaseNodes(Bs.body).map((n) => d1Words(n.txt)));
-      const cw = d1Tokens(C.body.filter((n) => !n.open).map((n) => n.txt));
+      const bw = d1Tokens(d1BaseNodes(Bs.body.filter((n) => !(STAGE2 && n.crew))).map((n) => d1Words(n.txt)));
+      const cw = d1Tokens(C.body.filter((n) => !n.open && !(STAGE2 && n.crew)).map((n) => n.txt));
+      if (STAGE2 && (room === 'events' || room === 'calendar')) {
+        const crewNodes = C.body.filter((n) => n.crew);
+        const bad = crewNodes.filter((n) => !CREW_LINE.test(n.txt));
+        cell(`3.1c ${tag} the crew is drawn here in words: first names, their answer, or No crew yet (DESIGN-1 stage 2)`, !crewNodes.length ? 'no crew drawn on this scene' : bad.length ? 'not in words: ' + JSON.stringify(bad.slice(0, 4).map((n) => n.txt)) : null);
+      }
       const gone = bagDiff(bw, cw), added = bagDiff(cw, bw);
       cell(`3.1 ${tag} the words are the base\u2019s, with DESIGN-1\u2019s listed changes (none gone, none added)`, !gone.length && !added.length ? null : `gone ${JSON.stringify(gone.slice(0, 8))} added ${JSON.stringify(added.slice(0, 8))}`);
     } else {
@@ -495,12 +507,16 @@ function sceneCells(room, scene, mode, c, b, f5 = new Map()) {
     // cured control inside the opened row (data-row-open) is the moved one and leaves the cured list, and a name is
     // compared as its set of words after the stage's changes (a row's name is its words, which the one row reorders)
     const bag = (t) => [...d1Tokens([t])].sort().map(([w, n]) => w + (n > 1 ? n : '')).join(' ');
+    // DESIGN-1 · STAGE 2 (by label): a control's crew comes off its name on both sides (3.1's note above), each crew element's
+    // text removed WHOLE, once, as a phrase (a word-by-word removal took the "No" out of "Nov" and the "crew" out of the
+    // board's own "no crew assigned")
+    const unCrew = (k, t) => { if (!STAGE2 || !Array.isArray(k.crewWords)) return t; let x = String(t); for (const ph of k.crewWords) x = x.replace(ph, ' '); return x; };
     const d1Moved = (k) => (k.tag === 'a' && D1_TWIN.test(k.name)) || (k.tag === 'span' && k.role === 'button' && /^\+ /.test(k.name));
     // a base row's name, less what the one row leaves out at rest: the chips (+ date), the total figure and its mark
     const d1Name = (t) => d1Words(t).replace(/(^| )\+ [a-z]+(?= )/g, ' ').replace(/Rs [0-9,]+ [\u2193\u2191] (in|out)/g, ' ');
     const field = (k) => k.tag === 'input' || k.tag === 'textarea';
-    const ca = DESIGN1 ? b.controls.filter((k) => !k.strip && k.name !== 'What is this page' && !d1Moved(k)).map((k) => `${k.tag}|${k.role}|${bag(field(k) ? d1Words(k.words || k.name, true) : d1Name(k.words || k.name))}|${k.href}`) : ctl(b);
-    const cc = DESIGN1 ? c.controls.filter((k) => !k.strip && k.name !== 'What is this page' && !k.open).map((k) => `${k.tag}|${k.role}|${bag(k.words || k.name)}|${k.href}`) : ctl(c);
+    const ca = DESIGN1 ? b.controls.filter((k) => !k.strip && k.name !== 'What is this page' && !d1Moved(k)).map((k) => `${k.tag}|${k.role}|${bag(field(k) ? d1Words(k.words || k.name, true) : d1Name(unCrew(k, k.words || k.name)))}|${k.href}`) : ctl(b);
+    const cc = DESIGN1 ? c.controls.filter((k) => !k.strip && k.name !== 'What is this page' && !k.open).map((k) => `${k.tag}|${k.role}|${bag(unCrew(k, k.words || k.name))}|${k.href}`) : ctl(c);
     let cd = -1; for (let i = 0; i < Math.max(ca.length, cc.length); i += 1) if (ca[i] !== cc[i]) { cd = i; break; }
     cell(`3.2 ${tag} the controls are the base\u2019s by name, role and href`, cd < 0 ? null : `at ${cd}: base ${ca[cd]} cured ${cc[cd]}`);
     // CE-46 FE-4: the "?" is off both lists here too, by its name, so the pairing by index still lines up (3.3)
