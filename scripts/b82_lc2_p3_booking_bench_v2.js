@@ -156,27 +156,31 @@ function bookingCells(code) {
   const s = strip(code);
   return {
     exists: s.length > 0,
-    act: /await promoteLead\(leadId, kind === 'advance_paid' \? \{ kind, advance_received_on: receivedOn \} : \{ kind \}\)/.test(s),
+// DESIGN-1 · STAGE 4 (by label): the one-tap Book sheet (lib/worklist/book.ts) replaced packet 3's; the claim stands, restated.
+    act: /const r = await promoteLead\(leadId, \{\s*kind, functions: fns,\s*\.\.\.\(kind === 'advance_paid' \? \{ advance_received_on: receivedOn \} : \{\}\),/.test(s),
     kinds: /kindButton\('booking_confirmed', LEAD_PACKAGE\.bookingConfirmed\)/.test(s) && /kindButton\('advance_paid', LEAD_PACKAGE\.advancePaid\)/.test(s),
     dateOnlyAdvance: /\{kind === 'advance_paid' && \(\s*<div>\s*<FieldLabel text=\{BOOKING\.receivedOn\}/.test(s),
     todayDefault: /setReceivedOn\(istTodayISO\(\)\)/.test(s),
     // [amended, 3e] the refusal also marks no_package, so the sheet can offer Attach package.
     // [amended, 3f] the refusal is kept as a code and rendered as a NeedFirst control.
-    a9: /if \(isRefusal\(code\)\) setNeed\(\{ code \}\);/.test(s),
+// DESIGN-1 · STAGE 4 (by label): the one-tap Book sheet (lib/worklist/book.ts) replaced packet 3's; the claim stands, restated.
+    a9: /if \(isRefusal\(code\)\) setNeed\(code\);/.test(s) && /else if \(code === 'no_date'\) setNeed\('dates'\);/.test(s),
     // 3e · F-43.102 (b)
     // [restated, 3f · R-43.16] the refusal line itself is the control; no separate button.
-    attachOffer: /\{need && <NeedFirst text=\{needText\(need\.code\)\} onFix=\{fixFor\(need\.code\)\} testId="booking" \/>\}/.test(s)
+// DESIGN-1 · STAGE 4 (by label): the one-tap Book sheet (lib/worklist/book.ts) replaced packet 3's; the claim stands, restated.
+    attachOffer: /\{need && <NeedFirst text=\{needText\(need\)\} onFix=\{fixFor\(need\)\} testId="booking" \/>\}/.test(s)
       && /<\/Sheet>\s*<AttachSheet\s*open=\{!!attach\}/.test(s)
       && !/data-lc2="booking-attach"/.test(s) && !/needsPackage/.test(s),
     // 3g · item 1 (corrected)
-    asks: /const needsNow: NeedCell\[\] = bookingNeeds\(lp, leadFacts\);/.test(s)
-      && /if \(needsNow\.length\) \{\s*setAsked\(true\); setNeed\(null\); setFailed\(false\);\s*onToast\(LEAD_PACKAGE\.stillMissing\(needsNow\.map\(\(c\) => LEAD_PACKAGE\.needLabel\[c\]\)\), 'error'\);\s*return;\s*\}/.test(s)
-      && s.indexOf('if (needsNow.length) {') < s.indexOf('const r = await promoteLead(')
-      && /\{asked && \(\s*<MissingChips testId="booking" onPick=\{pickNeed\}/.test(s)
-      && /if \(cell === 'wedding_date'\) \{ if \(leadId\) onNeedWeddingDate\(leadId\); return; \}\s*setAttach\(\{ focus: cell === 'fee' \? 'fee' : cell === 'handover' \? 'handover' : null \}\);/.test(s)
+// DESIGN-1 · STAGE 4 (by label): the one-tap Book sheet (lib/worklist/book.ts) replaced packet 3's; the claim stands, restated.
+    // the dates and the package are asked IN this sheet now: with either missing, nothing is sent and the line names it
+    asks: /if \(!fns\.length\) \{ setNeed\('dates'\); return; \}/.test(s)
+      && /if \(!lp && !noPkg && !chosen\) \{ setNeed\('package'\); return; \}/.test(s)
+      && s.indexOf("if (!fns.length) { setNeed('dates'); return; }") < s.indexOf('const r = await promoteLead(')
       && /void fetchLeadPackage\(leadId\)/.test(s) && /onAttached=\{\(row\) => \{ setAttach\(null\); setNeed\(null\); setLp\(row\); \}\}/.test(s)
       && !/disabled=/.test(s),
-    fixMap: /if \(code === 'received_on'\) \{ if \(dateRef\.current\) dateRef\.current\.focus\(\); return; \}/.test(s)
+// DESIGN-1 · STAGE 4 (by label): the one-tap Book sheet (lib/worklist/book.ts) replaced packet 3's; the claim stands, restated.
+    fixMap: /if \(code === 'received_on'\) \{ dateRef\.current\?\.focus\(\); return; \}/.test(s)
       && /if \(code === 'no_wedding_date'\) \{ if \(leadId\) onNeedWeddingDate\(leadId\); return; \}/.test(s)
       && /setAttach\(\{ focus: code === 'no_fee' \? 'fee' : code === 'no_handover_date' \? 'handover' : null \}\);/.test(s)
       && /focus=\{attach \? attach\.focus : null\}/.test(s)
@@ -184,10 +188,13 @@ function bookingCells(code) {
     // [amended, 3f] F29 is a failure, not a thing to add: a plain line, set by `failed`.
     f29: /else setFailed\(true\);/.test(s) && /catch \{\s*setFailed\(true\);/.test(s)
       && /\{failed && <p role="alert"[^>]*>\{BOOKING\.failed\}<\/p>\}/.test(s),
-    a13: /if \(r && r\.ok\) \{\s*refreshAfterBooking\(\);\s*onToast\(BOOKING\.booked, 'success'\);/.test(s),
+// DESIGN-1 · STAGE 4 (by label): the one-tap Book sheet (lib/worklist/book.ts) replaced packet 3's; the claim stands, restated.
+    // A13 is the Booked step now: only after the door answers ok, with the slices refreshed
+    a13: /if \(r && r\.ok\) \{\s*refreshAfterBooking\(\);\s*setBooked\(\{ p: r\.promoted, sent: fns\.map\(\(f\) => f\.date\) \}\);/.test(s),
     fiveSlices: ['leads', 'cabinet', 'clients', 'events', 'invoices'].every((k) => new RegExp(`invalidateSlice\\('${k}'\\)`).test(s)),
     cancel: /<button type="button" style=\{actionButton\('mute'\)\} onClick=\{onClose\}>\{PACKAGES\.cancel\}<\/button>/.test(s),
-    title: /title=\{BOOKING\.confirm\}/.test(s) && /\{BOOKING\.confirm\}<\/button>/.test(s),
+// DESIGN-1 · STAGE 4 (by label): the one-tap Book sheet (lib/worklist/book.ts) replaced packet 3's; the claim stands, restated.
+    title: /title=\{BOOK\.title\}/.test(s) && /\{BOOK\.confirm\}<\/button>/.test(s),
     noWriteElse: s.length > 0 && !/(patchLeadState|postJson|fetch\()/.test(s),
   };
 }
@@ -971,8 +978,8 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     [F.copy, "advancePaid: 'Advance paid',", "advancePaid: 'Advance received',", (m) => !copyCells(m).a2, 'M1 an A2 byte drifts → §1.1 RED'],
     [F.copy, "if (!p.nextDue) return `Payment marked: ${p.client} · paid in full.`;", '', (m) => !copyCells(m).d4, 'M2 D4 dropped → §1.7 RED'],
     [F.copy, 'return new Date(t + 330 * 60 * 1000).toISOString().slice(0, 10);', 'return new Date(t).toISOString().slice(0, 10);', (m) => !copyCells(m).istDay, 'M3 the UTC day used → §1.8 RED'],
-    [F.booking, "kind === 'advance_paid' ? { kind, advance_received_on: receivedOn } : { kind }", '{ kind, advance_received_on: receivedOn }', (m) => !bookingCells(m).act, 'M4 the date sent on every booking → §3.2 RED'],
-    [F.booking, "        refreshAfterBooking();\n        onToast(BOOKING.booked, 'success');", "        onToast(BOOKING.booked, 'success');", (m) => !bookingCells(m).a13, 'M5 A13 without the refresh → §3.8 RED'],
+    [F.booking, "...(kind === 'advance_paid' ? { advance_received_on: receivedOn } : {}),", 'advance_received_on: receivedOn,', (m) => !bookingCells(m).act, 'M4 the date sent on every booking → §3.2 RED'],
+    [F.booking, "        refreshAfterBooking();\n        setBooked(", "        setBooked(", (m) => !bookingCells(m).a13, 'M5 A13 without the refresh → §3.8 RED'],
     [F.booking, "style={actionButton('mute')} onClick={onClose}", "style={textButton('mute')} onClick={onClose}", (m) => !bookingCells(m).cancel, 'M6 the Cancel back to text → §3.10 RED'],
     [F.shell, ": { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },", ": { label: 'Booked', onTrigger: () => { void patchLeadState(row.id, 'booked'); } },", (m) => { const c = shellCells(m); return !c.swipe && !c.noBareBooked; }, 'M7 [re-aimed, 3f] the swipe writes booked directly → §4.1 and §4.2 RED'],
     [F.shell, "right: (row.badge ?? '').toLowerCase() === 'booked'\n        ? undefined\n        :", 'right:', (m) => !shellCells(m).swipe, 'M25 F-43.95: the swipe offered on a booked lead → §4.1 RED'],
@@ -999,7 +1006,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     [F.sheet, "if (err === 'saved_as_lead') {", "if (false) {", (m) => !sheetCells(m, src.clients).c5, 'M15 C5 never spoken → §6.7 RED'],
     [F.sheet, 'if (needsFee) body.fee = Number(values.fee);', 'body.fee = Number(values.fee);', (m) => !sheetCells(m, src.clients).feeOnlyWhenNeeded, 'M16 the fee always sent → §6.5 RED'],
     [F.invoices, 'isPackage: !!inv.lead_package_id', 'isPackage: false', (m) => !rowCells(m, src.row, src.types).isPackage, 'M17 the row never a booking\'s → §7.1 RED'],
-    [F.booking, "        onToast(BOOKING.booked, 'success');", "        onToast(BOOKING.booked, 'success');\n        style={{ color: '#C9A84C' }};", (m) => !tokensOnly(m), 'M18 a colour literal in the sheet → §8.1 RED'],
+    [F.booking, "        setLeft(UNDO_SECONDS);", "        setLeft(UNDO_SECONDS);\n        style={{ color: '#C9A84C' }};", (m) => !tokensOnly(m), 'M18 a colour literal in the sheet → §8.1 RED'],
   ];
   const threadCells = (code) => {
     let t = null;
@@ -1023,7 +1030,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
     ok(!!tc && !/-webkit-line-clamp:4/.test(tc), '§9 M32 F-43.100: the clamp back at two → §12.1 RED');
     const two = measure ? vetoed.map((t) => linesAt(t, 288)).filter((n) => n > 2).length : 0;
     ok(two > 0, '§9 M33 F-43.100: at two lines the measured D3 would be cut → §12.3 bites');
-    const b1 = mut(src.booking, "{need && <NeedFirst text={needText(need.code)} onFix={fixFor(need.code)} testId=\"booking\" />}", "{need && <p role=\"alert\">{needText(need.code)}</p>}");
+    const b1 = mut(src.booking, "{need && <NeedFirst text={needText(need)} onFix={fixFor(need)} testId=\"booking\" />}", "{need && <p role=\"alert\">{needText(need)}</p>}");   // DESIGN-1 stage 4: the need is the code
     ok(b1 !== null && !bookingCells(b1).attachOffer, '§9 M34 [re-aimed, 3f] the refusal as a dead line → §12.4 RED');
     const s1 = mut(src.shell, "{/* CE-43 LC-2 packet 3f · R-43.16: the wedding-date completion a refusal line opens. */}", "<AttachSheet open={false} leadId=\"\" current={null} onClose={() => {}} onAttached={() => {}} onToast={() => {}} onNeedWeddingDate={() => {}} />");
     ok(s1 !== null && !shellCells(s1).swipeAttachFirst, '§9 M35 [re-aimed, 3f] an attach-first sheet back in the shell → §12.5 RED');

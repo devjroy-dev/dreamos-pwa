@@ -173,6 +173,15 @@ export async function open(b, route, { mode = 'dark', vp = 'ios', wait = '.wl-ma
     if (!u.includes('/__api/')) return r.continue();
     const rt = u.split('/__api')[1].split('?')[0];
     let body = r.method() === 'GET' ? answer(rt) : { ok: true };
+    // DESIGN-1 stage 4: the booking door's answer (what it wrote, for the Booked step and Undo), and on request a package
+    // already attached (HARNESS_LP=1) so the Book sheet shows the plan and Change plan
+    if (/^\/api\/v2\/vendor\/leads\/[^/]+\/promote$/.test(rt) && r.method() === 'POST') {
+      let inb = {}; try { inb = JSON.parse(r.postData() || '{}'); } catch (_e) { /* empty */ }
+      const fns = Array.isArray(inb.functions) ? inb.functions : [];
+      body = { ok: true, promoted: { lead_id: rt.split('/')[5], binder_id: 'b-new', invoice_id: 'i-new', invoice_number: 'TDW/DEV440/12', adopted: false, opened: true, event: {},
+        events: fns.map((f, i) => ({ id: `ev-${i + 1}`, date: f.date, created: true })), invoice_created: true, previous_state: 'new', total: inb.amount || (p.__lp ? p.__lp.total : 80000) } };
+    }
+    if (process.env.HARNESS_LP === '1' && r.method() === 'GET' && /^\/api\/v2\/vendor\/leads\/[^/]+\/package$/.test(rt) && !p.__lp) p.__lp = leadPackage(rt.split('/')[5], { package_id: PACKAGES.packages[1].id });
     if (/^\/api\/v2\/vendor\/leads\/[^/]+\/package$/.test(rt)) {
       if (r.method() !== 'GET') { let inb = {}; try { inb = JSON.parse(r.postData() || '{}'); } catch (_e) { /* empty */ } p.__lp = leadPackage(rt.split('/')[5], inb); body = { ok: true, lead_package: p.__lp }; }
       else if (p.__lp) body = { ok: true, lead_package: p.__lp };

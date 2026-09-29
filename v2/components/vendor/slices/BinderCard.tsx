@@ -29,6 +29,8 @@ import {
   relativeTouch, stageTone, type StageTone,
 } from '@/v2/lib/vendor/cabinet';
 import { A, T, cap } from './SliceRow';
+import { CancelBookingSheet } from '@/v2/components/vendor/packages/CancelBookingSheet'; // DESIGN-1 · STAGE 4
+import { BOOK } from '@/v2/lib/worklist/book';
 
 const TONE_COLOR: Record<StageTone, string> = {
   go:   'var(--role-positive)',
@@ -159,6 +161,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
   const [wishboneOpen, setWishboneOpen] = useState(false); // TDW_04 A1: the chips wake
   const [wishboneStart, setWishboneStart] = useState<string | undefined>(undefined); // 3g · F-43.108
   const [hideConfirm, setHideConfirm] = useState(false);   // TDW_04 A2: hide w/ real-door undo
+  const [cancelOpen, setCancelOpen] = useState(false);     // DESIGN-1 · STAGE 4: Cancel booking, asking first
 
   const { recv, pend } = moneyOf(binder);
   const amt = primaryAmount(binder);
@@ -378,7 +381,21 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
               }}>Sure?</button>
             )}
           </div>
+          {/* DESIGN-1 · STAGE 4 · CANCEL BOOKING: on a client with a booked lead behind it. It asks before removing the
+              booking's dates and an unpaid invoice (CancelBookingSheet). */}
+          {binder.booked_lead && (
+            <button type="button" data-cancel-booking="" onClick={() => setCancelOpen(true)} style={{
+              font: T.t4, width: '100%', marginTop: 8, padding: '12px 16px', background: 'transparent',
+              border: '0.5px solid var(--role-critical)', borderRadius: 12, cursor: 'pointer', color: 'var(--role-critical)',
+            }}>{BOOK.cancel}</button>
+          )}
         </div>
+      )}
+
+      {cancelOpen && (
+        <CancelBookingSheet open binderId={binder.id} name={binder.client ?? ''}
+          onClose={() => setCancelOpen(false)} onDone={onChanged}
+          onToast={(m, k) => onToast(m, k === 'error' ? 'error' : 'success')} />
       )}
 
       {editOpen && (

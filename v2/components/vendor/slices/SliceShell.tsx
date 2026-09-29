@@ -406,6 +406,11 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   const leadMarks = useRef<{ id: string | null; ready: boolean }>({ id: null, ready: false });
   // 3g: the lead's date facts come from this room's own leads read (no extra request); the booking
   // and attach sheets use them to say what is missing before anything is sent.
+  // DESIGN-1 · STAGE 4: the lead's name and number, from the room's own read, for the Book sheet's confirmation draft
+  const leadOf = (leadId: string | null | undefined): { name: string; phone: string | null } => {
+    const l = slice === 'leads' && leadId ? (d.data ?? []).find((x) => x.id === leadId) as unknown as { name?: string | null; phone?: string | null } | undefined : undefined;
+    return { name: (l && l.name) || '', phone: (l && l.phone) || null };
+  };
   const leadFactsOf = (leadId: string | null | undefined): LeadFacts | null => {
     if (slice !== 'leads' || !leadId) return null;
     const l = (d.data ?? []).find((x) => x.id === leadId) as unknown as { wedding_date?: string | null; wedding_date_precision?: LeadFacts['wedding_date_precision'] } | undefined;
@@ -2123,13 +2128,16 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
           initialKind={booking ? booking.kind : 'booking_confirmed'}
           onClose={() => setBooking(null)}
           onBooked={() => {
+            // DESIGN-1 · STAGE 4: the sheet stays open on its Booked step (the draft, Send on WhatsApp, Undo) until Done
             const id = booking ? booking.leadId : null;
-            setBooking(null);
             if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));
           }}
           onToast={(m, k) => showToast(m, k)}
           onNeedWeddingDate={openDateFix}
           leadFacts={leadFactsOf(booking ? booking.leadId : null)}
+          // DESIGN-1 · STAGE 4: the name and number the confirmation draft and its WhatsApp link read
+          leadName={leadOf(booking ? booking.leadId : null).name}
+          leadPhone={leadOf(booking ? booking.leadId : null).phone}
         />
       )}
 

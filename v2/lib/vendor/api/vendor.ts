@@ -364,11 +364,31 @@ export type BookingKind = 'advance_paid' | 'booking_confirmed';
 export interface Promoted {
   lead_id: string; binder_id: string; invoice_id: string; invoice_number: string;
   adopted: boolean; opened: boolean; event: Record<string, unknown>;
+  // DESIGN-1 · STAGE 4: what the booking wrote, so a 10-second Undo removes exactly that
+  events?: Array<{ id?: string; date: string; created?: boolean; existing?: boolean }>;
+  invoice_created?: boolean; previous_state?: string; total?: number;
 }
-export interface PromoteInput { kind: BookingKind; advance_received_on?: string }
+export interface PromoteInput {
+  kind: BookingKind; advance_received_on?: string;
+  // DESIGN-1 · STAGE 4: each function date its own event; with no package, the amount (and the advance)
+  functions?: Array<{ date: string; title?: string }>; amount?: number; advance_amount?: number;
+}
 export type BookingFailure = { ok: false; error: string; code?: string | null; field?: string | null; step?: string; lead_id?: string };
 export function promoteLead(leadId: string, body: PromoteInput): Promise<{ ok: true; promoted: Promoted } | BookingFailure | ApiErr> {
   return postJson<{ ok: true; promoted: Promoted } | BookingFailure | ApiErr>(`/api/v2/vendor/leads/${encodeURIComponent(leadId)}/promote`, body);
+}
+// DESIGN-1 · STAGE 4 · UNDO AND CANCEL BOOKING (dream-os src/lib/vendor/unbooking.js, POST /leads/unbook)
+export interface UnbookInput {
+  lead_id?: string; binder_id?: string; remove_events?: boolean; remove_invoice?: boolean;
+  event_ids?: string[]; back_to?: 'new' | 'contacted' | 'quoted'; dry_run?: boolean;
+}
+export interface UnbookPlan {
+  lead_id: string; name: string; binder_id: string | null;
+  events: Array<{ id: string; title: string; date: string }>;
+  invoice: { id: string; number: string; total: number; paid: boolean } | null;
+}
+export function unbookBooking(body: UnbookInput): Promise<{ ok: true; plan?: UnbookPlan; unbooked?: { lead_id: string; state: string; events_removed: string[]; invoice_removed: boolean; invoice_kept_paid: boolean } } | BookingFailure | ApiErr> {
+  return postJson('/api/v2/vendor/leads/unbook', body);
 }
 export interface DirectClientInput {
   name: string; phone?: string; wedding_date: string; package_id: string;
