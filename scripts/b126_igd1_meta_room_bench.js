@@ -81,7 +81,10 @@ const ICON_SHA = '1b6519c8f964bef9129cd637b8cdb605f0b3913d294656d5bef8f58e885fd7
   ok(off.length === 0 && extra.length === 0 && M.QUIET.defaultMinutes === 120,
     '1.1 every room byte is the founder\u2019s (A5, C1 to C9, C13, QT1, QT2), pinned by sha; the default is 2 hours', `off ${off} extra ${extra}`);
   const portf = read(PORTF);
-  const h2 = (portf.match(/  H2: "(.*)",\n/) || [])[1]; const h4 = (portf.match(/  H4: '(.*)',\n/) || [])[1];
+  // DESIGN-1 · STAGE 2 (by label): the portfolio's H2 moved, byte for byte, to its "?" card's home (lib/worklist/pageHelp.ts
+  // PORTFOLIO_HELP, the founder's "make the photos the page", 29 Sept 2026); H4 is still the screen's. Both read where they live.
+  const help = read('lib/worklist/pageHelp.ts');
+  const h2 = (help.slice(help.indexOf('export const PORTFOLIO_HELP')).match(/  H2: "(.*)",\n/) || [])[1]; const h4 = (portf.match(/  H4: '(.*)',\n/) || [])[1];
   ok(h2 === M.IG.professional && h4 === M.IG.connect, '1.2 C4 and C3 are hash-carried from the portfolio\u2019s H2 and H4, byte for byte', `${h16(h2)} ${h16(h4)}`);
   const touched = [PAGE, FLOWC, ...ADDED];
   ok(!touched.some((f) => /\b(Victor|Donna|Harvey|Mira|Eliza)\b/.test(read(f))), '1.3 no persona name in any file this cut adds or touches (b40 C32; the copy law)');
