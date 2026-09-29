@@ -94,20 +94,28 @@ client and Money, at 374x812 and 360x800, dark and light.
 
 ## The floor
 
-Run with `bash scripts/run-floor.sh`, `ANTHROPIC_API_KEY` and `DEEPSEEK_API_KEY` unset, in a clean worktree at
-`8c11c91`, alone (no other bench or dev server running).
+Run with `bash scripts/run-floor.sh`, `ANTHROPIC_API_KEY` and `DEEPSEEK_API_KEY` unset, in a clean worktree, alone
+(no other bench or dev server running), on the branch's final code commit `d822ae9`.
 
 | | RED | ERROR | REFUSED |
 |---|---|---|---|
 | main (`85c66ef`) | 43 | 1 | 7 |
 | stage 1 (as run at `ba004c1`; three reds there were a port clash and a probe fix, green alone) | 45 | 1 | 7 |
-| **stage 2 (`8c11c91`)** | **42** | **1** | **7** |
+| stage 2 before the Portfolio change (`8c11c91`) | 42 | 1 | 7 |
+| **stage 2 final (`d822ae9`)** | **43** | **1** | **7** |
 
-Against main the only difference is `tdw09_type`, green here (the new rungs satisfy it). No member is red here that
-is not red on main. The reds main already had that this work touches fail only their main cells: b40 C50 and C102
-(C102's count main's), b42's mock and byte cells, b82 (REFUSED on the sibling repo, the same two §12.3/§9 cells as
-main), b122 3.5 (the sibling repo). The benches this stage wrote or amended: **b123 501/501, b140 552/552,
-b146 65/65** in the floor, as they were run alone before it.
+Against main: `tdw09_type` is green here (the new rungs satisfy it), and **b140 was red in this run and green on its
+re-run**. In the floor its dev server answered 500 on every page with Turbopack's "next/font/google queries have
+exactly one entry", a stale `.next/dev` font cache left in the floor tree by an earlier member (the same error this
+work met once before and cured the same way). No cell past the static seven ran. Run once more, alone, on the same
+commit in the same tree with that cache cleared: **b140 554/554**. The floor before it (`ef77d84`, the same b140 and
+the same pages) had it at 554/554 as well.
+
+The reds main already had that this work touches fail only their main cells: b40 C50 and C102 (C102 one below main's
+count), b42's mock and byte cells, b82 (REFUSED on the sibling repo; its same two §12.3/§9 cells), b122 3.5 (the
+sibling repo), tdw07_p3_portfolio (its 85 main cells, no more). The benches this stage wrote or amended, in the floor:
+**b123 501/501, b146 65/65, b126 48/48, tdw07_p4a_ig 69/69, tdw07_p4b_probe 35/35, tdw07_p4b_slice1 30/30**, and
+b140 554/554 on its re-run.
 
 ## Benches updated, and why
 
