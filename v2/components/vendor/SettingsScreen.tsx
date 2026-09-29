@@ -75,6 +75,7 @@ import { COPY } from '@/v2/lib/worklist/copy';
 import { roomHref } from '@/v2/lib/worklist/rooms';
 import { useSignOut } from '@/v2/components/worklist/SignOutSheet';
 import { SCard, SField, SToggle, SReadRow, SaveBtn, A, F, type Register } from '@/v2/components/vendor/AtelierForm';
+import { CopyBox } from '@/v2/components/worklist/CopyBox'; // DESIGN-1 · R-46.17: the text she copies sits in its own box
 
 // ── M-FINISH S1 · R-38.1 · EXPORTED AND CHROME-OPTIONAL. TWO CALLERS, ONE HOME. ────
 // `/w/settings` renders this same component inside WorklistShell. It is EXPORTED rather
@@ -405,14 +406,8 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
         <SCard register={register} title="TDW enquiry link">
           <SField register={register} label="Handle" value={current.routing_handle} onChange={v => update({ routing_handle: v.toUpperCase().replace(/[^A-Z0-9]/g, '') })} placeholder="YOURHANDLE" />
           {handle && (
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ ...T.body, color: A.inkMute, flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>{waLink}</div>
-              <button type="button" onClick={() => navigator.clipboard.writeText(waLink).then(() => show('Link copied', 'success'))}
-                style={{
-                  background: 'transparent', border: '0.5px solid var(--atelier-sheet-border)', borderRadius: 12,
-                  padding: '4px 12px', cursor: 'pointer',
-                  ...T.button, color: A.interactiveWarm, flexShrink: 0,
-                }}>Copy</button>
+            <div style={{ marginTop: 8 }}>
+              <CopyBox text={waLink} label="Copy" copied="Copied" onCopied={() => show('Link copied', 'success')} />
             </div>
           )}
           <SaveBtn register={register} dirty={isDirty(['routing_handle'])} loading={saving === 'tdwlink'} onSave={saveHandle} />

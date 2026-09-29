@@ -23,6 +23,7 @@
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { FirstRun } from '@/v2/components/worklist/FirstRun';
 import { TodayHome } from '@/v2/components/worklist/TodayHome';
+import { GetFoundCard } from '@/v2/components/worklist/GetFoundCard';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { useTodayFeed } from '@/v2/lib/worklist/feed';
 import { RoomHeadTitle } from '@/v2/components/worklist/PageHelp';
@@ -48,6 +49,8 @@ export default function TodayPage() {
           means this vendor has never had anything (§3 property 6). */}
       <RoomHeadTitle line={!feed.responded && !feed.pending ? COPY.todayNotLive : firstRun ? COPY.todayNothingYet : todayLine(today?.today || istTodayISO())} />
       <TodayHome />
+      {/* DESIGN-1 · STAGE 3: one quiet card for a Get found room not set up yet, last (lib/worklist/getFound.ts). */}
+      {!firstRun && <GetFoundCard />}
       {firstRun && <FirstRun />}
     </WorklistShell>
   );

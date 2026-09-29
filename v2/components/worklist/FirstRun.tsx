@@ -27,10 +27,10 @@
 //
 // EVERY DESTINATION IS REAL. Never-404 binds, and every number resolves through its
 // declared home in lib/waNumbers.ts — no literal enters this file (cell C3).
-import { useState } from 'react';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { waNumberFor } from '@/lib/waNumbers';
 import { useVendorHandle } from '@/hooks/vendor/useVendorHandle';
+import { CopyBox } from '@/v2/components/worklist/CopyBox'; // DESIGN-1 · R-46.17: the text she copies sits in its own box
 
 function openWa(number: string, text: string) {
   window.open(`https://wa.me/${number}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
@@ -39,7 +39,6 @@ function openWa(number: string, text: string) {
 export function FirstRun() {
   // `Copy` reports itself. A copy button that does nothing visible is a control the vendor
   // taps twice, which is how a link ends up in a bio with the tail pasted on.
-  const [copied, setCopied] = useState(false);
   // The handle seeds from a named cache and is corrected by the wire (F-38.21). On a
   // device's first load it is still unknown until that read lands, which is why the card it
   // gates is LAST — see the ordering note below.
@@ -159,17 +158,14 @@ export function FirstRun() {
 
               ── end withheld row ────────────────────────────────────────────────── */}
 
+          <CopyBox text={tdwLink} label={COPY.cardLinkAction} copied={COPY.cardLinkCopied} />
           <div className="wl-cardactions">
-            <button type="button" className="wl-cardaction" onClick={() => {
-              navigator.clipboard?.writeText(tdwLink);
-              setCopied(true);
-            }}>{copied ? COPY.cardLinkCopied : COPY.cardLinkAction}</button>
             <button type="button" className="wl-cardaction" onClick={() => {
               // `navigator.share` is absent on desktop and on some in-app browsers. Falling
               // back to the clipboard means the control always does something rather than
               // being a button that works on the founder's phone and nowhere else.
               if (navigator.share) navigator.share({ url: tdwLink }).catch(() => { /* dismissed */ });
-              else { navigator.clipboard?.writeText(tdwLink); setCopied(true); }
+              else { navigator.clipboard?.writeText(tdwLink); }
             }}>{COPY.cardLinkShare}</button>
           </div>
         </article>

@@ -100,13 +100,15 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
     { icon: 'list', line: 'Every room outside the five tabs, in groups: Your business, Get found, Work together, Messages and Help. Tap a row to open it.' },
     { icon: 'switch', line: 'Under Your account: Report an issue, Graphite or Chalk for dark or light, and Sign out.' },
   ], connects: 'Pinned, at the top, holds the rooms you use most.',
-    app: 'The five tabs at the bottom hold the daily work: Today, Enquiries, Calendar, Clients and Money. Your initials, top right, open More.' }),
+    app: 'The five tabs at the bottom hold the daily work: Today, Enquiries, Calendar, Clients and Money. Your initials, top right, open More. The box at the top of every page searches your enquiries, clients, events, invoices, packages, notes, crew and these rooms; a question can go to TDW.' }),
   // DESIGN-1 · STAGE 2: Home is the day's work (docs/review/REPORT.md §3). Each line names only a control the page
   // draws: Check and Open in calendar (the Check a date box), This week (the Today section's head).
   '/vendor/today':                          entry(TYPED_WHAT.today, { can: [
     { icon: 'calendar', line: 'Pick a day and tap Check. It answers Free all day, Booked or Enquiry, says what is on it, and Open in calendar goes to that day.' },
     { icon: 'reply', line: 'Reply to lists new enquiries with their last message and how long they have waited. Tap one to open it and reply.' },
     { icon: 'list', line: 'Today lists each function with its time, place and crew. Tap This week for the next seven days.' },
+    // DESIGN-1 stage 3: the Get found card (lib/worklist/getFound.ts), drawn only while one of the three is not set up.
+    { icon: 'switch', line: 'When your website, Google reviews or posts and ads is not set up yet, one card at the end says so and opens it. Hide puts it away.' },
   ], connects: 'Money due opens Invoices. Your pinned rooms are in More: tap your initials, top right.' }),
   [roomHref('leads')]: entry(ROOM_DESC.leads),
   [roomHref('packages')]: entry(ROOM_DESC.packages),

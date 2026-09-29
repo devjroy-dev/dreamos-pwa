@@ -42,6 +42,7 @@ import { getJson, API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { roomHref } from '@/v2/lib/worklist/rooms';
 import { WEDDING_PAGES_HREF } from '@/v2/lib/solutions/routes';
+import { CopyBox } from '@/v2/components/worklist/CopyBox'; // DESIGN-1 · R-46.17: the text she copies sits in its own box
 
 const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
 const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.in';
@@ -500,7 +501,6 @@ function AddressScreen({ address, pageUrl, handle, p2Live, rechead, say }: {
   address: string; pageUrl: string; handle: string; p2Live: boolean;
   rechead: (t: string) => ReactNode; say: (m: string) => void;
 }) {
-  const [copied, setCopied] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -516,10 +516,6 @@ function AddressScreen({ address, pageUrl, handle, p2Live, rechead, say }: {
     return () => { live = false; if (url) URL.revokeObjectURL(url); };
   }, []);
 
-  async function copy() {
-    try { await navigator.clipboard.writeText(pageUrl); setCopied(true); window.setTimeout(() => setCopied(false), 1800); }
-    catch { /* older browsers: the address is on screen to select */ }
-  }
   function share() {
     if (typeof navigator.share === 'function') { navigator.share({ url: pageUrl }).catch(() => { /* she closed the sheet */ }); return; }
     window.open(`https://wa.me/?text=${encodeURIComponent(pageUrl)}`, '_blank', 'noopener');
@@ -537,9 +533,8 @@ function AddressScreen({ address, pageUrl, handle, p2Live, rechead, say }: {
       {rechead(C.addrHead)}
       <div className="yw-sec">
         <div className="yw-note" style={{ paddingTop: 0 }}>{C.addrSub}</div>
-        <div className="yw-big">{address}</div>
+        <CopyBox text={address} copyValue={pageUrl} label={C.copy} copied={C.copied} textClassName="yw-big" />
         <div className="yw-acts">
-          <Primary label={copied ? C.copied : C.copy} onClick={copy} />
           <button type="button" className="yw-second" onClick={share}>{C.share}</button>
           <a className="yw-second" href={pageUrl} target="_blank" rel="noopener noreferrer">{C.openPage}</a>
         </div>

@@ -38,6 +38,7 @@
 //   · route a composed, sent contract back to the record — it opens on its status
 //     (F-40.245), where signed → deposit → the date is held can actually be reached.
 
+import { CopyBox } from '@/v2/components/worklist/CopyBox'; // DESIGN-1 · R-46.17: the text she copies sits in its own box
 import { useEffect, useRef, useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
@@ -388,6 +389,8 @@ export function ContractsScreen() {
 
   // the record
   const [record, setRecord]         = useState<Contract | null>(null);
+  // DESIGN-1 · R-46.17: a link she must send herself (sending not open yet) is shown in its own box, with Copy
+  const [signLink, setSignLink]     = useState<{ id: string; url: string } | null>(null);
   const [terms, setTerms]           = useState<Record<string, unknown>>({});
   const [annexes, setAnnexes]       = useState<Record<string, boolean>>({});
   const [depositPct, setDepositPct] = useState<string>('');
@@ -615,7 +618,7 @@ export function ContractsScreen() {
     const r = res as { sign_url: string; sent: boolean };
     // Never a false done: while the template is dark nothing was sent, and the link goes to the clipboard.
     if (r.sent) show(`Sent to ${clientFirstName(c)}`, 'success');
-    else { try { await navigator.clipboard.writeText(r.sign_url); show('Link copied. Sending is not open yet', 'success'); } catch { show(r.sign_url, 'success'); } }
+    else { setSignLink({ id: c.id, url: r.sign_url }); try { await navigator.clipboard.writeText(r.sign_url); show('Link copied. Sending is not open yet', 'success'); } catch { show('Sending is not open yet', 'success'); } }
     const list = await fetchAllContracts();
     if (list.ok) {
       const all = (list as { contracts: Contract[] }).contracts; setContracts(all);
@@ -1078,6 +1081,10 @@ export function ContractsScreen() {
         <Scroll>
           <Thread c={c} policiesSet={policiesSet} />
           <Blk>
+            {signLink && signLink.id === c.id && <>
+              <div style={HINT}>Sending is not open yet. Send this link to {first} yourself.</div>
+              <div style={{ marginTop: 8 }}><CopyBox text={signLink.url} label="Copy" copied="Copied" /></div>
+            </>}
             {st === 3 && <><div style={H3}>Waiting for {first}</div><div style={HINT}>The couple has the link on WhatsApp. When they agree, this changes on its own. You can still read the PDF; you can’t change it now — cancel and start again if something’s wrong.</div></>}
             {st === 5 && <>
               <div style={H3}>{first} signed</div>

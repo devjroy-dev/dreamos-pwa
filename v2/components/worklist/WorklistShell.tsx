@@ -5,8 +5,8 @@
 // THE SCOPE IS THE THEME. Every token is defined on this element, not on :root, so the old
 // shell's own layer is untouched even though both trees live in one deployment.
 //
-// NO THIRD CONTAINER. R-37.64: no search field, no hamburger, no overflow. Two seats and a
-// coin, and the coin is the only drawer.
+// NO THIRD CONTAINER. R-37.64: no hamburger, no overflow; the coin is the only drawer. (DESIGN-1 stage 3: the
+// founder's universal search is the one field the chrome carries, under the header, SearchBox.tsx.)
 //
 // ── R-38.2 · NAVIGATION IS `<Link>` ─────────────────────────────────────────
 // Every navigable control in this file is an anchor from `next/link` with default
@@ -34,6 +34,7 @@ import { AiDock } from '@/v2/components/worklist/AiDock';
 import { AccountDrawer } from '@/v2/components/worklist/AccountDrawer';
 import { RoomHead, RoomHeadProvider, PAGE_HELP_CSS } from '@/v2/components/worklist/PageHelp';
 import { TABS, tabFor, heldRoomFor, MORE_HREF, TAB_WORDS } from '@/v2/lib/worklist/tabs';
+import { SearchBox } from '@/v2/components/worklist/SearchBox';
 
 const SCOPE = '.wl';
 
@@ -176,6 +177,11 @@ export function WorklistShell({ title, children }: {
         <Link href={MORE_HREF} className="wl-coin" aria-label={TAB_WORDS.moreLabel}
               aria-current={onMore ? 'page' : undefined}>{initials || '\u25ce'}</Link>
       </header>
+
+      {/* DESIGN-1 · STAGE 3 · THE UNIVERSAL SEARCH (the founder and the chair; R-37.64's "no search field" is ruled past).
+          One box under the header on every page of the shell, outside the scroller so it is always visible. A question
+          asks TDW through this shell's own ask door; on the Advisor, which composes its own conversation, it only searches. */}
+      <SearchBox canAsk={!isAdvisor} />
 
       {/* ── CE-46 · FE-4 · THE ROOM'S HEAD HAS ONE DRAWER (Fork A (3), ruled 27 Sept 2026) ──
           The room's own name at t1, 16px above it, the first line of every surface (the

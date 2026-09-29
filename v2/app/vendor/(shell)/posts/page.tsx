@@ -43,6 +43,7 @@ import { SUNDAY_PREVIEW, FIXTURE_BRIEF, SU } from '@/lib/worklist/sunday';
 import type { SundayDoor, SundayActions } from '@/lib/worklist/sunday';
 import { SundaySection } from '@/v2/components/worklist/SundaySection';
 import { AdsCard } from '@/v2/components/worklist/AdsCard';
+import { CopyBox } from '@/v2/components/worklist/CopyBox'; // DESIGN-1 · R-46.17: the text she copies sits in its own box
 const COPY_PREVIEW_EYEBROW = IN.previewEyebrow;
 const COPY_BACK = IN.back;
 
@@ -107,12 +108,8 @@ function PostsScreen() {
     window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank', 'noopener');
   }
 
-  async function onCopyCaption() {
-    if (!body?.caption) return;
-    // No confirmation byte: none was vetoed, and the caption is on screen to
-    // select if the clipboard refuses.
-    try { await navigator.clipboard.writeText(body.caption); } catch { /* selectable on screen */ }
-  }
+  // DESIGN-1 · R-46.17: the caption's Copy is its box's (CopyBox). No confirmation byte: none was vetoed, so the
+  // control keeps its word; the caption stays selectable in the box if the clipboard refuses.
 
   return (
     <WorklistShell title={TITLE}>
@@ -144,12 +141,11 @@ function PostsScreen() {
             </div>
 
             <span className="pst-lbl">{PO.caption}</span>
-            <p className="pst-caption">{body?.caption}</p>
+            {body?.caption && <CopyBox text={body.caption} label={PO.copyCaption} copied={PO.copyCaption} />}
 
             <button type="button" className="pst-btn pst-primary" onClick={() => void onDownload()}>{PO.download}</button>
             <div className="pst-two">
               <button type="button" className="pst-btn pst-ghost" onClick={onShare}>{PO.share}</button>
-              <button type="button" className="pst-btn pst-ghost" onClick={() => void onCopyCaption()}>{PO.copyCaption}</button>
             </div>
           </div>
         ) : (

@@ -702,7 +702,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
   // send a kind to a room the registry does not name for it (c-P72.19 / c-39.64).
   const focusedRef = useRef<string | null>(null);
   useEffect(() => {
-    const KEY_FOR_SLICE: Record<string, string> = { leads: 'lead', invoices: 'invoice', events: 'event' };
+    // DESIGN-1 · STAGE 3: the universal search opens a client the same way (?client=<id>, lib/worklist/search.ts).
+    const KEY_FOR_SLICE: Record<string, string> = { leads: 'lead', invoices: 'invoice', events: 'event', clients: 'client' };
     const key = KEY_FOR_SLICE[slice];
     if (!key) return;
     const want = new URLSearchParams(window.location.search).get(key);
