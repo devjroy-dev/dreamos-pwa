@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b81_lc2_p2_room_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b81_lc2_p2_room_bench.js — TDW CE-43 · LC-2 · packet 2 (dreamos-pwa) · the live Packages room
 // (C-43.16), the edit sheet, the attach sheet and the lead's package card. Rung b81, chair-allocated.
 // Runnable from any directory. Exit 0 green, 1 red, 3 refused (node_modules absent).
@@ -36,13 +39,13 @@ const sec = (t) => console.log('\n' + t);
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1').replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
 
 const F = {
-  copy: 'lib/worklist/packages.ts',
-  api: 'lib/vendor/api/vendor.ts',
-  page: 'app/vendor/(shell)/packages/page.tsx',
-  fields: 'components/vendor/packages/PackageFields.tsx',
-  edit: 'components/vendor/packages/PackageEditSheet.tsx',
-  card: 'components/vendor/packages/LeadPackageCard.tsx',
-  shell: 'components/vendor/slices/SliceShell.tsx',
+  copy: 'v2/lib/worklist/packages.ts',
+  api: 'v2/lib/vendor/api/vendor.ts',
+  page: 'v2/app/vendor/(shell)/packages/page.tsx',
+  fields: 'v2/components/vendor/packages/PackageFields.tsx',
+  edit: 'v2/components/vendor/packages/PackageEditSheet.tsx',
+  card: 'v2/components/vendor/packages/LeadPackageCard.tsx',
+  shell: 'v2/components/vendor/slices/SliceShell.tsx',
 };
 
 function loadModule(src, stubs = {}) {
@@ -101,9 +104,9 @@ async function apiCells(src) {
     const rec = (verb) => async (p, body) => { calls.push({ verb, p, body }); return { ok: true }; };
     const stubs = {
       './_base': { getJson: rec('GET'), postJson: rec('POST'), patchJson: rec('PATCH'), deleteJson: rec('DELETE'), API_BASE: '', getAuthHeader: () => ({}), handleResponse: async () => ({}) },
-      '@/lib/solutions/routes': { API: new Proxy({}, { get: () => '' }) },
+      '@/v2/lib/solutions/routes': { API: new Proxy({}, { get: () => '' }) },
       '@/lib/vendor/session': { getVendorSession: () => null, setVendorSession: () => {}, clearVendorSession: () => {} },
-      '@/lib/worklist/feed': { refreshToday: () => {} },
+      '@/v2/lib/worklist/feed': { refreshToday: () => {} },
     };
     const api = loadModule(src, stubs);
     await api.createPackage({ name: 'A' });
@@ -147,7 +150,9 @@ function pageCells(src) {
       && /<p>\{PACKAGES\.deleteConfirm\}<\/p>/.test(s) && /onClick=\{\(\) => \{ void remove\(p\); \}\}>\{PACKAGES\.del\}/.test(s)
       // AMENDED BY LABEL at P2b (F-43.79): the quiet button carries the muted ink as colour and border.
       && /\.pkg-act--quiet\{color:var\(--atelier-ink-mute\);border-color:var\(--atelier-ink-mute\)\}/.test(s),
-    buttonForm: /\.pkg-act\{background:transparent;border:\.5px solid var\(--atelier-accent-text\);border-radius:2px;padding:0 14px;min-height:40px;/.test(s)
+    // DESIGN-1 · STAGE 1 (by label, REPORT.md §3 Buttons): the outlined button is 48 high with 12px corners and a 1px edge,
+    // on the spacing scale and at tb (was 2px corners, 40 high, a half-pixel edge, DM Sans at 14)
+    buttonForm: /\.pkg-act\{background:transparent;border:1px solid var\(--atelier-accent-text\);border-radius:12px;padding:0 16px;min-height:48px;cursor:pointer;font:var\(--wl-tb\);/.test(s)
       && /className="pkg-act pkg-act--quiet" onClick=\{\(\) => setConfirming\(null\)\}>\{PACKAGES\.cancel\}/.test(s)
       && /className="pkg-fee pkg-fee--unset"/.test(s) && /\.pkg-fee--unset\{background:none;border:none;/.test(s),
     defaultRule: /\.pkg-card--default\{border-left:2px solid var\(--atelier-accent-text\);border-radius:0\}/.test(s) && /\{p\.is_default && <span className="pkg-default">\{PACKAGES\.defaultMark\}<\/span>\}/.test(s),
@@ -213,7 +218,7 @@ function fieldsCells(src) {
   return {
     // AMENDED BY LABEL · CE-45 FE-2 TYPE_2: the re-dress reflowed actionButton one property to a line
     // (its type now a rung); the form is the same, so the cell reads it with the whitespace free.
-    form: /export function actionButton\(tone: 'accent' \| 'mute' = 'accent'\): CSSProperties \{[\s\S]*?border: `0\.5px solid \$\{c\}`,\s*borderRadius: 2,\s*minHeight: 40,/.test(s),
+    form: /export function actionButton\(tone: 'accent' \| 'mute' = 'accent'\): CSSProperties \{[\s\S]*?font: RUNG\.tb,[\s\S]*?border: `1px solid \$\{c\}`,\s*borderRadius: 12,\s*minHeight: 48,/.test(s),   // DESIGN-1 (by label)
     addItem: /style=\{\{ \.\.\.actionButton\(\), alignSelf: 'flex-start' \}\}[^>]*>\{PACKAGES\.fAddItem\}/.test(s) || /style=\{\{ \.\.\.actionButton\(\), alignSelf: 'flex-start' \}\} onClick=\{\(\) => onItems\(\[\.\.\.items, \{ label: '', detail: '' \}\]\)\}>\{PACKAGES\.fAddItem\}/.test(s),
   };
 }
@@ -258,7 +263,7 @@ function tokenCells(files) { return files.every((f) => f.length > 0 && !LITERAL.
   ok(p.chevron, '§3.11 the fold uses ChevronDown from lucide-react');
   ok(p.noSoon, '§3.12 the room no longer says Launching soon.');
   ok(p.raceReported, '§3.13 a default race is reported with its own line and the list reloads');
-  ok(p.buttonForm, '§3.14 F-43.79: the actions and P7 are outlined buttons (2px, 40px); the fee affordance stays dashed text');
+  ok(p.buttonForm, '§3.14 F-43.79: the actions and P7 are outlined buttons (DESIGN-1: 12px corners, 48px); the fee affordance stays dashed text');
 
   sec('§4 · the edit sheet');
   const e = editCells(src.edit);
@@ -285,7 +290,7 @@ function tokenCells(files) { return files.every((f) => f.length > 0 && !LITERAL.
   ok(k.cardButton, '§5.10 F-43.79: Attach package and Change package are outlined buttons');
   {
     const fc = fieldsCells(src.fields);
-    ok(fc.form, '§5.11 F-43.79: the shared button form is outlined, 2px corners, 40px tap height');
+    ok(fc.form, '§5.11 F-43.79: the shared button form is outlined, 12px corners, 48px tap height (DESIGN-1)');
     ok(fc.addItem, '§5.12 F-43.79: Add item is an outlined button');
   }
 
@@ -320,7 +325,7 @@ function tokenCells(files) { return files.every((f) => f.length > 0 && !LITERAL.
     [src.card, "color: T.ink, whiteSpace: 'nowrap' }}>{formatRs(lp.total)}", "color: '#0E1112', whiteSpace: 'nowrap' }}>{formatRs(lp.total)}", (m) => !tokenCells([src.page, src.fields, src.edit, m, src.copy]), 'M14 a colour literal on the card → §6.1 RED'],
   ];
   muts.push(
-    [src.page, '.pkg-act{background:transparent;border:.5px solid var(--atelier-accent-text);border-radius:2px;padding:0 14px;', '.pkg-act{background:none;border:none;padding:8px 0;', (m) => !pageCells(m).buttonForm, 'M15 the actions back to plain text → §3.14 RED (F-43.79)'],
+    [src.page, '.pkg-act{background:transparent;border:1px solid var(--atelier-accent-text);border-radius:12px;padding:0 16px;', '.pkg-act{background:none;border:none;padding:8px 0;', (m) => !pageCells(m).buttonForm, 'M15 the actions back to plain text → §3.14 RED (F-43.79)'],
     [src.edit, '...(takeMiddle ? { middle_pct: m } : {}),', 'middle_pct: m,', (m) => !editCells(m).middleOmitted, 'M16 the share sent with the middle payment off → §4.8 RED (F-43.78)'],
     [src.card, '<button type="button" style={actionButton()} onClick={() => setSheetOpen(true)}>', '<button type="button" style={textButton()} onClick={() => setSheetOpen(true)}>', (m) => !cardCells(m, src.shell).cardButton, 'M17 the card button back to text → §5.10 RED (F-43.79)'],
     [src.fields, "style={{ ...actionButton(), alignSelf: 'flex-start' }}", "style={{ ...textButton(), alignSelf: 'flex-start' }}", (m) => !fieldsCells(m).addItem, 'M18 Add item back to text → §5.12 RED (F-43.79)'],

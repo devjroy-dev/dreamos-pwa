@@ -1,4 +1,7 @@
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b146_design1_home_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b146_design1_home_bench.js · DESIGN-1 · STAGE 2 · HOME IS THE DAY'S WORK.
 //
 // WHAT IT HOLDS (docs/review/REPORT.md §3, "What a vendor sees first", as the founder sanctioned it), in the REAL app:
@@ -11,12 +14,12 @@
 //   §5 Money due: one line (what is owed, from how many clients, the next due date).
 //   §6 The page at 374x812 and 360x800, dark and light: no sideways scroll, rows 64 high, no dash in Home's words.
 //   §7 Source: the pinned rooms KEPT and moved under More (founder: "kept, moved under More, not deleted"); crew wherever
-//      an event shows (Events rows, the Calendar); Home's words in one home (lib/worklist/home.ts).
+//      an event shows (Events rows, the Calendar); Home's words in one home (v2/lib/worklist/home.ts).
 // RED MUTATIONS (each turns a named cell red):
-//   · in lib/worklist/home.ts set answerFree to 'Available'                      -> §2 free cells
+//   · in v2/lib/worklist/home.ts set answerFree to 'Available'                      -> §2 free cells
 //   · in TodayHome.tsx answerFor, drop the OPEN_ENQUIRY filter                   -> §2 "a lost enquiry"
 //   · in TodayHome.tsx, render `[...unanswered].reverse().map(`                  -> §3 order
-//   · in app/vendor/(shell)/rooms/page.tsx, remove <PinnedRooms />               -> §7 pinned kept
+//   · in v2/app/vendor/(shell)/rooms/page.tsx, remove <PinnedRooms />               -> §7 pinned kept
 const fs = require('fs');
 const path = require('path');
 
@@ -84,18 +87,18 @@ const dayOf = (d) => {
 async function main() {
   // §7 first: the source cells need no server.
   sec('7 source: pinned kept under More, crew wherever an event shows, one home for Home’s words');
-  const rooms = code('app/vendor/(shell)/rooms/page.tsx');
-  const today = code('app/vendor/(shell)/today/page.tsx');
+  const rooms = code('v2/app/vendor/(shell)/rooms/page.tsx');
+  const today = code('v2/app/vendor/(shell)/today/page.tsx');
   ok(/<PinnedRooms\s*\/>/.test(rooms), '7.1 the pinned rooms are KEPT: More (the rooms page) mounts <PinnedRooms />');
   ok(!/PinnedRooms/.test(today), '7.2 the pinned rooms MOVED: Home no longer mounts them');
-  ok(fs.existsSync(path.join(ROOT, 'components/worklist/PinnedRooms.tsx')), '7.3 the pinned rooms are not deleted (components/worklist/PinnedRooms.tsx stands)');
+  ok(fs.existsSync(path.join(ROOT, 'v2/components/worklist/PinnedRooms.tsx')), '7.3 the pinned rooms are not deleted (v2/components/worklist/PinnedRooms.tsx stands)');
   ok(/<TodayHome\s*\/>/.test(today), '7.4 Home mounts TodayHome');
-  ok(/useCrew\(/.test(code('app/vendor/(shell)/events/body.tsx')), '7.5 the Events rows read the crew');
-  ok(/useCrew\(/.test(code('app/vendor/(shell)/calendar/screen.tsx')) && /useCrew\(/.test(code('components/vendor/CalendarDaySheet.tsx')), '7.6 the Calendar (Coming up and the day sheet) reads the crew');
-  const home = code('components/worklist/TodayHome.tsx');
+  ok(/useCrew\(/.test(code('v2/app/vendor/(shell)/events/body.tsx')), '7.5 the Events rows read the crew');
+  ok(/useCrew\(/.test(code('v2/app/vendor/(shell)/calendar/screen.tsx')) && /useCrew\(/.test(code('v2/components/vendor/CalendarDaySheet.tsx')), '7.6 the Calendar (Coming up and the day sheet) reads the crew');
+  const home = code('v2/components/worklist/TodayHome.tsx');
   // JSX text: what follows a tag's own closing '>' (a tag name, a quoted attribute or a braced one; never '=>') up to '<'.
   const lits = [...home.matchAll(/[\w"'}]>([^<>{}()\n;=]*[A-Za-z][^<>{}()\n;=]*)(?=[<{])/g)].map((m) => m[1].trim()).filter(Boolean);
-  ok(lits.length === 0, '7.7 TodayHome spells no words of its own: every one comes from lib/worklist/home.ts', lits.join(' | '));
+  ok(lits.length === 0, '7.7 TodayHome spells no words of its own: every one comes from v2/lib/worklist/home.ts', lits.join(' | '));
 
   const puppeteer = (await import(path.join(ROOT, 'node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js'))).default;
   const chromium = (await import(path.join(ROOT, 'node_modules/@sparticuz/chromium/build/index.js'))).default;

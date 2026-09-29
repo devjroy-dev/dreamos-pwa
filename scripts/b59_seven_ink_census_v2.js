@@ -1,5 +1,31 @@
 #!/usr/bin/env node
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b59_seven_ink_census.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
+// DESIGN-1 · THE LAYOUT SWITCH · THE V2 VIEW OF THE TREE (by label). The v2 tree is the shared tree with v2/ laid over it:
+// a module with a copy in v2/ is served from v2/, and every other module is the shared one. So a directory walk in this
+// copy sees exactly that: under app/, components/, lib/ and hooks/ a file whose v2/ twin exists is left out (the walk
+// meets the twin under v2/ instead), and app/v2 (the route shims) is left out; the walks below also walk the v2/ roots.
+{
+  const __fs = require('fs'), __path = require('path');
+  const __ROOT = __path.resolve(__dirname, '..');
+  const __SHARED = ['app', 'components', 'lib', 'hooks'].map((d) => __path.join(__ROOT, d));
+  const __rd = __fs.readdirSync;
+  __fs.readdirSync = function (dir, opts) {
+    const out = __rd.call(__fs, dir, opts);
+    const abs = __path.resolve(String(dir));
+    if (!__SHARED.some((s) => abs === s || abs.startsWith(s + __path.sep))) return out;
+    const rel = __path.relative(__ROOT, abs);
+    return out.filter((e) => {
+      const name = typeof e === 'string' ? e : e.name;
+      const r = __path.join(rel, name);
+      if (r === __path.join('app', 'v2')) return false;
+      const isDir = typeof e === 'string' ? __fs.statSync(__path.join(abs, name)).isDirectory() : e.isDirectory();
+      return isDir || !__fs.existsSync(__path.join(__ROOT, 'v2', r));
+    });
+  };
+}
 // scripts/b59_seven_ink_census.js
 //   R-40.129 ① · THE VENDOR SHELL PAINTS FROM SEVEN INKS AND NOTHING ELSE.
 //
@@ -26,7 +52,7 @@
 // ══════════════════════════════════════════════════════════════════════════
 // A cell that asserted "every colour is one of these seven hexes" would have to
 // hold the seven hexes, in both modes — fourteen constants copied out of
-// `lib/worklist/theme.ts`. The moment either table moved, the cell would be
+// `v2/lib/worklist/theme.ts`. The moment either table moved, the cell would be
 // wrong and silent, which is the exact disease F-40.263 was: a value pinned
 // against a token it did not own.
 //
@@ -42,7 +68,7 @@
 //    a diamond. `#8593` matches a hex pattern and is not a colour. A cell that
 //    reddens on an arrow gets silenced rather than obeyed, so the exclusion is
 //    in the cell rather than in the reviewer's head.
-// 2. THE TOKEN-DEFINITION FILES. `lib/worklist/theme.ts` IS the palette; a
+// 2. THE TOKEN-DEFINITION FILES. `v2/lib/worklist/theme.ts` IS the palette; a
 //    census that reddened on it would forbid the palette from existing.
 // 3. THE BRAND MARKS (R-40.129 ③), allow-listed below BY FILE AND BY HEX, with
 //    the ruling cited at each. A brand mark is a third party's property and not
@@ -59,8 +85,8 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 
 // ── SCOPE ──────────────────────────────────────────────────────────────────
-// THE SHELL, AND NOT `app/vendor/(legacy)/**`. The census that produced this
-// cell measured the SHELL: `app/vendor/(shell)`, the vendor components, the
+// THE SHELL, AND NOT `v2/app/vendor/(legacy)/**`. The census that produced this
+// cell measured the SHELL: `v2/app/vendor/(shell)`, the vendor components, the
 // worklist components and their lib. The legacy routes (`discover`, `pin`,
 // `pin-login`, `pin-reset`, `onboarding`) are Espresso-era surfaces on their way
 // out and were counted separately at 98 literals — a declared gap, restated in
@@ -68,10 +94,12 @@ const ROOT = path.resolve(__dirname, '..');
 // the scope to them is a ruling, not an edit; they are not cured here and this
 // cell does not pretend they are.
 const SCOPE = [
-  'app/vendor/(shell)', 'components/vendor', 'components/worklist', 'lib/worklist',
+  'v2/app/vendor/(shell)', 'components/vendor', 'components/worklist', 'lib/worklist',
+  // DESIGN-1 · THE LAYOUT SWITCH (by label): the same scope in the v2 view (the classic twins are left out above)
+  'v2/components/vendor', 'v2/components/worklist', 'v2/lib/worklist',
 ];
-const DECLARED_GAP = 'app/vendor/(legacy)';
-const TOKEN_DEFS = new Set(['lib/worklist/theme.ts']);
+const DECLARED_GAP = 'v2/app/vendor/(legacy)';
+const TOKEN_DEFS = new Set(['v2/lib/worklist/theme.ts']);
 
 // ── THE BRAND-MARK ALLOWANCE · R-40.129 ③ ──────────────────────────────────
 // file → the exact hexes ruled onto that file's mark. Anything else in the file
@@ -90,7 +118,7 @@ const TOKEN_DEFS = new Set(['lib/worklist/theme.ts']);
 // variable cannot cross an iframe boundary in any case. The same shape as a brand
 // mark: someone else's colour, on the one surface that shows their thing.
 const BRAND_MARKS = {
-  'app/vendor/(shell)/your-website/screen.tsx':
+  'v2/app/vendor/(shell)/your-website/screen.tsx':
     new Set([
       '#4285F4', '#34A853', '#FBBC05', '#EA4335', // the Google wordmark, R-40.129 \u2462
       '#F8F7F5',                                   // the public lane's page ground
@@ -177,10 +205,10 @@ console.log(`    separately at 98 literals, not cured by this arc, owed their ow
 
 // ── THE PALETTE, PARSED OFF DISK ───────────────────────────────────────────
 // The seven-ink law is a law about VALUES, so the cell needs the values — and
-// takes them from lib/worklist/theme.ts on every run rather than holding a copy.
+// takes them from v2/lib/worklist/theme.ts on every run rather than holding a copy.
 // A copy is what F-40.263 was.
 function paletteRgb() {
-  const src = fs.readFileSync(path.join(ROOT, 'lib/worklist/theme.ts'), 'utf8');
+  const src = fs.readFileSync(path.join(ROOT, 'v2/lib/worklist/theme.ts'), 'utf8');
   const set = new Set(['#000000', '#FFFFFF']); // card-shadow and grain are built on these
   for (const m of src.matchAll(/'(#[0-9a-fA-F]{6})'/g)) set.add(m[1].toUpperCase());
   for (const m of src.matchAll(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/g)) {
@@ -220,13 +248,13 @@ outOfFamily.length === 0
 // alpha-bearing gold. Minting one is a new token, and no new token ships without
 // a ruling. `color-mix()` is NOT the escape: package.json's browserslist declares
 // `safari >= 14` / `ios_saf >= 14`, and color-mix needs Safari 16.2. The one
-// existing use of it in the estate (app/vendor/(legacy)/onboarding/page.tsx:426)
+// existing use of it in the estate (v2/app/vendor/(legacy)/onboarding/page.tsx:426)
 // is a latent defect against the estate's own floor, filed here and not cured.
 //
 // So the debt is PINNED rather than passed over. The count cannot grow without
 // this cell reddening, which is the difference between a declared gap and a hole.
 // CE-42 4c-1 · RE-PINNED 124 -> 114, THE DEBT SHRANK BY TEN (F-42.186, ruling J: "the
-// brass literals go when the screen is touched"). app/vendor/(shell)/collab/screen.tsx
+// brass literals go when the screen is touched"). v2/app/vendor/(shell)/collab/screen.tsx
 // lost its ten gold-at-alpha literals; NO alpha-bearing gold was minted — each became an
 // EXISTING token (hairlines -> --atelier-card-border, the active/outline edges ->
 // --atelier-input-border), so the ruling above this line still stands for the rest.
@@ -234,7 +262,13 @@ outOfFamily.length === 0
 // of components/vendor/TipsCarousel.tsx (:242, :253 twice, :325) left with the file, which the founder's ruling of
 // 27 Sept 2026 retired for the "?" on every surface. Derived by set difference of this census's own list at
 // dc8dbdd1 against the cut: those four are the only literals gone; every other entry moved line, not value.
-const RESTATED_PINNED = 110;
+// DESIGN-1 · STAGE 1 · RE-PINNED 110 -> 23, THE DEBT SHRANK BY EIGHTY-SEVEN (by label, the Teal Ledger palette). The
+// palette moved --role-metal #C9A84C -> #CDB068, so every gold-at-alpha literal, rgba(201,168,76,a), fell out of family
+// (84 of them, 85 with the toast's #EDEEEF). Ruling J cured them rather than any widening of this cell: each became an
+// EXISTING token read (a hairline -> --atelier-card-border, an outline at alpha 0.3 or more -> --atelier-input-border, a
+// tint -> --atelier-row-hover, a word -> --atelier-ink-mute); the toast's ink is Graphite's own #ECEFEF, one in-family
+// literal added. No alpha-bearing token was minted. The other 22 moved line, not value.
+const RESTATED_PINNED = 23;
 console.log('\n\u00a71b  the restated-token debt is pinned, not passed over');
 restated.length === RESTATED_PINNED
   ? ok(`${RESTATED_PINNED} in-family literals`, 'the ruled debt — awaiting an alpha-bearing token ruling')
@@ -289,8 +323,9 @@ const NEG = [
   ['a plain token read passes', "color: 'var(--role-critical)'", (l) => (l.match(LITERAL) || []).length === 0 && !PHANTOM.test(l)],
   // and the inverse of §1: a palette value must NOT be called out of family, or
   // the law would forbid the palette itself.
-  ['--role-metal’s own hex is in family',    '#C9A84C', (l) => FAMILY.has(toHex(l))],
-  ['--role-critical’s own hex is in family', '#AE3A22', (l) => FAMILY.has(toHex(l))],
+  // DESIGN-1 (by label): the two probes read Teal Ledger's values, #CDB068 and #A53420 (were #C9A84C and #AE3A22).
+  ['--role-metal’s own hex is in family',    '#CDB068', (l) => FAMILY.has(toHex(l))],
+  ['--role-critical’s own hex is in family', '#A53420', (l) => FAMILY.has(toHex(l))],
 ];
 for (const [name, line, probe] of NEG) {
   probe(line) ? ok(name) : bad(name, 'the exclusion is wrong \u2014 this cell will red on correct code');

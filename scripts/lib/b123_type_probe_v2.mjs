@@ -1,10 +1,12 @@
-// scripts/lib/b123_type_probe.mjs · TDW CE-45 · FE-2 · TYPE_1 · the rung's browser arm.
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b123_type_probe.mjs. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+// scripts/lib/b123_type_probe_v2.mjs · TDW CE-45 · FE-2 · TYPE_1 · the rung's browser arm.
 // Drives the REAL rooms in headless Chromium against `next dev` in mock mode (C-43.18), by b120's
 // and b122's method: puppeteer-core, CHROME_BIN or @sparticuz/chromium, a 374px touch viewport,
 // the theme by the shell's own cookie. Every read is answered from b123_fixtures.mjs, populated
 // (e-108: an empty room is not a measure). Lives in scripts/lib/ so the floor's glob skips it.
 //
-// usage: node scripts/lib/b123_type_probe.mjs PORT MODE ROOM SCENE [SHOTDIR]
+// usage: node scripts/lib/b123_type_probe_v2.mjs PORT MODE ROOM SCENE [SHOTDIR]
 //   ROOM:  leads | clients | events | notes | invoices | expenses
 //   SCENE: rest | sheet (the first row's own sheet: the detail sheet, or for clients the card
 //          opened and then its edit sheet) | schedule (invoices: the add-milestones sheet's frame)
@@ -103,6 +105,11 @@ try {
     await p.evaluate(async (n) => { try { await Promise.all([document.fonts.load(`400 14px "${n.dm}"`), document.fonts.load(`500 11px "${n.dm}"`), document.fonts.load(`500 24px "${n.co}"`)]); } catch (_e) { /* reported below */ } await document.fonts.ready; }, names);
     await new Promise((r) => setTimeout(r, 400));
     out.realFaces = await p.evaluate((dm) => document.fonts.check(`500 11px "${dm}"`) && [...document.fonts].some((f) => f.family.replace(/["']/g, '') === dm && f.status === 'loaded'), names.dm);
+    // DESIGN-1 · STAGE 1 (by label): the app's face is Inter, which next/font serves; a tree on Inter measures its
+    // real faces when Inter itself is loaded (the npm-pack path above stays for a base still on DM Sans).
+    const inter = await p.evaluate(async () => { try { await document.fonts.load('500 13px Inter'); } catch (_e) { /* reported below */ } await document.fonts.ready;
+      return /inter/i.test(getComputedStyle(document.querySelector('.wl-main') || document.body).fontFamily) && [...document.fonts].some((f) => /inter/i.test(f.family) && f.status === 'loaded'); });
+    if (inter) { out.realFaces = true; out.faceSource = 'next/font Inter'; }
     out.faceNames = names;
   } catch (e) { out.errors.push('faces: ' + String(e && e.message).split('\n')[0]); }
   await shot('rest');
@@ -195,7 +202,8 @@ try {
     // TYPE_1 marked TYPE_2's subtrees `later`. TYPE_2 re-dresses them, so nothing is later now; the
     // selector stays as the one place a future cut would name a subtree it has not reached.
     const LATER = '[data-b123-later]';
-    const fam = (f) => { f = f.toLowerCase(); if (f.includes('cormorant')) return 'cormorant'; if (f.includes('dm_sans') || f.includes('dm sans')) return 'dmsans'; if (f.includes('jost')) return 'jost'; if (f.includes('italiana')) return 'italiana'; return f.split(',')[0].trim(); };
+    // DESIGN-1 · STAGE 1 (by label): Inter is the app's face, named 'inter' beside the four the estate knew.
+    const fam = (f) => { f = f.toLowerCase(); if (f.includes('inter')) return 'inter'; if (f.includes('cormorant')) return 'cormorant'; if (f.includes('dm_sans') || f.includes('dm sans')) return 'dmsans'; if (f.includes('jost')) return 'jost'; if (f.includes('italiana')) return 'italiana'; return f.split(',')[0].trim(); };
     const scopes = [document.querySelector('.wl-main')];
     for (const sel of ['[data-lc2="detail-sheet"]', '[data-lc2="binder-edit-sheet"]', '[data-lc2="wishbone-sheet"]', '[data-lc2="booking-sheet"]', '[data-lc2="attach-sheet"]', '[data-lc2="client-booking-sheet"]']) {
       const el = document.querySelector(sel);
@@ -240,7 +248,8 @@ try {
         if (offGlass(el)) continue;
         const cs = getComputedStyle(el);
         let scroller = false; for (let a = el; a && a !== root; a = a.parentElement) { const ox = getComputedStyle(a).overflowX; if (ox === 'auto' || ox === 'scroll') { scroller = true; break; } }
-        nodes.push({ txt, scope: si, grid: !!el.closest('[data-cal-grid]'), next: !!el.closest('[data-cal-next]'), fab: !!el.closest('.wl-fab'), size: Math.round(parseFloat(cs.fontSize) * 100) / 100, f: fam(cs.fontFamily), wt: Number(cs.fontWeight),
+        // DESIGN-1: `open` marks what a client row shows only when opened (data-row-open), `sheet` a record sheet's own node
+        nodes.push({ txt, scope: si, crew: !!el.closest('[data-crew],[data-row-crew],[data-cal-crew],[data-day-crew]') || /, (pending|confirmed|declined)$/.test(el.getAttribute('aria-label') || ''), grid: !!el.closest('[data-cal-grid]'), next: !!el.closest('[data-cal-next]'), fab: !!el.closest('.wl-fab'), open: !!el.closest('[data-row-open]'), sheet: !!el.closest('[data-lc2="detail-sheet"]'), size: Math.round(parseFloat(cs.fontSize) * 100) / 100, f: fam(cs.fontFamily), wt: Number(cs.fontWeight),
           ls: cs.letterSpacing, tt: cs.textTransform, fs: cs.fontStyle, later: !!el.closest(LATER), strip: !!(strip && strip.contains(el)),
           scroller, left: Math.round(r.left), right: Math.round(r.right), top: (() => { const rg = document.createRange(); rg.selectNodeContents(t); return Math.round((rg.getBoundingClientRect().top - mainTop) * 10) / 10; })() });
       }
@@ -251,8 +260,10 @@ try {
         const r = c.getBoundingClientRect(); if (r.width === 0 && r.height === 0) continue;
         if (offGlass(c)) continue;
         const cs = getComputedStyle(c);
-        controls.push({ tag: c.tagName.toLowerCase(), role: c.getAttribute('role') || '', name: (c.getAttribute('aria-label') || c.textContent || c.getAttribute('placeholder') || '').replace(/\s+/g, ' ').trim(),
-          href: c.getAttribute('href') || '', tt: cs.textTransform, size: Math.round(parseFloat(cs.fontSize) * 100) / 100, later: !!c.closest(LATER), strip: !!(strip && strip.contains(c)) });
+        controls.push({ crewWords: [...c.querySelectorAll('[data-crew],[data-row-crew],[data-cal-crew],[data-day-crew],[aria-label]')].filter((e) => e.matches('[data-crew],[data-row-crew],[data-cal-crew],[data-day-crew]') || /, (pending|confirmed|declined)$/.test(e.getAttribute('aria-label') || '')).map((e) => e.textContent.replace(/\s+/g, ' ').trim()).filter(Boolean), tag: c.tagName.toLowerCase(), role: c.getAttribute('role') || '', name: (c.getAttribute('aria-label') || c.textContent || c.getAttribute('placeholder') || '').replace(/\s+/g, ' ').trim(),
+          href: c.getAttribute('href') || '', tt: cs.textTransform, size: Math.round(parseFloat(cs.fontSize) * 100) / 100, later: !!c.closest(LATER), strip: !!(strip && strip.contains(c)), open: !!c.closest('[data-row-open]'),
+          // DESIGN-1: the name as its words, each text node apart (textContent glues a row's lines into one word)
+          words: (c.getAttribute('aria-label') || [...(function* tn(n) { for (const k of n.childNodes) { if (k.nodeType === 3) yield k.textContent; else yield* tn(k); } })(c)].map((x) => x.trim()).filter(Boolean).join(' ') || c.getAttribute('placeholder') || '').replace(/\s+/g, ' ').trim() });
       }
     });
     // F-44.177 · every row tag: its own box, its text's box (a Range: the real glyph line), and every ancestor

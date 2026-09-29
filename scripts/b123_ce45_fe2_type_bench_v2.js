@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b123_ce45_fe2_type_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b123_ce45_fe2_type_bench.js · TDW CE-45 · FE-2 · TYPE_1 · THE LEGACY FAMILY ON THE APP'S TYPE.
 // Rung b123 (the estate's one line of rung numbers across both repos: b121 SRV_1, b122 HOME_1/2).
 //
@@ -50,7 +53,10 @@ const ROOT = path.resolve(__dirname, '..');
 const P = (...a) => path.join(ROOT, ...a);
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 // cut 2 compares against the tip it builds on (4aaad4d3: TYPE_1b r3, IGD-1 cut 1b, then G6-1 F-44.166); TYPE_1b's record ran against 97031c40; TYPE_2's record ran against 8a943ae1, TYPE_1's against 82ff431e.
-const BASE = arg('--base', '4aaad4d378c4bd8bac5aec00ad59b3890921dd85');
+// DESIGN-1 · STAGE 1 (by label): the stage compares against the tip it builds on, main at 85c66ef5, as every cut before
+// it did (the line above names them). §3 then holds the words and controls to main's, with the stage's listed changes.
+const BASE = arg('--base', '85c66ef518a0d1151dc4b5d357d63d56e26db2e6');
+const DESIGN1 = BASE.startsWith('85c66ef5');
 const CLOCK = arg('--clock', null);
 const MODES = arg('--modes', 'dark,light').split(',');
 const ROOMS = arg('--rooms', 'leads,clients,events,notes,invoices,expenses,calendar').split(',');
@@ -67,23 +73,29 @@ const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const { stripComments: strip } = require('./lib/stripComments.cjs');
 
 const FAMILY = ['BinderCard', 'BulkBar', 'DetailSheet', 'FilterRail', 'ForwardSheet', 'Masthead', 'SliceRow', 'SliceShell', 'SwipeRow', 'WishboneSheet']
-  .map((m) => `components/vendor/slices/${m}.tsx`).concat(['app/vendor/(shell)/clients/body.tsx']);
+  .map((m) => `components/vendor/slices/${m}.tsx`).concat(['v2/app/vendor/(shell)/clients/body.tsx']);
 // TYPE_2: the sheets the rooms open, and the legacy Toast (F4), take their rung through RUNG_FONT (F7).
 const SATELLITES = ['AddSheet', 'NeedFirst', 'MissingChips', 'ConversationThread', 'ClientBookingSheet', 'NotesBody', 'Toast',
   'packages/LeadPackageCard', 'packages/BookingSheet', 'packages/PackageFields'].map((m) => `components/vendor/${m}.tsx`);
 // cut 2 · the Calendar and the sheets it alone opens (F4), on the rungs through RUNG_FONT.
-const CALENDAR = ['app/vendor/(shell)/calendar/screen.tsx', 'components/vendor/CalendarDaySheet.tsx', 'components/vendor/CalendarBlockSheet.tsx',
-  'components/vendor/CalendarBands.tsx', 'components/vendor/CalendarCrewSheet.tsx'];
+const CALENDAR = ['v2/app/vendor/(shell)/calendar/screen.tsx', 'v2/components/vendor/CalendarDaySheet.tsx', 'v2/components/vendor/CalendarBlockSheet.tsx',
+  'v2/components/vendor/CalendarBands.tsx', 'v2/components/vendor/CalendarCrewSheet.tsx'];
 // NAMED, NOT HIDDEN: PackageFields' token object `T` still carries three faces because the Packages
-// room's own edit sheet (components/vendor/packages/PackageEditSheet.tsx, cut 5 by the chair's order)
+// room's own edit sheet (v2/components/vendor/packages/PackageEditSheet.tsx, cut 5 by the chair's order)
 // reads `T.body`. The three definition lines are the one exception, each matched by its exact text;
 // cut 5 retires them with their last reader.
 const FACE_DEFS_HELD = new Set([
-  "components/vendor/packages/PackageFields.tsx|display: 'var(--font-cormorant), Georgia, serif'",
-  "components/vendor/packages/PackageFields.tsx|label: 'var(--font-jost), system-ui, sans-serif'",
-  "components/vendor/packages/PackageFields.tsx|body: 'var(--font-dm-sans), system-ui, sans-serif'",
+  "v2/components/vendor/packages/PackageFields.tsx|display: 'var(--font-cormorant), Georgia, serif'",
+  "v2/components/vendor/packages/PackageFields.tsx|label: 'var(--font-jost), system-ui, sans-serif'",
+  "v2/components/vendor/packages/PackageFields.tsx|body: 'var(--font-dm-sans), system-ui, sans-serif'",
 ]);
-const RUNGS = new Set(['46|cormorant|500', '24|cormorant|500', '17|dmsans|500', '14|dmsans|400', '12|dmsans|500', '11|dmsans|500']);
+// DESIGN-1 · STAGE 1 (by label): the rungs are the review's scale in Inter (v2/lib/worklist/theme.ts TYPE: 28/600, 22/600,
+// 17/600, 16/400, 16/500, 14/400, 15/600, 13/500), read from TYPE itself so the set cannot drift from the scale. The old
+// six (Cormorant 46 and 24, DM Sans 17, 14, 12, 11) are retired with the faces.
+const THEME = (() => { try { const ts = require(P('node_modules/typescript')); const js = ts.transpileModule(read('v2/lib/worklist/theme.ts'), { compilerOptions: { module: 1, target: 7 } }).outputText;
+  const mod = { exports: {} }; new Function('module', 'exports', 'require', js)(mod, mod.exports, require); return mod.exports; } catch (_e) { return {}; } })();
+const RUNGS = new Set(Object.values(THEME.TYPE || {}).map((t) => `${t.size}|inter|${t.weight}`));
+const FACE = 'inter';
 const SIX = ['Leads', 'Clients', 'Invoices', 'Expenses', 'Events', 'Notes'];
 // TYPE_1b · his rows 4-8 in their home, pinned (1.7); the three foot lines his row 9 dropped, exactly
 // as 612a5b76 carried them (SliceShell CHIP_BLINDNESS), the one listed removal below the list (3.1).
@@ -93,12 +105,12 @@ const OLD_FOOT = new Set([
   'Some entries may also exist as enquiries \u2014 phones connect them.',
   'Some dates may also sit in a binder \u2014 the entry has to name it.',
 ]);
-// The registry's label bytes, read from lib/worklist/rooms.ts (the title's one source)
-const REG = Object.fromEntries([...read('lib/worklist/rooms.ts').matchAll(/\{ id: '([a-z-]+)',\s*label: '([^']+)'/g)].map((m) => [m[1], m[2]]));
+// The registry's label bytes, read from v2/lib/worklist/rooms.ts (the title's one source)
+const REG = Object.fromEntries([...read('v2/lib/worklist/rooms.ts').matchAll(/\{ id: '([a-z-]+)',\s*label: '([^']+)'/g)].map((m) => [m[1], m[2]]));
 // The home's five functions, evaluated from their own bytes (never retyped here)
 function headHome() {
   const ts = require(P('node_modules/typescript'));
-  const src = read('lib/worklist/copy.ts'); const i = src.indexOf('export const LEGACY_ROOM_HEAD');
+  const src = read('v2/lib/worklist/copy.ts'); const i = src.indexOf('export const LEGACY_ROOM_HEAD');
   if (i < 0) return null; // a tree before TYPE_1b has no home: 3.4 reds on it, it never throws
   const blk = src.slice(i, src.indexOf('} as const;', i) + '} as const;'.length);
   const js = ts.transpileModule(blk, { compilerOptions: { module: 1, target: 7 } }).outputText;
@@ -106,13 +118,61 @@ function headHome() {
 }
 const MONEY_ROOMS = new Set(['leads', 'invoices', 'expenses']);
 
+// ── DESIGN-1 · STAGE 1 · §3 AGAINST MAIN, WITH THE STAGE'S CHANGES LISTED (by label) ─────────────────────────────
+// The stage changed words and the shape of a row, by ruling (docs/review/REPORT.md §3 and W1 to W5), so §3 compares
+// the two trees after exactly these, and nothing else:
+//   the words:  the phrases below (one word for Leads and Enquiries, the retired names, the dashes the word pass took
+//               out), a phone spaced as people write it, and "Not given" for a record sheet's empty value ("\u2014");
+//   the row:    the one row puts a row's words on two lines, so a row's words are compared as a set (their order within
+//               the room may move; every word is still counted, none may appear or go); the letter column (L, I, \u25d0,
+//               \u00d7) carried no word and is not counted;
+//   moved:      a client row shows its chips, its money bar and the twin's door only when opened (data-row-open); at rest
+//               the base drew them, with the total figure and its "\u2193 in" mark, which the one row leaves out;
+//   gone:       the twin's door as a third line under an enquiry, invoice or event row (its href was the room, never the
+//               record): the words stay in the facts line, the link is not drawn.
+const D1_PHRASES = [['In your books', 'Also a client'], ['Also a lead', 'Also an enquiry'], ['Edit Here', 'Edit'], ['Edit Binder', 'Edit client'],
+  ['Hot Dates', 'Good dates'], ['Next Engagements', 'Coming up'], ['Loose engagements', 'Other events'], ['part-paid', 'Part paid'],
+  ['Still missing \u2014 tap to complete:', 'Add what is missing:'], ['A line added beneath what stands \u2014 the story grows.', 'A line added under what is there. The story grows.'],
+  ['Jot it down \u2014 just for you', 'Jot it down, just for you']];
+function d1Words(t, field = false) {
+  let x = String(t);
+  for (const [a, b] of D1_PHRASES) x = x.split(a).join(b);
+  x = x.replace(/^Anno \u00b7\s*/, '').replace(/\bLeads\b/g, 'Enquiries').replace(/\bleads\b/g, 'enquiries').replace(/\bLead\b/g, 'Enquiry').replace(/\blead\b/g, 'enquiry');
+  // a phone is spaced where it is read, never inside a field the vendor edits (its value is the wire's)
+  return field ? x : x.replace(/\+91(\d{5})(\d{5})\b/g, '+91 $1 $2');
+}
+const d1Tokens = (texts) => { const m = new Map(); for (const w of texts.join(' \n ').toLowerCase().split(/[\s\u00b7,.:;!?()"\u201c\u201d'\u2019\u2014\u2013\-/]+/)) { if (!w || (w.length === 1 && !/\d/.test(w))) continue; m.set(w, (m.get(w) || 0) + 1); } return m; };
+const bagDiff = (a, b) => { const out = []; for (const [w, n] of a) { const k = n - (b.get(w) || 0); if (k > 0) out.push(k > 1 ? `${w}\u00d7${k}` : w); } return out; };
+// the base's resting client row: its chips (+ date), its total figure and the figure's direction mark, which the one row leaves out
+function d1BaseNodes(nodes) {
+  const out = [];
+  for (let i = 0; i < nodes.length; i += 1) {
+    const n = nodes[i]; const nx = nodes[i + 1];
+    if (/^\+ [a-z]+$/.test(n.txt) && !n.sheet) continue;
+    if (n.txt === '+' && nx && /^[a-z]+$/.test(nx.txt) && !n.sheet) { i += 1; continue; }   // the chip drawn as two text nodes
+    if (/^[\u2193\u2191] (in|out)$/.test(n.txt)) continue;
+    if (nx && /^[\u2193\u2191] (in|out)$/.test(nx.txt) && /^Rs [0-9,]+$/.test(n.txt)) continue;
+    out.push(n.sheet && n.txt === '\u2014' ? { ...n, txt: 'Not given' } : n);
+  }
+  return out;
+}
+const D1_TWIN = /^(In your books|Also a lead|Also an enquiry)\b/;
+// DESIGN-1 · STAGE 2 (by label; docs/review/REPORT.md §2 (e) and E6/E7: the crew wherever an event shows). The Events
+// rows, Coming up, the day sheet and the Weddings board ADD the crew in words (first names, "(not replied yet)",
+// "(declined)", "No crew yet"), and the board's initials ring gave way to the first name. 3.1 and 3.2 compare everything
+// else against the base exactly as before, with the crew taken off both sides (the base's crew was its initials); and
+// 3.1c, a new cell, holds that the crew IS drawn, in words, on each Events and Calendar scene, so the excusal is not a hole.
+const STAGE2 = fs.existsSync(P('v2/lib/worklist/crew.ts'));
+const CREW_LINE = /^(No crew yet|\((not replied yet|declined)\)|[A-Z][a-z]+( \((not replied yet|declined)\))?(, [A-Z][a-z]+( \((not replied yet|declined)\))?)*)$/;
+
 // ══ §1 · THE SOURCE ════════════════════════════════════════════════════════════════════════
 function sourceCells(tag = '') {
   console.log('\n\u00a71 \u00b7 the source' + tag);
-  const row = strip(read('components/vendor/slices/SliceRow.tsx'));
-  cell('1.1 F is retired, and T names t1..t5 and nothing else (t0 is Today\u2019s)',
+  const row = strip(read('v2/components/vendor/slices/SliceRow.tsx'));
+  // DESIGN-1 (by label): T names the review's rungs, t1..t5 and the two it adds, tn (a row's name) and tb (a button)
+  cell('1.1 F is retired, and T names t1, t2, t3, tn, tb, t4, t5 and nothing else (t0 is Today\u2019s)',
     /export const F\b/.test(row) ? 'SliceRow still exports F'
-      : !/export const T = \{\s*t1: 'var\(--wl-t1\)',\s*t2: 'var\(--wl-t2\)',\s*t3: 'var\(--wl-t3\)',\s*t4: 'var\(--wl-t4\)',\s*t5: 'var\(--wl-t5\)',\s*\} as const;/.test(row) ? 'T is not the five rungs exactly' : null);
+      : !/export const T = \{\s*t1: 'var\(--wl-t1\)',\s*t2: 'var\(--wl-t2\)',\s*t3: 'var\(--wl-t3\)',\s*tn: 'var\(--wl-tn\)',\s*tb: 'var\(--wl-tb\)',\s*t4: 'var\(--wl-t4\)',\s*t5: 'var\(--wl-t5\)',\s*\} as const;/.test(row) ? 'T is not the seven rungs exactly' : null);
   const raw = [], fonts = [], tracks = [];
   for (const f of FAMILY.concat(SATELLITES, CALENDAR)) {
     const s = strip(read(f));
@@ -121,7 +181,7 @@ function sourceCells(tag = '') {
       if (m[1] && FACE_DEFS_HELD.has(`${f}|${m[0]}`)) continue;
       raw.push(`${f}: --font-${m[2] || m[3]}`);
     }
-    for (const m of s.matchAll(/\bfont:\s*([^,\n}]+)/g)) if (!/^(T|RUNG)\.t[1-5]$/.test(m[1].trim())) fonts.push(`${f}: font: ${m[1].trim()}`);
+    for (const m of s.matchAll(/\bfont:\s*([^,\n}]+)/g)) if (!/^(T|RUNG)\.(t[1-5]|tn|tb)$/.test(m[1].trim())) fonts.push(`${f}: font: ${m[1].trim()}`);
     for (const m of s.matchAll(/letterSpacing:\s*([^,\n}]+)/g)) if (m[1].trim() !== "'0.08em'") tracks.push(`${f}: ${m[1].trim()}`);
   }
   cell('1.2 no raw size, face, weight, line-height or style in the family, the clients room, the sheets they open (TYPE_2) or the Calendar and its sheets (cut 2)', raw.length ? raw.slice(0, 6).join(' | ') + (raw.length > 6 ? ` (+${raw.length - 6})` : '') : null);
@@ -153,26 +213,26 @@ function sourceCells(tag = '') {
     writers.length || readers.length ? `writers: ${writers.join(', ') || 'none'} · readers: ${readers.join(', ') || 'none'}` : null);
   // 1.7 · TYPE_1b: his five headline lines, byte for byte, in their ONE home (the founder's table, rows 4-8)
   {
-    const src = read('lib/worklist/copy.ts');
+    const src = read('v2/lib/worklist/copy.ts');
     const i = src.indexOf('export const LEGACY_ROOM_HEAD'); const j = i < 0 ? -1 : src.indexOf('} as const;', i);
     const blk = i < 0 || j < 0 ? '' : src.slice(i, j + '} as const;'.length);
-    cell('1.7 TYPE_1b: LEGACY_ROOM_HEAD holds his rows 4-8 byte for byte (sha pinned) in lib/worklist/copy.ts',
+    cell('1.7 TYPE_1b: LEGACY_ROOM_HEAD holds his rows 4-8 byte for byte (sha pinned) in v2/lib/worklist/copy.ts',
       !blk ? 'LEGACY_ROOM_HEAD not found' : sha(blk) !== HEAD_SHA ? 'the block moved: sha ' + sha(blk).slice(0, 12) : null);
   }
   // 1.8 · TYPE_1b: every headline reads the home, every title reads the registry; the retired lines are gone
   {
-    const shell = strip(read('components/vendor/slices/SliceShell.tsx'));
-    const clients = strip(read('app/vendor/(shell)/clients/body.tsx'));
-    const notes = strip(read('app/vendor/(shell)/notes/body.tsx'));
+    const shell = strip(read('v2/components/vendor/slices/SliceShell.tsx'));
+    const clients = strip(read('v2/app/vendor/(shell)/clients/body.tsx'));
+    const notes = strip(read('v2/app/vendor/(shell)/notes/body.tsx'));
     const heads = [...(shell + clients).matchAll(/<Masthead\b[^>]*>/g)].map((m) => m[0]);
     const bad = [];
     if (heads.length !== 6) bad.push(`${heads.length} Masthead mounts, not six (five rooms in the shell, Clients' own)`);
     heads.filter((h) => !/\bline=\{LEGACY_ROOM_HEAD\.(leads|clients|invoices|expenses|events)\(/.test(h)).forEach((h) => bad.push('a headline not from the home: ' + h.slice(0, 60)));
     if (/\b(LANE_LINE|CHIP_BLINDNESS|eyebrow=|sub=)/.test(shell + clients)) bad.push('a retired lane, foot, eyebrow or sub-line survives');
     // AMENDED BY LABEL · CE-46 FE-4 (Fork A (3), 27 Sept 2026): the title has ONE drawer now, WorklistShell's RoomHead
-    // (components/worklist/PageHelp.tsx), reading the shell's `title` byte; SliceShell and Notes draw no h1 and read no
+    // (v2/components/worklist/PageHelp.tsx), reading the shell's `title` byte; SliceShell and Notes draw no h1 and read no
     // registry name. The cell asks the new question: neither family module draws a room title, and the shell's head does.
-    const head = strip(read('components/worklist/PageHelp.tsx')); const wl = strip(read('components/worklist/WorklistShell.tsx'));
+    const head = strip(read('v2/components/worklist/PageHelp.tsx')); const wl = strip(read('v2/components/worklist/WorklistShell.tsx'));
     if (/data-room-title|ROOM_NAME|<h1\b/.test(shell)) bad.push('SliceShell still draws a room title of its own');
     if (/data-room-title|NOTES_NAME|<h1\b/.test(notes)) bad.push('Notes still draws a room title of its own');
     if (!/const headLine = override === undefined \? title : override;/.test(head) || !/<h1 data-room-title="" className="wl-roomtitle">\{headLine\}<\/h1>/.test(head) || !/<RoomHead title=\{title\} \/>\{children\}/.test(wl)) bad.push('the shell does not draw the title from its own byte (F-44.219: or the room\u2019s own line), once, above the room');
@@ -181,12 +241,14 @@ function sourceCells(tag = '') {
   // 1.6 · F7: RUNG_FONT is the scale read twice, var(--wl-tN, <the tuple>), generated from TYPE
   try {
     const ts = require(P('node_modules/typescript'));
-    const js = ts.transpileModule(read('lib/worklist/theme.ts'), { compilerOptions: { module: 1, target: 7 } }).outputText;
+    const js = ts.transpileModule(read('v2/lib/worklist/theme.ts'), { compilerOptions: { module: 1, target: 7 } }).outputText;
     const mod = { exports: {} }; new Function('module', 'exports', 'require', js)(mod, mod.exports, require);
     const { RUNG_FONT, TYPE, TYPE_ROLE } = mod.exports;
-    const bad = ['t1', 't2', 't3', 't4', 't5'].filter((k) => RUNG_FONT[k] !== `var(--wl-${k}, ${TYPE[k].weight} ${TYPE[k].size}px/${TYPE[k].line} ${TYPE[k].family === 'feature' ? TYPE_ROLE.feature : TYPE_ROLE.body})`);
+    // DESIGN-1 (by label): the tuple is emitted in rem (size / 16) so the text follows the phone's own size, one family
+    const rem = (px) => `${+(px / 16).toFixed(4)}rem`;
+    const bad = Object.keys(TYPE).filter((k) => k !== 't0').filter((k) => RUNG_FONT[k] !== `var(--wl-${k}, ${TYPE[k].weight} ${rem(TYPE[k].size)}/${+TYPE[k].line.toFixed(4)} ${TYPE_ROLE.body})`);
     const t0 = Object.prototype.hasOwnProperty.call(RUNG_FONT, 't0');
-    const lit = /RUNG_FONT[\s\S]{0,900}?\b(1[0-9]|2[0-9]|4[0-9])px/.test(strip(read('lib/worklist/theme.ts')).split('export const RUNG_FONT')[1] || '');
+    const lit = /RUNG_FONT[\s\S]{0,900}?\b(1[0-9]|2[0-9]|4[0-9])px/.test(strip(read('v2/lib/worklist/theme.ts')).split('export const RUNG_FONT')[1] || '');
     cell('1.6 F7: each RUNG_FONT rung is var(--wl-tN, its own tuple), generated from TYPE (no second copy), and t0 is not offered',
       bad.length ? 'wrong: ' + bad.join(', ') : t0 ? 't0 is offered' : lit ? 'a size literal inside RUNG_FONT: a second copy of the scale' : null);
   } catch (e) { cell('1.6 F7: RUNG_FONT', 'could not transpile theme.ts: ' + e.message); }
@@ -200,7 +262,7 @@ function sourceCells(tag = '') {
 const SCENES = { calendar: ['rest', 'weddings', 'day', 'block', 'crew'], leads: ['rest', 'sheet', 'add', 'booking'], clients: ['rest', 'sheet', 'add'], events: ['rest', 'sheet', 'add'], notes: ['rest', 'note', 'add', 'toast'], invoices: ['rest', 'sheet', 'schedule', 'add'], expenses: ['rest', 'sheet', 'add'] };
 function probe(port, mode, room, scene, shots) {
   const env = { ...process.env }; if (CLOCK) env.B123_CLOCK = String(Date.parse(CLOCK));
-  const r = spawnSync('node', [P('scripts/lib/b123_type_probe.mjs'), String(port), mode, room, scene, shots || ''], { encoding: 'utf8', timeout: 240000, env });
+  const r = spawnSync('node', [P('scripts/lib/b123_type_probe_v2.mjs'), String(port), mode, room, scene, shots || ''], { encoding: 'utf8', timeout: 240000, env });
   const line = (r.stdout || '').trim().split('\n').pop();
   try { return JSON.parse(line); } catch (_e) { return { errors: ['no JSON from the probe: ' + (r.stderr || '').split('\n')[0]], nodes: [], controls: [] }; }
 }
@@ -282,12 +344,13 @@ function typeCells(tag, sc) {
   const own = sc.nodes.filter((n) => !n.later && !n.strip);
   const off = own.filter((n) => !RUNGS.has(`${n.size}|${n.f}|${n.wt}`));
   cell(`2.1 ${tag} every text node sits on a rung (size, face, weight)`, off.length ? off.slice(0, 4).map((n) => `\u201c${n.txt.slice(0, 24)}\u201d ${n.f} ${n.size}/${n.wt}`).join(' | ') + ` (${off.length})` : null);
-  const faces = [...new Set(own.map((n) => n.f))].filter((f) => f !== 'cormorant' && f !== 'dmsans');
-  cell(`2.2 ${tag} only Cormorant and DM Sans, and nothing italic`, faces.length ? 'faces: ' + faces.join(', ') : own.some((n) => n.fs === 'italic') ? 'an italic node' : null);
-  const tr = own.filter((n) => n.ls !== 'normal' && Math.abs(parseFloat(n.ls) - 0.08 * n.size) > 0.02);
-  cell(`2.3 ${tag} tracking is none or .08em`, tr.length ? tr.slice(0, 4).map((n) => `\u201c${n.txt.slice(0, 20)}\u201d ${n.ls}`).join(' | ') : null);
-  const upBtn = sc.controls.filter((c) => !c.later && !c.strip && c.tag === 'button' && c.tt === 'uppercase' && c.size !== 11);
-  cell(`2.4 ${tag} F5: no button above t5 is set in capitals`, upBtn.length ? upBtn.map((c) => c.name.slice(0, 24)).join(' | ') : null);
+  // DESIGN-1 (by label): one face, Inter, and no tracking at all (REPORT.md §5: sentence case, no letter-spacing)
+  const faces = [...new Set(own.map((n) => n.f))].filter((f) => f !== FACE);
+  cell(`2.2 ${tag} only Inter, and nothing italic`, faces.length ? 'faces: ' + faces.join(', ') : own.some((n) => n.fs === 'italic') ? 'an italic node' : null);
+  const tr = own.filter((n) => n.ls !== 'normal' && Math.abs(parseFloat(n.ls)) > 0.02);
+  cell(`2.3 ${tag} no tracking`, tr.length ? tr.slice(0, 4).map((n) => `\u201c${n.txt.slice(0, 20)}\u201d ${n.ls}`).join(' | ') : null);
+  const upBtn = sc.controls.filter((c) => !c.later && !c.strip && c.tag === 'button' && c.tt === 'uppercase');
+  cell(`2.4 ${tag} F5 (DESIGN-1: every rung): no button is set in capitals`, upBtn.length ? upBtn.map((c) => c.name.slice(0, 24)).join(' | ') : null);
 }
 
 // The cells of ONE scene, cured (c) against base (b). Lifted out of the render loop (cut 2) so a render
@@ -338,23 +401,37 @@ function sceneCells(room, scene, mode, c, b, f5 = new Map()) {
       return { head: k < 0 ? [] : all.slice(0, k), body: (k < 0 ? all : all.slice(k)).filter((n) => !OLD_FOOT.has(n.txt)) };
     };
     const C = cut(c, false), Bs = cut(b, true);
+    if (DESIGN1) {
+      // DESIGN-1 (by label, the list above): the words compared as a set per scene, after the stage's listed changes
+      const bw = d1Tokens(d1BaseNodes(Bs.body.filter((n) => !(STAGE2 && n.crew))).map((n) => d1Words(n.txt)));
+      const cw = d1Tokens(C.body.filter((n) => !n.open && !(STAGE2 && n.crew)).map((n) => n.txt));
+      if (STAGE2 && (room === 'events' || room === 'calendar')) {
+        const crewNodes = C.body.filter((n) => n.crew);
+        const bad = crewNodes.filter((n) => !CREW_LINE.test(n.txt));
+        cell(`3.1c ${tag} the crew is drawn here in words: first names, their answer, or No crew yet (DESIGN-1 stage 2)`, !crewNodes.length ? 'no crew drawn on this scene' : bad.length ? 'not in words: ' + JSON.stringify(bad.slice(0, 4).map((n) => n.txt)) : null);
+      }
+      const gone = bagDiff(bw, cw), added = bagDiff(cw, bw);
+      cell(`3.1 ${tag} the words are the base\u2019s, with DESIGN-1\u2019s listed changes (none gone, none added)`, !gone.length && !added.length ? null : `gone ${JSON.stringify(gone.slice(0, 8))} added ${JSON.stringify(added.slice(0, 8))}`);
+    } else {
     const words = (x) => (x === c ? C.body : Bs.body).map((n) => n.txt);
     const wa = words(b), wc = words(c);
     let firstDiff = -1; for (let i = 0; i < Math.max(wa.length, wc.length); i += 1) if (wa[i] !== wc[i]) { firstDiff = i; break; }
     cell(`3.1 ${tag} the words are the base\u2019s, node for node`, firstDiff < 0 ? null : `at ${firstDiff}: base \u201c${wa[firstDiff]}\u201d cured \u201c${wc[firstDiff]}\u201d (${wa.length}/${wc.length})`);
+    }
     if (room === 'calendar' && scene === 'rest') {
       // 6.1 · cut 2, his "2" (26 Sept 2026): the month's name is the surface's ONE t1; every grid numeral
       // is t2 (DM Sans 17) in its unchanged circle; every upcoming-date numeral is t2 (C3). Read from the
       // grid's and the list's own markers, never from a guess about which digits are which.
       const own = c.nodes.filter((n) => !n.strip);
-      const t1 = own.filter((n) => n.size === 24 && n.f === 'cormorant' && !n.fab); // the shell's + is its own control, in every room
+      // DESIGN-1 (by label): t1 is Inter 22, t2 Inter 17 (the review's scale)
+      const t1 = own.filter((n) => n.size === 22 && n.f === FACE && !n.fab); // the shell's + is its own control, in every room
       const gridNums = own.filter((n) => n.grid && /^\d{1,2}$/.test(n.txt));
       const nextNums = own.filter((n) => n.next && /^\d{1,2}$/.test(n.txt));
       const bad = [];
       if (t1.length !== 1 || !/^(January|February|March|April|May|June|July|August|September|October|November|December)$/.test(t1[0].txt)) bad.push('the t1 nodes are ' + JSON.stringify(t1.map((n) => n.txt)));
       if (gridNums.length < 28) bad.push(`only ${gridNums.length} grid numerals drawn`);
-      const offGrid = gridNums.filter((n) => n.size !== 17 || n.f !== 'dmsans'); if (offGrid.length) bad.push(`${offGrid.length} grid numerals not at t2 (e.g. ${offGrid[0].f} ${offGrid[0].size})`);
-      if (!nextNums.length) bad.push('no upcoming-date numeral drawn'); else if (nextNums.some((n) => n.size !== 17 || n.f !== 'dmsans')) bad.push('an upcoming-date numeral is not at t2');
+      const offGrid = gridNums.filter((n) => n.size !== 17 || n.f !== FACE); if (offGrid.length) bad.push(`${offGrid.length} grid numerals not at t2 (e.g. ${offGrid[0].f} ${offGrid[0].size})`);
+      if (!nextNums.length) bad.push('no upcoming-date numeral drawn'); else if (nextNums.some((n) => n.size !== 17 || n.f !== FACE)) bad.push('an upcoming-date numeral is not at t2');
       cell(`6.1 ${tag} cut 2 (his "2"): the month is the one t1, the grid numerals and the upcoming dates at t2`, bad.length ? bad.join(' | ') : null);
     }
     if (room === 'leads' && scene === 'rest') {
@@ -363,11 +440,20 @@ function sceneCells(room, scene, mode, c, b, f5 = new Map()) {
       // inside every ancestor that clips. The tag stays the t5 rung in capitals.
       const tags = c.tags || []; const bad = [];
       if (!c.realFaces) bad.push('measured on fallback faces (set B123_FONT_DIR, or let next/font load the real ones): a fallback face cannot show this overflow');
+      // DESIGN-1 (by label, REPORT.md P8): the one row carries a lead's provenance as WORDS in its facts line, so no tag box
+      // is drawn to be cut; F-44.177 is cured by construction and the cell asks that of the glass: no tag box, and the
+      // words TDW, Wedding and Referral whole in a facts line (which wraps, never clips).
+      if (DESIGN1) {
+        if (tags.length) bad.push(`${tags.length} tag boxes still drawn`);
+        const facts = c.nodes.filter((n) => !n.strip && /\u00b7 TDW\b|\u00b7 Wedding\b|\u00b7 Referral\b/.test(n.txt));
+        if (facts.length < 2) bad.push(`the provenance words ride ${facts.length} facts lines, not the rows'`);
+      } else {
       if (tags.length < 2) bad.push(`only ${tags.length} tags drawn`);
       for (const t of tags) {
         if (t.size !== 11 || t.tt !== 'uppercase') bad.push(`${t.txt} is ${t.size}px ${t.tt}, not the t5 rung in capitals`);
         if (t.text.top < t.box.top - 0.5 || t.text.bottom > t.box.bottom + 0.5) bad.push(`${t.txt}: its text (${t.text.top.toFixed(1)}-${t.text.bottom.toFixed(1)}) spills its box (${t.box.top.toFixed(1)}-${t.box.bottom.toFixed(1)})`);
         for (const k of t.clips) if (t.box.top < k.top - 0.5 || t.box.bottom > k.bottom + 0.5) { bad.push(`${t.txt}: its box (${t.box.top.toFixed(1)}-${t.box.bottom.toFixed(1)}) is cut by a clipping ancestor (${k.top.toFixed(1)}-${k.bottom.toFixed(1)})`); break; }
+      }
       }
       cell(`6.3 ${tag} F-44.177: every lead-row tag is whole in the real faces (its text in its box, its box unclipped)`, bad.length ? bad.slice(0, 3).join(' | ') : null);
     }
@@ -376,8 +462,8 @@ function sceneCells(room, scene, mode, c, b, f5 = new Map()) {
       // shape. (2.4 lets any t5 control keep capitals, for chips; these were actions sitting at t5 in capitals
       // in cut 2's first cut, which the capture showed and 2.4 could not see.)
       const acts = c.controls.filter((k) => k.tag === 'button' && /^(Move|Crew|Edit|Cancel|Mark paid)$/.test(k.name));
-      const bad = acts.filter((k) => k.tt !== 'none' || k.size !== 12);
-      cell(`6.2 ${tag} cut 2 (F5): the day sheet's action pills are buttons at t4 in sentence case`,
+      const bad = acts.filter((k) => k.tt !== 'none' || k.size !== (DESIGN1 ? 15 : 12));   // DESIGN-1: a button is tb, 15
+      cell(`6.2 ${tag} cut 2 (F5): the day sheet's action pills are buttons at ${DESIGN1 ? 'tb' : 't4'} in sentence case`,
         acts.length < 5 ? `only ${acts.length} action pills drawn` : bad.length ? bad.map((k) => `${k.name} ${k.tt} ${k.size}`).slice(0, 4).join(' | ') : null);
     }
     if (scene === 'rest' && room !== 'calendar') {
@@ -403,7 +489,7 @@ function sceneCells(room, scene, mode, c, b, f5 = new Map()) {
         if (!home) bad.push('no LEGACY_ROOM_HEAD home in this tree');
         if (home && H[at] !== want) bad.push(`the line reads \u201c${H[at]}\u201d, his byte for ${n} is \u201c${want}\u201d`);
         const rest = H.slice(at + 1).join(' ');
-        if (rest && rest !== 'recent \u2304' && rest !== 'amount \u2304' && rest !== 'date \u2304') bad.push('something else in the head: ' + rest);
+        if (rest && !/^(recent|amount|date) \u2304$/i.test(rest)) bad.push('something else in the head: ' + rest);   // DESIGN-1: in sentence case now
       }
       cell(`3.4 ${tag} TYPE_1b: the head is his: the registry title, ${MONEY_ROOMS.has(room) ? 'the figure at t2 and ' : ''}his one line with the room's own count`, bad.length ? bad.join(' | ') : null);
       // 3.5, RE-CUT (e-candidate, the seat's own): the first form read the title TEXT's top (16-22px), and
@@ -413,14 +499,27 @@ function sceneCells(room, scene, mode, c, b, f5 = new Map()) {
       // it is the room's first text. The face-dependent check (t1: Cormorant 24) stays on the text node.
       const t = C.head[0]; const tb = c.titleBox;
       cell(`3.5 ${tag} TYPE_1b: the room opens 16px above its first line, and that line is its title at t1`,
-        !t || !tb ? 'no title' : t.size !== 24 || t.f !== 'cormorant' ? `the title is ${t.f} ${t.size}`
+        !t || !tb ? 'no title' : t.size !== (DESIGN1 ? 22 : 24) || t.f !== (DESIGN1 ? FACE : 'cormorant') ? `the title is ${t.f} ${t.size}`
           : Math.abs(tb.elTop) > 0.5 ? `the title's box starts ${tb.elTop}px below the room's top, not at it`
           : tb.padTop !== 16 ? `the title sets ${tb.padTop}px above its line, not 16` : !tb.first ? 'the title is not the room\u2019s first text' : null);
     }
     // AMENDED BY LABEL · CE-46 FE-4: the "?" (named "What is this page") is the one control this cut adds to every
     // room; it is taken off by its name, and every other control is still compared in order (b140 2.3 proves it).
     const ctl = (x) => x.controls.filter((k) => !k.strip && k.name !== 'What is this page').map((k) => `${k.tag}|${k.role}|${k.name}|${k.href}`);
-    const ca = ctl(b), cc = ctl(c);
+    // DESIGN-1 (by label, the list above): the twin's door and the client row's resting chips leave the base's list, a
+    // cured control inside the opened row (data-row-open) is the moved one and leaves the cured list, and a name is
+    // compared as its set of words after the stage's changes (a row's name is its words, which the one row reorders)
+    const bag = (t) => [...d1Tokens([t])].sort().map(([w, n]) => w + (n > 1 ? n : '')).join(' ');
+    // DESIGN-1 · STAGE 2 (by label): a control's crew comes off its name on both sides (3.1's note above), each crew element's
+    // text removed WHOLE, once, as a phrase (a word-by-word removal took the "No" out of "Nov" and the "crew" out of the
+    // board's own "no crew assigned")
+    const unCrew = (k, t) => { if (!STAGE2 || !Array.isArray(k.crewWords)) return t; let x = String(t); for (const ph of k.crewWords) x = x.replace(ph, ' '); return x; };
+    const d1Moved = (k) => (k.tag === 'a' && D1_TWIN.test(k.name)) || (k.tag === 'span' && k.role === 'button' && /^\+ /.test(k.name));
+    // a base row's name, less what the one row leaves out at rest: the chips (+ date), the total figure and its mark
+    const d1Name = (t) => d1Words(t).replace(/(^| )\+ [a-z]+(?= )/g, ' ').replace(/Rs [0-9,]+ [\u2193\u2191] (in|out)/g, ' ');
+    const field = (k) => k.tag === 'input' || k.tag === 'textarea';
+    const ca = DESIGN1 ? b.controls.filter((k) => !k.strip && k.name !== 'What is this page' && !d1Moved(k)).map((k) => `${k.tag}|${k.role}|${bag(field(k) ? d1Words(k.words || k.name, true) : d1Name(unCrew(k, k.words || k.name)))}|${k.href}`) : ctl(b);
+    const cc = DESIGN1 ? c.controls.filter((k) => !k.strip && k.name !== 'What is this page' && !k.open).map((k) => `${k.tag}|${k.role}|${bag(unCrew(k, k.words || k.name))}|${k.href}`) : ctl(c);
     let cd = -1; for (let i = 0; i < Math.max(ca.length, cc.length); i += 1) if (ca[i] !== cc[i]) { cd = i; break; }
     cell(`3.2 ${tag} the controls are the base\u2019s by name, role and href`, cd < 0 ? null : `at ${cd}: base ${ca[cd]} cured ${cc[cd]}`);
     // CE-46 FE-4: the "?" is off both lists here too, by its name, so the pairing by index still lines up (3.3)
@@ -432,7 +531,7 @@ function sceneCells(room, scene, mode, c, b, f5 = new Map()) {
       // money figure stands at t2; the question, the widest figure whole inside the column, is unchanged.
       cell(`4.1 ${tag} F6 (as amended by TYPE_1b): the longest figure renders whole at t2 inside the column`,
         !fg ? 'no money figure drawn' : fg.text !== 'Rs 9,99,99,99,999' ? 'the figure reads ' + fg.text
-          : fg.size !== 17 || fg.f !== 'dmsans' ? `the figure is ${fg.f} ${fg.size}` : fg.sw > fg.cw || fg.right > 374 - 16 ? `clipped: ${fg.sw}>${fg.cw} or right ${fg.right}` : null);
+          : fg.size !== 17 || fg.f !== (DESIGN1 ? FACE : 'dmsans') ? `the figure is ${fg.f} ${fg.size}` : fg.sw > fg.cw || fg.right > 374 - 16 ? `clipped: ${fg.sw}>${fg.cw} or right ${fg.right}` : null);
     }
 }
 
@@ -457,7 +556,8 @@ async function renderCells() {
     const PRE_F5 = ['82ff431e', '9b251ad4', '8a943ae1'].some((b) => BASE.startsWith(b));
     // cut 2 brings F5 to the Calendar: its buttons MUST move case; every other room is already whole.
     const moved = [...f5.keys()]; const calMoved = moved.filter((k) => k.startsWith('calendar:')); const otherMoved = moved.filter((k) => !k.startsWith('calendar:'));
-    if (PRE_F5) cell('3.3 F5 moved at least one control, and every one it moved kept its words (3.2)', f5.size ? null : 'no control changed case: F5 did not land');
+    if (DESIGN1) cell('3.3 F5 (DESIGN-1): the controls the base set in capitals are in sentence case now, their words kept (3.2); listed above', f5.size ? null : 'no control changed case: the stage\u2019s sentence case did not land');
+    else if (PRE_F5) cell('3.3 F5 moved at least one control, and every one it moved kept its words (3.2)', f5.size ? null : 'no control changed case: F5 did not land');
     else cell('3.3 F5: the Calendar\u2019s buttons move to sentence case (cut 2), and no other room\u2019s control moves', otherMoved.length ? 'moved outside the Calendar: ' + otherMoved.slice(0, 4).join(', ') : ROOMS.includes('calendar') && !calMoved.length ? 'no Calendar control moved case: F5 did not land there' : null);
   } finally { stop(devC); stop(devB); }
 }
@@ -466,30 +566,33 @@ async function renderCells() {
 async function mutations() {
   console.log('\n\u00a75 \u00b7 mutations of production code, each restored');
   const M = [
-    { id: 'M1', file: 'components/vendor/slices/SliceRow.tsx', from: /(\{row\.badge && \(\s*<span style=\{\{\s*font: T\.t5,)/, to: '$1 fontSize: 9,', cells: /^1\.2/ },
+    { id: 'M1', file: 'v2/components/vendor/slices/SliceRow.tsx', from: /(\{row\.badge && \(\s*<span style=\{\{\s*font: T\.t5,)/, to: '$1 fontSize: 9,', cells: /^1\.2/ },
     // M2 (re-anchored at TYPE_1b: the figure moved from T.t1 to T.t2): Italiana restored on the money figure
-    { id: 'M2', file: 'components/vendor/slices/Masthead.tsx', from: /(font: T\.t2,)/, to: "$1 fontFamily: 'var(--font-italiana), serif',", cells: /^1\.2/ },
-    { id: 'M3', file: 'app/vendor/(shell)/notes/body.tsx', from: /(<NotesBody \/>)/, to: '<SliceDoor active="notes" />$1', cells: /^1\.4/ },
-    { id: 'M4', file: 'components/vendor/slices/DetailSheet.tsx', from: /(font: T\.t5,\s*letterSpacing: )'0\.08em'/, to: "$1'0.32em'", cells: /^1\.3/ },
+    { id: 'M2', file: 'v2/components/vendor/slices/Masthead.tsx', from: /(font: T\.t2,)/, to: "$1 fontFamily: 'var(--font-italiana), serif',", cells: /^1\.2/ },
+    { id: 'M3', file: 'v2/app/vendor/(shell)/notes/body.tsx', from: /(<NotesBody \/>)/, to: '<SliceDoor active="notes" />$1', cells: /^1\.4/ },
+    // DESIGN-1 (re-anchored: the label's tracking is gone): .32em tracking planted on the detail sheet's label
+    { id: 'M4', file: 'v2/components/vendor/slices/DetailSheet.tsx', from: /(font: T\.t5, color: A\.inkMute, flexShrink: 0,)/, to: "$1 letterSpacing: '0.32em',", cells: /^1\.3/ },
     // TYPE_2: a raw size back on the legacy Toast's message; RUNG_FONT stripped of its fallback (F7)
-    { id: 'M6', file: 'components/vendor/Toast.tsx', from: /(font: RUNG\.t3,)/, to: '$1 fontSize: 16,', cells: /^1\.2/ },
-    { id: 'M7', file: 'lib/worklist/theme.ts', from: /`var\(--wl-\$\{k\}, \$\{TYPE\[k\]\.weight\}/, to: '`var(--wl-${k}, 500', cells: /^1\.6/ },
+    { id: 'M6', file: 'v2/components/vendor/Toast.tsx', from: /(font: RUNG\.t3,)/, to: '$1 fontSize: 16,', cells: /^1\.2/ },
+    { id: 'M7', file: 'v2/lib/worklist/theme.ts', from: /`var\(--wl-\$\{k\}, \$\{TYPE\[k\]\.weight\}/, to: '`var(--wl-${k}, 500', cells: /^1\.6/ },
     // M5 (re-aimed at TYPE_1b, the lane line it planted in being retired): one word of the list changes,
     // the TDW mark on a lead's row; the words below the head must redden
-    { id: 'M5', file: 'components/vendor/slices/SliceRow.tsx', from: />TDW<\/span>/, to: '>TDX</span>', cells: /^3\.[12]/, render: { room: 'leads', scene: 'rest' } }, // WIDENED (ruled): the mark is inside the row's button, so its accessible name (3.2) moves with the word (3.1)
+    // DESIGN-1 (re-aimed: the mark is a word of the facts line now): one word of the list changes, TDW to TDX
+    { id: 'M5', file: 'v2/components/vendor/slices/SliceRow.tsx', from: /row\.tdw \? 'TDW' : ''/, to: "row.tdw ? 'TDX' : ''", cells: /^3\.[12]/, render: { room: 'leads', scene: 'rest' } }, // WIDENED (ruled): the mark is inside the row's button, so its accessible name (3.2) moves with the word (3.1)
     // cut 2 · his "2" and F5 on the day sheet, each reddening its own render cell and only it:
     // M10 the grid numerals back at t3 (6.1); M11 the day sheet's action pills back at t5 in capitals (6.2)
     // F-44.177: today's tag restored (inside the name's clipping line, inline): 6.3 must redden
-    { id: 'M12', file: 'components/vendor/slices/SliceRow.tsx', cells: /^6\.3/, render: { room: 'leads', scene: 'rest' },
-      apply: (src) => src.replace("<div style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>", "<div style={{ font: T.t3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>")
-        .split("display: 'inline-flex',\n                alignItems: 'center',\n                flexShrink: 0,").join("verticalAlign: 'middle',") },
-    { id: 'M10', file: 'app/vendor/(shell)/calendar/screen.tsx', cells: /^6\.1/, render: { room: 'calendar', scene: 'rest' },
+    // DESIGN-1 (re-aimed): the TDW word leaves the facts line and comes back as a tag box beside the name; 6.3 must redden
+    // (a tag box is drawn) while the words, as a set, and the controls' names are unmoved
+    { id: 'M12', file: 'v2/components/vendor/slices/SliceRow.tsx', cells: /^6\.3/, render: { room: 'leads', scene: 'rest' },
+      apply: (src) => src.replace("row.tdw ? 'TDW' : ''", "''").replace("}}>{row.primary}</div>", "}}>{row.primary}{row.tdw && <span data-row-tag=\"\" style={{ font: T.t5, marginLeft: 8, border: '1px solid currentColor', padding: '2px 4px' }}>TDW</span>}</div>") },
+    { id: 'M10', file: 'v2/app/vendor/(shell)/calendar/screen.tsx', cells: /^6\.1/, render: { room: 'calendar', scene: 'rest' },
       apply: (src) => { const i = src.indexOf('data-cal-grid'); const j = src.indexOf('font: RUNG.t2', i); return i < 0 || j < 0 ? src : src.slice(0, j) + 'font: RUNG.t3' + src.slice(j + 'font: RUNG.t2'.length); } },
-    { id: 'M11', file: 'components/vendor/CalendarDaySheet.tsx', cells: /^6\.2/, render: { room: 'calendar', scene: 'day' },
-      apply: (src) => { const i = src.indexOf('function pillBtn'); return i < 0 ? src : src.slice(0, i) + src.slice(i).replace('font: RUNG.t4,', "font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase',"); } },
+    { id: 'M11', file: 'v2/components/vendor/CalendarDaySheet.tsx', cells: /^6\.2/, render: { room: 'calendar', scene: 'day' },
+      apply: (src) => { const i = src.indexOf('function pillBtn'); return i < 0 ? src : src.slice(0, i) + src.slice(i).replace('font: RUNG.tb,', "font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase',"); } },   // DESIGN-1: the pills are tb
     // TYPE_1b: one of his bytes changed in the home; the title typed instead of read from the registry
-    { id: 'M8', file: 'lib/worklist/copy.ts', from: /'Enquiries \\u00b7 none open'/, to: "'Enquiries \\u00b7 none at all'", cells: /^1\.7/ },
-    { id: 'M9', file: 'components/vendor/slices/SliceShell.tsx', from: /\{ROOM_NAME\[slice\]\}<\/h1>/, to: '{"Leads"}</h1>', cells: /^1\.8/ },
+    { id: 'M8', file: 'v2/lib/worklist/copy.ts', from: /'Enquiries \\u00b7 none open'/, to: "'Enquiries \\u00b7 none at all'", cells: /^1\.7/ },
+    { id: 'M9', file: 'v2/components/vendor/slices/SliceShell.tsx', from: /\{ROOM_NAME\[slice\]\}<\/h1>/, to: '{"Leads"}</h1>', cells: /^1\.8/ },
   ];
   for (const m of M) {
     const abs = P(m.file); const orig = fs.readFileSync(abs, 'utf8'); const h = sha(orig);

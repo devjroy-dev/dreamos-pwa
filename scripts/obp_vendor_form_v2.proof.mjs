@@ -1,3 +1,6 @@
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of obp_vendor_form.proof.mjs. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/obp_vendor_form.proof.mjs
 // ARC OB · charter OB-P · the vendor form + the moved layout guard.
 // Source-plane cells: this tree has no DOM harness, so these assert the SHAPE of
@@ -34,7 +37,7 @@ function strip(raw) {
 }
 const read = (p) => strip(fs.readFileSync(p, 'utf8'));
 
-const FORM   = read('app/vendor/(legacy)/onboarding/page.tsx');
+const FORM   = read('v2/app/vendor/(legacy)/onboarding/page.tsx');
 /* ── ADDED, LABELLED — TDW_15 · P2 (R-34.52, CE-35, 2026-08-18) ─────────────
    `CAT_LABEL` and `labelFor` MOVED to `lib/frost/categoryLabels.ts` (R-34.33) so
    the bride's envelope picker could read the same founder-signed eleven without
@@ -56,10 +59,10 @@ const FORM   = read('app/vendor/(legacy)/onboarding/page.tsx');
 const LABELS = read('lib/frost/categoryLabels.ts');
 // P7.2 ZIP 1b (2026-09-04) RE-KEYED, not retired: 6's subject  the onboarding guard  has a
 // LIVE TWIN. The old vendor layout and the old chat page were DELETED at the flip (R-39.24);
-// the guard crossed into `app/vendor/(shell)/WorklistBoot.tsx`, which the shell layout mounts
+// the guard crossed into `v2/app/vendor/(shell)/WorklistBoot.tsx`, which the shell layout mounts
 // once for every room (derived at 039d005: `d.vendor?.onboarding?.complete === false` ->
 // `router.replace('/vendor/onboarding')`, gated on `getVendorSession()?.access_token`).
-const GUARD  = read('app/vendor/(shell)/WorklistBoot.tsx');
+const GUARD  = read('v2/app/vendor/(shell)/WorklistBoot.tsx');
 
 console.log('\n── 1 · the picker is SERVER-SOURCED, never a local list ──');
 ok(/allowed\.map\(/.test(FORM) || 'the picker does not iterate allowed[]',
@@ -158,12 +161,17 @@ ok(!/color: BRASS/.test(FORM) || 'brass is still used as TEXT — 2.05:1 on Edit
 // the DONE-SCREEN button, so mutating the FORM's submit fill left it green. A
 // cell that passes because a different control happens to match is a cell about
 // that other control. Both brass fills are now named.
-ok(/background: submitting \? `color-mix\(in srgb, \$\{BRASS\} 40%, transparent\)` : BRASS/.test(FORM)
-   || 'the submit button lost its brass fill',
-   '5b.3 brass survives on the SUBMIT control — the one place it belongs');
-ok((FORM.match(/background: BRASS,/g) || []).length >= 1
-   || 'the done-screen button lost its brass fill',
-   '5b.3b brass survives on the done-screen control');
+// DESIGN-1 · STAGE 1 (by label): the two filled buttons moved from brass to the app's one primary
+// (docs/review/REPORT.md §3 "one primary colour for the whole app", P13). The cells keep their shape and
+// their two named controls; the fill they pin is PRIMARY now, and brass is pinned where it stays (the chips).
+ok(/background: submitting \? `color-mix\(in srgb, \$\{PRIMARY\} 40%, transparent\)` : PRIMARY/.test(FORM)
+   || 'the submit button lost its primary fill',
+   '5b.3 the SUBMIT control is filled with the one primary');
+ok((FORM.match(/background: PRIMARY,/g) || []).length >= 1
+   || 'the done-screen button lost its primary fill',
+   '5b.3b the done-screen control is filled with the one primary');
+ok(/background: category === token \? BRASS : 'transparent'/.test(FORM) || 'brass left the chosen chip',
+   '5b.3c brass stays on the chosen chip');
 ok(/color: ATTN/.test(FORM), '5b.4 the marker and the refusal both read from the attention token');
 
 console.log('\n── 6 · the guard: MOVED, verdict-reading, loop-safe ──');
@@ -182,11 +190,11 @@ ok(/onboarding\?\.complete === false/.test(GUARD)
    '6.4 an ABSENT verdict does not redirect — only an explicit false does (fail open)');
 // 6.5's SHAPE CHANGED at P7.2 and the guarantee got STRONGER. The old cell asserted a string
 // check inside the layout (`startsWith('/vendor/onboarding')`) because ONE layout wrapped both
-// the guard and the form. After the flip the form lives in `app/vendor/(legacy)/onboarding`,
+// the guard and the form. After the flip the form lives in `v2/app/vendor/(legacy)/onboarding`,
 // OUTSIDE the shell's route group, so the boot never mounts on it: the exemption is structural,
 // not a branch that can be edited away. The cell asserts the structure.
-ok((fs.existsSync('app/vendor/(legacy)/onboarding/page.tsx')
-    && !fs.existsSync('app/vendor/(shell)/onboarding/page.tsx'))
+ok((fs.existsSync('v2/app/vendor/(legacy)/onboarding/page.tsx')
+    && !fs.existsSync('v2/app/vendor/(shell)/onboarding/page.tsx'))
    || 'the form is inside the shell group  the guard would loop on it',
    '6.5 the form itself is exempt from its own guard  no redirect loop [P7.2: structural]');
 ok(/getVendorSession\(\)\?\.access_token/.test(GUARD) || 'the guard fires without a session',

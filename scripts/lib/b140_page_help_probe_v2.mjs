@@ -1,8 +1,10 @@
-// scripts/lib/b140_page_help_probe.mjs · TDW CE-46 · FE-4 · the "?" on every surface · b140's browser arm.
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b140_page_help_probe.mjs. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+// scripts/lib/b140_page_help_probe_v2.mjs · TDW CE-46 · FE-4 · the "?" on every surface · b140's browser arm.
 // b123's method (puppeteer-core, a 390px touch viewport, the theme by the shell's cookie, every read answered
 // from the stand-in, the service worker bypassed, the real faces registered after the room settles, A-45.9).
 //
-// usage: node scripts/lib/b140_page_help_probe.mjs PORT MODE ROUTE [full|quick] [seen|unseen]
+// usage: node scripts/lib/b140_page_help_probe_v2.mjs PORT MODE ROUTE [full|quick] [seen|unseen]
 // Prints ONE line of JSON. A missing key reads as RED in the bench, never as green.
 //   quick: the head, the "?", the card's content on open, close by Got it.
 //   full:  quick, plus close by scrim, close by Escape, focus back on the "?", the dot before and after,
@@ -114,6 +116,11 @@ try {
     }
     await p.evaluate(async () => { await document.fonts.ready; });
     out.realFaces = await p.evaluate((dm) => document.fonts.check(`500 11px "${dm}"`) && [...document.fonts].some((f) => f.family.replace(/["']/g, '') === dm && f.status === 'loaded'), names.dm);
+    // DESIGN-1 · STAGE 1 (by label): the app's face is Inter, served by next/font; a tree on Inter measures its real
+    // faces when Inter itself is loaded (the npm-pack path above stays for a tree still on DM Sans).
+    const inter = await p.evaluate(async () => { try { await document.fonts.load('500 13px Inter'); } catch (_e) { /* reported below */ } await document.fonts.ready;
+      return /inter/i.test(getComputedStyle(document.querySelector('.wl') || document.body).fontFamily) && [...document.fonts].some((f) => /inter/i.test(f.family) && f.status === 'loaded'); });
+    if (inter) out.realFaces = true;
   } catch (e) { out.errors.push('faces: ' + String(e && e.message).split('\n')[0]); }
 
   const typeOf = (el) => { const cs = getComputedStyle(el); return { size: parseFloat(cs.fontSize), weight: parseInt(cs.fontWeight, 10), family: cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), italic: cs.fontStyle === 'italic', ls: cs.letterSpacing, tt: cs.textTransform }; };

@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b140_ce46_fe4_page_help_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b140_ce46_fe4_page_help_bench.js · TDW CE-46 · FE-4 · the "?" on every surface (the founder's ruling of
 // 27 Sept 2026; Fork A (3): the shell draws every room's t1 head with the "?" on its line).
 //
-// §1 THE SOURCE: every drawing route under app/vendor/(shell)/ has an entry in lib/worklist/pageHelp.ts with a
+// §1 THE SOURCE: every drawing route under app/vendor/(shell)/ has an entry in v2/lib/worklist/pageHelp.ts with a
 //    line 1, and no entry is orphaned (the set is DERIVED from the route tree, C-44.7); line 1 is READ from ROOM_DESC
 //    and ROW_DESC, typed only for the four with no home; the shell mounts RoomHead once above {children} and no room
 //    draws a title h1 of its own (SliceShell, Notes, .sol-title, the Advisor); the carousel is gone (no file, no
@@ -58,9 +61,9 @@ function routes() {
       else if (e.name === 'page.tsx') out.push(url === '' ? '/vendor' : '/vendor' + url);
     }
   };
-  walk('app/vendor/(shell)', '');
+  walk('v2/app/vendor/(shell)', '');
   // the one that draws nothing: a redirect to Rooms (read, never assumed)
-  const redirect = code(read('app/vendor/(shell)/page.tsx'));
+  const redirect = code(read('v2/app/vendor/(shell)/page.tsx'));
   const drawn = out.filter((r) => !(r === '/vendor' && /router\.replace\('\/vendor\/rooms'\)/.test(redirect)));
   return drawn.sort();
 }
@@ -70,14 +73,14 @@ function loadPageHelp() {
   const ts = require(P('node_modules/typescript'));
   const tr = (f) => ts.transpileModule(read(f), { compilerOptions: { module: 1, target: 7 } }).outputText;
   const req = (name) => {
-    if (name === '@/lib/worklist/copy') { const m = { exports: {} }; new Function('module', 'exports', 'require', tr('lib/worklist/copy.ts'))(m, m.exports, req); return m.exports; }
-    if (name === '@/lib/solutions/copy') { const m = { exports: {} }; new Function('module', 'exports', 'require', tr('lib/solutions/copy.ts'))(m, m.exports, req); return m.exports; }
-    if (name === '@/lib/solutions/routes') { const m = { exports: {} }; new Function('module', 'exports', 'require', tr('lib/solutions/routes.ts'))(m, m.exports, req); return m.exports; }
-    if (name === '@/lib/worklist/rooms') { const m = { exports: {} }; new Function('module', 'exports', 'require', tr('lib/worklist/rooms.ts'))(m, m.exports, req); return m.exports; }
+    if (name === '@/v2/lib/worklist/copy') { const m = { exports: {} }; new Function('module', 'exports', 'require', tr('v2/lib/worklist/copy.ts'))(m, m.exports, req); return m.exports; }
+    if (name === '@/v2/lib/solutions/copy') { const m = { exports: {} }; new Function('module', 'exports', 'require', tr('v2/lib/solutions/copy.ts'))(m, m.exports, req); return m.exports; }
+    if (name === '@/v2/lib/solutions/routes') { const m = { exports: {} }; new Function('module', 'exports', 'require', tr('v2/lib/solutions/routes.ts'))(m, m.exports, req); return m.exports; }
+    if (name === '@/v2/lib/worklist/rooms') { const m = { exports: {} }; new Function('module', 'exports', 'require', tr('v2/lib/worklist/rooms.ts'))(m, m.exports, req); return m.exports; }
     return require(name);
   };
-  const m = { exports: {} }; new Function('module', 'exports', 'require', tr('lib/worklist/pageHelp.ts'))(m, m.exports, req);
-  return { ...m.exports, COPY: req('@/lib/worklist/copy').COPY };
+  const m = { exports: {} }; new Function('module', 'exports', 'require', tr('v2/lib/worklist/pageHelp.ts'))(m, m.exports, req);
+  return { ...m.exports, COPY: req('@/v2/lib/worklist/copy').COPY };
 }
 
 function sourceCells() {
@@ -89,12 +92,12 @@ function sourceCells() {
   const noLine = keys.filter((k) => !help.PAGE_HELP[k].what || !help.PAGE_HELP[k].what.trim());
   cell(`1.1 every drawing route under app/vendor/(shell)/ (${R.length}, derived) has a pageHelp entry with a line 1, and no entry is orphaned`,
     missing.length ? 'no entry: ' + missing.join(', ') : orphan.length ? 'orphaned: ' + orphan.join(', ') : noLine.length ? 'no line 1: ' + noLine.join(', ') : R.length < 30 ? `only ${R.length} routes derived` : null);
-  const src = code(read('lib/worklist/pageHelp.ts'));
+  const src = code(read('v2/lib/worklist/pageHelp.ts'));
   const reads = (src.match(/entry\(ROOM_DESC\.\w+/g) || []).length + (src.match(/entry\(ROW_DESC\.\w+/g) || []).length;
   const typed = (src.match(/entry\(TYPED_WHAT\.\w+/g) || []).length;
   cell('1.2 line 1 is READ from ROOM_DESC and ROW_DESC (the founder\u2019s bytes), typed only for the four with no home',
     reads !== keys.length - 4 || typed !== 4 ? `${reads} read, ${typed} typed, ${keys.length} entries` : null);
-  const wl = code(read('components/worklist/WorklistShell.tsx')); const ph = code(read('components/worklist/PageHelp.tsx'));
+  const wl = code(read('v2/components/worklist/WorklistShell.tsx')); const ph = code(read('v2/components/worklist/PageHelp.tsx'));
   const bad = [];
   if ((wl.match(/<RoomHead /g) || []).length !== 1 || !/<RoomHeadProvider><main className="wl-main"><RoomHead title=\{title\} \/>\{children\}<\/main><\/RoomHeadProvider>/.test(wl)) bad.push('the shell does not mount RoomHead exactly once above children, inside the override provider');
   if (!/const headLine = override === undefined \? title : override;/.test(ph) || !/<h1 data-room-title="" className="wl-roomtitle">\{headLine\}<\/h1>/.test(ph)) bad.push('RoomHead does not draw the shell byte (or the F-44.219 override) as the title');
@@ -102,13 +105,15 @@ function sourceCells() {
   const mounts = [];
   const walk0 = (dir) => { for (const e of fs.readdirSync(P(dir), { withFileTypes: true })) { const rel = dir + '/' + e.name; if (e.isDirectory()) { if (e.name !== 'node_modules') walk0(rel); } else if (/\.tsx$/.test(e.name) && /<RoomHeadTitle /.test(code(read(rel)))) mounts.push(rel); } };
   ['app', 'components'].forEach(walk0);
-  if (mounts.sort().join() !== ['app/vendor/(shell)/calendar/screen.tsx', 'app/vendor/(shell)/today/page.tsx'].join()) bad.push('RoomHeadTitle mounted by: ' + mounts.join(', '));
-  if (!/<RoomHeadTitle line=\{MONTHS\[month\]\} \/>/.test(code(read('app/vendor/(shell)/calendar/screen.tsx')))) bad.push('Calendar does not hand the month to the head');
-  if (!/<RoomHeadTitle line=\{!feed\.responded && !feed\.pending \? COPY\.todayNotLive : firstRun \? COPY\.todayNothingYet : resting \? COPY\.todayRestingHead : null\} \/>/.test(code(read('app/vendor/(shell)/today/page.tsx')))) bad.push('Today does not hand its status line to the head');
-  if (/wl-status|wl-tresthead/.test(code(read('app/vendor/(shell)/today/page.tsx')) + code(read('components/worklist/TodayCards.tsx')))) bad.push('Today still draws a status h1 of its own');
-  if (!/\.wl-billprice\{font:var\(--wl-t2\)/.test(code(read('components/worklist/BillingRoom.tsx')))) bad.push('Billing\u2019s price is not at t2');
-  for (const [f, re, what] of [['components/vendor/slices/SliceShell.tsx', /data-room-title|ROOM_NAME\[/, 'SliceShell draws a title'], ['app/vendor/(shell)/notes/body.tsx', /data-room-title|NOTES_NAME/, 'Notes draws a title'],
-    ['app/vendor/(shell)/advisor/page.tsx', /wl-advtitle/, 'the Advisor draws a title'], ['components/solutions/SolutionsPieces.tsx', /\.sol-title\{/, 'Pieces keeps the .sol-title rule']]) {
+  if (mounts.sort().join() !== ['v2/app/vendor/(shell)/calendar/screen.tsx', 'v2/app/vendor/(shell)/today/page.tsx'].join()) bad.push('RoomHeadTitle mounted by: ' + mounts.join(', '));
+  if (!/<RoomHeadTitle line=\{MONTHS\[month\]\} \/>/.test(code(read('v2/app/vendor/(shell)/calendar/screen.tsx')))) bad.push('Calendar does not hand the month to the head');
+  // DESIGN-1 · STAGE 2 (by label): Home's resting line retired with TodayCards (docs/review/REPORT.md §3); the head now
+  // carries the day itself ("Monday 28 September", the IST day the feed was cut for) where the resting line stood.
+  if (!/<RoomHeadTitle line=\{!feed\.responded && !feed\.pending \? COPY\.todayNotLive : firstRun \? COPY\.todayNothingYet : todayLine\(today\?\.today \|\| istTodayISO\(\)\)\} \/>/.test(code(read('v2/app/vendor/(shell)/today/page.tsx')))) bad.push('Today does not hand its status line to the head');
+  if (/wl-status|wl-tresthead/.test(code(read('v2/app/vendor/(shell)/today/page.tsx')) + code(read('v2/components/worklist/TodayHome.tsx')) /* DESIGN-1 stage 2: TodayCards retired; Home draws from TodayHome */)) bad.push('Today still draws a status h1 of its own');
+  if (!/\.wl-billprice\{font:var\(--wl-t2\)/.test(code(read('v2/components/worklist/BillingRoom.tsx')))) bad.push('Billing\u2019s price is not at t2');
+  for (const [f, re, what] of [['v2/components/vendor/slices/SliceShell.tsx', /data-room-title|ROOM_NAME\[/, 'SliceShell draws a title'], ['v2/app/vendor/(shell)/notes/body.tsx', /data-room-title|NOTES_NAME/, 'Notes draws a title'],
+    ['v2/app/vendor/(shell)/advisor/page.tsx', /wl-advtitle/, 'the Advisor draws a title'], ['v2/components/solutions/SolutionsPieces.tsx', /\.sol-title\{/, 'Pieces keeps the .sol-title rule']]) {
     if (re.test(code(read(f)))) bad.push(what);
   }
   const solMounts = [];
@@ -120,10 +125,10 @@ function sourceCells() {
   const walk2 = (dir) => { for (const e of fs.readdirSync(P(dir), { withFileTypes: true })) { const rel = dir + '/' + e.name; if (e.isDirectory()) { if (e.name !== 'node_modules') walk2(rel); } else if (/\.(tsx?|mjs|js|cjs)$/.test(e.name) && /TipsCarousel/.test(code(read(rel)))) refs.push(rel); } };
   ['app', 'components', 'lib', 'hooks'].forEach((d) => has(d) && walk2(d));
   cell('1.4 the carousel is gone: no components/vendor/TipsCarousel.tsx, no reader in app/ components/ lib/ hooks/ (comment-stripped), no tipsOpen in Header',
-    has('components/vendor/TipsCarousel.tsx') ? 'the file exists' : refs.length ? 'readers: ' + refs.join(', ') : /tipsOpen/.test(code(read('components/vendor/Header.tsx'))) ? 'tipsOpen survives in Header' : null);
+    has('components/vendor/TipsCarousel.tsx') ? 'the file exists' : refs.length ? 'readers: ' + refs.join(', ') : /tipsOpen/.test(code(read('v2/components/vendor/Header.tsx'))) ? 'tipsOpen survives in Header' : null);
   const effect = /useEffect\(\(\) => \{ setFirst\(!readSeen\(seenKey\)\); \}, \[seenKey\]\);/.test(ph);
   const renderRead = (ph.match(/readSeen\(/g) || []).length;
-  const stated = /ruled this per-phone key outside \u00a78's native clause/.test(read('components/worklist/PageHelp.tsx'));
+  const stated = /ruled this per-phone key outside \u00a78's native clause/.test(read('v2/components/worklist/PageHelp.tsx'));
   cell('1.5 the seen key is read in an effect after mount, never during render, and the site states the chair\u2019s ruling on \u00a78',
     !effect ? 'no effect reads the key' : renderRead !== 2 ? `readSeen called ${renderRead} times (its definition and the effect are the two)` : !stated ? 'the ruling is not stated at the site' : null);
   const inline = [...ph.matchAll(/>\s*([A-Za-z][^<{}]*?)\s*<\//g)].map((m) => m[1].trim()).filter((t) => t && !/^\?$/.test(t));
@@ -172,11 +177,15 @@ function reapCell(reaper) {
 
 // ── THE BROWSER ARM ──────────────────────────────────────────────────────────────────────────────────────
 function probe(mode, route, depth, seen) {
-  const r = spawnSync(process.execPath, [P('scripts/lib/b140_page_help_probe.mjs'), String(PORT), mode, route, depth, seen], { cwd: ROOT, encoding: 'utf8', timeout: 420000 });
+  const r = spawnSync(process.execPath, [P('scripts/lib/b140_page_help_probe_v2.mjs'), String(PORT), mode, route, depth, seen], { cwd: ROOT, encoding: 'utf8', timeout: 420000 });
   logLine(`probe ${mode} ${route} ${depth} ${seen} rc=${r.status}\n${(r.stdout || '').slice(-1600)}\n${(r.stderr || '').slice(-600)}`);
   try { return JSON.parse((r.stdout || '').trim().split('\n').pop()); } catch (_e) { return { errors: ['no JSON from the probe: ' + (r.stderr || '').slice(-200)] }; }
 }
-const TYPE = { t1: [24, 500, 'Cormorant'], t2: [17, 500, 'DM Sans'], t3: [14, 400, 'DM Sans'], t4: [12, 500, 'DM Sans'], t5: [11, 500, 'DM Sans'] };
+// DESIGN-1 · STAGE 1 (by label): the rungs are the review's scale in Inter, read from v2/lib/worklist/theme.ts TYPE so the
+// cells cannot drift from it (was Cormorant 24/500, DM Sans 17/500, 14/400, 12/500, 11/500).
+const TYPE = (() => { try { const ts = require(P('node_modules/typescript')); const js = ts.transpileModule(read('v2/lib/worklist/theme.ts'), { compilerOptions: { module: 1, target: 7 } }).outputText;
+  const mod = { exports: {} }; new Function('module', 'exports', 'require', js)(mod, mod.exports, require);
+  return Object.fromEntries(Object.entries(mod.exports.TYPE).map(([k, t]) => [k, [t.size, t.weight, 'Inter']])); } catch (_e) { return {}; } })();
 const onRung = (t, k) => t && Math.abs(t.size - TYPE[k][0]) < 0.5 && t.weight === TYPE[k][1] && t.family.startsWith(TYPE[k][2]);
 const anyRung = (t) => Object.keys(TYPE).some((k) => onRung(t, k));
 
@@ -233,10 +242,10 @@ function glassCells(tag, x, route, help, depth, seen) {
     cell(`3.1 ${tag} every text on the card sits on a rung (size, face, weight) in the real faces`, !x.realFaces ? 'the real faces did not load' : off.length ? off.slice(0, 3).map((t) => `"${t.txt}" ${t.size}/${t.weight} ${t.family}`).join(' | ') : null);
     const ital = c.texts.filter((t) => t.italic);
     cell(`3.2 ${tag} nothing is italic`, ital.length ? ital.map((t) => `"${t.txt}"`).join(' | ') : null);
-    const trk = c.texts.filter((t) => t.ls !== 'normal' && parseFloat(t.ls) !== 0 && Math.abs(t.size - 11) > 0.5);
-    cell(`3.3 ${tag} tracking only on t5`, trk.length ? trk.slice(0, 3).map((t) => `"${t.txt}" ls ${t.ls}`).join(' | ') : null);
-    const caps = c.texts.filter((t) => t.control && (t.tt === 'uppercase' || !onRung(t, 't4')));
-    cell(`3.4 ${tag} F5: the two controls at t4 in sentence case`, caps.length ? caps.map((t) => `"${t.txt}" ${t.tt}`).join(' | ') : null);
+    const trk = c.texts.filter((t) => t.ls !== 'normal' && parseFloat(t.ls) !== 0);
+    cell(`3.3 ${tag} no tracking (DESIGN-1)`, trk.length ? trk.slice(0, 3).map((t) => `"${t.txt}" ls ${t.ls}`).join(' | ') : null);
+    const caps = c.texts.filter((t) => t.control && (t.tt === 'uppercase' || !onRung(t, 'tb')));
+    cell(`3.4 ${tag} F5: the two controls at tb (DESIGN-1: a button is tb) in sentence case`, caps.length ? caps.map((t) => `"${t.txt}" ${t.tt}`).join(' | ') : null);
     const icons = c.icons.filter((i) => Math.round(i.w) !== 18 || !/rgb/.test(i.stroke));
     if (e.can.length) cell(`3.5 ${tag} every line icon is 18px in a token ink`, icons.length ? `${icons.length} off` : null);
   }
@@ -274,13 +283,13 @@ const done = () => { console.log(`b140: ${pass} pass, ${fail} fail`); process.ex
     }
     if (MUTATE) {
       const muts = [
-        { id: 'M1', file: 'lib/worklist/pageHelp.ts', from: "  [DATES_HREF]: entry(ROW_DESC.dates),\n", to: '', source: () => { let red = false; try { const h = loadPageHelp(); red = !h.helpFor('/vendor/dates'); } catch (_e) { red = true; } return red; }, cell: '1.1' },
-        { id: 'M2', file: 'components/worklist/PageHelp.tsx', from: '        {help && (\n          <button ref={qRef}', to: '        {help && false && (\n          <button ref={qRef}', route: '/vendor/leads', red: (x) => !(x.rest && x.rest.q), cell: '2.3' },
-        { id: 'M3', file: 'components/worklist/PageHelp.tsx', from: 'className="wl-helpscrim" aria-label={COPY.helpClose} onClick={onClose} />', to: 'className="wl-helpscrim" aria-label={COPY.helpClose} />', route: '/vendor/leads', depth: 'full', red: (x) => !!(x.afterScrim && x.afterScrim.card), cell: '2.10' },
-        { id: 'M4', file: 'components/worklist/PageHelp.tsx', from: 'if (first) { writeSeen(seenKey); setFirst(false); }', to: 'if (first) { setFirst(false); }', route: '/vendor/leads', red: (x) => x.storedAfterOpen !== '1', cell: '2.8' },
-        { id: 'M5', file: 'components/worklist/PageHelp.tsx', from: '.wl-helpname{font:var(--wl-t2);', to: '.wl-helpname{font:500 19px/1.3 var(--font-dm-sans);', route: '/vendor/leads', red: (x) => !!(x.open && x.open.texts.some((t) => !anyRung(t))), cell: '3.1' },
+        { id: 'M1', file: 'v2/lib/worklist/pageHelp.ts', from: "  [DATES_HREF]: entry(ROW_DESC.dates),\n", to: '', source: () => { let red = false; try { const h = loadPageHelp(); red = !h.helpFor('/vendor/dates'); } catch (_e) { red = true; } return red; }, cell: '1.1' },
+        { id: 'M2', file: 'v2/components/worklist/PageHelp.tsx', from: '        {help && (\n          <button ref={qRef}', to: '        {help && false && (\n          <button ref={qRef}', route: '/vendor/leads', red: (x) => !(x.rest && x.rest.q), cell: '2.3' },
+        { id: 'M3', file: 'v2/components/worklist/PageHelp.tsx', from: 'className="wl-helpscrim" aria-label={COPY.helpClose} onClick={onClose} />', to: 'className="wl-helpscrim" aria-label={COPY.helpClose} />', route: '/vendor/leads', depth: 'full', red: (x) => !!(x.afterScrim && x.afterScrim.card), cell: '2.10' },
+        { id: 'M4', file: 'v2/components/worklist/PageHelp.tsx', from: 'if (first) { writeSeen(seenKey); setFirst(false); }', to: 'if (first) { setFirst(false); }', route: '/vendor/leads', red: (x) => x.storedAfterOpen !== '1', cell: '2.8' },
+        { id: 'M5', file: 'v2/components/worklist/PageHelp.tsx', from: '.wl-helpname{font:var(--wl-t2);', to: '.wl-helpname{font:500 19px/1.3 var(--font-dm-sans);', route: '/vendor/leads', red: (x) => !!(x.open && x.open.texts.some((t) => !anyRung(t))), cell: '3.1' },
         { id: 'M7', file: 'scripts/lib/floor_reap.sh', from: 'scope=root; [ "$member" = "(before the floor)" ] && scope=any', to: 'scope=root', source: () => !!reapCell(P('scripts/lib/floor_reap.sh')), cell: '1.7' },
-        { id: 'M6', file: 'components/vendor/Header.tsx', from: "import { useVendorMe } from '@/hooks/vendor/useVendorMe';", to: "import { useVendorMe } from '@/hooks/vendor/useVendorMe';\nimport { TipsCarousel } from '@/components/vendor/TipsCarousel';", source: () => { const refs = code(read('components/vendor/Header.tsx')); return /TipsCarousel/.test(refs); }, cell: '1.4' },
+        { id: 'M6', file: 'v2/components/vendor/Header.tsx', from: "import { useVendorMe } from '@/v2/hooks/vendor/useVendorMe';", to: "import { useVendorMe } from '@/v2/hooks/vendor/useVendorMe';\nimport { TipsCarousel } from '@/components/vendor/TipsCarousel';", source: () => { const refs = code(read('v2/components/vendor/Header.tsx')); return /TipsCarousel/.test(refs); }, cell: '1.4' },
       ];
       for (const m of muts) {
         const abs = P(m.file); const orig = fs.readFileSync(abs, 'utf8'); const h = sha(orig);

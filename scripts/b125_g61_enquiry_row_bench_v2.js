@@ -1,4 +1,7 @@
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b125_g61_enquiry_row_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b125_g61_enquiry_row_bench.js · TDW CE-45 · G6-1 · FE_2 (pwa half) · rung b125.
 //
 // WHAT IT HOLDS (§7c; FE_2 read-first FK3, FK5; E1 to E12 his, "ok" 2026-09-24):
@@ -28,14 +31,14 @@ function ok(c, name, info) { if (c) { pass += 1; console.log(`  PASS  ${name}`);
 const sec = (t) => console.log(`\n§${t}`);
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
 
-const WORDS = 'lib/worklist/enquiryRouting.ts';
-const PAGE = 'app/vendor/(shell)/settings/page.tsx';
+const WORDS = 'v2/lib/worklist/enquiryRouting.ts';
+const PAGE = 'v2/app/vendor/(shell)/settings/page.tsx';
 function loadTs(rel, src) {
   const out = ts.transpileModule(src === undefined ? read(rel) : src, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true } }).outputText;
   const mod = { exports: {} };
   new Function('require', 'module', 'exports', out)((spec) => {
     if (spec === '@/lib/worklist/ownNumberFlow') return loadTs('lib/worklist/ownNumberFlow.ts');
-    if (spec === '@/lib/solutions/copy') return loadTs('lib/solutions/copy.ts');
+    if (spec === '@/v2/lib/solutions/copy') return loadTs('v2/lib/solutions/copy.ts');
     return require(spec);
   }, mod, mod.exports);
   return mod.exports;
@@ -49,18 +52,20 @@ function loadTs(rel, src) {
   // "Straight to my WhatsApp", "Couples message the number you type here.", "My own number in TDW app",
   // "Arrives with Own number", "Enter a WhatsApp number with its country code.". tdwLine carries U+2019 (R-40.57).
   const VETOED = { label: 'Where enquiries go', line: 'Choose where couples land when they tap Enquire on WhatsApp on your page.',
-    tdw: 'Your TDW agent answers', tdwLine: 'Couples message TDW\u2019s number. Your agent replies for you and files every enquiry as a lead.',
+    // DESIGN-1 · STAGE 1 (by label): one word for Leads and Enquiries (REPORT.md W5), so tdwLine and consentBypass
+    // say "in Enquiries" where they said "as a lead" and "in your leads". The other bytes of his table stand.
+    tdw: 'Your TDW agent answers', tdwLine: 'Couples message TDW\u2019s number. Your agent replies for you and files every enquiry in Enquiries.',
     own: 'You answer on your number', ownLine: 'Couples message your WhatsApp. You reply yourself; nothing comes to TDW.',
     waba: 'Your TDW agent answers on your number',
     wabaLine: 'Couples message your WhatsApp. Your agent replies for you there. Available once your own number is connected.',
     consentPublic: 'This number will be shown on your public page, where anyone can see it.',
-    consentBypass: 'Enquiries sent there skip TDW: no replies from TDW, and they will not appear in your leads.',
+    consentBypass: 'Enquiries sent there skip TDW: no replies from TDW, and they will not appear in Enquiries.',
     phoneLabel: 'Your WhatsApp number', confirm: 'Yes, send enquiries to this number', phoneInvalid: 'Enter a WhatsApp number.' };
   const PIN = Object.fromEntries(Object.entries(VETOED).map(([k, v]) => [k, sha(v).slice(0, 16)]));
   const off = Object.keys(VETOED).filter((k) => typeof W.ENQ[k] !== 'string' || sha(W.ENQ[k]).slice(0, 16) !== PIN[k]);
   ok(off.length === 0 && Object.keys(W.ENQ).length === 13, '1.1 E1 to E11 (thirteen strings) byte-exact to his table', off.join(','));
   ok(W.ENQ_CANCEL === 'Not now' && /ENQ_CANCEL: string = String\(FLOW\.cancel\)/.test(read(WORDS))
-    && W.ENQ_FAILED === loadTs('lib/solutions/copy.ts').COPY.surfaceUnavailable && /ENQ_FAILED: string = COPY\.surfaceUnavailable/.test(read(WORDS)),
+    && W.ENQ_FAILED === loadTs('v2/lib/solutions/copy.ts').COPY.surfaceUnavailable && /ENQ_FAILED: string = COPY\.surfaceUnavailable/.test(read(WORDS)),
     '1.2 E10 and E12 are IMPORTED from their approved homes, never retyped');
   ok(!Object.values(W.ENQ).some((v) => /\b(Victor|Donna|Harvey|Mira)\b|\u2014|\w'\w/.test(v)), '1.3 no persona name, em dash or straight apostrophe in any byte');
   const good = ['+91 87577 88550', '9888294440', '+1 (415) 555-0123', '918757788550123'];

@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b80_lc2_p1_shell_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b80_lc2_p1_shell_bench.js — TDW CE-43 · LC-2 · packet 1 (dreamos-pwa) · THE SHELLS.
 // AMENDED BY LABEL AT PACKET 3e (CE-43 LC-2r): §5.4's import pattern admits AttachSheet beside the card
 // (F-43.102, chair-ruled). The fact (the live card is imported; the shell byte is not) is unchanged.
@@ -58,14 +61,14 @@ const sec = (t) => console.log('\n' + t);
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
 
 const F = {
-  rooms: 'lib/worklist/rooms.ts',
-  page: 'app/vendor/(shell)/packages/page.tsx',
-  copy: 'lib/worklist/packages.ts',
-  api: 'lib/vendor/api/vendor.ts',
-  shell: 'components/vendor/slices/SliceShell.tsx',
-  sheet: 'components/vendor/ClientBookingSheet.tsx',
-  clients: 'app/vendor/(shell)/clients/body.tsx',
-  addsheet: 'components/vendor/AddSheet.tsx',
+  rooms: 'v2/lib/worklist/rooms.ts',
+  page: 'v2/app/vendor/(shell)/packages/page.tsx',
+  copy: 'v2/lib/worklist/packages.ts',
+  api: 'v2/lib/vendor/api/vendor.ts',
+  shell: 'v2/components/vendor/slices/SliceShell.tsx',
+  sheet: 'v2/components/vendor/ClientBookingSheet.tsx',
+  clients: 'v2/app/vendor/(shell)/clients/body.tsx',
+  addsheet: 'v2/components/vendor/AddSheet.tsx',
 };
 
 function transpile(src) {
@@ -102,7 +105,7 @@ function pageCells(src) {
   const soonHandlers = (s.match(/onClick=\{soon\}/g) || []).length;
   return {
     onlyDefault,
-    reads: /fetchPackages\(\)/.test(s) && /from '@\/lib\/vendor\/api\/vendor'/.test(s),
+    reads: /fetchPackages\(\)/.test(s) && /from '@\/v2\/lib\/vendor\/api\/vendor'/.test(s),
     bytes: ['PACKAGES.eyebrow', 'PACKAGES.sub(', 'PACKAGES.empty', 'PACKAGES.defaultMark', 'PACKAGES.edit', 'PACKAGES.setDefault', 'PACKAGES.del', 'PACKAGES.add', 'PACKAGES.feeUnset'].every((k) => s.includes(k)),
     label: /ROOMS\.find\(\(r\) => r\.id === 'packages'\)\?\.label/.test(s),
     // AMENDED BY LABEL — CE-43 LC-2 packet 2: the room's acts are live. The shell's
@@ -137,10 +140,12 @@ async function apiCells(src) {
     const calls = [];
     const getJson = async (p) => { calls.push(p); return { ok: true, packages: [{ id: 'x' }], seeding: { seeded: true, reason: 'seeded' } }; };
     const stubs = {
+      // DESIGN-1 · THE LAYOUT SWITCH: the v2 copy reaches the shared _base by its @/ path
+      '@/lib/vendor/api/_base': { getJson, postJson: async () => ({}), patchJson: async () => ({}), deleteJson: async () => ({}), API_BASE: '', getAuthHeader: () => ({}), handleResponse: async () => ({}) },
       './_base': { getJson, postJson: async () => ({}), patchJson: async () => ({}), deleteJson: async () => ({}), API_BASE: '', getAuthHeader: () => ({}), handleResponse: async () => ({}) },
-      '@/lib/solutions/routes': { API: new Proxy({}, { get: () => '' }) },
+      '@/v2/lib/solutions/routes': { API: new Proxy({}, { get: () => '' }) },
       '@/lib/vendor/session': { getVendorSession: () => null, setVendorSession: () => {}, clearVendorSession: () => {} },
-      '@/lib/worklist/feed': { refreshToday: () => {} },
+      '@/v2/lib/worklist/feed': { refreshToday: () => {} },
     };
     const api = loadModule(src, stubs);
     const out = await api.fetchPackages();
@@ -152,7 +157,7 @@ async function apiCells(src) {
 
 // AMENDED BY LABEL — CE-43 LC-2 packet 2: SliceShell's inline shell card is replaced by the
 // live LeadPackageCard. These cells now hold the mount; b81 proves the card itself.
-function shellCells(src, cardSrc = read('components/vendor/packages/LeadPackageCard.tsx')) {
+function shellCells(src, cardSrc = read('v2/components/vendor/packages/LeadPackageCard.tsx')) {
   const s = strip(src);
   const card = strip(cardSrc || '');
   // [amended, packet 3c] the card is the `detailTop` const, handed to DetailSheet.
@@ -164,7 +169,7 @@ function shellCells(src, cardSrc = read('components/vendor/packages/LeadPackageC
     bytes: card.length > 0 && /\{LEAD_PACKAGE\.eyebrow\}/.test(card) && /LEAD_PACKAGE\.change : LEAD_PACKAGE\.attach/.test(card),
     soon: card.length > 0 && /onClick=\{\(\) => setSheetOpen\(true\)\}/.test(card) && !/launchingSoon/.test(card),
     // [amended, packet 3e] the same import also brings AttachSheet (F-43.102).
-    imports: /import \{ LeadPackageCard(, AttachSheet)? \} from '@\/components\/vendor\/packages\/LeadPackageCard'/.test(s) && !/SOL_COPY/.test(s),
+    imports: /import \{ LeadPackageCard(, AttachSheet)? \} from '@\/v2\/components\/vendor\/packages\/LeadPackageCard'/.test(s) && !/SOL_COPY/.test(s),
     tokens: block.length > 0 && card.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(block + card),
   };
 }
@@ -172,17 +177,35 @@ function shellCells(src, cardSrc = read('components/vendor/packages/LeadPackageC
 // CE-45 FE-2 TYPE_2: AddSheet with its type taken out (see §6.8's amendment).
 function typeFree(src) {
   return String(src)
-    .replace(/^import \{ RUNG_FONT as RUNG \} from '@\/lib\/worklist\/theme';[^\n]*\n/m, '')
+    .replace(/^import \{ RUNG_FONT as RUNG \} from '@\/v2\/lib\/worklist\/theme';[^\n]*\n/m, '')
     .replace(/^const F = \{[^\n]*\};\n/m, '')
     .replace(/\b(fontFamily|fontSize|fontWeight|lineHeight|letterSpacing|fontStyle|textTransform|font)\s*:\s*('[^']*'|[^,}\n]+)\s*,?/g, '')
     .replace(/[\s,]+/g, '');
 }
+// DESIGN-1 · STAGE 1 (by label): §6.8 amended a second time, the same way TYPE_2 amended it. Stage 1 set the whole
+// vendor app on one spacing scale and one corner (docs/review/REPORT.md §3: 4, 8, 12, 16, 24, 32; 12px corners) and
+// retired words (REPORT.md W1, W5: no dashes, "enquiry" never "lead"). So AddSheet is compared with the base in
+// everything but its type, its spacing and corners, and those words: lookFree takes the spacing and corners out as
+// typeFree takes the type, and designWords applies the stage's word changes to the BASE, each one listed, so any
+// other word that moves still reddens this cell.
+function lookFree(src) {
+  return typeFree(String(src).replace(/\b(padding\w*|margin\w*|gap|borderRadius)\s*:\s*('[^']*'|[^,}\n]+)\s*,?/g, ''));
+}
+const DESIGN_WORDS = [
+  ["'New lead'", "'New enquiry'"], ["'Edit lead'", "'Edit enquiry'"], ["'Add lead'", "'Add enquiry'"],
+  ['Tell me about the new enquiry \u2014 paste it or describe it and I\u2019ll log it.', 'Tell me about the new enquiry. Paste it or describe it and I\u2019ll log it.'],
+  ['Give me the details for the invoice \u2014 client name, total amount, and any advance?', 'Give me the details for the invoice: client name, total amount and any advance.'],
+  ['Could not identify record \u2014 please try again.', 'Could not find that record. Please try again.'],
+  ['Invoice has payments \u2014 cancel and re-issue to edit.', 'This invoice has payments. Cancel it and issue a new one to edit.'],
+  ["'Filed \u2014 1 detail pending'", "'Saved. 1 detail to add'"], ['`Filed \u2014 ${n} details pending`', '`Saved. ${n} details to add`'],
+];
+function designWords(src) { let t = String(src); for (const [a, b] of DESIGN_WORDS) t = t.split(a).join(b); return t; }
 function sheetCells(sheet, clients, addsheet, addsheetBase) {
   const s = strip(sheet);
   const c = strip(clients);
   const labels = (s.match(/label\(CLIENT_BOOKING\.(\w+)\)/g) || []).map((x) => x.match(/\.(\w+)\)/)[1]);
   return {
-    mounted: /<ClientBookingSheet\b/.test(c) && !/<AddSheet\b/.test(c) && /from '@\/components\/vendor\/ClientBookingSheet'/.test(c),
+    mounted: /<ClientBookingSheet\b/.test(c) && !/<AddSheet\b/.test(c) && /from '@\/v2\/components\/vendor\/ClientBookingSheet'/.test(c),
     // [amended, packet 3] the sheet writes ONLY through createDirectClient (POST /clients/direct).
     noWrite: s.length > 0 && /createDirectClient\(/.test(s) && !/(createClient\(|createLead|postJson|patchJson|fetch\()/.test(s),
     // [amended, packet 3] F28(b): Advance received is a switch, not a labelled field; it sits
@@ -202,7 +225,8 @@ function sheetCells(sheet, clients, addsheet, addsheetBase) {
     // sides (every face, size, weight, line-height, tracking, style and case key, the retired face
     // constant, the one rung import) and the layout whitespace and commas the re-dress reflowed.
     // Anything else that moves, a handler, a field, a word or a colour, still reddens it.
-    addSheetUntouched: addsheetBase !== null && typeFree(addsheet) === typeFree(addsheetBase),
+    // DESIGN-1 · THE LAYOUT SWITCH: the v2 copy imports its v2 twins by @/v2/, the base by @/ (the same modules)
+    addSheetUntouched: addsheetBase !== null && lookFree(addsheet).split('@/v2/').join('@/') === lookFree(designWords(addsheetBase)),
   };
 }
 
@@ -280,7 +304,7 @@ function baseFile(rel) {
   ok(r5.tokens, '§5.5 [amended, packet 2] the mount and the card carry no colour literal (R-42.6)');
 
   sec('§6 · the Clients Add sheet (R-43.5)');
-  const r6 = sheetCells(src.sheet, src.clients, src.addsheet, baseFile(F.addsheet));
+  const r6 = sheetCells(src.sheet, src.clients, src.addsheet, baseFile(F.addsheet.replace(/^v2\//, '')));
   ok(r6.mounted, '§6.1 the Clients room mounts ClientBookingSheet, not AddSheet');
   ok(r6.noWrite, '§6.2 [amended, packet 3] the sheet writes only through createDirectClient');
   ok(r6.order, '§6.3 [amended, packet 3] C2 fields in the vetoed order, Advance received a switch');
@@ -288,7 +312,7 @@ function baseFile(rel) {
   ok(r6.defaultPreselected, '§6.5 the default package is preselected');
   ok(r6.submitSoon, '§6.6 [amended, packet 3] Add client submits the booking');
   ok(r6.title, '§6.7 the title is C1');
-  ok(r6.addSheetUntouched, '§6.8 [amended, CE-45 FE-2 TYPE_2] AddSheet equals base 409a130e in everything but its type (R-43.5 kept; F4)');
+  ok(r6.addSheetUntouched, '§6.8 [amended, CE-45 FE-2 TYPE_2; DESIGN-1] AddSheet equals base 409a130e in everything but its type, spacing, corners and the stage\u2019s listed words (R-43.5 kept; F4)');
 
   sec('§7 · tokens only (R-42.6)');
   ok(tokenCells([src.page, src.sheet, src.copy]), '§7.1 no colour literal in the page, the sheet or the copy home');
@@ -333,11 +357,11 @@ function baseFile(rel) {
   }
   {
     const m = mut(src.sheet, 'const needsFee = !!chosen && chosen.total == null;', 'const needsFee = true;');
-    ok(m !== null && !sheetCells(m, src.clients, src.addsheet, baseFile(F.addsheet)).feeConditional, '§8 M7 the fee always asked → §6.4 RED');
+    ok(m !== null && !sheetCells(m, src.clients, src.addsheet, baseFile(F.addsheet.replace(/^v2\//, ''))).feeConditional, '§8 M7 the fee always asked → §6.4 RED');
   }
   {
     const m = mut(src.sheet, 'onClick={() => { void submit(); }}', 'onClick={() => { void createClient({}); }}');
-    ok(m !== null && !sheetCells(m, src.clients, src.addsheet, baseFile(F.addsheet)).noWrite, '§8 M8 [re-aimed, packet 3] the sheet writes public.clients → §6.2 RED');
+    ok(m !== null && !sheetCells(m, src.clients, src.addsheet, baseFile(F.addsheet.replace(/^v2\//, ''))).noWrite, '§8 M8 [re-aimed, packet 3] the sheet writes public.clients → §6.2 RED');
   }
   {
     const m = mut(src.page, "color:var(--atelier-ink-mute);white-space:nowrap}", "color:#C9A84C;white-space:nowrap}");

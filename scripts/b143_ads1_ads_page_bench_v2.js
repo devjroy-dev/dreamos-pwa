@@ -1,4 +1,7 @@
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b143_ads1_ads_page_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b143_ads1_ads_page_bench.js · TDW CE-46 · ADS-1 · cut 1 · rung b143.
 //
 // WHAT IT HOLDS (R-46.10 to R-46.13), in the REAL app: `next dev` in mock-session mode, the Ads page at
@@ -12,7 +15,7 @@
 //   §3 the sheets: All settings rows; one question with the current answer marked and Meta's list searched; the confirm
 //      echo sends /run exactly the settings /prepare returned; Your ads with the post's caption line.
 //   §4 the Posts card: "{post} is running." with a caption, the no-caption line without.
-//   §5 EVERY WORD: each text leaf in the page and the card matches a string of lib/worklist/ads.ts (templates filled),
+//   §5 EVERY WORD: each text leaf in the page and the card matches a string of v2/lib/worklist/ads.ts (templates filled),
 //      the room's name, PO.notOnYet, or fixture data; nothing else.
 //   §6 MUTATIONS (dark theme): a hard-coded word, the fit's 44 px, the picture's width, "Sponsored" inline, the card's
 //      caption; each must redden, each restored by sha.
@@ -33,7 +36,7 @@ const sec = (t) => console.log(`\n§${t}`);
 
 // ── the words: every quoted string in ads.ts becomes a pattern ({x} matches any run) ──────────────────────────────
 function wordPatterns() {
-  const src = stripComments(fs.readFileSync(path.join(ROOT, 'lib/worklist/ads.ts'), 'utf8'));   // through the one home (F-07.74)
+  const src = stripComments(fs.readFileSync(path.join(ROOT, 'v2/lib/worklist/ads.ts'), 'utf8'));   // through the one home (F-07.74)
   const out = [];
   const re = /'((?:[^'\\]|\\.)*)'/g; let m;
   while ((m = re.exec(src))) {
@@ -156,7 +159,7 @@ async function main() {
       await p.close();
       p = await open(mode, 'shut', '/vendor/posts', { wait: '[data-ads-card-line]' });
       ok((await text(p, '[data-ads-card-line]')) === 'You have not run an ad yet. Your ads run from your own Meta ad account and your own card.'
-        && (await p.evaluate(() => Array.from(document.querySelectorAll('.pst-room button')).some((b) => b.textContent === 'Open Ads' && !b.disabled))),
+        && (await p.evaluate(() => Array.from(document.querySelectorAll('.pst-room button')).some((b) => b.textContent === 'Open ads' && !b.disabled))),   // DESIGN-1 (by label): sentence case, ads.ts 'Open ads'
         `${mode} 1.1c shut: the Posts card renders and opens the page`, await text(p, '[data-ads-card-line]'));
       await p.close();
       p = await open(mode, 'connect', '/vendor/posts/ads', { wait: '.ads-room a[href*="dialog/oauth"]' });
@@ -229,11 +232,11 @@ async function main() {
 
   if (PART !== 'states') sec('6  mutations (Graphite; each must redden; restored by sha)');
   const MUTS = PART === 'states' ? [] : [
-    ['app/vendor/(shell)/posts/ads/page.tsx', "onClick={() => void onRun()}>{ADS.draft.run}</button>", "onClick={() => void onRun()}>Run ad</button>", 'M1 a hard-coded word on the first screen'],
-    ['app/vendor/(shell)/posts/ads/page.tsx', "--ads-pw:120px}", "--ads-pw:260px}", 'M2 the post too wide: Run falls under the Ask bar'],
-    ['app/vendor/(shell)/posts/ads/page.tsx', ".ads-media{display:block;width:var(--ads-pw);height:auto;", ".ads-media{display:block;width:var(--ads-pw);height:120px;", 'M3 the picture squeezed to a fixed height'],
-    ['app/vendor/(shell)/posts/ads/page.tsx', ".ads-prevhead{display:grid;grid-template-columns:16px 1fr;", ".ads-prevhead{display:flex;grid-template-columns:16px 1fr;", 'M4 "Sponsored" on the handle line'],
-    ['components/worklist/AdsCard.tsx', "line = name ? fill(ADS.card.running, { post: name,", "line = false ? fill(ADS.card.running, { post: name,", 'M5 the card never names the post'],
+    ['v2/app/vendor/(shell)/posts/ads/page.tsx', "onClick={() => void onRun()}>{ADS.draft.run}</button>", "onClick={() => void onRun()}>Run ad</button>", 'M1 a hard-coded word on the first screen'],
+    ['v2/app/vendor/(shell)/posts/ads/page.tsx', "--ads-pw:120px}", "--ads-pw:260px}", 'M2 the post too wide: Run falls under the Ask bar'],
+    ['v2/app/vendor/(shell)/posts/ads/page.tsx', ".ads-media{display:block;width:var(--ads-pw);height:auto;", ".ads-media{display:block;width:var(--ads-pw);height:120px;", 'M3 the picture squeezed to a fixed height'],
+    ['v2/app/vendor/(shell)/posts/ads/page.tsx', ".ads-prevhead{display:grid;grid-template-columns:16px 1fr;", ".ads-prevhead{display:flex;grid-template-columns:16px 1fr;", 'M4 "Sponsored" on the handle line'],
+    ['v2/components/worklist/AdsCard.tsx', "line = name ? fill(ADS.card.running, { post: name,", "line = false ? fill(ADS.card.running, { post: name,", 'M5 the card never names the post'],
   ];
   // A run killed mid-mutation (a timeout, Ctrl-C) must still put the file back: e-(ADS-1), a killed run once left M5 on disk.
   let live = null;

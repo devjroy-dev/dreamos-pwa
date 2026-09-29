@@ -1,11 +1,13 @@
-// scripts/lib/b134_ask_probe.mjs · TDW CE-45 · FE-2 · the Ask TDW sheet cut · b134's browser arm.
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b134_ask_probe.mjs. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+// scripts/lib/b134_ask_probe_v2.mjs · TDW CE-45 · FE-2 · the Ask TDW sheet cut · b134's browser arm.
 // b123's method (puppeteer-core, a 374px touch viewport, the theme by the shell's cookie, every read answered
 // from the stand-in, the service worker bypassed, the REAL faces registered after the room settles, A-45.9).
 // The dock opens the sheet; one message is sent; the chat door is answered AS THE DOOR ANSWERS (ASK-1's
 // recorded shape): after DELAY ms, ONE `text_delta` carrying the whole reply, then `done`. While it waits the
 // probe samples the sheet (the typing dots on glass or not), and after it lands it measures the answer.
 //
-// usage: node scripts/lib/b134_ask_probe.mjs PORT MODE SHAPE DELAY_MS [SHOTDIR]
+// usage: node scripts/lib/b134_ask_probe_v2.mjs PORT MODE SHAPE DELAY_MS [SHOTDIR]
 // Prints ONE line of JSON. A missing key reads as RED in the bench, never as green.
 import fs from 'fs';
 import os from 'os';
@@ -110,6 +112,11 @@ try {
     }
     await p.evaluate(async (n) => { try { await Promise.all([document.fonts.load(`400 14px "${n.dm}"`), document.fonts.load(`500 11px "${n.dm}"`)]); } catch (_e) { /* read below */ } await document.fonts.ready; }, names);
     out.realFaces = await p.evaluate((dm) => document.fonts.check(`500 11px "${dm}"`) && [...document.fonts].some((f) => f.family.replace(/["']/g, '') === dm && f.status === 'loaded'), names.dm);
+    // DESIGN-1 · STAGE 1 (by label): the app's face is Inter, served by next/font; a tree on Inter measures its real
+    // faces when Inter itself is loaded (the npm-pack path above stays for a tree still on DM Sans).
+    const inter = await p.evaluate(async () => { try { await document.fonts.load('500 13px Inter'); } catch (_e) { /* reported below */ } await document.fonts.ready;
+      return /inter/i.test(getComputedStyle(document.querySelector('.wl') || document.body).fontFamily) && [...document.fonts].some((f) => /inter/i.test(f.family) && f.status === 'loaded'); });
+    if (inter) out.realFaces = true;
   } catch (e) { out.errors.push('faces: ' + String(e && e.message).split('\n')[0]); }
 
   // open the sheet from the dock, type, send
@@ -158,7 +165,8 @@ try {
             weight: cs.fontWeight, italic: cs.fontStyle === 'italic', ls: cs.letterSpacing, tt: cs.textTransform,
             control: !!el.closest('button, a[href]') });
         }
-        const ta = panel.querySelector('textarea'); if (ta) { const cs = getComputedStyle(ta); rows.push({ txt: '(the message box)', size: parseFloat(cs.fontSize), f: /dm.?sans/i.test(cs.fontFamily) ? 'dmsans' : cs.fontFamily.split(',')[0], weight: cs.fontWeight, italic: cs.fontStyle === 'italic', ls: cs.letterSpacing, tt: cs.textTransform, control: true }); }
+        // DESIGN-1 · STAGE 1: the message box's face is read as the text rows read theirs (lower case), so Inter is 'inter' on both.
+        const ta = panel.querySelector('textarea'); if (ta) { const cs = getComputedStyle(ta); rows.push({ txt: '(the message box)', size: parseFloat(cs.fontSize), f: /dm.?sans/i.test(cs.fontFamily) ? 'dmsans' : cs.fontFamily.toLowerCase().split(',')[0], weight: cs.fontWeight, italic: cs.fontStyle === 'italic', ls: cs.letterSpacing, tt: cs.textTransform, control: true }); }
         return rows;
       })(),
       lists: [...body.querySelectorAll('ul, ol')].length,

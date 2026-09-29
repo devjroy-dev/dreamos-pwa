@@ -1,4 +1,7 @@
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b126_igd1_meta_room_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b126_igd1_meta_room_bench.js · TDW CE-45 · IGD-1 · CUT 1 (dreamos-pwa). Rung b126.
 //
 // WHAT IT HOLDS. R-45.27 (the founder, 25 Sept 2026): Business Solutions' "Your own number" row becomes the room
@@ -33,15 +36,15 @@ function ok(cond, name, info) { if (cond) { pass += 1; console.log(`  PASS  ${na
 const sec = (t) => console.log(`\n§${t}`);
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
 
-const PAGE = 'app/vendor/(shell)/number/page.tsx';
-const FLOWC = 'components/solutions/OwnNumberFlow.tsx';
-const SECT = 'components/solutions/MetaRoomSections.tsx';
+const PAGE = 'v2/app/vendor/(shell)/number/page.tsx';
+const FLOWC = 'v2/components/solutions/OwnNumberFlow.tsx';
+const SECT = 'v2/components/solutions/MetaRoomSections.tsx';
 const DOOR = 'lib/vendor/metaRoomDoor.ts';
-const COPYM = 'lib/worklist/metaRoom.ts';
-const SOLC = 'lib/solutions/copy.ts';
-const ICONS = 'lib/worklist/icons.ts';
-const ROUTES = 'lib/solutions/routes.ts';
-const PORTF = 'app/vendor/(shell)/portfolio/screen.tsx';
+const COPYM = 'v2/lib/worklist/metaRoom.ts';
+const SOLC = 'v2/lib/solutions/copy.ts';
+const ICONS = 'v2/lib/worklist/icons.ts';
+const ROUTES = 'v2/lib/solutions/routes.ts';
+const PORTF = 'v2/app/vendor/(shell)/portfolio/screen.tsx';
 const ADDED = [SECT, DOOR, COPYM];
 
 function loadTs(rel, src) {
@@ -53,12 +56,16 @@ function loadTs(rel, src) {
 }
 
 // THE FOUNDER'S BYTES (his table, 25 Sept 2026, "ok"), pinned by the first 16 hex of sha256.
+// DESIGN-1 · STAGE 1 (by label, the founder's word rules: no dashes, no he or she, one word for enquiries): three bytes
+// moved. IG.professional loses its dash, as the portfolio's H2 it is carried from does (was 551602b858cce1f7);
+// IG.consent reads "we answer the question, ... take the details, and add the couple to your enquiries" (was
+// 60f754a4cd5c1967); QUIET.line reads "we stay quiet in that chat for" (was db24a8f488684f78).
 const VETOED = {
   'SECTIONS.number': 'a625fc8d7c9d0554', 'SECTIONS.instagram': '47b83aeaab4df5cd',
-  'IG.lede': '94a11debf3564f16', 'IG.connect': '59641f41ef18e824', 'IG.professional': '551602b858cce1f7',
-  'IG.consent': '60f754a4cd5c1967', 'IG.turnOn': '5a1f096a0d8d7674', 'IG.notNow': 'a0e63d7c7125d29a',
+  'IG.lede': '94a11debf3564f16', 'IG.connect': '59641f41ef18e824', 'IG.professional': 'a38fda05ebe7a3c1',
+  'IG.consent': 'a7b5fd2a868e7787', 'IG.turnOn': '5a1f096a0d8d7674', 'IG.notNow': 'a0e63d7c7125d29a',
   'IG.on': '6f265681872973a4', 'IG.paused': '8d99ae133c50edd5', 'IG.waiting': '7f17bd6b067cc030', 'IG.turnOff': '06f0e210b27d4d62',
-  'QUIET.line': 'db24a8f488684f78', 'QUIET.labels': '89222666feeac835',
+  'QUIET.line': 'a41c1a3078272075', 'QUIET.labels': '89222666feeac835',
 };
 const ROW_LABEL = 'WhatsApp and Instagram';
 const ROW_LINE = 'Enquiries on WhatsApp and Instagram, answered in the studio\u2019s name';
@@ -77,7 +84,10 @@ const ICON_SHA = '1b6519c8f964bef9129cd637b8cdb605f0b3913d294656d5bef8f58e885fd7
   ok(off.length === 0 && extra.length === 0 && M.QUIET.defaultMinutes === 120,
     '1.1 every room byte is the founder\u2019s (A5, C1 to C9, C13, QT1, QT2), pinned by sha; the default is 2 hours', `off ${off} extra ${extra}`);
   const portf = read(PORTF);
-  const h2 = (portf.match(/  H2: "(.*)",\n/) || [])[1]; const h4 = (portf.match(/  H4: '(.*)',\n/) || [])[1];
+  // DESIGN-1 · STAGE 2 (by label): the portfolio's H2 moved, byte for byte, to its "?" card's home (v2/lib/worklist/pageHelp.ts
+  // PORTFOLIO_HELP, the founder's "make the photos the page", 29 Sept 2026); H4 is still the screen's. Both read where they live.
+  const help = read('v2/lib/worklist/pageHelp.ts');
+  const h2 = (help.slice(help.indexOf('export const PORTFOLIO_HELP')).match(/  H2: "(.*)",\n/) || [])[1]; const h4 = (portf.match(/  H4: '(.*)',\n/) || [])[1];
   ok(h2 === M.IG.professional && h4 === M.IG.connect, '1.2 C4 and C3 are hash-carried from the portfolio\u2019s H2 and H4, byte for byte', `${h16(h2)} ${h16(h4)}`);
   const touched = [PAGE, FLOWC, ...ADDED];
   ok(!touched.some((f) => /\b(Victor|Donna|Harvey|Mira|Eliza)\b/.test(read(f))), '1.3 no persona name in any file this cut adds or touches (b40 C32; the copy law)');

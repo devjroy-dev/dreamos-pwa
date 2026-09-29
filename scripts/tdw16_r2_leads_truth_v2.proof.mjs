@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of tdw16_r2_leads_truth.proof.mjs. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/tdw16_r2_leads_truth.proof.mjs
 // TDW_16 · R2-PWA — L1 (the ENQUIRED VIA TDW row) and L2 (fmtArrival's IST home).
 //
@@ -53,9 +56,9 @@ const ok = (id, cond, why = '') => {
 };
 const H = (t) => console.log(`\n── ${t} ──`);
 
-const LEADS_RAW = R('app/vendor/(shell)/leads/body.tsx');
+const LEADS_RAW = R('v2/app/vendor/(shell)/leads/body.tsx');
 const LEADS = strip(LEADS_RAW);
-const ROW_RAW = R('components/vendor/slices/SliceRow.tsx');
+const ROW_RAW = R('v2/components/vendor/slices/SliceRow.tsx');
 const ROW = strip(ROW_RAW);
 const TYPES = strip(R('lib/vendor/types/vendor.ts'));
 
@@ -63,13 +66,15 @@ console.log('══════════════════════�
 console.log('TDW_16 R2 · THE LEADS TRUTH — L1 the row, L2 the timezone');
 console.log('════════════════════════════════════════════════════════════');
 
+// DESIGN-1 · STAGE 1 (by label): the founder byte keeps its words and takes sentence case, 'Enquired via TDW'
+// (docs/review/REPORT.md §5: sentence case, no capitals as a label). Every cell below keys on the new byte.
 H('§1 · L1 — the ENQUIRED VIA TDW row');
 
 // RAW, not stripped, and deliberately: this is the founder's byte (2026-08-22),
 // frozen at the character. A copy pin that tolerated a reworded comment would
 // tolerate a reworded label, which is the thing it exists to refuse.
 ok('1.1 the founder byte is present, character-exact',
-  LEADS_RAW.includes("label:'ENQUIRED VIA TDW'"),
+  LEADS_RAW.includes("label:'Enquired via TDW'"),
   'the label has drifted from the byte the founder froze on 2026-08-22');
 
 ok('1.2 the row is LINKAGE-GATED — it does not render on an unbadged lead',
@@ -77,8 +82,8 @@ ok('1.2 the row is LINKAGE-GATED — it does not render on an unbadged lead',
   'an ungated row would put an em-dash under ARRIVED on every WhatsApp-only lead');
 
 ok('1.3 it reads the SPINE\'s clock, never the lead\'s birthday',
-  /label:'ENQUIRED VIA TDW',value:fmtArrival\(l\.tdw_enquired_at\)/.test(LEADS)
-  && !/label:'ENQUIRED VIA TDW',value:fmtArrival\(l\.created_at\)/.test(LEADS),
+  /label:'Enquired via TDW',value:fmtArrival\(l\.tdw_enquired_at\)/.test(LEADS)
+  && !/label:'Enquired via TDW',value:fmtArrival\(l\.created_at\)/.test(LEADS),
   'F-16.22 restored on the very row built to cure it');
 
 // F-04.10 was born on this handler's dream-os twin: the SELECT carried a field
@@ -94,9 +99,9 @@ ok('1.4 the wire type admits the field (F-04.10, the type half)',
 // in the other they are a contradiction.
 {
   const arrived = LEADS.indexOf("label:'Arrived'");
-  const tdwRow  = LEADS.indexOf("label:'ENQUIRED VIA TDW'");
+  const tdwRow  = LEADS.indexOf("label:'Enquired via TDW'");
   ok('1.5 it sits directly UNDER Arrived, as ruled',
-    arrived > -1 && tdwRow > arrived && !/label:'Wedding date'[\s\S]{0,80}label:'ENQUIRED VIA TDW'/.test(LEADS),
+    arrived > -1 && tdwRow > arrived && !/label:'Wedding date'[\s\S]{0,80}label:'Enquired via TDW'/.test(LEADS),
     `Arrived@${arrived} vs row@${tdwRow}`);
 }
 

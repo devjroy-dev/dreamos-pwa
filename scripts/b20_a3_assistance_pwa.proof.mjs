@@ -148,12 +148,10 @@ section('§6 · F-41.1 — THE FRONT DOOR READS THE SESSION');
 const entry = await loadTs(ENTRY);
 ok('the rule module loads', !!entry && typeof entry.entryRedirectFor === 'function');
 if (entry) {
-  // DESIGN-1 · STAGE 3 (by label): a vendor lands on Today, the first of the founder's five tabs (was /vendor/rooms, the
-  // directory that became More). The three cells below read the new address; the rule is otherwise unchanged.
-  ok('vendor session → /vendor/today (DESIGN-1 stage 3; was /vendor/rooms)', entry.entryRedirectFor(true, false) === '/vendor/today');
+  ok('vendor session → /vendor/rooms', entry.entryRedirectFor(true, false) === '/vendor/rooms');
   ok('couple session → /frost', entry.entryRedirectFor(false, true) === '/frost');
   ok('no session → stay (null)', entry.entryRedirectFor(false, false) === null);
-  ok('both present → the vendor shell (the founder walks it first)', entry.entryRedirectFor(true, true) === '/vendor/today');
+  ok('both present → the vendor shell (the founder walks it first)', entry.entryRedirectFor(true, true) === '/vendor/rooms');
 }
 const land = strip(read(LAND));
 ok('the landing page calls the rule on mount at `/` with the one-home session reads and router.replace', /entryRedirectFor\(!!getVendorSession\(\), !!getCoupleSession\(\)\)/.test(land) && /router\.replace\(to\)/.test(land) && /window\.location\.pathname !== '\/'/.test(land) && /from '@\/lib\/frost-api\/_base'/.test(read(LAND)));
@@ -182,7 +180,7 @@ ok('F-41.2: the stale "dream-os byte never built" comment is gone', !/dream-os i
     ok('R-41.53b consequence: the landing\'s pre-PIN write (no _v) is evicted by the shell home, so the door does NOT redirect a vendor who has not entered her PIN', sess.getVendorSession() === null && entry.entryRedirectFor(!!sess.getVendorSession(), false) === null && !store.has('vendor_session'));
     store.set('vendor_session', planted); store.set('vendor_web_session', planted);
     const before = entry.entryRedirectFor(!!sess.getVendorSession(), false);
-    ok('R-41.53c: with both keys present the shell home sees a vendor and the door redirects', before === '/vendor/today');
+    ok('R-41.53c: with both keys present the shell home sees a vendor and the door redirects', before === '/vendor/rooms');
     sess.clearVendorSession();
     ok('R-41.53a: sign-out removes vendor_web_session too, not only vendor_session', !store.has('vendor_session') && !store.has('vendor_web_session'));
     ok('R-41.53c: after clearVendorSession() the SHELL home reads null → entryRedirectFor is null', sess.getVendorSession() === null && entry.entryRedirectFor(!!sess.getVendorSession(), false) === null);
@@ -382,6 +380,9 @@ function listTsx(dir = ROOT, out = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     if (e.name === 'node_modules' || e.name === '.next' || e.name === '.git') continue;
     const full = path.join(dir, e.name);
+    // DESIGN-1 · THE LAYOUT SWITCH (by label): v2/ and app/v2/ are the redesign's parallel tree, served only to a vendor
+    // whose layout is v2 and proven by the _v2 benches; this bench proves today's tree. Retires with the classic removal.
+    if (path.relative(ROOT, full) === 'v2' || path.relative(ROOT, full) === path.join('app', 'v2')) continue;
     if (e.isDirectory()) listTsx(full, out);
     else if (/\.tsx?$/.test(e.name)) out.push(path.relative(ROOT, full));
   }

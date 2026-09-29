@@ -10,7 +10,7 @@ import { browser } from './harness.mjs';
 
 const OUT = process.argv[2] || 'offcompare-out';
 const ROUTES = (process.env.ROUTES || '').split(',').filter(Boolean);
-const VPS = { ios: [374, 812], android: [360, 800] };
+const VPS = Object.fromEntries(Object.entries({ ios: [374, 812], android: [360, 800] }).filter(([k]) => (process.env.VPS || 'ios,android').split(',').includes(k)));
 const MODES = ['dark', 'light'];
 fs.mkdirSync(OUT, { recursive: true });
 const b = await browser();

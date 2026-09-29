@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b134_ce45_fe2_ask_sheet_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b134_ce45_fe2_ask_sheet_bench.js · TDW CE-45 · FE-2 · the Ask TDW sheet cut (ASK-1's cut 2 in the app).
 //
 // §1 THE SOURCE: the untrue note is gone (no askSheetNote key, nothing drawn under the sheet's head); the
@@ -41,7 +44,7 @@ const MODES = (process.argv.find((a) => a.startsWith('--modes=')) || '--modes=da
 const MUTATE = process.argv.includes('--mutate');
 
 function probe(mode, shape, delay) {
-  const r = spawnSync('node', [path.join(ROOT, 'scripts/lib/b134_ask_probe.mjs'), String(PORT), mode, shape, String(delay)], { cwd: ROOT, encoding: 'utf8', timeout: 240000 });
+  const r = spawnSync('node', [path.join(ROOT, 'scripts/lib/b134_ask_probe_v2.mjs'), String(PORT), mode, shape, String(delay)], { cwd: ROOT, encoding: 'utf8', timeout: 240000 });
   try { return JSON.parse(String(r.stdout).trim().split('\n').pop()); } catch (_e) { return { errors: ['no json: ' + String(r.stderr).slice(0, 200)] }; }
 }
 function shapeCells(tag, x) {
@@ -52,16 +55,21 @@ function shapeCells(tag, x) {
   cell(`2.3 ${tag} no raw markdown symbol on glass`, !m.panelWidth ? 'no measure' : (m.raw || []).length ? 'on glass: ' + m.raw.join(' ') : null);
   cell(`2.4 ${tag} the note "TDW replies on WhatsApp." is absent`, m.note === false ? null : 'the note is drawn');
   // §5 · THE RE-DRESS (ruled into this cut): every text in the sheet on the app's rungs, in the real faces
-  const RUNGS = { 24: 'cormorant', 17: 'dmsans', 14: 'dmsans', 12: 'dmsans', 11: 'dmsans' };
+  // DESIGN-1 · STAGE 1 (by label): the app's rungs are the review's scale in Inter, read from v2/lib/worklist/theme.ts TYPE
+  // (size|face|weight), so the cell cannot drift from the scale; the old table (Cormorant 24, DM Sans 17/14/12/11 at
+  // 400 or 500) retired with the faces. Tracking is none anywhere now (5.3), and no control is in capitals (5.4).
+  const TY = (() => { try { const ts = require(path.join(ROOT, 'node_modules/typescript')); const js = ts.transpileModule(fs.readFileSync(path.join(ROOT, 'v2/lib/worklist/theme.ts'), 'utf8'), { compilerOptions: { module: 1, target: 7 } }).outputText;
+    const mod = { exports: {} }; new Function('module', 'exports', 'require', js)(mod, mod.exports, require); return mod.exports.TYPE; } catch (_e) { return {}; } })();
+  const RUNGS = new Set(Object.values(TY).map((t) => `${t.size}|inter|${t.weight}`));
   const ty = m.type || [];
-  const off = ty.filter((n) => RUNGS[n.size] !== n.f || !['400', '500'].includes(String(n.weight)));
-  cell(`5.1 ${tag} every text in the sheet sits on a rung (size, face, weight 400/500)`, !ty.length ? 'no text measured' : off.length ? off.slice(0, 3).map((n) => `"${n.txt}" ${n.f} ${n.size} ${n.weight}`).join(' | ') : null);
+  const off = ty.filter((n) => !RUNGS.has(`${n.size}|${n.f}|${n.weight}`));
+  cell(`5.1 ${tag} every text in the sheet sits on a rung (size, face, weight), Inter`, !ty.length ? 'no text measured' : off.length ? off.slice(0, 3).map((n) => `"${n.txt}" ${n.f} ${n.size} ${n.weight}`).join(' | ') : null);
   const ital = ty.filter((n) => n.italic);
   cell(`5.2 ${tag} nothing is italic`, ital.length ? ital.slice(0, 3).map((n) => `"${n.txt}"`).join(' | ') : null);
-  const trk = ty.filter((n) => n.ls !== 'normal' && parseFloat(n.ls) !== 0 && n.size !== 11);
-  cell(`5.3 ${tag} tracking only on t5`, trk.length ? trk.slice(0, 3).map((n) => `"${n.txt}" ${n.size}px ls ${n.ls}`).join(' | ') : null);
-  const caps = ty.filter((n) => n.control && n.size > 11 && n.tt === 'uppercase');
-  cell(`5.4 ${tag} F5: no control above t5 is set in capitals`, caps.length ? caps.slice(0, 3).map((n) => `"${n.txt}"`).join(' | ') : null);
+  const trk = ty.filter((n) => n.ls !== 'normal' && parseFloat(n.ls) !== 0);
+  cell(`5.3 ${tag} no tracking (DESIGN-1)`, trk.length ? trk.slice(0, 3).map((n) => `"${n.txt}" ${n.size}px ls ${n.ls}`).join(' | ') : null);
+  const caps = ty.filter((n) => n.control && n.tt === 'uppercase');
+  cell(`5.4 ${tag} F5 (DESIGN-1: every rung): no control is set in capitals`, caps.length ? caps.slice(0, 3).map((n) => `"${n.txt}"`).join(' | ') : null);
 }
 
 async function startDev() {
@@ -78,7 +86,7 @@ async function startDev() {
 (async () => {
   console.log('b134 · the Ask TDW sheet on ASK-1\u2019s reply shapes');
   // §1 · the source
-  const sheet = read('components/worklist/AskSheet.tsx'); const copy = read('lib/worklist/copy.ts'); const bubble = read('components/vendor/MessageBubble.tsx');
+  const sheet = read('v2/components/worklist/AskSheet.tsx'); const copy = read('v2/lib/worklist/copy.ts'); const bubble = read('v2/components/vendor/MessageBubble.tsx');
   // F-44.202 (CE-46 FE-3): the strip goes through the one home, never a local rule (tdw_f0774_readers §2.3c)
   const code = (s) => stripComments(s);
   cell('1.1 the note is gone: no askSheetNote key in the copy home, nothing drawn under the sheet\u2019s head', /askSheetNote\s*:/.test(code(copy)) || /askSheetNote|wl-asknote/.test(code(sheet)) ? 'the key or its drawing survives' : null);
@@ -98,10 +106,10 @@ async function startDev() {
     // §4 · the mutations, each planted, rendered by the running server's own reload, measured, restored by sha
     if (MUTATE) {
       const muts = [
-        { id: 'M1', file: 'components/vendor/MessageBubble.tsx', from: 'const blocks = plainMarkdown(text).split', to: "const blocks = (text || '').split", shape: 'advisor', cell: '2.3' },
-        { id: 'M2', file: 'components/vendor/MessageBubble.tsx', from: "    overflowWrap: 'anywhere' as const,", to: '', shape: 'longstring', cell: '2.2' },
-        { id: 'M4', file: 'components/vendor/MessageBubble.tsx', from: "style={{ fontWeight: 500 }}>{italicNodes(m[1]", to: "style={{ fontStyle: 'italic', fontWeight: 600 }}>{italicNodes(m[1]", shape: 'advisor', cell: '5.2' },
-        { id: 'M3', file: 'components/worklist/AskSheet.tsx', from: '<div className="wl-askbody" ref={scrollRef}>', to: '<p className="wl-asknote">TDW replies on WhatsApp.</p>\n          <div className="wl-askbody" ref={scrollRef}>', shape: 'plain', cell: '2.4' },
+        { id: 'M1', file: 'v2/components/vendor/MessageBubble.tsx', from: 'const blocks = plainMarkdown(text).split', to: "const blocks = (text || '').split", shape: 'advisor', cell: '2.3' },
+        { id: 'M2', file: 'v2/components/vendor/MessageBubble.tsx', from: "    overflowWrap: 'anywhere' as const,", to: '', shape: 'longstring', cell: '2.2' },
+        { id: 'M4', file: 'v2/components/vendor/MessageBubble.tsx', from: "style={{ fontWeight: 500 }}>{italicNodes(m[1]", to: "style={{ fontStyle: 'italic', fontWeight: 600 }}>{italicNodes(m[1]", shape: 'advisor', cell: '5.2' },
+        { id: 'M3', file: 'v2/components/worklist/AskSheet.tsx', from: '<div className="wl-askbody" ref={scrollRef}>', to: '<p className="wl-asknote">TDW replies on WhatsApp.</p>\n          <div className="wl-askbody" ref={scrollRef}>', shape: 'plain', cell: '2.4' },
       ];
       for (const m of muts) {
         const abs = path.join(ROOT, m.file); const orig = fs.readFileSync(abs, 'utf8'); const h = sha(orig);

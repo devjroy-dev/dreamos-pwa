@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of tdw07_p4a_ig.proof.mjs. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/tdw07_p4a_ig.proof.mjs
 // TDW_07 P4a — the dreamos-pwa half's floor: the un-darkened IG block, the
 // picker's cap-at-the-tap, the return-from-Instagram handler, and the copy
@@ -36,8 +39,8 @@ const code = (rel) => stripComments(raw(rel));
 // bench may be argued with. The constant is declared HERE, at this reading section,
 // rather than once at the top: the sections below read this file for different claims,
 // and a shared constant invites a third reader to assume they check the same thing.
-const MANAGER = 'app/vendor/(shell)/portfolio/screen.tsx';
-const CLIENT  = 'lib/vendor/api/vendor.ts';
+const MANAGER = 'v2/app/vendor/(shell)/portfolio/screen.tsx';
+const CLIENT  = 'v2/lib/vendor/api/vendor.ts';
 const M = code(MANAGER);
 const C = code(CLIENT);
 const Mraw = raw(MANAGER);
@@ -238,7 +241,9 @@ ok('§4.15 the sheet is a flex COLUMN — header, scroller, pinned action',
   // Asserted on code: the scroller's own closing precedes the pinned footer's
   // padding, which is the structural fact the comment merely describes.
   const scroller = PICKER.indexOf("flex: 1, overflowY: 'auto'");
-  const footer   = PICKER.indexOf("borderTop: '0.5px solid rgba(201,168,76,0.18)'");
+  // DESIGN-1 · STAGE 1 (by label): the footer's gold hairline literal became the token read (b59's ruling J, the
+  // palette's gold moved), so the footer is found by the token it now reads.
+  const footer   = PICKER.indexOf("borderTop: '0.5px solid var(--atelier-card-border)'");
   const button   = PICKER.indexOf('onClick={igImport}');
   ok('§4.17 the import action lives OUTSIDE the scroller — a control the vendor '
      + 'must hunt for is a control that does not exist',

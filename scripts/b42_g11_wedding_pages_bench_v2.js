@@ -1,5 +1,31 @@
 #!/usr/bin/env node
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b42_g11_wedding_pages_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
+// DESIGN-1 · THE LAYOUT SWITCH · THE V2 VIEW OF THE TREE (by label). The v2 tree is the shared tree with v2/ laid over it:
+// a module with a copy in v2/ is served from v2/, and every other module is the shared one. So a directory walk in this
+// copy sees exactly that: under app/, components/, lib/ and hooks/ a file whose v2/ twin exists is left out (the walk
+// meets the twin under v2/ instead), and app/v2 (the route shims) is left out; the walks below also walk the v2/ roots.
+{
+  const __fs = require('fs'), __path = require('path');
+  const __ROOT = __path.resolve(__dirname, '..');
+  const __SHARED = ['app', 'components', 'lib', 'hooks'].map((d) => __path.join(__ROOT, d));
+  const __rd = __fs.readdirSync;
+  __fs.readdirSync = function (dir, opts) {
+    const out = __rd.call(__fs, dir, opts);
+    const abs = __path.resolve(String(dir));
+    if (!__SHARED.some((s) => abs === s || abs.startsWith(s + __path.sep))) return out;
+    const rel = __path.relative(__ROOT, abs);
+    return out.filter((e) => {
+      const name = typeof e === 'string' ? e : e.name;
+      const r = __path.join(rel, name);
+      if (r === __path.join('app', 'v2')) return false;
+      const isDir = typeof e === 'string' ? __fs.statSync(__path.join(abs, name)).isDirectory() : e.isDirectory();
+      return isDir || !__fs.existsSync(__path.join(__ROOT, 'v2', r));
+    });
+  };
+}
 // scripts/b42_g11_wedding_pages_bench.js
 // BLOCK 19 · G1.1 — THE PWA HALF'S BENCH.
 //
@@ -25,13 +51,13 @@ const has  = (rel) => fs.existsSync(P(rel));
  *  rule from its violation is worse than no cell (b53's e-4, same class). */
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
 
-const ROOMS   = 'lib/worklist/rooms.ts';
-const GRIDF   = 'components/worklist/RoomsGrid.tsx';
-const HUB     = 'app/vendor/(shell)/support/page.tsx';
-const SOLCOPY = 'lib/solutions/copy.ts';
-const ROUTES  = 'lib/solutions/routes.ts';
-const PIECES  = 'components/solutions/SolutionsPieces.tsx';
-const ROOM    = 'app/vendor/(shell)/wedding-pages/page.tsx';
+const ROOMS   = 'v2/lib/worklist/rooms.ts';
+const GRIDF   = 'v2/components/worklist/RoomsGrid.tsx';
+const HUB     = 'v2/app/vendor/(shell)/support/page.tsx';
+const SOLCOPY = 'v2/lib/solutions/copy.ts';
+const ROUTES  = 'v2/lib/solutions/routes.ts';
+const PIECES  = 'v2/components/solutions/SolutionsPieces.tsx';
+const ROOM    = 'v2/app/vendor/(shell)/wedding-pages/page.tsx';
 const WPCOPY  = 'lib/worklist/weddingPages.ts';
 const LEAF    = 'app/v/[code]/w/[slug]/page.tsx';
 const CLAIM   = 'app/credits/[token]/page.tsx';
@@ -59,6 +85,10 @@ const __RETIRE = new Map([
   ['20 / 19 / 10 / 9', 'A-45.2: the two-band grid constants retired with the founder\u2019s layout; ROOM_COUNT_EXPECTED is pinned on its own below; b122 \u00a72 pins the shelves'],
   ['roomsInBand filters hosted rooms out of the grid', 'A-45.2: a hollow green, roomsInBand has no reader since the shelves; the function is listed for removal at the next cut that opens rooms.ts (F-05.56)'],
   ['the eyebrow is KEPT', 'A-45.2: P3 put the four group headings in its place; the byte stays in its home unconsumed, pinned below (chair, CE-45)'],
+  ['the headline is told apart by its icon in the accent, its name in the ink, and nothing else (DESIGN-1)', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; More\u2019s rows have no headline pair; the registry\u2019s headline flags stand, pinned above'],
+  ['the tile renders its headline from the REGISTRY, never from an index', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; no surface draws a headline tile'],
+  ['the host tile sums the counts of the rooms it hosts', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; More\u2019s rows carry no figure, so no host sums one (b40 C62, C64)'],
+  ['a null hosted count is skipped rather than summed as zero', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; the summation left with the tile figures'],
 ]);
 const __seen = new Map();
 const ok = (n, c, d) => {
@@ -130,8 +160,10 @@ sec('C1 \u00b7 the registry (R-40.20/.22)');
 sec('C2 \u00b7 the FAB clearance (R-G11.11 / F-40.27)');
 {
   const src = read(GRIDF);
-  const m = src.match(/\.wl-bands\{[^}]*\}/);
-  ok('.wl-bands declares a rule', Boolean(m), 'not found');
+  // DESIGN-1 · STAGE 3 (by label): More's list (.wl-more) replaced the bands and stands on the same page as the FAB, so
+  // the clearance rule moved with it, word for word; the cells below read it there.
+  const m = src.match(/\.wl-more\{[^}]*\}/);
+  ok('.wl-more declares a rule (was .wl-bands; DESIGN-1 stage 3)', Boolean(m), 'not found');
   if (m) {
     ok('its bottom padding is computed from the FAB seat AND a tile height',
       /padding-bottom:calc\(var\(--wl-fab-bottom\)\s*\+\s*var\(--wl-tile\)\)/.test(m[0]), m[0]);
@@ -146,8 +178,10 @@ sec('C2 \u00b7 the FAB clearance (R-G11.11 / F-40.27)');
   // CE-45 FE-1 · LABELLED AMENDMENT (the ruled mock, .row.headline .n; BS-1 close): the headline pair is
   // told apart by its NAME taking the metal, a token theme.ts already holds, and nothing else. The
   // R-40.22 accent-border treatment is superseded by the founder's chosen mock.
-  ok('the headline name takes the metal, and nothing else (the ruled mock)',
-    /\.wl-tilehead \.wl-tname\{color:var\(--role-metal\)\}/.test(src) && !/\.wl-tilehead\{border-color/.test(src));
+  // DESIGN-1 · STAGE 1 (by label, docs/review/REPORT.md P5): gold is the brand mark's alone, so the headline's name takes
+  // the text ink like every row's, and the pair is told apart by its icon in the accent, and nothing else.
+  ok('the headline is told apart by its icon in the accent, its name in the ink, and nothing else (DESIGN-1)',
+    /\.wl-tilehead \.wl-ticon\{color:var\(--atelier-accent-text\)\}/.test(src) && /\.wl-tilehead \.wl-tname\{color:var\(--atelier-ink\)\}/.test(src) && !/\.wl-tilehead\{border-color/.test(src));
   ok('the tile renders its headline from the REGISTRY, never from an index',
     // CE-45 FE-1 · LABELLED AMENDMENT: the top pair is ROOMS.filter((r) => r.headline) (repair r6),
     // which reads the registry's own flag exactly as R-40.98 rules.
@@ -222,14 +256,14 @@ sec('C3 \u00b7 the hub (R-40.23)');
   ok('SURFACE_SLUGS is gone', !/SURFACE_SLUGS/.test(routes));
   ok('surfaceHref is gone', !/surfaceHref/.test(routes));
   for (const s of ['google', 'website', 'seo', 'marketing', 'proof', 'benchmarks']) {
-    ok('the ' + s + ' route is deleted, not disabled', !has('app/vendor/(shell)/support/' + s + '/page.tsx'));
+    ok('the ' + s + ' route is deleted, not disabled', !has('v2/app/vendor/(shell)/support/' + s + '/page.tsx'));
   }
   ok('lib/solutions/client.ts retired with its readers', !has('lib/solutions/client.ts'));
   ok('lib/solutions/types.ts is UNTOUCHED (F-38.49\'s home)', has('lib/solutions/types.ts'));
   const hub = strip(read(HUB));
   ok('the hub no longer fetches', !/fetchIndex/.test(hub));
   ok('the eyebrow is KEPT', /COPY\.indexEyebrow/.test(hub));
-  ok('the eyebrow byte stays in its home, unconsumed (chair, CE-45)', /indexEyebrow:/.test(read('lib/solutions/copy.ts')) && !/COPY\.indexEyebrow/.test(hub));
+  ok('the eyebrow byte stays in its home, unconsumed (chair, CE-45)', /indexEyebrow:/.test(read('v2/lib/solutions/copy.ts')) && !/COPY\.indexEyebrow/.test(hub));
   ok('the WhatsApp door is KEPT, class byte-for-byte', /wl-supportaction/.test(hub) && /supportWaNumber\(\)/.test(hub));
   ok('the footer line is KEPT', /COPY\.footerLine/.test(hub));
 }
@@ -388,7 +422,7 @@ sec('C5 \u00b7 the room\'s address has one home');
       if (/['"`]\/vendor\/wedding-pages/.test(strip(fs.readFileSync(p, 'utf8')))) strays.push(rel);
     }
   };
-  for (const d of ['app', 'lib', 'components']) walk(P(d));
+  for (const d of ['app', 'lib', 'components', 'v2/app', 'v2/lib', 'v2/components']) walk(P(d));
   ok('no second spelling of the address anywhere', strays.length === 0, strays.join(', '));
 }
 
@@ -666,7 +700,7 @@ sec('C12 \u00b7 the create picker\u2019s window (F-40.68 / R-G11c.11)');
     Number(room.match(/const WP_PICKER_FROM\s*=\s*'(\d{4})/)[1]) <= 2000,
     'the floor is not a pre-2001 literal');
   // `to` must be sent too: the helper ships the window only when BOTH bounds are
-  // present (lib/vendor/api/vendor.ts), so a `from` alone is silently dropped.
+  // present (v2/lib/vendor/api/vendor.ts), so a `from` alone is silently dropped.
   ok('a forward bound rides with it \u2014 a lone `from` is dropped by the helper',
     /fetchEvents\([^)]*WP_PICKER_FROM\s*,\s*istPlusDaysISO\(\s*400\s*\)\s*\)/.test(call), call);
   // No second answer to "what is today" is authored here.

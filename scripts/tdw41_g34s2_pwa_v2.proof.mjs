@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of tdw41_g34s2_pwa.proof.mjs. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/tdw41_g34s2_pwa.proof.mjs — CE-41 · SEAT C · G3.4 s2, the pwa half.
 //
 // R-41.70 as ratified (item 11 struck): §A the row's controls and the relabel ·
@@ -20,11 +23,11 @@ import { execSync } from 'node:child_process';
 const ROOT = process.env.G34_ROOT ? path.resolve(process.env.G34_ROOT) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 const strip = (src) => src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ').replace(/(^|[^:])\/\/.*$/gm, '$1 ');
-const SHELL = 'components/vendor/slices/SliceShell.tsx';
-const SHEET = 'components/vendor/slices/DetailSheet.tsx';
-const API   = 'lib/vendor/api/vendor.ts';
+const SHELL = 'v2/components/vendor/slices/SliceShell.tsx';
+const SHEET = 'v2/components/vendor/slices/DetailSheet.tsx';
+const API   = 'v2/lib/vendor/api/vendor.ts';
 const TYPES = 'lib/vendor/types/vendor.ts';
-const COPY  = 'lib/worklist/copy.ts';
+const COPY  = 'v2/lib/worklist/copy.ts';
 
 let pass = 0, fail = 0; const fails = [];
 const sec = (t) => console.log(`\n${t}`);
@@ -93,7 +96,8 @@ function run(root) {
       return !!m && m[1].trim() === '!ms.sent_at';
     })());
   ok('the row says the short form; the toast says the sentence',
-    /studioReminderDidntGo:\s*"Didn't go"/.test(copy) && /studioReminderRetry:\s*"Reminder didn't go — try again\."/.test(copy)
+    // DESIGN-1 · STAGE 1 (by label): the toast's sentence lost its dash (REPORT.md W1): "The reminder did not go. Try again."
+    /studioReminderDidntGo:\s*"Didn't go"/.test(copy) && /studioReminderRetry:\s*"The reminder did not go\. Try again\."/.test(copy)
     && /COPY\.studioReminderRetry/.test(shell));
 
   sec('§E · the shut gate in plain words (R-41.70 §E 19–20, F-41.17)');
@@ -103,7 +107,7 @@ function run(root) {
     !/flag\.[a-z_]+/.test(shell));
 
   sec('§F · the copy is one home and carries no persona name');
-  ok('every new string is in lib/worklist/copy.ts', ['studioMsEdit', 'studioMsSave', 'studioScheduleRemove', 'studioInvoiceDelete', 'studioReminderRetry'].every(k => copy.includes(k)));
+  ok('every new string is in v2/lib/worklist/copy.ts', ['studioMsEdit', 'studioMsSave', 'studioScheduleRemove', 'studioInvoiceDelete', 'studioReminderRetry'].every(k => copy.includes(k)));
   ok('no persona name on this surface', !/victor|harvey|donna|eliza/i.test(strip(R(SHELL))));
 }
 

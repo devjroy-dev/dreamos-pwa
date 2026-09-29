@@ -1,3 +1,6 @@
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of rosterMint.proof.ts. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/rosterMint.proof.ts
 // TDW_04.5 P4 · defect A's cure — the Roster row action's proof.
 // Drives the REAL lib/vendor/rosterMint with mocked deps (the pwa has no test
@@ -42,7 +45,8 @@ function mk(resp: MintResponse | 'throw') {
     ok(r === true, 'returns true');
     ok(calls.results[0]?.kind === 'success', 'reports success');
     ok(calls.results[0]?.msg === MINT_SUCCESS_MSG, 'with the founder\'s exact bytes');
-    ok(calls.results[0]?.msg === "They’re on your crew list — assign them from any booking.", 'byte-checked against the veto ledger');
+    // DESIGN-1 · STAGE 1 (by label): the word pass retired the dash (docs/review/REPORT.md W1); the byte moved with it.
+    ok(calls.results[0]?.msg === "They’re on your crew list. Assign them from any booking.", 'byte-checked against the veto ledger');
     ok(calls.refresh === 1, 'and refreshes the roster');
   }
 

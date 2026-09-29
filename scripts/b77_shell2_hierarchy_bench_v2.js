@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b77_shell2_hierarchy_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b77_shell2_hierarchy_bench.js
 // CE-42 · SEAT SHELL-2 · R-42.17 — TYPOGRAPHIC HIERARCHY IN THE SUB-ROOMS.
 //
@@ -47,12 +50,12 @@ const read = (rel) => fs.readFileSync(P(rel), 'utf8');
 const has = (rel) => fs.existsSync(P(rel));
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
 
-const PIECES = 'components/solutions/SolutionsPieces.tsx';
-const SOLC   = 'lib/solutions/copy.ts';
-const THEME  = 'lib/worklist/theme.ts';
-const SHELL  = 'components/worklist/WorklistShell.tsx';
-const DPAGE  = 'app/vendor/(shell)/dates/page.tsx';
-const NPAGE  = 'app/vendor/(shell)/number/page.tsx';
+const PIECES = 'v2/components/solutions/SolutionsPieces.tsx';
+const SOLC   = 'v2/lib/solutions/copy.ts';
+const THEME  = 'v2/lib/worklist/theme.ts';
+const SHELL  = 'v2/components/worklist/WorklistShell.tsx';
+const DPAGE  = 'v2/app/vendor/(shell)/dates/page.tsx';
+const NPAGE  = 'v2/app/vendor/(shell)/number/page.tsx';
 const DCOPY  = 'lib/worklist/openDates.ts';
 const NCOPY  = 'lib/worklist/ownNumber.ts';
 const MOCK   = 'docs/mocks/solutions-hierarchy-mock.html';
@@ -67,7 +70,7 @@ if (process.argv.includes('--mutate')) {
   const base = run();
   if (base.status !== 0) { console.log('REFUSED — the bench is not GREEN before mutation (exit ' + base.status + ')'); process.exit(3); }
   // AMENDED BY LABEL · CE-46 FE-4 · Fork A (3), 27 Sept 2026: the sub-rooms' t1 title is drawn by WorklistShell's RoomHead
-  // now (components/worklist/PageHelp.tsx) and `.sol-title` left Pieces with its five mounts. Under A-45.2 the mutations
+  // now (v2/components/worklist/PageHelp.tsx) and `.sol-title` left Pieces with its five mounts. Under A-45.2 the mutations
   // whose subject was the page-drawn title are RETIRED, named, never run: M2 (the number title typed), M5 (the title
   // drops to t2), M7 (number renders its title twice), M16 (the lede headed by nothing). M6 becomes "a t1 rule in
   // Pieces" (zero is the ruled count). The shell's head is proven by b140 and b123 3.5.
@@ -76,7 +79,7 @@ if (process.argv.includes('--mutate')) {
   const M = [
     ['M1 the eyebrow leaves dates', DPAGE, '        <p className="sol-kicker">{CHIPS.coming}</p>\n', ''],
     ['M3 the eyebrow drops to ink-mute', PIECES, 'text-transform:uppercase;color:var(--atelier-ink-dim);margin:0 0 6px}', 'text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 6px}'],
-    ['M4 the sub-head tracking goes to .06em', PIECES, '.sol-subhead{font:var(--wl-t5);letter-spacing:.08em;', '.sol-subhead{font:var(--wl-t5);letter-spacing:.06em;'],
+    ['M4 the sub-head takes tracking back (.06em)', PIECES, '.sol-subhead{font:var(--wl-t5);', '.sol-subhead{font:var(--wl-t5);letter-spacing:.06em;'],   // DESIGN-1: re-anchored, there is no tracking to move
     ['M6 a t1 rule in Pieces', PIECES, '.sol-kicker{font:var(--wl-t5);', '.sol-kicker{font:var(--wl-t1);'],
     ['M8 the list takes its old margin back', PIECES, '.sol-can{list-style:none;margin:0;', '.sol-can{list-style:none;margin:16px 0 0;'],
     ['M9 the sub-head byte is typed into number', NPAGE, '<p className="sol-subhead">{COPY.canHead}</p>', '<p className="sol-subhead">What this will do</p>'],
@@ -156,11 +159,32 @@ const STUBS = {
   'next/link': { __esModule: true, default: ({ href, className, children }) => h('a', { href, className }, children) },
   '@/hooks/vendor/useVendorSession': { useVendorSession: () => ({ session: { vendorId: 'bench' }, loading: false }) },
   '@/hooks/vendor/useToast': { useToast: () => ({ toast: null, show() {} }) },
-  '@/components/worklist/WlToast': { WlToast: () => null },
-  '@/components/worklist/WorklistShell': { WorklistShell: ({ title, children }) => h('div', { 'data-shell-title': title }, children) },
+  '@/v2/components/worklist/WlToast': { WlToast: () => null },
+  '@/v2/components/worklist/WorklistShell': { WorklistShell: ({ title, children }) => h('div', { 'data-shell-title': title }, children) },
 };
 const copy = load(SOLC);
 const theme = load(THEME);
+// ── DESIGN-1 · STAGE 1 · THE RATIFIED MOCK IS NOT EDITED (by label, as every amendment below has done) ──────────────
+// The mock (docs/mocks/solutions-hierarchy-mock.html) was ratified against the tree before DESIGN-1. The stage moved the
+// tokens (Teal Ledger, two new), the type layer (Inter, the review's scale, in rem), the header's rules (the notch, the
+// brand face, sentence case) and ten .sol-* rules (the spacing scale, 12px corners, no capitals or tracking on the
+// eyebrow and the sub-head). §6 still proves the mock whole: its tokens and header rules are the RATIFIED tree's
+// (main at 85c66ef5, read by git), and each moved .sol-* rule is excused by BOTH its exact shipped text and its exact
+// text in the mock, so any other drift still reddens.
+const RATIFIED = '85c66ef518a0d1151dc4b5d357d63d56e26db2e6';
+const atRatified = (rel) => spawnSync('git', ['show', RATIFIED + ':' + rel], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 }).stdout || '';
+const ratifiedTheme = (() => { const src = atRatified(THEME); if (!src) return null; const out = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+  const mod = { exports: {} }; new Function('require', 'module', 'exports', out)(require, mod, mod.exports); return mod.exports; })();
+// the moved rules are DERIVED, never listed by hand: each .sol-* rule whose text differs between the ratified tree's
+// SolutionsStyles literal and this tree's, paired by selector (a rule the stage added or removed is not excused)
+const solLiteral = (src) => (src.match(/<style>\{`([\s\S]*?)`\}<\/style>/) || [, ''])[1];
+const solRules = (css) => strip(css).split('\n').map((l) => l.trim()).filter(Boolean).join('\n')
+  .replace(/\n(?=[^.@\[]|\.\d)/g, ' ').split('\n').filter((l) => /^\.sol-/.test(l));
+const selOf = (r) => r.slice(0, r.indexOf('{'));
+const D1_MOVED_SOL = (() => {
+  const was = new Map(solRules(solLiteral(atRatified(PIECES))).map((r) => [selOf(r), r]));
+  return solRules(solLiteral(read(PIECES))).filter((r) => was.has(selOf(r)) && was.get(selOf(r)) !== r).map((r) => [r, was.get(selOf(r))]);
+})();
 const pieces = load(PIECES, { 'next/link': STUBS['next/link'] });
 const piecesCss = server.renderToStaticMarkup(h(pieces.SolutionsStyles))
   .replace(/^<style>|<\/style>$/g, '').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
@@ -228,7 +252,7 @@ sec('§5 · COPY.canHead has one home and both screens read it');
     }
   };
   ['app', 'components', 'lib', 'hooks'].forEach((d) => has(d) && walk(d));
-  ok('the byte is written once, in lib/solutions/copy.ts', hits.length === 1 && hits[0] === SOLC, hits.join(', '));
+  ok('the byte is written once, in v2/lib/solutions/copy.ts', hits.length === 1 && hits[0] === SOLC, hits.join(', '));
   for (const s of SCREENS) ok(s.key + ' reads {COPY.canHead}', /<p className="sol-subhead">\{COPY\.canHead\}<\/p>/.test(strip(read(s.rel))));
 }
 
@@ -266,14 +290,17 @@ else {
   // CE-46 FE-4 · LABELLED AMENDMENT (Fork A (3)): `.sol-title` LEFT Pieces (the shell draws the t1 now). This ratified
   // mock is NOT edited; its title rule is excused BY ITS EXACT TEXT as an extra, so any other extra still reddens.
   const RETIRED_FROM_TREE = ['.sol-title{font:var(--wl-t1);color:var(--atelier-ink);margin:0 0 10px}'];
-  const miss = shipped.filter((r) => !drawn.includes(r) && !LATER_MOCK.includes(r)), extra = drawn.filter((r) => !shipped.includes(r) && !RETIRED_FROM_TREE.includes(r));
+  // DESIGN-1: a moved rule is excused only as its exact pair, shipped and drawn (the list at the loader)
+  const movedNow = (r) => D1_MOVED_SOL.some(([now, was]) => r === now && drawn.includes(was));
+  const movedWas = (r) => D1_MOVED_SOL.some(([now, was]) => r === was && shipped.includes(now));
+  const miss = shipped.filter((r) => !drawn.includes(r) && !LATER_MOCK.includes(r) && !movedNow(r)), extra = drawn.filter((r) => !shipped.includes(r) && !RETIRED_FROM_TREE.includes(r) && !movedWas(r));
   ok('every shipped .sol-* rule is in the mock verbatim, and the mock carries no other', shipped.length > 0 && miss.length === 0 && extra.length === 0,
     (miss.length ? 'missing: ' + miss[0].slice(0, 70) : '') + (extra.length ? ' extra: ' + extra[0].slice(0, 70) : ''));
-  ok('its tokens are theme.ts scopeCss + typeCss, verbatim (both arms)', mock.includes(theme.scopeCss('.wl')) && mock.includes(theme.typeCss('.wl')));
-  const shellSrc = read(SHELL);
+  ok('its tokens are the ratified tree\u2019s theme.ts scopeCss + typeCss, verbatim (both arms; DESIGN-1 moved the tree\u2019s)', !!ratifiedTheme && mock.includes(ratifiedTheme.scopeCss('.wl')) && mock.includes(ratifiedTheme.typeCss('.wl')));
+  const shellSrc = atRatified(SHELL);   // DESIGN-1: the header the mock was ratified against
   const shellRules = ['.wl-hdr', '.wl-hstack', '.wl-house', '.wl-lbl', '.wl-lblrow', '.wl-beta', '.wl-main > *']
     .map((sel) => shellSrc.split('\n').find((l) => l.startsWith(sel + '{')));
-  ok('its header draws WorklistShell.tsx\u2019s own rules', shellRules.every((r) => r && mock.includes(r)));
+  ok('its header draws the ratified WorklistShell.tsx\u2019s own rules', shellRules.every((r) => r && mock.includes(r)));
   const scoped = [...mock.matchAll(/^\[data-frame="[^"]+"\][^\n]*$/gm)].map((m) => m[0]);
   ok('exactly one scoped override, and it is b5b7dfc2\u2019s .sol-can margin on the before panel',
     scoped.length === 1 && scoped[0] === '[data-frame="H0-before"] .sol-can{margin:16px 0 0}', scoped.join(' | '));
@@ -333,7 +360,8 @@ const browser = (async () => {
         // next/font defines these two in app/layout.tsx; without them every rung is
         // invalid at computed-value time and the font shorthand silently resets.
         await pg.setContent('<style>' + theme.scopeCss('.wl') + theme.typeCss('.wl') + wlRule +
-          '.wl{--font-cormorant:"Cormorant Garamond";--font-dm-sans:"DM Sans"}body{margin:0}' + piecesCss + '</style>' +
+          // DESIGN-1: the rungs read --font-inter (app/layout.tsx), which this page must define as it defined the two before
+          '.wl{--font-cormorant:"Cormorant Garamond";--font-dm-sans:"DM Sans";--font-inter:"Inter"}body{margin:0}' + piecesCss + '</style>' +
           '<div class="wl" data-wl-mode="' + mode + '" style="background:var(--atelier-page-bg);color:var(--atelier-ink)"><main class="wl-main">' +
           s.html + '</main></div>');
         out[mode + ':' + s.key] = await pg.evaluate((inks) => {
@@ -352,7 +380,7 @@ const browser = (async () => {
             prevOfLede: q('.sol-empty') && q('.sol-empty').previousElementSibling ? q('.sol-empty').previousElementSibling.className : null,
             prevOfList: q('.sol-can') && q('.sol-can').previousElementSibling ? q('.sol-can').previousElementSibling.className : null,
             h1s: surface.querySelectorAll('h1').length,
-            t1s: texts.filter((el) => { const c = getComputedStyle(el); return c.fontSize === '24px' && /Cormorant/.test(c.fontFamily); }).map((el) => el.tagName + '.' + el.className),
+            t1s: texts.filter((el) => { const c = getComputedStyle(el); return c.fontSize === '22px' && c.fontWeight === '600'; }).map((el) => el.tagName + '.' + el.className),   // DESIGN-1: t1 is Inter 22/600
             texts: texts.map((el) => { const c = getComputedStyle(el); return { who: el.tagName + '.' + el.className, size: c.fontSize, weight: c.fontWeight, line: c.lineHeight, ink: colorName(c.color), raw: c.color }; }),
           };
         }, inks);
@@ -370,7 +398,7 @@ browser.then((got) => {
   }
   const rung = (k) => ({ size: theme.TYPE[k].size + 'px', weight: String(theme.TYPE[k].weight), line: (Math.round(theme.TYPE[k].size * theme.TYPE[k].line * 100) / 100) + 'px' });
   const isRung = (c, k) => { const r = rung(k); return c && c.size === r.size && c.weight === r.weight && parseFloat(c.line).toFixed(2) === parseFloat(r.line).toFixed(2); };
-  const t5track = (theme.TYPE.t5.size * 0.08).toFixed(2);   // .08em at t5, in px, as computed
+  // DESIGN-1 · STAGE 1 (by label, REPORT.md §5): the eyebrow and the sub-head are t5 in sentence case with no tracking
   for (const mode of ['dark', 'light']) {
     const pal = mode === 'dark' ? theme.GRAPHITE : theme.CHALK;
     const hex = (v) => { const x = v.replace('#', ''); return 'rgb(' + [0, 2, 4].map((i) => parseInt(x.slice(i, i + 2), 16)).join(', ') + ')'; };
@@ -381,15 +409,15 @@ browser.then((got) => {
       sec('§2 · computed — ' + tag);
       for (const role of ['kicker', 'subhead']) {
         const c = g[role];
-        ok(role + ' is t5, uppercase, .08em, in ink-dim',
-          isRung(c, 't5') && c.transform === 'uppercase' && parseFloat(c.track).toFixed(2) === t5track && c.color === hex(pal['ink-dim']),
+        ok(role + ' is t5, sentence case, no tracking, in ink-dim (DESIGN-1)',
+          isRung(c, 't5') && c.transform === 'none' && (c.track === 'normal' || parseFloat(c.track) === 0) && c.color === hex(pal['ink-dim']),
           c ? [c.size, c.weight, c.line, c.transform, c.track, c.color].join(' ') : 'absent');
       }
       // CE-46 FE-4: the surface draws no t1 and no h1; the shell's RoomHead above it does (b140, b123 3.5).
       ok('no t1 and no h1 inside the surface: the shell owns the page title', g.h1s === 0 && g.t1s.length === 0 && !g.title,
         g.h1s + ' h1, t1 on: ' + g.t1s.join(', '));
-      ok('the sub-head carries the space: 24 above it, 10 below, the list 0 (ruling D)',
-        g.subhead && g.subhead.mt === '24px' && g.subhead.mb === '10px' && g.ul && g.ul.mt === '0px', g.subhead ? [g.subhead.mt, g.subhead.mb, g.ul && g.ul.mt].join(' ') : 'absent');
+      ok('the sub-head carries the space: 24 above it, 12 below (DESIGN-1: the spacing scale; was 10), the list 0 (ruling D)',
+        g.subhead && g.subhead.mt === '24px' && g.subhead.mb === '12px' && g.ul && g.ul.mt === '0px', g.subhead ? [g.subhead.mt, g.subhead.mb, g.ul && g.ul.mt].join(' ') : 'absent');
 
       // ── §3 · THE THREE ROLES ─────────────────────────────────────────────
       // ⚠ PROPOSED READING, F-42.216 — NOT THE CHAIR'S WORDING. §8 as restored
@@ -406,7 +434,7 @@ browser.then((got) => {
       // AMENDED BY LABEL · IGD-1 cut 1 · R-45.27 A5: on number the lede is headed by its section heading (t2), itself under the t1 title.
       // CE-46 FE-4: on dates the lede is headed by the t5 eyebrow (the t1 title is the shell's, above the surface).
       const ledeHead = (s.key === 'number' ? g.prevOfLede === 'sol-heading' : g.prevOfLede === 'sol-kicker');
-      const listHead = g.prevOfList === 'sol-subhead' && isRung(g.subhead, 't5') && g.subhead.transform === 'uppercase';
+      const listHead = g.prevOfList === 'sol-subhead' && isRung(g.subhead, 't5');   // DESIGN-1: its device is the t5 sub-head, no longer capitals
       const asideHead = !s.aside || (g.firstOfAside === 'sol-asideline' && parseFloat(g.aside.bt) > 0 && g.aside.bts === 'solid');
       ok('each role keeps t3 (D) and is headed by its own device: lede \u2190 the eyebrow or section heading, list \u2190 t5 uppercase sub-head' + (s.aside ? ', aside line \u2190 rule line' : ''),
         keepT3 && ledeHead && listHead && asideHead,
@@ -419,7 +447,7 @@ browser.then((got) => {
       sec('§4 · the census, computed — ' + tag);
       const counted = ['P.sol-kicker', 'P.sol-subhead'].every((w) => g.texts.some((t) => t.who === w)); // CE-46 FE-4: no H1 in the surface
       const off = g.texts.filter((t) => !theme.RUNGS.some((k) => isRung(t, k)));
-      ok('every text on the surface sits on one of the six rungs — the hierarchy counted', counted && off.length === 0,
+      ok('every text on the surface sits on one of the rungs (DESIGN-1: the review\u2019s eight) — the hierarchy counted', counted && off.length === 0,
         off.map((t) => t.who + ' ' + t.size + '/' + t.weight).join(', ') + (counted ? '' : ' · hierarchy absent'));
       const noInk = g.texts.filter((t) => !t.ink);
       ok('every text ink is a ' + arm + ' palette value — the hierarchy counted', counted && noInk.length === 0,

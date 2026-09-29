@@ -1,4 +1,30 @@
 #!/usr/bin/env node
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b40_worklist_shell_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
+// DESIGN-1 · THE LAYOUT SWITCH · THE V2 VIEW OF THE TREE (by label). The v2 tree is the shared tree with v2/ laid over it:
+// a module with a copy in v2/ is served from v2/, and every other module is the shared one. So a directory walk in this
+// copy sees exactly that: under app/, components/, lib/ and hooks/ a file whose v2/ twin exists is left out (the walk
+// meets the twin under v2/ instead), and app/v2 (the route shims) is left out; the walks below also walk the v2/ roots.
+{
+  const __fs = require('fs'), __path = require('path');
+  const __ROOT = __path.resolve(__dirname, '..');
+  const __SHARED = ['app', 'components', 'lib', 'hooks'].map((d) => __path.join(__ROOT, d));
+  const __rd = __fs.readdirSync;
+  __fs.readdirSync = function (dir, opts) {
+    const out = __rd.call(__fs, dir, opts);
+    const abs = __path.resolve(String(dir));
+    if (!__SHARED.some((s) => abs === s || abs.startsWith(s + __path.sep))) return out;
+    const rel = __path.relative(__ROOT, abs);
+    return out.filter((e) => {
+      const name = typeof e === 'string' ? e : e.name;
+      const r = __path.join(rel, name);
+      if (r === __path.join('app', 'v2')) return false;
+      const isDir = typeof e === 'string' ? __fs.statSync(__path.join(abs, name)).isDirectory() : e.isDirectory();
+      return isDir || !__fs.existsSync(__path.join(__ROOT, 'v2', r));
+    });
+  };
+}
 // scripts/b40_worklist_shell_bench.js — the Phase 1 cells.
 // Exit code is the verdict; PASS-line counts are not.
 'use strict';
@@ -14,7 +40,7 @@ const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 // which is `NAIVE_RETIRED` — the rule `scripts/lib/stripComments.mjs` publishes
 // for VACUITY TWINS and explicitly forbids using to strip anything. It treats
 // any `/*` as a comment opener, including one inside a `//` line comment. At
-// `60e439b`, `app/vendor/studio/team/page.tsx:152` says `/crew/*` inside such a
+// `60e439b`, `v2/app/vendor/studio/team/page.tsx:152` says `/crew/*` inside such a
 // comment; that false opener paired with `{/* FAB */}`'s closer seventy-four
 // lines down, and every cell reading that file read a page with no `<Header/>`,
 // no loading arm, no empty arm and no member list.
@@ -104,6 +130,20 @@ let C2_RETIRED_PRINTED = false; // CE-45 FE-1, A-45.2: C2's retired clause print
 // EXACTLY ONE reached cell, or the bench exits 1: a row that matches nothing is a table that
 // has drifted from the cells it claims to retire.
 const RETIRED_CELLS = [
+  // DESIGN-1 · STAGE 2 (A-45.2, by label): Home is the day's work in four sections (v2/components/worklist/TodayHome.tsx);
+  // the numeral, the kind line, the attention cards with their fold, and the Done today ledger were removed by the
+  // founder's ruling. Their cells retire HERE, by id, never run; b146 proves the Home that replaced them, and the cells
+  // whose subject survives (the reading's gates, the wire's order, the capped tell, the record keys, the figures) are
+  // amended where they stand (C34, C37, C61, C63, C64, C66, C100).
+  ['C60', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the open-items numeral is gone (Reply to, Today and Money due each state their own)'],
+  ['C65', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: its dated uncomments were the numeral\u2019s wiring, which left with the numeral'],
+  ['C68', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the Done today ledger is gone (REPORT.md E13)'],
+  ['C69', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the kind line is gone; its nouns map (kindNouns) stays in copy.ts, unread by Today'],
+  ['C70', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the kind line\u2019s eyebrow anchors went with it'],
+  ['C71', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the three-in-place fold is gone; Reply to lists every new enquiry the wire sends'],
+  ['C72', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the capped kind\u2019s promise line went with the kind line (C64 holds the tell on Reply to)'],
+  ['C73', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the invoice card\u2019s due line is gone; Money due reads the wire\u2019s dates in one line'],
+  ['C74', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the done ledger\u2019s particular went with the ledger'],
   ['C28', 'A-45.2: the Slice Door (the in-room tab strip) was removed by the founder\u2019s ruling, CE-45 FE-2 TYPE_1; b123 pins its absence'],
 ];
 const retiredHits = new Map(RETIRED_CELLS.map(([id]) => [id, 0]));
@@ -137,15 +177,16 @@ function cell(name, fn) {
 }
 
 cell('C1 token completeness, both modes', () => {
-  const src = strip(read('lib/worklist/theme.ts'));
+  const src = strip(read('v2/lib/worklist/theme.ts'));
   const grab = (name) => {
     const m = src.match(new RegExp('export const ' + name + '[^=]*=\\s*\\{([\\s\\S]*?)\\n\\};'));
     if (!m) throw new Error(name + ' block not found');
     return (m[1].match(/^\s*'[a-z-]+'\s*:/gm) || []).length;
   };
   const g = grab('GRAPHITE'), c = grab('CHALK');
-  if (g !== 33) return 'GRAPHITE has ' + g + ' tokens, expected 33';
-  if (c !== 33) return 'CHALK has ' + c + ' tokens, expected 33';
+  // DESIGN-1 · STAGE 1 (by label): 35, the 33 plus primary and on-primary (docs/review/REPORT.md §4)
+  if (g !== 35) return 'GRAPHITE has ' + g + ' tokens, expected 35';
+  if (c !== 35) return 'CHALK has ' + c + ' tokens, expected 35';
   return null;
 });
 
@@ -157,7 +198,7 @@ cell('C1 token completeness, both modes', () => {
 // own tile. THE COUNT HISTORY, every step worded or derived: 11 -> 15 -> 16 -> 17.
 // The cell is amended by LABEL, never by loosening — it still asserts an exact count and an
 // exact order, because the freeze is the anti-feature. The expected numbers now read from
-// lib/worklist/rooms.ts's own exported constants rather than from literals retyped here, so
+// v2/lib/worklist/rooms.ts's own exported constants rather than from literals retyped here, so
 // the next amendment happens in ONE home and this cell cannot drift away from the registry
 // it guards. Position is the founder's to reorder in one word; this cell asserts wherever
 // he puts it, and reddens on any reorder he did not word.
@@ -174,7 +215,7 @@ cell('C1 token completeness, both modes', () => {
 //
 // THE LITERALS BELOW ARE THE REASON THIS CELL NEEDED EDITING AT ALL, and it is worth
 // naming because the charter did not name it. The comment above says the expected numbers
-// "now read from lib/worklist/rooms.ts's own exported constants rather than from literals
+// "now read from v2/lib/worklist/rooms.ts's own exported constants rather than from literals
 // retyped here" — and they DO, for the ids and the bands. But the three-number guard on
 // the first line reads LITERALS, deliberately: it is what stops the registry from drifting
 // away from the RULING by editing its own constants. So a ruled amendment has to move both
@@ -198,7 +239,7 @@ cell('C1 token completeness, both modes', () => {
 // `books` clause is. Two files agreeing proves they match EACH OTHER; it does not
 // prove they match the founder's word, which was index 0 of the work band.
 cell('C2 nineteen rooms in frozen order, eighteen tiles, 9 + 9 (R-37.75; R-37.87; R-38.9; R-38.10; R-40.20/.98/.99)', () => {
-  const src = strip(read('lib/worklist/rooms.ts'));
+  const src = strip(read('v2/lib/worklist/rooms.ts'));
   const num = (name) => { const m = src.match(new RegExp(name + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
   // -- CE-45 FE-1 · LABELLED AMENDMENT (A-45.2; the founder’s layout, BS-1 close; chair’s ruling of
   // 24 Sept 2026). THE BAND-COUNT CLAUSE IS RETIRED: GRID_TILE_COUNT_EXPECTED 19, TOP_BAND_EXPECTED 10
@@ -274,18 +315,18 @@ cell('C2 nineteen rooms in frozen order, eighteen tiles, 9 + 9 (R-37.75; R-37.87
 });
 
 cell('C3 no inline wa number in the shell', () => {
-  const files = ['components/worklist/FirstRun.tsx','components/worklist/AiDock.tsx',
-    'components/worklist/WorklistShell.tsx','components/worklist/RoomsGrid.tsx',
-    'app/vendor/(shell)/page.tsx','app/vendor/(shell)/rooms/page.tsx','app/vendor/(shell)/support/page.tsx',
-    'app/vendor/(shell)/layout.tsx','lib/worklist/copy.ts'];
+  const files = ['v2/components/worklist/FirstRun.tsx','v2/components/worklist/AiDock.tsx',
+    'v2/components/worklist/WorklistShell.tsx','v2/components/worklist/RoomsGrid.tsx',
+    'v2/app/vendor/(shell)/page.tsx','v2/app/vendor/(shell)/rooms/page.tsx','v2/app/vendor/(shell)/support/page.tsx',
+    'v2/app/vendor/(shell)/layout.tsx','v2/lib/worklist/copy.ts'];
   const bad = files.filter((f) => /\b9\d{11}\b/.test(strip(read(f))));
   if (bad.length) return 'number literal in ' + bad.join(', ') + ' — must resolve through lib/waNumbers.ts';
-  if (!strip(read('app/vendor/(shell)/support/page.tsx')).includes('supportWaNumber()')) return 'support page does not call supportWaNumber()';
+  if (!strip(read('v2/app/vendor/(shell)/support/page.tsx')).includes('supportWaNumber()')) return 'support page does not call supportWaNumber()';
   return null;
 });
 
 cell('C4 self-reference register (R-37.72)', () => {
-  const strings = strip(read('lib/worklist/copy.ts')).match(/'(?:[^'\\]|\\.)*'/g) || [];
+  const strings = strip(read('v2/lib/worklist/copy.ts')).match(/'(?:[^'\\]|\\.)*'/g) || [];
   const offend = strings.filter((s) => /\b(this app|the app|our app)\b/i.test(s));
   if (offend.length) return 'reduction found: ' + offend.join(' | ');
   return null;
@@ -319,16 +360,22 @@ cell('C4 self-reference register (R-37.72)', () => {
 //    in the register at all」 — which needs no pairing, cannot be offset, and is strictly
 //    stronger. Proven by mutation on two names the old body could not see.
 cell('C5 no persona name in the copy register, all five (R-37.70 as amended at R-38.17)', () => {
-  const register = strip(read('lib/worklist/copy.ts'));
+  const register = strip(read('v2/lib/worklist/copy.ts'));
   const hit = new RegExp(PERSONAS).exec(register);
   if (hit) return 'a persona name appears in the copy register: ' + hit[0];
   return null;
 });
 
 cell('C6 no third container (R-37.64)', () => {
-  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const shell = strip(read('v2/components/worklist/WorklistShell.tsx'));
+  // DESIGN-1 · STAGE 3 (by label): the bar is the founder's five tabs (docs/review/REPORT.md §3), drawn from their one
+  // home, v2/lib/worklist/tabs.ts, in his order; still one container (the nav) and no third one.
   const seats = (shell.match(/className=\{'wl-seat'/g) || []).length;
-  if (seats !== 2) return seats + ' nav seats rendered, expected exactly 2';
+  if (seats !== 1 || !/\{TABS\.map\(\(t\) => \(\s*<Link key=\{t\.id\} href=\{t\.rooms\[0\]\.href\} className=\{'wl-seat'/.test(shell)) return seats + ' seat templates; expected one, mapped over TABS';
+  const tabs = strip(read('v2/lib/worklist/tabs.ts'));
+  const ids = [...tabs.slice(tabs.indexOf('export const TABS')).matchAll(/\{ id: '(\w+)', label: '([^']+)'/g)].map((m) => m[1] + ':' + m[2]);
+  if (ids.join(',') !== 'today:Today,enquiries:Enquiries,calendar:Calendar,clients:Clients,money:Money') return 'the tabs are ' + ids.join(',') + ', expected Today, Enquiries, Calendar, Clients, Money';
+  if ((shell.match(/<nav className="wl-nav"/g) || []).length !== 1) return 'the bar is not one nav';
   if (/<input/.test(shell)) return 'an input renders in the shell chrome — search-as-navigation is banned';
   return null;
 });
@@ -336,7 +383,7 @@ cell('C6 no third container (R-37.64)', () => {
 // ── C7 · the chrome is PINNED. The first cut let the dock and both nav seats scroll off
 //    the bottom of a long Today. Mutation that reddens it: height 100dvh -> minHeight.
 cell('C7 chrome pinned, body scrolls', () => {
-  const shell = read('components/worklist/WorklistShell.tsx');
+  const shell = read('v2/components/worklist/WorklistShell.tsx');
   if (!/height:\s*'100dvh'/.test(shell)) return 'shell root is not a fixed 100dvh column';
   if (!/overflow:\s*'hidden'/.test(shell)) return 'shell root does not clip — the chrome will scroll away';
   if (!/\.wl-main\{[^}]*overflow-y:auto/.test(shell)) return 'the body does not scroll independently';
@@ -347,15 +394,15 @@ cell('C7 chrome pinned, body scrolls', () => {
 // ── C8 · every tap target answers the finger. A control with no pressed state and a
 //    300ms zoom delay reads as dead, and a dead control gets tapped again.
 cell('C8 touch answers', () => {
-  const files = ['components/worklist/WorklistShell.tsx','components/worklist/RoomsGrid.tsx',
-                 'components/worklist/AiDock.tsx','components/worklist/FirstRun.tsx','app/vendor/(shell)/support/page.tsx'];
+  const files = ['v2/components/worklist/WorklistShell.tsx','v2/components/worklist/RoomsGrid.tsx',
+                 'v2/components/worklist/AiDock.tsx','v2/components/worklist/FirstRun.tsx','v2/app/vendor/(shell)/support/page.tsx'];
   // FirstRun's own pressed states moved with the shared chrome; the shell answers for them.
-  const missing = files.filter((f) => !/:active\{/.test(read(f) + read('components/worklist/WorklistShell.tsx')));
+  const missing = files.filter((f) => !/:active\{/.test(read(f) + read('v2/components/worklist/WorklistShell.tsx')));
   if (missing.length) return 'no pressed state in ' + missing.join(', ');
   // Anchored to the .wl root rule specifically. An earlier cut of this cell matched
   // touch-action anywhere in the file and stayed GREEN with the root rule deleted —
   // vacuous, caught by its own mutation run and tightened here.
-  if (!/\.wl\{[^}]*touch-action:manipulation/.test(read('components/worklist/WorklistShell.tsx')))
+  if (!/\.wl\{[^}]*touch-action:manipulation/.test(read('v2/components/worklist/WorklistShell.tsx')))
     return 'the .wl root carries no touch-action:manipulation — every tap waits on the double-tap-zoom gesture';
   return null;
 });
@@ -369,7 +416,7 @@ cell('C9 the handle is read once, from the wire, in one home', () => {
   const hook = strip(read('hooks/vendor/useVendorHandle.ts'));
   if (/vendor\?\.routing_handle/.test(hook)) return 'reads vendor.routing_handle — the wire field is `handle` (dream-os me.js:76)';
   if (!/vendor\?\.handle/.test(hook)) return 'the hook does not read vendor.handle';
-  for (const f of ['components/worklist/FirstRun.tsx', 'app/vendor/(shell)/rooms/page.tsx']) {
+  for (const f of ['v2/components/worklist/FirstRun.tsx', 'v2/app/vendor/(shell)/rooms/page.tsx']) {
     const src = strip(read(f));
     if (/\/api\/v2\/vendor\/me/.test(src)) return f + ' fetches /me itself — a second home for one fact';
   }
@@ -389,12 +436,12 @@ cell('C10 every tap target >= 44px', () => {
     // its subject and the reason stands where the name stood. The cell itself is
     // untouched and the cell COUNT is unchanged; only this one guarded class is
     // withdrawn. `wl-coin` stays: the medallion is very much alive.
-    'components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat'],
-    'components/worklist/RoomsGrid.tsx':     ['wl-tile'],
-    'components/worklist/AiDock.tsx':        ['wl-dockfield'],  // Arm A: the costume is back and honest; .wl-dock is the padding wrapper
-    'components/worklist/FirstRun.tsx':      ['wl-chip'],
-    'components/worklist/WorklistShell.tsx#shared': ['wl-cardaction'],  // rehomed: shared chrome lives in the shell
-    'app/vendor/(shell)/support/page.tsx':                ['wl-supportaction'],
+    'v2/components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat', 'wl-heldlink'],  // DESIGN-1 stage 3: + the held rooms' links
+    'v2/components/worklist/RoomsGrid.tsx':     ['wl-morerow'],  // DESIGN-1 stage 3 (by label): More's rows replaced the tiles
+    'v2/components/worklist/AiDock.tsx':        ['wl-dockfield'],  // Arm A: the costume is back and honest; .wl-dock is the padding wrapper
+    'v2/components/worklist/FirstRun.tsx':      ['wl-chip'],
+    'v2/components/worklist/WorklistShell.tsx#shared': ['wl-cardaction'],  // rehomed: shared chrome lives in the shell
+    'v2/app/vendor/(shell)/support/page.tsx':                ['wl-supportaction'],
   };
   const under = [];
   for (const [f, classes] of Object.entries(files)) {
@@ -410,9 +457,11 @@ cell('C10 every tap target >= 44px', () => {
       // token form is read too, because the grid's values now have one home in theme.ts
       // and the stylesheet reads var(--wl-tile) rather than restating 64.
       let h = m[1].match(/min-height:(\d+)px/) || m[1].match(/height:(\d+)px/);
+      // DESIGN-1 (by label): a button states the one button height, var(--wl-btn-h), BUTTON.height in theme.ts (48)
+      if (!h && /min-height:var\(--wl-btn-h\)/.test(m[1])) { const bh = read('v2/lib/worklist/theme.ts').match(/BUTTON = \{ height: (\d+)/); h = bh ? [null, bh[1]] : null; }
       if (!h && /height:var\(--wl-(tile|row)\)/.test(m[1])) {
-        const g = read('lib/worklist/theme.ts').match(/GRID\s*=\s*\{[^}]*?(tile|row):\s*(\d+)/g) || [];
-        const t = read('lib/worklist/theme.ts').match(/tile:\s*(\d+)/);
+        const g = read('v2/lib/worklist/theme.ts').match(/GRID\s*=\s*\{[^}]*?(tile|row):\s*(\d+)/g) || [];
+        const t = read('v2/lib/worklist/theme.ts').match(/tile:\s*(\d+)/);
         h = t ? [null, t[1]] : null;
       }
       if (!h) { under.push(c + ' (no stated height — a target that survives by accident)'); continue; }
@@ -427,14 +476,17 @@ cell('C10 every tap target >= 44px', () => {
 //    9px on the tile names was the conviction; this makes it unrepeatable.
 cell('C11 type floors hold', () => {
   const rules = [
-    ['components/worklist/RoomsGrid.tsx', 'wl-tname', 12], ['components/worklist/RoomsGrid.tsx', 'wl-bandlabel', 11],
-    ['components/worklist/WorklistShell.tsx', 'wl-seat', 12], ['components/worklist/WorklistShell.tsx', 'wl-lbl', 11],
+    // DESIGN-1 (by label): every floor rises to the review's 13 (nothing a vendor reads is smaller); body stays 14+.
+    // DESIGN-1 · STAGE 3 (by label): More's row name, one line and group heading replaced the tile name and shelf label.
+    ['v2/components/worklist/RoomsGrid.tsx', 'wl-morename', 13], ['v2/components/worklist/RoomsGrid.tsx', 'wl-moredesc', 13],
+    ['v2/components/worklist/RoomsGrid.tsx', 'wl-moreh', 13], ['v2/components/worklist/WorklistShell.tsx', 'wl-heldlink', 13],
+    ['v2/components/worklist/WorklistShell.tsx', 'wl-seat', 13], ['v2/components/worklist/WorklistShell.tsx', 'wl-lbl', 13],
     // AMENDED, LABELLED — ZIP 13 (CE ruling F-4), same deletion as C10's.
     // `wl-sub` was the coin drawer's right-hand micro-label; the rule is gone and
     // the guarded name goes with it. Cell untouched, cell count unchanged.
-    ['components/worklist/AiDock.tsx', 'wl-dockph', 12],  // Arm A: the placeholder is the dock's only type
-    ['components/worklist/WorklistShell.tsx', 'wl-cardtitle', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardbody', 14],
-    ['components/worklist/FirstRun.tsx', 'wl-chip', 12], ['components/worklist/WorklistShell.tsx', 'wl-cardaction', 12],
+    ['v2/components/worklist/AiDock.tsx', 'wl-dockph', 13],  // Arm A: the placeholder is the dock's only type
+    ['v2/components/worklist/WorklistShell.tsx', 'wl-cardtitle', 13], ['v2/components/worklist/WorklistShell.tsx', 'wl-cardbody', 14],
+    ['v2/components/worklist/FirstRun.tsx', 'wl-chip', 13], ['v2/components/worklist/WorklistShell.tsx', 'wl-cardaction', 13],
   ];
   // AMENDED, LABELLED — M-FINISH S1 (R-38.4). AD-HOC px IS GONE FROM THE SHELL: every rule
   // now reads `font:var(--wl-tN)`, the CSS `font` SHORTHAND, so a call site cannot set a
@@ -444,7 +496,7 @@ cell('C11 type floors hold', () => {
   // object instead. The floors are untouched and the cell count is unchanged. It is
   // STRICTER than before, not looser: a rule that names no rung at all fails, where a
   // literal would merely have had to clear a number.
-  const TYPE_SRC = read('lib/worklist/theme.ts');
+  const TYPE_SRC = read('v2/lib/worklist/theme.ts');
   const rungSize = (t) => {
     const m = TYPE_SRC.match(new RegExp(t + ':\\s*\\{\\s*size:\\s*([\\d.]+)'));
     return m ? Number(m[1]) : null;
@@ -454,7 +506,7 @@ cell('C11 type floors hold', () => {
     const m = read(f).match(new RegExp('\\.' + c + '\\{([^}]*)\\}'));
     if (!m) { bad.push(c + ' (rule not found)'); continue; }
     let size = null;
-    const rung = m[1].match(/font:var\(--wl-(t\d)\)/);
+    const rung = m[1].match(/font:var\(--wl-(t\d|tn|tb)\)/);   // DESIGN-1: tn and tb are rungs too
     if (rung) size = rungSize(rung[1]);
     else { const sz = m[1].match(/font-size:([\d.]+)px/); if (sz) size = Number(sz[1]); }
     if (size === null) { bad.push(c + ' (names no type rung and sets no size)'); continue; }
@@ -485,7 +537,7 @@ cell('C12 the branch vendor tree carries Graphite at all three homes', () => {
   // P7.2 AMENDMENT (labeled): the third home, app/vendor/layout.tsx's inline LIGHT_VARS,
   // is DELETED with the old tree (F-38.3 closed for this lane). The cell keeps its two
   // surviving homes and asserts the third is gone, so a resurrected inline pin reds here.
-  if (fs.existsSync(path.join(ROOT, 'app/vendor/layout.tsx'))) return 'app/vendor/layout.tsx is back: the inline LIGHT_VARS home was retired at P7.2';
+  if (fs.existsSync(path.join(ROOT, 'v2/app/vendor/layout.tsx'))) return 'v2/app/vendor/layout.tsx is back: the inline LIGHT_VARS home was retired at P7.2';
   return null;
 });
 
@@ -493,8 +545,8 @@ cell('C12 the branch vendor tree carries Graphite at all three homes', () => {
 //    and the three-sentence ceiling on every body. "Cards, never documentation" is a rule
 //    that only survives if something counts the sentences.
 cell('C13 first-run set: shape, order, and R-38.17\'s one-sentence fourteen-word ceiling', () => {
-  const copy = strip(read('lib/worklist/copy.ts'));
-  const fr   = strip(read('components/worklist/FirstRun.tsx'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
+  const fr   = strip(read('v2/components/worklist/FirstRun.tsx'));
 
   // AMENDED, LABELLED — M-FINISH S1 (R-38.6). `todayPromise` RETIRES: it was a two-clause
   // paragraph standing where a page title goes, and it is recut to `todayTitle` at t1.
@@ -516,7 +568,7 @@ cell('C13 first-run set: shape, order, and R-38.17\'s one-sentence fourteen-word
   if (!/todayNotLive:/.test(copy)) return 'Today has no not-reading status byte in copy.ts';
   if (!/^\s*todayNothingYet:\s*'Nothing needs you yet\.'/m.test(copy))
     return 'the true-empty byte is withheld while the feed answers — it has a state to render now';
-  if (!/COPY\.todayNotLive/.test(strip(read('app/vendor/(shell)/today/page.tsx'))))
+  if (!/COPY\.todayNotLive/.test(strip(read('v2/app/vendor/(shell)/today/page.tsx'))))
     return 'the not-reading status is never rendered on Today';
 
   // AMENDED, LABELLED — M-FINISH S1 (R-38.6). FIVE CARDS BECOME THREE. `cardRoomsTitle`
@@ -605,7 +657,7 @@ cell('C13 first-run set: shape, order, and R-38.17\'s one-sentence fourteen-word
 //    「quote Ananya 4 lakh」 as its example; lakh/k/Cr shorthand and the rupee glyph are
 //    forbidden on a vendor-facing surface, so the chip may not copy the tool verbatim.
 cell('C14 money register holds on vendor-facing bytes', () => {
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   const strings = (copy.match(/'(?:[^'\\]|\\.)*'/g) || []).join(' ');
   if (/\u20b9/.test(strings)) return 'the rupee glyph appears in a vendor-facing byte';
   if (/\b\d+\s?(lakh|lakhs|cr|crore|k)\b/i.test(strings)) return 'money shorthand appears in a vendor-facing byte';
@@ -668,16 +720,29 @@ cell('C16 the brass split holds across every token map', () => {
 // ── C17 · ROOMS-FIRST, ASSERTED ON ALL FOUR SURFACES AT ONCE (R-37.75). The manifest, the
 //    bare-shell redirect, the seat order and the carried nav are four statements of one
 //    decision. Any cell that checked only one would go green while the app argued with itself.
-cell('C17 rooms-first agrees on every surface', () => {
+// DESIGN-1 · STAGE 3 (by label): TODAY-FIRST, on the same surfaces. The founder's five tabs begin with Today (the day's
+// work since stage 2) and the directory became More, behind the coin; the manifest, the bare shell, the front door and
+// the first seat now say Today together, which is the one decision this cell exists to keep single.
+cell('C17 today-first agrees on every surface (was rooms-first; DESIGN-1 stage 3)', () => {
   const man = JSON.parse(read('public/worklist-manifest.json'));
-  if (man.start_url !== '/vendor/rooms') return 'manifest start_url is ' + man.start_url + ', expected /vendor/rooms';
+  // DESIGN-1 · THE LAYOUT SWITCH (by label): the manifest is SHARED by both layouts and stays main's (/vendor/rooms), so
+  // the classic tree is untouched; in the v2 tree that address is a redirect to Today, asserted here, so an installed
+  // app still opens on Today.
+  if (man.start_url !== '/vendor/today') {
+    if (man.start_url !== '/vendor/rooms') return 'manifest start_url is ' + man.start_url + ', expected /vendor/rooms (shared) resolving to /vendor/today';
+    if (!/(?:redirect|replace)\('\/vendor\/today'\)/.test(strip(read('v2/app/vendor/(shell)/rooms/page.tsx')))) return 'the manifest start /vendor/rooms does not resolve to Today in the v2 tree';
+  }
 
-  const idx = strip(read('app/vendor/(shell)/page.tsx'));
-  if (!/replace\('\/vendor\/rooms'\)/.test(idx)) return 'the bare /w shell does not resolve to Rooms';
+  const idx = strip(read('v2/app/vendor/(shell)/page.tsx'));
+  if (!/replace\('\/vendor\/today'\)/.test(idx)) return 'the bare /w shell does not resolve to Today';
+  const door = strip(read('lib/frost/entryRedirect.ts'));
+  // DESIGN-1 · THE LAYOUT SWITCH (by label): the front door is shared too (main's, to /vendor/rooms), which is Today in v2.
+  if (!/if \(hasVendorSession\) return '\/vendor\/(today|rooms)';/.test(door)) return 'the front door does not send a vendor to Today';
 
-  const shell = strip(read('components/worklist/WorklistShell.tsx'));
-  const seats = [...shell.matchAll(/COPY\.(navRooms|navToday)/g)].map((m) => m[1]);
-  if (seats.join(',') !== 'navRooms,navToday') return 'seat order is ' + seats.join(',') + ', expected Rooms then Today';
+  const shell = strip(read('v2/components/worklist/WorklistShell.tsx'));
+  const tabsSrc = strip(read('v2/lib/worklist/tabs.ts'));
+  const first = tabsSrc.slice(tabsSrc.indexOf('export const TABS')).match(/\{ id: '(\w+)', label: '[^']+', rooms: \[\s*\{ label: '[^']+', href: '([^']+)' \}/);
+  if (!first || first[1] !== 'today' || first[2] !== '/vendor/today') return 'the first seat is not Today at /vendor/today';
 
   // P7.2 AMENDMENT (labeled): the carried nav (components/vendor/BottomNav.tsx) is RETIRED
   // with the old tree. "One app, one nav" is now asserted as its absence.
@@ -689,7 +754,7 @@ cell('C17 rooms-first agrees on every surface', () => {
   // directory does not advertise a manual. The assertion INVERTS — a silent re-add of the
   // vetoed card reddens — and the clause it replaces keeps doing the same job the old one
   // did after ZIP 7 tightened it: assert the MOUNT, never the mere presence of the byte.
-  const grid = strip(read('components/worklist/RoomsGrid.tsx'));
+  const grid = strip(read('v2/components/worklist/RoomsGrid.tsx'));
   if (/roomsPointer|wl-pointer/.test(grid)) return 'the retired Rooms pointer is mounted again';
   // The mount half of the same amendment. ZIP 7 added this clause because checking that
   // COPY.roomsPointer merely APPEARED in the file went green with <Pointer /> deleted from
@@ -704,7 +769,8 @@ cell('C17 rooms-first agrees on every surface', () => {
   // shape R-38.7 removed from this surface. The assertion moves to where the guarantee now
   // lives: Today is still one tap away, from the seat, on every shell surface.
   if (/\/vendor\/today/.test(grid)) return 'the grid links to Today again — the seat is that door';
-  if (!/href="\/vendor\/today"/.test(shell)) return 'the Today seat is not an anchor in the shell';
+  // DESIGN-1 stage 3: the seats are anchors mapped over TABS (C6); the first is Today (above)
+  if (!/<Link key=\{t\.id\} href=\{t\.rooms\[0\]\.href\} className=\{'wl-seat'/.test(shell)) return 'the Today seat is not an anchor in the shell';
   return null;
 });
 
@@ -712,14 +778,14 @@ cell('C17 rooms-first agrees on every surface', () => {
 //    was structurally blind to controls that reach for a raw CSS variable instead. The mock
 //    drew the filter chips in Signal; this makes that picture true rather than aspirational.
 cell('C18 raw-var controls carry the signal', () => {
-  const rail = read('components/vendor/slices/FilterRail.tsx');
+  const rail = read('v2/components/vendor/slices/FilterRail.tsx');
   if (/--role-metal|--atelier-brass/.test(rail)) return 'the selected filter chip still reads the metal';
   if (!/--atelier-accent-text/.test(rail)) return 'the filter rail carries no signal at all';
   const converted = {
-    'components/vendor/slices/BulkBar.tsx': 'the bulk-action label',
-    'components/vendor/AtelierForm.tsx': 'a toggle\u2019s filled state',
-    'components/vendor/InputBar.tsx': 'the send button',
-    'components/vendor/FilingChip.tsx': 'the filing chip',
+    'v2/components/vendor/slices/BulkBar.tsx': 'the bulk-action label',
+    'v2/components/vendor/AtelierForm.tsx': 'a toggle\u2019s filled state',
+    'v2/components/vendor/InputBar.tsx': 'the send button',
+    'v2/components/vendor/FilingChip.tsx': 'the filing chip',
   };
   const bad = Object.entries(converted)
     .filter(([f]) => !/--atelier-accent-text/.test(read(f)))
@@ -730,12 +796,12 @@ cell('C18 raw-var controls carry the signal', () => {
 
 // ── C19 · ONE THEME VOCABULARY, ONE FONT WORLD (R-37.76 (3)+(7), R-37.79's two branch fixes).
 cell('C19 one vocabulary across shell and rooms', () => {
-  const hdr = read('components/vendor/Header.tsx');
+  const hdr = read('v2/components/vendor/Header.tsx');
   if (/Espresso|Parchment/.test(hdr)) return 'the rooms\u2019 drawer still names a retired theme';
   // AMENDED, LABELLED — founder's second walk. Cell count unchanged; the assertion is
   // STRENGTHENED, not re-aimed. It read `Header.tsx` for the literals 「Graphite」 and
   // 「Chalk」 because that file HARDCODED its own drawer. It no longer has one: the second
-  // drawer was replaced by `components/worklist/AccountDrawer.tsx`, which both trees mount,
+  // drawer was replaced by `v2/components/worklist/AccountDrawer.tsx`, which both trees mount,
   // and the mode names come from `COPY.themeDarkName`/`themeLightName` — their one home.
   //
   // ONE VOCABULARY IS NOW STRUCTURAL RATHER THAN CHECKED. The old cell could only ever
@@ -743,12 +809,12 @@ cell('C19 one vocabulary across shell and rooms', () => {
   // a second DRAWER, which is what made divergence possible. It reddens if Header stops
   // mounting the shared drawer, or if the copy home loses either mode name.
   if (!/AccountDrawer/.test(hdr)) return 'Header does not mount the shared drawer — a second drawer can diverge again';
-  const copy = read('lib/worklist/copy.ts');
+  const copy = read('v2/lib/worklist/copy.ts');
   if (!/themeDarkName:\s*'Graphite'/.test(copy) || !/themeLightName:\s*'Chalk'/.test(copy))
     return 'the mode names are not at their one home in copy.ts';
-  const th = read('lib/worklist/theme.ts');
+  const th = read('v2/lib/worklist/theme.ts');
   if (!/TYPE_ROLE/.test(th) || !/typeCss/.test(th)) return 'the type roles are not tokened';
-  const shell = read('components/worklist/WorklistShell.tsx');
+  const shell = read('v2/components/worklist/WorklistShell.tsx');
   if (!/typeCss\(SCOPE\)/.test(shell)) return 'the shell does not emit the type scope';
   if (/'Jost',\s*sans-serif|'DM Sans',\s*sans-serif|'Cormorant Garamond',\s*serif/.test(shell))
     return 'the shell still hard-codes a font family instead of reading its role';
@@ -767,9 +833,9 @@ cell('C19 one vocabulary across shell and rooms', () => {
 // it still reddens on the editor URL. It ALSO asserts the row is gone from the grid, so
 // the vetoed strip cannot come back wearing this cell's approval.
 cell('C20 the profile row opens the couple view', () => {
-  const grid = strip(read('components/worklist/RoomsGrid.tsx'));
+  const grid = strip(read('v2/components/worklist/RoomsGrid.tsx'));
   if (/roomsProfileTitle/.test(grid)) return 'the vetoed profile row is back in the Rooms grid';
-  const set = strip(read('app/vendor/(shell)/settings/page.tsx'));
+  const set = strip(read('v2/app/vendor/(shell)/settings/page.tsx'));
   if (!/roomsProfileTitle/.test(set)) return 'no profile row in Settings — the byte lost its home in the move';
   if (/discover\/profile/.test(set)) return 'the row opens the EDITOR (/discover/profile); the couple view is /discover/preview';
   if (!/discover\/preview/.test(set)) return 'the row does not open /vendor/discover/preview';
@@ -782,15 +848,15 @@ cell('C20 the profile row opens the couple view', () => {
 //    by one is a single-home violation wearing CSS — it renders styled on one screen and
 //    naked on the other, which is precisely how it was found.
 cell('C21 every wl- class a component uses is defined somewhere the shell mounts', () => {
-  const shell = read('components/worklist/WorklistShell.tsx');
+  const shell = read('v2/components/worklist/WorklistShell.tsx');
   const defined = new Set();
   const collect = (src) => { for (const m of src.matchAll(/\.(wl-[a-z-]+)\s*[,{:]/g)) defined.add(m[1]); };
-  collect(shell); collect(read('components/worklist/AiDock.tsx'));
+  collect(shell); collect(read('v2/components/worklist/AiDock.tsx'));
   const surfaces = {
-    'components/worklist/RoomsGrid.tsx': [],
-    'components/worklist/FirstRun.tsx': [],
-    'app/vendor/(shell)/today/page.tsx': [],
-    'app/vendor/(shell)/support/page.tsx': [],
+    'v2/components/worklist/RoomsGrid.tsx': [],
+    'v2/components/worklist/FirstRun.tsx': [],
+    'v2/app/vendor/(shell)/today/page.tsx': [],
+    'v2/app/vendor/(shell)/support/page.tsx': [],
   };
   const orphans = [];
   for (const f of Object.keys(surfaces)) {
@@ -811,11 +877,11 @@ cell('C21 every wl- class a component uses is defined somewhere the shell mounts
 //    chose their own inset. The cure is not care, it is construction: the column owns one
 //    gutter and no component under it may set a horizontal margin, width or padding-x.
 cell('C22 no component takes back the gutter', () => {
-  const shell = read('components/worklist/WorklistShell.tsx');
+  const shell = read('v2/components/worklist/WorklistShell.tsx');
   if (!/--wl-gutter/.test(shell)) return 'the column declares no gutter token';
   if (!/\.wl-main > \*\{[^}]*padding-left:var\(--wl-gutter\)/.test(shell)) return 'the column does not apply its own gutter';
   const offenders = [];
-  for (const f of ['components/worklist/RoomsGrid.tsx', 'components/worklist/FirstRun.tsx', 'app/vendor/(shell)/today/page.tsx']) {
+  for (const f of ['v2/components/worklist/RoomsGrid.tsx', 'v2/components/worklist/FirstRun.tsx', 'v2/app/vendor/(shell)/today/page.tsx']) {
     const css = read(f);
     for (const m of css.matchAll(/\.(wl-[a-z-]+)\{([^}]*)\}/g)) {
       const [, cls, decl] = m;
@@ -854,13 +920,13 @@ cell('C22 no component takes back the gutter', () => {
 //    the tap opens somewhere you type. If the dock ever wears the field again while jumping to
 //    WhatsApp, this reddens \u2014 the pairing is asserted, not remembered.
 cell('C23 the dock\'s shape and its destination agree', () => {
-  const dock = strip(read('components/worklist/AiDock.tsx'));
+  const dock = strip(read('v2/components/worklist/AiDock.tsx'));
   const field = /wl-dockfield/.test(dock);
   const teleports = /wa\.me|waNumberFor/.test(dock);
   if (field && teleports) return 'the dock wears the field costume AND jumps to WhatsApp \u2014 a shape that lies';
   if (field && !/AskSheet/.test(dock)) return 'the dock wears the field costume but opens nothing you can type into';
   if (!field && /AskSheet/.test(dock)) return 'the dock opens the chat but hides it behind a row \u2014 the costume undersells the truth';
-  const sheet = strip(read('components/worklist/AskSheet.tsx'));
+  const sheet = strip(read('v2/components/worklist/AskSheet.tsx'));
   for (const need of ['ChatThread', 'InputBar', 'useChat', 'ThemeProvider']) {
     if (!new RegExp(need).test(sheet)) return 'the sheet does not carry ' + need;
   }
@@ -898,7 +964,7 @@ function mountCensus(tag) {
       }
     }
   };
-  walk('app'); walk('components');
+  walk('app'); walk('components'); walk('v2/app'); walk('v2/components');
   return seen;
 }
 
@@ -921,10 +987,10 @@ function mountCensus(tag) {
 //    reddened a correct tree on five counts. The distinguishing property is not the href;
 //    it is whether the room's page imports a body out of `app/vendor`.
 function shellRooms() {
-  const reg = strip(read('lib/worklist/rooms.ts'));
+  const reg = strip(read('v2/lib/worklist/rooms.ts'));
   const ids = [];
   for (const m of reg.matchAll(/id:\s*'([a-z]+)'[^}]*href:\s*'(\/vendor\/[a-z]+)'/g)) {
-    if (fs.existsSync(path.join(ROOT, 'app/vendor/(shell)/' + m[1] + '/page.tsx'))) ids.push(m[1]);
+    if (fs.existsSync(path.join(ROOT, 'v2/app/vendor/(shell)/' + m[1] + '/page.tsx'))) ids.push(m[1]);
   }
   return ids;
 }
@@ -932,11 +998,11 @@ function shellRooms() {
 /** A room whose BODY came from the /vendor tree — the ones §4-1 and §4-2 move. */
 function crossedRooms() {
   return shellRooms().filter((id) =>
-    /from '@\/app\/vendor\//.test(strip(read('app/vendor/(shell)/' + id + '/page.tsx'))));
+    /from '@\/app\/vendor\//.test(strip(read('v2/app/vendor/(shell)/' + id + '/page.tsx'))));
 }
 
 cell('C24 the six list rooms crossed in the registry, as a set', () => {
-  const src = strip(read('lib/worklist/rooms.ts'));
+  const src = strip(read('v2/lib/worklist/rooms.ts'));
   const FAMILY = ['leads', 'clients', 'invoices', 'expenses', 'events', 'notes'];
   for (const id of FAMILY) {
     const m = src.match(new RegExp("\\{\\s*id:\\s*'" + id + "'[^}]*href:\\s*'([^']+)'"));
@@ -958,7 +1024,7 @@ cell('C24 the six list rooms crossed in the registry, as a set', () => {
 cell('C25 each crossed room mounts the shell and no second masthead', () => {
   const bad = [];
   for (const id of crossedRooms()) {
-    const f = 'app/vendor/(shell)/' + id + '/page.tsx';
+    const f = 'v2/app/vendor/(shell)/' + id + '/page.tsx';
     if (!fs.existsSync(path.join(ROOT, f))) { bad.push(f + ' does not exist'); continue; }
     const src = strip(read(f));
     if (!/<WorklistShell/.test(src)) bad.push(id + ' does not mount WorklistShell');
@@ -971,7 +1037,7 @@ cell('C25 each crossed room mounts the shell and no second masthead', () => {
 });
 
 cell('C26 the old chrome mounts equal their declared census, exactly', () => {
-  const src = strip(read('lib/worklist/rooms.ts'));
+  const src = strip(read('v2/lib/worklist/rooms.ts'));
   const parse = (name) => {
     const m = src.match(new RegExp(name + '[^=]*=\\s*\\[([\\s\\S]*?)\\n\\] as const;'));
     if (!m) throw new Error(name + ' not found');
@@ -985,7 +1051,7 @@ cell('C26 the old chrome mounts equal their declared census, exactly', () => {
   const actual = mountCensus('Header');
   const problems = [];
   for (const [f, n] of actual) {
-    if (!f.startsWith('app/vendor/(legacy)/')) problems.push('Header mounted outside (legacy): ' + f + ' (' + n + ')');
+    if (!f.startsWith('v2/app/vendor/(legacy)/')) problems.push('Header mounted outside (legacy): ' + f + ' (' + n + ')');
   }
   if (actual.size === 0) problems.push('Header mounts nowhere: the (legacy) hub/submit pages lost their chrome, or the census reader broke');
   if (fs.existsSync(path.join(ROOT, 'components/vendor/BottomNav.tsx'))) problems.push('BottomNav.tsx is back: retired at P7.2');
@@ -1007,12 +1073,12 @@ cell('C27 the shell tree imports neither piece of the old chrome', () => {
       }
     }
   };
-  walk('app/vendor/(shell)'); walk('components/worklist');
+  walk('v2/app/vendor/(shell)'); walk('components/worklist');
   return offenders.length ? offenders.join(' | ') : null;
 });
 
 cell('C28 the Slice Door goes where it is mounted, and its inactive chip is legible', () => {
-  const src = strip(read('components/vendor/slices/SliceShell.tsx'));
+  const src = strip(read('v2/components/vendor/slices/SliceShell.tsx'));
   const door = src.slice(src.indexOf('export function SliceDoor'), src.indexOf('export function SliceShell'));
   if (!door) return 'SliceDoor not found';
   // BEHAVIOUR: the destination is a function of the tree, not a constant. A door that always
@@ -1037,9 +1103,9 @@ cell('C29 the crossed body contributes no horizontal inset of its own (R-37.82 (
   // and their own padding is theirs — flagging them would teach the reader to ignore this
   // cell, which is worse than not having it.
   const COLUMN = [
-    'components/vendor/slices/SliceShell.tsx', 'components/vendor/slices/SliceRow.tsx',
-    'components/vendor/slices/SwipeRow.tsx', 'components/vendor/slices/Masthead.tsx',
-    'components/vendor/slices/FilterRail.tsx', 'components/vendor/slices/BinderCard.tsx',
+    'v2/components/vendor/slices/SliceShell.tsx', 'v2/components/vendor/slices/SliceRow.tsx',
+    'v2/components/vendor/slices/SwipeRow.tsx', 'v2/components/vendor/slices/Masthead.tsx',
+    'v2/components/vendor/slices/FilterRail.tsx', 'v2/components/vendor/slices/BinderCard.tsx',
   ];
   for (const f of COLUMN) {
     const src = strip(read(f));
@@ -1057,15 +1123,15 @@ cell('C29 the crossed body contributes no horizontal inset of its own (R-37.82 (
       else if (/\.tsx?$/.test(e.name) && /--slice-inset'\s*as|--slice-inset\s*:/.test(strip(read(rel)))) declarers.push(rel);
     }
   };
-  walk('app'); walk('components');
+  walk('app'); walk('components'); walk('v2/app'); walk('v2/components');
   if (declarers.length !== 1 || declarers[0] !== 'components/worklist/RoomBody.tsx')
     problems.push('the inset variable is declared at ' + (declarers.join(', ') || 'nowhere') + ', expected exactly components/worklist/RoomBody.tsx');
   return problems.length ? problems.join(' | ') : null;
 });
 
 cell('C30 the header words cannot drift from the door labels, and the toast follows the tree', () => {
-  const copy = strip(read('lib/worklist/copy.ts'));
-  const rowsrc = strip(read('components/vendor/slices/SliceRow.tsx'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
+  const rowsrc = strip(read('v2/components/vendor/slices/SliceRow.tsx'));
   const lm = rowsrc.match(/LABELS[^=]*=\s*\{([^}]*)\}/);
   if (!lm) return 'LABELS not found in SliceRow.tsx';
   const labels = {};
@@ -1083,7 +1149,7 @@ cell('C30 the header words cannot drift from the door labels, and the toast foll
   // The toast pairing rides in this cell rather than taking one of its own: it is the same
   // fact — a component reading a context the shell does not provide and painting the wrong
   // world without erroring.
-  const shell = strip(read('components/vendor/slices/SliceShell.tsx'));
+  const shell = strip(read('v2/components/vendor/slices/SliceShell.tsx'));
   if (/<Toast\s/.test(shell)) bad.push('SliceShell mounts Toast directly — inside /w it falls to createContext(DARK)');
   // BEHAVIOUR, NOT SHAPE. This read `ToastView = useInShell() ? WlToast : Toast` as one
   // literal until F-39.11 gave SliceScreen a second reader of the same fact and the
@@ -1095,7 +1161,7 @@ cell('C30 the header words cannot drift from the door labels, and the toast foll
   // ternary collapsed with useInShell; the cell now asserts the shell toast, outright.
   if (!/const ToastView = WlToast;/.test(shell)) bad.push('SliceScreen does not mount the shell toast (WlToast)');
   if (/useInShell/.test(shell)) bad.push('SliceShell still reads useInShell: the hook was retired at P7.2');
-  const cl = strip(read('app/vendor/(shell)/clients/body.tsx'));
+  const cl = strip(read('v2/app/vendor/(shell)/clients/body.tsx'));
   if (/<Toast\s/.test(cl)) bad.push('the clients module mounts Toast directly');
   return bad.length ? bad.join(' | ') : null;
 });
@@ -1168,7 +1234,7 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   // is how the audit's own list went stale, and this cell would inherit the same disease by
   // copying it. A room that crosses shrinks the registry, and this cell tightens with it in
   // the same edit.
-  const reg = strip(read('lib/worklist/rooms.ts'));
+  const reg = strip(read('v2/lib/worklist/rooms.ts'));
   const declared = new Set((reg.match(/href:\s*'(\/vendor\/[^']+)'/g) || []).map((x) => x.match(/'([^']+)'/)[1]));
   // F-38.60: anchored on the DECLARATION, matching wl_audit's cure. This cell has always
   // been safe because it strips first — that is why b40 was GREEN on the tree wl_audit
@@ -1177,7 +1243,7 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   // P7.2 AMENDMENT (labeled, INVERTED WITH THE FLIP). Every shell href is a /vendor href
   // now, so "no undeclared /vendor literal" changes shape: a crossed room may reach a shell
   // room, the entry redirect, onboarding, or a door declared in LEGACY_VENDOR_LINKS
-  // (app/vendor/(legacy), FORK 1 arm (a)) and NOTHING the delete removed. The charter's
+  // (v2/app/vendor/(legacy), FORK 1 arm (a)) and NOTHING the delete removed. The charter's
   // ZERO-/w/ cell rides in the same walk: any `/w` literal reachable from a room is a stray
   // by construction. The INTERIM_*/FALLBACK reads retired with their constants.
   const lm = reg.match(/export const LEGACY_VENDOR_LINKS[^=]*=\s*\[([\s\S]*?)\] as const;/);
@@ -1187,6 +1253,8 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   // rooms; a template prefix (`/vendor/${s}`, `/vendor/collab/` + id) is a shell address
   // when a declared href starts with it.
   for (const seat of ['/vendor/rooms', '/vendor/today', '/vendor']) declared.add(seat);
+  // DESIGN-1 · STAGE 3 (by label): More, behind the profile coin, is a shell address that is not a registry room (MORE_HREF).
+  if (/export const MORE_HREF = '\/vendor\/more'/.test(strip(read('v2/lib/worklist/tabs.ts')))) declared.add('/vendor/more');
   // ── AMENDED, LABELLED — BLOCK 19 G1.1 (R-G11.12, founder-ruled 2026-09-04) ──
   // F-40.25: `/vendor/wedding-pages` is a shell address that is NOT a registry
   // room. `ROOM_COUNT_EXPECTED` stays 19 and the tile grid gains nothing — the
@@ -1195,7 +1263,7 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   // otherwise correct build reddened here.
   //
   // THE CURE IS TO READ ITS ONE HOME, NOT TO WIDEN THE MATCHER. The address
-  // lives in `lib/solutions/routes.ts` on the not-a-room precedent that file was
+  // lives in `v2/lib/solutions/routes.ts` on the not-a-room precedent that file was
   // written for, and this cell now reads THAT DECLARATION — exactly as it reads
   // `rooms.ts` and `LEGACY_VENDOR_LINKS` rather than retyping either. Two homes
   // for one set is how this cell's own audit went stale once already, and adding
@@ -1203,7 +1271,7 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   //
   // IT TIGHTENS WITH THE ROOM: delete the constant and this cell reddens on the
   // missing declaration rather than passing quietly.
-  const solRoutes = strip(read('lib/solutions/routes.ts'));
+  const solRoutes = strip(read('v2/lib/solutions/routes.ts'));
   const wm = solRoutes.match(/export const WEDDING_PAGES_HREF\s*=\s*'([^']+)'/);
   if (!wm) return 'WEDDING_PAGES_HREF is not declared: the wedding-pages room has no address home (R-G11.12)';
   declared.add(wm[1]);
@@ -1232,7 +1300,7 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   declared.add(rm[1]);
   // ── AMENDED BY LABEL — G3.4. THE FIFTH CONSTANT, AND THE CELL STILL DOES NOT
   // LOOSEN. Payment reminders is NOT a registry room — `rooms.ts` has no entry
-  // for it — so its address lives in `lib/solutions/routes.ts` on the same
+  // for it — so its address lives in `v2/lib/solutions/routes.ts` on the same
   // not-a-room precedent the four above use, and this cell READS THAT
   // DECLARATION rather than retyping the literal. Two homes for one set is how
   // this cell's own audit went stale once already.
@@ -1249,7 +1317,7 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   declared.add(wsm[1]);
   // ── AMENDED BY LABEL — CE-42 4a/3b, R-42.8. THE SIXTH CONSTANT, AND THE CELL
   // STILL DOES NOT LOOSEN. Introductions is the TENTH hub row and is NOT a
-  // registry room, so its address lives in `lib/solutions/routes.ts` on the same
+  // registry room, so its address lives in `v2/lib/solutions/routes.ts` on the same
   // not-a-room precedent the five above use, and this READS THAT DECLARATION
   // rather than retyping the literal. The set grows by exactly one MEMBER; an
   // undeclared `/vendor/…` literal anywhere in the graph is still a stray.
@@ -1264,7 +1332,7 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   // ── AMENDED BY LABEL — CE-42 4b-1, R6 ruling 1(a). THE SEVENTH CONSTANT, AND
   // THE CELL STILL DOES NOT LOOSEN. `posts` ("Posts & ads") is R-40.1's own hub
   // row, opened in place — not a registry room — so its address lives in
-  // `lib/solutions/routes.ts` on the same not-a-room precedent, and this READS
+  // `v2/lib/solutions/routes.ts` on the same not-a-room precedent, and this READS
   // that declaration. The set grows by exactly one MEMBER. `POSTS_API_PATH`
   // (`/api/v2/vendor/posts`) takes no entry for the reason given above.
   const psm = solRoutes.match(/export const POSTS_HREF\s*=\s*'([^']+)'/);
@@ -1315,8 +1383,8 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
   // are not rooms (the index, Rooms, Today) — the P7.2 mutation on RoomsGrid proved the
   // registry-only walk blind to the grid.
   for (const room of [...shellRooms(), '', 'rooms', 'today']) {
-    const entry = path.join(ROOT, 'app/vendor/(shell)/' + (room ? room + '/' : '') + 'page.tsx');
-    if (!fs.existsSync(entry)) return 'app/vendor/(shell)/' + room + '/page.tsx does not exist';
+    const entry = path.join(ROOT, 'v2/app/vendor/(shell)/' + (room ? room + '/' : '') + 'page.tsx');
+    if (!fs.existsSync(entry)) return 'v2/app/vendor/(shell)/' + room + '/page.tsx does not exist';
     const hits = [];
     walk(entry, new Set(), hits);
     for (const h of hits) {
@@ -1429,7 +1497,7 @@ cell('C32 no persona name reachable from any shell surface, DreamAi included (R-
   };
   // EVERY SHELL SURFACE, derived from the routes on disk rather than listed — a room that
   // crosses joins this sweep in the same edit that creates its page.
-  const wDir = path.join(ROOT, 'app/vendor/(shell)');
+  const wDir = path.join(ROOT, 'v2/app/vendor/(shell)');
   const entries = fs.readdirSync(wDir, { withFileTypes: true })
     .filter((d) => d.isDirectory())
     .map((d) => path.join(wDir, d.name, 'page.tsx'))
@@ -1438,8 +1506,8 @@ cell('C32 no persona name reachable from any shell surface, DreamAi included (R-
   for (const e of entries) walk(e);
   if (hits.length) return 'persona name reachable from the shell (' + entries.length + ' routes, ' + seen.size + ' files): ' + hits.join(' | ');
   // AND THE GRAMMAR THAT PERMITTED IT IS RECORDED AS RETIRED, not silently deleted.
-  const copy = strip(read('lib/worklist/copy.ts'));
-  if (!/R-37\.78/.test(read('lib/worklist/copy.ts'))) return 'R-37.78 retires without a tombstone in copy.ts';
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
+  if (!/R-37\.78/.test(read('v2/lib/worklist/copy.ts'))) return 'R-37.78 retires without a tombstone in copy.ts';
   // AMENDED BY LABEL (CE-45 FE-2, the Ask TDW sheet cut): the clause that required `askSheetNote` is
   // retired with its SUBJECT, the note itself, dropped by the founder's decision because the answer now
   // arrives in the sheet (ASK-1: nothing sends an app answer to WhatsApp). The persona sweep above stands.
@@ -1452,7 +1520,7 @@ cell('C32 no persona name reachable from any shell surface, DreamAi included (R-
 //    because each has its own ruling behind it; until then the duplication is asserted
 //    rather than explained, exactly as C30 does for the six header words.
 cell('C33 the ask affordance spells one byte in three homes', () => {
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   const val = (k) => { const m = copy.match(new RegExp(k + ":\\s*'((?:[^'\\\\]|\\\\.)*)'")); return m ? m[1] : null; };
   const keys = ['dockAria', 'dockRowTitle', 'cardAskTitle'];
   const vals = keys.map(val);
@@ -1460,7 +1528,7 @@ cell('C33 the ask affordance spells one byte in three homes', () => {
   if (new Set(vals).size !== 1) return 'they have drifted: ' + keys.map((k, i) => k + '=' + vals[i]).join(' | ');
   // AND THE SHEET READS THE REGISTER RATHER THAN INLINING IT. The head was a literal in
   // AskSheet.tsx, which is the copy law broken by the file the copy law exists for.
-  const ask = strip(read('components/worklist/AskSheet.tsx'));
+  const ask = strip(read('v2/components/worklist/AskSheet.tsx'));
   if (/>Ask TDW</.test(ask)) return 'AskSheet still inlines the vendor-facing title';
   if (!/COPY\.dockAria/.test(ask)) return 'AskSheet does not read the title from the register';
   return null;
@@ -1473,9 +1541,9 @@ cell('C33 the ask affordance spells one byte in three homes', () => {
 //    because a surface that prints the right sentence for the wrong reason will print the
 //    wrong one the moment the reason changes.
 cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)', () => {
-  const today = strip(read('app/vendor/(shell)/today/page.tsx'));
-  if (!/from '@\/lib\/worklist\/feed'/.test(today)) return 'Today does not read the feed module';
-  const feed = strip(read('lib/worklist/feed.ts'));
+  const today = strip(read('v2/app/vendor/(shell)/today/page.tsx'));
+  if (!/from '@\/v2\/lib\/worklist\/feed'/.test(today)) return 'Today does not read the feed module';
+  const feed = strip(read('v2/lib/worklist/feed.ts'));
   if (!/responded:\s*false/.test(feed)) return 'the feed module does not report that nothing has read anything';
   if (/openItems:\s*0\b/.test(feed)) return 'the feed module coerces an unread count to 0 — the lie in digits';
   // THE NUMERAL IS BEHIND THE GATE. A default would satisfy every cell about the sentence.
@@ -1486,8 +1554,8 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   // WORKING state. F-38.31 is not weakened by that: `working` is DEFINED from
   // `feed.responded`, which this cell asserts rather than assuming, so there is still no
   // path on which a numeral paints without a reading behind it.
-  if (!/const working\s*=\s*feed\.responded/.test(today)) return 'the working state is not derived from a reading — the numeral could paint unmeasured';
-  if (!/\{working && feed\.openItems !== null && \(/.test(today)) return 'the numeral is not gated on the working state';
+  // DESIGN-1 · STAGE 2 (by label): the numeral retired (C60); no figure may paint on Today without a reading, and none does
+  if (/openItems/.test(today)) return 'Today reads the open-items count again, a figure without its numeral\u2019s gate';
   // AMENDED TWICE, BOTH LABELLED. Relay #3 item 2 withheld the true-empty arm with its
   // byte, and this cell refused its presence. PHASE 4 DISCHARGES THAT: the feed answers, so
   // BOTH bytes are live and what the cell must hold is that each is gated on the state it
@@ -1516,8 +1584,9 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   // absence. The refusal that does NOT change is that no status byte may stand over cards.
   if (!/: firstRun \? COPY\.todayNothingYet : /.test(HEADLINE))
     return 'the true-empty line is not gated on first-run';
-  if (/\{working && <h1/.test(today) || /working \?/.test(HEADLINE) || !/: null$/.test(HEADLINE.trim()))
-    return 'a status byte stands over the cards (R-39.13)';
+  // DESIGN-1 · STAGE 2 (by label): the last arm is the day itself, not a status byte, so none stands over the sections
+  if (!/: todayLine\(today\?\.today \|\| istTodayISO\(\)\)$/.test(HEADLINE.trim()) || /todayRestingHead/.test(HEADLINE))
+    return 'a status byte stands over the day\u2019s sections (R-39.13)';
   return null;
 });
 
@@ -1526,7 +1595,7 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
 //    that moves under the thumb cannot be learned), and the LEGS are the claim that this is
 //    an entrance rather than a second home for create.
 cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
-  const fab = strip(read('components/worklist/AddFab.tsx'));
+  const fab = strip(read('v2/components/worklist/AddFab.tsx'));
   const order = (fab.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
   const want = ['calendar', 'lead', 'client', 'invoice', 'expense', 'event', 'note'];
   if (order.join(',') !== want.join(',')) return 'row order is ' + order.join(' ') + ', ruled ' + want.join(' ');
@@ -1543,7 +1612,7 @@ cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
   if (!/roomHref\('calendar'\)/.test(fab)) return 'the calendar leg spells an address instead of asking the registry';
   // P7.2 AMENDMENT (labeled): the interim-room read retired with INTERIM_VENDOR_ROOMS; the
   // leg is proven by the page existing in the shell tree (the next line), nothing else.
-  if (!fs.existsSync(path.join(ROOT, 'app/vendor/(shell)/calendar/page.tsx')))
+  if (!fs.existsSync(path.join(ROOT, 'v2/app/vendor/(shell)/calendar/page.tsx')))
     return 'the calendar leg resolves to a /w/ route that does not exist — never-404';
   if (!/'\/vendor\/notes\?add=1'/.test(fab)) return 'the note leg does not open the notes composer';
   const slices = (fab.match(/slice:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
@@ -1553,8 +1622,9 @@ cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
   if (/CreateLeadRequest|createInvoice|createExpense/.test(fab)) return 'the Add sheet builds its own create call — a second home for create';
   // SCOPE IS A MOUNT, not a pathname test inside the component.
   if (/usePathname/.test(fab)) return 'the control decides for itself where it exists — a second copy of R-38.18';
-  const mounted = ['app/vendor/(shell)/rooms/page.tsx'];
-  const others = ['app/vendor/(shell)/today/page.tsx', 'components/worklist/WorklistShell.tsx'];
+  // DESIGN-1 · STAGE 3 (by label): the directory is More now (/vendor/more); /vendor/rooms only redirects to Today.
+  const mounted = ['v2/app/vendor/(shell)/more/page.tsx'];
+  const others = ['v2/app/vendor/(shell)/today/page.tsx', 'v2/components/worklist/WorklistShell.tsx'];
   for (const f of mounted) if (!/<AddFab/.test(strip(read(f)))) return 'the Add control is not mounted on Rooms';
   for (const f of others) if (/<AddFab/.test(strip(read(f)))) return 'the Add control is mounted outside Rooms: ' + f;
   // c-38.11: the accent TOKEN, never a literal. The ZIP 4 gold-FAB finding was this
@@ -1568,11 +1638,12 @@ cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
   // assertion naming a LOCATION rather than a property. **Benches move with the code they
   // test.** The subject is unchanged and is what is asserted: the one FAB rule paints from
   // the accent token and no literal. It is read where the rule now is.
-  const fabRule = strip(read('components/worklist/WorklistShell.tsx')).match(/\.wl-fab\{([^}]*)\}/);
+  const fabRule = strip(read('v2/components/worklist/WorklistShell.tsx')).match(/\.wl-fab\{([^}]*)\}/);
   if (!fabRule) return 'the wl-fab rule is not in the shell — the seat has no home to assert against';
   if (/#[0-9a-fA-F]{6}|rgba?\(/.test(fabRule[1].replace(/rgba\(0,0,0,\.\d+\)/g, '')))
-    return 'the Add control hard-codes a colour — c-38.11 puts it on var(--atelier-accent-text)';
-  if (!/background:var\(--atelier-accent-text\)/.test(fabRule[1])) return 'the FAB is not on the accent token';
+    return 'the Add control hard-codes a colour — c-38.11 puts it on a token';
+  // DESIGN-1 · STAGE 1 (by label, REPORT.md P3): the filled control paints from the one primary, never the link colour
+  if (!/background:var\(--role-primary\)/.test(fabRule[1])) return 'the FAB is not on the primary token';
   // AND THE FILE THAT LOST THE RULE MUST NOT GROW A SECOND ONE.
   if (/\.wl-fab\{/.test(fab)) return 'AddFab has taken the seat rule back — two homes for one control';
   return null;
@@ -1583,7 +1654,7 @@ cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
 //    The route exists; the parameter has to be READ, and by the surface that already owns
 //    the composer rather than by a second one.
 cell('C36 ?add=1 opens the composer the notes body already owns', () => {
-  const body = strip(read('components/vendor/NotesBody.tsx'));
+  const body = strip(read('v2/components/vendor/NotesBody.tsx'));
   if (!/get\('add'\)/.test(body)) return 'NotesBody never reads the add parameter';
   if (!/setAddOpen\(true\)/.test(body)) return 'the parameter does not open the existing composer';
   // ONE READ, ON MOUNT. A dependency array would re-open the sheet behind a vendor who had
@@ -1606,13 +1677,14 @@ cell('C36 ?add=1 opens the composer the notes body already owns', () => {
 //    and Phase 4 would then re-invent the Today numeral at whatever size looked right,
 //    against R-37.88's ratified mock. The rung has to outlive its own consumer.
 cell('C37 the t0 rung survives while its consumer is withheld', () => {
-  const theme = strip(read('lib/worklist/theme.ts'));
+  const theme = strip(read('v2/lib/worklist/theme.ts'));
   const m = theme.match(/t0:\s*\{([^}]*)\}/);
-  if (!m) return 'the t0 rung is gone from lib/worklist/theme.ts — Phase 4 will re-invent the numeral at a new size';
+  if (!m) return 'the t0 rung is gone from v2/lib/worklist/theme.ts — Phase 4 will re-invent the numeral at a new size';
   const size = (m[1].match(/size:\s*(\d+)/) || [])[1];
   const weight = (m[1].match(/weight:\s*(\d+)/) || [])[1];
-  if (size !== '46' || weight !== '500')
-    return 'the t0 rung drifted to ' + size + '/' + weight + ' while nothing consumed it — R-37.88 ratified 46/500';
+  // DESIGN-1 · STAGE 1 (by label): t0 is the review's one big figure, 28/600 (docs/review/REPORT.md §5), was 46/500
+  if (size !== '28' || weight !== '600')
+    return 'the t0 rung drifted to ' + size + '/' + weight + ' — DESIGN-1 set 28/600 (R-37.88 ratified 46/500 before it)';
   if (!/'t0'/.test(theme)) return 't0 is not in the RUNGS list, so typeCss never emits it';
   // ── PHASE 4 · THE CONSUMER CAME BACK, AND THE ASSERTION INVERTS WITH IT ────
   // While the numeral was withheld this arm asserted that NOTHING consumed the rung. The
@@ -1620,9 +1692,11 @@ cell('C37 the t0 rung survives while its consumer is withheld', () => {
   // per app, and that element is Today's numeral. A rung declared with no consumer is a
   // variable somebody re-invents at a new value; a rung with two is the five-rung scale's
   // exception quietly becoming a rule.
-  const today = strip(read('app/vendor/(shell)/today/page.tsx'));
-  if (!/var\(--wl-t0\)/.test(today)) return 'the masthead numeral does not consume t0 — the rung has no home';
-  if (!/wl-mnum\{font:var\(--wl-t0\)/.test(today)) return 'something other than the numeral consumes t0 on Today';
+  // DESIGN-1 · STAGE 2 (by label): the numeral retired (C60), so t0 is again a rung whose consumer is withheld, which is
+  // exactly this cell's first claim: it survives at the review's 28/600 and nothing on Today consumes it (stage 3 gives
+  // it Money's one big figure, "the money owed")
+  const today = strip(read('v2/app/vendor/(shell)/today/page.tsx')) + strip(read('v2/components/worklist/TodayHome.tsx'));
+  if (/var\(--wl-t0\)/.test(today)) return 'something on Today consumes t0; its consumer is Money\u2019s figure';
   return null;
 });
 
@@ -1682,7 +1756,7 @@ cell('C38 the withheld vendor address is not a live export anywhere in lib/ (F-3
       }
     }
   };
-  walk('lib');
+  walk('lib'); walk('v2/lib');
   if (hits.length)
     return 'the withheld address is a live export again: ' + hits.join(' · ')
       + ' — it has ONE home (pathAddressFor in lib/solutions/types.ts) and the row in '
@@ -1715,11 +1789,11 @@ cell('C38 the withheld vendor address is not a live export anywhere in lib/ (F-3
 //    find its own way to the next site.
 // ── AMENDED, LABELLED — CE-39 S2/6 · THIS CELL STOPPED AT THE FIRST FILE  [F-39.4] ──
 //    IT WAS WRITTEN FOR EXACTLY THE DEFECT THE FOUNDER FOUND AND IT COULD NOT SEE IT.
-//    `components/vendor/NotesBody.tsx` drew a fixed FAB at `bottom: calc(80px + …)` with no
+//    `v2/components/vendor/NotesBody.tsx` drew a fixed FAB at `bottom: calc(80px + …)` with no
 //    tree awareness, so inside the shell it painted ON the ask dock — F-38.59, live, through
 //    the sitting that cured F-38.59. This cell walked `app/w/*/page.tsx`, collected only the
-//    bodies imported DIRECTLY from `app/vendor/…`, and read those files alone. Notes imports
-//    `app/vendor/list/[slice]/notes`, which imports `NotesBody` from `components/` — one hop
+//    bodies imported DIRECTLY from `v2/app/vendor/…`, and read those files alone. Notes imports
+//    `v2/app/vendor/list/[slice]/notes`, which imports `NotesBody` from `components/` — one hop
 //    further out, and invisible.
 //
 //    C31 ALREADY KNEW BETTER. It walks the import graph transitively, "exactly as a bundler
@@ -1749,7 +1823,7 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
     const rel = path.relative(ROOT, abs);
     // The shell's OWN components are not "crossed bodies" — they are the chrome this cell
     // measures clearance AGAINST, and they carry the ruled seat rather than a bare offset.
-    if (!rel.startsWith('components/worklist/') && !rel.startsWith('app/vendor/(shell)/')) bodies.add(rel);
+    if (!rel.startsWith('components/worklist/') && !rel.startsWith('v2/app/vendor/(shell)/')) bodies.add(rel);
     for (const m of strip(fs.readFileSync(abs, 'utf8')).matchAll(/from\s+['"]([^'"]+)['"]/g)) {
       const r = resolveSpec(m[1], abs);
       if (r && !r.includes('node_modules')) collect(r, seen);
@@ -1763,7 +1837,7 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
       collect(path.join(ROOT, r), new Set());
     }
   };
-  walkRoutes('app/vendor/(shell)');
+  walkRoutes('v2/app/vendor/(shell)');
   if (!bodies.size) return 'no crossed bodies found from app/w — this cell would pass vacuously';
   const offenders = [];
   for (const b of [...bodies].sort()) {
@@ -1776,7 +1850,7 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
     // ── AMENDED, LABELLED — CE-39 S2/6. THE CURE'S SHAPE CHANGED AND THE SKIP FOLLOWED IT.
     // The old skip read `inShell ?` INSIDE the bottom expression, because at F-38.59 the
     // cure was a ternary in the value. F-39.4's cure is one rung up: the shell arm renders
-    // components/worklist/Fab.tsx and names no number at all, while the /vendor arm keeps
+    // v2/components/worklist/Fab.tsx and names no number at all, while the /vendor arm keeps
     // its own literal and dies with that tree at Phase 7. So the lawful literal is no
     // longer near a ternary — it is on a DECLARED element.
     //
@@ -1792,7 +1866,7 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
       // ── THE inShell SKIP IS RETIRED — CE-39 S2/8 RULING ────────────────────────
       // It read: `if (/inShell\s*\?/.test(expr)) continue;  // reads the tree — the cure`.
       // True at F-38.59, when a tree-aware ternary in the bottom VALUE was the cure. F-39.4
-      // moved the cure one rung up — the shell arm renders components/worklist/Fab.tsx and
+      // moved the cure one rung up — the shell arm renders v2/components/worklist/Fab.tsx and
       // names no number — so the ternary stopped being a cure and became the shape a fourth
       // seat hides in. app/vendor/calendar/screen.tsx carried a textbook one and this cell
       // exempted it by name for two sittings; the founder found it on a walk.
@@ -1811,7 +1885,7 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
     return 'a fixed control carries a bare bottom offset in a body reachable from /w, so it '
       + 'sits behind the dock and the nav inside the shell: ' + offenders.join(' · ')
       + ' \u2014 the ruled shape since F-39.4 is: the shell arm renders '
-      + 'components/worklist/Fab.tsx and names NO number (the seat reads GRID.fab), while '
+      + 'v2/components/worklist/Fab.tsx and names NO number (the seat reads GRID.fab), while '
       + 'a /vendor arm keeps its own literal and declares itself with data-tree="vendor". '
       + 'Founder ruling 2026-08-29: the FAB sits right on Rooms and nowhere else.';
   return null;
@@ -1839,12 +1913,12 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
 //      (3) NO shell-reachable file draws a FAB of its own. Absence across the graph, which
 //          is the only shape that catches a seventh seat in a seventh file.
 cell('C49 one FAB seat, read from GRID, and no room draws its own (F-39.4)', () => {
-  const theme = strip(read('lib/worklist/theme.ts'));
+  const theme = strip(read('v2/lib/worklist/theme.ts'));
   const g = theme.match(/fab:\s*\{\s*size:\s*(\d+),\s*bottom:\s*(\d+)\s*\}/);
   if (!g) return 'GRID has no fab seat — the one home for the size and the offset is missing';
   if (!/--wl-fab:\$\{GRID\.fab\.size\}px/.test(theme) || !/--wl-fab-bottom:\$\{GRID\.fab\.bottom\}px/.test(theme))
     return 'the fab seat is declared but never emitted — the rule would read an undefined variable';
-  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const shell = strip(read('v2/components/worklist/WorklistShell.tsx'));
   const rule = shell.match(/\.wl-fab\{([^}]*)\}/);
   if (!rule) return 'the wl-fab rule is not in the shell — a room using the class would paint an unstyled button';
   if (!/width:var\(--wl-fab\)/.test(rule[1]) || !/height:var\(--wl-fab\)/.test(rule[1]))
@@ -1883,13 +1957,13 @@ cell('C49 one FAB seat, read from GRID, and no room draws its own (F-39.4)', () 
       if (e.name === 'page.tsx') collect(path.join(ROOT, r));
     }
   };
-  walkRoutes('app/vendor/(shell)');
+  walkRoutes('v2/app/vendor/(shell)');
   if (reach.size < 10) return 'only ' + reach.size + ' files reachable from app/w — this cell would pass over a graph it never walked';
 
   const offenders = [];
   for (const abs of [...reach].sort()) {
     const rel = path.relative(ROOT, abs);
-    if (rel === 'components/worklist/WorklistShell.tsx') continue;   // the seat's one home
+    if (rel === 'v2/components/worklist/WorklistShell.tsx') continue;   // the seat's one home
     const src = strip(fs.readFileSync(abs, 'utf8'));
     // A FIXED control with a BOTTOM OFFSET is a FAB by shape. The ruled shell arm names no
     // number at all, so ANY literal or ternary here is a second seat — including one that
@@ -1905,13 +1979,13 @@ cell('C49 one FAB seat, read from GRID, and no room draws its own (F-39.4)', () 
     }
   }
   return offenders.length
-    ? offenders.join(' | ') + ' — GRID.fab is the one home, reached through components/worklist/Fab.tsx'
+    ? offenders.join(' | ') + ' — GRID.fab is the one home, reached through v2/components/worklist/Fab.tsx'
     : null;
 });
 
 // ── C50 · NO REAL PERSON IS NAMED IN A VENDOR-FACING BYTE  [F-39.6] ────────────
 //    Ruled at CE-39 S2/8. Three sentences were re-cut to the founder's bytes and moved to
-//    lib/worklist/copy.ts. The other five sites are ENTITLEMENT changes — Couture moves to
+//    v2/lib/worklist/copy.ts. The other five sites are ENTITLEMENT changes — Couture moves to
 //    Signature/Prestige, Team Hub opens to every tier — and their bytes may not move before
 //    their gates do, because a byte must not say what the gate does not do.
 //
@@ -1948,7 +2022,7 @@ const REAL_NAME_FIXTURES = [
 //    The dream-os pre-cutover seat moved the gates — Couture to tier Signature/Prestige
 //    (me.js `couture_eligible`), `requirePrestige` off the six studio routers — and the
 //    five bytes moved with them in the same pair of ZIPs: one re-cut to the founder's byte
-//    in lib/worklist/copy.ts, four DELETED. The cell's own stale-check enforces the empty
+//    in v2/lib/worklist/copy.ts, four DELETED. The cell's own stale-check enforces the empty
 //    list: a held path that no longer carries the name is a debt that paid itself, and it
 //    may not stay listed.
 const REAL_NAME_HELD = [];
@@ -1965,11 +2039,11 @@ cell('C50 no real person is named in a vendor-facing byte (F-39.6)', () => {
       if (re.test(strip(read(r)))) hits.push(r);
     }
   };
-  walk('app'); walk('components'); walk('lib');
+  walk('app'); walk('components'); walk('lib'); walk('v2/app'); walk('v2/components'); walk('v2/lib');
   const undeclared = hits.filter((h) => !REAL_NAME_HELD.includes(h) && !REAL_NAME_FIXTURES.includes(h));
   if (undeclared.length)
     return 'a real name reaches a vendor-facing byte at ' + undeclared.join(' \u00b7 ')
-      + ' \u2014 product chrome speaks as the product; the byte belongs in lib/worklist/copy.ts (F-39.6)';
+      + ' \u2014 product chrome speaks as the product; the byte belongs in v2/lib/worklist/copy.ts (F-39.6)';
   // AND THE DECLARED GAP MUST BE REAL. A held path that no longer carries the name is a
   // debt that quietly paid itself, and leaving it listed would let a future instance hide
   // behind an exemption nobody re-read.
@@ -2033,7 +2107,7 @@ cell('C51 a primer door dismisses its own sheet when it hands over to the chat (
       if (e.name === 'page.tsx') collect(path.join(ROOT, r));
     }
   };
-  walkRoutes('app/vendor/(shell)');
+  walkRoutes('v2/app/vendor/(shell)');
   const doors = [...reach].map((a) => path.relative(ROOT, a))
     .filter((rel) => /openAsk\s*\(/.test(strip(read(rel))))
     .sort();
@@ -2076,7 +2150,7 @@ cell('C51 a primer door dismisses its own sheet when it hands over to the chat (
 //    on a screen that hardcoded it beside a reordered array — asserting the LINK is what
 //    makes a reorder safe, and asserting the ORDER is what makes it the founder's.
 cell('C40 collab opens on the first pill, and the pills are in the ruled order (F-38.62)', () => {
-  const src = strip(read('app/vendor/(shell)/collab/screen.tsx'));
+  const src = strip(read('v2/app/vendor/(shell)/collab/screen.tsx'));
   const m = src.match(/TAB_ORDER:\s*readonly Tab\[\]\s*=\s*\[([^\]]*)\]/);
   if (!m) return 'TAB_ORDER is not declared — the render order has no home';
   const order = (m[1].match(/'([a-z_]+)'/g) || []).map((x) => x.slice(1, -1));
@@ -2098,8 +2172,8 @@ cell('C40 collab opens on the first pill, and the pills are in the ruled order (
 //    ruled the pill the ONE HOME and the crew sheet's button retired in the same cut, so this
 //    cell asserts BOTH halves — a re-added second door reddens here.
 cell('C41 the collab leg has one home, the day sheet\'s action row (F-38.61)', () => {
-  const day = strip(read('components/vendor/CalendarDaySheet.tsx'));
-  const crew = strip(read('components/vendor/CalendarCrewSheet.tsx'));
+  const day = strip(read('v2/components/vendor/CalendarDaySheet.tsx'));
+  const crew = strip(read('v2/components/vendor/CalendarCrewSheet.tsx'));
   if (!/function postToCollab/.test(day)) return 'the day sheet does not own the collab leg';
   if (/postToCollab/.test(crew)) return 'the crew sheet still carries a collab leg — two homes for one action';
   // ── THE ROW ORDER, READ OFF THE RENDER — AND THE FIRST CUT OF THIS MATCHER WAS WRONG.
@@ -2142,7 +2216,7 @@ cell('C41 the collab leg has one home, the day sheet\'s action row (F-38.61)', (
 //    it asserts that no bare setter survives and that every declared kind has a writer —
 //    D-38.1's own distinction between a snapshot and the behaviour underneath it.
 cell('C42 no verdict line reaches the day sheet without declaring its kind (F-38.61)', () => {
-  const src = strip(read('components/vendor/CalendarDaySheet.tsx'));
+  const src = strip(read('v2/components/vendor/CalendarDaySheet.tsx'));
   const m = src.match(/useState<\{\s*kind:\s*([^;]+);\s*line:\s*string\s*\}/);
   if (!m) return 'the verdict state does not carry a kind — a line can be written without saying what it is';
   const kinds = (m[1].match(/'([a-z]+)'/g) || []).map((x) => x.slice(1, -1));
@@ -2178,7 +2252,7 @@ cell('C42 no verdict line reaches the day sheet without declaring its kind (F-38
 //    actions own a full-width row of their own — so that is the property asserted, and the
 //    arithmetic lives at the site where it was derived.
 cell('C43 the event card\'s action row does not share a row with its title (F-38.p9)', () => {
-  const src = strip(read('components/vendor/CalendarDaySheet.tsx'));
+  const src = strip(read('v2/components/vendor/CalendarDaySheet.tsx'));
   // ⚠ THE FIRST CUT OF THIS SLICE ANCHORED ON THE COMMENT 「The Move picker」 AND REFUSED.
   // `strip()` had already deleted it, so the cell reddened on its own scaffolding rather than
   // on the tree — F-38.57's family, self-caught on the first run. Anchored on CODE now: the
@@ -2194,22 +2268,24 @@ cell('C43 the event card\'s action row does not share a row with its title (F-38
   if (/flex:\s*1,\s*minWidth:\s*0/.test(body))
     return 'the title still claims flex:1 against the controls — it can collapse to nothing';
   // And the actions must actually be their own row rather than inline.
-  if (!/display:\s*'flex',\s*gap:\s*6,\s*marginTop:\s*10/.test(body))
+  // DESIGN-1 · STAGE 1 (by label): at 44 px each the five sit on a grid of equal cells (its break is set by the
+  // viewport and the text size, never by the title, so R-37.22 holds), on the spacing scale (8 between, 12 above)
+  if (!/display:\s*'grid',\s*gridTemplateColumns:\s*'repeat\(auto-fit, minmax\(4\.5rem, 1fr\)\)',\s*gap:\s*8,\s*marginTop:\s*12/.test(body))
     return 'the action row is not a full-width row of its own';
   return null;
 });
 
 // ── C44 · THE ASK DOOR IS A CONTEXT, AND BOTH TREES ANSWER IT  [F-38.47, R-39.3] ──
 //    THE FOUR DOORS ARE DUAL-TREE, which is the whole reason this is an interface and not a
-//    re-point. `BinderCard` is mounted by `app/vendor/page.tsx` — the OLD HUB — where the
+//    re-point. `BinderCard` is mounted by `v2/app/vendor/page.tsx` — the OLD HUB — where the
 //    push primes the risen chat ON THE SAME PAGE; deleting it there would regress a live
 //    control. So the doors call `openAsk` and know nothing about trees, and each tree
 //    mounts a provider. A tree that stops mounting one does not fail loudly at build time
 //    — `useAsk()` throws at RENDER, on the vendor's screen, which is exactly why the
 //    mounting is asserted here rather than trusted.
 cell('C44 the four hub primer doors are tree-blind, and both trees mount a provider (R-39.3)', () => {
-  const DOORS = ['components/vendor/slices/WishboneSheet.tsx', 'components/vendor/slices/BinderCard.tsx',
-                 'components/vendor/NotesBody.tsx', 'components/vendor/CalendarDaySheet.tsx'];
+  const DOORS = ['v2/components/vendor/slices/WishboneSheet.tsx', 'v2/components/vendor/slices/BinderCard.tsx',
+                 'v2/components/vendor/NotesBody.tsx', 'v2/components/vendor/CalendarDaySheet.tsx'];
   const bad = [];
   for (const d of DOORS) {
     const src = strip(read(d));
@@ -2218,13 +2294,13 @@ cell('C44 the four hub primer doors are tree-blind, and both trees mount a provi
     if (/router\.push\(\s*[`'"]\/vendor\?/.test(src)) bad.push(d + ' still pushes /vendor?<query> — the shell unmounts');
   }
   if (bad.length !== 0 && DOORS.length !== 4) bad.push('the door set is no longer four — this cell was written against four');
-  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const shell = strip(read('v2/components/worklist/WorklistShell.tsx'));
   // P7.2 AMENDMENT (labeled): "both trees mount a provider" had two trees; the carried
   // tree and its /vendor?draft= hub push are DELETED. One tree, one provider, in the shell.
-  // app/vendor/(legacy)/layout.tsx mounts NONE by derivation (zero useAsk callers there).
+  // v2/app/vendor/(legacy)/layout.tsx mounts NONE by derivation (zero useAsk callers there).
   if (!/<AskProvider/.test(shell)) bad.push('the shell mounts no AskProvider: every door under /vendor would throw at render');
-  if (fs.existsSync(path.join(ROOT, 'app/vendor/layout.tsx'))) bad.push('app/vendor/layout.tsx is back: the carried tree was retired at P7.2');
-  const legacy = strip(read('app/vendor/(legacy)/layout.tsx'));
+  if (fs.existsSync(path.join(ROOT, 'v2/app/vendor/layout.tsx'))) bad.push('v2/app/vendor/layout.tsx is back: the carried tree was retired at P7.2');
+  const legacy = strip(read('v2/app/vendor/(legacy)/layout.tsx'));
   if (/<AskProvider/.test(legacy)) bad.push('(legacy) mounts an AskProvider: it has no useAsk caller and no ask door (P7.2 derivation)');
   if (/\/vendor\?/.test(shell)) bad.push('the shell provider carries a /vendor? address — arm (a) opens the sheet in place, it does not navigate');
   return bad.length ? bad.join(' | ') : null;
@@ -2237,11 +2313,11 @@ cell('C44 the four hub primer doors are tree-blind, and both trees mount a provi
 //    the primers cannot reach — two surfaces, one name, no error. That is the ruling's
 //    named mutation and this cell is what reddens on it.
 cell('C45 the dock consumes the ask context and owns no open state (R-39.3)', () => {
-  const src = strip(read('components/worklist/AiDock.tsx'));
+  const src = strip(read('v2/components/worklist/AiDock.tsx'));
   if (!/useAsk\(\)/.test(src)) return 'AiDock does not read the ask context — the primers and the dock would open different sheets';
   if (/useState\s*(<[^>]*>)?\s*\(\s*false\s*\)/.test(src))
     return 'AiDock has taken back a local open state — a second sheet the four primer doors cannot reach';
-  const sheet = strip(read('components/worklist/AskSheet.tsx'));
+  const sheet = strip(read('v2/components/worklist/AskSheet.tsx'));
   if (!/prefill/.test(sheet)) return 'AskSheet takes no prefill — the primers have nothing to carry';
   // PREFILL-NOT-FIRE. The stem reaches the composer, never the wire.
   if (/send\(\s*prefill/.test(sheet)) return 'AskSheet SENDS the prefill — the door would spend the vendor\'s message on a stem (F-04.9)';
@@ -2259,19 +2335,19 @@ cell('C45 the dock consumes the ask context and owns no open state (R-39.3)', ()
 //    itself would satisfy 「a sheet exists somewhere」 while signing the vendor out on one
 //    tap. Comments are stripped first — the files DESCRIBE the retired calls at length.
 cell('C46 every sign-out door opens the one sheet, and only the sheet holds the verb (CE-39 §3)', () => {
-  const HOME = 'components/worklist/SignOutSheet.tsx';
+  const HOME = 'v2/components/worklist/SignOutSheet.tsx';
   const home = strip(read(HOME));
   for (const call of ['forgetVendorMe()', 'clearVendorSession()', "replace('/')"])
     if (!home.includes(call)) return 'the one sign-out verb is missing ' + call + ' at ' + HOME + ' — F-38.p14 was the two doors disagreeing about exactly this';
-  const DOORS = ['components/worklist/AccountDrawer.tsx', 'components/vendor/SettingsScreen.tsx', 'components/vendor/Header.tsx',
-                 'components/worklist/WorklistShell.tsx'];
+  const DOORS = ['v2/components/worklist/AccountDrawer.tsx', 'v2/components/vendor/SettingsScreen.tsx', 'v2/components/vendor/Header.tsx',
+                 'v2/components/worklist/WorklistShell.tsx'];
   const bad = [];
   for (const d of DOORS) {
     const src = strip(read(d));
     if (/clearVendorSession\s*\(/.test(src)) bad.push(d + ' calls clearVendorSession itself — a door that bypasses the sheet');
   }
   // AND THE TWO DOORS THE FOUNDER TAPS MUST ACTUALLY MOUNT IT.
-  for (const d of ['components/worklist/AccountDrawer.tsx', 'components/vendor/SettingsScreen.tsx'])
+  for (const d of ['v2/components/worklist/AccountDrawer.tsx', 'v2/components/vendor/SettingsScreen.tsx'])
     if (!/useSignOut\(\)/.test(strip(read(d)))) bad.push(d + ' does not open the confirm sheet');
   return bad.length ? bad.join(' | ') : null;
 });
@@ -2284,7 +2360,7 @@ cell('C46 every sign-out door opens the one sheet, and only the sheet holds the 
 //    the shell scope, so a main-side caller inheriting rungs paints in the user agent's
 //    fallback font — C-R6's own finding on the dock glyph, reproduced on a money surface.
 cell('C47 the six-rung register is opt-in, and exactly one consumer opts in (CE-39 S2/6)', () => {
-  const form = strip(read('components/vendor/AtelierForm.tsx'));
+  const form = strip(read('v2/components/vendor/AtelierForm.tsx'));
   if (!/register\s*=\s*'engraved'/.test(form))
     return 'the register prop does not default to the engraved bytes — every other consumer would be swept';
   // Derived, never typed: who imports the primitives.
@@ -2295,16 +2371,16 @@ cell('C47 the six-rung register is opt-in, and exactly one consumer opts in (CE-
       if (e.isDirectory()) { walk(r); continue; }
       if (!/\.tsx?$/.test(e.name)) continue;
       const src = strip(read(r));
-      if (/from\s+'@\/components\/vendor\/AtelierForm'/.test(src)) consumers.push(r);
+      if (/from\s+'@\/v2\/components\/vendor\/AtelierForm'/.test(src)) consumers.push(r);
     }
   };
-  walk('app'); walk('components');
+  walk('app'); walk('components'); walk('v2/app'); walk('v2/components');
   if (!consumers.length) return 'no AtelierForm consumers found — this cell would pass vacuously';
   const optedIn = consumers.filter((c) => /'rungs'/.test(strip(read(c))));
   if (optedIn.length !== 1)
     return 'the rungs variant has ' + optedIn.length + ' consumers (' + (optedIn.join(' · ') || 'none') + ') — exactly one was ruled, and the variable it reads exists only inside the shell scope';
-  if (optedIn[0] !== 'components/vendor/SettingsScreen.tsx')
-    return 'the rungs consumer is ' + optedIn[0] + ', ruled to be components/vendor/SettingsScreen.tsx';
+  if (optedIn[0] !== 'v2/components/vendor/SettingsScreen.tsx')
+    return 'the rungs consumer is ' + optedIn[0] + ', ruled to be v2/components/vendor/SettingsScreen.tsx';
   // AND THE OPT-IN MUST BE DERIVED FROM THE TREE, not a hardcoded literal that would paint
   // rungs on the /vendor tree where the variables do not exist.
   if (!/chrome\s*\?\s*'engraved'\s*:\s*'rungs'/.test(strip(read(optedIn[0]))))
@@ -2318,11 +2394,11 @@ cell('C47 the six-rung register is opt-in, and exactly one consumer opts in (CE-
 //    A card titled Subscription over a 4px void is chrome pretending to be structure.
 //    The ruling's named mutation: empty one → red.
 cell('C48 the Settings signposts render words and go somewhere (F-38.p10, F-39.4)', () => {
-  const src = strip(read('components/vendor/SettingsScreen.tsx'));
+  const src = strip(read('v2/components/vendor/SettingsScreen.tsx'));
   const bad = [];
   for (const key of ['COPY.settingsManageSubscription', 'COPY.settingsEditProfile'])
     if (!src.includes(key)) bad.push(key + ' is not rendered — the signpost is an empty button again');
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   for (const key of ['settingsManageSubscription', 'settingsEditProfile'])
     if (!new RegExp(key + ":\\s*'[^']+'").test(copy)) bad.push(key + ' has no byte in the copy register');
   // THE ADDRESS IS DERIVED, NOT SPELLED. F-38.27: a literal is a spelling a cure can move
@@ -2352,7 +2428,7 @@ cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (
   //    (R-39.7)」
   //
   // F-39.39: for the whole of 2b-2 this cell could not see seventy-four lines of
-  // `app/vendor/studio/team/page.tsx`. b40's own stripper read `/crew/*` inside
+  // `v2/app/vendor/studio/team/page.tsx`. b40's own stripper read `/crew/*` inside
   // a `//` comment at that file's line 152 as a block-comment opener, paired it
   // with `{/* FAB */}`'s closer at 226, and deleted everything between. Proven
   // both ways by production mutation at the 2c-Studio cut: a restored
@@ -2367,10 +2443,10 @@ cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (
   // ZIP. THE LIST BELOW GROWS ONLY AFTER `strip` CAN READ ITS SITES.
   //
   // THE LIST GROWS BY ONE, from six sites to seven: the sheets. 2c-Studio moved
-  // every studio VERB into `components/worklist/StudioSheets.tsx`, so a gate
+  // every studio VERB into `v2/components/worklist/StudioSheets.tsx`, so a gate
   // restored around the add/edit surfaces — the most natural place to put one
   // back — would sit outside every site this cell reads. The three
-  // `app/vendor/studio/*` pages STAY: they keep their bodies until Phase 7
+  // `v2/app/vendor/studio/*` pages STAY: they keep their bodies until Phase 7
   // sweeps the /vendor tree, `/vendor/more` and `/vendor/studio` still route
   // into team-hub, and dropping a live fallback from this list on the sitting
   // that stopped looking at it is precisely the mistake the 2b-2 amendment
@@ -2382,12 +2458,12 @@ cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (
   //
   // ── AMENDED AT CE-39 2b-2 · THE SITE LIST MOVES WITH THE BODY ─────────────
   // `app/w/team/page.tsx` stopped mounting `TeamHubScreen` at arm D (a) and now
-  // mounts `components/worklist/TeamTabs.tsx`. The ROUTE stays on this list —
+  // mounts `v2/components/worklist/TeamTabs.tsx`. The ROUTE stays on this list —
   // it is still a Studio surface and could still grow a gate — and the new BODY
   // joins it, because a gate restored in the body would otherwise sit outside
   // every site this cell reads.
   //
-  // ⚠ `app/vendor/team-hub/screen.tsx` STAYS, and that is the amendment's whole
+  // ⚠ `v2/app/vendor/team-hub/screen.tsx` STAYS, and that is the amendment's whole
   // point. `TeamHubScreen` keeps BOTH readers: the /vendor fallback still mounts
   // it and is byte-untouched until 2c-Studio. Dropping it here because the shell
   // stopped reading it would leave the fallback's gate unwatched on the exact
@@ -2400,9 +2476,9 @@ cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (
     // P7.2 AMENDMENT (labeled): the four old-tree sites (team-hub screen, studio/team,
     // studio/tasks, studio/team-payments) are DELETED with the tree; the Studio Suite is
     // the shell's Team room, its tabs and its sheets: the three sites below.
-    'app/vendor/(shell)/team/page.tsx',
-    'components/worklist/TeamTabs.tsx',
-    'components/worklist/StudioSheets.tsx',
+    'v2/app/vendor/(shell)/team/page.tsx',
+    'v2/components/worklist/TeamTabs.tsx',
+    'v2/components/worklist/StudioSheets.tsx',
   ];
   for (const f of sites) {
     const src = strip(read(f));
@@ -2413,7 +2489,7 @@ cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (
   const shared = strip(read('lib/vendor/studioShared.tsx'));
   if (/isPrestige/.test(shared)) bad.push('studioShared.tsx still exports isPrestige — a gate with no reader is a gate waiting for one');
   if (/isLocked|locked\??:/.test(shared)) bad.push('studioShared.tsx Row still carries a locked arm');
-  const anyReader = ['app', 'components', 'lib'].some((d) => {
+  const anyReader = ['app', 'components', 'lib', 'v2/app', 'v2/components', 'v2/lib'].some((d) => {
     let hit = false;
     const walk = (rel) => {
       for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
@@ -2432,12 +2508,12 @@ cell('C58 no tier gates the Studio Suite — pages, screen, and the shared row (
 //    The predicate moved server-side (dream-os me.js: invite flag OR tier in
 //    {signature, prestige}); this screen still reads ONE boolean, `couture_eligible`, so the
 //    cell asserts the byte and the door, not the tier — the tier is dream-os's cell. Both
-//    bytes are founder-vetoed 2026-08-29 and live in lib/worklist/copy.ts; the sentence
+//    bytes are founder-vetoed 2026-08-29 and live in v2/lib/worklist/copy.ts; the sentence
 //    carries its own link word and the screen routes that word through roomHref('billing').
 //    RED MUTATION: spell the sentence inline in screen.tsx, or point the link at a literal.
 cell('C59 the Couture gate reads its two bytes from copy.ts and routes Billing through roomHref (R-39.6)', () => {
   const bad = [];
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   const want = {
     coutureGateLabel:    'Couture · Signature and Prestige',
     coutureGateSentence: 'Couture is part of Signature and Prestige. Upgrade in Billing.',
@@ -2450,7 +2526,7 @@ cell('C59 the Couture gate reads its two bytes from copy.ts and routes Billing t
   }
   if (!want.coutureGateSentence.includes(want.coutureGateLinkWord))
     bad.push('the link word is not inside the sentence it must be split from');
-  const src = strip(read('app/vendor/(shell)/couture/screen.tsx'));
+  const src = strip(read('v2/app/vendor/(shell)/couture/screen.tsx'));
   for (const k of Object.keys(want)) if (!new RegExp('COPY\\.' + k + '\\b').test(src)) bad.push('screen.tsx does not read COPY.' + k);
   if (!/roomHref\('billing'\)/.test(src)) bad.push('the Billing door does not resolve through roomHref (F-38.27)');
   if (/Invite Only|reserved for invited/.test(src)) bad.push('the retired invite-only bytes are still on the screen');
@@ -2471,21 +2547,21 @@ cell('C59 the Couture gate reads its two bytes from copy.ts and routes Billing t
 //    here and this is the cell that watches it. `sumCounts` is factored out of the
 //    component precisely so this mutation is available: dropping one term is a
 //    one-character edit that yields a plausible smaller number no render cell would catch.
-//    RED MUTATION: delete `+ (counts.team_tasks ?? 0)` from sumCounts in lib/worklist/feed.ts.
+//    RED MUTATION: delete `+ (counts.team_tasks ?? 0)` from sumCounts in v2/lib/worklist/feed.ts.
 cell('C60 the masthead numeral is the sum of all five counts, computed in one home', () => {
   const bad = [];
-  const feed = strip(read('lib/worklist/feed.ts'));
+  const feed = strip(read('v2/lib/worklist/feed.ts'));
   const KINDS = ['lead_unanswered', 'invoice_due', 'events_today', 'contract_unsigned', 'team_tasks'];
   const m = feed.match(/export function sumCounts\([\s\S]*?\n\}/);
-  if (!m) { bad.push('sumCounts has no home in lib/worklist/feed.ts'); return bad.join(' | '); }
+  if (!m) { bad.push('sumCounts has no home in v2/lib/worklist/feed.ts'); return bad.join(' | '); }
   for (const k of KINDS) if (!m[0].includes(k)) bad.push('sumCounts does not read counts.' + k);
   // ONE HOME: nothing else in the shell may reduce over `counts`, or the numeral and the
   // tiles could be built by two recipes for one figure.
-  for (const f of ['app/vendor/(shell)/today/page.tsx', 'components/worklist/RoomsGrid.tsx', 'components/worklist/TodayCards.tsx']) {
+  for (const f of ['v2/app/vendor/(shell)/today/page.tsx', 'v2/components/worklist/RoomsGrid.tsx', 'components/worklist/TodayCards.tsx']) {
     const src = strip(read(f));
     if (/counts\s*\)?\s*\.\s*reduce|Object\.values\([^)]*counts/.test(src)) bad.push(f + ' sums counts itself — second home for the numeral');
   }
-  const page = strip(read('app/vendor/(shell)/today/page.tsx'));
+  const page = strip(read('v2/app/vendor/(shell)/today/page.tsx'));
   if (!/const working\s*=\s*feed\.responded/.test(page)) bad.push('the working state is not derived from a reading (F-38.31)');
   if (!/\{working && feed\.openItems !== null/.test(page)) bad.push('the numeral is not gated on the working state');
   return bad.length ? bad.join(' | ') : null;
@@ -2498,8 +2574,10 @@ cell('C60 the masthead numeral is the sum of all five counts, computed in one ho
 //    RED MUTATION: add `.sort()` after `Object.keys(na)` in components/worklist/TodayCards.tsx.
 cell('C61 the feed renders in the wire\'s key order and re-sorts nothing', () => {
   const bad = [];
-  const src = strip(read('components/worklist/TodayCards.tsx'));
-  if (!/Object\.keys\(na\)/.test(src)) bad.push('the render does not read the body\'s own key order');
+  // DESIGN-1 · STAGE 2 (by label): the one list Home draws from the feed is Reply to (lead_unanswered), and it renders
+  // the wire's own order, re-sorting nothing (D-4's ranking, properties 4 and 5)
+  const src = strip(read('v2/components/worklist/TodayHome.tsx'));
+  if (!/needs_attention\??\.lead_unanswered/.test(src) || !/unanswered\.map\(/.test(src)) bad.push('Reply to does not render the wire\'s list');
   if (/\.sort\(/.test(src)) bad.push('the feed sorts — key order IS D-4\'s ranking (property 4)');
   if (/\.reverse\(/.test(src)) bad.push('the feed reverses — ties break oldest-first as delivered (property 5)');
   // ATTENTION_KINDS is a SET for the type system, not the sequence. If the render iterated
@@ -2516,14 +2594,15 @@ cell('C61 the feed renders in the wire\'s key order and re-sorts nothing', () =>
 //                  `feed.today.needs_attention[kind].length` instead of `counts[kind]`.
 cell('C62 a tile figure is the wire\'s count, not a list length, and it is never called a badge', () => {
   const bad = [];
-  const src = strip(read('components/worklist/RoomsGrid.tsx'));
-  if (!/counts\[kind\]/.test(src)) bad.push('the tile figure does not read counts[kind]');
-  if (/needs_attention\[[^\]]*\]\s*(\?\?\s*\[\])?\s*\.length/.test(src)) bad.push('the tile figure is authored from a list length (property 1/3)');
-  if (!/useTodayFeed/.test(src)) bad.push('Rooms does not read the Today feed — R-37.63 (1) wants the SAME response');
-  // ONE WORD, ONE MEANING. SliceShell owns `badge` for a row-level state chip and the six
-  // list rooms import it; the tile figure must not answer to the same name.
-  if (/\bbadge\b/i.test(src)) bad.push('the tile figure is called a badge — SliceShell owns that word');
-  const rooms = strip(read('lib/worklist/rooms.ts'));
+  // DESIGN-1 · STAGE 3 (by label): the tiles and their figures retired with the shelves; More's rows carry no figure,
+  // and Home's one figure (Reply to's count) is the wire's list as drawn (C61, C64). What stands: no surface authors a
+  // figure from a list length, and neither file nor the registry spells badge.
+  for (const f of ['v2/components/worklist/RoomsGrid.tsx', 'v2/components/worklist/TodayHome.tsx']) {
+    const src = strip(read(f));
+    if (/needs_attention\??\.\[[^\]]*\]\s*(\?\?\s*\[\])?\s*\.length|needs_attention\[[^\]]*\]\s*(\?\?\s*\[\])?\s*\.length/.test(src)) bad.push(f + ' authors a figure from a list length (property 1/3)');
+    if (/\bbadge\b/i.test(src)) bad.push(f + ' calls a figure a badge — SliceShell owns that word');
+  }
+  const rooms = strip(read('v2/lib/worklist/rooms.ts'));
   if (/\bbadge\b/i.test(rooms)) bad.push('rooms.ts spells badge — the registry\'s word is count');
   return bad.length ? bad.join(' | ') : null;
 });
@@ -2536,17 +2615,12 @@ cell('C62 a tile figure is the wire\'s count, not a list length, and it is never
 //    RED MUTATION: change `today.has_any === false` to `=== true` in app/w/today/page.tsx.
 cell('C63 FirstRun rides has_any false and the resting state rides an empty reading', () => {
   const bad = [];
-  const src = strip(read('app/vendor/(shell)/today/page.tsx'));
+  const src = strip(read('v2/app/vendor/(shell)/today/page.tsx'));
   if (!/const firstRun = [^\n]*has_any === false/.test(src)) bad.push('FirstRun is not gated on has_any === false (property 6)');
-  if (!/const resting\s*=\s*[^\n]*has_any === true[^\n]*openItems === 0/.test(src)) bad.push('the resting state is not gated on a reading that came back empty');
-  if (!/const working\s*=\s*[^\n]*openItems !== null[^\n]*openItems > 0/.test(src)) bad.push('the working state is not gated on a reading with work in it');
-  if (!/\{firstRun && <FirstRun \/>\}/.test(src)) bad.push('FirstRun is not behind its gate — it renders unconditionally');
-  const rest = strip(read('components/worklist/TodayCards.tsx'));
-  // property 8: exactly three keys, and no fourth bucket and no sentence explaining the absence.
-  for (const k of ['invoice_paid', 'contract_signed', 'team_task_done'])
-    if (!rest.includes(k)) bad.push('the resting summary omits done_today.' + k);
-  if (/lead[s]?_done|events_done|event_done/.test(rest)) bad.push('the resting summary invents a fourth bucket (property 8)');
-  if (!/todayRestingScope/.test(rest)) bad.push('the resting state does not carry its one coverage line');
+  // DESIGN-1 · STAGE 2 (by label): the resting and working states and the done summary retired with TodayCards (C68,
+  // C74); FirstRun's gate stands, and no Home section renders the first-run manual itself
+  if (!/\{firstRun && <FirstRun \/>\}/.test(src)) bad.push('FirstRun is not behind its gate, it renders unconditionally');
+  if (/FirstRun/.test(strip(read('v2/components/worklist/TodayHome.tsx')))) bad.push('a Home section renders the first-run manual itself');
   return bad.length ? bad.join(' | ') : null;
 });
 
@@ -2557,11 +2631,14 @@ cell('C63 FirstRun rides has_any false and the resting state rides an empty read
 //    RED MUTATION: drop the `{cut ? COPY.todayTruncatedSuffix : ''}` from TodayCards.tsx.
 cell('C64 a capped count never renders bare — the truncation tell rides truncated[k]', () => {
   const bad = [];
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   const m = copy.match(/todayTruncatedSuffix:\s*'([^']*)'/);
   if (!m) bad.push('the truncation tell has no byte in the copy register');
   else if (m[1] !== '+') bad.push('the truncation tell reads 、' + m[1] + '、, vetoed byte is 、+、');
-  for (const f of ['components/worklist/TodayCards.tsx', 'components/worklist/RoomsGrid.tsx']) {
+  // DESIGN-1 · STAGE 2 (by label): the capped count Home draws is Reply to's, so the tell is asserted there.
+  // DESIGN-1 · STAGE 3 (by label): More's rows draw no figure (the tiles' counts retired with the shelves), so Home is
+  // the one capped count left, and the tell is held there.
+  for (const f of ['v2/components/worklist/TodayHome.tsx']) {
     const src = strip(read(f));
     if (!/truncated\[/.test(src) && !/truncated\b/.test(src)) bad.push(f + ' does not read truncated');
     if (!/todayTruncatedSuffix/.test(src)) bad.push(f + ' renders a figure with no truncation tell available to it');
@@ -2579,33 +2656,33 @@ cell('C65 open_leads_count reaches no shell path, and the dated uncomments all f
   const bad = [];
   // (a) the symbol is gone from every render path the shell can reach.
   const PATHS = [
-    'app/vendor/(shell)/today/page.tsx', 'components/worklist/TodayCards.tsx', 'components/worklist/RoomsGrid.tsx',
-    'lib/worklist/feed.ts', 'lib/worklist/rooms.ts', 'app/vendor/(shell)/storefront/screen.tsx',
+    'v2/app/vendor/(shell)/today/page.tsx', 'components/worklist/TodayCards.tsx', 'v2/components/worklist/RoomsGrid.tsx',
+    'v2/lib/worklist/feed.ts', 'v2/lib/worklist/rooms.ts', 'v2/app/vendor/(shell)/storefront/screen.tsx',
   ];
   for (const f of PATHS) if (/open_leads_count/.test(strip(read(f)))) bad.push(f + ' still displays or compares open_leads_count (R-P3.5.6 (1))');
   // (b) the old door and its remaining reader are RULED UNTOUCHED — their absence would be
   //     a different defect, so this cell asserts they are STILL THERE.
-  // ⚠ RAW READ, NOT `strip`, AND F-39.13 IS WHY. `lib/vendor/api/vendor.ts` carries four
+  // ⚠ RAW READ, NOT `strip`, AND F-39.13 IS WHY. `v2/lib/vendor/api/vendor.ts` carries four
   // `/*` openers against three closers (a `/binders/*` path inside a line comment), so
   // `strip`'s non-greedy block regex swallows from that point to end of file and
   // `fetchToday` disappears from the stripped text. A stripper that eats live code makes
   // every ABSENCE assertion over that file vacuously green — the dangerous half — and this
   // presence assertion falsely red. The finding is filed; this cell does not work around it
   // silently, it reads the bytes and says so.
-  if (!/fetchToday/.test(read('lib/vendor/api/vendor.ts'))) bad.push('the old fetchToday door was removed — F-39.9 ruled it untouched');
-  if (!/fetchToday/.test(read('hooks/vendor/useVendorData.ts'))) bad.push('useVendorData no longer reads the old door — ruled untouched');
+  if (!/fetchToday/.test(read('v2/lib/vendor/api/vendor.ts'))) bad.push('the old fetchToday door was removed — F-39.9 ruled it untouched');
+  if (!/fetchToday/.test(read('v2/hooks/vendor/useVendorData.ts'))) bad.push('useVendorData no longer reads the old door — ruled untouched');
   // (c) all five dated uncomments fired in this one commit; a partial firing is the defect.
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   if (!/todayNothingYet:\s*'Nothing needs you yet\.'/.test(copy)) bad.push('COPY.todayNothingYet is still withheld');
-  const page = strip(read('app/vendor/(shell)/today/page.tsx'));
+  const page = strip(read('v2/app/vendor/(shell)/today/page.tsx'));
   if (!/\.wl-mnum\{font:var\(--wl-t0\)/.test(page)) bad.push('the wl-mnum rules were not restored to the style block');
   if (!/font-variant-numeric/.test(page)) bad.push('the numeral is not tabular — the font shorthand reset it');
   if (!/todayNothingYet/.test(page)) bad.push('the true-empty byte has no consumer');
   const audit = strip(read('tools/wl_audit.mjs'));
   if (/'Nothing needs you yet\.',/.test(audit)) bad.push('the byte is live in copy.ts and still on the audit RETIRED set');
   if (!/t0Sites\.length === 1 && t0Sites\[0\] === '\/vendor\/today'/.test(audit)) bad.push('the R-38.4 t0 predicate was not flipped back');
-  const feed = strip(read('lib/worklist/feed.ts'));
-  if (/responded: false, openItems: null \}[\s;]*$/m.test(feed) && !/fetchWorklistToday/.test(feed)) bad.push('lib/worklist/feed.ts still returns the no-reading constant');
+  const feed = strip(read('v2/lib/worklist/feed.ts'));
+  if (/responded: false, openItems: null \}[\s;]*$/m.test(feed) && !/fetchWorklistToday/.test(feed)) bad.push('v2/lib/worklist/feed.ts still returns the no-reading constant');
   if (!/fetchWorklistToday/.test(feed)) bad.push('the feed does not call the worklist door');
   // (d) the sixth site — markerless, and named so it cannot be missed twice.
   const render = strip(read('tools/wl_render.cjs'));
@@ -2630,21 +2707,13 @@ cell('C65 open_leads_count reaches no shell path, and the dated uncomments all f
 //    RED MUTATION: drop `lining-nums` from .wl-mnum in app/w/today/page.tsx.
 cell('C66 every figure site declares lining figures, not only the rung that broke (F-39.15)', () => {
   const bad = [];
+  // DESIGN-1 · STAGE 2 (by label): the Today sites left with TodayCards and the masthead; the tile count stays, and the
+  // shell scope now holds even-width figures on every byte (the report's "Numbers"), which is asserted beside it
+  // DESIGN-1 · STAGE 3 (by label): the tile count retired with the shelves; Home's Reply to count is the figure site now.
   const SITES = [
-    ['app/vendor/(shell)/today/page.tsx', 'wl-mnum'],
-    ['components/worklist/RoomsGrid.tsx', 'wl-tcount'],
-    ['components/worklist/TodayCards.tsx', 'wl-tseccount'],
-    // RENAMED AT S4/3 to the ratified frames' own class names: the figure became a
-    // two-part cell inside the card's grid (value + caption) rather than a single block
-    // stapled under it, so one class became two and both carry figures.
-    ['components/worklist/TodayCards.tsx', 'wl-tcfigval'],
-    ['components/worklist/TodayCards.tsx', 'wl-tcdetail'],
-    ['components/worklist/TodayCards.tsx', 'wl-tmorecount'],
-    ['components/worklist/TodayCards.tsx', 'wl-tfoldbtn'],
-    ['components/worklist/TodayCards.tsx', 'wl-trestpart'],
-    ['app/vendor/(shell)/today/page.tsx', 'wl-mkind'],
-    ['components/worklist/TodayCards.tsx', 'wl-trestn'],
+    ['v2/components/worklist/TodayHome.tsx', 'wl-home-count'],
   ];
+  if (!/\.wl,\.wl \*\{font-variant-numeric:tabular-nums!important/.test(read('v2/components/worklist/WorklistShell.tsx'))) bad.push('the shell scope does not hold tabular figures on every byte');
   for (const [f, cls] of SITES) {
     const css = read(f);
   // ⚠ EVERY RULE FOR THE SELECTOR, NOT THE FIRST ONE. This estate declares figure style
@@ -2673,7 +2742,7 @@ cell('C66 every figure site declares lining figures, not only the rung that brok
 //    RED MUTATION: replace `setSel(row)` with a focus() call in SliceShell.tsx.
 cell('C67 ?lead opens the record inside the shell, and never enters select-mode (F-39.17)', () => {
   const bad = [];
-  const src = strip(read('components/vendor/slices/SliceShell.tsx'));
+  const src = strip(read('v2/components/vendor/slices/SliceShell.tsx'));
   // P7.2 AMENDMENT (labeled): the arm's dependency list lost `screenInShell` with the hook.
   const arm = src.match(/const want = new URLSearchParams[\s\S]{0,700}?\n  \}, \[slice, rows\]/);
   if (!arm) { bad.push('the ?lead arm is gone from SliceShell'); return bad.join(' | '); }
@@ -2701,10 +2770,10 @@ cell('C68 done_today renders in both states, and only the resting arm carries a 
   if (!done) bad.push('TodayDone is gone — the working state shows nothing finished');
   // AMENDED BY LABEL · CE-46 FE-4 · F-44.219: the resting arm's status byte ("All clear.") is the shell's head
   // now, handed up by the page's RoomHeadTitle and gated on `resting`, not drawn inside TodayResting.
-  if (!/: resting \? COPY\.todayRestingHead : null/.test(strip(read('app/vendor/(shell)/today/page.tsx')))) bad.push('the resting state lost its status byte');
+  if (!/: resting \? COPY\.todayRestingHead : null/.test(strip(read('v2/app/vendor/(shell)/today/page.tsx')))) bad.push('the resting state lost its status byte');
   if (/todayRestingHead/.test(done)) bad.push('the working state carries a status byte over its cards (R-39.13)');
   for (const f of [resting, done]) if (f && !/DoneSummary/.test(f)) bad.push('a state builds its own summary instead of reading the one home');
-  const page = strip(read('app/vendor/(shell)/today/page.tsx'));
+  const page = strip(read('v2/app/vendor/(shell)/today/page.tsx'));
   if (!/\{working && today && <TodayDone/.test(page)) bad.push('the working state does not render done_today');
   if (!/\{resting && today && <TodayResting/.test(page)) bad.push('the resting state does not render its summary');
   // ZERO NEW BYTES: the three row labels are the registry's, not the executor's (s-39.6).
@@ -2729,10 +2798,11 @@ cell('C68 done_today renders in both states, and only the resting arm carries a 
 //    RED MUTATION: replace COPY.kindNouns[kind] with a literal in TodayCards.tsx.
 cell('C69 the kind line takes counts from the wire and nouns from the one map (D-1/c3)', () => {
   const bad = [];
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   const map = (copy.match(/kindNouns:\s*\{[\s\S]*?\}/) || [''])[0];
   if (!map) { bad.push('kindNouns has no home in copy.ts'); return bad.join(' | '); }
-  const WANT = { lead_unanswered: "'lead', 'leads'", invoice_due: "'invoice', 'invoices'",
+  // DESIGN-1 · STAGE 1 (by label, REPORT.md W5): one word, enquiry
+  const WANT = { lead_unanswered: "'enquiry', 'enquiries'", invoice_due: "'invoice', 'invoices'",
                  events_today: "'event', 'events'", contract_unsigned: "'contract', 'contracts'",
                  team_tasks: "'task', 'tasks'" };
   for (const [k, v] of Object.entries(WANT)) {
@@ -2803,7 +2873,7 @@ cell('C72 a capped kind shows the tell inside its promise and a door to the room
   if (!/countText\(today, kind\)/.test(fold)) bad.push('the fold label is built from a bare count, not the tell-carrying text');
   if (!/todaySeeAllIn/.test(src)) bad.push('a capped kind offers no door to the room that holds the rest');
   if (!/\{cut && \(/.test(src)) bad.push('the room door is not gated on truncated[k]');
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   for (const k of ['todayFoldMore', 'todayFoldLess', 'todaySeeAllIn', 'todayOwedCaption', 'todayDueToday', 'todayDoneHead'])
     if (!new RegExp(k + ":\\s*'").test(copy)) bad.push(k + ' is not in the copy register');
   return bad.length ? bad.join(' | ') : null;
@@ -2849,11 +2919,11 @@ cell('C74 the done ledger carries its particular; the status byte is the resting
   const done    = (src.match(/export function TodayDone[\s\S]*?\n\}/) || [''])[0];
   // AMENDED BY LABEL · CE-46 FE-4 · F-44.219: the resting arm's status byte ("All clear.") is the shell's head
   // now, handed up by the page's RoomHeadTitle and gated on `resting`, not drawn inside TodayResting.
-  if (!/: resting \? COPY\.todayRestingHead : null/.test(strip(read('app/vendor/(shell)/today/page.tsx')))) bad.push('the resting state lost its status byte');
+  if (!/: resting \? COPY\.todayRestingHead : null/.test(strip(read('v2/app/vendor/(shell)/today/page.tsx')))) bad.push('the resting state lost its status byte');
   if (/todayRestingHead/.test(done)) bad.push('the working ledger carries a status byte over its cards (R-39.13)');
   if (!/todayDoneHead/.test(done)) bad.push('the working ledger has no eyebrow');
   if (/'Invoices paid'|'Contracts signed'|'Tasks done'/.test(src)) bad.push('the ledger spells its own row labels (s-39.6)');
-  const page = strip(read('app/vendor/(shell)/today/page.tsx'));
+  const page = strip(read('v2/app/vendor/(shell)/today/page.tsx'));
   if (!/\{working && today && <TodayDone/.test(page)) bad.push('the working state renders no ledger');
   if (!/\{resting && today && <TodayResting/.test(page)) bad.push('the resting state renders no ledger');
   // D-1/c5: the resting masthead carries no numeral. A 0 beside "All clear." twice-tells.
@@ -2875,19 +2945,19 @@ cell('C75 the build id is read per request in the server layer, not inlined at b
   const bad = [];
   const cfg = strip(read('next.config.ts'));
   if (/NEXT_PUBLIC_TDW_COMMIT/.test(cfg)) bad.push('the inlined constant is back in next.config.ts — a compile-time value cannot know its deployment');
-  const layout = strip(read('app/vendor/(shell)/layout.tsx'));
+  const layout = strip(read('v2/app/vendor/(shell)/layout.tsx'));
   if (/'use client'|"use client"/.test(layout)) bad.push('the identity layer is a client component — it cannot read a request-time env');
   if (!/cookies\(\)/.test(layout)) bad.push('the /w subtree is no longer dynamic, so the id can be baked at build again');
   if (!/process\.env\.VERCEL_GIT_COMMIT_SHA/.test(layout)) bad.push('the id is not read from the deployment\'s own env');
   if (!/data-tdw-commit=\{commit\}/.test(layout)) bad.push('the stamp does not render the request-time value');
-  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const shell = strip(read('v2/components/worklist/WorklistShell.tsx'));
   if (/data-tdw-commit=/.test(shell)) bad.push('a second stamp survives in the client shell — two ids, one of them stale');
   for (const f of ['tools/wl_audit.mjs', 'tools/wl_render.cjs'])
     if (!/data-tdw-commit/.test(read(f))) bad.push(f + ' no longer reads the stamp it reports');
   return bad.length ? bad.join(' | ') : null;
 });
 
-// ── lineStrip · FOR `lib/vendor/api/vendor.ts` ONLY, AND BOTH HALVES ARE EARNED ──
+// ── lineStrip · FOR `v2/lib/vendor/api/vendor.ts` ONLY, AND BOTH HALVES ARE EARNED ──
 // The shared `strip()` removes BLOCK comments, and `vendor.ts` holds 3 `/*`
 // openers against 2 `*/` closers — so it pairs an opener with a closer hundreds
 // of lines away and SWALLOWS LIVE CODE. That is F-39.13, filed when three
@@ -2920,7 +2990,7 @@ cell('C76 no engine money reader or writer is reachable from the rooms (F-39.3)'
   // The first cut of this cell stripped and reported 「fetchInvoices is gone
   // from vendor.ts」 — the function was there; the instrument had eaten it.
   // That is the exact shape F-39.13 filed, walked into again one arc later.
-  const src = lineStrip(read('lib/vendor/api/vendor.ts'));
+  const src = lineStrip(read('v2/lib/vendor/api/vendor.ts'));
   const moneyFns = ['fetchInvoices', 'fetchExpenses', 'createInvoice', 'updateInvoice',
                     'recordPayment', 'fetchInvoicePdf', 'cancelInvoice',
                     'createExpense', 'updateExpense', 'deleteExpense'];
@@ -2939,7 +3009,7 @@ cell('C76 no engine money reader or writer is reachable from the rooms (F-39.3)'
     bad.push('binderToInvoice/binderToExpense survive their last reader');
   }
   // The eleventh site: expenses.tsx built its URL inline and no export sweep could see it.
-  for (const f of ['app/vendor/(shell)/expenses/body.tsx', 'app/vendor/(shell)/invoices/body.tsx']) {
+  for (const f of ['v2/app/vendor/(shell)/expenses/body.tsx', 'v2/app/vendor/(shell)/invoices/body.tsx']) {
     if (/api\/v2\/vendor\/binders\//.test(strip(read(f)))) bad.push(f + ' still addresses the binder plane');
   }
   return bad.length ? bad.join(' | ') : null;
@@ -2951,7 +3021,7 @@ cell('C77 no state is derived client-side in the money block (F-2c.p6)', () => {
   // three state machines for one column, none of them the home's. The home's
   // positive-list transition is the one place a state is decided (b47 2.2), and
   // `payment_type: 'balance'` no longer closes an invoice regardless of arithmetic.
-  const src = lineStrip(read('lib/vendor/api/vendor.ts')); // see lineStrip above
+  const src = lineStrip(read('v2/lib/vendor/api/vendor.ts')); // see lineStrip above
   const bad = [];
   for (const fn of ['createInvoice', 'updateInvoice', 'recordPayment']) {
     const i2 = src.indexOf(`function ${fn}(`);
@@ -2971,7 +3041,7 @@ cell('C78 Books mounts zero verbs — the id space no longer enforces it', () =>
   // keyed their controls on engine binder ids, so a control here had nothing to key
   // on. The rooms are typed now and the money door mounts eleven routes. The ids are
   // unchanged; THIS CELL is the only thing keeping the room read-only.
-  const src = strip(read('components/worklist/BooksBody.tsx'));
+  const src = strip(read('v2/components/worklist/BooksBody.tsx'));
   const verbs = src.match(/<button|<a\s|onClick=|<form|<input|onTrigger|useSwipe/g) || [];
   // b40's contract is NULL for pass, a STRING for fail. The first cut returned
   // `true`, which the runner read as a failure message reading 「true」.
@@ -2981,7 +3051,7 @@ cell('C78 Books mounts zero verbs — the id space no longer enforces it', () =>
 });
 
 cell('C79 the register renders D-1 B13\u2019s particular and sums nothing (F-39.21)', () => {
-  const src = strip(read('components/worklist/BooksBody.tsx'));
+  const src = strip(read('v2/components/worklist/BooksBody.tsx'));
   const bad = [];
   // The particular reaches the glass, per side.
   for (const k of ['client_name', 'invoice_number', 'milestone_label', 'category', 'description']) {
@@ -2993,7 +3063,7 @@ cell('C79 the register renders D-1 B13\u2019s particular and sums nothing (F-39.
   // THE SURFACE SUMS NOTHING. Opening/closing are read off the chain's own cells.
   if (/\.reduce\(/.test(src)) bad.push('BooksBody sums — opening/closing are READ, never derived (F-04.13)');
   // The ruled heads, from copy.ts and never spelled here.
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   for (const [k, v] of [['booksReceived', 'Total received'], ['booksColCredit', 'Received'],
                         ['booksColDebit', 'Paid out'], ['booksOpening', 'Opening'],
                         ['booksClosing', 'Closing']]) {
@@ -3034,7 +3104,7 @@ cell('C79 the register renders D-1 B13\u2019s particular and sums nothing (F-39.
 //    drop the `refreshToday()` line from any single money write in vendor.ts.
 cell('C83 the Today memo is dropped on navigation, on focus, and after every money write (F-39.26)', () => {
   const bad = [];
-  const feed = strip(read('lib/worklist/feed.ts'));
+  const feed = strip(read('v2/lib/worklist/feed.ts'));
   // ── F-39.56 · AMENDED · RETIRE-WITH-THE-READER ────────────────────────────
   // This assertion was the ONE-LINE BODY, verbatim:
   //   `export function refreshToday(): void { pending = null; }`
@@ -3076,7 +3146,7 @@ cell('C83 the Today memo is dropped on navigation, on focus, and after every mon
   // ── THE DOC, WHICH WAS THE DEFECT ────────────────────────────────────────
   // The sentence that shipped for a whole arc was a PROMISE wearing a
   // DESCRIPTION. A doc claiming callers is asserted against the callers.
-  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const shell = strip(read('v2/components/worklist/WorklistShell.tsx'));
   const nav = /useEffect\(\(\)\s*=>\s*\{\s*refreshToday\(\);\s*\}\s*,\s*\[pathname\]\)/.test(shell);
   if (!nav) bad.push('WorklistShell does not drop the memo on navigation');
   // F-39.56 · the focus arm now PASSES the gate, so the old `refreshToday()`
@@ -3085,7 +3155,7 @@ cell('C83 the Today memo is dropped on navigation, on focus, and after every mon
     && /refreshToday\(\s*\{\s*ifOlderThan:\s*30_000\s*\}\s*\)/.test(shell);
   if (!focus) bad.push('WorklistShell does not drop the memo on return-to-focus — the half navigation cannot see');
 
-  const api = strip(read('lib/vendor/api/vendor.ts'));
+  const api = strip(read('v2/lib/vendor/api/vendor.ts'));
   const writes = (api.match(/refreshToday\(\)/g) || []).length;
   // F-39.56 · the money verbs must call the UNGATED door. `refreshToday()` with no
   // argument is unconditional by design, so a verb that grew an option would be
@@ -3122,14 +3192,14 @@ cell('C83 the Today memo is dropped on navigation, on focus, and after every mon
 //    `active` for a filter, a sort or a count is doing something this ruling
 //    never forbade; a seat PRINTING a state word on the row is undoing it.
 //    RED MUTATION: add `{m.active ? 'Active' : 'Inactive'}` to the Team row in
-//    components/worklist/TeamTabs.tsx → red.
+//    v2/components/worklist/TeamTabs.tsx → red.
 cell('C80 the Team tab renders no membership state word (F-2b2.1)', () => {
-  const src = strip(read('components/worklist/TeamTabs.tsx'));
+  const src = strip(read('v2/components/worklist/TeamTabs.tsx'));
   const bad = [];
   for (const w of ['Active', 'Inactive', 'Invited']) {
     if (new RegExp("['\"]" + w + "['\"]").test(src)) bad.push('TeamTabs spells the state word 「' + w + '」');
   }
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   for (const w of ['Active', 'Inactive', 'Invited']) {
     if (new RegExp("team[A-Za-z]*:\\s*'" + w + "'").test(copy))
       bad.push('the register mints a team state byte 「' + w + '」');
@@ -3190,7 +3260,7 @@ cell('C80 the Team tab renders no membership state word (F-2b2.1)', () => {
 //
 //    FIVE THINGS, each catching a different way the crossing rots:
 //      (1) all ten verbs are IMPORTED FROM THE TYPED DOOR. Not merely present —
-//          `lib/vendor/api/vendor.ts`. A room that re-grew the raw `fetch` +
+//          `v2/lib/vendor/api/vendor.ts`. A room that re-grew the raw `fetch` +
 //          `localStorage` shape the tenth verb arrived with would satisfy a
 //          weaker cell and would have crossed nothing.
 //      (2) NO `/vendor/studio` HREF SURVIVES IN THE SHELL, and the sweep is the
@@ -3211,14 +3281,14 @@ cell('C80 the Team tab renders no membership state word (F-2b2.1)', () => {
 //    RED MUTATION: re-point any one verb's import at '/vendor/studio/team' or
 //    delete it from the room → red on that verb's name.
 cell('C82 the Team tabs mount all ten verbs through the typed door, in the shell (F-39.30 CLOSED)', () => {
-  const src   = strip(read('components/worklist/TeamTabs.tsx'));
-  const sheet = strip(read('components/worklist/StudioSheets.tsx'));
+  const src   = strip(read('v2/components/worklist/TeamTabs.tsx'));
+  const sheet = strip(read('v2/components/worklist/StudioSheets.tsx'));
   const room  = src + '\n' + sheet;
-  const rooms = strip(read('lib/worklist/rooms.ts'));
+  const rooms = strip(read('v2/lib/worklist/rooms.ts'));
   const bad = [];
 
   // (1) THE TEN, BY NAME, EACH FROM THE TYPED DOOR.
-  const DOOR = /import\s*\{([\s\S]*?)\}\s*from\s*'@\/lib\/vendor\/api\/vendor'/;
+  const DOOR = /import\s*\{([\s\S]*?)\}\s*from\s*'@\/v2\/lib\/vendor\/api\/vendor'/;
   const imported = (src.match(DOOR) || [, ''])[1];
   for (const verb of ['addTeamMember', 'updateTeamMember', 'deleteTeamMember', 'rotateTeamMemberToken',
                       'createTask', 'updateTask', 'deleteTask',
@@ -3238,7 +3308,7 @@ cell('C82 the Team tabs mount all ten verbs through the typed door, in the shell
     bad.push('the room spells the endpoint ' + m[1] + ' — the door owns paths, not the surface');
 
   // (4) THE SEAT IS STILL THE SHELL'S. Carried across unchanged.
-  if (!/from '@\/components\/worklist\/Fab'/.test(src))
+  if (!/from '@\/v2\/components\/worklist\/Fab'/.test(src))
     bad.push('the tabs do not mount the shell FAB — C49 owns the seat');
 
   // (5) THE FALLBACK TREE KEEPS ITS ADDRESSES UNTIL PHASE 7.
@@ -3267,14 +3337,14 @@ cell('C82 the Team tabs mount all ten verbs through the typed door, in the shell
 //    exactly like a successful one.
 //    RED MUTATION: drop `position:relative` from `.wl-tm` → red.
 cell('C85 the studio sheets open inside the room, and the room reports its writes', () => {
-  const src   = strip(read('components/worklist/TeamTabs.tsx'));
-  const sheet = strip(read('components/worklist/StudioSheets.tsx'));
+  const src   = strip(read('v2/components/worklist/TeamTabs.tsx'));
+  const sheet = strip(read('v2/components/worklist/StudioSheets.tsx'));
   const bad = [];
   if (!/\.wl-tm\{[^}]*position:relative/.test(src))
     bad.push('.wl-tm lost position:relative — the sheet would resolve against the viewport and the room behind it would go dark');
   if (!/\.wl-sheet\{[^}]*position:absolute/.test(sheet))
     bad.push('.wl-sheet is no longer absolute inside the room');
-  if (!/from '@\/components\/worklist\/WlToast'/.test(src))
+  if (!/from '@\/v2\/components\/worklist\/WlToast'/.test(src))
     bad.push('the room mounts no toast — a failed write would look exactly like a successful one (CE-209)');
   if (!/from '@\/hooks\/vendor\/useToast'/.test(src))
     bad.push('the room has no toast state to report into');
@@ -3306,7 +3376,7 @@ cell('C85 the studio sheets open inside the room, and the room reports its write
 //    RED MUTATION: delete the wl-shx button from Sheet, or move it inside the
 //    foot's wl-brow → red.
 cell('C89 every studio sheet carries a head dismiss, and it is not beside Remove (F-2c.w1)', () => {
-  const src = strip(read('components/worklist/StudioSheets.tsx'));
+  const src = strip(read('v2/components/worklist/StudioSheets.tsx'));
   const bad = [];
   // The exit lives on the shared shape. `Sheet` is declared once; the dismiss
   // must be inside IT, so counting call sites would not prove inheritance.
@@ -3340,7 +3410,7 @@ cell('C95 the (legacy) pages follow the shell\'s mode  one reader, no writer of 
   // The (legacy) group is reached only from the shell, so it must READ the shell's mode
   // (readModeClient, cookie-backed) and set the one signal ThemeProvider already observes,
   // html.theme-light. It must NOT write the old lane's key (modeBridge owns that assertion).
-  const lay = strip(read('app/vendor/(legacy)/layout.tsx'));
+  const lay = strip(read('v2/app/vendor/(legacy)/layout.tsx'));
   const bad = [];
   if (!/readModeClient\(\)/.test(lay)) bad.push('(legacy) layout does not read the shell\'s mode');
   if (!/classList\.toggle\('theme-light', readModeClient\(\) === 'light'\)/.test(lay)) bad.push('(legacy) layout does not set html.theme-light from the shell\'s mode');
@@ -3363,14 +3433,14 @@ cell('C96 the masthead wears the beta mark: one rung, one token, on the label ro
   // P7.2 Arm C. The estate ships as BETA and says so on every room. The mark sits on the LABEL
   // row after the room name so the house name and the numeral below do not move; it reads the
   // label rung (t5) and the accent token, which has a Chalk twin, so no new colour enters.
-  const sh = strip(read('components/worklist/WorklistShell.tsx'));
+  const sh = strip(read('v2/components/worklist/WorklistShell.tsx'));
   const bad = [];
   if (!/<span className="wl-beta">\{COPY\.beta\}<\/span>/.test(sh)) bad.push('the masthead does not render the beta mark from the copy home');
   if (!/wl-lblrow[\s\S]{0,200}wl-lbl[\s\S]{0,200}wl-beta/.test(sh)) bad.push('the mark is not on the label row beside the room name');
   if (!/\.wl-beta\{[^}]*var\(--atelier-accent-text\)/.test(sh)) bad.push('the mark does not read --atelier-accent-text (the token with a Chalk twin)');
   if (/\.wl-beta\{[^}]*(#|rgb)/.test(sh)) bad.push('the mark pins a raw colour: the token is the one home');
   if (/\.wl-beta\{[^}]*border/.test(sh)) bad.push('the mark grew a border: the frame ruled no pill, no border');
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   if (!/^\s*beta: 'Beta',$/m.test(copy)) bad.push("COPY.beta is not 'Beta' in the copy home");
   return bad.length ? bad.join(' | ') : null;
 });
@@ -3381,7 +3451,7 @@ cell('C97 the Storefront bio row is a CALL, and it is the only one on that scree
   // P7.2 Arm C. The founder walked it: title-hint-chevron read as a row, but this row is the ASK
   // that gets a profile finished. It becomes the shell's primary button; Portfolio and Discover
   // KEEP the row grammar, because one call per screen is what makes a call read as one.
-  const sf = strip(read('app/vendor/(shell)/storefront/screen.tsx'));
+  const sf = strip(read('v2/app/vendor/(shell)/storefront/screen.tsx'));
   const bad = [];
   if (!/\{COPY\.storefrontBioCta\}/.test(sf)) bad.push('the bio call does not render its byte from the copy home');
   // P7.2 AMENDMENT (labeled): the register was HOISTED into the shell's one home, so the call
@@ -3392,7 +3462,7 @@ cell('C97 the Storefront bio row is a CALL, and it is the only one on that scree
   // The contrast the ruling rests on: exactly ONE primary control on this screen.
   const fills = (sf.match(/wl-btn pri/g) || []).length;
   if (fills !== 1) return 'the screen carries ' + fills + ' primary controls; the ruling is ONE call per screen (Discover becomes a call when Block 09 ports it)';
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   if (!/storefrontBioCta: 'See your profile',/.test(copy)) bad.push("COPY.storefrontBioCta is not the vetoed byte 'See your profile'");
   return bad.length ? bad.join(' | ') : null;
 });
@@ -3403,13 +3473,15 @@ cell('C98 the button register has ONE home, in the shell scope, any room (P7.2 A
   // shell-wide vocabulary scoped to one room. When Storefront needed it, the two wrong answers
   // were to import the Team room's stylesheet or to copy the values; the ruling hoisted the
   // rules into the shell's own scoped CSS, beside .wl-tile and .wl-fab (the F-39.4 FAB shape).
-  const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  const shell = strip(read('v2/components/worklist/WorklistShell.tsx'));
   const bad = [];
-  if (!/\.wl-btn\{[\s\S]{0,200}min-height:44px/.test(shell)) bad.push('the shell scope does not declare .wl-btn');
-  if (!/\.wl-btn\.pri\{background:var\(--atelier-accent-text\);color:var\(--role-ink-deep\)\}/.test(shell)) bad.push('the shell scope does not declare .wl-btn.pri with the accent fill and deep ink');
+  // DESIGN-1 · STAGE 1 (by label): the one button is 48 high (var(--wl-btn-h)) and the filled one paints primary on
+  // on-primary (REPORT.md §3 and P3); it was 44 and the accent with the deep ink, the pairing that measured 2.71:1.
+  if (!/\.wl-btn\{[\s\S]{0,200}min-height:var\(--wl-btn-h\)/.test(shell)) bad.push('the shell scope does not declare .wl-btn');
+  if (!/\.wl-btn\.pri\{background:var\(--role-primary\);border-color:var\(--role-primary\);color:var\(--role-on-primary\)\}/.test(shell)) bad.push('the shell scope does not declare .wl-btn.pri with the primary fill and its ink');
   // ...and NOWHERE else. A second declaration is the disease the hoist cured.
-  for (const f of ['components/worklist/StudioSheets.tsx', 'components/worklist/TeamTabs.tsx',
-                   'components/worklist/SignOutSheet.tsx', 'app/vendor/(shell)/storefront/screen.tsx']) {
+  for (const f of ['v2/components/worklist/StudioSheets.tsx', 'v2/components/worklist/TeamTabs.tsx',
+                   'v2/components/worklist/SignOutSheet.tsx', 'v2/app/vendor/(shell)/storefront/screen.tsx']) {
     if (/\.wl-btn(\.pri)?\{/.test(strip(read(f)))) bad.push(f + ' declares the button register again: one home');
   }
   return bad.length ? bad.join(' | ') : null;
@@ -3420,10 +3492,10 @@ cell('C99 the Report door composes room + build and hands them to the support la
   // two prefills are the two facts a vendor cannot be expected to know: which room he was in,
   // and which build was serving. Both are READ from the live document, never retyped, because a
   // report naming the wrong build is worse than one naming none.
-  const sheet = strip(read('components/worklist/ReportIssueSheet.tsx'));
-  const drawer = strip(read('components/worklist/AccountDrawer.tsx'));
-  const shell = strip(read('components/worklist/WorklistShell.tsx'));
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const sheet = strip(read('v2/components/worklist/ReportIssueSheet.tsx'));
+  const drawer = strip(read('v2/components/worklist/AccountDrawer.tsx'));
+  const shell = strip(read('v2/components/worklist/WorklistShell.tsx'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   const bad = [];
   // The door
   if (!/onAct=\{askReport\}/.test(drawer)) bad.push('the drawer has no Report row wired to the sheet');
@@ -3431,8 +3503,8 @@ cell('C99 the Report door composes room + build and hands them to the support la
   // root and one ref slot, and useSignOut holds it; a second anchorRef went unattached, host
   // stayed null, and the sheet's `open && host` render never fired \u2014 the row pressed and did
   // nothing. The host is derived at open time now, so there is nothing to wire or forget.
-  if (/anchorRef/.test(strip(read('components/worklist/ReportIssueSheet.tsx')))) bad.push('the report hook asks for an anchorRef again: the drawer has one ref slot and useSignOut holds it (F-P72.F)');
-  if (!/const sheet = open \? </.test(strip(read('components/worklist/ReportIssueSheet.tsx')))) bad.push('the sheet renders behind a host gate that nothing sets');
+  if (/anchorRef/.test(strip(read('v2/components/worklist/ReportIssueSheet.tsx')))) bad.push('the report hook asks for an anchorRef again: the drawer has one ref slot and useSignOut holds it (F-P72.F)');
+  if (!/const sheet = open \? </.test(strip(read('v2/components/worklist/ReportIssueSheet.tsx')))) bad.push('the sheet renders behind a host gate that nothing sets');
   // F-P72.E: a row that opens a sheet must press WITHOUT dismissing. The sheet's state lives in
   // the drawer, so a dismissing press unmounts the host and destroys the sheet a beat after it
   // opens \u2014 which is what the founder walked: the drawer vanished and the tap fell through to
@@ -3468,19 +3540,14 @@ cell('C100 every Today card opens its record, by a key its room reads (Arm D, F-
   // The leads card has carried ?lead= since F-39.17; the others landed on a room root and left
   // the vendor to find the row he had just tapped. One map on the card side, one map on the
   // room side, and the registry (ROOM_FOR_KIND) decides which room reads which key.
-  const cards = strip(read('components/worklist/TodayCards.tsx'));
-  const slice = strip(read('components/vendor/slices/SliceShell.tsx'));
-  const team  = strip(read('components/worklist/TeamTabs.tsx'));
+  // DESIGN-1 · STAGE 2 (by label): Home's rows open their records by the same keys: an enquiry by ?lead=, a function by
+  // ?event=, each id encoded; Money due opens Invoices (a list, not one record). The rooms' arms are unchanged.
+  const cards = strip(read('v2/components/worklist/TodayHome.tsx'));
+  const slice = strip(read('v2/components/vendor/slices/SliceShell.tsx'));
+  const team  = strip(read('v2/components/worklist/TeamTabs.tsx'));
   const bad = [];
-  for (const [kind, key] of [['lead_unanswered', 'lead'], ['invoice_due', 'invoice'],
-                             ['events_today', 'event'], ['team_tasks', 'task']]) {
-    if (!new RegExp(kind + ":\\s*'" + key + "'").test(cards)) bad.push(kind + ' does not write ?' + key + '=');
-  }
-  // contract_unsigned is ABSENT on purpose: the contracts room has no record sheet (F-39.76),
-  // so its card lands on the room root. A key for it would promise a sheet that does not exist.
-  if (/contract_unsigned:\s*'/.test(cards)) bad.push('contract_unsigned writes a key, but the contracts room has no record sheet (F-39.76)');
-  if (!/\?\$\{key\}=\$\{encodeURIComponent\(id\)\}/.test(cards)) bad.push('the card does not encode the id it opens');
-  // The room side: three slices read their key through the ONE arm, same gate as ?lead=.
+  if (!/roomHref\('leads'\)\}\?lead=\$\{encodeURIComponent\(l\.id\)\}/.test(cards)) bad.push('Reply to does not write ?lead=');
+  if (!/roomHref\('events'\)\}\?event=\$\{encodeURIComponent\(f\.event_id\)\}/.test(cards)) bad.push('a function row does not write ?event=');
   if (!/KEY_FOR_SLICE[\s\S]{0,200}leads: 'lead', invoices: 'invoice', events: 'event'/.test(slice)) bad.push('the slice arm does not declare a key per slice');
   if (!/const want = new URLSearchParams\(window\.location\.search\)\.get\(key\)/.test(slice)) bad.push('the slice arm does not read the declared key');
   if (!/if \(row\) setSel\(row\)/.test(slice)) bad.push('the arm does not open the record (it must not enter select-mode)');
@@ -3518,8 +3585,8 @@ cell('C100 every Today card opens its record, by a key its room reads (Arm D, F-
 //    `roleOptionsFor(draft.role)` → red on (3).
 cell('C91 the role picker shows words, not tokens, and cannot drop a value it does not know (F-2c.w4)', () => {
   const home  = strip(read('lib/vendor/roleWords.ts'));
-  const sheet = strip(read('components/worklist/StudioSheets.tsx'));
-  const tabs  = strip(read('components/worklist/TeamTabs.tsx'));
+  const sheet = strip(read('v2/components/worklist/StudioSheets.tsx'));
+  const tabs  = strip(read('v2/components/worklist/TeamTabs.tsx'));
   const bad = [];
   // (1) every OFFERED value is a word. The legacy map is read-only and is
   //     asserted separately, so its tokens do not trip this.
@@ -3561,7 +3628,7 @@ cell('C91 the role picker shows words, not tokens, and cannot drop a value it do
 //    RED MUTATION: drop localDateIso from the completed row, or wrap due_date
 //    in it → red, one arm each.
 cell('C92 the done row takes its day in the vendor\'s zone, and the due row does not (F-2c.w5)', () => {
-  const src = strip(read('components/worklist/TeamTabs.tsx'));
+  const src = strip(read('v2/components/worklist/TeamTabs.tsx'));
   const fmt = strip(read('lib/vendor/format.ts'));
   const bad = [];
   if (!/export function localDateIso/.test(fmt))
@@ -3584,8 +3651,8 @@ cell('C92 the done row takes its day in the vendor\'s zone, and the due row does
 //    it does it on the one screen where he is committing it.
 //    RED MUTATION: restore the title as the fallback → red.
 cell('C93 the mark-paid summary names the person, never the sheet (F-2c.w6)', () => {
-  const sheet = strip(read('components/worklist/StudioSheets.tsx'));
-  const tabs  = strip(read('components/worklist/TeamTabs.tsx'));
+  const sheet = strip(read('v2/components/worklist/StudioSheets.tsx'));
+  const tabs  = strip(read('v2/components/worklist/TeamTabs.tsx'));
   const bad = [];
   if (/payment\.description \|\| COPY\.studioSheetLogPayment/.test(sheet))
     bad.push("the summary falls back to the sheet's own title — a form naming itself where a person belongs");
@@ -3626,7 +3693,7 @@ cell('C93 the mark-paid summary names the person, never the sheet (F-2c.w6)', ()
 //    RED MUTATION: restore `.url ?? (r as InvoicePdfResponse).pdf_url` and the
 //    optional `pdf_url?:` on the type → red, one arm each.
 cell('C94 the PDF door reads ONE name and the fallback is retired (F-2c.w7)', () => {
-  const door = strip(read('lib/vendor/api/vendor.ts'));
+  const door = strip(read('v2/lib/vendor/api/vendor.ts'));
   const ty   = strip(read('lib/vendor/types/vendor.ts'));
   const bad = [];
   const at   = door.indexOf('export function fetchInvoicePdf');
@@ -3657,7 +3724,7 @@ cell('C94 the PDF door reads ONE name and the fallback is retired (F-2c.w7)', ()
   // F-38.27's family, and the cure is the same: assert the PATH and the SYMBOL,
   // which survive any edit above them. THE THIRD SITE JOINS THE LOOP —
   // `lib/vendor/types/vendor.ts` carried the same cite and no cell watched it.
-  for (const f of ['lib/worklist/copy.ts', 'components/vendor/slices/SliceShell.tsx',
+  for (const f of ['v2/lib/worklist/copy.ts', 'v2/components/vendor/slices/SliceShell.tsx',
                    'lib/vendor/types/vendor.ts']) {
     const t = read(f);
     if (!t.includes('src/api/vendor/money.js'))
@@ -3680,7 +3747,7 @@ cell('C94 the PDF door reads ONE name and the fallback is retired (F-2c.w7)', ()
 //    money he cannot act on, on a surface with no complaint on it.
 //    RED MUTATION: settle('payments', true) unconditionally → red.
 cell('C90 the payments tab fails when either of its two reads fails (F-2c.w2)', () => {
-  const src = strip(read('components/worklist/TeamTabs.tsx'));
+  const src = strip(read('v2/components/worklist/TeamTabs.tsx'));
   const bad = [];
   if (!/if \(!\('payments' in raw\) \|\| !raw\.ok\) \{ settle\('payments', false\); return; \}/.test(src))
     bad.push('the raw-row read can fail without failing the tab — the rows would render with no verbs and no explanation');
@@ -3704,9 +3771,9 @@ cell('C90 the payments tab fails when either of its two reads fails (F-2c.w2)', 
 //    against an older server.
 //    RED MUTATION: change `logged === false` to `!logged` in confirmPaid → red.
 cell('C86 mark-paid reports the expense leg, and undefined is not false', () => {
-  const door = strip(read('lib/vendor/api/vendor.ts'));
-  const src  = strip(read('components/worklist/TeamTabs.tsx'));
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const door = strip(read('v2/lib/vendor/api/vendor.ts'));
+  const src  = strip(read('v2/components/worklist/TeamTabs.tsx'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   const bad = [];
   // THE SLICE RUNS TO THE NEXT DECLARATION, NOT TO THE NEXT `\n}`. The body's
   // own object literal closes on a `\n}` two lines in, so a lazy match ends
@@ -3720,7 +3787,8 @@ cell('C86 mark-paid reports the expense leg, and undefined is not false', () => 
   if (!/logged === false/.test(src))
     bad.push('the surface does not distinguish false from undefined — an older backend would read as a failed expense on every settlement');
   for (const [k, v] of [['studioToastPaidLogged', 'Marked as paid.'],
-                        ['studioToastPaidNoExpense', "Marked as paid — the expense wasn’t logged."]]) {
+                        // DESIGN-1 · STAGE 1 (by label, W1): the byte lost its dash
+                        ['studioToastPaidNoExpense', "Marked as paid. The expense was not logged."]]) {
     if (!copy.includes(v)) bad.push('copy.ts no longer carries the ruled byte 「' + v + '」');
     if (!new RegExp('COPY\\.' + k).test(src)) bad.push('the surface does not read COPY.' + k);
   }
@@ -3742,7 +3810,7 @@ cell('C86 mark-paid reports the expense leg, and undefined is not false', () => 
 //    RED MUTATION: drop the `payAmount` gate, or point the button at
 //    `recordPayment` directly → red.
 cell('C87 the invoice row carries a visible Mark paid, on one handler with the swipe (F-2c.p9)', () => {
-  const src = strip(read('components/vendor/slices/SliceShell.tsx'));
+  const src = strip(read('v2/components/vendor/slices/SliceShell.tsx'));
   const bad = [];
   if (!/const markPaidFor = \(row: Row\) => swipeSidesFor\(row\)\.right/.test(src))
     bad.push('the button no longer shares the swipe handler — two write paths to one settlement');
@@ -3782,12 +3850,12 @@ cell('C87 the invoice row carries a visible Mark paid, on one handler with the s
 //    and a later seat reading this diff must not take the pair as one scrub.
 //    RED MUTATION: spell either sentence inline at its call site again → red.
 cell('C88 the PDF sentences live in the register, and neither is spelled at a call site', () => {
-  const src  = strip(read('components/vendor/slices/SliceShell.tsx'));
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const src  = strip(read('v2/components/vendor/slices/SliceShell.tsx'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   const bad = [];
   if (!copy.includes("Couldn’t prepare the PDF just now. Try again in a moment."))
     bad.push('the register lost the ruled fallback byte');
-  if (!copy.includes('PDF not ready yet — record the advance first.'))
+  if (!copy.includes('PDF not ready yet. Record the advance first.'))   // DESIGN-1 (by label, W1): no dash
     bad.push('the register lost the unchanged precondition byte');
   if (/'PDF not ready yet — try again in a moment\.'/.test(src))
     bad.push('the retired sentence is spelled inline again — it invents a state the door cannot report');
@@ -4008,9 +4076,9 @@ cell('C101 every vendor-authored prose row declares verbatim, so cap() cannot he
   // and `description` is the expense's own prose.
   const PROSE = /label:\s*'(Notes|Description|Forwarded to|Forwarded by)'/;
   const bodies = [
-    'app/vendor/(shell)/leads/body.tsx',
-    'app/vendor/(shell)/events/body.tsx',
-    'app/vendor/(shell)/expenses/body.tsx',
+    'v2/app/vendor/(shell)/leads/body.tsx',
+    'v2/app/vendor/(shell)/events/body.tsx',
+    'v2/app/vendor/(shell)/expenses/body.tsx',
   ];
   const bare = [];
   for (const f of bodies) {
@@ -4032,7 +4100,7 @@ cell('C101 every vendor-authored prose row declares verbatim, so cap() cannot he
 
   // And the flag must actually be honoured. A row that declares `verbatim` while
   // the sheet ignores it is worse than no flag: it reads as cured.
-  const sheet = strip(read('components/vendor/slices/DetailSheet.tsx'));
+  const sheet = strip(read('v2/components/vendor/slices/DetailSheet.tsx'));
   if (!/f\.verbatim\s*\?\s*f\.value\s*:\s*cap\(f\.value\)/.test(sheet)) {
     return 'DetailSheet does not honour `verbatim` — the flag is declared and ignored';
   }
@@ -4080,7 +4148,7 @@ cell('C84 the expense category mirror equals the dream-os home, in order', () =>
   //    instrument's report is evidence about the instrument first). The question is
   //    whether the options are DERIVED from the mirror, so the match is anchored on
   //    the derivation itself, which is the only shape that can carry the tokens.
-  const sheet = strip(read('components/vendor/AddSheet.tsx'));
+  const sheet = strip(read('v2/components/vendor/AddSheet.tsx'));
   if (!/CATEGORY_OPTIONS[^\n]*=\s*EXPENSE_CATEGORIES\.map\(/.test(sheet)) {
     bad.push('the picker options are not derived from the mirror');
   }
@@ -4107,7 +4175,7 @@ cell('C84 the expense category mirror equals the dream-os home, in order', () =>
 // side now — and this cell is what stops the room drifting back to the field
 // that reads more naturally and means the wrong thing.
 cell('C103 the date-check switch gates on capacity_reason, never on capacity_applicable (R-40.78, F-40.172)', () => {
-  const src = strip(read('app/vendor/(shell)/storefront/screen.tsx'));
+  const src = strip(read('v2/app/vendor/(shell)/storefront/screen.tsx'));
   const bad = [];
   if (!/capacity_reason/.test(src)) bad.push('the room does not consult capacity_reason at all');
   if (/capacity_applicable/.test(src)) bad.push('the room reads capacity_applicable — F-40.172 is the reason it must not');
@@ -4125,7 +4193,7 @@ cell('C103 the date-check switch gates on capacity_reason, never on capacity_app
   // defect needed both halves to be wrong:
   //   · the hook must test `=== undefined`, never `??`, on this field;
   //   · the room must branch on `undefined` SEPARATELY from `null`.
-  const hook = strip(read('hooks/vendor/useSettings.ts'));
+  const hook = strip(read('v2/hooks/vendor/useSettings.ts'));
   if (/capacity_reason:\s*v\.capacity_reason\s*\?\?/.test(hook)) {
     bad.push('the hook defaults capacity_reason with ?? — null is the SUCCESS value and ?? cannot tell it from absence (F-40.175)');
   }
@@ -4163,7 +4231,7 @@ cell('C103 the date-check switch gates on capacity_reason, never on capacity_app
 // too. The revert is the honest half: without it an optimistic switch lies to
 // her about a write that failed.
 cell('C104 the date-check switch saves on toggle and reverts on refusal', () => {
-  const src = strip(read('app/vendor/(shell)/storefront/screen.tsx'));
+  const src = strip(read('v2/app/vendor/(shell)/storefront/screen.tsx'));
   const bad = [];
   if (!/updateMe\(\s*\{\s*date_check_enabled/.test(src)) bad.push('the toggle does not write through updateMe');
   if (!/setOn\(!next\)/.test(src)) bad.push('there is no revert path — an optimistic switch with no revert lies about a failed write');
@@ -4182,7 +4250,7 @@ cell('C104 the date-check switch saves on toggle and reverts on refusal', () => 
 // ── C105 · G3.1 · THE FIFTH ROOM OPENS WITHOUT A SECOND ADDRESS HOME ─────────
 // R-G31.2 points R3 at the Storefront room, which is a REGISTRY room — so its
 // address comes from `roomHref`, not from a fifth constant in
-// `lib/solutions/routes.ts`. C31 already declares `/vendor/storefront` from
+// `v2/lib/solutions/routes.ts`. C31 already declares `/vendor/storefront` from
 // `rooms.ts`, so a constant would be a second home for an address the registry
 // owns. F-40.170 files `CONTRACTS_HREF` as the specimen not to extend.
 // ── C108 · G3.1 · THE REVALIDATE ROUTE TAKES ITS HANDLE FROM THE SESSION ────
@@ -4232,7 +4300,7 @@ cell('C108 the revalidate route refuses without a session and takes its handle f
 // its own 300s timer; showing her a failed switch would be a lie in the other
 // direction.
 cell('C109 the date-check toggle revalidates after a successful write and never reverts on a cache miss (R-G31.7)', () => {
-  const src = strip(read('app/vendor/(shell)/storefront/screen.tsx'));
+  const src = strip(read('v2/app/vendor/(shell)/storefront/screen.tsx'));
   const bad = [];
   if (!/\/api\/revalidate\/storefront/.test(src)) bad.push('the toggle does not rebuild her public page — the switch stays stale for 300s (F-40.187)');
   const write = src.indexOf('updateMe(');
@@ -4264,11 +4332,11 @@ cell('C109 the date-check toggle revalidates after a successful write and never 
 // the row opens WEBSITE_HREF, declared once in routes.ts; Storefront keeps its
 // tile and its address; no STOREFRONT_HREF may appear (the registry owns it).
 cell('C105 the website row opens WEBSITE_HREF, declared once, and Storefront stays the registry\u2019s (R-40.132)', () => {
-  // CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS MOVED to lib/solutions/routes.ts byte for byte (a
+  // CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS MOVED to v2/lib/solutions/routes.ts byte for byte (a
   // move accepted at the read-first ruling). The row map is read where it lives now, and the hub is
   // pinned to declare no second one; the hub's bare-literal check below is unchanged.
-  const hub = strip(read('app/vendor/(shell)/support/page.tsx'));
-  const routes = strip(read('lib/solutions/routes.ts'));
+  const hub = strip(read('v2/app/vendor/(shell)/support/page.tsx'));
+  const routes = strip(read('v2/lib/solutions/routes.ts'));
   const bad = [];
   if (/const ROOM_HREFS/.test(hub)) bad.push('the hub page declares its own ROOM_HREFS: the map has two homes');
   if (!/website:\s*WEBSITE_HREF/.test(routes)) bad.push('the website row does not read WEBSITE_HREF');
@@ -4276,7 +4344,7 @@ cell('C105 the website row opens WEBSITE_HREF, declared once, and Storefront sta
   if (/'\/vendor\/your-website'|'\/vendor\/storefront'/.test(hub)) bad.push('a bare address literal appears in the hub');
   if (!/export const WEBSITE_HREF = '\/vendor\/your-website'/.test(routes)) bad.push('WEBSITE_HREF is not /vendor/your-website in routes.ts');
   if (/STOREFRONT_HREF/.test(routes)) bad.push('routes.ts declares STOREFRONT_HREF — the registry already owns that address');
-  const rooms = strip(read('lib/worklist/rooms.ts'));
+  const rooms = strip(read('v2/lib/worklist/rooms.ts'));
   if (!/id: 'storefront',\s*label: 'Storefront'/.test(rooms)) bad.push('the Storefront tile byte is not Storefront');
   if (/your-website/.test(rooms)) bad.push('your-website is in the registry — it is a page, not a room');
   return bad.length === 0 ? null : bad.join('; ');
@@ -4295,8 +4363,8 @@ cell('C106 a room never renders on a bad read, and no door envelope is invented 
   // envelope; only a truthiness guard stops the invention becoming a crash.
   const bad = [];
   const ROOMS = [
-    'app/vendor/(shell)/payment-reminders/page.tsx',
-    'app/vendor/(shell)/google-reviews/page.tsx',
+    'v2/app/vendor/(shell)/payment-reminders/page.tsx',
+    'v2/app/vendor/(shell)/google-reviews/page.tsx',
   ];
   for (const rel of ROOMS) {
     if (!fs.existsSync(path.join(ROOT, rel))) continue;
@@ -4338,8 +4406,8 @@ cell('C106 a room never renders on a bad read, and no door envelope is invented 
 // ── C110 · THE PICKER BECAME A SEARCH, AND B8 IS GONE WITH ITS READER.
 // MUTATION: restore `pickerFooter` to RF → RED (it is a byte R-40.104 falsified).
 cell('C110 the search replaced the roster picker (R-40.104)', () => {
-  const copy  = strip(read('lib/worklist/referrals.ts'));
-  const sheet = strip(read('components/vendor/slices/ForwardSheet.tsx'));
+  const copy  = strip(read('v2/lib/worklist/referrals.ts'));
+  const sheet = strip(read('v2/components/vendor/slices/ForwardSheet.tsx'));
 
   // ⚠ B8 WAS RATIFIED AND IS NOW FALSE. "Peers you've worked with appear here."
   // was true while a roster edge was the boundary of the exchange. It is not.
@@ -4372,9 +4440,9 @@ cell('C110 the search replaced the roster picker (R-40.104)', () => {
 // a reverse lookup on a column nothing publishes, in either direction.
 // MUTATION: add `phone` to PEER_COLS or to the search input's aria → RED.
 cell('C111 the peer search never touches a phone (c-40.45)', () => {
-  const sheet = strip(read('components/vendor/slices/ForwardSheet.tsx'));
+  const sheet = strip(read('v2/components/vendor/slices/ForwardSheet.tsx'));
   const types = strip(read('lib/solutions/types.ts'));
-  const copy  = strip(read('lib/worklist/referrals.ts'));
+  const copy  = strip(read('v2/lib/worklist/referrals.ts'));
 
   const peer = types.match(/export type ReferralPeer = \{([\s\S]*?)\};/);
   if (!peer) return 'ReferralPeer not found';
@@ -4397,9 +4465,9 @@ cell('C111 the peer search never touches a phone (c-40.45)', () => {
 // ── C112 · 「Told」 IS A WAMID, IT IS SENDER-SIDE, AND IT IS NOT A WIRE KEY.
 // MUTATION: pass `true` as withTold on the `forwarded_by` stamp → RED.
 cell('C112 the told state (R-G51.15)', () => {
-  const body  = strip(read('app/vendor/(shell)/leads/body.tsx'));
+  const body  = strip(read('v2/app/vendor/(shell)/leads/body.tsx'));
   const types = strip(read('lib/solutions/types.ts'));
-  const copy  = strip(read('lib/worklist/referrals.ts'));
+  const copy  = strip(read('v2/lib/worklist/referrals.ts'));
 
   if (!/told:\s*"Told"/.test(copy))  return 'the told byte is not in the copy home';
   if (!/told\?:\s*boolean/.test(types)) return 'ReferralStamp carries no told field';
@@ -4423,9 +4491,9 @@ cell('C112 the told state (R-G51.15)', () => {
 // MUTATION: read `current.peer_discoverable === true` in the hook, or draw the
 // switch while `loading` → RED.
 cell('C113 the peer-discovery switch (R-40.107)', () => {
-  const page  = strip(read('app/vendor/(shell)/settings/page.tsx'));
-  const hook  = strip(read('hooks/vendor/useSettings.ts'));
-  const copy  = strip(read('lib/worklist/referrals.ts'));
+  const page  = strip(read('v2/app/vendor/(shell)/settings/page.tsx'));
+  const hook  = strip(read('v2/hooks/vendor/useSettings.ts'));
+  const copy  = strip(read('v2/lib/worklist/referrals.ts'));
   const types = strip(read('lib/vendor/types/vendor.ts'));
 
   for (const k of ['peerSwitchLabel', 'peerSwitchLine']) {
@@ -4469,7 +4537,7 @@ cell('C113 the peer-discovery switch (R-40.107)', () => {
 // answers four different worlds identically on purpose, so that it cannot become
 // an oracle for whether a vendor exists or has hidden herself.
 cell('C114 refusalSentence is exhaustive and mints no new code', () => {
-  const copy  = strip(read('lib/worklist/referrals.ts'));
+  const copy  = strip(read('v2/lib/worklist/referrals.ts'));
   const types = strip(read('lib/solutions/types.ts'));
 
   const union = types.match(/export type ForwardRefusalCode =([\s\S]*?);/);
@@ -4495,7 +4563,7 @@ cell('C114 refusalSentence is exhaustive and mints no new code', () => {
   // THE RULE, STATED PROPERLY: the phrase may survive only INSIDE QUOTATION
   // MARKS, as a record of what was removed. A live claim is unquoted, which is
   // how it read when it was wrong. Any unquoted occurrence reds.
-  const rf = read('lib/worklist/referrals.ts');
+  const rf = read('v2/lib/worklist/referrals.ts');
   const stale = /PROPOSED[\s\S]{0,3}(?:[—-]\s*NOT YET VETOED|AND UNVETOED)/;
   for (const ln of rf.split('\n')) {
     if (!/PROPOSED/.test(ln)) continue;
@@ -4512,9 +4580,9 @@ cell('C114 refusalSentence is exhaustive and mints no new code', () => {
 
 // ── C115 · YOUR WEBSITE & SEO — THE PAGE (R-40.122 / R-40.123 / R-40.132) ───
 cell('C115 the Your website page writes the primary register once (Primary), opens rooms by their homes, and wears its own masthead byte', () => {
-  const sf = strip(read('app/vendor/(shell)/your-website/screen.tsx'));
-  const pg = strip(read('app/vendor/(shell)/your-website/page.tsx'));
-  const copy = strip(read('lib/worklist/copy.ts'));
+  const sf = strip(read('v2/app/vendor/(shell)/your-website/screen.tsx'));
+  const pg = strip(read('v2/app/vendor/(shell)/your-website/page.tsx'));
+  const copy = strip(read('v2/lib/worklist/copy.ts'));
   const bad = [];
   const fills = (sf.match(/className="wl-btn pri"/g) || []).length;
   if (fills !== 1) bad.push('the screen writes the primary register ' + fills + ' times; the ruling is ONE home (Primary)');
@@ -4526,7 +4594,7 @@ cell('C115 the Your website page writes the primary register once (Primary), ope
   if (/\bdisabled\b/.test(sf)) bad.push('a disabled control appears (R-40.78: absent, never greyed)');
   if (!/title=\{COPY\.websiteTitle\}/.test(pg)) bad.push('the page does not wear COPY.websiteTitle');
   if (!/websiteTitle: 'Your website',/.test(copy)) bad.push("COPY.websiteTitle is not the vetoed byte 'Your website'");
-  if (!/'SEO \\u2014 found on Google'/.test(sf)) bad.push('the Google section is not headed SEO \u2014 found on Google (R-40.122)');
+  if (!/'SEO: found on Google'/.test(sf)) bad.push('the Google section is not headed SEO: found on Google (R-40.122; DESIGN-1 took the dash out)');
   if (!/\/api\/revalidate\/storefront/.test(sf)) bad.push('the page never rebuilds her public page after a write');
   return bad.length === 0 ? null : bad.join('; ');
 });

@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b57_contracts_wiring_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // ══════════════════════════════════════════════════════════════════════════
 // scripts/b57_contracts_wiring_bench.js — TDW_19 G3.2 pwa, the room and the leaf.
 //
@@ -68,10 +71,10 @@ function walk(dir, out = []) {
   return out;
 }
 
-const SCREEN = 'app/vendor/(shell)/contracts/screen.tsx';
+const SCREEN = 'v2/app/vendor/(shell)/contracts/screen.tsx';
 const LEAF   = 'app/sign/[token]/page.tsx';
 const COPY   = 'lib/public/signCopy.ts';
-const API    = 'lib/vendor/api/vendor.ts';
+const API    = 'v2/lib/vendor/api/vendor.ts';
 
 // ══ §1 — EVERY CONTRACT ADDRESS HAS A CALLER (F-40.109's class) ════════════
 section('1. no contract door is mounted on nothing');
@@ -334,7 +337,7 @@ section('6b. preview, the one mandatory field, and the dynamic viewport');
 // ══ §7 — THE HUB ROW, AND THE FRAMES THAT ARE NOT RE-SHOT ══════════════════
 section('7. the fourth of nine opens');
 {
-  const hub = code('app/vendor/(shell)/support/page.tsx');
+  const hub = code('v2/app/vendor/(shell)/support/page.tsx');
   // ── AMENDED WITH THE CURE, IN THE SAME PACKET — F-40.170 / R-38.19 ───────
   // ⚠ THESE TWO CELLS ASSERTED THE SPELLING THE CURE RETIRES, and that is the
   // exact shape R-38.19 was written about: an R-38.1 cure replaced a literal
@@ -346,18 +349,18 @@ section('7. the fourth of nine opens');
   // The property is unchanged and is if anything stronger: the hub still holds
   // no literal address, and the address still has exactly one home — it is now
   // the REGISTRY, which is where a registry room's address belongs.
-  // CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS MOVED to lib/solutions/routes.ts byte for byte; the entry is read there.
-  ok('the map gains one entry', /contracts:\s*roomHref\('contracts'\)/.test(code('lib/solutions/routes.ts')));
+  // CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS MOVED to v2/lib/solutions/routes.ts byte for byte; the entry is read there.
+  ok('the map gains one entry', /contracts:\s*roomHref\('contracts'\)/.test(code('v2/lib/solutions/routes.ts')));
   ok('and no literal address', !/'\/vendor\/contracts'/.test(hub));
   ok('and no second home for it in routes.ts either',
-     !/CONTRACTS_HREF/.test(code('lib/solutions/routes.ts')));
+     !/CONTRACTS_HREF/.test(code('v2/lib/solutions/routes.ts')));
   // ⚠ THE ADDRESS MUST STILL RESOLVE, AND A DELETED CONSTANT IS NOT A DELETED
   // ROOM. Without this the two cells above would both pass on a tree where the
   // registry entry had been removed too — the hub would read `roomHref` of
   // nothing, which returns `/vendor/rooms` QUIETLY BY DESIGN, and the fourth of
   // the nine would silently point at the directory.
   ok('the registry still owns /vendor/contracts',
-     /id: 'contracts'[\s\S]{0,120}href: '\/vendor\/contracts'/.test(code('lib/worklist/rooms.ts')));
+     /id: 'contracts'[\s\S]{0,120}href: '\/vendor\/contracts'/.test(code('v2/lib/worklist/rooms.ts')));
   // ⚠ R-40.61 / F-40.126 — HUB FRAMES ARE FROZEN AS DRAWN AT THEIR DATE.
   // `G5-hub`, `R5-hub`, `W5-hub` and `W5-hub-today` all draw a hub where
   // Contracts reads `Coming`. They are NOT re-shot, now or on any future room
@@ -682,7 +685,7 @@ section('10. what the sheet opens with, and what it never assumes');
 section('11. sitting 3 — the room as a vendor uses it');
 {
   const src = code(SCREEN);
-  const api = code('lib/vendor/api/vendor.ts');
+  const api = code('v2/lib/vendor/api/vendor.ts');
   // 9a · the policies card is first, and the standard agreement has a door
   ok('the room draws the policies card before the list', src.indexOf('Set up your contract policies') < src.indexOf('No agreements yet.'));
   ok('the card says set up or edit on a FACT', /policiesSet \? 'Edit' : 'Set up'/.test(src));
@@ -731,7 +734,8 @@ section('11. sitting 3 — the room as a vendor uses it');
   // ── RE-CUT AT G3.2 s3 packet 4 (R-40.124 / R-40.125): the Needed list is filled inline; a policy blank is one field.
   ok('each missing row is filled where it is named (R-40.124)', /case 'fee':[\s\S]{0,300}onBlur=\{\(\) => void saveText\(\)\}/.test(src) && /case 'phone':[\s\S]{0,300}onBlur=\{\(\) => void savePhone\(\)\}/.test(src));
   ok('a policy blank is ONE field, saved as the merge on blur (R-40.125)', /async function savePolicyRow\(key: string, v: string\)[\s\S]{0,120}\{ \.\.\.seeds, \.\.\.profile, \[key\]: v \}/.test(src) && !/default: \{[\s\S]{0,600}openProfile\(/.test(src));
-  ok('the per-couple policies are a card with one strong tap (R-40.126)', /Your policies for \{first\}<\/div>[\s\S]{0,900}style=\{\{ \.\.\.CTA, marginTop: 10 \}\}/.test(src) && /Still needed to send: /.test(src));
+  // DESIGN-1 · STAGE 1 (by label): the tap's margin is on the one spacing scale, 12 (was 10)
+  ok('the per-couple policies are a card with one strong tap (R-40.126)', /Your policies for \{first\}<\/div>[\s\S]{0,900}style=\{\{ \.\.\.CTA, marginTop: 12 \}\}/.test(src) && /Still needed to send: /.test(src));
   ok('no Rs is prefixed beside formatRs (F-40.256)', !/Rs \$\{formatRs\(/.test(src));
   // F-40.266 — the sheet asks the name 12.2 promises, and the switch says so when it is empty
   ok('the sheet asks Who attends beside the signatory', /key: 'vendor_signatory_name'[\s\S]{0,300}key: 'named_professional',\s+label: 'Who attends'/.test(src));

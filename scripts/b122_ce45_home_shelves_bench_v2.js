@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b122_ce45_home_shelves_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
 // scripts/b122_ce45_home_shelves_bench.js · TDW CE-45 · FE-1 · HOME AND SHELVES · cut one.
 // Rung b122 (the estate's one line of rung numbers across both repos: b120 FE_1, b121 SRV_1).
 //
@@ -86,6 +89,17 @@ const RULED_SHELVES = {
   studio: ['room:portfolio', 'room:team', 'room:couture', 'room:advisor', 'room:billing', 'room:settings'],
 };
 const RULED_TOP = ['support', 'storefront'];
+// DESIGN-1 · STAGE 3 · THE FOUNDER'S TABS AND MORE, typed here as the second witness (docs/review/REPORT.md §3; his
+// sanction: the five tabs hold §3's list EXCEPT Billing, which goes under More; More is the profile coin, in his groups).
+// RULED_SHELVES above stays as the record of the shelves they replaced, and still names the 29 approved icons (5.1).
+const RULED_TABS = [['Today', '/vendor/today'], ['Enquiries', '/vendor/leads'], ['Calendar', '/vendor/calendar'], ['Clients', '/vendor/clients'], ['Money', '/vendor/invoices']];
+const RULED_MORE = [
+  ['Your business', ['Packages', 'Team', 'Settings', 'Billing']],
+  ['Get found', ['Your website', 'Storefront', 'Portfolio', 'Wedding pages', 'Google reviews', 'Posts and ads']],
+  ['Work together', ['Collab', 'Influencer exchange', 'Introductions', 'Referrals']],
+  ['Messages', ['WhatsApp and Instagram']],
+  ['Help', ['Advisor', 'Business Solutions', 'Support']],
+];
 // HOME_2 · RE-PINNED BY LABEL, R-45.21 (the founder, walking HOME_1: "work together should be at the
 // top. then get fonud get booked etc."): Work together leads; names and rows unchanged.
 const RULED_GROUPS = [
@@ -147,7 +161,11 @@ const RULED_TRADE = {
 // The founder's bytes (24 Sept 2026), sha256 first 16 hex, carried so a later edit is a fresh veto.
 // REPAIR r4 (FE-1, CE-45): D18 is carried with the TYPOGRAPHIC apostrophe (U+2019), the estate's
 // shipped-byte law (R-40.57, b40 C102); the founder's words are unchanged, only the glyph is the estate's.
-const H_COPY = { navToday: '3a78695388b38b5c', shelfBusiness: '76f68a75f01ed76f', shelfMoney: '5ccc2e8715d7a17c', shelfStudio: '0aa91af2ec4c1fd7', pinnedHead: '57c2c20d41e6bf16', pinnedChange: 'c564d6151af0b34b' };
+// DESIGN-1 · STAGE 1 (by label, the founder's word table of 28 Sept 2026: retire "Rooms", Home reads as the day):
+// navToday 'Home' -> 'Today' (was 3a78695388b38b5c), navRooms 'Rooms' -> 'More', pinnedHead 'Pinned rooms' -> 'Pinned'
+// (was 57c2c20d41e6bf16), pinnedChange 'Change pinned rooms' -> 'Change pinned' (was c564d6151af0b34b). The shelf bytes stand.
+const NAV_ROOMS = 'More';
+const H_COPY = { navToday: '2b065c7c9ce466e5', shelfBusiness: '76f68a75f01ed76f', shelfMoney: '5ccc2e8715d7a17c', shelfStudio: '0aa91af2ec4c1fd7', pinnedHead: 'f20c879465551f0d', pinnedChange: 'fc2d3766f81854f5' };
 const H_ROOM = { support: '81e50b18d2c0ea43', storefront: 'c9529003140a13d9', leads: '6ed99453447975d5', clients: '147ff67b902f0f8b', packages: '5ac4004541fc2013', calendar: 'ace4802cba166d27', events: '44ab8773647cf1af', notes: 'db19c49f8f6a2603', invoices: '5520f77a5ac7e0ec', expenses: 'd52a337c2f297d01', books: 'c2bebc4c8b046867', tds: 'cfc775545be4eda7', portfolio: 'c770d4b25db5b741', team: '8fdce67cbb74c589', couture: '5ec5b4c55960ce39', advisor: '3263e80df03c3bf4', billing: 'ac9b262fbde97683', settings: '28421eb441a5d5da' };
 const H_ROW = { website: 'b1291bdf51d0a58e', wedding_pages: '5802fa27fb15736d', google: '3829cc50cbae2d22', posts: 'f70c5ccaa24633ad', dates: 'becc2a75a6f041a1', introductions: '03b8eb501bbce215', referrals: '5e8933c42ebd55f6', number: 'b4153dd868095658' /* AMENDED BY LABEL · IGD-1 cut 1 · R-45.27 A3; was 9c6c97a21614e055 (D28) */, contracts: 'b2be845480024cae', reminders: '24716217a180687d', collabs: '4ba555d36b7a7487' };
 
@@ -160,18 +178,26 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
 // tree's own navToday, whatever it said. Both were caught at 24923aa and are cured here.
 
 (async () => {
-  let R, RT, WC, SC; let IC = null; // HOME_2: lib/worklist/icons.ts
+  let R, RT, WC, SC; let IC = null; // HOME_2: v2/lib/worklist/icons.ts
   sec('1  the founder\u2019s bytes, from their one home (R-45.19, R-45.20)');
-  try { IC = loadTs('lib/worklist/icons.ts'); } catch (_e) { IC = null; }
-  try { R = loadTs('lib/worklist/rooms.ts'); RT = loadTs('lib/solutions/routes.ts'); WC = loadTs('lib/worklist/copy.ts'); SC = loadTs('lib/solutions/copy.ts'); }
+  try { IC = loadTs('v2/lib/worklist/icons.ts'); } catch (_e) { IC = null; }
+  try { R = loadTs('v2/lib/worklist/rooms.ts'); RT = loadTs('v2/lib/solutions/routes.ts'); WC = loadTs('v2/lib/worklist/copy.ts'); SC = loadTs('v2/lib/solutions/copy.ts'); }
   catch (e) { ok(false, '1.0 the four modules load', e.message); }
   R = R || {}; RT = RT || {}; WC = WC || {}; SC = SC || {};
   const C = WC.COPY || {};
-  cell('1.1 the right tab reads Home, by the kept key (N0); the left still Rooms', () =>
-    (h16(C.navToday) === H_COPY.navToday && C.navRooms === 'Rooms') || `navToday=${C.navToday}`);
-  cell('1.2 the shelf names, the pinned heading and the change control are his bytes (N1 to N3, N8, N9)', () => {
-    const bad = ['shelfBusiness', 'shelfMoney', 'shelfStudio', 'pinnedHead', 'pinnedChange'].filter((k) => h16(C[k]) !== H_COPY[k]);
-    return bad.length === 0 || 'moved: ' + bad.join(',');
+  // DESIGN-1 · STAGE 3 (by label): the bar is the five tabs (v2/lib/worklist/tabs.ts), the first Today by his byte (N0's hash);
+  // the rooms page is titled More (navRooms).
+  let TB = {}; try { TB = loadTs('v2/lib/worklist/tabs.ts'); } catch (e) { TB = {}; }
+  cell('1.1 the tabs read Today, Enquiries, Calendar, Clients, Money, each to its first room; the first by the kept byte (N0); More titles the rooms page (DESIGN-1 stage 3)', () => {
+    const got = (TB.TABS || []).map((t) => [t.label, t.rooms[0].href]);
+    return (JSON.stringify(got) === JSON.stringify(RULED_TABS) && h16(got[0] && got[0][0]) === H_COPY.navToday && C.navRooms === NAV_ROOMS) || JSON.stringify(got);
+  });
+  // DESIGN-1 · STAGE 3 (by label): the shelf names (N1 to N3) retired with the shelves (v2/lib/worklist/copy.ts says so where
+  // they stood); the pinned heading and the change control stand, his bytes.
+  cell('1.2 the pinned heading and the change control are his bytes (N8, N9); the shelf names are gone with the shelves (DESIGN-1 stage 3)', () => {
+    const bad = ['pinnedHead', 'pinnedChange'].filter((k) => h16(C[k]) !== H_COPY[k]);
+    const left = ['shelfBusiness', 'shelfMoney', 'shelfStudio'].filter((k) => k in C);
+    return (bad.length === 0 && left.length === 0) || 'moved: ' + bad.join(',') + ' left: ' + left.join(',');
   });
   cell('1.3 the four group names and their rows, in the ruled order (N4 to N7; q3)', () => {
     const got = (SC.HUB_GROUPS || []).map((g) => [g.name, [...g.keys]]);
@@ -199,30 +225,48 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   });
 
   sec('2  the layout (BS-1 close; R-45.19; q3; P3)');
-  const SH = R.SHELVES || [];
-  cell('2.1 the three shelves hold exactly the ruled rows, Money six with Contracts and Reminders (R-45.19)', () => {
-    const got = Object.fromEntries(SH.map((s) => [s.id, s.items.map(tag)]));
-    return JSON.stringify(got) === JSON.stringify(RULED_SHELVES) || JSON.stringify(got);
+  // DESIGN-1 · STAGE 3 (by label): the shelves retired (SHELVES is gone from the registry, said where it stood); More's
+  // groups replaced them, and 2.1/2.2 hold those to his words and order, and the shelves' absence.
+  const SH = [];
+  cell('2.1 More holds exactly his five groups, their rows in his order (DESIGN-1 stage 3; was the three shelves, R-45.19)', () => {
+    const got = (TB.MORE_GROUPS || []).map((g) => [g.name, g.rows.map((r) => r.label)]);
+    return JSON.stringify(got) === JSON.stringify(RULED_MORE) || JSON.stringify(got);
   });
-  cell('2.2 no shelf holds more than six rows', () => SH.length === 3 && SH.every((s) => s.items.length <= 6));
+  cell('2.2 the shelves are gone from the registry, and Billing is More\u2019s, in no tab (DESIGN-1 stage 3)', () => {
+    const inTab = (TB.TABS || []).some((t) => t.rooms.some((r) => r.href === R.roomHref('billing')));
+    return (!('SHELVES' in R) && !inTab) || JSON.stringify({ shelves: 'SHELVES' in R, billingInATab: inTab });
+  });
   cell('2.3 the top pair is Business Solutions then Storefront, read from the headline ruling (a control: R-40.98 predates the cut, green at the base)', () =>
     JSON.stringify([...(R.HEADLINE_TILES_EXPECTED || [])]) === JSON.stringify(RULED_TOP));
+  // DESIGN-1 · STAGE 3 (by label): reachable from the five tabs' rooms, More's rows and the Business Solutions groups (More
+  // opens it). ONE NAMED EXCEPTION, and it is not hidden: Couture ("Client appointments, for designers") is in no tab and
+  // in none of the founder's More groups; it is reached by the trade it serves, from the designer's pinned rooms on More
+  // (TRADE_PINS.designer), and STAGE-3.md puts the question of a place in More to him. Any other room left unreachable
+  // reddens here as before.
   const reach = () => {
-    const items = [...RULED_TOP.map((id) => ({ room: id })), ...SH.flatMap((s) => s.items), ...(SC.HUB_GROUPS || []).flatMap((g) => g.keys.map((k) => ({ row: k })))];
-    return items.map((i) => ({ t: tag(i), href: RT.itemHref(i) }));
+    const hrefs = [...(TB.TABS || []).flatMap((t) => t.rooms.map((r) => r.href.split('#')[0])),
+      ...(TB.MORE_GROUPS || []).flatMap((g) => g.rows.filter((r) => r.href).map((r) => r.href)),
+      ...(SC.HUB_GROUPS || []).flatMap((g) => g.keys.map((k) => RT.itemHref({ row: k })))];
+    return hrefs.map((href) => ({ href }));
   };
-  cell('2.4 every registry room and every Business Solutions row is reachable from Rooms', () => {
+  cell('2.4 every registry room and every Business Solutions row is reachable from the tabs and More; Couture by the designer\u2019s pins (DESIGN-1 stage 3)', () => {
     const hrefs = new Set(reach().map((x) => x.href));
-    const rooms = (R.ROOMS || []).filter((r) => !hrefs.has(r.href)).map((r) => r.id);
+    const designer = ((R.TRADE_PINS || {}).designer || []).map((i) => RT.itemHref(i));
+    const rooms = (R.ROOMS || []).filter((r) => !hrefs.has(r.href) && !(r.id === 'couture' && designer.includes(r.href))).map((r) => r.id);
     const rows = Object.entries(RT.ROOM_HREFS || {}).filter(([, v]) => !hrefs.has(v)).map(([k]) => k);
     return (R.ROOMS.length === R.ROOM_COUNT_EXPECTED && rooms.length === 0 && rows.length === 0) || `unreachable rooms ${rooms} rows ${rows}`;
   });
-  cell('2.5 each route is one row, save the two R-45.19 placed twice, which resolve to ONE route each', () => {
-    const count = {}; for (const x of reach()) count[x.href] = (count[x.href] || 0) + 1;
-    const twice = Object.keys(count).filter((k) => count[k] === 2).sort();
-    const want = [RT.ROOM_HREFS.contracts, RT.ROOM_HREFS.reminders].sort();
-    const more = Object.keys(count).filter((k) => count[k] > 2);
-    return (JSON.stringify(twice) === JSON.stringify(want) && more.length === 0) || `twice ${twice} more ${more}`;
+  // DESIGN-1 · STAGE 3 (by label): R-45.19's one-row-per-route rule belonged to the shelves. The founder's More repeats
+  // Business Solutions rows by his own grouping (Your website, Wedding pages, Referrals and others sit in both), so the
+  // cell now holds what survives of it: every More row and every held room resolves to a declared route, none twice
+  // within More, none twice within one tab.
+  cell('2.5 no route twice within More or within a tab, and every one is a declared address (DESIGN-1 stage 3)', () => {
+    const moreH = (TB.MORE_GROUPS || []).flatMap((g) => g.rows.filter((r) => r.href).map((r) => r.href));
+    const dupMore = moreH.filter((h, i) => moreH.indexOf(h) !== i);
+    const dupTab = (TB.TABS || []).filter((t) => new Set(t.rooms.map((r) => r.href)).size !== t.rooms.length).map((t) => t.id);
+    const declared = new Set([...(R.ROOMS || []).map((r) => r.href), ...Object.values(RT.ROOM_HREFS || {}), RT.EXCHANGE_HREF, RT.PAYMENT_REMINDERS_HREF, RT.REFERRALS_HREF, '/vendor/today']);
+    const loose = [...moreH, ...(TB.TABS || []).flatMap((t) => t.rooms.map((r) => r.href.split('#')[0]))].filter((h) => !declared.has(h));
+    return (dupMore.length === 0 && dupTab.length === 0 && loose.length === 0) || JSON.stringify({ dupMore, dupTab, loose });
   });
   cell('2.6 every row sits in exactly one group', () => {
     const keys = (SC.HUB_GROUPS || []).flatMap((g) => [...g.keys]);
@@ -230,14 +274,18 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
     return (keys.length === all.length && all.every((k) => keys.filter((x) => x === k).length === 1)) || keys.join(',');
   });
   // AMENDED BY LABEL · IGD-1 cut 1 · R-45.27: the name only; the key 'number' and its Coming are unchanged.
-  cell('2.7 Coming stays Coming: Open dates & rates and WhatsApp and Instagram, and no shelf row is Coming', () =>
-    (JSON.stringify([...RT.PREVIEW_KEYS].sort()) === '["dates","number"]' && SH.every((s) => s.items.every((i) => !RT.itemComing(i)))) || [...RT.PREVIEW_KEYS]);
-  cell('2.8 the move: ROOM_HREFS and PREVIEW_KEYS live in lib/solutions/routes.ts, and the hub page declares neither', () => {
-    const page = read('app/vendor/(shell)/support/page.tsx');
-    return (!/const\s+(ROOM_HREFS|PREVIEW_KEYS)\b/.test(page) && /export const ROOM_HREFS\b/.test(read('lib/solutions/routes.ts')) && /export const PREVIEW_KEYS\b/.test(read('lib/solutions/routes.ts'))) || 'not moved';
+  // DESIGN-1 · STAGE 3 (by label): the shelves' "none Coming" had no Coming row to carry; More carries one (WhatsApp and
+  // Instagram, by the founder's grouping), and the live 4.2e holds that it wears Coming where it stands.
+  cell('2.7 Coming stays Coming: Open dates & rates and WhatsApp and Instagram; More\u2019s one Coming row is WhatsApp and Instagram (DESIGN-1 stage 3)', () => {
+    const coming = (TB.MORE_GROUPS || []).flatMap((g) => g.rows.filter((r) => r.row && RT.itemComing({ row: r.row })).map((r) => r.label));
+    return (JSON.stringify([...RT.PREVIEW_KEYS].sort()) === '["dates","number"]' && JSON.stringify(coming) === '["WhatsApp and Instagram"]') || JSON.stringify({ preview: [...RT.PREVIEW_KEYS], coming });
+  });
+  cell('2.8 the move: ROOM_HREFS and PREVIEW_KEYS live in v2/lib/solutions/routes.ts, and the hub page declares neither', () => {
+    const page = read('v2/app/vendor/(shell)/support/page.tsx');
+    return (!/const\s+(ROOM_HREFS|PREVIEW_KEYS)\b/.test(page) && /export const ROOM_HREFS\b/.test(read('v2/lib/solutions/routes.ts')) && /export const PREVIEW_KEYS\b/.test(read('v2/lib/solutions/routes.ts'))) || 'not moved';
   });
   cell('2.9 the retired band constants are gone from the registry (A-45.2); the room count stands at 20', () => {
-    const src = read('lib/worklist/rooms.ts');
+    const src = read('v2/lib/worklist/rooms.ts');
     return (!/export const (GRID_TILE_COUNT_EXPECTED|TOP_BAND_EXPECTED|BOTTOM_BAND_EXPECTED)\b/.test(src) && R.ROOM_COUNT_EXPECTED === 20) || 'still declared';
   });
 
@@ -274,8 +322,10 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   sec('3b the icons (R-45.21; the chair\u2019s (b)(i)), one registry, the approved mock\u2019s bytes');
   const SHOWN = [...RULED_TOP, ...Object.values(RULED_SHELVES).flat().map((t) => t.split(':')[1]), ...RULED_GROUPS.flatMap(([, ks]) => ks)];
   const SHOWN_KEYS = [...new Set(SHOWN)];
-  cell('5.1 the registry holds exactly the 29 keys shown on Rooms and Business Solutions, no more', () => {
-    if (!IC || !IC.ROOM_ICONS) return 'lib/worklist/icons.ts does not load';
+  // DESIGN-1 · STAGE 3 (by label): the 29 are the approved mock's drawings (5.2 carries their bytes); the shelves that showed
+  // some of them retired, and the keys are now drawn by the pins, More's rows and Business Solutions. The set is unchanged.
+  cell('5.1 the registry holds exactly the 29 approved keys, no more (DESIGN-1 stage 3: drawn by the pins, More and Business Solutions)', () => {
+    if (!IC || !IC.ROOM_ICONS) return 'v2/lib/worklist/icons.ts does not load';
     const got = Object.keys(IC.ROOM_ICONS).sort(); const want = SHOWN_KEYS.slice().sort();
     return (want.length === 29 && JSON.stringify(got) === JSON.stringify(want)) || JSON.stringify({ got: got.length, want: want.length, missing: want.filter((k) => !got.includes(k)), extra: got.filter((k) => !want.includes(k)) });
   });
@@ -285,7 +335,7 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
     return (Object.keys(H_ICON).length === 29 && bad.length === 0) || 'drifted: ' + bad.join(',');
   });
   cell('5.3 the icon component draws nothing but the registry\u2019s constants (no other markup path)', () => {
-    const src = fs.readFileSync(P('components/worklist/RoomIcon.tsx'), 'utf8');
+    const src = fs.readFileSync(P('v2/components/worklist/RoomIcon.tsx'), 'utf8');
     const uses = src.match(/dangerouslySetInnerHTML/g) || [];
     if (uses.length !== 1) return 'RoomIcon has ' + uses.length + ' markup sinks, ruled one';
     if (!/dangerouslySetInnerHTML=\{\{ __html: ROOM_ICONS\[k\] \}\}/.test(src)) return 'the one sink is not ROOM_ICONS[k]';
@@ -294,7 +344,10 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
     // AMENDED BY LABEL · CE-46 FE-4: ls-files lists the index; a file deleted under A-45.1 is gone from the tree in
     // block 1 and from the index only in block 3, so between them (where the founder's floor runs) it is listed
     // but absent. An absent file types nothing: it is dropped, not read (it threw ENOENT on TipsCarousel.tsx).
-    const files = spawnSync('git', ['ls-files', 'app', 'components', 'lib'], { cwd: ROOT, encoding: 'utf8' }).stdout.split('\n').filter((f) => /\.(tsx?|jsx?|mjs)$/.test(f) && f !== 'lib/worklist/icons.ts' && fs.existsSync(P(f)));
+    const files = spawnSync('git', ['ls-files', 'app', 'components', 'lib', 'v2/app', 'v2/components', 'v2/lib'], { cwd: ROOT, encoding: 'utf8' }).stdout.split('\n')
+      // DESIGN-1 · THE LAYOUT SWITCH (by label): the v2 view of the tree: a shared file with a v2/ twin, and the app/v2 shims, are not in it
+      .filter((f) => !f.startsWith('app/v2/') && !(!f.startsWith('v2/') && fs.existsSync(P('v2/' + f))))
+      .filter((f) => /\.(tsx?|jsx?|mjs)$/.test(f) && f !== 'v2/lib/worklist/icons.ts' && fs.existsSync(P(f)));
     const extra = []; for (const f of files) { const t = fs.readFileSync(P(f), 'utf8'); for (const [k, v] of Object.entries(IC.ROOM_ICONS)) if (t.includes(v)) extra.push(f + ':' + k); }
     return extra.length === 0 || 'a drawing is typed outside the registry: ' + extra.join(', ');
   });
@@ -414,7 +467,7 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   const probe = (mode, scenario) => {
     const env = { ...process.env }; if (clockMs !== null && Number.isFinite(clockMs)) env.B122_CLOCK = String(clockMs);
     if (ICONS_FILE) env.B122_ICONS = ICONS_FILE;
-    const r = spawnSync('node', [P('scripts/lib/b122_home_shelves_probe.mjs'), String(PORT), mode, scenario, SHOTS], { encoding: 'utf8', timeout: 240000, env });
+    const r = spawnSync('node', [P('scripts/lib/b122_home_shelves_probe_v2.mjs'), String(PORT), mode, scenario, SHOTS], { encoding: 'utf8', timeout: 240000, env });
     if (r.status === 3) return { noBrowser: true, text: r.stdout };
     try { return JSON.parse(String(r.stdout).trim().split('\n').pop()); } catch (_e) { return { error: `${r.status} ${String(r.stderr).slice(0, 300)}` }; }
   };
@@ -438,37 +491,39 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
       if (!browserOk) break;
       for (const k of Object.keys(docks)) delete docks[k];   // each theme reads its own dock
       const land = probe(mode, 'land');
-      if (guard(land, `4.1 ${mode}`)) ok(land.chrome && land.chrome.path === '/vendor/rooms', `4.1 ${mode}: the app still lands on Rooms (P5; a control: green at the base)`, land.chrome && land.chrome.path);
+      // DESIGN-1 · STAGE 3 (by label): the app lands on Today, the first of the five tabs (b40 C17 holds the four surfaces).
+      if (guard(land, `4.1 ${mode}`)) ok(land.chrome && land.chrome.path === '/vendor/today', `4.1 ${mode}: the app lands on Today (DESIGN-1 stage 3; was Rooms)`, land.chrome && land.chrome.path);
 
       const ro = probe(mode, 'rooms');
       if (guard(ro, `4.2 ${mode}`)) {
         const c = ro.chrome || {}; const rm = ro.rooms || {};
-        chk(`4.2a ${mode}: the tabs read Rooms then Home, Home at /vendor/today, Rooms current`, () => {
+        // DESIGN-1 · STAGE 3 (by label): the five tabs, none current on More; the coin (More's door) is current.
+        chk(`4.2a ${mode}: the tabs read Today, Enquiries, Calendar, Clients, Money, to their first rooms; on More none is current and the coin is (DESIGN-1 stage 3)`, () => {
           const s = c.seats || [];
-          return (s.length === 2 && s[0].text === 'Rooms' && s[0].href === '/vendor/rooms' && s[0].current === 'page'
-            && h16(s[1].text) === H_COPY.navToday && s[1].href === '/vendor/today' && s[1].current === null) || JSON.stringify(s);
+          return (JSON.stringify(s.map((x) => [x.text, x.href])) === JSON.stringify(RULED_TABS) && s.every((x) => x.current === null)
+            && !!c.coin && c.coin.href === '/vendor/rooms' && c.coin.current === 'page') || JSON.stringify([s, c.coin]);
         });
-        const top = (rm.top || []).map((t) => [t.key, t.href, t.head]);
-        ok(JSON.stringify(top) === JSON.stringify(RULED_TOP.map((id) => [id, R.roomHref(id), true])), `4.2b ${mode}: Business Solutions and Storefront at the very top, marked headline`, JSON.stringify(top));
-        ok((rm.top || []).length === 2 && rm.top.every((t) => t.nameColor !== rm.inkColor) && !!rm.metal,
-          `4.2c ${mode}: the top pair\u2019s names take the metal, not the shelves\u2019 ink`, JSON.stringify([(rm.top || []).map((t) => t.nameColor), rm.inkColor, rm.metal]));
-        chk(`4.2d ${mode}: three shelves, each row its name, its line and its route, as ruled`, () => {
-          const HK = { business: H_COPY.shelfBusiness, money: H_COPY.shelfMoney, studio: H_COPY.shelfStudio };
-          const want = Object.entries(RULED_SHELVES).map(([id, tags]) => ({ id, label: HK[id],
-            rows: tags.map(untag).map((i) => [itemsText(i).name, itemsText(i).desc, RT.itemHref(i)]) }));
-          const got = (rm.shelves || []).map((s) => ({ id: s.id, label: h16(s.label), rows: s.rows.map((r) => [r.name, r.desc, r.href]) }));
-          return (got.length === 3 && JSON.stringify(got) === JSON.stringify(want)) || JSON.stringify(got).slice(0, 280);
+        const mg = ro.more || [];
+        const moreText = (label) => { const r = (TB.MORE_GROUPS || []).flatMap((g) => g.rows).find((x) => x.label === label) || {};
+          return [label, r.room ? WC.ROOM_DESC[r.room] : r.row ? SC.ROW_DESC[r.row] : null, r.href || null]; };
+        chk(`4.2d ${mode}: More draws his five groups, each row its name, its line and its route (DESIGN-1 stage 3; was the three shelves)`, () => {
+          const want = RULED_MORE.map(([n, rows]) => [n, rows.map(moreText)]);
+          const got = mg.map((g) => [g.name, g.rows.map((r) => [r.name, r.desc, r.href])]);
+          return JSON.stringify(got) === JSON.stringify(want) || JSON.stringify(got).slice(0, 280);
         });
-        ok(rm.allTiles === 20 && (rm.shelves || []).every((s) => s.rows.every((r) => !r.coming && r.height >= 44)),
-          `4.2e ${mode}: twenty rows on Rooms, none Coming, every one at least 44px tall`, rm.allTiles);
-        chk(`4.2g ${mode}: every row and the top pair carry exactly one icon, their own, the registry\u2019s bytes (R-45.21)`, () => {
-          const all = [...(rm.top || []), ...((rm.shelves || []).flatMap((x) => x.rows))];
-          const bad = all.filter((r) => !oneIcon(ro, r.key, r.icons)).map((r) => r.key + ':' + (r.icons || []).map((i) => i.k).join('+'));
-          return (all.length === 20 && bad.length === 0) || JSON.stringify({ n: all.length, bad });
+        const allRows = mg.flatMap((g) => g.rows);
+        ok(allRows.length === 18 && allRows.every((r) => r.height >= 64) && JSON.stringify(allRows.filter((r) => r.coming).map((r) => r.name)) === '["WhatsApp and Instagram"]',
+          `4.2e ${mode}: eighteen rows on More, each at least 64 tall (the one row), and only WhatsApp and Instagram wears Coming (DESIGN-1 stage 3)`, JSON.stringify(allRows.map((r) => [r.name, r.height, r.coming])));
+        chk(`4.2g ${mode}: every More row with a registry key carries exactly one icon, its own, the registry\u2019s bytes; Influencer exchange and Support have none (R-45.21; DESIGN-1 stage 3)`, () => {
+          const keyed = allRows.filter((r) => r.key && r.key !== 'contact');
+          const bad = keyed.filter((r) => !oneIcon(ro, r.key, r.icons)).map((r) => r.key + ':' + (r.icons || []).map((x) => x.k).join('+'));
+          const bare = allRows.filter((r) => !r.key || r.key === 'contact').filter((r) => (r.icons || []).length !== 0).map((r) => r.name);
+          return (keyed.length === 16 && bad.length === 0 && bare.length === 0) || JSON.stringify({ n: keyed.length, bad, bare });
         });
-        ok((rm.top || []).length === 2 && rm.top.every((t) => t.icons && t.icons[0] && t.icons[0].color === t.nameColor),
-          `4.2h ${mode}: the top pair\u2019s icons take the metal, as their names do`, JSON.stringify((rm.top || []).map((t) => [t.icons && t.icons[0] && t.icons[0].color, t.nameColor])));
-        ok(c.title === 'Rooms', `4.2f ${mode}: the title reads Rooms (a control: unchanged by the cut, green at the base)`, c.title);
+        ok(c.title === NAV_ROOMS, `4.2f ${mode}: the title reads More (DESIGN-1; was Rooms)`, c.title);
+        // DESIGN-1 · STAGE 3: RETIRED, by label: 4.2b, 4.2c and 4.2h (the top pair and its ink and icons: no surface draws a
+        // headline pair now; the registry's flags stand, b40 C2) and 4.3c below (the Money shelf that shared two routes).
+        console.log(`  RETIRED 4.2b/4.2c/4.2h ${mode} (DESIGN-1 stage 3: the top pair retired with the shelves)`);
         docks.rooms = c.dock; docks.roomsSeat = c.seatTop;
       }
 
@@ -487,14 +542,7 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
           return (rows.length === 11 && bad.length === 0) || JSON.stringify({ n: rows.length, bad });
         });
         ok(hb.hub && hb.hub.footer === true, `4.3b ${mode}: the footer\u2019s human control is still there (a control: green at the base)`);
-        chk(`4.3c ${mode}: Contracts & deposits and Payment reminders open the SAME route from Money and from Get paid (R-45.19)`, () => {
-          const money = ((ro.rooms || {}).shelves || []).find((s) => s.id === 'money');
-          if (!money) return 'no Money shelf on Rooms';
-          const gp = g.find((x) => x.name === 'Get paid');
-          if (!gp) return 'no Get paid group';
-          const pairs = ['Contracts & deposits', 'Payment reminders'].map((n) => [(money.rows.find((r) => r.name === n) || {}).href, (gp.rows.find((r) => r.label === n) || {}).href]);
-          return pairs.every(([a, b]) => !!a && a === b) || JSON.stringify(pairs);
-        });
+        console.log(`  RETIRED 4.3c ${mode} (DESIGN-1 stage 3: the Money shelf retired; Contracts is the Clients tab\u2019s and Payment reminders the Money tab\u2019s, each at its one route, 2.5)`);
       }
 
       const trades = mode === 'dark' ? [...Object.keys(RULED_TRADE), 'other', 'fail', 'none'] : ['photography', 'other', 'fail'];
@@ -511,8 +559,10 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
           const hm = ho.home || {}; const c = ho.chrome || {};
           // 4.5a INVERTED BY LABEL, R-45.21 (P2 amended by the founder: "it being at the bottom defeats the
           // purpose of pinning"): the pins now stand ABOVE Today's surface, which still draws its date line.
+          // DESIGN-1 · STAGE 2 (by label): the founder moved the pins under More ("kept, moved under More, not deleted"),
+          // so they stand above the rooms directory there, as they stood above Today's surface (R-45.21's order kept).
           ok(hm.masthead === true && hm.pinsBeforeMasthead === true && hm.mastheadBeforePins === false && hm.pinsBottom !== null && hm.mastTop !== null && hm.pinsBottom <= hm.mastTop + 1 && !!hm.mdate,
-            `4.5a ${mode}: the pins stand above Today\u2019s own surface, which still draws its date line (R-45.21)`, JSON.stringify([hm.pinsBeforeMasthead, hm.pinsBottom, hm.mastTop, hm.mdate]));
+            `4.5a ${mode}: the pins stand above the rooms directory on More, where the founder moved them (R-45.21; DESIGN-1 stage 2)`, JSON.stringify([hm.pinsBeforeMasthead, hm.pinsBottom, hm.mastTop, hm.mdate]));
           ok(hm.cols === 3 && (hm.pins || []).length === 6 && hm.pins.every((x) => x.descHidden === true && !!x.desc),
             `4.5f ${mode}: the pins are compact, three across, each room\u2019s line kept for screen readers only (R-45.21)`, JSON.stringify([hm.cols, (hm.pins || []).map((x) => x.descHidden)]));
           ok((hm.pins || []).length === 6 && hm.pins.every((x) => oneIcon(ho, x.key, x.icons)),
@@ -520,17 +570,21 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
           ok(h16(hm.head) === H_COPY.pinnedHead, `4.5b ${mode}: the pins sit under their heading`, hm.head);
           ok(!!hm.change && hm.change.disabled === true && hm.change.chip === 'coming' && h16(hm.change.label) === H_COPY.pinnedChange,
             `4.5c ${mode}: the change control is drawn, stated, disabled and wears Coming (F-19.20; P1(b))`, JSON.stringify(hm.change));
-          ok(h16(c.title) === H_COPY.navToday && JSON.stringify((c.seats || []).map((s) => s.current)) === JSON.stringify([null, 'page']), `4.5d ${mode}: the title reads Home and the Home tab is current`, c.title);
+          // DESIGN-1 · STAGE 2 (by label): the pins' page is More, so its title reads More and the More seat is current.
+          // DESIGN-1 · STAGE 3 (by label): More is the coin's page, so no tab is current there and the coin is.
+          ok(c.title === NAV_ROOMS && (c.seats || []).length === 5 && (c.seats || []).every((s) => s.current === null) && !!c.coin && c.coin.current === 'page', `4.5d ${mode}: the pins\u2019 page is More: its title reads More, no tab is current and the coin is (DESIGN-1 stages 2 and 3)`, JSON.stringify([c.title, c.coin]));
           ok(!!ho.clicked && ho.afterClick === ho.clicked, `4.5e ${mode}: a pinned room opens its room`, JSON.stringify([ho.clicked, ho.afterClick]));
-          docks.home = c.dock; docks.homeSeat = c.seatTop;
         }
       }
+      // DESIGN-1 · STAGE 2 (by label): Home's dock is read on Home itself (the pins scene now reads More).
+      const td = probe(mode, 'today');
+      if (guard(td, `4.6 ${mode} today`)) { const tc = td.chrome || {}; docks.home = tc.dock; docks.homeSeat = tc.seatTop; }
 
       const hs = probe(mode, 'home:slow');
       if (guard(hs, `4.7 ${mode}`)) {
         const e = hs.early || {}; const l = hs.late || {};
         ok(e.waiting === true && e.links === 0 && l.waiting === false && l.links === 6 && e.pinsH === l.pinsH && Math.abs((e.mastTop || -99) - (l.mastTop || 99)) <= 1,
-          `4.7 ${mode}: while her trade loads the pins hold their height, and Today\u2019s masthead does not move when they arrive (chair\u2019s (a))`, JSON.stringify([e, l]));
+          `4.7 ${mode}: while her trade loads the pins hold their height, and the directory below them does not move when they arrive (chair\u2019s (a); DESIGN-1 stage 2: on More)`, JSON.stringify([e, l]));
       }
 
       ok(!!docks.rooms && !!docks.home && docks.rooms.text === ph && docks.home.text === ph,
