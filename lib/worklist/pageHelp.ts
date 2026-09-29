@@ -70,6 +70,18 @@ const ADS_HELP = {
   leads: 'Couples who write after seeing the ad land in Enquiries, and this page tells you what each ad reached, what it cost, and what to try next.',
 } as const;
 
+// DESIGN-1 · STAGE 2 · THE PORTFOLIO'S EXPLANATIONS, MOVED OFF THE PAGE (the founder, 29 Sept 2026: "make the photos the
+// page"). The founder-vetted bytes of app/vendor/(shell)/portfolio/screen.tsx's COPY, word for word, their one home now;
+// the screen reads H3 from here for its ?ig=cancelled toast. Sentences on one subject share a line; none is reworded.
+export const PORTFOLIO_HELP = {
+  H3: 'Instagram is just the quicker way. Uploading from your phone works exactly the same, always.',
+  H2: "Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is free and takes a minute in Instagram’s own settings.",
+  G1: 'Press and drag to reorder. The first photo is your cover.',
+  G3: 'Switch to All to reorder. Filters show only some of your photos.',
+  F4: 'Couples see your approved photos. The rest are with our team.',
+  H12: 'Photos are copied into your portfolio, so they stay put even if your Instagram changes.',
+} as const;
+
 const entry = (what: string, extra: Partial<PageHelp> = {}): PageHelp =>
   ({ what, can: HELD, connects: '', ...extra });
 
@@ -96,7 +108,12 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   [roomHref('notes')]: entry(ROOM_DESC.notes),
   [roomHref('calendar')]: entry(ROOM_DESC.calendar),
   [roomHref('storefront')]: entry(ROOM_DESC.storefront),
-  [roomHref('portfolio')]: entry(ROOM_DESC.portfolio),
+  // Each line names only what the page draws: Upload and the Instagram button beside it, the All filter, the photos.
+  [roomHref('portfolio')]: entry(ROOM_DESC.portfolio, { can: [
+    { icon: 'add', line: `${PORTFOLIO_HELP.H3} ${PORTFOLIO_HELP.H2}` },
+    { icon: 'edit', line: `${PORTFOLIO_HELP.G1} ${PORTFOLIO_HELP.G3}` },
+    { icon: 'read', line: PORTFOLIO_HELP.F4 },
+  ], connects: PORTFOLIO_HELP.H12 }),
   [roomHref('couture')]: entry(ROOM_DESC.couture),
   [roomHref('team')]: entry(ROOM_DESC.team),
   [roomHref('contracts')]: entry(ROW_DESC.contracts),

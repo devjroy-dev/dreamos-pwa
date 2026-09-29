@@ -46,6 +46,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
+import { PORTFOLIO_HELP } from '@/lib/worklist/pageHelp';
 import { useRouter } from 'next/navigation';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Toast } from '@/components/vendor/Toast';
@@ -113,11 +114,8 @@ const COPY = {
   E4: 'Your cover is the first photo couples see.',
   F1: 'Awaiting review',
   F3: 'Not approved',
-  F4: 'Couples see your approved photos. The rest are with our team.',
-  G1: 'Press and drag to reorder. The first photo is your cover.',
   // G3 — the filter/drag interlock line. Founder-vetoed byte-exact 2026-07-29.
   // Rendered ONLY while a non-`all` filter is active; never otherwise.
-  G3: 'Switch to All to reorder. Filters show only some of your photos.',
   // G4/G5 — Cure B's gestureless reorder. CHAIR-WORDED, FOUNDER VETO OUTSTANDING
   // (the ruling named the bytes; it did not route them through the founder's card).
   // These are the only two vendor-facing strings in this sitting not yet vetoed.
@@ -128,14 +126,14 @@ const COPY = {
   // They are kept here so the action sitting inherits an executed veto instead of
   // re-running the founder's copy card. H4-H11 were never drafted into code.
   H1: 'Import from Instagram',
-  H2: "Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is free and takes a minute in Instagram’s own settings.",
   // H3 — THE LOAD-BEARING ONE. The addendum's law is "MANUAL UPLOAD IS THE
   // PERMANENT FALLBACK, NEVER A WALL". These are the founder's own bytes,
   // chosen over the drafted alternative, and they sit ABOVE the connect action
   // on the screen — position in a paragraph is instruction (TDW_06 doctrine).
-  H3: 'Instagram is just the quicker way. Uploading from your phone works exactly the same, always.',
+  // DESIGN-1 stage 2: the explanations F4, G1, G3, H2 and H12 moved, word for word, to the page's "?" card
+  // (lib/worklist/pageHelp.ts PORTFOLIO_HELP, their one home now); H3 is read from there too, for the ?ig=cancelled toast.
+  H3: PORTFOLIO_HELP.H3,
   H4: 'Connect Instagram',
-  H12: 'Photos are copied into your portfolio, so they stay put even if your Instagram changes.',
 
   // ── TDW_07 P4a · THE SECOND COPY CARD — FOUNDER-VETOED 2026-07-30 「 all ok 」
   //
@@ -865,6 +863,12 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <Toast toast={toast} />
 
+      {/* ── DESIGN-1 · STAGE 2 · THE PHOTOS ARE THE PAGE (the founder, 29 Sept 2026) ─────────────────────────────────
+          Above the grid: the page's two buttons (Upload, and Instagram beside it), the filters, and at most ONE short
+          line. Every explanation this page used to print (how Instagram compares with uploading, which accounts it
+          allows, that photos are copied, how to reorder, what couples see) lives in the page's "?" card now, word for
+          word (lib/worklist/pageHelp.ts, PORTFOLIO_HELP). The couples preview, the linked handle and Disconnect stand
+          below the grid. The old header row's notes follow, as the record. */}
       {/* ── THE ROW STAYS; ITS LEFT HALF IS THE OLD LAYOUT'S CHROME ──────────
           Inside the shell the chevron and the word are the two-mastheads defect one level
           down from where R-38.1 removed it: WorklistShell already prints 「Portfolio」 and
@@ -874,22 +878,18 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
           THE UPLOAD ACTION IS WHY THE ROW ITSELF SURVIVES BOTH WAYS. It is this screen's
           one filled gold and the only way a photo gets in. The spacer takes over the
           label's `flex: 1` so Upload stays exactly where the thumb already knows it. */}
-      <div style={{
-        padding: '12px var(--slice-inset, 16px)', display: 'flex', alignItems: 'center', gap: 12,
-        borderBottom: '0.5px solid var(--atelier-card-border)',
-      }}>
-        
-        {<div style={{ flex: 1 }} />}
+      <div style={{ padding: '12px var(--slice-inset, 16px) 0', display: 'flex', gap: 8, alignItems: 'stretch' }}>
         {/* THE SCREEN'S ONE FILLED GOLD. Disabled at the cap; the sentence below
             says why, so the control is never mysteriously dead. */}
         <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading || full}
           className="atelier-fab"
           style={{
+            flex: 1, minHeight: 48,
             padding: '8px 16px', borderRadius: 12,
             cursor: (uploading || full) ? 'default' : 'pointer',
             border: '0.5px solid var(--atelier-label)',
-            fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem',
-            color: INK_DEEP, letterSpacing: '0.32em', textTransform: 'uppercase',
+            font: 'var(--wl-tb)',   // DESIGN-1: a button is tb, like the Instagram button beside it
+            color: INK_DEEP,
             opacity: (uploading || full) ? 0.5 : 1,
           }}>
           {uploading ? progress : '+ Upload'}
@@ -898,36 +898,57 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
           multiple
           style={{ display: 'none' }}
           onChange={e => { const fs = Array.from(e.target.files ?? []); if (fs.length) handleUpload(fs); e.target.value = ''; }} />
+        {/* ── THE INSTAGRAM BUTTON, BESIDE UPLOAD ────────────────────────────────────────────────────────────────
+            Rendered behind the SAME two conditions as the block it came from (a status AND the server's
+            ig_import_enabled; absence is the safe state, TDW_07 P4a). Unlinked or expired: Connect Instagram, the
+            submitted surface's own control (its notes follow). Linked: Import from Instagram, disabled at the cap. */}
+        {ig && ig.ig_import_enabled && (
+          (!ig.connected || ig.connection_state === 'expired') ? (
+            <>
+            {/* THE CONNECT CONTROL — a real link over a destination that
+                already exists. No onClick, no await, nothing between the
+                finger and the navigation.
+
+                THIS SHAPE IS SHAPE A, AND SHAPE A IS KNOWN CLAIMED. The
+                founder's 2026-07-30 walk shows a plain anchor tap being
+                taken by the Instagram app, which cannot render consent. The
+                comment that used to sit here asserted the opposite physics
+                and was wrong; see igOAuth.js's standing header in dream-os.
+
+                IT STAYS AS IT IS ON PURPOSE. This is the SUBMITTED SURFACE
+                and it does not move while App Review is open. The ?igprobe=1
+                ladder below tests the alternatives without touching it, and
+                the winning shape replaces this one in a later, ruled act.
+
+                When the mint has not landed the control is a BUTTON that
+                re-mints and does not navigate — an honest second state
+                rather than a hrefless anchor, which would be a dead
+                control. */}
+              {igAuthUrl ? (
+                <a href={igAuthUrl}
+                  style={{
+                    flex: 1, minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center',
+                    borderRadius: 12, border: '1px solid var(--atelier-input-border)', background: 'transparent',
+                    font: 'var(--wl-tb)', color: A.interactiveWarm, textDecoration: 'none', cursor: 'pointer',
+                  }}>{COPY.H4}</a>
+              ) : (
+                <button type="button" className="wl-btn" disabled={igBusy !== null} onClick={igConnectRetry}
+                  style={{ color: A.interactiveWarm, opacity: igBusy ? 0.4 : 1, cursor: igBusy ? 'default' : 'pointer' }}>{COPY.H4}</button>
+              )}
+            </>
+          ) : (
+            <button type="button" className="wl-btn" disabled={igBusy !== null || full} onClick={igOpenPicker}
+              style={{ color: A.interactiveWarm, opacity: (igBusy || full) ? 0.4 : 1, cursor: (igBusy || full) ? 'default' : 'pointer' }}>{COPY.H1}</button>
+          )
+        )}
       </div>
-
-      {/* ── TDW_07 P4b · F5 — "SEE YOUR PROFILE AS COUPLES DO" ─────────────────────
-          Copy ①, founder-vetoed, byte-exact. The spec puts this button on "the Profile
-          Studio and portfolio surfaces" — both, because the vendor who has just finished
-          dragging photos into an order is exactly the vendor who wants to see what that
-          order LOOKS like, and sending him to another screen to find the button loses him.
-
-          GHOST, NEVER FILLED. Upload is this screen's one filled gold (house law: one gold
-          per screen) and that is not being taken away from it.
-
-          It does not gate on the photo floor. A vendor below six photos sees the preview
-          with what he has — F5's whole argument for the pre-approval mount. */}
-      <div style={{ padding: '12px var(--slice-inset, 16px) 0' }}>
-        <button type="button" onClick={() => router.push('/vendor/discover/preview')} style={{
-          display: 'block', width: '100%', padding: '12px 0',
-          background: 'none', border: `0.5px solid ${A.interactiveWarm}`, borderRadius: 12,
-          cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
-          letterSpacing: '0.32em', textTransform: 'uppercase', color: A.interactiveWarm,
-        }}>
-          See your profile as couples do
-        </button>
-      </div>
-
       {/* Filter pills — restored (CE §0.2 (a)). Ghost/bordered only: the screen's
           one filled gold stays the Upload action. */}
-      <div style={{ display: 'flex', gap: 8, padding: '12px var(--slice-inset, 16px) 0', flexWrap: 'wrap' }}>
+      {/* DESIGN-1 stage 2: the four share one row at every width (they wrapped to two at 360 and pushed the photos down). */}
+      <div style={{ display: 'flex', gap: 8, padding: '12px var(--slice-inset, 16px) 0' }}>
         {STATE_FILTERS.map(sf => (
           <button key={sf} type="button" onClick={() => setFilter(sf)} style={{
-            padding: '8px 16px', borderRadius: 12, cursor: 'pointer', flexShrink: 0,
+            padding: '8px 4px', borderRadius: 12, cursor: 'pointer', flex: '1 1 0', minWidth: 0,
             background: filter === sf ? 'var(--atelier-card-border)' : 'transparent',
             border: `0.5px solid ${filter === sf ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
             fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
@@ -937,35 +958,30 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
         ))}
       </div>
 
-      <div style={{ padding: '12px var(--slice-inset, 16px) 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* ── THE ONE LINE ────────────────────────────────────────────────────────────────────────────────────────
+          The one that matters most, and only one: an expired Instagram link says so (a real state, TDW_07 §1.7); on an
+          iPhone home-screen app the press-and-hold instruction stands beside Connect Instagram, because a plain tap is
+          caught by the Instagram app (R-1, anchor-only); otherwise the count, or at the cap the cap sentence. */}
+      {/* The one line: whichever state line renders first hides the count after it (.pf-line ~ .pf-count), so there is
+          only ever one. H19 keeps its own gate, the one call site of isIosStandalone() (TDW_07 P4b R-1, anchor-only). */}
+      <style>{'.pf-one .pf-line ~ .pf-count{display:none}'}</style>
+      <div className="pf-one" style={{ padding: '8px var(--slice-inset, 16px) 0' }}>
+        {ig && ig.ig_import_enabled && ig.connection_state === 'expired' && (
+          <p className="pf-line" style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: A.red, margin: 0 }}>{COPY.H11}</p>
+        )}
+        {ig && ig.ig_import_enabled && !ig.connected && (
+          <>
+            {isIosStandalone() && igAuthUrl && (
+              <p className="pf-line" style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: A.inkMute, margin: 0 }}>{COPY.H19}</p>
+            )}
+          </>
+        )}
         {cap > 0 && (
-          <div style={{
-            fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
-            letterSpacing: '0.28em', textTransform: 'uppercase', color: A.brassWarm,
-          }}>{COPY.A1(images.length, cap)}</div>
-        )}
-        {full && (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkSoft }}>
-            {COPY.A2(cap)}
-          </div>
-        )}
-        {images.length > 1 && canReorder && (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
-            {COPY.G1}
-          </div>
-        )}
-        {images.length > 1 && !canReorder && (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
-            {COPY.G3}
-          </div>
-        )}
-        {images.length > 0 && (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
-            {COPY.F4}
-          </div>
+          <p className="pf-count" style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: full ? A.inkSoft : A.inkMute, margin: 0 }}>
+            {full ? COPY.A2(cap) : COPY.A1(images.length, cap)}
+          </p>
         )}
       </div>
-
       <div
         ref={scrollRef}
         style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px var(--slice-inset, 16px) 32px', touchAction: dragId ? 'none' : 'auto' }}
@@ -1047,7 +1063,9 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
           </div>
         )}
 
-        {/* ── THE IG ENTRY DOES NOT RENDER THIS SITTING — CE §B, TIGHTENED ──
+        {/* DESIGN-1 · STAGE 2: below the grid now: the couples preview, the linked handle and Disconnect, and the
+            probe ladder. The Instagram action itself stands beside Upload, behind the same gate. The notes on that gate:
+            ── THE IG ENTRY DOES NOT RENDER THIS SITTING — CE §B, TIGHTENED ──
             NOT ONE BYTE OF IT: not H1, not the explainers, not a connect. The
             rendering of this block binds to THE ACTION'S EXISTENCE, never to
             configuration. `ig_import_enabled` arrives on the status and the pwa
@@ -1078,128 +1096,46 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
             canonical callback path, so a config that could only ever fail keeps
             the entry dark and logs why. Absence remains the safe state. */}
 
-        {ig && ig.ig_import_enabled && (
-          <div style={{ marginTop: 32, paddingTop: 24, borderTop: '0.5px solid var(--atelier-card-border)' }}>
-            <div style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.28em',
-              textTransform: 'uppercase', color: A.brassWarm, marginBottom: 12,
-            }}>{COPY.H1}</div>
+        <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* ── TDW_07 P4b · F5 — "SEE YOUR PROFILE AS COUPLES DO" ─────────────────────
+          Copy ①, founder-vetoed, byte-exact. The spec puts this button on "the Profile
+          Studio and portfolio surfaces" — both, because the vendor who has just finished
+          dragging photos into an order is exactly the vendor who wants to see what that
+          order LOOKS like, and sending him to another screen to find the button loses him.
 
-            {/* H3 SITS ABOVE THE ACTION AND THAT IS INSTRUCTION, NOT LAYOUT.
-                The addendum's law is MANUAL UPLOAD IS THE PERMANENT FALLBACK,
-                NEVER A WALL — and TDW_06's doctrine is that position in a
-                paragraph is instruction. A vendor who reads the connect button
-                first and the reassurance second has been sold to; the other way
-                round, they have been told the truth first. */}
-            <p style={{
-              fontFamily: F.script, fontWeight: 300, fontSize: '1rem',
-              color: A.inkSoft, margin: '0 0 16px', lineHeight: 1.55,
-            }}>{COPY.H3}</p>
+          GHOST, NEVER FILLED. Upload is this screen's one filled gold (house law: one gold
+          per screen) and that is not being taken away from it.
 
-            {ig.connection_state === 'expired' ? (
-              <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.red, margin: '0 0 16px' }}>
-                {COPY.H11}
-              </p>
-            ) : null}
+          It does not gate on the photo floor. A vendor below six photos sees the preview
+          with what he has — F5's whole argument for the pre-approval mount. */}
+      <div>
+        <button type="button" onClick={() => router.push('/vendor/discover/preview')} style={{
+          display: 'block', width: '100%', padding: '12px 0',
+          background: 'none', border: `0.5px solid ${A.interactiveWarm}`, borderRadius: 12,
+          cursor: 'pointer', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+          letterSpacing: '0.32em', textTransform: 'uppercase', color: A.interactiveWarm,
+        }}>
+          See your profile as couples do
+        </button>
+      </div>
 
-            {!ig.connected || ig.connection_state === 'expired' ? (
-              <>
-                <p style={{
-                  fontFamily: F.body, fontWeight: 300, fontSize: '1rem', color: A.inkMute,
-                  margin: '0 0 16px', lineHeight: 1.6,
-                }}>{COPY.H2}</p>
-                {/* THE CONNECT CONTROL — a real link over a destination that
-                    already exists. No onClick, no await, nothing between the
-                    finger and the navigation.
-
-                    THIS SHAPE IS SHAPE A, AND SHAPE A IS KNOWN CLAIMED. The
-                    founder's 2026-07-30 walk shows a plain anchor tap being
-                    taken by the Instagram app, which cannot render consent. The
-                    comment that used to sit here asserted the opposite physics
-                    and was wrong; see igOAuth.js's standing header in dream-os.
-
-                    IT STAYS AS IT IS ON PURPOSE. This is the SUBMITTED SURFACE
-                    and it does not move while App Review is open. The ?igprobe=1
-                    ladder below tests the alternatives without touching it, and
-                    the winning shape replaces this one in a later, ruled act.
-
-                    When the mint has not landed the control is a BUTTON that
-                    re-mints and does not navigate — an honest second state
-                    rather than a hrefless anchor, which would be a dead
-                    control. */}
-                {igAuthUrl ? (
-                  <a href={igAuthUrl}
-                    style={{
-                      display: 'block', width: '100%', padding: '12px 0', boxSizing: 'border-box',
-                      background: 'transparent', textAlign: 'center', textDecoration: 'none',
-                      border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
-                      cursor: 'pointer',
-                      fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
-                      color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
-                    }}>{COPY.H4}</a>
-                ) : (
-                  <button type="button" disabled={igBusy !== null} onClick={igConnectRetry}
-                    style={{
-                      width: '100%', padding: '12px 0', background: 'transparent',
-                      border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
-                      cursor: igBusy ? 'default' : 'pointer', opacity: igBusy ? 0.4 : 1,
-                      fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
-                      color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
-                    }}>{COPY.H4}</button>
-                )}
-
-                {/* THE iOS INSTRUCTION (R-1). Renders ONLY when both are true:
-                    · isIosStandalone() — the standalone PWA is the one context
-                      where a plain tap is claimed and the long-press escapes
-                      (mechanism at the function's own comment above);
-                    · igAuthUrl — the ANCHOR-ONLY RIDER, chair-ratified as law
-                      for this cure: the control above is an <a href> only when
-                      the mint has landed; in its degraded <button> state there
-                      is no long-press → Open-in-New-Tab affordance, and an
-                      instruction for a gesture the control cannot perform would
-                      be its own small lie. */}
-                {isIosStandalone() && igAuthUrl && (
-                  <p style={{
-                    fontFamily: F.body, fontWeight: 300, fontSize: '1rem', color: A.inkMute,
-                    margin: '12px 0 0', lineHeight: 1.6,
-                  }}>{COPY.H19}</p>
-                )}
-              </>
-            ) : (
-              <>
-                {/* F-07.24 — WHICH ACCOUNT IS LINKED. A vendor about to copy
-                    photographs into their public storefront should be able to
-                    read the handle without leaving the page. Rendered only when
-                    the server has one: a failed profile read omits the line
-                    rather than printing an empty @. */}
-                {ig.ig_username && (
-                  <p style={{
-                    fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
-                    letterSpacing: '0.18em', textTransform: 'uppercase',
-                    color: A.brassWarm, margin: '0 0 12px',
-                  }}>{COPY.H18.replace('{handle}', ig.ig_username)}</p>
-                )}
-                <p style={{
-                  fontFamily: F.body, fontWeight: 300, fontSize: '1rem', color: A.inkMute,
-                  margin: '0 0 16px', lineHeight: 1.6,
-                }}>{COPY.H12}</p>
-                <button type="button" disabled={igBusy !== null || full} onClick={igOpenPicker}
-                  style={{
-                    width: '100%', padding: '12px 0', background: 'transparent',
-                    border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
-                    cursor: (igBusy || full) ? 'default' : 'pointer', opacity: (igBusy || full) ? 0.4 : 1,
-                    fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
-                    color: A.interactiveWarm, letterSpacing: '0.28em', textTransform: 'uppercase',
-                  }}>{COPY.H1}</button>
-                <button type="button" disabled={igBusy !== null} onClick={igDisconnect}
-                  style={{
-                    width: '100%', padding: '12px 0', marginTop: 8, background: 'transparent',
-                    border: 'none', cursor: igBusy ? 'default' : 'pointer',
-                    fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute,
-                  }}>{COPY.H13}</button>
-              </>
-            )}
-
+          {ig && ig.ig_import_enabled && ig.connected && ig.connection_state !== 'expired' && (
+            <>
+              {ig.ig_username && (
+                <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: '0.875rem', lineHeight: 1.4, color: A.inkMute, margin: '8px 0 0' }}>
+                  {COPY.H18.replace('{handle}', ig.ig_username)}
+                </p>
+              )}
+              <button type="button" disabled={igBusy !== null} onClick={igDisconnect}
+                style={{
+                  width: '100%', minHeight: 48, padding: '12px 0', background: 'transparent',
+                  border: 'none', cursor: igBusy ? 'default' : 'pointer',
+                  fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute,
+                }}>{COPY.H13}</button>
+            </>
+          )}
+          {ig && ig.ig_import_enabled && (
+            <div>
             {/* ══ THE ?igprobe=1 LADDER — CE-APPROVED, DIAGNOSTIC ONLY ═══════
                 RENDERS ONLY WITH ?igprobe=1 IN THE URL. A vendor, or Meta's
                 reviewer, never sees one byte of this.
@@ -1262,8 +1198,9 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                 ) : null}
               </div>
             )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── TDW_07 P4a · THE PICKER ────────────────────────────────────────

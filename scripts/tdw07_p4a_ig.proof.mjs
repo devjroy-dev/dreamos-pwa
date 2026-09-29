@@ -136,13 +136,22 @@ ok('§1.4 a failed status read leaves the block ABSENT rather than rendering a '
   const bStart = JSX.indexOf('{ig && ig.ig_import_enabled && (');
   const bEnd   = JSX.indexOf('{igPicker && (');
   const BLOCK  = bStart >= 0 && bEnd > bStart ? JSX.slice(bStart, bEnd) : '';
-  const h3 = BLOCK.indexOf('COPY.H3');
-  const h4 = BLOCK.indexOf('COPY.H4');
-  const h1first = BLOCK.indexOf('COPY.H1');
-  ok('§1.5 H3 (manual is just as good) renders ABOVE the connect action — '
-     + 'position in a paragraph is instruction', h3 > 0 && h4 > h3, `${h3} vs ${h4}`);
-  ok('§1.6 …and below the section heading, so the block reads heading → truth → '
-     + 'action', h1first > 0 && h1first < h3);
+  // ── §1.5 / §1.6 · LABELLED AMENDMENT, DESIGN-1 STAGE 2 (the founder, 29 Sept 2026: "make the photos the page";
+  // every explanation into the page's "?" card, no wording changed). H3 left the page for the Portfolio card, where it
+  // is still read FIRST: it opens the card's first line, before the account rule (H2) and before anything else about
+  // Instagram, so the order the doctrine protects (the truth before the action) holds where H3 now lives. The page
+  // renders no explanation; its one H3 is the ?ig=cancelled toast, a handler. The action keeps its gate and sits
+  // beside Upload (Connect Instagram unlinked, Import from Instagram linked).
+  const HELP = raw('lib/worklist/pageHelp.ts');
+  const pf = HELP.slice(HELP.indexOf("[roomHref('portfolio')]"));
+  const firstLine = (pf.match(/line: `([^`]*)`/) || [])[1] || '';
+  ok('§1.5 H3 (manual is just as good) is read FIRST in the Portfolio "?" card, before the account rule, and the page '
+     + 'renders it nowhere (DESIGN-1 stage 2; was: above the connect action)',
+     firstLine.startsWith('${PORTFOLIO_HELP.H3}') && firstLine.indexOf('${PORTFOLIO_HELP.H2}') > 0 && !/\{COPY\.H3\}/.test(JSX), firstLine);
+  const upAt = BLOCK.length ? JSX.indexOf('+ Upload') : -1;
+  ok('§1.6 …and the Instagram action renders behind the same gate, beside Upload: Connect Instagram (H4) and Import from '
+     + 'Instagram (H1) (DESIGN-1 stage 2; was: below its section heading)',
+     BLOCK.indexOf('COPY.H4') > 0 && BLOCK.indexOf('COPY.H1') > 0 && upAt > 0 && JSX.indexOf('{ig && ig.ig_import_enabled && (') > upAt);
 }
 
 ok('§1.7 an EXPIRED connection renders H11 rather than a generic failure — a '
@@ -286,8 +295,21 @@ sec('§5 · THE COPY LEDGER\'S HONESTY — no draft wears a veto stamp');
   const copyBlock = COPY_BLOCK;
   // The five slots whose bytes survive in the repo and genuinely carry the
   // founder's 2026-07-29 veto. These must be present and unaltered.
+  // DESIGN-1 · STAGE 2 (by label): H2, H3 and H12 moved, byte for byte, to the Portfolio "?" card's home
+  // (lib/worklist/pageHelp.ts PORTFOLIO_HELP); the screen's COPY keeps H3 as a READ of that home. For the moved slots
+  // the cell now holds the exact bytes where they live, which is stricter than the slot name it read before.
+  const MOVED = {
+    H2: "Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is free and takes a minute in Instagram\u2019s own settings.",
+    H3: 'Instagram is just the quicker way. Uploading from your phone works exactly the same, always.',
+    H12: 'Photos are copied into your portfolio, so they stay put even if your Instagram changes.',
+  };
+  const helpSrc = raw('lib/worklist/pageHelp.ts');
+  const helpBlock = helpSrc.slice(helpSrc.indexOf('export const PORTFOLIO_HELP'), helpSrc.indexOf('} as const;', helpSrc.indexOf('export const PORTFOLIO_HELP')));
   for (const slot of ['H1', 'H2', 'H3', 'H4', 'H12']) {
-    ok(`§5.1.${slot} ${slot} — the founder-vetoed byte survives`, new RegExp(`\\b${slot}:`).test(copyBlock));
+    const moved = slot in MOVED;
+    ok(`§5.1.${slot} ${slot} — the founder-vetoed byte survives${moved ? ' (in PORTFOLIO_HELP, DESIGN-1 stage 2)' : ''}`,
+      moved ? helpBlock.includes(`${slot}: `) && helpBlock.includes(MOVED[slot]) && (slot !== 'H3' || /\bH3: PORTFOLIO_HELP\.H3,/.test(copyBlock))
+            : new RegExp(`\\b${slot}:`).test(copyBlock));
   }
   // ── §5.2 / §5.3 · LABELED AMENDMENT, 2026-07-30 (counts preserved 7→7, 2→2) ──
   // THESE CELLS ASSERTED A SITTING-SCOPED POSTURE: "these slots are marked
@@ -381,7 +403,7 @@ ok('§6.5 no token, secret or app id appears in the pwa',
 console.log('\n' + '─'.repeat(72));
 console.log('  MUTATION LEDGER — every line a PRODUCTION byte, each cmp-restored.');
 console.log('    V-1  manager   the ig_import_enabled half of the gate dropped ⇒ §1.1 RED');
-console.log('    V-2  manager   H3 moved BELOW the connect button              ⇒ §1.5 RED');
+console.log('    V-2  help      H2 put before H3 in the Portfolio card (DESIGN-1 stage 2; was: H3 below the connect button) ⇒ §1.5 RED');
 console.log('    V-3  manager   the cancelled branch deleted                   ⇒ §2.3 RED');
 console.log('    V-4  manager   the picker stops honouring free slots          ⇒ §4.3 RED');
 console.log('    V-5  manager   picked urls collected into a Set (order lost)  ⇒ §4.4 RED');
