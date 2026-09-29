@@ -289,11 +289,11 @@ const SHELL_CSS = `
 .wl-btn:disabled{opacity:.5;cursor:not-allowed}
 .wl-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
 .wl-btn.pri{background:var(--role-primary);border-color:var(--role-primary);color:var(--role-on-primary)}
-/* DESIGN-1 · the estate's filled button (.atelier-fab, globals.css) takes the one primary inside the
+/* DESIGN-1 · the estate’s filled button (.atelier-fab, globals.css) takes the one primary inside the
    shell: no gold, no gradient, no borrowed link colour (REPORT.md §4, P3, P4, P13). globals.css pins
    its own colours as important, so this rule has to be too. */
 .wl .atelier-fab{background:var(--role-primary)!important;border:1px solid var(--role-primary)!important;color:var(--role-on-primary)!important;box-shadow:none!important}
-/* The calendar's today coin: the palette's solid metal, the ground its ink (today-coin-ink) was measured on. */
+/* The calendar’s today coin: the palette’s solid metal, the ground its ink (today-coin-ink) was measured on. */
 .wl .atelier-today-coin{background:var(--role-metal)!important;box-shadow:none!important}
 
 /* ── THE FAB’S SEAT · 56px, bottom-right, ONE GUTTER IN, 16px CLEAR OF THE DOCK ────
@@ -337,7 +337,7 @@ const SHELL_CSS = `
    changes to the control itself, both survive on any ground, and C-R18 measures the
    painted rect rather than reading this rule. NO NEW COLOUR TOKEN WAS INVENTED FOR A
    PRESSED STATE, and that refusal is the point of the paragraph. */
-/* DESIGN-1: globals.css's light-theme blanket (html.theme-light, color inherit, 0-3-1) outranks this
+/* DESIGN-1: globals.css’s light-theme blanket (html.theme-light, color inherit, 0-3-1) outranks this
    class when the html element still carries theme-light from a legacy page; the glyph keeps its ink. */
 .wl .wl-fab,.wl .wl-btn.pri,.wl .wl-docksend{color:var(--role-on-primary)!important}
 .wl-fab:active{transform:scale(.94);box-shadow:0 1px 4px rgba(0,0,0,.28)}
@@ -346,10 +346,10 @@ const SHELL_CSS = `
    visible in a desktop render: no pressed state anywhere, and no touch-action, so the
    browser held every tap for the double-tap-zoom gesture before dispatching the click. */
 .wl{font:var(--wl-t3);touch-action:manipulation;-webkit-tap-highlight-color:rgba(92,196,174,0.16)}
-/* DESIGN-1 · THE REPORT'S TYPE RULES, HELD AT THE SCOPE (docs/review/REPORT.md §5).
+/* DESIGN-1 · THE REPORT’S TYPE RULES, HELD AT THE SCOPE (docs/review/REPORT.md §5).
    Sentence case and no letter-spacing on every byte inside the shell, and even-width figures
    for money and times. They are held here, once, rather than trusted to each module: the
-   estate's older modules carry their own tracking and capitals inline (the engraved register),
+   estate’s older modules carry their own tracking and capitals inline (the engraved register),
    and an inline style outranks any class. No italic outside a written emphasis (em, i).
    The font shorthand resets font-variant-numeric,
    which is why the figures rule is important and not a plain inherit. */
@@ -363,10 +363,10 @@ const SHELL_CSS = `
    floor is one rule: every control inside the shell is at least 44 by 44, whatever its module
    wrote inline, which is why it is important. A link inside a sentence stays a line of text
    (min-height does not act on an inline box), as WCAG 2.5.8 allows. Checkboxes and radios take
-   their label's hit area; a switch draws its own 44 px area (its room's stylesheet). */
+   their label’s hit area; a switch draws its own 44 px area (its room’s stylesheet). */
 .wl button:not(.wl-sw):not(.yw-toggle),.wl [role=button],.wl [role=tab],.wl select,.wl summary,.wl a,
 .wl input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]){min-height:44px!important}
-/* DESIGN-1 · every button is 48 high (REPORT.md §3, Buttons), the 44 floor's taller twin. The two round icon
+/* DESIGN-1 · every button is 48 high (REPORT.md §3, Buttons), the 44 floor’s taller twin. The two round icon
    controls, the "?" and the profile coin, keep their 44 circle (R-38.5), and a key and value row that a card
    lists (data-tap44, the Ads settings) is a row at the 44 floor, not a button. */
 .wl button:not(.wl-sw):not(.yw-toggle):not(.wl-helpq):not(.wl-coin):not([data-tap44]){min-height:var(--wl-btn-h)!important}

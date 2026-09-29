@@ -1303,7 +1303,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
                   borderRadius: 12,
                   padding: '4px 8px',
                   flexShrink: 0,
-                }}>{ms.state}</span>
+                }}>{cap(ms.state)}</span>
 
                 <span style={{ flex: 1 }} />
 
