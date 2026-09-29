@@ -113,6 +113,56 @@ Both start **unticked**, so nothing is removed unless she says so. An invoice wi
   it refetched each time. It is now keyed on the date's own values. Bench cell 2.9, with a mutation.
 - **The date field was cut to "02/14/20" at 374.** Each date now has its own row, with "What" under it.
 
+## The "?" on everything stages 3 and 4 made (the founder's reminder)
+
+Every page and tab of the new layout has its "?". The pages that stages 3 and 4 made or changed now have **full cards**:
+what the page does, its steps, and what it connects to, naming only controls that screen draws. Each card's first line
+is still the registry's (`ROOM_DESC`), as b140 1.2 requires. The classic layout's cards are untouched: `lib/worklist/pageHelp.ts`
+and `components/worklist/PageHelp.tsx` are byte for byte main's.
+
+**New or completed cards** (words in `v2/lib/worklist/pageHelp.ts`):
+
+| Card | Its steps (the controls it names) | Connects |
+|---|---|---|
+| Enquiries | Search, New, Contacted, Quoted, Booked, Recent; open an enquiry: WhatsApp, Call, Attach package, Forward to a peer, Mark lost; Booking confirmed or Advance paid opens Book; the + button | Clients, Calendar, Money |
+| Calendar | Month, Weddings, the arrows, Good dates; tap a day to see and block it; Coming up; the + button | each booking's dates |
+| Clients | Search; open a client: Ask in chat, Edit, Hide, Cancel booking; the + button | Money, Calendar |
+| Money (Invoices) | Search, Overdue, Unpaid, Part paid, Recent; Mark paid; the + button | Payment reminders, Expenses, TDS and Books, through the search box |
+| Today and More | already full since stages 2 and 3; Today's gained the Get found line, More's the search sentence | |
+| **Search or ask** (new, its own "?" beside the box) | names, the last four digits, a page such as TDS; Ask TDW about this; recent searches | the Ask TDW bar |
+| **Book** (new, "?" on the sheet's title line) | Add a date; Change plan; No package, enter an amount; Confirm booking; Copy, Send on WhatsApp, Undo | Clients, Calendar, Money |
+| **Cancel booking** (new, "?" on the sheet's title line) | the dates line, the invoice line, Keep booking | Enquiries |
+
+**How the surface cards work.** `HelpButton` (in `v2/components/worklist/PageHelp.tsx`) draws the same "?" and the same
+card as a page's, with its own seen key. A sheet's card goes up through the one vendor layer (`SheetLayer`), so it
+sits above the sheet it explains. Screenshots: `shots/stage-4/help/`.
+
+**Benches:**
+- `d1_help_bench_v2.mjs`, 10/10:
+  - the five tabs and More each have a full card;
+  - the search, Book and Cancel booking each have their own;
+  - every control a card names is one its screen draws, checked against the source that draws it (including the
+    filter chips' and sort's derived labels);
+  - no dash;
+  - each "?" is mounted, and a sheet's card sits above its sheet;
+  - five mutations.
+- **b140 passes on both layouts:**
+  - `b140_v2`: 561/561, whole.
+  - Classic `b140`: 550/550 on this stage's code. It was run in the stage-3 worktree, detached at this commit, because
+    that worktree has a real `node_modules`. In the stage-4 worktree, whose `node_modules` is a hard-linked copy,
+    Turbopack refused the classic layout's Jost font ("next/font/google queries have exactly one entry") before any
+    card was tested. It did so twice, the same way. That is this session's copy, not the code: the landing floor runs
+    in a normal checkout.
+- **b140_v2 amended by label.** Stage 3 left two of its source cells red, and I had not run it then:
+  - 1.1 now reads the two v2 redirects (`/vendor` and `/vendor/rooms` go to Today);
+  - 1.3 allows the held-rooms row under the head, and walks the v2 tree rather than the classic;
+  - 1.5 accepts the second seen-key reader (HelpButton), still only in the after-mount effect.
+
+**For the founder, one thing the Money card had to say plainly.** Expenses, TDS, Books and Payment reminders are the
+Money tab's other pages. Stage 3 shows the row linking them only on those pages themselves, not on Invoices, and they
+are not in More. So from Invoices the way to them is the search box ("TDS" opens TDS), and the card says exactly that.
+If he wants them one tap from Invoices, the row can show on Invoices too. That's a one-line change, left for his word.
+
 ## Screenshots
 
 - `shots/stage-4/before/`: stage 3's after shots.
@@ -133,6 +183,9 @@ the foreground.
 | Bench | Result |
 |---|---|
 | `d1_book_bench_v2.mjs` | 32/32 |
+| `d1_help_bench_v2.mjs` | 10/10 |
+| `b140_ce46_fe4_page_help_bench_v2.js` | 561/561 (whole) |
+| `b140_ce46_fe4_page_help_bench.js` (classic) | 550/550 on this stage's code (see the help section) |
 | `d1_layout_panel_bench.mjs` | 15/15 |
 | dream-os `d1_booking_bench.js` | 19/19 |
 | dream-os `d1_layout_master_bench.js` | 16/16 |
@@ -149,7 +202,7 @@ the foreground.
 | dream-os b83, b84, b88, b90, b05 (promotion); b61, b63 (switchboard) | the same red sets as before the change (this clone has no packages installed) |
 
 **Left for the landing floor:** everything STAGE-3.md lists, and the dev-server `_v2` benches that read the changed
-files: b81_v2, b123_v2 (at landing only, by ruling), b140_v2 and tdw41_g34s2_pwa_v2's live cells.
+files: b81_v2, b123_v2 (at landing only, by ruling) and tdw41_g34s2_pwa_v2's live cells.
 
 ## Benches updated, and why
 
