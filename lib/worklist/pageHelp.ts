@@ -56,7 +56,7 @@ const HELD: readonly { icon: HelpIcon; line: string }[] = [];
 // read-first of 27 Sept 2026; they wait on the founder's yes like every other new byte.
 const TYPED_WHAT = {
   rooms:     'Every part of the app, in groups',
-  today:     'What needs attention today',
+  today:     'Your day: a date to check, enquiries to answer, today\u2019s functions and money due',
   exchange:  'Gear and services traded with peers',
   responses: 'Replies to one collab post',
 } as const;
@@ -79,7 +79,13 @@ const entry = (what: string, extra: Partial<PageHelp> = {}): PageHelp =>
  */
 export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   '/vendor/rooms':                          entry(TYPED_WHAT.rooms, { app: '' }),
-  '/vendor/today':                          entry(TYPED_WHAT.today),
+  // DESIGN-1 · STAGE 2: Home is the day's work (docs/review/REPORT.md §3). Each line names only a control the page
+  // draws: Check and Open in calendar (the Check a date box), This week (the Today section's head).
+  '/vendor/today':                          entry(TYPED_WHAT.today, { can: [
+    { icon: 'calendar', line: 'Pick a day and tap Check. It answers Free all day, Booked or Enquiry, says what is on it, and Open in calendar goes to that day.' },
+    { icon: 'reply', line: 'Reply to lists new enquiries with their last message and how long they have waited. Tap one to open it and reply.' },
+    { icon: 'list', line: 'Today lists each function with its time, place and crew. Tap This week for the next seven days.' },
+  ], connects: 'Money due opens Invoices. What you pinned is in More.' }),
   [roomHref('leads')]: entry(ROOM_DESC.leads),
   [roomHref('packages')]: entry(ROOM_DESC.packages),
   [roomHref('clients')]: entry(ROOM_DESC.clients),

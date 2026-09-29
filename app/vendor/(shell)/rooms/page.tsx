@@ -9,12 +9,15 @@
 // inside it.
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { RoomsGrid } from '@/components/worklist/RoomsGrid';
+import { PinnedRooms } from '@/components/worklist/PinnedRooms';
 import { AddFab } from '@/components/worklist/AddFab';
 import { COPY } from '@/lib/worklist/copy';
 
 export default function RoomsPage() {
   return (
     <WorklistShell title={COPY.navRooms}>
+      {/* DESIGN-1 · STAGE 2: the pinned rooms are KEPT, moved here from Home (founder's ruling); Home is the day. */}
+      <PinnedRooms />
       <RoomsGrid />
       <AddFab />
     </WorklistShell>

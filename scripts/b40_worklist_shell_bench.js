@@ -104,6 +104,20 @@ let C2_RETIRED_PRINTED = false; // CE-45 FE-1, A-45.2: C2's retired clause print
 // EXACTLY ONE reached cell, or the bench exits 1: a row that matches nothing is a table that
 // has drifted from the cells it claims to retire.
 const RETIRED_CELLS = [
+  // DESIGN-1 · STAGE 2 (A-45.2, by label): Home is the day's work in four sections (components/worklist/TodayHome.tsx);
+  // the numeral, the kind line, the attention cards with their fold, and the Done today ledger were removed by the
+  // founder's ruling. Their cells retire HERE, by id, never run; b146 proves the Home that replaced them, and the cells
+  // whose subject survives (the reading's gates, the wire's order, the capped tell, the record keys, the figures) are
+  // amended where they stand (C34, C37, C61, C63, C64, C66, C100).
+  ['C60', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the open-items numeral is gone (Reply to, Today and Money due each state their own)'],
+  ['C65', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: its dated uncomments were the numeral\u2019s wiring, which left with the numeral'],
+  ['C68', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the Done today ledger is gone (REPORT.md E13)'],
+  ['C69', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the kind line is gone; its nouns map (kindNouns) stays in copy.ts, unread by Today'],
+  ['C70', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the kind line\u2019s eyebrow anchors went with it'],
+  ['C71', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the three-in-place fold is gone; Reply to lists every new enquiry the wire sends'],
+  ['C72', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the capped kind\u2019s promise line went with the kind line (C64 holds the tell on Reply to)'],
+  ['C73', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the invoice card\u2019s due line is gone; Money due reads the wire\u2019s dates in one line'],
+  ['C74', 'DESIGN-1 stage 2: the founder\u2019s Home (docs/review/REPORT.md §3) retired TodayCards and Today\u2019s masthead: the done ledger\u2019s particular went with the ledger'],
   ['C28', 'A-45.2: the Slice Door (the in-room tab strip) was removed by the founder\u2019s ruling, CE-45 FE-2 TYPE_1; b123 pins its absence'],
 ];
 const retiredHits = new Map(RETIRED_CELLS.map(([id]) => [id, 0]));
@@ -1490,8 +1504,8 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   // WORKING state. F-38.31 is not weakened by that: `working` is DEFINED from
   // `feed.responded`, which this cell asserts rather than assuming, so there is still no
   // path on which a numeral paints without a reading behind it.
-  if (!/const working\s*=\s*feed\.responded/.test(today)) return 'the working state is not derived from a reading — the numeral could paint unmeasured';
-  if (!/\{working && feed\.openItems !== null && \(/.test(today)) return 'the numeral is not gated on the working state';
+  // DESIGN-1 · STAGE 2 (by label): the numeral retired (C60); no figure may paint on Today without a reading, and none does
+  if (/openItems/.test(today)) return 'Today reads the open-items count again, a figure without its numeral\u2019s gate';
   // AMENDED TWICE, BOTH LABELLED. Relay #3 item 2 withheld the true-empty arm with its
   // byte, and this cell refused its presence. PHASE 4 DISCHARGES THAT: the feed answers, so
   // BOTH bytes are live and what the cell must hold is that each is gated on the state it
@@ -1520,8 +1534,9 @@ cell('C34 the numeral and the true-empty line are gated on a reading (F-38.31)',
   // absence. The refusal that does NOT change is that no status byte may stand over cards.
   if (!/: firstRun \? COPY\.todayNothingYet : /.test(HEADLINE))
     return 'the true-empty line is not gated on first-run';
-  if (/\{working && <h1/.test(today) || /working \?/.test(HEADLINE) || !/: null$/.test(HEADLINE.trim()))
-    return 'a status byte stands over the cards (R-39.13)';
+  // DESIGN-1 · STAGE 2 (by label): the last arm is the day itself, not a status byte, so none stands over the sections
+  if (!/: todayLine\(today\?\.today \|\| istTodayISO\(\)\)$/.test(HEADLINE.trim()) || /todayRestingHead/.test(HEADLINE))
+    return 'a status byte stands over the day\u2019s sections (R-39.13)';
   return null;
 });
 
@@ -1626,9 +1641,11 @@ cell('C37 the t0 rung survives while its consumer is withheld', () => {
   // per app, and that element is Today's numeral. A rung declared with no consumer is a
   // variable somebody re-invents at a new value; a rung with two is the five-rung scale's
   // exception quietly becoming a rule.
-  const today = strip(read('app/vendor/(shell)/today/page.tsx'));
-  if (!/var\(--wl-t0\)/.test(today)) return 'the masthead numeral does not consume t0 — the rung has no home';
-  if (!/wl-mnum\{font:var\(--wl-t0\)/.test(today)) return 'something other than the numeral consumes t0 on Today';
+  // DESIGN-1 · STAGE 2 (by label): the numeral retired (C60), so t0 is again a rung whose consumer is withheld, which is
+  // exactly this cell's first claim: it survives at the review's 28/600 and nothing on Today consumes it (stage 3 gives
+  // it Money's one big figure, "the money owed")
+  const today = strip(read('app/vendor/(shell)/today/page.tsx')) + strip(read('components/worklist/TodayHome.tsx'));
+  if (/var\(--wl-t0\)/.test(today)) return 'something on Today consumes t0; its consumer is Money\u2019s figure';
   return null;
 });
 
@@ -2506,8 +2523,10 @@ cell('C60 the masthead numeral is the sum of all five counts, computed in one ho
 //    RED MUTATION: add `.sort()` after `Object.keys(na)` in components/worklist/TodayCards.tsx.
 cell('C61 the feed renders in the wire\'s key order and re-sorts nothing', () => {
   const bad = [];
-  const src = strip(read('components/worklist/TodayCards.tsx'));
-  if (!/Object\.keys\(na\)/.test(src)) bad.push('the render does not read the body\'s own key order');
+  // DESIGN-1 · STAGE 2 (by label): the one list Home draws from the feed is Reply to (lead_unanswered), and it renders
+  // the wire's own order, re-sorting nothing (D-4's ranking, properties 4 and 5)
+  const src = strip(read('components/worklist/TodayHome.tsx'));
+  if (!/needs_attention\.lead_unanswered/.test(src) || !/unanswered\.map\(/.test(src)) bad.push('Reply to does not render the wire\'s list');
   if (/\.sort\(/.test(src)) bad.push('the feed sorts — key order IS D-4\'s ranking (property 4)');
   if (/\.reverse\(/.test(src)) bad.push('the feed reverses — ties break oldest-first as delivered (property 5)');
   // ATTENTION_KINDS is a SET for the type system, not the sequence. If the render iterated
@@ -2546,15 +2565,10 @@ cell('C63 FirstRun rides has_any false and the resting state rides an empty read
   const bad = [];
   const src = strip(read('app/vendor/(shell)/today/page.tsx'));
   if (!/const firstRun = [^\n]*has_any === false/.test(src)) bad.push('FirstRun is not gated on has_any === false (property 6)');
-  if (!/const resting\s*=\s*[^\n]*has_any === true[^\n]*openItems === 0/.test(src)) bad.push('the resting state is not gated on a reading that came back empty');
-  if (!/const working\s*=\s*[^\n]*openItems !== null[^\n]*openItems > 0/.test(src)) bad.push('the working state is not gated on a reading with work in it');
-  if (!/\{firstRun && <FirstRun \/>\}/.test(src)) bad.push('FirstRun is not behind its gate — it renders unconditionally');
-  const rest = strip(read('components/worklist/TodayCards.tsx'));
-  // property 8: exactly three keys, and no fourth bucket and no sentence explaining the absence.
-  for (const k of ['invoice_paid', 'contract_signed', 'team_task_done'])
-    if (!rest.includes(k)) bad.push('the resting summary omits done_today.' + k);
-  if (/lead[s]?_done|events_done|event_done/.test(rest)) bad.push('the resting summary invents a fourth bucket (property 8)');
-  if (!/todayRestingScope/.test(rest)) bad.push('the resting state does not carry its one coverage line');
+  // DESIGN-1 · STAGE 2 (by label): the resting and working states and the done summary retired with TodayCards (C68,
+  // C74); FirstRun's gate stands, and no Home section renders the first-run manual itself
+  if (!/\{firstRun && <FirstRun \/>\}/.test(src)) bad.push('FirstRun is not behind its gate, it renders unconditionally');
+  if (/FirstRun/.test(strip(read('components/worklist/TodayHome.tsx')))) bad.push('a Home section renders the first-run manual itself');
   return bad.length ? bad.join(' | ') : null;
 });
 
@@ -2569,7 +2583,8 @@ cell('C64 a capped count never renders bare — the truncation tell rides trunca
   const m = copy.match(/todayTruncatedSuffix:\s*'([^']*)'/);
   if (!m) bad.push('the truncation tell has no byte in the copy register');
   else if (m[1] !== '+') bad.push('the truncation tell reads 、' + m[1] + '、, vetoed byte is 、+、');
-  for (const f of ['components/worklist/TodayCards.tsx', 'components/worklist/RoomsGrid.tsx']) {
+  // DESIGN-1 · STAGE 2 (by label): the capped count Home draws is Reply to's, so the tell is asserted there
+  for (const f of ['components/worklist/TodayHome.tsx', 'components/worklist/RoomsGrid.tsx']) {
     const src = strip(read(f));
     if (!/truncated\[/.test(src) && !/truncated\b/.test(src)) bad.push(f + ' does not read truncated');
     if (!/todayTruncatedSuffix/.test(src)) bad.push(f + ' renders a figure with no truncation tell available to it');
@@ -2638,21 +2653,12 @@ cell('C65 open_leads_count reaches no shell path, and the dated uncomments all f
 //    RED MUTATION: drop `lining-nums` from .wl-mnum in app/w/today/page.tsx.
 cell('C66 every figure site declares lining figures, not only the rung that broke (F-39.15)', () => {
   const bad = [];
+  // DESIGN-1 · STAGE 2 (by label): the Today sites left with TodayCards and the masthead; the tile count stays, and the
+  // shell scope now holds even-width figures on every byte (the report's "Numbers"), which is asserted beside it
   const SITES = [
-    ['app/vendor/(shell)/today/page.tsx', 'wl-mnum'],
     ['components/worklist/RoomsGrid.tsx', 'wl-tcount'],
-    ['components/worklist/TodayCards.tsx', 'wl-tseccount'],
-    // RENAMED AT S4/3 to the ratified frames' own class names: the figure became a
-    // two-part cell inside the card's grid (value + caption) rather than a single block
-    // stapled under it, so one class became two and both carry figures.
-    ['components/worklist/TodayCards.tsx', 'wl-tcfigval'],
-    ['components/worklist/TodayCards.tsx', 'wl-tcdetail'],
-    ['components/worklist/TodayCards.tsx', 'wl-tmorecount'],
-    ['components/worklist/TodayCards.tsx', 'wl-tfoldbtn'],
-    ['components/worklist/TodayCards.tsx', 'wl-trestpart'],
-    ['app/vendor/(shell)/today/page.tsx', 'wl-mkind'],
-    ['components/worklist/TodayCards.tsx', 'wl-trestn'],
   ];
+  if (!/\.wl,\.wl \*\{font-variant-numeric:tabular-nums!important/.test(read('components/worklist/WorklistShell.tsx'))) bad.push('the shell scope does not hold tabular figures on every byte');
   for (const [f, cls] of SITES) {
     const css = read(f);
   // ⚠ EVERY RULE FOR THE SELECTOR, NOT THE FIRST ONE. This estate declares figure style
@@ -3479,19 +3485,14 @@ cell('C100 every Today card opens its record, by a key its room reads (Arm D, F-
   // The leads card has carried ?lead= since F-39.17; the others landed on a room root and left
   // the vendor to find the row he had just tapped. One map on the card side, one map on the
   // room side, and the registry (ROOM_FOR_KIND) decides which room reads which key.
-  const cards = strip(read('components/worklist/TodayCards.tsx'));
+  // DESIGN-1 · STAGE 2 (by label): Home's rows open their records by the same keys: an enquiry by ?lead=, a function by
+  // ?event=, each id encoded; Money due opens Invoices (a list, not one record). The rooms' arms are unchanged.
+  const cards = strip(read('components/worklist/TodayHome.tsx'));
   const slice = strip(read('components/vendor/slices/SliceShell.tsx'));
   const team  = strip(read('components/worklist/TeamTabs.tsx'));
   const bad = [];
-  for (const [kind, key] of [['lead_unanswered', 'lead'], ['invoice_due', 'invoice'],
-                             ['events_today', 'event'], ['team_tasks', 'task']]) {
-    if (!new RegExp(kind + ":\\s*'" + key + "'").test(cards)) bad.push(kind + ' does not write ?' + key + '=');
-  }
-  // contract_unsigned is ABSENT on purpose: the contracts room has no record sheet (F-39.76),
-  // so its card lands on the room root. A key for it would promise a sheet that does not exist.
-  if (/contract_unsigned:\s*'/.test(cards)) bad.push('contract_unsigned writes a key, but the contracts room has no record sheet (F-39.76)');
-  if (!/\?\$\{key\}=\$\{encodeURIComponent\(id\)\}/.test(cards)) bad.push('the card does not encode the id it opens');
-  // The room side: three slices read their key through the ONE arm, same gate as ?lead=.
+  if (!/roomHref\('leads'\)\}\?lead=\$\{encodeURIComponent\(l\.id\)\}/.test(cards)) bad.push('Reply to does not write ?lead=');
+  if (!/roomHref\('events'\)\}\?event=\$\{encodeURIComponent\(f\.event_id\)\}/.test(cards)) bad.push('a function row does not write ?event=');
   if (!/KEY_FOR_SLICE[\s\S]{0,200}leads: 'lead', invoices: 'invoice', events: 'event'/.test(slice)) bad.push('the slice arm does not declare a key per slice');
   if (!/const want = new URLSearchParams\(window\.location\.search\)\.get\(key\)/.test(slice)) bad.push('the slice arm does not read the declared key');
   if (!/if \(row\) setSel\(row\)/.test(slice)) bad.push('the arm does not open the record (it must not enter select-mode)');

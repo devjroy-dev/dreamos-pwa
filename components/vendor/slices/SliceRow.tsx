@@ -15,6 +15,7 @@ import { RF } from '@/lib/worklist/referrals';
 import { WP } from '@/lib/worklist/weddingPages';
 import { istDayKey } from '@/lib/frost/tokens'; // R-35.23's IST home — one semantic, one home
 import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
+import { CREW_WORDS } from '@/lib/worklist/crew';
 
 export const A = {
   // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
@@ -108,6 +109,9 @@ export interface Row {
   crossChipHref?: string;
   /** TDW_04 A3 (L-3): the binder this row names (events carry it on the wire). */
   twinBinderId?: string;
+  /** DESIGN-1 · STAGE 2: the crew on this function, in words (lib/worklist/crew.ts crewWords); null when nobody
+      is on it, which the row draws as "No crew yet" in the critical ink. Absent on every other slice. */
+  crew?: { words: string | null };
   /** TDW_04 A1: the lead's wishbone wire (missing cells) — the detail sheet
       renders tappable chips into the WishboneSheet when present. */
   draftMissing?: string[];
@@ -298,7 +302,9 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
             color: A.inkMute,
             marginTop: 4,
             overflowWrap: 'anywhere',
-          }}>{detailLine}</div>
+          }}>{detailLine}{row.crew && (<>{detailLine ? ' \u00b7 ' : ''}{row.crew.words
+            ? <span data-row-crew="">{row.crew.words}</span>
+            : <span data-row-crew="" style={{ color: 'var(--role-critical)' }}>{CREW_WORDS.none}</span>}</>)}</div>
         </div>
 
         {/* The one thing on the right: the status, in sentence case. */}

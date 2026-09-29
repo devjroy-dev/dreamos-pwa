@@ -1,5 +1,6 @@
 'use client';
 import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
+import { useCrew, crewWords, CREW_WORDS } from '@/lib/worklist/crew';
 // components/vendor/CalendarDaySheet.tsx
 // TDW_04 B6 surfaces S2 — item 4, P5's day sheet: "the platform thesis in one
 // surface." One round trip (GET /vendor/day/:vendorId/:date) feeds:
@@ -127,6 +128,7 @@ interface Props {
 export function CalendarDaySheet({
   open, dateIso, vendorId, muhuratLocal, onClose, onToast, onRefresh, onAddBooking, onFullDayBlock, onEdit, onAssignCrew,
 }: Props) {
+  const crew = useCrew(vendorId, dateIso, dateIso);   // DESIGN-1 · STAGE 2: this day's crew, by event
   const router = useRouter();
   const { openAsk } = useAsk();
   const [day, setDay] = useState<VendorDayResponse | null>(null);
@@ -472,6 +474,13 @@ export function CalendarDaySheet({
                       {ev.kind ? ev.kind.charAt(0).toUpperCase() + ev.kind.slice(1) : ''}{ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}{ev.state === 'done' ? ' · Done' : ''}
                     </div>
                     <div style={{ font: RUNG.t3, color: D.cream }}>{ev.title}</div>
+                    {/* DESIGN-1 · STAGE 2: the crew on the card itself, by first name, no tap needed (REPORT.md E6, E8).
+                        The Crew button below still assigns them. */}
+                    {crew.byEvent.has(ev.id) && (
+                      <div data-day-crew="" style={{ font: RUNG.t4, marginTop: 4, color: crewWords(crew.byEvent.get(ev.id)) ? 'var(--atelier-ink-mute)' : 'var(--role-critical)' }}>
+                        {crewWords(crew.byEvent.get(ev.id)) ?? CREW_WORDS.none}
+                      </div>
+                    )}
                     {ev.binder_name && (
                       <div style={{ font: RUNG.t5, letterSpacing: '0.08em', marginTop: 4, display: 'inline-block', padding: '4px 8px', borderRadius: 999, border: '0.5px solid var(--atelier-card-border)', textTransform: 'uppercase', color: D.gold }}>
                         {ev.binder_name}

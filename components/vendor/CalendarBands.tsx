@@ -4,6 +4,7 @@
 // family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
 import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
+import { firstName, CREW_WORDS } from '@/lib/worklist/crew';
 // components/vendor/CalendarBands.tsx
 // TDW_04.5 · P2 — THE WEDDING-BAND VIEW (spec §P2, CE-ruled F1–F7).
 //
@@ -45,7 +46,7 @@ const A = {
   brass:     'var(--atelier-accent-text)',
   brassWarm: 'var(--atelier-label)',
   brassLine: 'var(--atelier-card-border)',
-  brassSoft: 'var(--atelier-row-hover)',
+  brassSoft: 'var(--atelier-card-border)',
   brassRing: 'var(--atelier-input-border)',
   terracotta:'var(--role-critical)',
 } as const;
@@ -85,30 +86,21 @@ function whisperFor(band: Band): string | null {
   return pending > 0 ? `${inr(amount)} · ${inr(pending)} pending` : inr(amount);
 }
 
-// ── the crew circle ──────────────────────────────────────────────────────────
-function CrewCircle({ c }: { c: BandCrew }) {
+// ── the crew, by name ────────────────────────────────────────────────────────
+// DESIGN-1 · STAGE 2 (REPORT.md E7): the board drew each member as initials in a ring ("RS", "AV"), and a
+// member who had not answered looked like one who had. It now writes the first name, and says when that
+// member has not replied or has declined, in the words the rest of the app uses (lib/worklist/crew.ts).
+function CrewName({ c }: { c: BandCrew }) {
   const pending   = c.confirmation === 'pending';
   const declined  = c.confirmation === 'declined';
-  const stroke    = declined ? A.terracotta : (pending ? A.brassSoft : A.brassRing);
-  const fill      = declined ? 'transparent' : (pending ? 'transparent' : 'var(--atelier-row-hover)');
-  const text      = declined ? A.terracotta : A.brassWarm;
   return (
     <span
-      title={`${c.name} — ${c.confirmation}`}
       aria-label={`${c.name}, ${c.confirmation}`}
       style={{
-        font: RUNG.t4,
-        width: 17,
-        height: 17,
-        borderRadius: '50%',
-        flexShrink: 0,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        border: `0.5px solid ${stroke}`,
-        background: fill,
-        color: text,
-      }}>{c.initials}</span>
+        font: RUNG.t5,
+        color: declined ? A.terracotta : (pending ? A.inkMute : A.inkSoft),
+        whiteSpace: 'nowrap',
+      }}>{firstName(c.name)}{pending ? ` (${CREW_WORDS.pending})` : declined ? ` (${CREW_WORDS.declined})` : ''}</span>
   );
 }
 
@@ -150,15 +142,14 @@ function Pip({ fn, muhurat, onTap }: { fn: BandFunction; muhurat: boolean; onTap
       <span style={{
         font: RUNG.t3,
         color: A.inkSoft,
-        maxWidth: 74,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
       }}>{fn.kind ? fn.kind.charAt(0).toUpperCase() + fn.kind.slice(1) : ''}</span>
-      {fn.crew.length > 0 && (
-        <span style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-          {fn.crew.slice(0, 4).map(c => <CrewCircle key={c.member_id} c={c} />)}
+      {fn.crew.length > 0 ? (
+        <span style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
+          {fn.crew.map(c => <CrewName key={c.member_id} c={c} />)}
         </span>
+      ) : (
+        <span style={{ font: RUNG.t5, color: 'var(--role-critical)', whiteSpace: 'nowrap' }}>{CREW_WORDS.none}</span>
       )}
     </button>
   );

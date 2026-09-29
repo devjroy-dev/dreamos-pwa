@@ -517,8 +517,10 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
           const hm = ho.home || {}; const c = ho.chrome || {};
           // 4.5a INVERTED BY LABEL, R-45.21 (P2 amended by the founder: "it being at the bottom defeats the
           // purpose of pinning"): the pins now stand ABOVE Today's surface, which still draws its date line.
+          // DESIGN-1 · STAGE 2 (by label): the founder moved the pins under More ("kept, moved under More, not deleted"),
+          // so they stand above the rooms directory there, as they stood above Today's surface (R-45.21's order kept).
           ok(hm.masthead === true && hm.pinsBeforeMasthead === true && hm.mastheadBeforePins === false && hm.pinsBottom !== null && hm.mastTop !== null && hm.pinsBottom <= hm.mastTop + 1 && !!hm.mdate,
-            `4.5a ${mode}: the pins stand above Today\u2019s own surface, which still draws its date line (R-45.21)`, JSON.stringify([hm.pinsBeforeMasthead, hm.pinsBottom, hm.mastTop, hm.mdate]));
+            `4.5a ${mode}: the pins stand above the rooms directory on More, where the founder moved them (R-45.21; DESIGN-1 stage 2)`, JSON.stringify([hm.pinsBeforeMasthead, hm.pinsBottom, hm.mastTop, hm.mdate]));
           ok(hm.cols === 3 && (hm.pins || []).length === 6 && hm.pins.every((x) => x.descHidden === true && !!x.desc),
             `4.5f ${mode}: the pins are compact, three across, each room\u2019s line kept for screen readers only (R-45.21)`, JSON.stringify([hm.cols, (hm.pins || []).map((x) => x.descHidden)]));
           ok((hm.pins || []).length === 6 && hm.pins.every((x) => oneIcon(ho, x.key, x.icons)),
@@ -526,17 +528,20 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
           ok(h16(hm.head) === H_COPY.pinnedHead, `4.5b ${mode}: the pins sit under their heading`, hm.head);
           ok(!!hm.change && hm.change.disabled === true && hm.change.chip === 'coming' && h16(hm.change.label) === H_COPY.pinnedChange,
             `4.5c ${mode}: the change control is drawn, stated, disabled and wears Coming (F-19.20; P1(b))`, JSON.stringify(hm.change));
-          ok(h16(c.title) === H_COPY.navToday && JSON.stringify((c.seats || []).map((s) => s.current)) === JSON.stringify([null, 'page']), `4.5d ${mode}: the title reads Today and the Today tab is current (DESIGN-1)`, c.title);
+          // DESIGN-1 · STAGE 2 (by label): the pins' page is More, so its title reads More and the More seat is current.
+          ok(c.title === NAV_ROOMS && JSON.stringify((c.seats || []).map((s) => s.current)) === JSON.stringify(['page', null]), `4.5d ${mode}: the pins\u2019 page is More: its title reads More and the More tab is current (DESIGN-1 stage 2)`, c.title);
           ok(!!ho.clicked && ho.afterClick === ho.clicked, `4.5e ${mode}: a pinned room opens its room`, JSON.stringify([ho.clicked, ho.afterClick]));
-          docks.home = c.dock; docks.homeSeat = c.seatTop;
         }
       }
+      // DESIGN-1 · STAGE 2 (by label): Home's dock is read on Home itself (the pins scene now reads More).
+      const td = probe(mode, 'today');
+      if (guard(td, `4.6 ${mode} today`)) { const tc = td.chrome || {}; docks.home = tc.dock; docks.homeSeat = tc.seatTop; }
 
       const hs = probe(mode, 'home:slow');
       if (guard(hs, `4.7 ${mode}`)) {
         const e = hs.early || {}; const l = hs.late || {};
         ok(e.waiting === true && e.links === 0 && l.waiting === false && l.links === 6 && e.pinsH === l.pinsH && Math.abs((e.mastTop || -99) - (l.mastTop || 99)) <= 1,
-          `4.7 ${mode}: while her trade loads the pins hold their height, and Today\u2019s masthead does not move when they arrive (chair\u2019s (a))`, JSON.stringify([e, l]));
+          `4.7 ${mode}: while her trade loads the pins hold their height, and the directory below them does not move when they arrive (chair\u2019s (a); DESIGN-1 stage 2: on More)`, JSON.stringify([e, l]));
       }
 
       ok(!!docks.rooms && !!docks.home && docks.rooms.text === ph && docks.home.text === ph,

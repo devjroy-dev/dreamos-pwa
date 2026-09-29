@@ -1,5 +1,7 @@
 'use client';
 import { RUNG_FONT as RUNG } from '@/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
+import { useCrew, crewWords, CREW_WORDS } from '@/lib/worklist/crew';
+import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 // app/vendor/calendar/screen.tsx — THE CALENDAR'S BODY, ONE DEFINITION, NO CHROME.
 //
 // ── §4-2 · CALENDAR CROSSES · R-38.11 ───────────────────────────────────────
@@ -88,6 +90,8 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
   // into it, enriched per P5 (slots, chips, followups, muhurat, money due,
   // block toggles, Move with the inline verdict). One day, one surface.
   const [daySel, setDaySel] = useState<string | null>(null);
+  // DESIGN-1 · STAGE 2: the crew for the Coming up list, one bands read for the next three months.
+  const crew = useCrew(vendorId, istTodayISO(), istPlusDaysISO(92));
   const [hotOn, setHotOn] = useHotDates();
   const [blocks,   setBlocks]   = useState<AvailabilityBlock[]>([]);
   const [hotDates, setHotDates] = useState<HotDate[]>([]);
@@ -289,6 +293,10 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
     try {
       const q = new URLSearchParams(window.location.search).get('block');
       if (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) setBlockSel(q);
+      // DESIGN-1 · STAGE 2: Home's Check a date lands here with ?day=YYYY-MM-DD ("Open in calendar"): the
+      // month turns to that day and its sheet opens, the same sheet a tap on the day opens.
+      const d = new URLSearchParams(window.location.search).get('day');
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) { setYear(+d.slice(0, 4)); setMonth(+d.slice(5, 7) - 1); setDaySel(d); }
     } catch { /* no-op */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -732,6 +740,12 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
                       font: RUNG.t3,
                       color: 'var(--atelier-ink)',
                     }}>{ev.title}</div>
+                    {/* DESIGN-1 · STAGE 2: the crew on it, by first name (REPORT.md E6). */}
+                    {crew.byEvent.has(ev.id) && (
+                      <div data-cal-crew="" style={{ font: RUNG.t4, marginTop: 4, color: crewWords(crew.byEvent.get(ev.id)) ? 'var(--atelier-ink-mute)' : 'var(--role-critical)' }}>
+                        {crewWords(crew.byEvent.get(ev.id)) ?? CREW_WORDS.none}
+                      </div>
+                    )}
                   </div>
                 </div>
               );

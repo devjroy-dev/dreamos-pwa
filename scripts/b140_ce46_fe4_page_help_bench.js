@@ -104,8 +104,10 @@ function sourceCells() {
   ['app', 'components'].forEach(walk0);
   if (mounts.sort().join() !== ['app/vendor/(shell)/calendar/screen.tsx', 'app/vendor/(shell)/today/page.tsx'].join()) bad.push('RoomHeadTitle mounted by: ' + mounts.join(', '));
   if (!/<RoomHeadTitle line=\{MONTHS\[month\]\} \/>/.test(code(read('app/vendor/(shell)/calendar/screen.tsx')))) bad.push('Calendar does not hand the month to the head');
-  if (!/<RoomHeadTitle line=\{!feed\.responded && !feed\.pending \? COPY\.todayNotLive : firstRun \? COPY\.todayNothingYet : resting \? COPY\.todayRestingHead : null\} \/>/.test(code(read('app/vendor/(shell)/today/page.tsx')))) bad.push('Today does not hand its status line to the head');
-  if (/wl-status|wl-tresthead/.test(code(read('app/vendor/(shell)/today/page.tsx')) + code(read('components/worklist/TodayCards.tsx')))) bad.push('Today still draws a status h1 of its own');
+  // DESIGN-1 · STAGE 2 (by label): Home's resting line retired with TodayCards (docs/review/REPORT.md §3); the head now
+  // carries the day itself ("Monday 28 September", the IST day the feed was cut for) where the resting line stood.
+  if (!/<RoomHeadTitle line=\{!feed\.responded && !feed\.pending \? COPY\.todayNotLive : firstRun \? COPY\.todayNothingYet : todayLine\(today\?\.today \|\| istTodayISO\(\)\)\} \/>/.test(code(read('app/vendor/(shell)/today/page.tsx')))) bad.push('Today does not hand its status line to the head');
+  if (/wl-status|wl-tresthead/.test(code(read('app/vendor/(shell)/today/page.tsx')) + code(read('components/worklist/TodayHome.tsx')) /* DESIGN-1 stage 2: TodayCards retired; Home draws from TodayHome */)) bad.push('Today still draws a status h1 of its own');
   if (!/\.wl-billprice\{font:var\(--wl-t2\)/.test(code(read('components/worklist/BillingRoom.tsx')))) bad.push('Billing\u2019s price is not at t2');
   for (const [f, re, what] of [['components/vendor/slices/SliceShell.tsx', /data-room-title|ROOM_NAME\[/, 'SliceShell draws a title'], ['app/vendor/(shell)/notes/body.tsx', /data-room-title|NOTES_NAME/, 'Notes draws a title'],
     ['app/vendor/(shell)/advisor/page.tsx', /wl-advtitle/, 'the Advisor draws a title'], ['components/solutions/SolutionsPieces.tsx', /\.sol-title\{/, 'Pieces keeps the .sol-title rule']]) {
