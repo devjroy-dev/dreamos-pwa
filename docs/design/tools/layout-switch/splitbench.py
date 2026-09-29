@@ -33,6 +33,10 @@ def convert(text):
         text = text.replace('@/' + noext, '@/v2/' + noext)
         esc = noext.replace('/', '\\/')
         text = text.replace('@\\/' + esc, '@\\/v2\\/' + esc)
+        # relative specifiers from scripts/ and scripts/lib/ ('../lib/x', '../../lib/x') reach the v2 copy too
+        for up in ('../', '../../'):
+            for q in ("'", '"'):
+                text = text.replace(q + up + noext + q, q + up + 'v2/' + noext + q)
     text = text.replace('v2/v2/', 'v2/').replace('v2\\/v2\\/', 'v2\\/')
     return text
 

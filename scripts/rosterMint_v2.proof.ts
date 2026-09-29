@@ -9,7 +9,7 @@ process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this 
 // failure sentences, the idempotent re-tap, and — the ruling's teeth — that
 // minting assigns NOBODY. Run via scripts/run-roster-mint-proof.sh.
 
-import { mintCrewIdentity, MINT_SUCCESS_MSG, MINT_ERROR_MSG, MINT_ACTION_LABEL, MintResponse } from '../lib/vendor/rosterMint';
+import { mintCrewIdentity, MINT_SUCCESS_MSG, MINT_ERROR_MSG, MINT_ACTION_LABEL, MintResponse } from '../v2/lib/vendor/rosterMint';
 
 let pass = 0, fail = 0;
 const ok = (c: boolean, m: string) => { if (c) { pass++; console.log('  PASS  ' + m); } else { fail++; console.log('  FAIL  ' + m); } };

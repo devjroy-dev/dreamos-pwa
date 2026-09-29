@@ -114,3 +114,13 @@ patch(B122, [
 if os.path.exists('scripts/b146_design1_home_bench_v2.js'):
     os.replace('scripts/b146_design1_home_bench_v2.js', 'scripts/d1_home_bench_v2.js')
     print('renamed b146_design1_home_bench_v2.js -> d1_home_bench_v2.js')
+
+# the v2 copy of a .proof.ts needs its own wrapper, or the floor refuses to start (a .proof.ts no wrapper reaches)
+W = 'scripts/run-roster-mint-proof.sh'
+if os.path.exists('scripts/rosterMint_v2.proof.ts'):
+    w = open(W, encoding='utf8').read()
+    w = w.replace('# TDW_04.5 P4 — compile', '# DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of run-roster-mint-proof.sh, for rosterMint_v2.proof.ts.\n# TDW_04.5 P4 — compile')
+    w = w.replace('scripts/rosterMint.proof.ts', 'scripts/rosterMint_v2.proof.ts').replace('scripts/rosterMint.proof.js', 'scripts/rosterMint_v2.proof.js')
+    open('scripts/run-roster-mint-v2-proof.sh', 'w', encoding='utf8').write(w)
+    os.chmod('scripts/run-roster-mint-v2-proof.sh', os.stat(W).st_mode)
+    print('wrapper scripts/run-roster-mint-v2-proof.sh')
