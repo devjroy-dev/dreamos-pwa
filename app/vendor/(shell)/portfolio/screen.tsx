@@ -864,7 +864,10 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
   const stateColor = (s: string) => s === 'approved' ? A.brassWarm : s === 'rejected' ? A.red : A.inkMute;
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    // DESIGN-1 · STAGE 3 · ONE PAGE, ONE SCROLL (Settings' cure, F-44.166): this block takes its natural height, so the
+    // shell's own scroller (main.wl-main) scrolls the whole page, header and Ask bar fixed around it. As `flex: 1;
+    // min-height: 0` it was squeezed into the height between them and the grid scrolled in a box of its own.
+    <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
       <Toast toast={toast} />
 
       {/* ── DESIGN-1 · STAGE 2 · THE PHOTOS ARE THE PAGE (the founder, 29 Sept 2026) ─────────────────────────────────
@@ -981,7 +984,9 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
       )}
       <div
         ref={scrollRef}
-        style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '12px var(--slice-inset, 16px) 32px', touchAction: dragId ? 'none' : 'auto' }}
+        // DESIGN-1 · STAGE 3: not a scroller. overflowX 'clip', never 'hidden' (which makes the other axis a scroller,
+        // F-44.166); the grid flows in the page's scroll, and the 32 below keeps the last row clear of the Ask bar.
+        style={{ overflowX: 'clip', padding: '12px var(--slice-inset, 16px) 32px', touchAction: dragId ? 'none' : 'auto' }}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}

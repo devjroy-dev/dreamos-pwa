@@ -171,7 +171,7 @@ function StoreRow({ item }: { item: Item }) {
 
 export function StorefrontScreen({ vendorId }: { vendorId: string }) {
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', overflowX: 'clip' }}>
       <div style={{ flex: 1, paddingBottom: 40 }}>
         <BioBlock vendorId={vendorId} />
         {/* ── THE SECTION LABEL IS THE OLD LAYOUT'S CHROME, RETIRED IN THE SHELL ──

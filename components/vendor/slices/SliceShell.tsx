@@ -212,7 +212,7 @@ const msInput: React.CSSProperties = {
 
 export function SliceShell({ slice, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
+    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       {/* ── THE BACK/LABEL ROW IS THE OLD LAYOUT'S CHROME ────────────────────
           Inside the shell it would be the two-mastheads defect one level down from where
           R-38.1 removed it: WorklistShell already prints the room's word in its header and
@@ -265,7 +265,7 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
       {filterRail}
 
       {/* List */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 112 }}>
+      <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', paddingBottom: 112 }}>
         {renderList ?? (
           <>
             {!loading && !error && rows.length === 0 && (

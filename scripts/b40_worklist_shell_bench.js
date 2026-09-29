@@ -342,8 +342,14 @@ cell('C5 no persona name in the copy register, all five (R-37.70 as amended at R
 
 cell('C6 no third container (R-37.64)', () => {
   const shell = strip(read('components/worklist/WorklistShell.tsx'));
+  // DESIGN-1 · STAGE 3 (by label): the bar is the founder's five tabs (docs/review/REPORT.md §3), drawn from their one
+  // home, lib/worklist/tabs.ts, in his order; still one container (the nav) and no third one.
   const seats = (shell.match(/className=\{'wl-seat'/g) || []).length;
-  if (seats !== 2) return seats + ' nav seats rendered, expected exactly 2';
+  if (seats !== 1 || !/\{TABS\.map\(\(t\) => \(\s*<Link key=\{t\.id\} href=\{t\.rooms\[0\]\.href\} className=\{'wl-seat'/.test(shell)) return seats + ' seat templates; expected one, mapped over TABS';
+  const tabs = strip(read('lib/worklist/tabs.ts'));
+  const ids = [...tabs.slice(tabs.indexOf('export const TABS')).matchAll(/\{ id: '(\w+)', label: '([^']+)'/g)].map((m) => m[1] + ':' + m[2]);
+  if (ids.join(',') !== 'today:Today,enquiries:Enquiries,calendar:Calendar,clients:Clients,money:Money') return 'the tabs are ' + ids.join(',') + ', expected Today, Enquiries, Calendar, Clients, Money';
+  if ((shell.match(/<nav className="wl-nav"/g) || []).length !== 1) return 'the bar is not one nav';
   if (/<input/.test(shell)) return 'an input renders in the shell chrome — search-as-navigation is banned';
   return null;
 });
@@ -404,8 +410,8 @@ cell('C10 every tap target >= 44px', () => {
     // its subject and the reason stands where the name stood. The cell itself is
     // untouched and the cell COUNT is unchanged; only this one guarded class is
     // withdrawn. `wl-coin` stays: the medallion is very much alive.
-    'components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat'],
-    'components/worklist/RoomsGrid.tsx':     ['wl-tile'],
+    'components/worklist/WorklistShell.tsx': ['wl-coin', 'wl-seat', 'wl-heldlink'],  // DESIGN-1 stage 3: + the held rooms' links
+    'components/worklist/RoomsGrid.tsx':     ['wl-morerow'],  // DESIGN-1 stage 3 (by label): More's rows replaced the tiles
     'components/worklist/AiDock.tsx':        ['wl-dockfield'],  // Arm A: the costume is back and honest; .wl-dock is the padding wrapper
     'components/worklist/FirstRun.tsx':      ['wl-chip'],
     'components/worklist/WorklistShell.tsx#shared': ['wl-cardaction'],  // rehomed: shared chrome lives in the shell
@@ -445,7 +451,9 @@ cell('C10 every tap target >= 44px', () => {
 cell('C11 type floors hold', () => {
   const rules = [
     // DESIGN-1 (by label): every floor rises to the review's 13 (nothing a vendor reads is smaller); body stays 14+.
-    ['components/worklist/RoomsGrid.tsx', 'wl-tname', 13], ['components/worklist/RoomsGrid.tsx', 'wl-bandlabel', 13],
+    // DESIGN-1 · STAGE 3 (by label): More's row name, one line and group heading replaced the tile name and shelf label.
+    ['components/worklist/RoomsGrid.tsx', 'wl-morename', 13], ['components/worklist/RoomsGrid.tsx', 'wl-moredesc', 13],
+    ['components/worklist/RoomsGrid.tsx', 'wl-moreh', 13], ['components/worklist/WorklistShell.tsx', 'wl-heldlink', 13],
     ['components/worklist/WorklistShell.tsx', 'wl-seat', 13], ['components/worklist/WorklistShell.tsx', 'wl-lbl', 13],
     // AMENDED, LABELLED — ZIP 13 (CE ruling F-4), same deletion as C10's.
     // `wl-sub` was the coin drawer's right-hand micro-label; the rule is gone and
@@ -686,16 +694,22 @@ cell('C16 the brass split holds across every token map', () => {
 // ── C17 · ROOMS-FIRST, ASSERTED ON ALL FOUR SURFACES AT ONCE (R-37.75). The manifest, the
 //    bare-shell redirect, the seat order and the carried nav are four statements of one
 //    decision. Any cell that checked only one would go green while the app argued with itself.
-cell('C17 rooms-first agrees on every surface', () => {
+// DESIGN-1 · STAGE 3 (by label): TODAY-FIRST, on the same surfaces. The founder's five tabs begin with Today (the day's
+// work since stage 2) and the directory became More, behind the coin; the manifest, the bare shell, the front door and
+// the first seat now say Today together, which is the one decision this cell exists to keep single.
+cell('C17 today-first agrees on every surface (was rooms-first; DESIGN-1 stage 3)', () => {
   const man = JSON.parse(read('public/worklist-manifest.json'));
-  if (man.start_url !== '/vendor/rooms') return 'manifest start_url is ' + man.start_url + ', expected /vendor/rooms';
+  if (man.start_url !== '/vendor/today') return 'manifest start_url is ' + man.start_url + ', expected /vendor/today';
 
   const idx = strip(read('app/vendor/(shell)/page.tsx'));
-  if (!/replace\('\/vendor\/rooms'\)/.test(idx)) return 'the bare /w shell does not resolve to Rooms';
+  if (!/replace\('\/vendor\/today'\)/.test(idx)) return 'the bare /w shell does not resolve to Today';
+  const door = strip(read('lib/frost/entryRedirect.ts'));
+  if (!/if \(hasVendorSession\) return '\/vendor\/today';/.test(door)) return 'the front door does not send a vendor to Today';
 
   const shell = strip(read('components/worklist/WorklistShell.tsx'));
-  const seats = [...shell.matchAll(/COPY\.(navRooms|navToday)/g)].map((m) => m[1]);
-  if (seats.join(',') !== 'navRooms,navToday') return 'seat order is ' + seats.join(',') + ', expected Rooms then Today';
+  const tabsSrc = strip(read('lib/worklist/tabs.ts'));
+  const first = tabsSrc.slice(tabsSrc.indexOf('export const TABS')).match(/\{ id: '(\w+)', label: '[^']+', rooms: \[\s*\{ label: '[^']+', href: '([^']+)' \}/);
+  if (!first || first[1] !== 'today' || first[2] !== '/vendor/today') return 'the first seat is not Today at /vendor/today';
 
   // P7.2 AMENDMENT (labeled): the carried nav (components/vendor/BottomNav.tsx) is RETIRED
   // with the old tree. "One app, one nav" is now asserted as its absence.
@@ -722,7 +736,8 @@ cell('C17 rooms-first agrees on every surface', () => {
   // shape R-38.7 removed from this surface. The assertion moves to where the guarantee now
   // lives: Today is still one tap away, from the seat, on every shell surface.
   if (/\/vendor\/today/.test(grid)) return 'the grid links to Today again — the seat is that door';
-  if (!/href="\/vendor\/today"/.test(shell)) return 'the Today seat is not an anchor in the shell';
+  // DESIGN-1 stage 3: the seats are anchors mapped over TABS (C6); the first is Today (above)
+  if (!/<Link key=\{t\.id\} href=\{t\.rooms\[0\]\.href\} className=\{'wl-seat'/.test(shell)) return 'the Today seat is not an anchor in the shell';
   return null;
 });
 
@@ -2543,13 +2558,14 @@ cell('C61 the feed renders in the wire\'s key order and re-sorts nothing', () =>
 //                  `feed.today.needs_attention[kind].length` instead of `counts[kind]`.
 cell('C62 a tile figure is the wire\'s count, not a list length, and it is never called a badge', () => {
   const bad = [];
-  const src = strip(read('components/worklist/RoomsGrid.tsx'));
-  if (!/counts\[kind\]/.test(src)) bad.push('the tile figure does not read counts[kind]');
-  if (/needs_attention\[[^\]]*\]\s*(\?\?\s*\[\])?\s*\.length/.test(src)) bad.push('the tile figure is authored from a list length (property 1/3)');
-  if (!/useTodayFeed/.test(src)) bad.push('Rooms does not read the Today feed — R-37.63 (1) wants the SAME response');
-  // ONE WORD, ONE MEANING. SliceShell owns `badge` for a row-level state chip and the six
-  // list rooms import it; the tile figure must not answer to the same name.
-  if (/\bbadge\b/i.test(src)) bad.push('the tile figure is called a badge — SliceShell owns that word');
+  // DESIGN-1 · STAGE 3 (by label): the tiles and their figures retired with the shelves; More's rows carry no figure,
+  // and Home's one figure (Reply to's count) is the wire's list as drawn (C61, C64). What stands: no surface authors a
+  // figure from a list length, and neither file nor the registry spells badge.
+  for (const f of ['components/worklist/RoomsGrid.tsx', 'components/worklist/TodayHome.tsx']) {
+    const src = strip(read(f));
+    if (/needs_attention\??\.\[[^\]]*\]\s*(\?\?\s*\[\])?\s*\.length|needs_attention\[[^\]]*\]\s*(\?\?\s*\[\])?\s*\.length/.test(src)) bad.push(f + ' authors a figure from a list length (property 1/3)');
+    if (/\bbadge\b/i.test(src)) bad.push(f + ' calls a figure a badge — SliceShell owns that word');
+  }
   const rooms = strip(read('lib/worklist/rooms.ts'));
   if (/\bbadge\b/i.test(rooms)) bad.push('rooms.ts spells badge — the registry\'s word is count');
   return bad.length ? bad.join(' | ') : null;
@@ -2583,8 +2599,10 @@ cell('C64 a capped count never renders bare — the truncation tell rides trunca
   const m = copy.match(/todayTruncatedSuffix:\s*'([^']*)'/);
   if (!m) bad.push('the truncation tell has no byte in the copy register');
   else if (m[1] !== '+') bad.push('the truncation tell reads 、' + m[1] + '、, vetoed byte is 、+、');
-  // DESIGN-1 · STAGE 2 (by label): the capped count Home draws is Reply to's, so the tell is asserted there
-  for (const f of ['components/worklist/TodayHome.tsx', 'components/worklist/RoomsGrid.tsx']) {
+  // DESIGN-1 · STAGE 2 (by label): the capped count Home draws is Reply to's, so the tell is asserted there.
+  // DESIGN-1 · STAGE 3 (by label): More's rows draw no figure (the tiles' counts retired with the shelves), so Home is
+  // the one capped count left, and the tell is held there.
+  for (const f of ['components/worklist/TodayHome.tsx']) {
     const src = strip(read(f));
     if (!/truncated\[/.test(src) && !/truncated\b/.test(src)) bad.push(f + ' does not read truncated');
     if (!/todayTruncatedSuffix/.test(src)) bad.push(f + ' renders a figure with no truncation tell available to it');
@@ -2655,8 +2673,9 @@ cell('C66 every figure site declares lining figures, not only the rung that brok
   const bad = [];
   // DESIGN-1 · STAGE 2 (by label): the Today sites left with TodayCards and the masthead; the tile count stays, and the
   // shell scope now holds even-width figures on every byte (the report's "Numbers"), which is asserted beside it
+  // DESIGN-1 · STAGE 3 (by label): the tile count retired with the shelves; Home's Reply to count is the figure site now.
   const SITES = [
-    ['components/worklist/RoomsGrid.tsx', 'wl-tcount'],
+    ['components/worklist/TodayHome.tsx', 'wl-home-count'],
   ];
   if (!/\.wl,\.wl \*\{font-variant-numeric:tabular-nums!important/.test(read('components/worklist/WorklistShell.tsx'))) bad.push('the shell scope does not hold tabular figures on every byte');
   for (const [f, cls] of SITES) {

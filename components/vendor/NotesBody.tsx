@@ -128,7 +128,7 @@ export function NotesBody() {
   const canSave = draft.trim().length > 0;
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative', minHeight: 0 }}>
+    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative' }}>
       <Toast toast={toast} />
 
       {/* Search */}
@@ -156,7 +156,7 @@ export function NotesBody() {
           )}
         </div>
       ) : (
-        <div style={{ flex: 1, overflowY: 'auto', padding: '4px var(--slice-inset, 16px) 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', padding: '4px var(--slice-inset, 16px) 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filtered.map(note => (
             // TDW_06 P7e: a paper card via the design system's own .atelier-card class, so it
             // wears each theme's card treatment (bg · border · lift · the per-theme inset

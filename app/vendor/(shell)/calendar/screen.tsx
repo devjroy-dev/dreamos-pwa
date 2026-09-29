@@ -302,7 +302,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
   }, []);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', overflowX: 'clip', position: 'relative' }}>
 
       {/* ── THE MASTHEAD LEFT THIS FILE AT §4-2, AND `vendorName` LEFT WITH IT ──────
           It did not become a prop or a flag. It is mounted by the fallback route
@@ -317,7 +317,7 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
           after the lift was the signature itself. */}
 
       {/* Scrollable body — calendar grid + engagements scroll together */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 112 }}>
+      <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', paddingBottom: 112 }}>
 
       {/* ── TDW_04.5 P2 — the MONTH · WEDDINGS toggle (spec §P2: Jost, top-right) ──
           Two words, one hairline divider between them; the live one is brass, the

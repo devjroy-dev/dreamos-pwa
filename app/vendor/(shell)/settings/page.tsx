@@ -29,6 +29,7 @@ import { useSettings } from '@/hooks/vendor/useSettings';
 import { updateMe } from '@/lib/vendor/api/vendor';
 import { RF } from '@/lib/worklist/referrals';
 import { ENQ, ENQ_CANCEL, ENQ_FAILED, phoneLooksRight } from '@/lib/worklist/enquiryRouting';   // CE-45 G6-1 FE_2
+import { ENQUIRY_ROUTING_ID } from '@/lib/worklist/tabs';   // DESIGN-1 stage 3: the Enquiries tab's link to this section
 import { EXCHANGE } from '@/lib/worklist/exchange';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { WlToast } from '@/components/worklist/WlToast';
@@ -171,6 +172,12 @@ function EnquiryRoutingRow() {
   const [busy, setBusy] = useState(false);
   const live = routing ?? current.enquiry_routing;
   const livePhone = phone ?? current.enquiry_phone;
+  // DESIGN-1 · STAGE 3: the Enquiries tab lists this section by its heading and links here by its anchor; the section
+  // draws after the settings read, so the page is brought to it once it stands (a hash only scrolls to what exists).
+  useEffect(() => {
+    if (loading || typeof window === 'undefined' || window.location.hash !== '#' + ENQUIRY_ROUTING_ID) return;
+    document.getElementById(ENQUIRY_ROUTING_ID)?.scrollIntoView({ block: 'start' });
+  }, [loading]);
 
   async function write(body: { enquiry_routing: 'tdw' | 'own_number'; enquiry_phone?: string }) {
     if (busy) return false;
@@ -203,7 +210,7 @@ function EnquiryRoutingRow() {
 
   if (step === 'consent') {
     return (
-      <div className="wl-set" data-enquiry-row="consent">
+      <div className="wl-set" id={ENQUIRY_ROUTING_ID} data-enquiry-row="consent">
         <SCard register="rungs" title={ENQ.label}>
         <div className="wl-swrow" style={{ cursor: 'default' }}>
           <span className="wl-swtext">
@@ -246,7 +253,7 @@ function EnquiryRoutingRow() {
   );
 
   return (
-    <div className="wl-set" data-enquiry-row="list" role="radiogroup" aria-label={ENQ.label}>
+    <div className="wl-set" id={ENQUIRY_ROUTING_ID} data-enquiry-row="list" role="radiogroup" aria-label={ENQ.label}>
       {/* FE_2b · his ask: "Where enquiries go should read as header to the three options". The settings section
           header itself (SCard, the "Business" heading's component, same register), E2 under it, the options beneath. */}
       <SCard register="rungs" title={ENQ.label}>

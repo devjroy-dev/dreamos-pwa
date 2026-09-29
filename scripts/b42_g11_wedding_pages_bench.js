@@ -59,6 +59,10 @@ const __RETIRE = new Map([
   ['20 / 19 / 10 / 9', 'A-45.2: the two-band grid constants retired with the founder\u2019s layout; ROOM_COUNT_EXPECTED is pinned on its own below; b122 \u00a72 pins the shelves'],
   ['roomsInBand filters hosted rooms out of the grid', 'A-45.2: a hollow green, roomsInBand has no reader since the shelves; the function is listed for removal at the next cut that opens rooms.ts (F-05.56)'],
   ['the eyebrow is KEPT', 'A-45.2: P3 put the four group headings in its place; the byte stays in its home unconsumed, pinned below (chair, CE-45)'],
+  ['the headline is told apart by its icon in the accent, its name in the ink, and nothing else (DESIGN-1)', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; More\u2019s rows have no headline pair; the registry\u2019s headline flags stand, pinned above'],
+  ['the tile renders its headline from the REGISTRY, never from an index', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; no surface draws a headline tile'],
+  ['the host tile sums the counts of the rooms it hosts', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; More\u2019s rows carry no figure, so no host sums one (b40 C62, C64)'],
+  ['a null hosted count is skipped rather than summed as zero', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; the summation left with the tile figures'],
 ]);
 const __seen = new Map();
 const ok = (n, c, d) => {
@@ -130,8 +134,10 @@ sec('C1 \u00b7 the registry (R-40.20/.22)');
 sec('C2 \u00b7 the FAB clearance (R-G11.11 / F-40.27)');
 {
   const src = read(GRIDF);
-  const m = src.match(/\.wl-bands\{[^}]*\}/);
-  ok('.wl-bands declares a rule', Boolean(m), 'not found');
+  // DESIGN-1 · STAGE 3 (by label): More's list (.wl-more) replaced the bands and stands on the same page as the FAB, so
+  // the clearance rule moved with it, word for word; the cells below read it there.
+  const m = src.match(/\.wl-more\{[^}]*\}/);
+  ok('.wl-more declares a rule (was .wl-bands; DESIGN-1 stage 3)', Boolean(m), 'not found');
   if (m) {
     ok('its bottom padding is computed from the FAB seat AND a tile height',
       /padding-bottom:calc\(var\(--wl-fab-bottom\)\s*\+\s*var\(--wl-tile\)\)/.test(m[0]), m[0]);

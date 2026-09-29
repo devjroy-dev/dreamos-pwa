@@ -230,6 +230,8 @@ const HOME_CSS = `
 .wl-home-h{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 8px;display:flex;align-items:center;gap:8px}
 .wl-home-hrow .wl-home-h{margin:0}
 .wl-home-count{font:var(--wl-t5);color:var(--role-on-primary);background:var(--role-primary);border-radius:999px;padding:0 8px;min-width:24px;text-align:center}
+/* DESIGN-1 stage 3: Home’s one figure site (b40 C66); after the shorthand, which resets the figure style. */
+.wl-home-count{font-variant-numeric:lining-nums tabular-nums}
 .wl-home-check{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:end;background:var(--atelier-card-bg);border:1px solid var(--atelier-card-border);border-radius:12px;padding:16px}
 .wl-home-lab{grid-column:1/-1;font:var(--wl-t5);color:var(--atelier-ink-mute)}
 .wl-home-date{min-width:0;min-height:48px;padding:0 12px;border-radius:12px;border:1px solid var(--atelier-input-border);background:var(--atelier-input-bg);color:var(--atelier-ink);font:var(--wl-t3);color-scheme:inherit}

@@ -212,7 +212,7 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
       {/* Page header */}
       <div style={{ padding: '16px 24px 0', borderBottom: `0.5px solid ${D.borderCol}` }}>
         <button type="button" onClick={() => router.back()} style={{
@@ -228,7 +228,7 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 80px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', padding: '16px 16px 80px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {loading ? (
           <div style={{ padding: '64px 0', textAlign: 'center' }}>
             <p style={{ fontFamily: F.display, fontStyle: 'italic', fontSize: '1rem', lineHeight: 1.5, color: D.muted }}>Loading…</p>

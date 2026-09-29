@@ -237,7 +237,7 @@ const TAG: React.CSSProperties = { fontFamily: F.body, fontWeight: 500, fontSize
 
 const Blk = ({ children }: { children: React.ReactNode }) => <div style={{ padding: '0 16px' }}>{children}</div>;
 const Scroll = ({ children, fab }: { children: React.ReactNode; fab?: boolean }) => (
-  <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: fab ? 110 : 40, WebkitOverflowScrolling: 'touch' }}>{children}</div>
+  <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', paddingBottom: fab ? 110 : 40 }}>{children}</div>
 );
 
 /** A screen's header: back chevron, title in Cormorant, one line under it. */
@@ -1097,7 +1097,7 @@ export function ContractsScreen() {
   const canUpload = title.trim().length > 0 && file !== null;
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', minHeight: 0 }}>
+    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <Toast toast={toast} />
       {view === 'room' && Room()}
       {view === 'policies' && PolicySheet({ over: false })}

@@ -116,12 +116,8 @@ export const COPY = {
   navToday: 'Today',
   navRooms: 'More',
 
-  // -- CE-45 FE-1 · HOME AND SHELVES (R-45.19, R-45.20; the founder's copy table, 24 Sept 2026) --
-  // The three shelves on Rooms. N1 is his (R-45.19: "Business", not "Couples"); N2 and N3 his by
-  // the table. The shelf CONTENTS live in lib/worklist/rooms.ts (SHELVES); these are the names only.
-  shelfBusiness: 'Business',
-  shelfMoney:    'Money',
-  shelfStudio:   'Studio',
+  // -- CE-45 FE-1 · HOME AND SHELVES (R-45.19, R-45.20). DESIGN-1 stage 3: the three shelf names (Business, Money,
+  // Studio) retired with the shelves; More's group names live with its rows in lib/worklist/tabs.ts.
   // N8, his word: "Pinned rooms" (the proposal carried "Your"; he took it out).
   pinnedHead:    'Pinned',
   // N9: the control under the pins. P1(b) makes it a STATED DISABLED control (F-19.20), wearing

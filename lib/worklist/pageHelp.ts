@@ -91,17 +91,23 @@ const entry = (what: string, extra: Partial<PageHelp> = {}): PageHelp =>
 
 /**
  * Every surface under app/vendor/(shell)/ that draws, by pathname. /vendor itself redirects
- * to /vendor/rooms and draws nothing (app/vendor/(shell)/page.tsx), so it has no entry.
+ * to /vendor/today (DESIGN-1 stage 3) and draws nothing (app/vendor/(shell)/page.tsx), so it has no entry.
  */
 export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
-  '/vendor/rooms':                          entry(TYPED_WHAT.rooms, { app: '' }),
+  // DESIGN-1 · STAGE 3: More is the coin's page. Each line names only what the page draws: the pinned rooms, the
+  // founder's five groups of rows, and the account rows at the foot (Report an issue, Graphite and Chalk, Sign out).
+  '/vendor/rooms':                          entry(TYPED_WHAT.rooms, { can: [
+    { icon: 'list', line: 'Every room outside the five tabs, in groups: Your business, Get found, Work together, Messages and Help. Tap a row to open it.' },
+    { icon: 'switch', line: 'Under Your account: Report an issue, Graphite or Chalk for dark or light, and Sign out.' },
+  ], connects: 'Pinned, at the top, holds the rooms you use most.',
+    app: 'The five tabs at the bottom hold the daily work: Today, Enquiries, Calendar, Clients and Money. Your initials, top right, open More.' }),
   // DESIGN-1 · STAGE 2: Home is the day's work (docs/review/REPORT.md §3). Each line names only a control the page
   // draws: Check and Open in calendar (the Check a date box), This week (the Today section's head).
   '/vendor/today':                          entry(TYPED_WHAT.today, { can: [
     { icon: 'calendar', line: 'Pick a day and tap Check. It answers Free all day, Booked or Enquiry, says what is on it, and Open in calendar goes to that day.' },
     { icon: 'reply', line: 'Reply to lists new enquiries with their last message and how long they have waited. Tap one to open it and reply.' },
     { icon: 'list', line: 'Today lists each function with its time, place and crew. Tap This week for the next seven days.' },
-  ], connects: 'Money due opens Invoices. What you pinned is in More.' }),
+  ], connects: 'Money due opens Invoices. Your pinned rooms are in More: tap your initials, top right.' }),
   [roomHref('leads')]: entry(ROOM_DESC.leads),
   [roomHref('packages')]: entry(ROOM_DESC.packages),
   [roomHref('clients')]: entry(ROOM_DESC.clients),

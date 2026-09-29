@@ -33,6 +33,7 @@ import { AskProvider, type AskApi } from '@/lib/worklist/askContext';
 import { AiDock } from '@/components/worklist/AiDock';
 import { AccountDrawer } from '@/components/worklist/AccountDrawer';
 import { RoomHead, RoomHeadProvider, PAGE_HELP_CSS } from '@/components/worklist/PageHelp';
+import { TABS, tabFor, heldRoomFor, MORE_HREF, TAB_WORDS } from '@/lib/worklist/tabs';
 
 const SCOPE = '.wl';
 
@@ -63,9 +64,7 @@ export function WorklistShell({ title, children }: {
   // comes from the layout's provider, which does not remount when the route changes — the
   // mode survives the walk by construction rather than by being restored after it.
   const { mode, setMode } = useMode();
-  const [coinOpen, setCoinOpen] = useState(false);
   const initials = useVendorInitials();
-  const close = () => setCoinOpen(false);
   // ── F-38.20 · THE DRAWER OWNS ITS OWN DISMISSAL ───────────────────────────
   // `close()` used to be the FIRST thing the row handlers did, which is why the
   // acknowledgement beat did nothing when it was added: the drawer scheduled its exit for
@@ -133,8 +132,11 @@ export function WorklistShell({ title, children }: {
     };
   }, []);
 
-  const onToday = pathname.startsWith('/vendor/today');
-  const onRooms = !onToday;
+  // DESIGN-1 · STAGE 3: the seat that is lit is the tab holding this room (lib/worklist/tabs.ts); on More and the
+  // rooms under it no seat is lit and the coin is current instead.
+  const tab = tabFor(pathname);
+  const onMore = pathname === MORE_HREF;
+  const held = tab && tab.rooms.length > 1 && pathname !== tab.rooms[0].href ? heldRoomFor(tab, pathname) : null;
 
   return (
     <AskProvider value={ask}>
@@ -147,7 +149,7 @@ export function WorklistShell({ title, children }: {
     }}>
       <style>{scopeCss(SCOPE) + typeCss(SCOPE) + SHELL_CSS + PAGE_HELP_CSS}</style>
 
-      <header className="wl-hdr" style={{ position: 'relative', zIndex: coinOpen ? 21 : 5 }}>
+      <header className="wl-hdr" style={{ position: 'relative', zIndex: 5 }}>
         {/* R-38.4: the wordmark is t2, DM SANS. It was Cormorant at 17/400 and CE-38's own
             first draft kept it there — struck at relay #1, because Cormorant-at-17 is a
             seventh tuple and the whole warrant of a closed set is that it is closed.
@@ -168,23 +170,11 @@ export function WorklistShell({ title, children }: {
             vendor with no name yet gets the glyph rather than an empty circle.
             R-38.5/CE-38 relay #2: the coin stays 44 — at the tap floor, with the
             stale "this is 46 with air" comment retired alongside the rule it lied about. */}
-        <button type="button" className="wl-coin" aria-label="Your profile" aria-expanded={coinOpen}
-                onClick={() => setCoinOpen((v) => !v)}>{initials || '\u25ce'}</button>
-        {coinOpen && (
-          <>
-            <button type="button" className="wl-drawerscrim" aria-label="Close menu" onClick={close} />
-            {/* ZIP 14 · F-16.37's cure stands: this block is a CHILD of the <header> it
-                anchors to, not its sibling. `.wl-drawer` is position:absolute with
-                top:calc(100% + 8px); when the two were siblings that resolved against the
-                initial containing block, so 100% meant one whole viewport down. */}
-            <div className="wl-drawer">
-              {/* ONE DEFINITION, TWO MOUNTS. See components/worklist/AccountDrawer.tsx —
-                  the carried rooms mount the same component through Header.tsx, so the
-                  founder meets one menu behind one medallion everywhere in the estate. */}
-              <AccountDrawer mode={mode} onPickMode={pick} onClose={close} room={title} />
-            </div>
-          </>
-        )}
+        {/* DESIGN-1 · STAGE 3: THE COIN IS MORE (the founder's ruling on docs/review/REPORT.md §3). It opens the More
+            page, where every room outside the five tabs sits in the founder's groups, above the account rows the coin's
+            menu used to hold (one definition, AccountDrawer, mounted there). Still 44, still the vendor's initials. */}
+        <Link href={MORE_HREF} className="wl-coin" aria-label={TAB_WORDS.moreLabel}
+              aria-current={onMore ? 'page' : undefined}>{initials || '\u25ce'}</Link>
       </header>
 
       {/* ── CE-46 · FE-4 · THE ROOM'S HEAD HAS ONE DRAWER (Fork A (3), ruled 27 Sept 2026) ──
@@ -198,7 +188,25 @@ export function WorklistShell({ title, children }: {
           solutions kicker, the Advisor's intro) is the room's, unchanged. F-44.219: Calendar and
           Today set the head's line to their own (the month; the status line) through RoomHeadProvider,
           so those two pages keep one t1 with the "?" on it, and no room draws a second. */}
-      <RoomHeadProvider><main className="wl-main"><RoomHead title={title} />{children}</main></RoomHeadProvider>
+      <RoomHeadProvider><main className="wl-main"><RoomHead title={title} />
+        {/* DESIGN-1 · STAGE 3: THE HELD ROOMS. A tab that holds more than one room lists them under the head of each
+            room it holds but its first (Home, Enquiries, Clients and Invoices keep their page to their work), so
+            Expenses, TDS and Books are one tap from each other and from Invoices. */}
+        {tab && held && (
+          <nav className="wl-held" aria-label={TAB_WORDS.heldRooms(tab.label)}>
+            {tab.rooms.map((r) => (
+              <Link key={r.href} href={r.href} className="wl-heldlink" aria-current={r === held ? 'page' : undefined}>{r.label}</Link>
+            ))}
+          </nav>
+        )}
+        {children}
+        {onMore && (
+          <section className="wl-moreacct" aria-label={TAB_WORDS.account}>
+            <h2 className="wl-moreh">{TAB_WORDS.account}</h2>
+            <AccountDrawer mode={mode} onPickMode={pick} onClose={() => {}} room={title} inline />
+          </section>
+        )}
+      </main></RoomHeadProvider>
 
       {/* ── R-41.139 · THE DOCK IS NOT MOUNTED ON /vendor/advisor ────────────────
           NOT MOUNTED, not hidden. A first cut of this hid it from the page's own
@@ -223,11 +231,13 @@ export function WorklistShell({ title, children }: {
           moved and this note stands where it stood, because a reader looking for the
           estate's build id will look here first. */}
 
+      {/* DESIGN-1 · STAGE 3: FIVE TABS, in the report's order (docs/review/REPORT.md §3, "Five tabs"). Each seat goes
+          to its tab's first room and is lit on every room the tab holds. */}
       <nav className="wl-nav" aria-label="Sections">
-        <Link href="/vendor/rooms" className={'wl-seat' + (onRooms ? ' on' : '')}
-              aria-current={onRooms ? 'page' : undefined}>{COPY.navRooms}</Link>
-        <Link href="/vendor/today" className={'wl-seat' + (onToday ? ' on' : '')}
-              aria-current={onToday ? 'page' : undefined}>{COPY.navToday}</Link>
+        {TABS.map((t) => (
+          <Link key={t.id} href={t.rooms[0].href} className={'wl-seat' + (tab?.id === t.id ? ' on' : '')}
+                aria-current={tab?.id === t.id ? 'page' : undefined}>{t.label}</Link>
+        ))}
       </nav>
     </div>
     </AskProvider>
@@ -241,8 +251,17 @@ export function WorklistShell({ title, children }: {
 // INSIDE that syntax. ZIP 14 ⑧ named the family; naming it did not stop it. The rule is
 // mechanical now: selectors in these comments are written in words, not in code marks.
 const SHELL_CSS = `
-.wl-drawerscrim{position:fixed;inset:0;z-index:19;background:var(--role-scrim);border:none;cursor:pointer}
-.wl-drawer{position:absolute;top:calc(100% + var(--wl-step));right:var(--wl-gutter);z-index:20}
+/* DESIGN-1 · STAGE 3: the coin is a link to More now (it opened a dropdown menu); the menu’s two rules retired with it.
+   THE HELD ROOMS: a tab’s rooms in one wrapping row under the head, 44 high, outlined, the current one filled with the
+   accent ink. Spacing on the scale. */
+.wl-held{display:flex;flex-wrap:wrap;gap:8px;padding:0 0 16px}
+.wl-heldlink{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--atelier-card-border);font:var(--wl-tb);color:var(--atelier-ink);text-decoration:none;background:var(--atelier-card-bg)}
+.wl-heldlink[aria-current="page"]{border-color:var(--atelier-accent-text);color:var(--atelier-accent-text)}
+.wl-heldlink:active{background:var(--atelier-row-hover)}
+.wl-heldlink:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
+.wl-moreacct{padding:24px 0 32px}
+.wl-moreh{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 8px}
+.wl-coin[aria-current="page"]{background:var(--role-metal);color:var(--role-ink-on-metal)}
 /* R-37.82 the gutter law, raised 12 to 16 (R-38.5). ONE horizontal gutter, owned by the
    scroll column. Every element inherits it; no component sets its own horizontal margin or
    width, ever. The founder’s misalignment existed because rows chose their own inset, and
@@ -384,7 +403,7 @@ const SHELL_CSS = `
 .wl-lbl{font:var(--wl-t5);color:var(--atelier-ink-mute)}
 .wl-lblrow{display:flex;align-items:baseline;gap:8px;min-width:0}
 .wl-beta{font:var(--wl-t5);color:var(--atelier-accent-text);flex-shrink:0}
-.wl-coin{background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+.wl-coin{text-decoration:none;background:transparent;border:1px solid var(--role-metal);border-radius:50%;cursor:pointer;color:var(--role-metal);font:var(--wl-t4);line-height:1;width:44px;height:44px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
 .wl-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 /* R-38.5: the nav’s content box shares the main column’s left edge, which is the container
    half of the edge cell. The seats' TEXT is centred, so the text-edge cell reads the

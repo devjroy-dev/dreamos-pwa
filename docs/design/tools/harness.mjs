@@ -147,13 +147,13 @@ function faceCss(names) {
     [500, 600].map((w) => face('Cormorant Garamond', f(co, `cormorant-garamond-latin-${w}-normal.woff2`), w)).join('');
 }
 
-export const VIEWPORTS = { ios: { width: 374, height: 812 }, android: { width: 360, height: 800 } };
+export const VIEWPORTS = { ios: { width: 374, height: 812 }, android: { width: 360, height: 800 }, desktop: { width: 1280, height: 800, desktop: true } };
 
 /** Open a vendor route in a given theme and viewport; returns the page. Unanswered writes succeed quietly. */
 export async function open(b, route, { mode = 'dark', vp = 'ios', wait = '.wl-main', settle = 1400, dpr = 2 } = {}) {
   const p = await b.newPage();
   const v = VIEWPORTS[vp];
-  await p.setViewport({ width: v.width, height: v.height, isMobile: true, hasTouch: true, deviceScaleFactor: dpr });
+  await p.setViewport({ width: v.width, height: v.height, isMobile: !v.desktop, hasTouch: !v.desktop, deviceScaleFactor: dpr });
   await p.setCookie({ name: 'tdw_wl_mode', value: mode, domain: 'localhost', path: '/' });
   // every "seen" key set, so first-run cards and help dots do not stand in front of the room
   await p.evaluateOnNewDocument(() => { try { const o = localStorage.setItem.bind(localStorage); window.__seenAll = true; Storage.prototype.getItem = new Proxy(Storage.prototype.getItem, { apply(t, s, a) { const r = Reflect.apply(t, s, a); if (r === null && /seen|first|onboard|intro/i.test(String(a[0]))) return '1'; return r; } }); void o; } catch (_e) { /* fine */ } });

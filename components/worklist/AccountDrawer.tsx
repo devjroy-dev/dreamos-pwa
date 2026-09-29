@@ -74,10 +74,17 @@ export const DRAWER_SCOPE = 'tdw-drawer';
 // tap instead of disappearing simultaneously with it.
 const BEAT_MS = 170;
 
-function Row({ label, href, onAct, current, danger, mode, pressed, onPress }: {
+/** TDW on WhatsApp: the drawer's Reach us row, and More's Support row (DESIGN-1 stage 3), one act in one home. */
+export function openSupport() {
+  window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
+}
+
+function Row({ label, href, onAct, current, danger, mode, pressed, onPress, inline }: {
   label: string; href?: string; onAct: () => void;
   current?: boolean; danger?: boolean; mode?: boolean;
   pressed: boolean; onPress: () => void;
+  /** DESIGN-1 · STAGE 3: on the More page the rows are a list, not a menu, so they carry no menu role. */
+  inline?: boolean;
 }) {
   // `held` is a CLASS, not a reliance on the active pseudo-class, because that state ends
   // at pointer release and this one has to outlive the gesture that started it.
@@ -87,13 +94,13 @@ function Row({ label, href, onAct, current, danger, mode, pressed, onPress }: {
     // Navigation is the anchor's own, unchanged and unprefixed by any timer: R-38.2's
     // prefetch and its instant route are untouched. Only the drawer's dismissal waits.
     return (
-      <Link href={href} role="menuitem" className={cls} onClick={fire}>
+      <Link href={href} role={inline ? undefined : 'menuitem'} className={cls} onClick={fire}>
         <span className="wl-dlabel">{label}</span>
       </Link>
     );
   }
   return (
-    <button type="button" role="menuitem" className={cls}
+    <button type="button" role={inline ? undefined : 'menuitem'} className={cls}
             aria-current={current ? 'true' : undefined} onClick={fire}>
       <span className="wl-dlabel">{label}</span>
     </button>
@@ -108,13 +115,17 @@ function Row({ label, href, onAct, current, danger, mode, pressed, onPress }: {
  * `data-wl-mode`. The ROWS are the same either way — what differs is only which authority
  * the tap reaches, and that is the caller's business rather than this file's.
  */
-export function AccountDrawer({ mode, onPickMode, onClose, room }: {
+export function AccountDrawer({ mode, onPickMode, onClose, room, inline = false }: {
   mode: 'dark' | 'light';
   onPickMode: (m: 'dark' | 'light') => void;
   onClose: () => void;
   /** The masthead's own title. Passed in rather than re-derived here, because the shell already
    *  holds it and a second derivation is a second answer (P7.2, the Report door's prefill). */
   room: string;
+  /** DESIGN-1 · STAGE 3: mounted on the More page (the coin is More). Settings and Billing are in More's own
+   *  "Your business" group and TDW on WhatsApp is its "Support" row under Help, so here they are not repeated; the
+   *  report door, the display and sign out stand as they stood. Nothing dismisses: the page is not a menu. */
+  inline?: boolean;
 }) {
   const [held, setHeld] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
@@ -141,25 +152,25 @@ export function AccountDrawer({ mode, onPickMode, onClose, room }: {
   function press(id: string, dismiss = true) {
     if (timer.current) return;          // one beat per opening; a second tap changes nothing
     setHeld(id);
-    if (!dismiss) return;
+    if (!dismiss || inline) { if (inline) timer.current = setTimeout(() => { timer.current = null; setHeld(null); }, BEAT_MS); return; }
     setLeaving(true);
     timer.current = setTimeout(onClose, BEAT_MS);
   }
 
   const row = (id: string, props: Omit<Parameters<typeof Row>[0], 'pressed' | 'onPress'>) => (
-    <Row {...props} pressed={held === id} onPress={() => press(id)} />
+    <Row {...props} inline={inline} pressed={held === id} onPress={() => press(id)} />
   );
 
   return (
-    <div className={DRAWER_SCOPE + (leaving ? ' is-leaving' : '')} role="menu" ref={anchorRef}>
+    <div className={DRAWER_SCOPE + (inline ? ' is-inline' : '') + (leaving ? ' is-leaving' : '')} role={inline ? undefined : 'menu'} ref={anchorRef}>
       <style>{typeCss('.' + DRAWER_SCOPE) + DRAWER_CSS}</style>
-      <div className="wl-dsec">{COPY.drawerAccount}</div>
-      {row('settings', { label: COPY.settingsTitle, href: '/vendor/settings', onAct: () => {} })}
-      {row('billing',  { label: COPY.billingTitle,  href: '/vendor/billing',  onAct: () => {} })}
+      {!inline && <>
+        <div className="wl-dsec">{COPY.drawerAccount}</div>
+        {row('settings', { label: COPY.settingsTitle, href: '/vendor/settings', onAct: () => {} })}
+        {row('billing',  { label: COPY.billingTitle,  href: '/vendor/billing',  onAct: () => {} })}
+      </>}
       <div className="wl-dsec">{COPY.drawerReachUs}</div>
-      {row('wa', { label: COPY.roomsAskTitle, onAct: () => {
-        window.open(`https://wa.me/${waNumberFor('vendor')}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener');
-      } })}
+      {!inline && row('wa', { label: COPY.roomsAskTitle, onAct: openSupport })}
       {/* P7.2 · THE REPORT DOOR (S10). It sits under REACH US beside the WhatsApp row because
           both end in the same place — but this one arrives with the room and the build already
           written, which is the whole difference between a report and a message. The sheet is
@@ -171,7 +182,7 @@ export function AccountDrawer({ mode, onPickMode, onClose, room }: {
           tap land on the page underneath. The sign-out row has always pressed with
           `dismiss=false` for the same reason (see its Row below); a row that opens a sheet
           must keep its host alive. */}
-      <Row label={COPY.reportRowTitle} onAct={askReport}
+      <Row label={COPY.reportRowTitle} onAct={askReport} inline={inline}
            pressed={held === 'report'} onPress={() => press('report', false)} />
       <div className="wl-dsec">{COPY.drawerDisplay}</div>
       {row('dark',  { label: COPY.themeDarkName,  onAct: () => onPickMode('dark'),  current: mode === 'dark',  mode: true })}
@@ -187,7 +198,7 @@ export function AccountDrawer({ mode, onPickMode, onClose, room }: {
           travelling) is kept by the sheet's own layout — Cancel first, Sign out second,
           both at the far end of the viewport from this row. The verb lives in
           SignOutSheet.tsx and nothing in this file calls it. */}
-      <Row label={COPY.drawerSignOut} onAct={ask} danger
+      <Row label={COPY.drawerSignOut} onAct={ask} danger inline={inline}
            pressed={held === 'signout'} onPress={() => press('signout', false)} />
       {sheet}
       {reportSheet}
@@ -207,6 +218,7 @@ export function AccountDrawer({ mode, onPickMode, onClose, room }: {
 // F-38.16: the destructive row carries clearance from the label above it.
 const DRAWER_CSS = `
 .tdw-drawer{background:var(--atelier-sheet-bg);border:.5px solid var(--atelier-sheet-border);border-radius:12px;overflow:hidden;min-width:248px}
+.tdw-drawer.is-inline{min-width:0}
 .tdw-drawer .wl-dsec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:16px 16px 12px}
 .tdw-drawer .wl-dsec:not(:first-of-type){border-top:.5px solid var(--atelier-card-border)}
 .tdw-drawer .wl-drow{display:flex;align-items:center;width:100%;min-height:52px;padding:8px 16px;background:none;border:none;cursor:pointer;text-align:left;text-decoration:none;touch-action:manipulation}

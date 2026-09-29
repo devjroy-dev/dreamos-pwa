@@ -196,7 +196,7 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
     router.push(('/vendor/collab/') + id + '/responses');
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
       {/* ── THE PAGE HEADER ROW · TDS's §4-4 PRECEDENT, TREE-AWARE ───────────────
           THE ROW STAYS IN BOTH TREES because 「+ Post」 rides on it, and a spacer takes over
           the label stack's `flex: 1` so the control does not move under the thumb.
@@ -233,7 +233,7 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '16px 24px 96px' }}>
+      <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', padding: '16px 24px 96px' }}>
         {loading ? (
           <div style={{ padding: '64px 24px', textAlign: 'center', fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
         ) : tab === 'opportunities' ? (

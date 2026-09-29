@@ -100,6 +100,8 @@ try {
       seats,
       dock: dock ? { text: (dock.querySelector('.wl-dockph') || dock).textContent.trim(), top: Math.round(dr.top), bottom: Math.round(dr.bottom), height: Math.round(dr.height) } : null,
       seatTop: seatTop === null ? null : Math.round(seatTop),
+      // DESIGN-1 · STAGE 3: the coin is More's door; its address and whether it is current
+      coin: (() => { const c = document.querySelector('.wl-coin'); return c ? { href: c.getAttribute('href'), current: c.getAttribute('aria-current'), label: c.getAttribute('aria-label') } : null; })(),
     };
   });
 
@@ -110,9 +112,26 @@ try {
     out.chrome = await chrome();
   } else if (SCENARIO === 'rooms') {
     await p.goto(`http://localhost:${PORT}/vendor/rooms`, { waitUntil: 'domcontentloaded', timeout: 90000 });
-    await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-bands')), 60000);
+    // DESIGN-1 · STAGE 3 (by label): the rooms page is More; its list (.wl-more) replaced the bands.
+    await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-more')), 60000);
     await settle(2500);
     out.chrome = await chrome();
+    out.more = await p.evaluate(() => {
+      const icons = (el) => [...el.querySelectorAll('svg[data-icon]')].map((sv) => ({ k: sv.getAttribute('data-icon'), html: sv.innerHTML, color: getComputedStyle(sv).color }));
+      return [...document.querySelectorAll('section.wl-moregroup')].map((g) => ({
+        name: (g.querySelector('.wl-moreh') || {}).textContent || null,
+        rows: [...g.querySelectorAll('.wl-morerow')].map((e) => ({
+          key: e.getAttribute('data-more'),
+          name: (e.querySelector('.wl-morename') || {}).textContent || null,
+          desc: (e.querySelector('.wl-moredesc') || {}).textContent || null,
+          href: e.getAttribute('href'),
+          tag: e.tagName.toLowerCase(),
+          coming: !!e.querySelector('[data-state="coming"]'),
+          icons: icons(e),
+          height: Math.round(e.getBoundingClientRect().height),
+        })),
+      }));
+    });
     out.rooms = await p.evaluate(() => {
       const icons = (el) => [...el.querySelectorAll('svg[data-icon]')].map((sv) => ({ k: sv.getAttribute('data-icon'), html: sv.innerHTML, color: getComputedStyle(sv).color }));
       const row = (e) => ({
@@ -171,10 +190,10 @@ try {
     // anchor they stand above is the directory (.wl-bands), which took the place Today's masthead held; Home has none.
     await p.goto(`http://localhost:${PORT}/vendor/rooms`, { waitUntil: 'domcontentloaded', timeout: 90000 });
     if (trade === 'slow') {
-      await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-bands') && !!document.querySelector('.wl-pins')), 60000);
+      await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-more') && !!document.querySelector('.wl-pins')), 60000);
       await settle(600);
       out.early = await p.evaluate(() => ({
-        mastTop: Math.round(document.querySelector('.wl-bands').getBoundingClientRect().top),
+        mastTop: Math.round(document.querySelector('.wl-more').getBoundingClientRect().top),
         pinsH: Math.round(document.querySelector('.wl-pins').getBoundingClientRect().height),
         waiting: document.querySelector('.wl-pins').getAttribute('aria-busy') === 'true',
         links: document.querySelectorAll('.wl-pins a.wl-pin').length,
@@ -182,24 +201,24 @@ try {
       await waitFor(() => p.evaluate(() => document.querySelectorAll('.wl-pins a.wl-pin').length === 6), 20000);
       await settle(600);
       out.late = await p.evaluate(() => ({
-        mastTop: Math.round(document.querySelector('.wl-bands').getBoundingClientRect().top),
+        mastTop: Math.round(document.querySelector('.wl-more').getBoundingClientRect().top),
         pinsH: Math.round(document.querySelector('.wl-pins').getBoundingClientRect().height),
         waiting: document.querySelector('.wl-pins').getAttribute('aria-busy') === 'true',
         links: document.querySelectorAll('.wl-pins a.wl-pin').length,
       }));
     }
-    await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-pins') || !!document.querySelector('.wl-bands')), 60000);
+    await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-pins') || !!document.querySelector('.wl-more')), 60000);
     await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-pins')), 20000);
     await settle(2000);
     out.chrome = await chrome();
     out.home = await p.evaluate(() => {
       const icons = (el) => [...el.querySelectorAll('svg[data-icon]')].map((sv) => ({ k: sv.getAttribute('data-icon'), html: sv.innerHTML, color: getComputedStyle(sv).color }));
       const pins = document.querySelector('.wl-pins');
-      const mast = document.querySelector('.wl-bands');
+      const mast = document.querySelector('.wl-more');  // DESIGN-1 stage 3: More's list, where the bands stood
       const ch = document.querySelector('.wl-pinchange');
       return {
         masthead: !!mast,
-        mdate: (document.querySelector('.wl-bands section.wl-band') || {}).textContent ? 'directory' : null,
+        mdate: (document.querySelector('.wl-more section.wl-moregroup') || {}).textContent ? 'directory' : null,
         mastheadBeforePins: !!(mast && pins && (mast.compareDocumentPosition(pins) & Node.DOCUMENT_POSITION_FOLLOWING)),
         pinsBeforeMasthead: !!(mast && pins && (pins.compareDocumentPosition(mast) & Node.DOCUMENT_POSITION_FOLLOWING)),
         pinsBottom: pins ? Math.round(pins.getBoundingClientRect().bottom) : null,
