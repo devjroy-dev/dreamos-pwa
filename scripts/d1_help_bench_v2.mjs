@@ -40,9 +40,10 @@ const HELP = 'v2/lib/worklist/pageHelp.ts';
 // Each card, the controls it names (as the screen spells them), and the files that draw that screen.
 const SHELL = 'v2/components/vendor/slices/SliceShell.tsx';
 const CARDS = [
-  { key: '/vendor/leads', names: ['New', 'Contacted', 'Quoted', 'Booked', 'Recent', 'WhatsApp', 'Call', 'Attach package', 'Forward to a peer', 'Mark lost', 'Booking confirmed', 'Advance paid'],
+  // DESIGN-1 · STAGE 5a: an enquiry and a client open as pages now; those pages' controls are d1_records' 8.2
+  { key: '/vendor/leads', names: ['New', 'Contacted', 'Quoted', 'Booked', 'Recent'],
     files: [SHELL, 'v2/components/vendor/slices/SliceRow.tsx', 'v2/components/vendor/packages/LeadPackageCard.tsx', 'v2/lib/worklist/packages.ts', 'v2/components/vendor/slices/FilterRail.tsx', 'v2/components/vendor/slices/DetailSheet.tsx', 'lib/vendor/slices/leads.ts', 'v2/lib/vendor/slices/leads.ts', 'v2/components/vendor/slices/SortControl.tsx', 'lib/vendor/sort.ts', 'v2/lib/worklist/copy.ts', 'v2/lib/worklist/referrals.ts'] },
-  { key: '/vendor/clients', names: ['Ask in chat', 'Edit', 'Hide', 'Cancel booking'], files: ['v2/components/vendor/slices/BinderCard.tsx', 'v2/lib/worklist/book.ts'] },
+  { key: '/vendor/clients', names: [], files: ['v2/components/vendor/slices/BinderCard.tsx', 'v2/lib/worklist/book.ts'] },
   { key: '/vendor/invoices', names: ['Overdue', 'Unpaid', 'Part paid', 'Recent', 'Mark paid', 'Payment reminders', 'Expenses', 'TDS', 'Books'], files: ['v2/lib/worklist/tabs.ts', SHELL, 'v2/components/vendor/slices/SliceRow.tsx', 'lib/vendor/slices/invoices.ts', 'v2/lib/vendor/slices/invoices.ts', 'v2/components/vendor/slices/SortControl.tsx', 'lib/vendor/sort.ts', 'v2/lib/worklist/copy.ts', 'v2/components/vendor/slices/FilterRail.tsx'] },
   { key: '/vendor/calendar', names: ['Month', 'Weddings', 'Good dates', 'Coming up'], files: ['v2/app/vendor/(shell)/calendar/screen.tsx'] },
 ];

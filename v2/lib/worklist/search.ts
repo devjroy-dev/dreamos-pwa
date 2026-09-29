@@ -91,7 +91,7 @@ export function isQuestion(q: string): boolean {
 export function recordHref(kind: Exclude<ResultKind, 'tools'>, id: string): string {
   const enc = encodeURIComponent(id);
   switch (kind) {
-    case 'enquiries': return `${roomHref('leads')}?lead=${enc}`;
+    case 'enquiries': return `${roomHref('leads')}/${enc}`;   // DESIGN-1 · STAGE 5a: the enquiry's own page
     case 'clients':   return `${roomHref('clients')}?client=${enc}`;
     case 'events':    return `${roomHref('events')}?event=${enc}`;
     case 'invoices':  return `${roomHref('invoices')}?invoice=${enc}`;

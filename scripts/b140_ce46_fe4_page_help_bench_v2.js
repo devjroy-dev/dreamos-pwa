@@ -87,11 +87,14 @@ function loadPageHelp() {
   return { ...m.exports, COPY: req('@/v2/lib/worklist/copy').COPY };
 }
 
+// DESIGN-1 · STAGE 5a (by label): the dynamic routes are visited at a real record of the fixture (b123_fixtures:
+// lead-0001, bind-0001), as the collab's responses always were at p1
+const AT = { '/vendor/collab/[post_id]/responses': '/vendor/collab/p1/responses', '/vendor/leads/[id]': '/vendor/leads/lead-0001', '/vendor/clients/[id]': '/vendor/clients/bind-0001' };
 function sourceCells() {
   const R = routes();
   const help = loadPageHelp();
   const keys = Object.keys(help.PAGE_HELP);
-  const missing = R.filter((r) => !help.helpFor(r === '/vendor/collab/[post_id]/responses' ? '/vendor/collab/p1/responses' : r));
+  const missing = R.filter((r) => !help.helpFor(AT[r] || r));
   const orphan = keys.filter((k) => !R.includes(k));
   const noLine = keys.filter((k) => !help.PAGE_HELP[k].what || !help.PAGE_HELP[k].what.trim());
   cell(`1.1 every drawing route under app/vendor/(shell)/ (${R.length}, derived) has a pageHelp entry with a line 1, and no entry is orphaned`,
@@ -99,8 +102,9 @@ function sourceCells() {
   const src = code(read('v2/lib/worklist/pageHelp.ts'));
   const reads = (src.match(/entry\(ROOM_DESC\.\w+/g) || []).length + (src.match(/entry\(ROW_DESC\.\w+/g) || []).length;
   const typed = (src.match(/entry\(TYPED_WHAT\.\w+/g) || []).length;
-  cell('1.2 line 1 is READ from ROOM_DESC and ROW_DESC (the founder\u2019s bytes), typed only for the four with no home',
-    reads !== keys.length - 4 || typed !== 4 ? `${reads} read, ${typed} typed, ${keys.length} entries` : null);
+  cell('1.2 line 1 is READ from ROOM_DESC and ROW_DESC (the founder\u2019s bytes), typed only for the six with no home',
+    // DESIGN-1 · STAGE 5a (by label): six typed now, the enquiry's and the client's pages having no registry line
+    reads !== keys.length - 6 || typed !== 6 ? `${reads} read, ${typed} typed, ${keys.length} entries` : null);
   const wl = code(read('v2/components/worklist/WorklistShell.tsx')); const ph = code(read('v2/components/worklist/PageHelp.tsx'));
   const bad = [];
   // DESIGN-1 · STAGE 3 (by label): the head is still the first child of the main column, above the room; the held-rooms
@@ -279,7 +283,7 @@ const done = () => { console.log(`b140: ${pass} pass, ${fail} fail`); process.ex
   const { R, help } = sourceCells();
   if (process.argv.includes('--source')) return done();
   const only = argv('routes', null);
-  const ROUTES = (only ? only.split(',') : R).map((r) => (r === '/vendor/collab/[post_id]/responses' ? '/vendor/collab/p1/responses' : r));
+  const ROUTES = (only ? only.split(',') : R).map((r) => AT[r] || r);   // DESIGN-1 · STAGE 5a (by label): AT above
   fs.rmSync(P('.next/dev'), { recursive: true, force: true }); // A-45.5
   const dev = await startDev();
   if (!dev) { cell('2.0 the dev server answers', 'next dev did not come up'); return done(); }

@@ -130,6 +130,8 @@ async function apiCells(code) {
     const rec = (verb) => async (p, body) => { calls.push({ verb, p, body }); return answer; };
     const stubs = {
       './_base': { getJson: rec('GET'), postJson: rec('POST'), patchJson: rec('PATCH'), deleteJson: rec('DELETE'), API_BASE: '', getAuthHeader: () => ({}), handleResponse: async () => ({}) },
+      // DESIGN-1 · THE LAYOUT SWITCH (by label): the v2 copy of the client reaches the shared _base by its @/ path (as b80's)
+      '@/lib/vendor/api/_base': { getJson: rec('GET'), postJson: rec('POST'), patchJson: rec('PATCH'), deleteJson: rec('DELETE'), API_BASE: '', getAuthHeader: () => ({}), handleResponse: async () => ({}) },
       '@/v2/lib/solutions/routes': { API: new Proxy({}, { get: () => '' }) },
       '@/lib/vendor/session': { getVendorSession: () => ({ id: 'v1' }), setVendorSession: () => {}, clearVendorSession: () => {} },
       '@/v2/lib/worklist/feed': { refreshToday: () => {} },

@@ -88,6 +88,8 @@ import { reminderPreview, reminderDate } from '@/v2/lib/worklist/paymentReminder
 import { updateMilestone, deleteSchedule } from '@/v2/lib/vendor/api/vendor';
 
 import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
+import { useRouter } from 'next/navigation'; // DESIGN-1 · STAGE 5a
+import { enquiryHref, saveListScroll } from '@/v2/lib/worklist/record';
 // ── F-40.141 · THE FLAG THAT OUTLIVED ITS REASON ──────────────────────────
 // It read `false` from the day it was written, and its comment said why: opening
 // an invoice would fire a 404 at a route that was not built. The route WAS
@@ -385,6 +387,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
 
   const [query, setQuery]     = useState('');
   const [sel, setSel]         = useState<Row|null>(null);
+  const router = useRouter();   // DESIGN-1 · STAGE 5a: an enquiry is a page
   // CE-43 LC-2 packet 3: the one booking sheet, opened by the lead card and by the swipe (F15(a)).
   const [booking, setBooking] = useState<{ leadId: string; kind: BookingKind } | null>(null);
   // CE-43 LC-2 packet 3f · R-43.16: the wedding-date completion a refusal line opens (the
@@ -713,6 +716,8 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
     if (!key) return;
     const want = new URLSearchParams(window.location.search).get(key);
     if (!want || focusedRef.current === want) return;
+    // DESIGN-1 · STAGE 5a: ?lead=<id> (Today's cards, the search) opens the enquiry's page
+    if (slice === 'leads') { focusedRef.current = want; router.replace(enquiryHref(want)); return; }
     if (!rows.some((r) => r.id === want)) return;
     const el = document.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(want)}"]`);
     if (!el) return;
@@ -1066,7 +1071,10 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
       )}
       <div style={selectMode ? { paddingLeft: 16 } : undefined}>
         <SwipeRow right={selectMode ? undefined : swipeSidesFor(row).right} left={selectMode ? undefined : swipeSidesFor(row).left}>
-          <SliceRow row={row} slice={slice} onSelect={() => selectMode ? toggleSelected(row) : (setSel(row), setConfirmDel(false))} />
+          <SliceRow row={row} slice={slice} onSelect={() => selectMode ? toggleSelected(row)
+            // DESIGN-1 · STAGE 5a: an enquiry opens as its own page; the list keeps its place for Back
+            : slice === 'leads' ? (saveListScroll(roomHref('leads')), router.push(enquiryHref(row.id)))
+            : (setSel(row), setConfirmDel(false))} />
         </SwipeRow>
         {slice === 'invoices' && !selectMode && (row.payAmount ?? 0) > 0 && !packagePayBlocked(row) && (
           <div style={{ padding: '0 var(--slice-inset, 16px) 12px' }}>

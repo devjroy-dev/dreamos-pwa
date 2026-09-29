@@ -136,3 +136,12 @@ open(PR, 'w', encoding='utf8').write(s); print('patched', PR)
 patch('scripts/b122_ce45_home_shelves_bench_v2.js', [
     ("c.coin.href === '/vendor/rooms' && c.coin.current === 'page')", "c.coin.href === '/vendor/more' && c.coin.current === 'page')   /* DESIGN-1 · THE LAYOUT SWITCH (by label): More's v2 address */"),
 ])
+
+# b81's and b82's API cells stub the client's _base by './_base'; the v2 copy reaches it by '@/lib/vendor/api/_base'
+# (as b80's). A stage-3 miss, found at 5a.
+for _p in ('scripts/b81_lc2_p2_room_bench_v2.js', 'scripts/b82_lc2_p3_booking_bench_v2.js'):
+    _s = open(_p, encoding='utf8').read()
+    _a = "      './_base': { getJson: rec('GET'), postJson: rec('POST'), patchJson: rec('PATCH'), deleteJson: rec('DELETE'), API_BASE: '', getAuthHeader: () => ({}), handleResponse: async () => ({}) },\n"
+    if "'@/lib/vendor/api/_base': { getJson: rec('GET')" not in _s and _s.count(_a) == 1:
+        _s = _s.replace(_a, _a + "      // DESIGN-1 · THE LAYOUT SWITCH (by label): the v2 copy of the client reaches the shared _base by its @/ path (as b80's)\n      '@/lib/vendor/api/_base': { getJson: rec('GET'), postJson: rec('POST'), patchJson: rec('PATCH'), deleteJson: rec('DELETE'), API_BASE: '', getAuthHeader: () => ({}), handleResponse: async () => ({}) },\n")
+        open(_p, 'w', encoding='utf8').write(_s); print('patched', _p)

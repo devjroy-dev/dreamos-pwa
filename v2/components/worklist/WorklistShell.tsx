@@ -35,6 +35,7 @@ import { AccountDrawer } from '@/v2/components/worklist/AccountDrawer';
 import { RoomHead, RoomHeadProvider, PAGE_HELP_CSS } from '@/v2/components/worklist/PageHelp';
 import { TABS, tabFor, heldRoomFor, MORE_HREF, TAB_WORDS, ROW_ON_FIRST } from '@/v2/lib/worklist/tabs';
 import { SearchBox } from '@/v2/components/worklist/SearchBox';
+import { restoreListScroll } from '@/v2/components/worklist/RecordPage';
 
 const SCOPE = '.wl';
 
@@ -138,7 +139,11 @@ export function WorklistShell({ title, children }: {
   const tab = tabFor(pathname);
   const onMore = pathname === MORE_HREF;
   // the founder: Money's row shows on Invoices too (ROW_ON_FIRST); the other tabs' first pages keep to their work
-  const held = tab && tab.rooms.length > 1 && (pathname !== tab.rooms[0].href || ROW_ON_FIRST.includes(tab.id)) ? heldRoomFor(tab, pathname) : null;
+  // DESIGN-1 · STAGE 5a: a record's page (an enquiry, a client) is its own page, with no row of rooms above it
+  const isRecord = /^\/vendor\/(leads|clients)\/[^/]+\/?$/.test(pathname);
+  const held = tab && !isRecord && tab.rooms.length > 1 && (pathname !== tab.rooms[0].href || ROW_ON_FIRST.includes(tab.id)) ? heldRoomFor(tab, pathname) : null;
+  // DESIGN-1 · STAGE 5a: back from a record, the list stands where it stood (RecordPage.restoreListScroll)
+  useEffect(() => { restoreListScroll(pathname); }, [pathname]);
 
   return (
     <AskProvider value={ask}>

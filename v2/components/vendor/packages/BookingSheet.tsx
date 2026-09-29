@@ -223,7 +223,9 @@ export function BookingSheet({ open, leadId, initialKind, onClose, onBooked, onT
   // ── 1 · BOOK ─────────────────────────────────────────────────────────────────────────
   return (
     <>
-    <Sheet open={open} testId="booking-sheet" title={BOOK.title} onClose={onClose} aside={<HelpButton id="sheet:book" title={SHEET_HELP.book.title} help={SHEET_HELP.book.help} layered />}
+    {/* DESIGN-1 · STAGE 5a: never a sheet on a sheet. While the package sheet is open (Change plan, or a refusal's fix),
+        Book steps aside and comes back, as it was, when that sheet closes. */}
+    <Sheet open={open && !attach} testId="booking-sheet" title={BOOK.title} onClose={onClose} aside={<HelpButton id="sheet:book" title={SHEET_HELP.book.title} help={SHEET_HELP.book.help} layered />}
       footer={(
         <>
           <button type="button" style={actionButton('mute')} onClick={onClose}>{PACKAGES.cancel}</button>

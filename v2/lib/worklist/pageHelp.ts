@@ -55,6 +55,9 @@ const HELD: readonly { icon: HelpIcon; line: string }[] = [];
 // The four `what` lines this file types, because no home holds them yet. PROPOSED in the
 // read-first of 27 Sept 2026; they wait on the founder's yes like every other new byte.
 const TYPED_WHAT = {
+  // DESIGN-1 · STAGE 5a: the two record pages have no registry line of their own
+  enquiry:   'One enquiry, whole: who, when, the money and everything said so far',
+  client:    'One client, whole: the dates, the money and the story so far',
   rooms:     'Every part of the app, in groups',
   today:     'Your day: a date to check, enquiries to answer, today\u2019s functions and money due',
   exchange:  'Gear and services traded with peers',
@@ -114,13 +117,15 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   // the screen draws). Line 1 stays the registry's (b140 1.2); the lines below name this screen's own controls.
   [roomHref('leads')]: entry(ROOM_DESC.leads, { can: [
     { icon: 'list', line: 'Search enquiries, or tap New, Contacted, Quoted or Booked to see only those. Recent changes the order.' },
-    { icon: 'reply', line: 'Tap an enquiry to open it: WhatsApp or Call the couple, Attach package, Forward to a peer or Mark lost.' },
-    { icon: 'add', line: 'Booking confirmed or Advance paid opens Book: the dates, the package and the invoice in one step. The + button adds an enquiry.' },
+    // DESIGN-1 · STAGE 5a: an enquiry opens as its own page (its own card, below)
+    { icon: 'reply', line: 'Tap an enquiry to open its page: the dates, money, notes and history, with the next step on top.' },
+    { icon: 'add', line: 'Swipe an enquiry right to book it. The + button adds an enquiry.' },
   ], connects: 'A booked enquiry becomes a client in Clients, its dates go on your Calendar and its invoice into Money.' }),
   [roomHref('packages')]: entry(ROOM_DESC.packages),
   [roomHref('clients')]: entry(ROOM_DESC.clients, { can: [
     { icon: 'list', line: 'Search clients. Each card shows what has come in and what is still due.' },
-    { icon: 'read', line: 'Tap a client to open the card: Ask in chat, Edit or Hide. On a booked client, Cancel booking asks before removing its dates or an unpaid invoice.' },
+    // DESIGN-1 · STAGE 5a: a client opens as its own page (its own card, below)
+    { icon: 'read', line: 'Tap a client to open their page: the dates, money, notes and history, with the next step on top.' },
     { icon: 'add', line: 'The + button adds a client who booked without an enquiry.' },
   ], connects: 'A client\u2019s invoices are in Money and the dates are on your Calendar.' }),
   [roomHref('invoices')]: entry(ROOM_DESC.invoices, { can: [
@@ -164,12 +169,27 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   [roomHref('collab')]: entry(ROW_DESC.collabs),
   '/vendor/collab/[post_id]/responses':     entry(TYPED_WHAT.responses, { can: [{ icon: 'share', line: RESPONSES_HELP.identity }] }),
   [EXCHANGE_HREF]: entry(TYPED_WHAT.exchange),
+  // DESIGN-1 · STAGE 5a · RECORDS AS PAGES (lib/worklist/record.ts): each names only what its page draws
+  '/vendor/leads/[id]': entry(TYPED_WHAT.enquiry, { can: [
+    { icon: 'send', line: 'The button on top is the next step: Reply on WhatsApp for a new enquiry, Book for one you are talking to, Open the client once booked.' },
+    { icon: 'list', line: 'Dates, Money, Notes and History read top to bottom. History has every message, invoice and date, newest first.' },
+    { icon: 'edit', line: 'At the end: WhatsApp, Call, Attach package and Mark lost.' },
+  ], connects: 'Back to Enquiries returns to the list where you left it. Book puts the dates on your Calendar and the invoice in Money.' }),
+  '/vendor/clients/[id]': entry(TYPED_WHAT.client, { can: [
+    { icon: 'money', line: 'The button on top is the next step: Open the invoice while money is due, otherwise Message on WhatsApp.' },
+    { icon: 'list', line: 'Dates, Money, Notes and History read top to bottom. History has the messages, invoices, dates and notes, newest first.' },
+    { icon: 'edit', line: 'At the end: Enquiries (when one enquiry has this number), Ask in chat, Edit, Hide and, for a booked client, Cancel booking.' },
+  ], connects: 'Back to Clients returns to the list where you left it.' }),
 };
 
-/** The one dynamic route, folded onto its pattern. Anything else keys by its own pathname. */
+/** The dynamic routes (a collab's responses; stage 5a's enquiry and client pages), folded onto their patterns. Anything else keys by its own pathname. */
 export function helpKey(pathname: string): string {
   const m = pathname.match(/^\/vendor\/collab\/[^/]+\/responses\/?$/);
-  return m ? '/vendor/collab/[post_id]/responses' : pathname.replace(/\/+$/, '') || pathname;
+  if (m) return '/vendor/collab/[post_id]/responses';
+  // DESIGN-1 · STAGE 5a: the two record pages fold onto their patterns too
+  if (/^\/vendor\/leads\/[^/[]+\/?$/.test(pathname)) return '/vendor/leads/[id]';
+  if (/^\/vendor\/clients\/[^/[]+\/?$/.test(pathname)) return '/vendor/clients/[id]';
+  return pathname.replace(/\/+$/, '') || pathname;
 }
 
 export function helpFor(pathname: string): PageHelp | null {

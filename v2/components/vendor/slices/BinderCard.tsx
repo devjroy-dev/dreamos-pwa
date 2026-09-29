@@ -31,6 +31,8 @@ import {
 import { A, T, cap } from './SliceRow';
 import { CancelBookingSheet } from '@/v2/components/vendor/packages/CancelBookingSheet'; // DESIGN-1 · STAGE 4
 import { BOOK } from '@/v2/lib/worklist/book';
+import { useRouter } from 'next/navigation'; // DESIGN-1 · STAGE 5a
+import { clientHref, saveListScroll } from '@/v2/lib/worklist/record';
 
 const TONE_COLOR: Record<StageTone, string> = {
   go:   'var(--role-positive)',
@@ -40,7 +42,7 @@ const TONE_COLOR: Record<StageTone, string> = {
 
 const MAX_CHIPS = 3;
 
-function EditSheet({ binder, onClose, onSaved, onFail }: {
+export function EditSheet({ binder, onClose, onSaved, onFail }: {   // DESIGN-1 stage 5a: the client page opens it too
   binder: CabinetBinder;
   onClose: () => void;
   onSaved: (message?: string) => void;
@@ -157,6 +159,7 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
 }) {
   const { openAsk } = useAsk();
   const [open, setOpen] = useState(false);
+  const router = useRouter();   // DESIGN-1 · STAGE 5a
   const [editOpen, setEditOpen] = useState(false);
   const [wishboneOpen, setWishboneOpen] = useState(false); // TDW_04 A1: the chips wake
   const [wishboneStart, setWishboneStart] = useState<string | undefined>(undefined); // 3g · F-43.108
@@ -231,7 +234,8 @@ export function BinderCard({ binder, onChanged, onToast, crossLead }: {
   return (
     <div style={{ borderBottom: '0.5px solid var(--atelier-card-border)' }}>
       <SwipeRow right={swipeRight} left={swipeLeft}>
-      <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} style={{
+      {/* DESIGN-1 · STAGE 5a: a client opens as its own page (the card's own jobs live there); the list keeps its place */}
+      <button type="button" onClick={() => { saveListScroll(roomHref('clients')); router.push(clientHref(binder.id)); }} aria-expanded={open} data-client-open={binder.id} style={{
         width: '100%', display: 'block', textAlign: 'left',
         padding: '16px var(--slice-inset, 16px) 16px', background: 'transparent', border: 'none', cursor: 'pointer',
       }}>

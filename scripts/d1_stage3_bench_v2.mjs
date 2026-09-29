@@ -66,7 +66,8 @@ cell('1.2 "TDS" opens TDS', () => s1.tds === 'TDS' || s1.tds);
 cell('1.3 "ads" opens Posts and ads (her word for the tool)', () => s1.ads === 'Posts and ads' || s1.ads);
 cell('1.4 "reviews" opens Google reviews; "photos" opens Portfolio; nonsense opens nothing', () => (s1.reviews === 'Google reviews' && s1.photos === 'Portfolio' && s1.none === '') || [s1.reviews, s1.photos, s1.none].join(' / '));
 cell('1.5 a question reads as one (a question mark, or a question word and three words)', () => (s1.q1 && s1.q2 && !s1.q3 && !s1.q4 && s1.q5) || JSON.stringify([s1.q1, s1.q2, s1.q3, s1.q4, s1.q5]));
-cell('1.6 a found record opens its room with its key (?lead=, ?client=, ?event=, ?invoice=)', () => s1.href === '/vendor/leads?lead=a%20b /vendor/clients?client=c1 /vendor/events?event=e1 /vendor/invoices?invoice=i1 /vendor/team' || s1.href);
+// DESIGN-1 · STAGE 5a (by label): an enquiry is its own page now; the others open their room with their key
+cell('1.6 a found record opens its page (an enquiry) or its room with its key (?client=, ?event=, ?invoice=)', () => s1.href === '/vendor/leads/a%20b /vendor/clients?client=c1 /vendor/events?event=e1 /vendor/invoices?invoice=i1 /vendor/team' || s1.href);
 cell('1.7 recent searches: newest first, one of each, at most six', () => JSON.stringify(s1.recent) === JSON.stringify(['Priya', 'TDS', 'a', 'b', 'c', 'd']) || JSON.stringify(s1.recent));
 
 // ── §2 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
