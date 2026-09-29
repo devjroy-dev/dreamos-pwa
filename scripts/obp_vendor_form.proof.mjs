@@ -195,7 +195,10 @@ ok(!/circle|coplanner/.test(GUARD) || 'a circle branch was built where no shared
    '6.7 circle exemption stays STRUCTURAL  no role branch in this guard');
 
 console.log('\n── 7 · the mount probe is safe by the endpoint\'s own ruling ──');
-ok(/onboarding\?\.complete\) \{ router\.replace\('\/vendor'\)/.test(FORM)
+// AMENDED BY LABEL · CE-46 FE-4 · F-44.246 (29 Sept 2026): the complete vendor's bounce now drops the shell's remembered
+// /me first (forgetVendorMe(), so the shell does not send her straight back: the loop's cure). The subject is unchanged:
+// she is bounced to /vendor BEFORE the probe fires; the forget may stand between the test and the replace, nothing else.
+ok(/onboarding\?\.complete\) \{ (forgetVendorMe\(\); )?router\.replace\('\/vendor'\)/.test(FORM)
    || 'a complete vendor is not bounced before the probe',
    '7.1 the probe is NEVER fired for a complete vendor (for her the POST would write)');
 const probeIdx = FORM.indexOf("postJson<OnboardResp>('/api/v2/vendor/onboarding', {})");
