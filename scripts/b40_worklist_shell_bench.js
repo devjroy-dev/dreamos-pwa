@@ -2526,7 +2526,7 @@ cell('C61 the feed renders in the wire\'s key order and re-sorts nothing', () =>
   // DESIGN-1 · STAGE 2 (by label): the one list Home draws from the feed is Reply to (lead_unanswered), and it renders
   // the wire's own order, re-sorting nothing (D-4's ranking, properties 4 and 5)
   const src = strip(read('components/worklist/TodayHome.tsx'));
-  if (!/needs_attention\.lead_unanswered/.test(src) || !/unanswered\.map\(/.test(src)) bad.push('Reply to does not render the wire\'s list');
+  if (!/needs_attention\??\.lead_unanswered/.test(src) || !/unanswered\.map\(/.test(src)) bad.push('Reply to does not render the wire\'s list');
   if (/\.sort\(/.test(src)) bad.push('the feed sorts — key order IS D-4\'s ranking (property 4)');
   if (/\.reverse\(/.test(src)) bad.push('the feed reverses — ties break oldest-first as delivered (property 5)');
   // ATTENTION_KINDS is a SET for the type system, not the sequence. If the render iterated
