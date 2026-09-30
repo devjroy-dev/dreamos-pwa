@@ -25,12 +25,12 @@
 // THE CARD (the founder's shape, his change of 27 Sept: CENTRED). A dialog over the scrim,
 // vertically centred in the viewport, inset by one gutter on both sides, content-fit with a
 // 60dvh ceiling and its own scroll (Fork C (1)); the dock and the nav stay where they are. It
-// holds: the room's name (t2), what the page is (t3, one sentence), what can be done here (t3,
-// up to three lines with a line icon each in the accent ink, R-45.21), where it connects (t4,
-// ink-mute), and two controls in the `.wl-cardaction` register (t4, sentence case, F5):
-// "Ask TDW about this", which opens the Ask TDW sheet with the room's name in the input and
-// sends nothing (Fork D (1), F-04.9), and "Got it". Escape, the scrim and Got it close it, and
-// focus returns to the "?".
+// holds: the room's name (t2), what the page does (t3, one sentence), HOW TO DO its main things (t3, up to four
+// short steps naming the real buttons, each with a line icon in the accent ink, R-45.21), and where it connects
+// (t4, ink-mute). ONE control, "Got it" (.wl-cardaction, t4, sentence case, F5); Escape, the scrim and Got it close
+// it and focus returns to the "?". CE-46 FE-4 words cut (28 Sept 2026): "Ask TDW about this" is REMOVED with its
+// prefill; the founder never asked for it (it came from the chair's mock). The "?" ring is a 1px hairline in the
+// shell's teal, --atelier-accent-text (theme.ts, both themes), the glyph inside unchanged.
 //
 // EVERY WORD COMES FROM lib/worklist/pageHelp.ts. Nothing here types a vendor-facing byte
 // except the two control labels and the target's aria-label, which live in COPY like every
@@ -40,7 +40,6 @@ import { usePathname } from 'next/navigation';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { helpFor, helpSeenKey, type HelpIcon, type PageHelp as PageHelpEntry } from '@/v2/lib/worklist/pageHelp';
 import { SheetLayer } from '@/components/vendor/SheetLayer';
-import { useAsk } from '@/lib/worklist/askContext';
 
 // ── F-44.219 (ruled 28 Sept 2026) · THE TWO EXCEPTION ROOMS ────────────────────────────────────────
 // Two surfaces already carried their one t1 by an earlier founder ruling: Calendar's month (his "2") and
@@ -158,14 +157,12 @@ export function HelpButton({ id, title, help, layered = false }: { id: string; t
 }
 
 function HelpCard({ title, help, onClose, zIndex }: { title: string; help: PageHelpEntry; onClose: () => void; zIndex?: number }) {
-  const { openAsk } = useAsk();
   // Escape closes, and the scrim closes. A card with no way out is a trap (AskSheet's own rule).
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
   }, [onClose]);
-  const ask = () => { onClose(); openAsk(COPY.helpAskPrefill(title)); };
   return (
     <div className="wl-help" role="dialog" aria-modal="true" aria-label={title} style={zIndex != null ? { zIndex } : undefined}>
       <button type="button" className="wl-helpscrim" aria-label={COPY.helpClose} onClick={onClose} />
@@ -180,7 +177,6 @@ function HelpCard({ title, help, onClose, zIndex }: { title: string; help: PageH
         )}
         {help.connects ? <p className="wl-helplink">{help.connects}</p> : null}
         <div className="wl-helpacts">
-          <button type="button" className="wl-cardaction wl-helpask" onClick={ask}>{COPY.helpAsk}</button>
           <button type="button" className="wl-cardaction wl-helpgot pri" onClick={onClose}>{COPY.helpGotIt}</button>
         </div>
       </div>
@@ -201,7 +197,7 @@ export const PAGE_HELP_CSS = `
 .wl-roomtitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0;padding:16px 0 8px;min-width:0}
 .wl-roomtitle-none{padding:0;flex:1}
 .wl-helpq{width:44px;height:44px;min-width:44px;min-height:44px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;margin:0 -11px 0 0;padding:0;touch-action:manipulation}
-.wl-helpqring{width:22px;height:22px;border:1px solid var(--atelier-ink-mute);border-radius:50%;display:flex;align-items:center;justify-content:center;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.wl-helpqring{width:22px;height:22px;border:1px solid var(--atelier-accent-text);border-radius:50%;display:flex;align-items:center;justify-content:center;font:var(--wl-t4);color:var(--atelier-ink-mute)}
 .wl-helpq[data-first="1"]::after{content:"";position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--atelier-accent-text)}
 .wl-helpq:active .wl-helpqring{background:var(--atelier-row-hover)}
 .wl-helpq:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}

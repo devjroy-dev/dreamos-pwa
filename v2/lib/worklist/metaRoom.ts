@@ -42,7 +42,8 @@ export const IG = {
 
 export const QUIET = {
   /** QT1 · the line; the chosen length follows it. */
-  line: 'After you reply to a couple yourself, we stay quiet in that chat for',
+  // CE-46 G6-4 F-g (ruled 28 Sept 2026): no her or his on vendor glass.
+  line: 'After you reply to a couple yourself, TDW stays quiet in that chat for',
   /** QT2 · the four lengths, 2 hours preselected (the server's default, 120). */
   options: [
     { minutes: 60, label: '1 hour' },

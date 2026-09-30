@@ -25,7 +25,8 @@ process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this 
 // §4 MUTATIONS (--mutate), each planted in production source, rendered by the running server's reload, restored by
 //    sha: M1 a route's entry removed (1.1); M2 the "?" not drawn (2.3 on leads); M3 the scrim's close removed (2.9);
 //    M4 the seen write removed (2.8); M5 a raw px on the card's name (3.1); M6 the carousel's import back in Header
-//    (1.4, source); M7 the pre-floor pass narrowed to this root again (1.7, A-46.6, driven).
+//    (1.4, source); M7 the pre-floor pass narrowed to this root again (1.7, A-46.6, driven); M8 a room's
+//    connects emptied (1.8); M9 a step naming a button no control draws, the dropped sheet's "Continue to Meta" (1.9).
 // THE EXIT CODE IS THE VERDICT (0 green, 1 red). --routes=/vendor/a,/vendor/b narrows §2; --modes=dark,light.
 const fs = require('fs');
 const path = require('path');
@@ -149,6 +150,32 @@ function sourceCells() {
     !effect ? 'no effect reads the key' : renderRead !== 2 ? `readSeen called ${renderRead} times (its definition and the effect are the two)` : !stated ? 'the ruling is not stated at the site' : null);
   const inline = [...ph.matchAll(/>\s*([A-Za-z][^<{}]*?)\s*<\//g)].map((m) => m[1].trim()).filter((t) => t && !/^\?$/.test(t));
   cell('1.6 no vendor-facing byte is typed in PageHelp.tsx: every string reaches it from COPY or pageHelp.ts (the "?" glyph is the one drawn mark)', inline.length ? 'inline: ' + inline.slice(0, 3).join(' | ') : null);
+  // 1.8 the words cut (the founder, 28 Sept 2026): every surface says what it does, HOW TO DO its main things (1 to 4
+  // steps) and where it connects, in the plain register (R-45.30: no dash; R-45.20: no her or his).
+  {
+    const bad = [];
+    for (const [k, e] of Object.entries(help.PAGE_HELP)) {
+      if (!e.can || e.can.length < 1 || e.can.length > 4) bad.push(k + ': ' + (e.can ? e.can.length : 0) + ' steps');
+      if (!e.connects || !e.connects.trim()) bad.push(k + ': no connects line');
+      const words = [e.what, e.app || '', e.connects, ...(e.can || []).map((c) => c.line)].join(' ');
+      if (/[\u2013\u2014]| - /.test(words)) bad.push(k + ': a dash');
+      if (/\b(her|his)\b/i.test(words)) bad.push(k + ': her or his');
+    }
+    cell('1.8 every surface carries what it does, 1 to 4 how-to steps and a connects line, plain (no dash, no her or his)', bad.length ? bad.slice(0, 6).join(' | ') : null);
+  }
+  // 1.9 A-46.9: every button word a step names after "tap" resolves to a label a screen draws: JSX text or a string
+  // literal in a .tsx under app/ or components/, or a copy value under lib/ whose key a .tsx references. A label that
+  // lives only in a copy home no control renders (the dropped sheet's "Continue to Meta", ADS.sheetGo) is NOT drawn.
+  {
+    const L = drawnLabels(ROOT, stripComments);
+    const norm = (x) => x.toLowerCase().replace(/[^a-z0-9+ ]/g, '').trim();
+    const miss = [];
+    for (const [k, e] of Object.entries(help.PAGE_HELP)) for (const c of (e.can || [])) for (const w of tapped(c.line)) {
+      const lw = w.toLowerCase();
+      if (!L.some((x) => x === lw || norm(x) === norm(lw))) miss.push(`${k}: "${w}"`);
+    }
+    cell('1.9 A-46.9: every button a how-to step names is a label some control draws (counted from the source)', miss.length ? miss.slice(0, 6).join(' | ') : null);
+  }
   // 1.7 A-46.6 (ruled 28 Sept 2026, rides this cut): the floor's pass before the first member stops ANY next dev,
   // whatever its root, by program name and pid, and prints what it killed; after a member it stays this root.
   // Driven, not read: a stand-in server (a node program whose command line reads "next dev") is started in a
@@ -157,6 +184,46 @@ function sourceCells() {
     reapCell(P('scripts/lib/floor_reap.sh')));
   return { R, help };
 }
+// ── A-46.9 (ruled 29 Sept 2026, from e-219): a help step names a button only when a control DRAWS that label ──
+function drawnLabels(ROOT, stripComments) {
+  const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
+  const walk = (dir, out) => { for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) { const rel = dir + '/' + e.name; if (e.isDirectory()) { if (e.name !== 'node_modules') walk(rel, out); } else if (/\.(tsx?|mjs)$/.test(e.name)) out.push(rel); } return out; };
+  // LANDING (by label): this copy proves the v2 tree, so the labels its screens draw are counted from v2/ too (the walk
+  // read app/, components/ and lib/ only, main's tree, and missed every label a v2 screen draws)
+  const ui = walk('app', []).concat(walk('components', []), walk('v2/app', []), walk('v2/components', [])).filter((f) => f.endsWith('.tsx'));
+  const uiSrc = ui.map((f) => stripComments(read(f))).join('\n');
+  const labels = new Set();
+  // what a screen can draw: JSX text, and every string literal in a .tsx under app/ or components/ (their own
+  // label tables, attribute strings, conditional labels such as {x ? 'Delete invoice' : 'Delete'})
+  for (const m of uiSrc.matchAll(/>\s*([^<>{}\n]{1,60}?)\s*</g)) labels.add(m[1].trim());
+  for (const m of uiSrc.matchAll(/'([^'\n]{1,60})'|"([^"\n]{1,60})"/g)) labels.add((m[1] || m[2]).trim());
+  // copy values whose key a .tsx references (drawn by a control): KEY: 'Value' anywhere under lib/, key used as .KEY in app/components
+  for (const f of walk('lib', []).concat(walk('v2/lib', []))) {   // LANDING (by label): and v2/lib
+    const src = stripComments(read(f));
+    for (const m of src.matchAll(/\b([A-Za-z_][A-Za-z0-9_]*):\s*'([^'\n]{1,60})'/g)) {
+      if (new RegExp('\\.' + m[1] + '\\b').test(uiSrc)) labels.add(m[2].trim());
+    }
+  }
+  // a drawn label is compared without its trailing glyphs or counts ("All details ↓", "new · 1")
+  return [...labels].filter(Boolean).map((l) => l.toLowerCase().replace(/[\s·]*[↓↑→›⌄].*$/, '').replace(/\s*·\s*\d+$/, '').trim());
+}
+// the button words a step names: the phrases after "tap", split on commas, "then", "or", "and"
+function tapped(line) {
+  const out = [];
+  for (const m of line.matchAll(/\btap ([^.;:]+)/gi)) {
+    let seg = m[1];
+    // a list after "tap" runs until an item starts with another verb (type, fill, choose, give, check, set, come)
+    for (let part of seg.split(/,\s*|\s+then\s+|\s+or\s+|\s+and\s+/)) {
+      // a trailing purpose ("to read it before it goes") is cut, a destination in a label ("Continue to Meta") is not
+      part = part.replace(/^(then\s+)?(tap\s+)?/i, '').replace(/\s+(beside|on|under|in|from|for|if)\s+.*$/i, '').replace(/\s+to\s+[a-z].*$/, '').trim();
+      if (/^(type|fill|choose|give|check|set|come|read|copy|confirm)\b/i.test(part)) break;
+      if (!part || /^(it|its|the|a|an|them|this|\+)$/i.test(part) || /^(it|its|the|a|an|them|this)\s/i.test(part)) continue;
+      out.push(part);
+    }
+  }
+  return out;
+}
+
 function reapCell(reaper) {
   const run = read('scripts/run-floor.sh');
   if (!/# A-46\.6 \(CE-46, ruled 28 Sept 2026[\s\S]{0,700}\nLEAK_LINE=\$\(bash scripts\/lib\/floor_reap\.sh "\(before the floor\)"\)/.test(run)) return 'run-floor.sh does not call the pre-floor pass under its A-46.6 label';
@@ -233,9 +300,9 @@ function glassCells(tag, x, route, help, depth, seen) {
   cell(`2.2 ${tag} ${headless ? 'no h1 and no t1 on the page (Today working/unsettled, R-39.13)' : 'one h1 in the room, the head\u2019s, and no second t1'}${excused.length ? ' (F-44.22' + (route === '/vendor/contracts' ? '0' : '1') + ' excused by text)' : ''}`,
     !R.t1s ? 'no census' : headless ? (R.h1s === 0 && others.length === 0 ? null : `${R.h1s} h1s, t1 on ${JSON.stringify(R.t1s)}`) : (R.h1s === 1 + extraH1 && others.length === 0 ? null : `${R.h1s} h1s, t1 on ${JSON.stringify(R.t1s)}`));
   const q = R.q;
-  cell(`2.3 ${tag} the "?" is a 44px target on the title\u2019s line at its right edge, a thin circle in ink-mute with the glyph at t4`,
+  cell(`2.3 ${tag} the "?" is a 44px target on the title\u2019s line at its right edge, a 1px ring in the shell's teal (--atelier-accent-text, this theme) with the glyph at t4`,
     !q ? 'no "?"' : Math.round(q.box.w) !== 44 || Math.round(q.box.h) !== 44 ? `${q.box.w}x${q.box.h}` : (R.titleBox && Math.abs(q.box.cy - R.titleBox.cy) > 6) ? `off the line by ${Math.abs(q.box.cy - R.titleBox.cy).toFixed(1)}px`
-      : q.box.x + q.box.w < R.mainRight - R.gutter - 14 ? `not at the right edge (${q.box.x + q.box.w} vs ${R.mainRight - R.gutter})` : !onRung(q.ring, 't4') ? 'the glyph is not t4' : q.ringBorder !== '1px' ? `ring border ${q.ringBorder}` : q.aria !== 'What is this page' ? `aria "${q.aria}"` : null);
+      : q.box.x + q.box.w < R.mainRight - R.gutter - 14 ? `not at the right edge (${q.box.x + q.box.w} vs ${R.mainRight - R.gutter})` : !onRung(q.ring, 't4') ? 'the glyph is not t4' : q.ringBorder !== '1px' ? `ring border ${q.ringBorder}` : q.ringColor !== q.accent ? `ring ${q.ringColor}, the teal is ${q.accent}` : q.aria !== 'What is this page' ? `aria "${q.aria}"` : null);
   cell(`2.4 ${tag} the first-visit dot is ${seen === 'unseen' ? 'on' : 'off'} (${seen} phone)`, q ? ((seen === 'unseen') === q.dotDrawn ? null : `dot ${q.dotDrawn ? 'drawn' : 'absent'}`) : 'no "?"');
   cell(`2.5 ${tag} no card at rest`, R.card ? 'a card is open at rest' : null);
   const c = x.open;
@@ -243,14 +310,14 @@ function glassCells(tag, x, route, help, depth, seen) {
     !x.tapped ? 'no "?" to tap' : !c ? 'no card' : c.role !== 'dialog' || c.modal !== 'true' ? 'not a modal dialog' : c.name !== R.shellLabel ? `name "${c.name}" (room ${R.shellLabel})` : c.what !== e.what ? `what "${c.what}" vs "${e.what}"`
       : c.lines.join('|') !== e.can.map((l) => l.line).join('|') ? `lines ${c.lines.join('|')}` : (c.connects || '') !== (e.connects || '') ? `connects "${c.connects}"` : e.can.length && c.icons.length !== e.can.length ? `${c.icons.length} icons` : null);
   cell(`2.7 ${tag} the card is inset one gutter each side, vertically centred, content-fit under 60dvh, on the scrim`,
-    !c ? 'no card' : Math.abs(c.box.x - R.gutter) > 0.6 || Math.abs(c.vw - c.box.r - R.gutter) > 0.6 ? `x ${c.box.x} right ${c.vw - c.box.r} (gutter ${R.gutter})` : Math.abs((c.box.y + c.box.h / 2) - c.vh / 2) > 2 ? `centre ${(c.box.y + c.box.h / 2).toFixed(1)} vs ${c.vh / 2}` : Math.abs(parseFloat(c.maxH) - c.vh * 0.6) > 1 ? `max-height ${c.maxH} (60dvh is ${c.vh * 0.6})` : c.overflowY !== 'auto' ? 'no inner scroll' : c.box.h > c.vh * 0.6 + 1 ? 'taller than 60dvh' : !c.scrim || c.scrim === 'rgba(0, 0, 0, 0)' ? 'no scrim' : c.btns.length !== 2 || c.btns.some((b) => b.h < 44) ? 'controls not two at 44px' : null);
+    !c ? 'no card' : Math.abs(c.box.x - R.gutter) > 0.6 || Math.abs(c.vw - c.box.r - R.gutter) > 0.6 ? `x ${c.box.x} right ${c.vw - c.box.r} (gutter ${R.gutter})` : Math.abs((c.box.y + c.box.h / 2) - c.vh / 2) > 2 ? `centre ${(c.box.y + c.box.h / 2).toFixed(1)} vs ${c.vh / 2}` : Math.abs(parseFloat(c.maxH) - c.vh * 0.6) > 1 ? `max-height ${c.maxH} (60dvh is ${c.vh * 0.6})` : c.overflowY !== 'auto' ? 'no inner scroll' : c.box.h > c.vh * 0.6 + 1 ? 'taller than 60dvh' : !c.scrim || c.scrim === 'rgba(0, 0, 0, 0)' ? 'no scrim' : c.btns.length !== 1 || c.btns.some((b) => b.h < 44) ? 'not one control at 44px' : null);
   cell(`2.8 ${tag} opening writes the seen key and clears the dot`, x.storedAfterOpen !== '1' ? `stored "${x.storedAfterOpen}"` : x.firstAfterOpen !== '0' ? `dot state ${x.firstAfterOpen}` : null);
   cell(`2.9 ${tag} Got it closes the card and focus returns to the "?"`, !x.afterGotIt ? 'not measured' : x.afterGotIt.card ? 'the card stayed' : !x.afterGotIt.focusOnQ ? 'focus not on the "?"' : null);
   if (depth === 'full') {
     cell(`2.10 ${tag} the scrim closes it, and focus returns`, !x.reopened1 ? 'did not reopen' : !x.afterScrim || x.afterScrim.card ? 'the card stayed' : !x.afterScrim.focusOnQ ? 'focus not on the "?"' : null);
     cell(`2.11 ${tag} Escape closes it, and focus returns`, !x.reopened2 ? 'did not reopen' : !x.afterEscape || x.afterEscape.card ? 'the card stayed' : !x.afterEscape.focusOnQ ? 'focus not on the "?"' : null);
-    cell(`2.12 ${tag} "Ask TDW about this" opens the sheet with the room\u2019s name in the input, the card closed, nothing sent`,
-      !x.sheet ? 'the sheet did not open' : !x.ask ? 'not measured' : x.ask.input !== R.shellLabel ? `input "${x.ask.input}" (room ${R.shellLabel})` : x.ask.card ? 'the card stayed under the sheet' : x.ask.userBubbles !== 0 ? 'a message was sent' : null);
+    cell(`2.12 ${tag} the card carries ONE control, Got it, no Ask TDW button, and no ask request left the phone while it was used`,
+      !c ? 'no card' : c.btns.length !== 1 || !/^got it$/i.test(c.btns[0].txt) ? `controls: ${c.btns.map((b) => b.txt).join(' | ')}` : x.askPosts ? `${x.askPosts} ask request(s) left` : null);
   }
   // §3 the rung law on the card
   if (c) {
@@ -299,11 +366,14 @@ const done = () => { console.log(`b140: ${pass} pass, ${fail} fail`); process.ex
     }
     if (MUTATE) {
       const muts = [
-        { id: 'M1', file: 'v2/lib/worklist/pageHelp.ts', from: "  [DATES_HREF]: entry(ROW_DESC.dates),\n", to: '', source: () => { let red = false; try { const h = loadPageHelp(); red = !h.helpFor('/vendor/dates'); } catch (_e) { red = true; } return red; }, cell: '1.1' },
+        // LANDING: main's mutations (CE-46 FE-4), at the v2 paths
+        { id: 'M1', file: 'v2/lib/worklist/pageHelp.ts', from: "  [DATES_HREF]: entry(ROW_DESC.dates, {", to: "  ['/vendor/m1-not-a-route']: entry(ROW_DESC.dates, {", source: () => { let red = false; try { const h = loadPageHelp(); red = !h.helpFor('/vendor/dates'); } catch (_e) { red = true; } return red; }, cell: '1.1' },
         { id: 'M2', file: 'v2/components/worklist/PageHelp.tsx', from: '        {help && (\n          <button ref={qRef}', to: '        {help && false && (\n          <button ref={qRef}', route: '/vendor/leads', red: (x) => !(x.rest && x.rest.q), cell: '2.3' },
         { id: 'M3', file: 'v2/components/worklist/PageHelp.tsx', from: 'className="wl-helpscrim" aria-label={COPY.helpClose} onClick={onClose} />', to: 'className="wl-helpscrim" aria-label={COPY.helpClose} />', route: '/vendor/leads', depth: 'full', red: (x) => !!(x.afterScrim && x.afterScrim.card), cell: '2.10' },
         { id: 'M4', file: 'v2/components/worklist/PageHelp.tsx', from: 'if (first) { writeSeen(seenKey); setFirst(false); }', to: 'if (first) { setFirst(false); }', route: '/vendor/leads', red: (x) => x.storedAfterOpen !== '1', cell: '2.8' },
         { id: 'M5', file: 'v2/components/worklist/PageHelp.tsx', from: '.wl-helpname{font:var(--wl-t2);', to: '.wl-helpname{font:500 19px/1.3 var(--font-dm-sans);', route: '/vendor/leads', red: (x) => !!(x.open && x.open.texts.some((t) => !anyRung(t))), cell: '3.1' },
+        { id: 'M8', file: 'v2/lib/worklist/pageHelp.ts', from: "    connects: 'Every cost lands in Books.' }),", to: "    connects: '' }),", source: () => { try { const h = loadPageHelp(); return !h.PAGE_HELP[Object.keys(h.PAGE_HELP).find((k) => /expenses/.test(k))].connects; } catch (_e) { return true; } }, cell: '1.8' },
+        { id: 'M9', file: 'v2/lib/worklist/pageHelp.ts', from: "To start: tap Connect ad account. Meta opens", to: "To start: tap Connect ad account, then Continue to Meta. Meta opens", source: () => { let red = false; try { const h = loadPageHelp(); const L = drawnLabels(ROOT, stripComments); const n = (x) => x.toLowerCase().replace(/[^a-z0-9+ ]/g, '').trim(); red = !Object.values(h.PAGE_HELP).every((e) => (e.can || []).every((c) => tapped(c.line).every((w) => L.some((x) => n(x) === n(w))))); } catch (_e) { red = true; } return red; }, cell: '1.9' },
         { id: 'M7', file: 'scripts/lib/floor_reap.sh', from: 'scope=root; [ "$member" = "(before the floor)" ] && scope=any', to: 'scope=root', source: () => !!reapCell(P('scripts/lib/floor_reap.sh')), cell: '1.7' },
         { id: 'M6', file: 'v2/components/vendor/Header.tsx', from: "import { useVendorMe } from '@/v2/hooks/vendor/useVendorMe';", to: "import { useVendorMe } from '@/v2/hooks/vendor/useVendorMe';\nimport { TipsCarousel } from '@/components/vendor/TipsCarousel';", source: () => { const refs = code(read('v2/components/vendor/Header.tsx')); return /TipsCarousel/.test(refs); }, cell: '1.4' },
       ];

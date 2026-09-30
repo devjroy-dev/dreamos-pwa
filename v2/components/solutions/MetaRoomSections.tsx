@@ -11,7 +11,8 @@
 //                              state (afterTurnOn); Not now (C6) -> back, nothing sent
 //   on, waiting                one control: Turn off (C13) -> POST switch {on:false}
 //   paused                     the line IS the control (R-43.16): Instagram's authorize page
-//   quiet time                 one select: the four lengths (QT2) -> POST quiet {minutes}
+//   quiet time                 four buttons, one pressed (CE-46 G6-4, the shell's own style, no browser <select>):
+//                              a tap on an unpressed length -> POST quiet {minutes}; the pressed one is inert
 // No text node is typed here: every word is read from lib/worklist/metaRoom.ts. No persona name. No brand mark.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getJson, postJson } from '@/lib/vendor/api/_base';
@@ -118,16 +119,32 @@ function QuietTimeRow() {
   };
   return (
     <section className="sol-surface" data-meta-room="quiet" data-minutes={door.minutes}>
-      <label className="sol-empty">
-        {QUIET.line}{' '}
-        <select value={door.minutes} onChange={(e) => { void pick(Number(e.target.value)); }}>
-          {QUIET.options.map((o) => <option key={o.minutes} value={o.minutes}>{o.label}</option>)}
-        </select>
-      </label>
+      <p className="sol-empty" id="qt-line">{QUIET.line}</p>
+      <div className="qt-seg" role="radiogroup" aria-labelledby="qt-line">
+        {QUIET.options.map((o) => {
+          const on = o.minutes === door.minutes;
+          return (
+            <button key={o.minutes} type="button" role="radio" aria-checked={on} className={on ? 'qt-opt on' : 'qt-opt'}
+              onClick={() => { if (!on) void pick(o.minutes); }}>{o.label}</button>
+          );
+        })}
+      </div>
       {err && <p className="sol-err">{COPY.surfaceUnavailable}</p>}
+      <style>{QT_CSS}</style>
     </section>
   );
 }
+
+// CE-46 G6-4 · the quiet control in the shell's own style: one bordered row of four equal cells, the pressed one in the
+// accent. Tokens and rungs only. ⚠ NO BACKTICKS BELOW THIS LINE: the CSS is a template literal.
+const QT_CSS = `
+.qt-seg{display:flex;margin:12px 0 0;border:.5px solid var(--atelier-input-border);border-radius:2px;overflow:hidden}
+.qt-opt{flex:1 1 0;min-height:44px;padding:10px 4px;background:transparent;border:none;border-left:.5px solid var(--atelier-input-border);font:var(--wl-t4);color:var(--atelier-ink-soft);cursor:pointer;touch-action:manipulation;white-space:nowrap}
+.qt-opt:first-child{border-left:none}
+.qt-opt.on{color:var(--atelier-accent-text);background:var(--atelier-row-hover);box-shadow:inset 0 0 0 1px var(--atelier-accent-text);border-radius:0}
+.qt-opt:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
+.qt-opt:active{background:var(--atelier-row-hover)}
+`;
 
 /** The room's two added parts, in A5's order: Instagram, then the quiet time. */
 export function MetaRoomSections() {

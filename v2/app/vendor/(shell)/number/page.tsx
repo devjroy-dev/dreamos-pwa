@@ -30,6 +30,10 @@
 // ⚠ NO PERSONA NAME ANYWHERE ON THIS SCREEN. The capability is the assistant
 // answering on her own number; the chrome says what happens, never who does it
 // (R-37.70 as amended; b40 C32).
+//
+// ── CE-46 G6-4 ─────────────────────────────────────────────────────────────
+// The shell gains ONE non-interactive element, FinishInAppLine (S6, F-c), when the door says her shared number was removed here
+// and Meta has not yet said she disconnected it in her app. The control inventory above does not move.
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
@@ -39,7 +43,7 @@ import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { BUTTONS, CHIPS, COPY, roomLabel } from '@/v2/lib/solutions/copy';
 import { NUMBER } from '@/lib/worklist/ownNumber';
 import { SolutionsStyles } from '@/v2/components/solutions/SolutionsPieces';
-import { OwnNumberFlow } from '@/v2/components/solutions/OwnNumberFlow';
+import { OwnNumberFlow, FinishInAppLine } from '@/v2/components/solutions/OwnNumberFlow';
 import { useOwnNumberRoom } from '@/v2/hooks/vendor/useOwnNumberRoom';
 // CE-45 IGD-1 cut 1 · R-45.27: the room "WhatsApp and Instagram" (its name is roomLabel('number')); G6's screen first under
 // SECTIONS.number, then MetaRoomSections (Instagram, the quiet time), all inside ONE shell (S1).
@@ -68,6 +72,8 @@ function OwnNumberScreen() {
       <section className="sol-surface">
         <p className="sol-kicker">{CHIPS.coming}</p>
         <h2 className="sol-heading">{SECTIONS.number}</h2>
+        {/* CE-46 G6-4 · S6 with the door shut: the same line the flow draws, read from the same door (F-c). */}
+        <FinishInAppLine door={room.door} />
         <p className="sol-empty">{NUMBER.lede}</p>
         <p className="sol-subhead">{COPY.canHead}</p>
         <ul className="sol-can">

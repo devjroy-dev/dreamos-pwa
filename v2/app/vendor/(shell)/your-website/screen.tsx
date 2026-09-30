@@ -31,6 +31,9 @@
 //
 // The word "dis-abled" appears nowhere in this file (C103, R-40.78: absent, not
 // greyed). Busy states are guarded in handlers.
+// R-46.14 (the founder, 28 September) SUPERSEDES R-40.78 for the own-name actions ONLY
+// (./OwnName.tsx): a button whose work cannot run yet stays in place and reads
+// "Coming soon", disabled, never hidden. The rest of this room keeps R-40.78 as it stands.
 //
 // Vendor-facing bytes are C (below) — the founder's veto sheet, byte for byte.
 
@@ -39,6 +42,8 @@ import Link from 'next/link';
 import { useSettings } from '@/v2/hooks/vendor/useSettings';
 import { updateMe } from '@/v2/lib/vendor/api/vendor';
 import { getJson, API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
+import OwnName from './OwnName';
+import { publicUrlFor } from '@/lib/public/vendorHost';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { roomHref } from '@/v2/lib/worklist/rooms';
 import { WEDDING_PAGES_HREF } from '@/v2/lib/solutions/routes';
@@ -69,10 +74,6 @@ const C = {
   addrSub:     'Put it in your Instagram bio and on your cards.',
   copy:        'Copy', copied: 'Copied', share: 'Share', qrDl: 'Download QR',
   qrLine:      'Scan opens your page.',
-  domHead:     'Your own name',
-  domSub:      'Get yourname.in and your page lives there. Registered in your name, not ours.',
-  domSoon:     'Coming soon. Your address above works today and always will.',   // P2 not yet open — a byte for the veto
-  domSearchSoon: 'The search lands with the registrar.',                          // P2 gate open, registrar packet not yet applied
   wedHead:     COPY.storefrontWeddingsLabel,
   wedSub:      'Only pages you published and the couple agreed to.',
   wedNone:     'None yet. Publish one from Wedding pages.',
@@ -128,6 +129,11 @@ type Sheet = null | 'about' | 'city' | 'rate' | 'cover' | 'wedding' | 'venue' | 
 // section eyebrow / record head / note; support/page.tsx for the row grammar)
 // plus this room's layout glue. No new colour. ────────────────────────────────
 const CSS = `
+.yw-pri,[data-yw-pri]{text-transform:none;letter-spacing:0}
+/* Light mode (lib/worklist/theme.ts CHALK): the shell primary’s words (ink-deep #17191A) on its fill
+   (accent-text #0D6A5A) are 2.71:1, under AA; in this room they take ink-on-metal (#FFFFFF, 6.51:1).
+   Dark (GRAPHITE) is 9.62:1 and unchanged. b147 §3. */
+.wl[data-wl-mode="light"] .yw-pri,.wl[data-wl-mode="light"] [data-yw-pri]{color:var(--role-ink-on-metal)}
 .yw-sec{flex-shrink:0}
 .yw-sect{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);padding:24px 0 8px;border-top:.5px solid var(--role-metal);margin-top:24px}
 .yw-sect.first{border-top:none;margin-top:8px}
@@ -188,7 +194,11 @@ textarea.yw-fi{resize:none;min-height:88px;font-family:inherit}
 
 // ── ONE PRIMARY REGISTER, ONE HOME ────────────────────────────────────────────
 function Primary({ label, onClick }: { label: string; onClick: () => void }) {
-  return <button type="button" className="wl-btn pri" onClick={onClick}>{label}</button>;
+  // WEB-1 cut 3 · `yw-pri`: the room's primary reads in sentence case ("Copy", like Share and Open),
+  // this room only (the chair, 28 September, F5); the shell's .wl-btn keeps its capitals everywhere else.
+  // The register stays written once, exactly "wl-btn pri" (b40 C115: ONE home); the room-only sentence case
+  // and the light-mode words ride a data attribute, so the shell's count is untouched.
+  return <button type="button" className="wl-btn pri" data-yw-pri="1" onClick={onClick}>{label}</button>;
 }
 function GIcon() {
   return (
@@ -241,8 +251,10 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
   // card door, the canonical and the QR all lowercase it. The room prints and
   // opens the same address they do.
   const handle = (current.routing_handle || '').toLowerCase();
-  const address = handle ? `${SITE_BASE.replace(/^https?:\/\//, '')}/v/${handle}` : '';
-  const pageUrl = handle ? `${SITE_BASE}/v/${handle}` : '';
+  // WEB-1 cut 3 · her short address (<handle>.thedreamwedding.in) is the one this room prints,
+  // copies, shares and opens; a handle with no short address keeps /v/<handle> (lib/public/vendorHost.ts).
+  const pageUrl = handle ? publicUrlFor(handle, SITE_BASE) : '';
+  const address = pageUrl.replace(/^https?:\/\//, '');
 
   const [screen, setScreen] = useState<Screen>('page');
   const [sheet, setSheet] = useState<Sheet>(null);
@@ -253,6 +265,8 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
   const [gStatus, setGStatus] = useState<GStatus | null>(null);
   const [gReport, setGReport] = useState<GReport | null>(null);
   const [p2Live, setP2Live] = useState(false);
+  const [tier, setTier] = useState<string | null>(null);
+  const [prefill, setPrefill] = useState<{ name?: string; address1?: string }>({});
   const [showDone, setShowDone] = useState(false);
 
   // Local echoes of the three editable facts, seeded from the hook's /me read.
@@ -285,8 +299,13 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
     let live = true;
     (async () => {
       try {
-        const me = await getJson<{ ok: boolean; vendor?: MeSeo }>('/api/v2/vendor/me');
-        if (live && me && me.vendor) setSeo({ seo_title: me.vendor.seo_title ?? null, seo_description: me.vendor.seo_description ?? null });
+        const me = await getJson<{ ok: boolean; vendor?: MeSeo & { tier?: string | null; name?: string | null; address?: string | null } }>('/api/v2/vendor/me');
+        if (live && me && me.vendor) {
+          setSeo({ seo_title: me.vendor.seo_title ?? null, seo_description: me.vendor.seo_description ?? null });
+          // WEB-1 cut 3 · the own-name row reads her tier (R-46.9: Signature and up) and prefills her registrant sheet.
+          setTier(typeof me.vendor.tier === 'string' ? me.vendor.tier : null);
+          setPrefill({ name: me.vendor.name ?? undefined, address1: me.vendor.address ?? undefined });
+        }
       } catch { /* derived bytes stand in */ }
       try {
         const st = await getJson<GStatus>('/api/v2/vendor/solutions/google/status');
@@ -359,7 +378,7 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
     );
   }
   if (screen === 'address') {
-    return <><AddressScreen {...{ address, pageUrl, handle, p2Live, rechead, say }} />{toastEl}</>;
+    return <><AddressScreen {...{ address, pageUrl, handle, p2Live, tier, prefill, rechead, say }} />{toastEl}</>;
   }
   if (screen === 'google') {
     const derivedTitle = (card && card.meta && card.meta.title) || [current.business_name, cityV].filter(Boolean).join(' \u00b7 ');
@@ -497,8 +516,8 @@ function DateSwitch({ cap, revalidate }: { cap: 'ruled_off' | 'unmapped' | null 
 }
 
 // ── W2 · HER ADDRESS ──────────────────────────────────────────────────────────
-function AddressScreen({ address, pageUrl, handle, p2Live, rechead, say }: {
-  address: string; pageUrl: string; handle: string; p2Live: boolean;
+function AddressScreen({ address, pageUrl, handle, p2Live, tier, prefill, rechead, say }: {
+  address: string; pageUrl: string; handle: string; p2Live: boolean; tier: string | null; prefill: { name?: string; address1?: string };
   rechead: (t: string) => ReactNode; say: (m: string) => void;
 }) {
   const [qr, setQr] = useState<string | null>(null);
@@ -546,15 +565,7 @@ function AddressScreen({ address, pageUrl, handle, p2Live, rechead, say }: {
           </div>
         </div>
       </div>
-      <div className="yw-sec" style={{ paddingBottom: 32 }}>
-        <div className="yw-sect">{C.domHead}</div>
-        <div className="yw-note">{C.domSub}</div>
-        {/* P2 · the search and the price ship as drawn when RESELLERCLUB_* + VERCEL_*
-            exist (the `website` row's gate) AND the registrar packet is applied.
-            Until then: one honest line, nothing that looks like it searches — a
-            field that answers nothing is F-19.21's class. */}
-        <div className="yw-fine" style={{ marginTop: 12 }}>{p2Live ? C.domSearchSoon : C.domSoon}</div>
-      </div>
+      <OwnName p2Live={p2Live} tier={tier} prefill={prefill} />
     </>
   );
 }

@@ -14,7 +14,10 @@
 //          cancel    -> back to the room.
 // working  NO control. The state is stated (FLOW.connecting); a second tap is
 //          impossible because there is nothing to tap (F-19.20: stated, not hidden).
-// status   NO control this cut. Disconnect arrives with the server's own act.
+// status   CE-46 G6-4: the number in a box (the number, its state line, its way line) and ONE control under it:
+//          Remove this number -> RemoveNumberSheet (its own inventory). Not drawn for migrated_out or pending.
+//          A refusal is stated under the box (FLOW.removeRefused), the box unchanged (F-a (a)).
+// room     CE-46 G6-4 S6: after a shared-way removal, FLOW.finishInApp above Connect until Meta's PARTNER_REMOVED (F-c).
 // The moved way is therefore stated twice before anything opens (§7b constraint 1,
 // c-45.30): once on the consent screen, once on its own screen.
 //
@@ -24,16 +27,17 @@
 // Meta error, the session id Meta gave her for support.
 //
 // ⚠ NO PERSONA NAME ANYWHERE ON THIS SCREEN (R-37.70, b40 C32).
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { SolutionsStyles } from '@/v2/components/solutions/SolutionsPieces';
 import { BUTTONS, CHIPS, COPY, roomLabel } from '@/v2/lib/solutions/copy';
 import { NUMBER } from '@/lib/worklist/ownNumber';
-import { FLOW } from '@/lib/worklist/ownNumberFlow';
+import { FLOW, withNumber } from '@/lib/worklist/ownNumberFlow';
+import { RemoveNumberSheet } from '@/v2/components/solutions/RemoveNumberSheet';   // LANDING: its v2 twin
 import { postJson } from '@/lib/vendor/api/_base';
 import { API } from '@/v2/lib/solutions/routes';
-import { asNumberLine } from '@/lib/vendor/ownNumberDoor';
+import { asNumberLine, asRemoved } from '@/lib/vendor/ownNumberDoor';
 import type { ConnectBody, OwnNumberLine, OwnNumberWay } from '@/lib/vendor/ownNumberDoor';
 import type { OwnNumberRoom } from '@/v2/hooks/vendor/useOwnNumberRoom';
 import { launchSignup } from '@/lib/vendor/metaSignup';
@@ -57,6 +61,26 @@ export function OwnNumberFlow({ room, sectionHead, after }: { room: OwnNumberRoo
   const [outcome, setOutcome] = useState<Outcome>(null);
   const busy = useRef(false);
   const door = room.door;
+  // CE-46 G6-4 · the remove sheet: asking, then removing; its host is the nearest shell scope (SignOutSheet's callback ref).
+  const [sheet, setSheet] = useState<null | 'asking' | 'removing'>(null);
+  const [refused, setRefused] = useState(false);
+  const [host, setHost] = useState<Element | null>(null);
+  const anchorRef = useCallback((el: HTMLElement | null) => { setHost(el ? (el.closest('[data-wl-mode]') ?? document.body) : null); }, []);
+  const removeNow = async () => {
+    if (busy.current || !door || !door.number) return;
+    busy.current = true;
+    setSheet('removing');
+    try {
+      const res = await postJson<Record<string, unknown>>(API.ownNumberRemove(), {});
+      const removed = res && res.ok === true ? asRemoved(res.removed) : undefined;
+      if (res && res.ok === true && removed !== undefined) { setSheet(null); setRefused(false); setStep('room'); room.setDoor({ ...door, number: null, removed }); return; }
+      setRefused(true); setSheet(null);
+    } catch {
+      setRefused(true); setSheet(null);
+    } finally {
+      busy.current = false;
+    }
+  };
 
   const go = async (way: OwnNumberWay) => {
     if (busy.current || !door || !door.launch) return;
@@ -96,16 +120,31 @@ export function OwnNumberFlow({ room, sectionHead, after }: { room: OwnNumberRoo
   if (room.mode === 'status' && door && door.number) {
     const n = door.number;
     const chip = STATE_CHIP[n.status];
+    const removable = n.status === 'active' || n.status === 'suspended';
     return (
       <WorklistShell title={roomLabel('number')}>
-        <section className="sol-surface" data-own-number="status" data-status={n.status}>
+        <section className="sol-surface" data-own-number="status" data-status={n.status} ref={anchorRef}>
           {chip && <p className="sol-kicker">{chip}</p>}
           {head}
-          <p className="sol-addr">{n.display_number}</p>
-          <p className="sol-empty">{STATE_LINE[n.status]}</p>
+          <div className="on-box" data-way={n.way}>
+            <p className="on-number">{n.display_number}</p>
+            <p className="on-state">{STATE_LINE[n.status]}</p>
+            {n.status !== 'migrated_out' && <p className="on-way">{n.way === 'moved' ? FLOW.wayMoved : FLOW.wayShared}</p>}
+          </div>
+          {refused && <p className="sol-err on-refused" role="status">{FLOW.removeRefused}</p>}
+          {removable && (
+            <div className="sol-actions">
+              <button type="button" className="sol-btn" onClick={() => { setRefused(false); setSheet('asking'); }}>{FLOW.remove}</button>
+            </div>
+          )}
         </section>
+        {sheet && host && (
+          <RemoveNumberSheet host={host} number={n.display_number} way={n.way} working={sheet === 'removing'}
+            onCancel={() => setSheet(null)} onConfirm={() => { void removeNow(); }} />
+        )}
         {after}
         <SolutionsStyles />
+        <style>{BOX_CSS}</style>
       </WorklistShell>
     );
   }
@@ -117,6 +156,7 @@ export function OwnNumberFlow({ room, sectionHead, after }: { room: OwnNumberRoo
           <>
             <p className="sol-kicker">{CHIPS.not_connected}</p>
             {head}
+            <FinishInAppLine door={door} />
             <p className="sol-empty">{NUMBER.lede}</p>
             <p className="sol-subhead">{COPY.canHead}</p>
             <ul className="sol-can">
@@ -168,6 +208,32 @@ export function OwnNumberFlow({ room, sectionHead, after }: { room: OwnNumberRoo
       </section>
       {after}
       <SolutionsStyles />
+      <style>{BOX_CSS}</style>
     </WorklistShell>
   );
 }
+
+/** CE-46 G6-4 · S6 (F-c): after a shared-way removal, until Meta's PARTNER_REMOVED. Drawn by the flow AND by the shell (door shut). */
+export function FinishInAppLine({ door }: { door: OwnNumberRoom['door'] }) {
+  const r = door && door.removed;
+  if (!r || !r.finish_in_app) return null;
+  return (
+    <>
+      <p className="on-finish" data-s6="finish-in-app">{withNumber(FLOW.finishInApp, r.display_number)}</p>
+      <style>{FINISH_CSS}</style>
+    </>
+  );
+}
+
+// CE-46 G6-4 · THE BOX. Tokens only; rungs only (the number at t2: one t1 per room, the head's, R-38.4).
+// ⚠ NO BACKTICKS BELOW THIS LINE: the CSS is a template literal.
+const BOX_CSS = `
+.on-box{border:.5px solid var(--atelier-card-border);background:var(--atelier-card-bg);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.on-number{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.on-state{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
+.on-way{font:var(--wl-t4);color:var(--atelier-ink-mute);margin:0}
+.on-refused{margin:12px 0 0}
+`;
+const FINISH_CSS = `
+.on-finish{font:var(--wl-t3);color:var(--role-caution);margin:0 0 12px;max-width:46ch;padding:12px;border:.5px solid var(--role-caution);border-radius:12px}
+`;

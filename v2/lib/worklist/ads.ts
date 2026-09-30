@@ -17,6 +17,23 @@
 
 export const ADS = {
   comingSoon: 'Coming soon',
+
+  // cut1e 2 · the chooser (e2), approved 29 September 2026. {n} is Meta's own count on her login.
+  choose: {
+    accountQ: 'Which ad account should your ads use?',
+    pageQ: 'Which Page should your ads come from?',
+    accountBody: 'Meta shows {n} ad accounts on your login. Pick the one to use for TDW. You can change it later in All settings.',
+    pageBody: 'Meta shows {n} Pages on your login. Pick the one to use for TDW. You can change it later in All settings.',   // the Pages twin of the approved line, for the chair
+    useAccount: 'Use this ad account',
+    usePage: 'Use this Page',
+  },
+  // R-46.16 · with no posts of her own (the founder's yes, 29 September 2026)
+  examples: {
+    mark: 'TDW',   // R-46.16's watermark, set as type (R-41.134); the house name, no new word
+    previewLine: 'This is how your post will look as an ad.',
+    noPosts: 'Post a photo or reel on Instagram first. It will appear here.',
+    sampleResult: 'A post like this could reach people in your city and bring messages to you.',   // proposed to the chair
+  },
   // R-46.14, the founder's: an action that cannot run yet, disabled, never hidden
 
   ledes: {
@@ -25,7 +42,7 @@ export const ADS = {
 
   card: {                                   // the Posts room's one Ads card (R-46.13 item 2)
     label: 'Ads',
-    none: 'You have not run an ad yet. Your ads run from your own Meta ad account and your own card.',
+    none: 'You have not run an ad yet. Your ads run from your own Meta ad account.',   // cut1e: "and your own card" dropped (prepaid accounts), for the chair
     gap: 'One step is left before your first ad: {step}.',
     running: '{post} is running. {reach} people have seen it today.',          // the approved shape (gap 1, the chair's yes)
     runningNoName: 'Your ad is running. {reach} people have seen it today.',  // only when her post had no caption
@@ -34,12 +51,12 @@ export const ADS = {
   },
 
   connect: {
-    body1: 'Your ads run from your own Meta ad account. Meta bills your card, and every result is yours. TDW sets the ad up for you and never adds a charge of its own.',
-    body2: 'When you connect, we ask Meta for four things: to see your Pages, to see your ad accounts, to create ads on the account you choose, and to read how those ads did. Nothing runs until you tap Run.',
+    body1: 'Your ads run from your own Meta ad account. Meta takes the amount from your ad account\u2019s payment method. Every result is yours, and TDW never adds a charge of its own.',   // cut1e 5, for the chair
+    body2: 'Meta will show you what TDW asks for. Keep every switch on.',   // cut1e 5, approved
     cta: 'Connect ad account',
     iphone: 'Press and hold Connect ad account, then choose \u201cOpen in New Tab\u201d. A normal tap gets caught by the Facebook app.',
     sheetQ: 'Connect your Meta ad account to TDW?',
-    sheetBody: 'You are allowing TDW to create and run ads on your ad account, only when you tap Run. Every ad is paid by your card to Meta. TDW never spends without your yes and never charges you for ads.',
+    sheetBody: 'Meta will show you what TDW asks for. Keep every switch on. On the Pages screen, keep your business Page ticked.',   // e1, approved
     sheetGo: 'Continue to Meta',
     back: 'Back',
   },
@@ -48,7 +65,8 @@ export const ADS = {
     intro: 'Before your first ad, Meta needs three things from you. We check them all when you connect.',
     page: 'Connected, but your Facebook account has no Page yet. Make one in about two minutes, then come back and tap Check again.',
     pageTap: 'Make my Page',
-    link: 'Your Page {page} is not linked to your Instagram @{ig} yet. Link them in Instagram\u2019s settings, then tap Check again.',
+    link: 'Your Page {page} is not linked to your Instagram yet.',   // e3, approved
+    linkSwitch: 'On Facebook, switch into your Page first (tap your picture at the top right, then the Page), then tap Link my Instagram again.',   // e3, approved
     linkTap: 'Link my Instagram',
     account: 'Your Page and Instagram are ready. The last thing is an ad account with your card. Make it in Meta Business Suite in about three minutes, then tap Check again.',
     accountTap: 'Make my ad account',
@@ -60,10 +78,11 @@ export const ADS = {
 
   draft: {
     whySaves: '{post}, posted {date}, is your most saved post this month: {saves} saves and {reach} reach with no money behind it. Posts that couples save are the ones that bring enquiries, so this is the one to boost first.',
+    whyNewest: 'Your newest post.',   // the chair's ruling 2, approved
     whyLikes: '{post}, posted {date}, is your most liked post this month: {likes} likes and {comments} comments with no money behind it. Posts couples respond to are the ones that bring enquiries, so this is the one to boost first.',
     whyShort: 'Your most saved post this month: {saves} saves and {reach} people reached, with no money behind it.',   // R-46.13 item 2
     preview: 'How couples will see it',
-    plan: 'For Rs {daily} a day over {days} days, Meta shows this post to people in {places}, aged {min} to {max}. Meta charges your card up to Rs {total} in all, never more.',
+    plan: 'For Rs {daily} a day over {days} days, Meta shows this post to people in {places}, aged {min} to {max}. Meta takes up to Rs {total} in all from your ad account\u2019s payment method, never more.',   // cut1e 5 spliced, for the chair
     minimum: 'Rs {min} a day is the least Meta allows on your account.',
     rows: { who: 'Who sees it', where: 'Where it appears', amount: 'Amount', dates: 'Dates' },
     change: 'Change',
@@ -83,7 +102,7 @@ export const ADS = {
 
   confirm: {
     q: 'Run this ad?',
-    body: 'Meta charges your card up to Rs {total} in all. You can pause it any time from here.',
+    body: 'Meta takes up to Rs {total} in all from your ad account\u2019s payment method. You can pause it any time from here.',   // cut1e 5 spliced, for the chair
     rows: { post: 'Post', who: 'Who sees it', where: 'Where', amount: 'Amount', dates: 'Dates', greeting: 'Greeting' },
     run: 'Run this ad',
     back: 'Back',
@@ -114,7 +133,8 @@ export const ADS = {
 
   results: {
     label: 'Your last ad',
-    story: 'This ad ran from {from} to {to}. {reach} people in {places} saw the post, {enquiries} wrote to you, and Meta charged your card Rs {spent}. That is Rs {each} for each enquiry. All {enquiries} are in Leads.',
+    story: 'Meta showed this ad {impressions} times to {reach} people in {places}. {clicks} of them tapped it, and {enquiries} wrote to you. Meta took Rs {spent} from your ad account\u2019s payment method. That is Rs {each} for each person who wrote.',   // e4 (G3), approved
+    inLeads: 'All {enquiries} are in Leads.',
     days: 'Day by day: {days}.',
     next: 'What to try next: {next}',
     another: 'Run another ad',
@@ -163,7 +183,9 @@ export const ADS = {
     totalHint: 'Rs for the whole ad',
     spend: { LOWEST_COST_WITHOUT_CAP: 'Lowest cost, no cap', LOWEST_COST_WITH_BID_CAP: 'A cap on each result', COST_CAP: 'An average cost you want' },
     capHint: 'Rs for each result',
-    postFilter: { all: 'All', posts: 'Posts', reels: 'Reels' },
+    postFilter: { all: 'All', instagram: 'Instagram', facebook: 'Facebook' },   // e5, approved
+    postKinds: 'Your Instagram posts and your Facebook Page posts. A Facebook post sends people to Messenger; an Instagram post sends them to your Instagram messages.',   // e5, approved
+    markInstagram: 'Instagram', markFacebook: 'Facebook',
     greetingHint: 'What couples see first when they tap Send message',
     questionHint: 'A question couples can tap',
     done: 'Done',                                                  // approved (R-46.13)

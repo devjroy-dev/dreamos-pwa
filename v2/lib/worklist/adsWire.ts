@@ -15,18 +15,21 @@ export type Settings = {
   welcome: { text: string; icebreakers: string[] };
   post?: { url: string | null; caption_line: string | null } | null;   // stored by /run (gap 1); not part of the echo
 };
-export type Gap = { gap: null | 'scopes' | 'page' | 'link' | 'ad_account' | 'expired' | 'not_connected' | 'meta_unavailable';
+export type Choice = { id: string; name: string; currency?: string | null; ig?: { id: string; username: string | null } | null };
+export type Gap = { gap: null | 'scopes' | 'page' | 'link' | 'ad_account' | 'choose' | 'expired' | 'not_connected' | 'meta_unavailable';
+  choose?: { pages?: Choice[]; accounts?: Choice[] };
   page?: { id: string; name: string }; ig?: { id: string; username: string | null }; account?: { id: string; name: string };
   inactive?: boolean; missing?: string[] };
 export type Door = { ok: boolean; open?: boolean; configured?: boolean; connected?: boolean; gaps?: Gap };
-export type Media = { id: string; caption: string; type: string | null; url: string | null; at: string | null; likes: number; comments: number;
-  eligible: boolean; width?: number; height?: number; insights?: { saves: number; reach: number } | null; basis?: 'saves' | 'likes' };
+export type Media = { id: string; caption: string; type: string | null; url: string | null; at: string | null; likes: number | null; comments: number | null;
+  eligible: boolean; width?: number; height?: number; insights?: { saves: number; reach: number } | null; basis?: 'saves' | 'likes' | 'newest';
+  source?: 'instagram' | 'facebook'; likes_known?: boolean };
 export type Facts = { currency: string | null; minDailyMinor: number | null };
-export type Start = { ok: boolean; facts?: Facts; settings?: Settings; suggestion?: Media | null; gaps?: Gap };
+export type Start = { ok: boolean; facts?: Facts; settings?: Settings; suggestion?: Media | null; posts?: Media[]; gaps?: Gap };
 export type Prepared = { ok: boolean; errors?: string[]; facts?: Facts; settings?: Settings; days?: number; total_minor?: number; currency?: string; confirm?: string; gaps?: Gap };
 export type AdRow = { id: string; status: string; settings: Settings; total_minor: number | null; started_at: string | null; ends_at: string | null;
   ended_at: string | null; last_insights: Day[] | null; created_at: string };
-export type Day = { day: string; reach: number; spend: number; conversations: number };
+export type Day = { day: string; impressions?: number; reach: number; clicks?: number; spend: number; conversations: number };
 
 /** Minor units (paise) to the room's money: "Rs 1,000". */
 export const rs = (minor: number | null | undefined) => formatRs(minor ? minor / 100 : 0);
@@ -65,5 +68,7 @@ export const aspectOf = (m: Media | null | undefined, img?: HTMLImageElement | n
 export const META_SCREENS = {
   page: 'https://www.facebook.com/pages/create',
   link: 'https://www.facebook.com/settings/?tab=linked_instagram',
-  account: 'https://business.facebook.com/settings/ad-accounts',
+  // cut1e 3 (read 29 September 2026): Ads Manager guides a new advertiser through the ad account; the old Business Suite
+  // address forwarded twice and asked for a portfolio first.
+  account: 'https://adsmanager.facebook.com/',
 } as const;
