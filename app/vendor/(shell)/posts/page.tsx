@@ -25,7 +25,7 @@
 // in Files or Photos, and whether res.cloudinary.com answers the fetch with CORS.
 // If the fetch refuses, Download OPENS the image instead (she long-presses to
 // save) — the deterministic path cells can prove is the URL itself.
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
@@ -65,6 +65,11 @@ function PostsScreen() {
   const [body, setBody] = useState<CardsBody | null>(null);
   const [failed, setFailed] = useState(false);
   const [kind, setKind] = useState<CardKind>('post');
+  // R-46.17 (the founder's rule, 29 Sept 2026): the caption sits in its own box with its one control.
+  // "Copied" shows for two seconds after the clipboard takes it, then "Copy" again (the founder's words).
+  const [copied, setCopied] = useState(false);
+  const copiedTimer = useRef<number | null>(null);
+  useEffect(() => () => { if (copiedTimer.current) window.clearTimeout(copiedTimer.current); }, []);
 
   const load = useCallback(async () => {
     try {
@@ -109,9 +114,14 @@ function PostsScreen() {
 
   async function onCopyCaption() {
     if (!body?.caption) return;
-    // No confirmation byte: none was vetoed, and the caption is on screen to
-    // select if the clipboard refuses.
-    try { await navigator.clipboard.writeText(body.caption); } catch { /* selectable on screen */ }
+    // "Copied" only once the clipboard has taken it: if it refuses, the control stays "Copy" and the
+    // caption is on screen to select.
+    try {
+      await navigator.clipboard.writeText(body.caption);
+      setCopied(true);
+      if (copiedTimer.current) window.clearTimeout(copiedTimer.current);
+      copiedTimer.current = window.setTimeout(() => { setCopied(false); copiedTimer.current = null; }, 2000);
+    } catch { /* selectable on screen */ }
   }
 
   return (
@@ -144,12 +154,15 @@ function PostsScreen() {
             </div>
 
             <span className="pst-lbl">{PO.caption}</span>
-            <p className="pst-caption">{body?.caption}</p>
+            {/* R-46.17: the caption's own box, the caption and its one control, nothing else inside. */}
+            <div className="pst-capbox" data-caption-box>
+              <p className="pst-caption" data-caption>{body?.caption}</p>
+              <button type="button" className="pst-copy" data-copy onClick={() => void onCopyCaption()}>{copied ? PO.copied : PO.copy}</button>
+            </div>
 
             <button type="button" className="pst-btn pst-primary" onClick={() => void onDownload()}>{PO.download}</button>
             <div className="pst-two">
               <button type="button" className="pst-btn pst-ghost" onClick={onShare}>{PO.share}</button>
-              <button type="button" className="pst-btn pst-ghost" onClick={() => void onCopyCaption()}>{PO.copyCaption}</button>
             </div>
           </div>
         ) : (
@@ -193,7 +206,11 @@ function PostsScreen() {
 .pst-square{width:100%;aspect-ratio:1/1}
 .pst-tall{width:56%;aspect-ratio:9/16}
 .pst-lbl{display:block;font:var(--wl-t5);letter-spacing:.07em;text-transform:uppercase;color:var(--atelier-label);margin:14px 0 5px}
-.pst-caption{font:var(--wl-t3);color:var(--atelier-ink);line-height:1.5;background:var(--atelier-section-bg);padding:10px 11px;margin:0 0 12px;word-break:break-word;user-select:text}
+.pst-capbox{display:flex;align-items:flex-start;gap:10px;background:var(--atelier-section-bg);padding:10px 11px;margin:0 0 12px}
+.pst-caption{flex:1;min-width:0;font:var(--wl-t3);color:var(--atelier-ink);line-height:1.5;margin:0;word-break:break-word;user-select:text}
+.pst-copy{flex:none;min-height:44px;min-width:64px;padding:0 12px;border-radius:2px;background:transparent;color:var(--atelier-ink-soft);border:.5px solid var(--atelier-card-border);font:var(--wl-t5);cursor:pointer;touch-action:manipulation}
+.pst-copy:active{background:var(--atelier-row-hover)}
+.pst-copy:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .pst-btn{width:100%;padding:12px;min-height:44px;border-radius:2px;font:var(--wl-t3);cursor:pointer;touch-action:manipulation}
 .pst-primary{background:var(--role-metal);color:var(--role-ink-on-metal);border:.5px solid var(--role-metal)}
 .pst-primary:active{background:var(--atelier-row-hover)}

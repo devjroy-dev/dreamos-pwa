@@ -1,0 +1,9 @@
+# scripts/floor-manifest-ce46-ads2-caption.txt
+# CE-46 · ADS-2 · the caption box (R-46.17: the caption in its own box, "Copy", "Copied" for two seconds) and b143 hardened (one stop on every exit path, 7.2; the room on glass, 1.0 and M9; guarded glass reads; the tally, 9.1, 9.2, M10, M11; M12) · base 98edc7e8 (built on 545251ee, carried; WEB-1 cut 3 landed between, no overlap) · F-19.16: a dirty path outside this list is a STOP.
+# Rung b143 (100 cells, twelve mutations inside); b74 C6 pins the new words. No file is deleted, no new folder.
+app/vendor/(shell)/posts/page.tsx
+lib/worklist/posts.ts
+scripts/b143_ads1_ads_page_bench.js
+scripts/b74_r6_posts_room_bench.js
+docs/handovers/TDW_CE46_ADS2_CAPTION_HANDOVER.md
+scripts/floor-manifest-ce46-ads2-caption.txt

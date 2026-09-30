@@ -41,7 +41,9 @@ export const PO = {
   caption:     'Caption',
   download:    'Download',
   share:       'Share',
-  copyCaption: 'Copy caption',
+  // R-46.17 (the founder, 29 Sept 2026): the control on the caption's own box, and its two-second confirmation.
+  copy:        'Copy',
+  copied:      'Copied',
 
   notOnYet:       'Not switched on yet.',
   sundayPending:  'This opens once Instagram approves our access.',
