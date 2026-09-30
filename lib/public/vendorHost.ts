@@ -61,3 +61,24 @@ export function decide(host: string | null | undefined, pathname: string, siteBa
   const scheme = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(root) ? 'http' : 'https';
   return { kind: 'redirect', url: `${scheme}://${root}${p}${search || ''}`, handle };
 }
+
+// ── HER SHORT ADDRESS, THE ONE HOME (WEB-1 cut 3; the founder, 28 September) ──
+// `<handle>.thedreamwedding.in` is the address TDW shows her and gives to Google.
+// A handle that is not a valid label by shape (the rule vendorLabel serves) has
+// no short address: she keeps `/v/<handle>`, which always works. One function,
+// so the room, the storefront row and the public page can never disagree.
+export function shortAddressFor(handle: string | null | undefined, siteBase?: string | null): string | null {
+  const h = String(handle || '').trim().toLowerCase();
+  if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(h) || RESERVED_LABELS.includes(h)) return null;
+  const root = rootOf(siteBase);
+  const scheme = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(root) ? 'http' : 'https';
+  return `${scheme}://${h}.${root}`;
+}
+
+/** Her public URL: the short address when her handle has one, else `/v/<handle>` on the site base. */
+export function publicUrlFor(handle: string | null | undefined, siteBase?: string | null): string {
+  const s = shortAddressFor(handle, siteBase);
+  if (s) return s;
+  const base = String(siteBase || 'https://thedreamwedding.in').replace(/\/+$/, '');
+  return `${base}/v/${String(handle || '').trim().toLowerCase()}`;
+}

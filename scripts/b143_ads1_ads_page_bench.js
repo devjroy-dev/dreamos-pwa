@@ -54,8 +54,8 @@ const SETTINGS = { places: [{ type: 'city', key: '1035921', name: 'Lucknow, Utta
 const MEDIA = { id: '17890000000000001', caption: 'Aanya and Rohan. Delhi, September 2026', type: 'IMAGE', url: MEDIA_URL, at: inDays(-7), likes: 212, comments: 18, eligible: true, insights: { saves: 48, reach: 3100 } };
 const READY_GAPS = { gap: null, page: { id: 'P1', name: 'The Dream Wedding' }, ig: { id: 'IG1', username: 'thedreamwedding_in' }, account: { id: 'act_4417', name: 'Swati Roy Makeup' } };
 const AD = (post) => ({ id: '11111111-2222-4333-8444-555555555555', status: 'running', settings: { ...SETTINGS, post }, total_minor: 30000, started_at: inDays(-1), ends_at: inDays(2), ended_at: null,
-  last_insights: [{ day: '2026-09-28', reach: 1240, spend: 105, conversations: 2 }], created_at: inDays(-1) });
-const DATA = new Set(['thedreamwedding_in', 'The Dream Wedding', 'Swati Roy Makeup', 'Aanya and Rohan', 'Lucknow', 'Uttar Pradesh, India', 'Kanpur', '\u2039', '\u203a', '\u2713']);
+  last_insights: [{ day: '2026-09-28', impressions: 1802, reach: 1240, clicks: 61, spend: 105, conversations: 2 }], created_at: inDays(-1) });
+const DATA = new Set(['THE DREAM WEDDING ADS', 'Dev Roy', 'Meher and Kabir', 'thedreamwedding_in', 'The Dream Wedding', 'Swati Roy Makeup', 'Aanya and Rohan', 'Lucknow', 'Uttar Pradesh, India', 'Kanpur', '\u2039', '\u203a', '\u2713']);
 
 function scenario(name) {
   const base = { door: { ok: true, open: true, configured: true, connected: true, gaps: READY_GAPS }, list: [], post: { url: MEDIA_URL, caption_line: 'Aanya and Rohan' } };
@@ -66,6 +66,9 @@ function scenario(name) {
   if (name === 'account') base.door = { ...base.door, gaps: { gap: 'ad_account', page: READY_GAPS.page, ig: READY_GAPS.ig } };
   if (name === 'running') base.list = [AD({ url: MEDIA_URL, caption_line: 'Aanya and Rohan' })];
   if (name === 'running_nocap') base.list = [AD({ url: MEDIA_URL, caption_line: null })];
+  if (name === 'choose') base.door = { ...base.door, gaps: { gap: 'choose', choose: { accounts: [{ id: 'act_4681657125400464', name: 'THE DREAM WEDDING ADS' }, { id: 'act_799617249564163', name: 'Dev Roy' }] } } };
+  if (name === 'noposts') { base.noPosts = true; }
+  if (name === 'fbposts') { base.fbPosts = true; }
   return base;
 }
 
@@ -99,8 +102,11 @@ async function main() {
       if (route === '/api/v2/vendor/ads') return J(s.door);
       if (route === '/api/v2/vendor/ads/authorize') return J({ ok: true, authorize_url: 'https://www.facebook.com/v25.0/dialog/oauth?client_id=4570863996490339&state=x' });
       if (route === '/api/v2/vendor/ads/check') return J({ ok: true, gaps: s.door.gaps });
-      if (route === '/api/v2/vendor/ads/start') return J({ ok: true, facts: { currency: 'INR', minDailyMinor: 10000 }, settings: SETTINGS, suggestion: MEDIA });
-      if (route === '/api/v2/vendor/ads/posts') return J({ ok: true, posts: [MEDIA], suggestion: MEDIA });
+      const FB = { id: '1008033895736362_555', caption: 'Meher and Kabir', type: 'FACEBOOK', url: MEDIA_URL, at: inDays(-2), likes: null, comments: null, eligible: true, source: 'facebook' };
+      const postsNow = s.noPosts ? [] : s.fbPosts ? [MEDIA, FB] : [MEDIA];
+      if (route === '/api/v2/vendor/ads/start') return J({ ok: true, facts: { currency: 'INR', minDailyMinor: 10000 }, settings: { ...SETTINGS, media_id: s.noPosts ? null : SETTINGS.media_id }, suggestion: s.noPosts ? null : MEDIA, posts: postsNow });
+      if (route === '/api/v2/vendor/ads/posts') return J({ ok: true, posts: postsNow, suggestion: s.noPosts ? null : MEDIA });
+      if (route === '/api/v2/vendor/ads/choose') return J({ ok: true, gaps: READY_GAPS });
       if (route === '/api/v2/vendor/ads/list') return J({ ok: true, ads: s.list });
       if (route === '/api/v2/vendor/ads/search') return J({ ok: true, kind: 'places', options: [{ type: 'city', key: '999', name: 'Kanpur, Uttar Pradesh, India' }] });
       if (route === '/api/v2/vendor/ads/prepare') return J({ ok: true, facts: { currency: 'INR', minDailyMinor: 10000 }, settings: { ...SETTINGS, echoed: true }, days: 3, total_minor: 30000, currency: 'INR', confirm: 'ECHO-1' });
@@ -155,16 +161,54 @@ async function main() {
       ok(wordsOk(await leaves(p, '.ads-room')).length === 0, `${mode} 1.1b shut: every word is ads.ts's`, JSON.stringify(wordsOk(await leaves(p, '.ads-room'))));
       await p.close();
       p = await open(mode, 'shut', '/vendor/posts', { wait: '[data-ads-card-line]' });
-      ok((await text(p, '[data-ads-card-line]')) === 'You have not run an ad yet. Your ads run from your own Meta ad account and your own card.'
+      ok((await text(p, '[data-ads-card-line]')) === 'You have not run an ad yet. Your ads run from your own Meta ad account.'
         && (await p.evaluate(() => Array.from(document.querySelectorAll('.pst-room button')).some((b) => b.textContent === 'Open Ads' && !b.disabled))),
         `${mode} 1.1c shut: the Posts card renders and opens the page`, await text(p, '[data-ads-card-line]'));
       await p.close();
-      p = await open(mode, 'connect', '/vendor/posts/ads', { wait: '.ads-room a[href*="dialog/oauth"]' });
-      const href = await p.evaluate(() => { const a = document.querySelector('.ads-room a[href*="dialog/oauth"]'); return a ? a.textContent : null; });
-      ok(href === 'Connect ad account', `${mode} 1.2 the connect is a pre-minted link`);
-      ok(!(await text(p, '.ads-room')).includes('Press and hold'), `${mode} 1.3 no iPhone line outside iOS standalone`); await p.close();
-      p = await open(mode, 'connect', '/vendor/posts/ads', { standalone: true, wait: '.ads-room a[href*="dialog/oauth"]' });
-      ok((await text(p, '.ads-room')).includes('Press and hold Connect ad account'), `${mode} 1.4 the iPhone line in iOS standalone`); await p.close();
+      p = await open(mode, 'connect', '/vendor/posts/ads', { wait: '[data-connect]', settle: 1500 });
+      await p.evaluate(() => document.querySelector('[data-connect]').click()); await new Promise((r) => setTimeout(r, 500));
+      const s2 = await p.evaluate(() => { const a = document.querySelector('[data-before-meta] a[data-continue]'); const q = document.querySelector('[data-before-meta]'); return { text: a ? a.textContent : null, href: a ? a.getAttribute('href') : '', body: q ? q.innerText : '' }; });
+      ok(s2.text === 'Continue to Meta' && /dialog\/oauth/.test(s2.href) && s2.body.includes('On the Pages screen, keep your business Page ticked.'),
+        `${mode} 1.2 cut1e e1: Connect opens the short screen before Meta; its Continue is the pre-minted link`, JSON.stringify(s2).slice(0, 200));
+      ok(!(await text(p, '.ads-room')).includes('Press and hold'), `${mode} 1.3 no iPhone line outside iOS standalone`);
+      ok(wordsOk(await leaves(p, '.ads-room')).length === 0, `${mode} 1.3a the screen before Meta: every word is ads.ts's`, JSON.stringify(wordsOk(await leaves(p, '.ads-room'))));
+      await p.close();
+      p = await open(mode, 'connect', '/vendor/posts/ads', { standalone: true, wait: '[data-connect]', settle: 1500 });
+      await p.evaluate(() => document.querySelector('[data-connect]').click()); await new Promise((r) => setTimeout(r, 500));
+      ok((await text(p, '.ads-room')).includes('Press and hold Connect ad account'), `${mode} 1.4 the iPhone line in iOS standalone, on the screen before Meta`); await p.close();
+      p = await open(mode, 'link', '/vendor/posts/ads');
+      ok((await text(p, '[data-link-switch]')) === 'On Facebook, switch into your Page first (tap your picture at the top right, then the Page), then tap Link my Instagram again.', `${mode} 8.1 e3: the link card names the switch into the Page`);
+      await p.close();
+      sent.length = 0;
+      p = await open(mode, 'choose', '/vendor/posts/ads', { wait: '[data-chooser]' });
+      const ch0 = await p.evaluate(() => ({ on: document.querySelectorAll('[data-chooser] .ads-mark.ads-on').length, dis: document.querySelector('[data-choose-go]').disabled, opts: Array.from(document.querySelectorAll('[data-chooser] .ads-optt')).map((e) => e.textContent) }));
+      ok(ch0.on === 0 && ch0.dis === true && ch0.opts.join('|') === 'THE DREAM WEDDING ADS|Dev Roy', `${mode} 8.2 e2: two accounts listed, nothing preselected, the button waits`, JSON.stringify(ch0));
+      ok(wordsOk(await leaves(p, '[data-chooser]')).length === 0, `${mode} 8.2a the chooser: every word is ads.ts's`, JSON.stringify(wordsOk(await leaves(p, '[data-chooser]'))));
+      await p.evaluate(() => document.querySelectorAll('[data-chooser] .ads-opt')[1].click()); await new Promise((r) => setTimeout(r, 200));
+      await p.evaluate(() => document.querySelector('[data-choose-go]').click()); await new Promise((r) => setTimeout(r, 700));
+      const chose = sent.find((x) => x.route === '/api/v2/vendor/ads/choose');
+      ok(chose && chose.body && chose.body.ad_account_id === 'act_799617249564163', `${mode} 8.3 her tap is what is sent (the second account)`, JSON.stringify(chose && chose.body));
+      await p.close();
+      sent.length = 0; seen.length = 0;
+      p = await open(mode, 'noposts', '/vendor/posts/ads', { wait: '[data-run]', settle: 2000 });
+      const np = await p.evaluate(() => ({ ex: !!document.querySelector('[data-preview][data-example="true"]'), wm: document.querySelectorAll('[data-watermark]').length,
+        wmOnEx: !!document.querySelector('[data-preview][data-example="true"] [data-watermark]') && !!document.querySelector('[data-sample-result] [data-watermark]'),
+        line: (document.querySelector('[data-example-line]') || {}).textContent, nop: (document.querySelector('[data-no-posts]') || {}).textContent, run: document.querySelector('[data-run]').disabled }));
+      ok(np.ex && np.wmOnEx && np.line === 'This is how your post will look as an ad.' && np.nop === 'Post a photo or reel on Instagram first. It will appear here.' && np.run === true,
+        `${mode} 8.4 R-46.16: no posts, the watermarked example, the two lines, Run disabled`, JSON.stringify(np));
+      await p.evaluate(() => document.querySelector('[data-run]').click()); await new Promise((r) => setTimeout(r, 600));
+      ok(!seen.some((r) => /\/ads\/(prepare|run)$/.test(r)), `${mode} 8.5 R-46.16: an example never reaches /prepare or /run`, JSON.stringify(seen));
+      await p.close();
+      p = await open(mode, 'fbposts', '/vendor/posts/ads', { wait: '[data-run]', settle: 2000 });
+      await p.evaluate(() => { const b = Array.from(document.querySelectorAll('.ads-draft button')).find((x) => x.textContent === 'All settings'); b.click(); }); await new Promise((r) => setTimeout(r, 400));
+      await p.evaluate(() => { const r = Array.from(document.querySelectorAll('.ads-full .ads-srow')).find((x) => /^Post/.test(x.textContent)); r.click(); }); await new Promise((r) => setTimeout(r, 500));
+      const pk = await p.evaluate(() => ({ kinds: (document.querySelector('[data-post-kinds]') || {}).textContent, marks: Array.from(document.querySelectorAll('.ads-sheet .ads-reel')).map((e) => e.textContent) }));
+      ok(/A Facebook post sends people to Messenger/.test(pk.kinds || '') && pk.marks.includes('Facebook') && pk.marks.includes('Instagram'), `${mode} 8.6 e5: Facebook Page posts beside Instagram, each marked`, JSON.stringify(pk));
+      await p.close();
+      p = await open(mode, 'running', '/vendor/posts/ads', { wait: '[data-last-ad]', settle: 1500 });
+      ok((await text(p, '[data-result-line]')) === 'Meta showed this ad 1,802 times to 1,240 people in Lucknow and 25 km around. 61 of them tapped it, and 2 wrote to you. Meta took Rs 105 from your ad account\u2019s payment method. That is Rs 52.50 for each person who wrote.',
+        `${mode} 8.7 e4: the last ad in sentences with all five figures`, await text(p, '[data-result-line]'));
+      await p.close();
       for (const [g, tap] of [['page', 'Make my Page'], ['link', 'Link my Instagram'], ['account', 'Make my ad account']]) {
         p = await open(mode, g, '/vendor/posts/ads'); const t = await text(p, '.ads-room');
         ok(t.includes(tap) && t.includes('Check again'), `${mode} 1.5 gap ${g}: its sentence and its tap`); await p.close();
@@ -229,18 +273,23 @@ async function main() {
 
   if (PART !== 'states') sec('6  mutations (Graphite; each must redden; restored by sha)');
   const MUTS = PART === 'states' ? [] : [
-    ['app/vendor/(shell)/posts/ads/page.tsx', "onClick={() => void onRun()}>{ADS.draft.run}</button>", "onClick={() => void onRun()}>Run ad</button>", 'M1 a hard-coded word on the first screen'],
+    ['app/vendor/(shell)/posts/ads/page.tsx', "onClick={() => { if (!noPosts) void onRun(); }}>{ADS.draft.run}</button>", "onClick={() => { if (!noPosts) void onRun(); }}>Run ad</button>", 'M1 a hard-coded word on the first screen'],
     ['app/vendor/(shell)/posts/ads/page.tsx', "--ads-pw:120px}", "--ads-pw:260px}", 'M2 the post too wide: Run falls under the Ask bar'],
     ['app/vendor/(shell)/posts/ads/page.tsx', ".ads-media{display:block;width:var(--ads-pw);height:auto;", ".ads-media{display:block;width:var(--ads-pw);height:120px;", 'M3 the picture squeezed to a fixed height'],
     ['app/vendor/(shell)/posts/ads/page.tsx', ".ads-prevhead{display:grid;grid-template-columns:16px 1fr;", ".ads-prevhead{display:flex;grid-template-columns:16px 1fr;", 'M4 "Sponsored" on the handle line'],
     ['components/worklist/AdsCard.tsx', "line = name ? fill(ADS.card.running, { post: name,", "line = false ? fill(ADS.card.running, { post: name,", 'M5 the card never names the post'],
+    ['app/vendor/(shell)/posts/ads/page.tsx', "{example ? <span aria-hidden=\"true\" className=\"ads-mark-wm\" data-watermark>{ADS.examples.mark}</span> : null}", "{null}", 'M6 the example preview loses its watermark'],
+    ['app/vendor/(shell)/posts/ads/page.tsx', "data-run disabled={noPosts} aria-disabled={noPosts} onClick={() => { if (!noPosts) void onRun(); }}", "data-run onClick={() => void onRun()}", 'M7 Run acts on an example'],
+    ['app/vendor/(shell)/posts/ads/page.tsx', "const [account, setAccount] = useState<string | null>(null);", "const [account, setAccount] = useState<string | null>((gap.choose?.accounts || [])[0]?.id || null);", 'M8 the chooser preselects the first found'],
   ];
   // A run killed mid-mutation (a timeout, Ctrl-C) must still put the file back: e-(ADS-1), a killed run once left M5 on disk.
   let live = null;
   const restore = () => { if (live) { fs.writeFileSync(live.file, live.orig); live = null; } };
   process.on('exit', restore);
   for (const sig of ['SIGTERM', 'SIGINT', 'SIGHUP']) process.on(sig, () => { restore(); process.exit(130); });
+  const ONLY = (process.env.B143_MUTS || '').split(',').filter(Boolean);
   for (const [rel, from, to, name] of MUTS) {
+    if (ONLY.length && !ONLY.includes(name.split(' ')[0])) continue;
     const file = path.join(ROOT, rel); const orig = fs.readFileSync(file, 'utf8'); const h = sha(orig);
     if (orig.split(from).length !== 2) { ok(false, `${name}: anchor found exactly once`); continue; }
     live = { file, orig };

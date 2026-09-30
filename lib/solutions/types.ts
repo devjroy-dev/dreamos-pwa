@@ -103,13 +103,16 @@ export type GoogleStatus = {
  * nobody would ever type in caps. Both cases are handled by `subdomainFor`.
  */
 export type DomainStatus = {
-  status: 'none' | 'searching' | 'registering' | 'wiring' | 'live' | 'expired' | 'error';
+  status: 'none' | 'searching' | 'paying' | 'registering' | 'wiring' | 'live' | 'expired' | 'error' | 'refund_due' | 'refunded';
   subdomain: string | null;
   domain: string | null;
   liveUrl: string | null;
   registeredAt: string | null;
   expiresAt: string | null;
   renewalPricePaise: number | null;
+  // WEB-1 cut 2/3 · what she pays (ten percent over the registrar's price after GST), and the Razorpay link while `paying`
+  pricePaise: number | null;
+  paymentUrl: string | null;
   autoRenew: boolean;
   forwardEmail: string | null;
   lastError: string | null;
@@ -468,7 +471,10 @@ export type ReferralStamp = {
 // Paste the result here AND into `CONTRACT_DIGEST` in
 // `dream-os/src/api/vendor/solutions/contract.js`. The two must be identical
 // strings; that identity is the whole mechanism.
-export const CONTRACT_DIGEST = 'a4ccb0a742fbbd87a4a9a63674922ac6d60f7576e7e9fd66696cf061267a607a';
+// WEB-1 cut 3 · the twin of dream-os contract.js after WEB-1 cut 2 (DomainStatus gained pricePaise and
+// paymentUrl; status gained paying). Until cut 2 lands on dream-os the two literals differ by design (G2's
+// mirror); the room reads the pre-cut-2 answer as its Coming soon signal, so nothing fails in the gap.
+export const CONTRACT_DIGEST = '2ad7b3f87f6116e9c39334583cf22af5f97a67e3a05f61b4c48ce0d9131699bc';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // G3.4 · PAYMENT REMINDERS

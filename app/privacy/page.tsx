@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 // into the served HTML — exactly what Meta's fetcher needs.
 export const dynamic = 'force-static';
 
-const EFFECTIVE_DATE = '28 August 2026';
+const EFFECTIVE_DATE = '29 September 2026';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -262,24 +262,30 @@ export default function PrivacyPolicyPage() {
           </p>
           <ul>
             <li>
-              <strong>Meta Platforms / WhatsApp</strong> &mdash; the messaging channel.
-              Your messages to and from the assistant travel through WhatsApp&rsquo;s
-              infrastructure and are subject to Meta&rsquo;s own terms and privacy
-              practices.
+              <strong>Meta Platforms (WhatsApp, Instagram and Facebook)</strong>: the
+              messaging and ads channels. Messages to and from the assistant travel
+              through Meta&rsquo;s infrastructure and are subject to Meta&rsquo;s own terms
+              and privacy practices.
             </li>
             <li>
-              <strong>Anthropic and DeepSeek</strong> &mdash; AI model providers. The
-              content of your messages is sent to these providers so the assistant can
-              understand and respond. They process this content to generate replies and
-              do not use it to contact you directly.
+              <strong>Anthropic and DeepSeek</strong>: AI model providers. The content of
+              your messages is sent to these providers so the assistant can understand and
+              respond. They process this content to generate replies and do not use it to
+              contact you directly.
             </li>
             <li>
-              <strong>Supabase</strong> &mdash; our database provider, where your
-              account data and message records are stored.
+              <strong>Supabase</strong>: our database provider, where your account data and
+              message records are stored.
             </li>
             <li>
-              <strong>Razorpay</strong> &mdash; our payment processor, which handles
-              payment and card or bank details when you transact.
+              <strong>Cloudinary</strong>: where portfolio photos are stored.
+            </li>
+            <li>
+              <strong>Railway</strong>: which hosts our servers.
+            </li>
+            <li>
+              <strong>Razorpay</strong>: our payment processor, which handles payment and
+              card or bank details when you transact.
             </li>
           </ul>
           <p>
@@ -287,12 +293,11 @@ export default function PrivacyPolicyPage() {
             longer active.
           </p>
           <p>
-            We do not sell your personal data. We share it only with the providers
-            above, as needed to run the service, or where we are required to do so by
-            law or valid legal process. Some of these providers may process data on
-            servers located outside India; where that happens, we take reasonable steps
-            to ensure your data stays protected in line with this policy and applicable
-            law.
+            We do not sell your personal data. We share it only with the providers above,
+            as needed to run the service, or where we are required to do so by law or valid
+            legal process. Some of these providers may process data on servers located
+            outside India; where that happens, we take reasonable steps to ensure your data
+            stays protected in line with this policy and applicable law.
           </p>
         </section>
 
@@ -317,7 +322,58 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">6</span> Data retention
+            <span className="num">6</span> Your Instagram and Facebook accounts
+          </h2>
+          <p>
+            If you are a vendor, you can connect your Instagram professional account, and
+            for ads your Facebook Page and ad account. We connect only when you ask us to,
+            through Meta&rsquo;s own login, and we use only what the feature you turned on
+            needs.
+          </p>
+          <p>
+            <strong>Portfolio import.</strong> We read your Instagram profile and your
+            photos and videos so you can choose which ones to copy into your portfolio.
+            Nothing is copied until you pick it, and what you pick stays in your portfolio
+            until you remove it.
+          </p>
+          <p>
+            <strong>Instagram messages.</strong> When you turn this on, we read the direct
+            messages people send to your Instagram account and reply to them in your
+            studio&rsquo;s name. We reply only to people who have messaged you first. We
+            save the details of each enquiry to your leads so you can take over. If someone
+            asks whether they are talking to a person, the reply says it is an automated
+            assistant answering for your studio.
+          </p>
+          <p>
+            <strong>Posts and ads.</strong> If you run ads through us, we read the Facebook
+            Pages and business portfolios you manage, your ad accounts, your posts and the
+            results of your ads, so we can create your ads and show you how they are doing.
+          </p>
+          <p>
+            To write replies, the text of Instagram messages is sent to the AI providers
+            named in &ldquo;How your data is processed and shared&rdquo;. We store messages,
+            enquiries and imported photos with the providers named there. We do not sell
+            any of this data, we do not use it for any advertising other than the ads you
+            choose to run, and we do not use it to train any AI or machine-learning model.
+          </p>
+          <p>
+            You can turn off Instagram messages at any time in &ldquo;WhatsApp and
+            Instagram&rdquo;, disconnect Instagram from your Portfolio page, and disconnect
+            your ad account in Posts &amp; ads. When you disconnect, we delete the access Meta
+            gave us. Removing The Dream Wedding from your Instagram or Facebook settings also
+            ends our access.
+          </p>
+          <p>
+            If you have messaged a vendor on Instagram and the reply came from us, we handle
+            your messages on the vendor&rsquo;s behalf, only to answer your enquiry and pass
+            it to the vendor. Reply STOP to stop automated replies. To have your messages
+            deleted, see <a href="#deleting-your-data">&ldquo;Deleting your data&rdquo;</a>.
+          </p>
+        </section>
+
+        <section>
+          <h2>
+            <span className="num">7</span> Data retention
           </h2>
           <p>
             We keep your personal data for as long as your account is active and for as
@@ -330,7 +386,7 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">7</span> Your rights
+            <span className="num">8</span> Your rights
           </h2>
           <p>
             Subject to the DPDP Act and other applicable law, you have the right to:
@@ -356,9 +412,51 @@ export default function PrivacyPolicyPage() {
           </p>
         </section>
 
+        <section id="deleting-your-data">
+          <h2>
+            <span className="num">9</span> Deleting your data
+          </h2>
+          <p>You can delete your data yourself, or ask us to.</p>
+          <p>
+            <strong>Your Instagram or Facebook connection.</strong> Disconnect Instagram
+            from your Portfolio page, or disconnect your ad account in Posts &amp; ads. We
+            delete the access Meta gave us and the account identifier we hold. You can also remove The Dream Wedding in Instagram&rsquo;s settings, under
+            apps and websites, or in Facebook&rsquo;s settings.
+          </p>
+          <p>
+            <strong>Photos.</strong> Remove any photo from your Portfolio page. Photos you
+            imported from Instagram stay in your portfolio after you disconnect, until you
+            remove them.
+          </p>
+          <p>
+            <strong>Instagram messages and enquiries.</strong> Turning off Instagram messages
+            stops new replies. Messages already exchanged and enquiries already saved stay in
+            your account. To have them deleted, write to us as below.
+          </p>
+          <p>
+            <strong>Your whole account.</strong> Write to{' '}
+            <a href="mailto:hello@thedreamwedding.in">hello@thedreamwedding.in</a> from the
+            email address on your account, or give us the phone number you sign in with, and
+            say that you want your account deleted. We will confirm the request with you, then
+            delete your account and the data in it within 30 days, except records the law
+            requires us to keep, such as payment and tax records.
+          </p>
+          <p>
+            <strong>If you are not a Dream Wedding user.</strong> If you messaged a vendor on
+            WhatsApp or Instagram and the reply came from us, write to{' '}
+            <a href="mailto:hello@thedreamwedding.in">hello@thedreamwedding.in</a> with your
+            phone number or Instagram username, and we will delete your messages within 30
+            days.
+          </p>
+          <p>
+            <strong>If you asked Meta to delete your data.</strong> After a deletion request
+            through Instagram or Facebook, the page Meta shows you tells you what we deleted.
+          </p>
+        </section>
+
         <section>
           <h2>
-            <span className="num">8</span> Stopping messages
+            <span className="num">10</span> Stopping messages
           </h2>
           <p>
             You can stop receiving messages from our assistant at any time by replying{' '}
@@ -370,7 +468,7 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">9</span> Data security
+            <span className="num">11</span> Data security
           </h2>
           <p>
             We use reasonable security practices and procedures to protect your
@@ -385,7 +483,7 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">10</span> Children
+            <span className="num">12</span> Children
           </h2>
           <p>
             Our service is intended for adults planning or providing services for
@@ -397,7 +495,7 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">11</span> Changes to this policy
+            <span className="num">13</span> Changes to this policy
           </h2>
           <p>
             We may update this policy from time to time. When we do, we will change the
@@ -408,7 +506,7 @@ export default function PrivacyPolicyPage() {
 
         <section>
           <h2>
-            <span className="num">12</span> Grievance officer and contact
+            <span className="num">14</span> Grievance officer and contact
           </h2>
           <p>
             If you have questions, requests or complaints about this policy or your

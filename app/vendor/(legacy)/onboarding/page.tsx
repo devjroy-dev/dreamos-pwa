@@ -46,6 +46,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getVendorSession, setVendorSession } from '@/lib/vendor/session';
 import { getJson, postJson } from '@/lib/vendor/api/_base';
+import { forgetVendorMe } from '@/hooks/vendor/useVendorHandle';
 import { useT } from '@/lib/vendor/ThemeContext';
 import { labelFor } from '@/lib/frost/categoryLabels';
 
@@ -132,7 +133,12 @@ export default function VendorOnboardingPage() {
 
         // An ALREADY-COMPLETE vendor never sees this form and never triggers the
         // probe. She is here by a stale link or a back button, not by the guard.
-        if (v.onboarding?.complete) { router.replace('/vendor'); return; }
+        // F-44.246 (CE-46 FE-4, 29 Sept 2026, launch-blocking): the shell's gate (WorklistBoot.tsx) reads
+        // vendorMe(), which remembers /me for the whole document (F-38.26). A vendor who reaches this page with
+        // the shell's remembered answer still saying complete:false would be sent back here the moment she lands
+        // on /vendor, and this read (fresh) would send her to /vendor again: a blank loop until a full reload.
+        // So the remembered answer is dropped BEFORE she is sent to the shell, and the shell asks again.
+        if (v.onboarding?.complete) { forgetVendorMe(); router.replace('/vendor'); return; }
 
         setName(v.name || getVendorSession()?.name || '');
         setBusiness(v.business_name || '');
@@ -196,6 +202,10 @@ export default function VendorOnboardingPage() {
       const session = getVendorSession();
       if (session) setVendorSession({ ...session, name: name.trim() });
       if (res.tdw_link) setTdwLink(res.tdw_link);
+      // F-44.246: the submit just flipped onboarding.complete to true on the server. The shell's remembered /me
+      // (vendorMe, F-38.26) still says false from before, so "Open your studio" below would bounce her straight
+      // back here. Drop it now, in the success arm, before any replace to /vendor can read it.
+      forgetVendorMe();
       setDone(true);
     } catch { showToast('Could not connect. Try again.'); }
     setSubmitting(false);

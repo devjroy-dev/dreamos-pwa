@@ -47,7 +47,22 @@ export type OwnNumberDoor = {
   reason_text: string | null;
   launch: OwnNumberLaunch | null;
   number: OwnNumberLine | null;
+  /** CE-46 G6-4 · S6: her last number was removed here; `finish_in_app` until Meta's PARTNER_REMOVED (shared way, F-c). */
+  removed: OwnNumberRemoved | null;
 };
+
+export type OwnNumberRemoved = { display_number: string; way: OwnNumberWay; finish_in_app: boolean };
+
+/** Pure: the door's `removed`, validated. Absent reads as null (a door from before this cut); malformed is undefined. */
+export function asRemoved(x: unknown): OwnNumberRemoved | null | undefined {
+  if (x === undefined || x === null) return null;
+  if (!isObj(x)) return undefined;
+  const { display_number, way, finish_in_app } = x;
+  if (typeof display_number !== 'string' || !display_number) return undefined;
+  if (typeof way !== 'string' || !WAYS.includes(way)) return undefined;
+  if (typeof finish_in_app !== 'boolean') return undefined;
+  return { display_number, way: way as OwnNumberWay, finish_in_app };
+}
 
 export type ConnectBody = {
   code: string;
@@ -102,10 +117,11 @@ export function asDoor(x: unknown): OwnNumberDoor | null {
   const reason_text = strOrNull(x.reason_text);
   const launch = asLaunch(x.launch);
   const number = asNumberLine(x.number);
-  if (reason === undefined || reason_text === undefined || launch === undefined || number === undefined) return null;
+  const removed = asRemoved(x.removed);
+  if (reason === undefined || reason_text === undefined || launch === undefined || number === undefined || removed === undefined) return null;
   // An open door with nothing to launch cannot open anything: a failed read, not an open one.
   if (x.open && !launch) return null;
-  return { open: x.open, reason, reason_text, launch, number };
+  return { open: x.open, reason, reason_text, launch, number, removed };
 }
 
 export type RoomMode = 'shell' | 'status' | 'flow';

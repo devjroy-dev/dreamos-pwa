@@ -58,6 +58,7 @@ import { pulseLines, type DatePulse } from '@/lib/worklist/pulse';
 // R-G31.7 · the SAME header every shell call sends. The revalidate route reads
 // it to ask dream-os who the caller is; the handle never comes from a body.
 import { getAuthHeader } from '@/lib/vendor/api/_base';
+import { publicUrlFor } from '@/lib/public/vendorHost';
 // F-44.239 · the address was a literal (`https://thedreamwedding.in/v/…`) while the
 // Your website room reads SITE_BASE; one home, so an own domain or another base
 // cannot leave this row pointing at the wrong address.
@@ -472,14 +473,14 @@ function PublicPageBand() {
       <div style={{ padding: '0 var(--slice-inset, 24px)' }}>
         {handle ? (
           <a
-            href={`${SITE_BASE}/v/${handle.toLowerCase()}`}
+            href={publicUrlFor(handle, SITE_BASE)}
             target="_blank" rel="noopener noreferrer"
             style={{
               fontFamily: F.script, fontWeight: 400, fontSize: 16, lineHeight: 1.5,
               color: A.brass, textDecoration: 'underline', textUnderlineOffset: 3,
               wordBreak: 'break-all', display: 'block',
             }}
-          >{`${SITE_BASE.replace(/^https?:\/\//, '')}/v/${handle.toLowerCase()}`}</a>
+          >{publicUrlFor(handle, SITE_BASE).replace(/^https?:\/\//, '')}</a>
         ) : null}
 
         {/* ── THREE STATES, AND THE THIRD SAYS NOTHING — F-40.175 ───────────

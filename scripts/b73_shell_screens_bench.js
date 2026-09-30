@@ -281,7 +281,8 @@ sec('\u00a75 \u00b7 every byte is the sheet\u2019s, both ways');
   const pinned = rows.filter((r) => r.sha !== '\u2014');
   // AMENDED BY LABEL — R-42.17 (CE-42 SHELL-2): was eleven authored and two carried (13). T2
   // joins the authored, C2 (CHIPS.coming as the room eyebrow) the carried. Exact counts, not floors.
-  ok('the sheet carries twelve authored rows and three carried ones', pinned.length === 12 && rows.length === 15, rows.length + ' rows, ' + pinned.length + ' pinned');
+  // AMENDED BY LABEL · CE-46 G6-4 (b151): N4 struck on the chair's word (Q-a); its row stays on the sheet, unpinned. Was twelve and three.
+  ok('the sheet carries eleven authored rows, three carried ones and N4 struck', pinned.length === 11 && rows.length === 15 && rows.some((r) => r.id === 'N4' && r.sha === '\u2014'), rows.length + ' rows, ' + pinned.length + ' pinned');
   for (const r of pinned) {
     const s = shipped[r.id];
     const h = s === undefined ? '' : crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);

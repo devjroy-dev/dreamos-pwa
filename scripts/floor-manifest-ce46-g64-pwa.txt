@@ -1,0 +1,18 @@
+# CE-46 · G6-4 · the room finished, dreamos-pwa half: the box, Remove this number and its sheet, S6 (flow and shell), the quiet radiogroup, N4 struck · base 85c66ef5 · r2: b126 re-pinned by label (the quiet radiogroup, F-g’s QT1)
+app/vendor/(shell)/number/page.tsx
+components/solutions/MetaRoomSections.tsx
+components/solutions/OwnNumberFlow.tsx
+components/solutions/RemoveNumberSheet.tsx
+docs/mocks/SHELL_VETO_SHEET.md
+lib/solutions/routes.ts
+lib/vendor/ownNumberDoor.ts
+lib/worklist/metaRoom.ts
+lib/worklist/ownNumber.ts
+lib/worklist/ownNumberFlow.ts
+scripts/b120_g61_own_number_bench.js
+scripts/b126_igd1_meta_room_bench.js
+scripts/b151_g64_room_finished_bench.js
+scripts/b73_shell_screens_bench.js
+scripts/floor-manifest-ce46-g64-pwa.txt
+scripts/lib/b126_meta_room_probe.mjs
+scripts/lib/b151_own_number_room_probe.mjs

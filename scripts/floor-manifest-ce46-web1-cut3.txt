@@ -1,0 +1,13 @@
+# scripts/floor-manifest-ce46-web1-cut3.txt
+# CE-46 · WEB-1 cut 3 · "Your own name" in the Your website room (three forms per action, R-46.14), her short address shown and declared, the contract twin (cut 2's digest), F-44.222 cured in this room · base 545251ee (r2: b40 C115 and C102 kept at the tip's text; the fourth Coming soon signal) · F-19.16: a dirty path outside this list is a STOP.
+# Rung b147 (48 cells, five mutations inside; §1b the fourth signal). b145 amended by label (4.2, 4.3, 5.2: the storefront row reads publicUrlFor). No file is deleted.
+app/v/[code]/page.tsx
+app/vendor/(shell)/storefront/screen.tsx
+app/vendor/(shell)/your-website/OwnName.tsx
+app/vendor/(shell)/your-website/screen.tsx
+docs/handovers/TDW_CE46_WEB1_CUT3_HANDOVER.md
+lib/public/vendorHost.ts
+lib/solutions/types.ts
+scripts/b145_ce46_web1_subdomain_bench.js
+scripts/b147_ce46_web1_own_name_bench.js
+scripts/floor-manifest-ce46-web1-cut3.txt

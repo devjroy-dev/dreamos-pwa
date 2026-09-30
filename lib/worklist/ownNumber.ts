@@ -20,10 +20,10 @@
 export const NUMBER = {
   /** N1 · the lede — the vetoed alternative. U+2019 in `you’re` (R-40.57). */
   lede: 'Enquiries come to your own WhatsApp number, answered even when you\u2019re busy.',
-  /** N2-N4 · what she will be able to do: 7c routing, the assistant, K-1 F3. */
+  /** N2-N3 · what she will be able to do: 7c routing, the assistant. N4 ("Turn a missed call into a WhatsApp reply.") STRUCK at
+   *  CE-46 G6-4 on the chair's word (Q-a): true on neither way yet; it returns with the missed-call bridge. */
   can: [
     'Put your own number on your page instead of ours.',
     'Have enquiries answered in your voice while you work.',
-    'Turn a missed call into a WhatsApp reply.',
   ],
 } as const;
