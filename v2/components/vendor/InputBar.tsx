@@ -1,0 +1,143 @@
+'use client';
+import { RUNG_FONT as RUNG } from '@/v2/lib/worklist/theme'; // CE-45 FE-2 (the Ask TDW sheet cut): the app's own type (F7)
+import { useEffect, useRef, useState } from 'react';
+import { useT } from '@/lib/vendor/ThemeContext';
+
+const LINE_HEIGHT = 20;
+const MAX_ROWS = 4;
+
+export function InputBar({ onSend, onSendNote, disabled, placeholder, initialValue, onPrimerApplied }: {
+  onSend: (text: string) => void;
+  onSendNote?: (text: string) => void | Promise<void>;
+  disabled?: boolean; placeholder?: string;
+  initialValue?: string; onPrimerApplied?: () => void;
+}) {
+  const T = useT();
+  const [value, setValue] = useState('');
+  const [noteMode, setNoteMode] = useState(false);
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const applied = useRef(false);
+
+  useEffect(() => {
+    const ta = ref.current; if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, MAX_ROWS * LINE_HEIGHT + 16) + 'px';
+  }, [value]);
+
+  useEffect(() => {
+    if (!initialValue || applied.current) return;
+    applied.current = true;
+    setValue(initialValue);
+    ref.current?.focus();
+    onPrimerApplied?.();
+  }, [initialValue, onPrimerApplied]);
+
+  useEffect(() => { if (!initialValue) applied.current = false; }, [initialValue]);
+
+  // Note mode is only live when the parent supplies a note sink.
+  const canNote = !!onSendNote;
+  const inNote = canNote && noteMode;
+
+  function send() {
+    const t = value.trim();
+    if (!t || disabled) return;
+    if (inNote && onSendNote) { void onSendNote(t); }
+    else { onSend(t); }
+    setValue('');
+    if (ref.current) ref.current.style.height = 'auto';
+  }
+
+  const canSend = !!value.trim() && !disabled;
+
+  // Brass accents for the toggle + note-mode tint.
+  const brassGrad = 'linear-gradient(180deg, var(--atelier-accent-text) 0%, var(--atelier-accent-text) 100%)';
+  const toggleOffBg = 'var(--atelier-input-bg)';
+  const noteBorder = inNote ? 'var(--atelier-label)' : T.inputBorder;
+
+  return (
+    <div style={{
+      background: inNote
+        ? (T.isLight ? 'var(--atelier-card-border)' : 'var(--atelier-card-border)')
+        : T.headerBg,
+      backdropFilter: 'blur(28px) saturate(1.6)',
+      WebkitBackdropFilter: 'blur(28px) saturate(1.6)',
+      borderTop: `0.5px solid ${inNote ? 'var(--atelier-input-border)' : T.brassLine}`,
+      padding: '12px 16px calc(16px + env(safe-area-inset-bottom))',
+      display: 'flex', alignItems: 'flex-end', gap: 12,
+      transition: 'background 220ms cubic-bezier(0.22,1,0.36,1), border-color 220ms cubic-bezier(0.22,1,0.36,1)',
+    }}>
+      {/* Note-mode toggle — sticky; lights up when on */}
+      {canNote && (
+        <button
+          type="button"
+          onClick={() => setNoteMode(m => !m)}
+          aria-label="Note to self"
+          aria-pressed={inNote}
+          title={inNote ? 'Note to self: on' : 'Note to self'}
+          style={{
+            width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
+            border: `0.5px solid ${inNote ? 'var(--atelier-label)' : T.inputBorder}`,
+            background: inNote ? brassGrad : toggleOffBg,
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: 'none',
+            transition: 'all 220ms cubic-bezier(0.22,1,0.36,1)',
+          }}
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+            stroke={inNote ? 'var(--role-ink-on-metal)' : T.inkDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+          </svg>
+        </button>
+      )}
+
+      <textarea ref={ref} value={value}
+        onChange={e => setValue(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+        placeholder={inNote ? 'Note to self…' : (placeholder ?? 'Ask anything…')}
+        rows={1}
+        style={{
+          font: RUNG.t2,
+          flex: 1,
+          resize: 'none',
+          border: `0.5px solid ${noteBorder}`,
+          borderRadius: 999,
+          background: T.inputBg,
+          color: T.ink,
+          padding: '12px 16px',
+          // ZIP 14 · F-16.38 CURE (R-37.83 / R-37.84 (7)). The old input chrome —
+          // Cormorant + a value-keyed italic — survived inside the risen chat and the
+          // founder read it as "the chat ai looks same". The render arm measured the
+          // COMPUTED style: font-style italic, family Cormorant Garamond. Both go to
+          // branch tokens; the italic goes entirely, since a placeholder's job is done
+          // by colour here and the leaning serif WAS the old voice. The
+          // «Ask anything...» BYTE is untouched — founder-era copy, flagged not moved.
+          outline: 'none',
+          overflowY: 'hidden',
+          caretColor: T.interactive,
+          transition: 'border-color 220ms cubic-bezier(0.22,1,0.36,1)',
+        }}
+      />
+      <button type="button" onClick={send} disabled={!canSend} aria-label={inNote ? 'Save note' : 'Send'} style={{
+        font: RUNG.t2,
+        width: 42,
+        height: 42,
+        borderRadius: '50%',
+        border: '0.5px solid var(--atelier-label)',
+        background: canSend
+        ? brassGrad
+        : 'var(--atelier-input-bg)',
+        cursor: canSend ? 'pointer' : 'default',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        color: canSend ? 'var(--role-ink-on-metal)' : T.inkDim,
+        // F-09.102: brassGrad ground themes
+        boxShadow: 'none',
+        transition: 'all 200ms cubic-bezier(0.22,1,0.36,1)',
+      }}>{inNote ? '✎' : '↑'}</button>
+    </div>
+  );
+}

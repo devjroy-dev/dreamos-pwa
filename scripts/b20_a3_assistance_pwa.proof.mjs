@@ -380,6 +380,9 @@ function listTsx(dir = ROOT, out = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     if (e.name === 'node_modules' || e.name === '.next' || e.name === '.git') continue;
     const full = path.join(dir, e.name);
+    // DESIGN-1 · THE LAYOUT SWITCH (by label): v2/ and app/v2/ are the redesign's parallel tree, served only to a vendor
+    // whose layout is v2 and proven by the _v2 benches; this bench proves today's tree. Retires with the classic removal.
+    if (path.relative(ROOT, full) === 'v2' || path.relative(ROOT, full) === path.join('app', 'v2')) continue;
     if (e.isDirectory()) listTsx(full, out);
     else if (/\.tsx?$/.test(e.name)) out.push(path.relative(ROOT, full));
   }

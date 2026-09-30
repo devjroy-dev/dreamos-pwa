@@ -1,0 +1,640 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock's screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
+'use client';
+// app/vendor/storefront/screen.tsx — THE STOREFRONT DOOR'S BODY, NO CHROME.
+//
+// ── §4-3 · STOREFRONT CROSSES · R-38.11 · R-38.12 ──────────────────────────
+// Two routes render this module and neither owns it: `app/w/storefront/page.tsx` mounts it
+// inside `WorklistShell`, and `app/vendor/storefront/page.tsx` survives as the untouched
+// fallback and supplies the old `<Header/>` itself. IMPORTED by both, copied by neither.
+//
+// ── THE `Header` IMPORT IS GONE FROM THIS FILE AND ITS ABSENCE IS ASSERTED ──
+// S2's `SliceShell` finding, paid for once: a conditional does not remove a module from a
+// bundle; only not importing it does. The mount lives at the fallback ROUTE.
+//
+// ── THE ADDRESS BOOK PAYS OUT A SECOND TIME, AND THIS TIME IT WAS A LITERAL ─
+// `SECTIONS`'s Portfolio row spelled `/vendor/portfolio` as a hardcoded string, written
+// long before the shell. It asks `roomHref('portfolio')` now, so Portfolio crossing in this
+// same batch moved this row WITHOUT this row being reasoned about a second time — which is
+// exactly what the address book was built for at the S2 ZIP bounce.
+//
+// ⚠ AND IT ANSWERS THE SAME WAY IN BOTH TREES, WHICH IS RULED AND NOT AN OVERSIGHT.
+// `roomHref` is deliberately not tree-aware (CE-38 relay, S2 ZIP bounce): a cross-link to a
+// DIFFERENT room is a departure whichever tree it starts in, so a vendor on the /vendor
+// fallback who taps Portfolio lands in the shell. `SliceDoor`'s tree-awareness is the
+// asymmetric case — lateral movement inside ONE family — and Storefront → Portfolio is not
+// that. Two rules, two shapes, each with its reason at its own site.
+//
+// ── THE TWO OUTBOUND LINKS THAT ARE NOT ROOMS ──────────────────────────────
+// `/vendor/discover` (the Discover row) and `/vendor/discover/profile` (the bio row) point
+// at surfaces that are NOT in the room registry and are not chartered to cross this block.
+// Both are declared in `INTERIM_VENDOR_LINKS`, and `/vendor/discover` is the entry that
+// forced C-2's ruling at this sitting: that set is the ledger of what crossed surfaces
+// still point at, so it GROWS by named entry at a crossing and shrinks only at Phase 7.
+// Forbidding its growth would have forbidden crossing itself.
+//
+// ── THE DECLARED GAP ───────────────────────────────────────────────────────
+// The body did not cross typographically (R-38.12): the rooms' older type register and
+// F-38.22's colour-literal family. Captured, excluded from the render arm's tuple cell by
+// name, priced.
+
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+import Link from 'next/link';
+import { roomHref } from '@/v2/lib/worklist/rooms';
+// ── TDW_09 PHASE B · F-3 = (a) — the bio story seats HERE, §1 of the door ──
+// The heading is the FOUNDER-VETOED byte 「 Complete your bio 」; the score is
+// THE one model (lib/vendor/profileMeter — moved from the profile page, never
+// re-authored) fed by the same reads that page trusts; the row's subtitle is
+// the drawer's own vetoed byte 「 How couples see you 」. Route byte-identical:
+// this block LINKS /vendor/discover/profile, it does not absorb it.
+import { useState } from 'react';
+import { useSettings } from '@/v2/hooks/vendor/useSettings';
+import { fetchDatePulse, fetchDiscoverStatus, fetchPortfolio, updateMe } from '@/v2/lib/vendor/api/vendor';
+import { pulseLines, type DatePulse } from '@/lib/worklist/pulse';
+// R-G31.7 · the SAME header every shell call sends. The revalidate route reads
+// it to ask dream-os who the caller is; the handle never comes from a body.
+import { getAuthHeader } from '@/lib/vendor/api/_base';
+import { publicUrlFor } from '@/lib/public/vendorHost';
+// F-44.239 · the address was a literal (`https://thedreamwedding.in/v/…`) while the
+// Your website room reads SITE_BASE; one home, so an own domain or another base
+// cannot leave this row pointing at the wrong address.
+const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.in';
+
+// D3's read goes to the PUBLIC card door — no session, the same address a
+// stranger uses. Declared here rather than spelled at the call site.
+const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
+import type { PortfolioImage } from '@/lib/vendor/types/vendor';
+import { photoFloor } from '@/lib/vendor/discoverFloor';
+import { buildGaps, scoreOf } from '@/lib/vendor/profileMeter';
+import { Meter } from '@/v2/components/vendor/ProfileMeter';
+// ── WALK HOTFIX MICRO · F-09.111 — the late-load flash, this screen's limb ──
+import { Reserve } from '@/components/vendor/Reserve';
+
+import { COPY } from '@/v2/lib/worklist/copy';
+const A = {
+  ink:       'var(--atelier-ink)',
+  inkMute:   'var(--atelier-ink-mute)',
+  brass:     'var(--atelier-accent-text)',
+  brassWarm: 'var(--atelier-label)',
+} as const;
+const F = {
+  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
+  script:  'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
+  label:   'var(--font-jost), system-ui, sans-serif',
+} as const;
+
+function Chevron() {
+  return (
+    <span style={{
+      color: 'var(--atelier-label)',
+      fontFamily: F.display, fontSize: '1rem', lineHeight: 1,
+      flexShrink: 0,
+    }}>›</span>
+  );
+}
+
+function SectionLabel({ label, first }: { label: string; first?: boolean }) {
+  return (
+    <div style={{
+      padding: first ? '24px var(--slice-inset, 24px) 14px' : '32px var(--slice-inset, 24px) 14px',
+      display: 'flex', alignItems: 'center', gap: 12,
+    }}>
+      <span style={{
+        fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
+        letterSpacing: '0.5em', textTransform: 'uppercase',
+        color: A.brass,
+      }}>{label}</span>
+      <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
+    </div>
+  );
+}
+
+interface Item { href: string; label: string; description: string; glyph: string; }
+
+// The four sections, Paper A's own membership. Descriptions: 'images and photo
+// library' and 'your profile on The Dream Wedding' are the More page's own
+// vetoed bytes, travelling WITH their rows (MOVED, control inventory).
+// V1/V2 FOUNDER-VETOED (「 pushed and ok 」, 2026-08-07): Leads and Collab
+// descriptions land; Portfolio/Discover descriptions carried from More at P2A.
+const SECTIONS: Item[] = [
+  // §4-3: THE ADDRESS BOOK, NOT A LITERAL. `/vendor/portfolio` was hardcoded here since
+  // Paper A; Portfolio crosses in this same batch and this row followed without being
+  // reasoned about again. It is a `roomHref` call rather than a re-spelled `/vendor/portfolio`
+  // for the same reason it was wrong the first time: a literal spells a destination, and
+  // the registry IS the one place that knows where a room lives.
+  { href: roomHref('portfolio'),    label: 'Portfolio', description: 'Images and photo library',           glyph: '▣' },
+  // NOT A ROOM. `/vendor/discover` is a carried surface with no registry entry and no
+  // crossing chartered this block, so it stays a literal and is DECLARED in
+  // `INTERIM_VENDOR_LINKS` instead — counted, so it cannot grow quietly, rather than
+  // explained, which is the shape the S2 ZIP bounce convicted.
+  { href: '/vendor/discover',       label: 'Discover',  description: 'Your profile on The Dream Wedding',  glyph: '◈' },
+  // R-37.87 (ZIP 14): Collab's row is REMOVED here because it now has its own tile in the
+  // shell's bottom band. One home, or it is two — and two doors to one room is the disease
+  // the sixteen-tile grid was ruled to end. The SURFACE is untouched and the route is
+  // byte-identical (/vendor/collab); only this second door closes. On `main` the row stands.
+];
+
+function StoreRow({ item }: { item: Item }) {
+  return (
+    <Link href={item.href} style={{
+      display: 'flex', alignItems: 'center', padding: '16px var(--slice-inset, 16px)', gap: 16,
+      textDecoration: 'none',
+      borderBottom: '0.5px solid var(--atelier-card-border)',
+    }}>
+      <span style={{
+        flexShrink: 0,
+        width: 36, height: 36,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem',
+        color: A.brassWarm, lineHeight: 1,
+      }}>{item.glyph}</span>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontFamily: F.script, fontWeight: 500, fontSize: '1.375rem',
+          color: A.ink, letterSpacing: '0.005em', lineHeight: 1.15,
+        }}>{item.label}</div>
+        {item.description && (
+          <div style={{
+            fontFamily: F.script, fontWeight: 300,
+            fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4, letterSpacing: '0.01em',
+          }}>{item.description}</div>
+        )}
+      </div>
+      <Chevron />
+    </Link>
+  );
+}
+
+export function StorefrontScreen({ vendorId }: { vendorId: string }) {
+  return (
+    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', overflowX: 'clip' }}>
+      <div style={{ flex: 1, paddingBottom: 40 }}>
+        <BioBlock vendorId={vendorId} />
+        {/* ── THE SECTION LABEL IS THE OLD LAYOUT'S CHROME, RETIRED IN THE SHELL ──
+            It reads 「Storefront」, and inside the shell `WorklistShell` already prints that
+            exact word in its header one element above. Two 「Storefront」s stacked is the
+            two-mastheads defect in miniature — the founder's own double-nav finding wearing
+            a smaller face — and the second one carries no information the first did not.
+            On the /vendor fallback it renders exactly as before, because there the Header
+            prints the vendor's name and nothing names the surface. */}
+        
+        <PublicPageBand />
+
+        {SECTIONS.map(item => <StoreRow key={item.label} item={{ ...item }} />)}
+      </div>
+    </div>
+  );
+}
+
+
+// ── §1 — the bio story (F-3(a)) + live counts (founder 「 ok 」) ──────────────
+function BioBlock({ vendorId }: { vendorId: string }) {
+  const { current, loading } = useSettings();
+  const [approved, setApproved] = useState(0);
+  const [pending, setPending] = useState(0);
+  const [hasHero, setHasHero] = useState(false);
+  const [serverFloor, setServerFloor] = useState<number | undefined>(undefined);
+  // ── F-39.10 · THE LEADS READOUT IS REMOVED-BY-RULING (CE-39, 2026-08-29) ───
+  // A `leadsWaiting` state, a `fetchToday` call and a conditional span stood here. All
+  // three are GONE, not gated.
+  //
+  // WHY, in the ruling's own terms: R-P3.5.6 ① says `open_leads_count` is never summed,
+  // compared or displayed against Today's masthead in ANY surface, and Storefront IS a
+  // room — a default pin, one tile away from Today. The figure came off the ENGINE plane
+  // while Today's numeral comes off the TYPED plane, so after Phase 4 this room and that
+  // masthead would have shown two numbers about the same leads, from two planes, able to
+  // disagree by construction. §8.9 names that as the disease and does not recommend it.
+  // TODAY IS THE ONE LEADS FIGURE.
+  //
+  // THE ENGINE READER ITSELF IS NOT TOUCHED. `fetchToday` and its remaining caller
+  // (`hooks/vendor/useVendorData.ts:216`) stand as they were; the predicate is not
+  // repaired, it RETIRES at the §8.9 seam (R-P3.5.6's whole reasoning). What left here is
+  // a DISPLAY, which is the half the ruling governs.
+  //
+  // F-09.111: the two fetches that feed the SCORE, settled-or-failed.
+  const [statusDone, setStatusDone] = useState(false);
+  const [heroDone,   setHeroDone]   = useState(false);
+  const metricsReady = statusDone && heroDone;
+  useEffect(() => {
+    let live = true;
+    // BYTE-FOR-BYTE the profile page's own reads (:147-:157) — one authority
+    // on the meter's inputs, never a second recipe for the same number.
+    fetchDiscoverStatus().then((res) => {
+      if (!live) return;
+      if (res.ok) {
+        setApproved(res.portfolio_summary?.approved ?? 0);
+        setPending(res.portfolio_summary?.pending ?? 0);
+        setServerFloor(res.min_portfolio_images);
+      }
+    }).catch(() => { /* the meter degrades to zeros; it never blocks the door */ })
+      .finally(() => { if (live) setStatusDone(true); });
+    fetchPortfolio(vendorId, 'approved').then((res) => {
+      if (!live) return;
+      if (res.ok) setHasHero((res.images as PortfolioImage[]).some((i) => i.is_hero));
+    }).catch(() => { /* same */ })
+      .finally(() => { if (live) setHeroDone(true); });
+    return () => { live = false; };
+  }, [vendorId]);
+
+  // ── F-09.111 CURED — THE CARD NO LONGER ARRIVES AFTER THE PAGE ─────────────
+  // THIS FILE READ, until this delivery:  `if (loading) return null;`
+  //
+  // THE MECHANISM, NAMED SO ITS NEXT SITTING RE-READS THIS (F-06.85): BioBlock
+  // unmounted ENTIRELY while useSettings() loaded, so the page painted with the
+  // "Storefront" label at the top and then, on settle, this whole card appeared
+  // and shoved the label and all four rows down the screen. Founder-witnessed
+  // 2026-08-07. It is a violation of a law the estate had already ratified —
+  // S5 Paper C rule 5, "loading is skeleton, never blank".
+  //
+  // AND A SECOND JUMP UNDERNEATH THE FIRST: the meter's score is fed by
+  // fetchDiscoverStatus + fetchPortfolio, which settle INDEPENDENTLY of
+  // useSettings. Gating on `loading` alone would have shown the card at
+  // settings-settle with a score computed from zeros, and ProfileMeter's arc
+  // carries a 420ms stroke transition — so the founder would have watched a
+  // wrong number sweep to a right one. `metricsReady` holds the skeleton until
+  // the inputs the SCORE reads have landed. A failed fetch still resolves it
+  // (the .catch legs below set it too) — a dead network must not hang the card
+  // in skeleton forever; the meter degrades to its documented zeros instead.
+  //
+  // The skeleton branch below mirrors the loaded branch's DOM: same wrapper,
+  // same SectionLabel, same paddings, and the meter's box reserved by GHOST
+  // (Reserve renders the real Meter invisibly) so the reserved height is the
+  // browser's own measurement and no executor arithmetic sits under it.
+  if (loading || !metricsReady) {
+    return (
+      <div style={{ borderBottom: '0.5px solid var(--atelier-card-border)', paddingBottom: 8 }}>
+        <SectionLabel label="Complete your bio" first />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '0 var(--slice-inset, 16px)' }}>
+          <Reserve ghost><Meter score={0} /></Reserve>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* 23px = the loaded title's 20px Cormorant at lineHeight 1.15 */}
+            <Reserve h={23} w="52%" />
+            {/* 24px = the loaded subtitle's 16px Cormorant at lineHeight 1.5 */}
+            <Reserve h={24} w="72%" />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 16, padding: '12px var(--slice-inset, 16px) 4px' }}>
+          {/* 13px = the loaded readout's 9px Jost line box */}
+          <Reserve h={13} w={124} />
+        </div>
+      </div>
+    );
+  }
+
+  const gaps = buildGaps({
+    approved, pending, floor: photoFloor(serverFloor), hasHero,
+    about: current.about,
+    tags: current.aesthetic_tags.split(',').map((t) => t.trim()).filter(Boolean),
+    travelNotes: current.travel_notes, rateMin: current.rate_min,
+    ig: current.instagram_handle,
+  });
+  const score = scoreOf(gaps);
+  return (
+    <div style={{ borderBottom: '0.5px solid var(--atelier-card-border)', paddingBottom: 8 }}>
+      {/* FOUNDER-VETOED heading (relay #2 slate). */}
+      <SectionLabel label="Complete your bio" first />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '0 var(--slice-inset, 16px)' }}>
+        <Meter score={score} />
+        {/* F-P72.C (founder walk, 2026-09-04): this row read as a ROW — title, hint, chevron —
+            the same grammar as Portfolio and Discover below. But those two are DOORS and this
+            one is the ASK: it is the surface that gets a profile finished. The title and the
+            drawer's vetoed line stay; the chevron-link becomes the shell's primary button
+            beneath the meter. Mock frame `P72C-bio-call`; S19 vetoed. Portfolio and Discover
+            KEEP the row grammar on purpose — one call per screen, or the contrast that makes a
+            call read as one is gone (founder: Discover becomes a call when Block 09 ports it). */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1.375rem', color: A.ink, lineHeight: 1.15 }}>Your bio</div>
+          {/* The drawer's own vetoed byte, carried. */}
+          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>How couples see you</div>
+        </div>
+      </div>
+      {/* The shell's button register, read from its one home (WorklistShell's SHELL_CSS, hoisted
+          at P7.2 Arm C). The two properties below are this SITE's, not the register's: the
+          margin that seats the call under the meter, and the link's own text-decoration. */}
+      <Link href="/vendor/discover/profile" className="wl-btn pri"
+            style={{ textDecoration: 'none', margin: '12px var(--slice-inset, 16px) 0' }}>
+        {COPY.storefrontBioCta}
+      </Link>
+      {/* Live counts under the same roof (readouts, not copy): */}
+      <div style={{ display: 'flex', gap: 16, padding: '12px var(--slice-inset, 16px) 4px' }}>
+        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: A.inkMute }}>
+          {approved} photos live{pending > 0 ? ` · ${pending} pending` : ''}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+
+// ── §2 — G3.1 · THE PUBLIC PAGE BAND (R-40.77, R-40.78, R-G31.2) ───────────
+//
+// R-G31.2 opened the Business Solutions row 「Your website & SEO」 onto THIS
+// room rather than building a second surface. So the band is additive: the bio
+// block above and the four SECTIONS below are untouched.
+//
+// ⚠ THE BAND IS FACTS, NEVER A SCORE AND NEVER A REPORT — master §7. Her
+// address, what a stranger can see on it, and the one permission she controls.
+// No SEO grade, no traffic promise, no checklist of things she has not done.
+function PublicPageBand() {
+  const { current, loading } = useSettings();
+  // ⚠ THE SWITCH OWNS ITS OWN STATE AND DOES NOT GO THROUGH `update`/`isDirty`.
+  // `useSettings` is a FORM hook built for a Save button; this saves on toggle
+  // (founder-ruled: `discover_paused`'s exact posture). Routing it through the
+  // dirty-tracking would make an unrelated Save elsewhere carry this flag, and
+  // a consent flag must be written by the tap that granted it and nothing else.
+  const [on, setOn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  // D3's figure, read from THE PUBLIC CARD — the same door and the same
+  // predicate a stranger's browser hits, so the room cannot disagree with the
+  // page. `null` until it answers, and a failure leaves it null: the readout is
+  // absent rather than reporting a zero it did not derive.
+  const [weddingCount, setWeddingCount] = useState<number | null>(null);
+  // Seeded from the hook's single `/me` read — never a second fetch.
+  const live = on ?? current.date_check_enabled;
+
+  // ⚠ ONE READ, AND IT IS THE PUBLIC CARD ITSELF. Not a new vendor door and not
+  // a second predicate — the room asks the same address a stranger's browser
+  // asks, so its figure and the page's list cannot drift apart. Failure leaves
+  // the count null and the readout absent.
+  useEffect(() => {
+    const handle = current.routing_handle;
+    if (!handle) return;
+    let live = true;
+    (async () => {
+      try {
+        const r = await fetch(`${PUBLIC_API_BASE}/api/v2/public/vendor-card/${encodeURIComponent(handle)}`);
+        if (!r.ok) return;
+        const j = await r.json();
+        const w = j?.card?.weddings;
+        if (live && Array.isArray(w)) setWeddingCount(w.length);
+      } catch { /* the readout stays absent */ }
+    })();
+    return () => { live = false; };
+  }, [current.routing_handle]);
+
+  // ── TDW_19 G4.4 · R8-2 · THE DEMAND PULSE ────────────────────────────────
+  // `null` until the door answers. ONE read, on mount, and never re-run when the
+  // switch moves: flipping the switch OFF does not delete the week's rows and
+  // flipping it ON does not create any, so a refetch on toggle would redraw the
+  // same card and tie a readout to a control it does not depend on.
+  const [pulse, setPulse] = useState<DatePulse | null>(null);
+  // ⚠ A FAILED READ IS TRACKED SEPARATELY FROM AN EMPTY WEEK EVEN THOUGH BOTH
+  // DRAW NOTHING TODAY, and the separation is the point rather than dead state.
+  // F-42.53 is open against this very room for the opposite habit — the date
+  // switch draws OFF on a failed `/me` with no tell, because the screen keeps
+  // only `current` and throws the hook's `error` away, so a permission she holds
+  // reads as one she does not. Collapsing «could not look» into «nobody asked»
+  // here would be the same defect wearing a smaller coat. The two states are
+  // held apart in the component, so the day a tell is vetoed the cure is one
+  // render line and not a refactor. THE OPEN QUESTION IS RELAYED, NOT DECIDED:
+  // absence currently carries two meanings, and only the chair may author the
+  // byte that separates them on screen.
+  const [pulseFailed, setPulseFailed] = useState(false);
+
+  useEffect(() => {
+    // Gated on `capacity_reason === null` — F-40.172's law, the same gate the
+    // switch itself sits behind. A trade whose occupancy is ruled off or
+    // unmapped has no date checks by construction, so asking would be a call
+    // whose only possible answer is an empty week.
+    if (current.capacity_reason !== null) return;
+    let alive = true;
+    (async () => {
+      const r = await fetchDatePulse();
+      if (!alive) return;
+      if ('ok' in r && r.ok === true) { setPulse(r as DatePulse); return; }
+      setPulseFailed(true);
+    })();
+    return () => { alive = false; };
+  }, [current.capacity_reason]);
+
+  // The card's lines are DECIDED in lib/worklist/pulse.ts and only rendered
+  // here. The `+`, the singular/plural pivot and the date's year all live there
+  // so `b70` drives the shipped rule; this screen must not grow an opinion about
+  // any of them. §2.4 asserts it has not.
+  const pulseRows = pulseLines(pulse, { one: COPY.storefrontPulseOne, many: COPY.storefrontPulseMany });
+
+  async function toggle() {
+    if (busy) return;
+    const next = !live;
+    setOn(next);                    // optimistic
+    setBusy(true);
+    try {
+      const r = await updateMe({ date_check_enabled: next });
+      // ⚠ REVERT ON REFUSAL, and read the door's own echo rather than assuming
+      // the write took. `updateMe` returns the updated vendor; if the door said
+      // no — or said yes to something else — the row goes back to the truth.
+      if (!('ok' in r) || !r.ok) { setOn(!next); return; }
+      setOn(r.vendor.date_check_enabled === true);
+      // ── R-G31.7 · REBUILD HER PUBLIC PAGE AT ONCE (F-40.187) ────────────
+      // The storefront is served from a 300s cache, so without this the switch
+      // she just moved keeps its old value on `/v/<code>` for up to five
+      // minutes — the control still drawn, the door refusing, the guest reading
+      // a miss. A permission that takes five minutes to take effect is a
+      // permission that lies for five minutes.
+      //
+      // ⚠ AFTER the write and only on success. Rebuilding a page around a
+      // value that failed to save would publish the wrong state faster.
+      //
+      // ⚠ AND ITS FAILURE IS NOT HERS. The toggle has already succeeded and
+      // been confirmed by the door's echo; a cache that did not rebuild is a
+      // page that catches up in 300s on its own. So this is fire-and-forget and
+      // never reverts the row — showing her a failed switch because a cache
+      // call missed would be a lie in the opposite direction.
+      try {
+        await fetch('/api/revalidate/storefront', { method: 'POST', headers: getAuthHeader() });
+      } catch { /* the page catches up on its own timer */ }
+    } catch {
+      setOn(!next);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (loading) return null;
+
+  // ── R-40.78 · A TRADE WITH NO CAPACITY TO ANSWER ──────────────────────────
+  // Gated on `capacity_reason`, NEVER on `capacity_applicable` — F-40.172: the
+  // two came from different ladders and disagreed on seven categories, so a
+  // hairstylist would have been shown a switch she could flip, after which every
+  // guest checking a date would read the miss sentence.
+  //
+  // ⚠ ABSENT, NOT DISABLED. A greyed control is a thing she keeps tapping.
+  const reason = current.capacity_reason;
+  const handle = current.routing_handle;
+
+  return (
+    <>
+      <SectionLabel label={COPY.storefrontPublicLabel} />
+      <div style={{ padding: '0 var(--slice-inset, 16px)' }}>
+        {handle ? (
+          <a
+            href={publicUrlFor(handle, SITE_BASE)}
+            target="_blank" rel="noopener noreferrer"
+            style={{
+              fontFamily: F.script, fontWeight: 400, fontSize: '1rem', lineHeight: 1.5,
+              color: A.brass, textDecoration: 'underline', textUnderlineOffset: 3,
+              wordBreak: 'break-all', display: 'block',
+            }}
+          >{publicUrlFor(handle, SITE_BASE).replace(/^https?:\/\//, '')}</a>
+        ) : null}
+
+        {/* ── THREE STATES, AND THE THIRD SAYS NOTHING — F-40.175 ───────────
+            `undefined` is the door not having answered, which is not a fact
+            about her trade and must not be rendered as one. No switch (we
+            cannot stand behind a permission we could not read) and no sentence
+            (we know nothing to tell her). Still fail-closed; simply silent. */}
+        {/* ── D3 · WHAT A STRANGER CAN SEE — F-40.188 ────────────────────────
+            The byte was declared in `copy.ts` at part 2 and never rendered: a
+            string with zero readers, F-40.28's shape, and mine. It is the room
+            telling her what is ON her page, which is a narrower set than what
+            she has — only published, consented pages reach `/v/`.
+
+            ⚠ IT READS THE SAME PREDICATE AS THE PAGE, not a second one. The
+            count comes from the public card door, which selects on
+            `visibility='published' AND couple_consent`, so the room cannot
+            report a number the storefront would not show.
+
+            ⚠ AND IT RENDERS NOTHING AT ZERO. A heading over an empty list is a
+            room reporting an absence she can already see on her own page. */}
+        {weddingCount !== null && weddingCount > 0 && (
+          <p style={{
+            fontFamily: F.script, fontWeight: 300, fontSize: '0.8125rem', lineHeight: 1.55,
+            color: A.inkMute, margin: '16px 0 0',
+          }}>
+            {`${COPY.storefrontWeddingsLabel}: ${weddingCount}`}
+          </p>
+        )}
+
+        {reason === undefined ? null : reason === null ? (
+          <>
+            <div
+              role="switch"
+              aria-checked={live}
+              aria-label={COPY.storefrontDateSwitch}
+              tabIndex={0}
+              onClick={toggle}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 16,
+                padding: '16px 0 8px', cursor: 'pointer',
+                opacity: busy ? 0.6 : 1,
+              }}
+            >
+              <span style={{
+                flex: 1, minWidth: 0,
+                fontFamily: F.script, fontWeight: 400, fontSize: '1rem', lineHeight: 1.4, color: A.ink,
+              }}>{COPY.storefrontDateSwitch}</span>
+              <span style={{
+                width: 46, minWidth: 46, height: 27, borderRadius: 14, position: 'relative',
+                background: live ? A.brass : 'var(--atelier-input-bg)',
+                border: `0.5px solid ${live ? A.brass : 'var(--atelier-card-border)'}`,
+                transition: 'background 140ms ease',
+              }}>
+                <span style={{
+                  position: 'absolute', top: 2, [live ? 'right' : 'left']: 2,
+                  width: 21, height: 21, borderRadius: '50%',
+                  background: live ? 'var(--role-ink-deep)' : 'var(--atelier-ink-fade)',
+                }} />
+              </span>
+            </div>
+            {/* D4 sits beside the switch in BOTH states — see its comment in copy.ts. */}
+            <p style={{
+              fontFamily: F.script, fontWeight: 300, fontSize: '0.8125rem', lineHeight: 1.55,
+              color: A.inkMute, margin: 0, maxWidth: '34ch',
+            }}>{COPY.storefrontDateStanding}</p>
+
+            {/* ── R8-2 · THE PULSE ─────────────────────────────────────────
+                ⚠ IT RENDERS NOTHING AT ZERO — no label, no shell, no 「0
+                checks」 (ruled at R8-2). The section closes exactly where it
+                closes today, so the room a vendor with no demand opens is the
+                room she already knows rather than one with a hole in it saying
+                nobody looked at you this week. `pulseRows.length` is the whole
+                gate: an empty week, a failed read and a trade with no rows all
+                produce no lines and therefore no card.
+
+                ⚠ AND IT IS A READOUT, NOT A CONTROL. No tap target, no href.
+                The one thing she can act on in this block is the switch above
+                it; this is what that switch produced. */}
+            {pulseRows.length > 0 && (
+              <>
+                <p style={{
+                  fontFamily: F.label, fontWeight: 500, fontSize: '0.8125rem',
+                  letterSpacing: '.16em', textTransform: 'uppercase',
+                  color: A.brassWarm, margin: '24px 0 12px',
+                }}>{COPY.storefrontPulseLabel}</p>
+                <div style={{
+                  border: '.5px solid var(--atelier-card-border)',
+                  background: 'var(--atelier-card-bg)',
+                  padding: '4px 16px 12px',
+                }}>
+                  {pulseRows.map((r, i) => (
+                    <div key={r.key} style={{
+                      padding: '8px 0',
+                      borderTop: i === 0 ? undefined : '.5px solid var(--atelier-card-border)',
+                    }}>
+                      {/* ── R-42.11 · ONE SENTENCE, ONE TEXT NODE ───────────
+                          This was two spans: the count in the display face and
+                          the brass accent at 26px with a 52px min-width, the
+                          words in body sans beside it. The founder walked it and
+                          the number read as a stray bar — a numeral column is a
+                          table, and a table with one column beside a sentence is
+                          neither. The count is the SUBJECT of this sentence, not
+                          a figure being aligned against other figures, and there
+                          is no second row for it to line up with.
+
+                          ⚠ ONE FACE AND ONE INK, DELIBERATELY. Styling only the
+                          number would put the emphasis back in a smaller form
+                          and re-open the same reading. The row is prose. */}
+                      <span style={{
+                        fontFamily: F.script, fontSize: '0.9375rem', lineHeight: 1.5, color: A.ink,
+                      }}>{r.line}</span>
+                    </div>
+                  ))}
+                  <p style={{
+                    fontFamily: F.script, fontSize: '0.8125rem', lineHeight: 1.5,
+                    color: 'var(--atelier-ink-fade)', margin: '12px 0 0', paddingTop: 12,
+                    borderTop: '.5px solid var(--atelier-card-border)',
+                  }}>{COPY.storefrontPulseFine}</p>
+                </div>
+              </>
+            )}
+
+            {/* ── THE TELL · FOUNDER-VETOED, shipped as its own micro ───────
+                R8-2 shipped with absence carrying TWO meanings: an empty week
+                and a failed read both drew nothing, so a vendor with three
+                checks who hit a network error read it as nobody looked. The
+                two states were already held apart in this component for
+                exactly this line (b70 §2.3); this is the one render line that
+                cashes it.
+
+                ⚠ GATED ON `pulseFailed` ALONE, NEVER ON EMPTINESS. Zero still
+                draws NOTHING — that is ruled and unchanged. `pulseFailed` is
+                set only where the door refused or the fetch threw; an honest
+                empty week leaves it false and this line never appears. The two
+                gates are deliberately not one expression, because a single
+                `pulseRows.length === 0 &&` would have said 「couldn't read」 to
+                every vendor whose week was genuinely quiet. */}
+            {pulseFailed && (
+              <p style={{
+                fontFamily: F.script, fontWeight: 300, fontSize: '0.8125rem', lineHeight: 1.55,
+                color: 'var(--atelier-ink-fade)', margin: '24px 0 0', maxWidth: '34ch',
+              }}>{COPY.storefrontPulseFailed}</p>
+            )}
+          </>
+        ) : (
+          <p style={{
+            fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5,
+            color: A.inkMute, margin: '12px 0 4px', maxWidth: '30ch',
+          }}>
+            {reason === 'ruled_off' ? COPY.storefrontDateRuledOff : COPY.storefrontDateUnmapped}
+          </p>
+        )}
+      </div>
+    </>
+  );
+}

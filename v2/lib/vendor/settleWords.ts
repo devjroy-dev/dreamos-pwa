@@ -1,0 +1,184 @@
+// lib/vendor/settleWords.ts
+// TDW_04.5 · P5 — THE MONEY LOOP'S VOCABULARY AND ITS ONE PIECE OF LOGIC.
+//
+// Framework-agnostic and browser-free by design (native-implications clause: no
+// React, no DOM, no storage APIs), following the rosterMint / crewCommit
+// precedent exactly — the components are thin shells over this file, and the
+// proof drives it in plain node.
+//
+// ── WHY THE WORDS LIVE HERE ─────────────────────────────────────────────────
+// Three surfaces speak them: the team-payments board, the Log Payment sheet, and
+// the Settle row on the responses page. F8(d)'s argument, applied again — two
+// screens, one spelling. A vetoed string copied is a vetoed string that will
+// drift, and copy drift on a money surface is how a vendor stops trusting the
+// number.
+//
+// ── FOUNDER VETO, CLOSED (CE relay ②). EXACT BYTES. ─────────────────────────
+// Every string below carries his YES verbatim. Nothing here is a paraphrase and
+// nothing is assembled at the call site.
+
+/** The stub's own words. */
+export const SETTLE_TITLE        = 'Settle up';
+export const AMOUNT_LABEL        = 'Amount (Rs)';
+export const FUNCTION_LABEL      = 'Which function?';
+export const NO_WEDDING_OPTION   = 'Not linked to a wedding';
+export const LOG_ACTION          = 'Log it';
+export const NOTHING_TO_SETTLE   = 'Nothing to settle yet.';
+
+/** The By-wedding board's words. */
+export const BY_WEDDING_LABEL    = 'By wedding';
+export const SUBTOTAL_LABEL      = 'Subtotal';
+export const NOTHING_OWED        = 'Nothing owed on this wedding.';
+export const NO_PAYOUTS          = 'No payouts yet.';
+/** P2's already-vetoed word, REUSED rather than re-minted (bands.js ships null). */
+export const UNTITLED_WEDDING    = 'Untitled wedding';
+
+/** The suggestion's words. */
+export const EDIT_BEFORE_SAVING  = 'Edit before saving.';
+export const NO_RATE_ON_FILE     = 'No rate on file';
+export const NO_AMOUNT_QUOTED    = 'No amount quoted';
+
+// ── THE SUGGESTION LINE ─────────────────────────────────────────────────────
+// FOUNDER-RULED UNIT: PER FUNCTION, not per calendar day. His domain truth, and
+// it overturned the executor's derivation: `daily_rate_inr`'s real-world
+// semantic is PER ENGAGEMENT. An MUA does three functions in one day and charges
+// three makeups, not one day's fee — so the "overcharge" a per-date count would
+// have prevented is, in this market, the CORRECT bill.
+//
+// THE WORD IS THE FOUNDER'S: "event". Not the chair's "function", not the
+// column's "day" — one vocabulary from his mouth to the screen, and the Team
+// page's rate now reads "per event" in the same breath (F-04.117).
+//
+// The word follows the ARITHMETIC it describes. Saying "days" over a count of
+// engagements would be the app telling the vendor something untrue about its
+// own number (F-04.114's law).
+//
+// AND IT COUNTS. "1 events" was shipped, predicted at the smoke and witnessed
+// there — a hardcoded plural is a small lie told confidently, which is the only
+// kind this estate keeps finding.
+export function suggestionLine(amountInr: number, functions: number, rateInr: number): string {
+  const unit = functions === 1 ? 'event' : 'events';
+  return `Rs ${fmt(amountInr)} suggested: ${functions} ${unit} at Rs ${fmt(rateInr)} each`;
+}
+
+// ── THE JOINED SENTENCE  [CE-39 · 2c-Studio · veto sheet §B3, ratified] ─────
+// The shell's Log payment sheet renders ONE sentence where the /vendor stub
+// renders two paragraphs. Founder, 2026-09-01: 「the pair read as two thoughts
+// about the same number」.
+//
+// ⚠ COMPOSED HERE, NEVER AT THE CALL SITE. This file's own header is the rule —
+// 「nothing is assembled at the call site」 — and joining two vetoed bytes with a
+// space in a component is assembly. The two bytes are unchanged; only the seam
+// is new, and the seam lives with the words.
+//
+// ⚠ c-2c.s3, THE EXECUTOR'S, DECLARED RATHER THAN SHIPPED QUIETLY. The veto
+// sheet's §B3 sample read 「Rs 12,000 — one function at Rs 12,000 each. Edit it
+// before saving if that isn't right.」 and was ratified as authored. It differs
+// from the STANDING bytes in two ways, and both differences are refused here:
+//   · the noun. The founder ruled the word is 「event」, not 「function」 and not
+//     the column's 「day」 — recorded above with his reasoning (an MUA doing
+//     three functions in one day bills three makeups). A later ratification of
+//     a sample sentence does not silently overturn an earlier word-level ruling
+//     the estate wrote down; it goes back to him as a question.
+//   · the tail. `EDIT_BEFORE_SAVING` carries his YES verbatim; the sample's
+//     longer paraphrase does not.
+// So the JOIN ships, as ruled, over the bytes that already carry his YES. If he
+// wants the sample's wording it is a one-line change to the two constants and
+// every reader follows.
+export function suggestionSentence(amountInr: number, functions: number, rateInr: number): string {
+  return `${suggestionLine(amountInr, functions, rateInr)}. ${EDIT_BEFORE_SAVING}`;
+}
+
+/** Indian digit grouping, the estate's one presentation of a rupee figure. */
+export function fmt(n: number): string {
+  return Number(n).toLocaleString('en-IN');
+}
+
+/**
+ * The wedding's name for the screen.
+ *
+ * The WIRE ships null for a wedding whose binder cannot be named (the engine hop
+ * is decoration and fails soft). The SCREEN needs a word. That translation
+ * happens here, once, so the board and the picker cannot disagree about what an
+ * unnamed wedding is called.
+ */
+export function weddingLabel(title: string | null | undefined): string {
+  return title && title.trim() !== '' ? title : UNTITLED_WEDDING;
+}
+
+// ── THE STUB'S LOGIC ────────────────────────────────────────────────────────
+
+export interface SettleDraft {
+  /** The counterparty's team_members id. NOT NULL at the DB — no id, no payout. */
+  teamMemberId: string | null;
+  /** Rupees, as typed. Empty until the vendor types — there is no quote source. */
+  amount: string;
+  /** The function the vendor PICKED. Null is lawful and means the loose lane. */
+  linkedEventId: string | null;
+  description: string;
+  /** `collab:<post_id>` when the stub was opened from a connection. */
+  notes: string | null;
+}
+
+export interface SettleResult { ok: boolean; error?: string }
+
+export interface SettleDeps {
+  /** The REAL logPayment (lib/vendor/api/vendor). Structural. */
+  log: (body: {
+    team_member_id: string; amount_inr: number; description?: string;
+    linked_event_id?: string; notes?: string;
+  }) => Promise<{ ok: boolean; error?: string } | { ok: boolean }>;
+  onResult: (message: string, kind: 'success' | 'error') => void;
+  onDone: () => void;
+}
+
+export const SETTLE_SUCCESS_MSG = 'Payment logged';
+export const SETTLE_ERROR_MSG   = 'Could not log the payment. Try again.';
+
+/** The collab thread's marker. Acceptance item 7 greps for exactly this shape. */
+export function collabNote(postId: string): string {
+  return `collab:${postId}`;
+}
+
+/**
+ * Is this draft loggable? The gate is the DB's own NOT NULL plus a positive
+ * amount — the two things the server would refuse anyway, asked here so the
+ * button can be honest about being disabled instead of failing on tap.
+ *
+ * A MISSING FUNCTION IS NOT A BLOCKER. Per the ruling (C1+C2), no pick is a
+ * lawful answer: the payout lands in the loose lane, labelled. The vendor is
+ * never forced to invent a wedding to record money he actually owes.
+ */
+export function canSettle(d: SettleDraft): boolean {
+  return !!d.teamMemberId && Number(d.amount) > 0;
+}
+
+/**
+ * Log one settlement.
+ *
+ * SUGGEST-NEVER-COMMIT lives at the call site, not here: this function writes
+ * only what it is handed. Whatever the suggestion proposed, the number that
+ * travels is the number in the field the vendor could edit.
+ */
+export async function settle(draft: SettleDraft, deps: SettleDeps): Promise<boolean> {
+  if (!canSettle(draft)) return false;
+  try {
+    const res = await deps.log({
+      team_member_id:  draft.teamMemberId as string,
+      amount_inr:      Number(draft.amount),
+      description:     draft.description.trim() || undefined,
+      linked_event_id: draft.linkedEventId || undefined,
+      notes:           draft.notes || undefined,
+    });
+    if (!res || !res.ok) {
+      deps.onResult(SETTLE_ERROR_MSG, 'error');
+      return false;
+    }
+    deps.onResult(SETTLE_SUCCESS_MSG, 'success');
+    deps.onDone();
+    return true;
+  } catch {
+    deps.onResult(SETTLE_ERROR_MSG, 'error');
+    return false;
+  }
+}

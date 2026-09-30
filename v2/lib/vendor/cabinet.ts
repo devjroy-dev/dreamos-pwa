@@ -1,0 +1,104 @@
+import { whenWords } from '@/v2/lib/worklist/home';   // CE-46: no ages
+// lib/vendor/cabinet.ts — TDW_03 P2
+// The SHARED cabinet pieces (spec §P2: "extract shared pieces into
+// lib/vendor/cabinet.ts rather than duplicating"). Two consumers, one truth:
+// components/vendor/Cabinet.tsx (the Hub's Books sheet) and the Clients slice
+// binder cards. Money math + tone words here; JSX stays with its surfaces.
+// Pure functions only — the native clause rides free.
+
+import type { CabinetBinder } from '@/v2/lib/vendor/api/vendor';
+import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
+
+// ── money (moved VERBATIM from Cabinet.tsx) ─────────────────────
+// TDW_09 R-U23 / F-09.24: already register-compliant — its cure is consolidation,
+// not correction, and it changes no rendered byte. The name stays (eight call sites
+// in Cabinet.tsx read it); it no longer BUILDS the string.
+export function fmtINR(n: number | null | undefined): string {
+  if (n == null) return '—';
+  return formatRs(Math.round(n));
+}
+export function primaryAmount(r: CabinetBinder): number | null {
+  if (r.amount != null) return r.amount;
+  if (r.amount_pending != null) return r.amount_pending;
+  if (r.amount_received != null) return r.amount_received;
+  return null;
+}
+
+// money state for a binder: received / pending / paid|partial|owed
+export type MoneyState = 'paid' | 'partial' | 'owed' | null;
+export function moneyOf(r: CabinetBinder): { recv: number; pend: number; state: MoneyState } {
+  const recv = r.amount_received ?? 0;
+  const pend = r.amount_pending != null
+    ? Math.max(r.amount_pending, 0)
+    : Math.max((r.amount ?? 0) - recv, 0);
+  let state: MoneyState = null;
+  if (recv > 0 && pend <= 0) state = 'paid';
+  else if (recv > 0 && pend > 0) state = 'partial';
+  else if (pend > 0) state = 'owed';
+  return { recv, pend, state };
+}
+export const BADGE: Record<'paid' | 'partial' | 'owed', { label: string; color: string }> = {
+  paid:    { label: 'Paid',    color: '#3E8B4A' },
+  partial: { label: 'Partial', color: 'var(--cab-accent, var(--role-metal))' },
+  owed:    { label: 'Owed',    color: '#C0563B' },
+};
+
+// ── P2 additions (binder cards) ─────────────────────────────────
+
+// ── TDW_09 R-U27 — THE SHARPEST SPECIMEN IN THE SWEEP ────────────────────────
+// This broke the register law TWICE — the glyph AND the short forms — and it
+// rendered on the vendor's own leads chips ("In your books / booked / <amount> in").
+// It sat TWELVE LINES BELOW the compliant fmtINR above, which is exactly why a
+// census matched on function NAMES found the clean one and missed this one in the
+// same file. The name survives because the leads cross-chip reads it; the dialect
+// does not. Words-adjacent now means the house register, adjacent to words.
+export function amountWordsAdjacent(n: number | null | undefined): string {
+  if (n == null) return '—';
+  return formatRs(Math.round(n));
+}
+
+// Last touched, for the card's third line: whenWords (CE-46: the time today, else the date in full months; no ages).
+export function relativeTouch(iso: string | null | undefined): string | null {
+  const w = whenWords(iso);
+  return w || null;
+}
+
+// Manifest tone for the stage word (spec: warm/go/cool). P2 constant —
+// the 02 rule "missing cells render cool unless a stronger word stands"
+// (recordCompleteness/CE-16 lineage), money-complete stories render go,
+// everything else warm. One place; amend HERE.
+export type StageTone = 'warm' | 'go' | 'cool';
+export function stageTone(r: CabinetBinder): StageTone {
+  if (moneyOf(r).state === 'paid') return 'go';
+  if ((r.missing_cells ?? []).length > 0) return 'cool';
+  return 'warm';
+}
+
+// The story timeline: the growing note parsed by its accumulation breaks —
+// appends join with a single '\n' (verified in writeFields, dream-os
+// recordPrimitives). Money-edit confessions are sentences INSIDE the note
+// (donna_money's contract) and render verbatim as entries. Newest last,
+// as the raw string accumulates.
+export function noteTimeline(note: string | null | undefined): string[] {
+  if (!note) return [];
+  return note.split('\n').map((l) => l.trim()).filter(Boolean);
+}
+
+// ── R1(b) cross-plane chip (CE-ruled 2026-07-14) ────────────────
+// Phone is the identity + merge key (masterplan law). Normalize to the last
+// 10 digits (Indian numbers; strips +91/0 prefixes and formatting) so both
+// planes compare on the same key. DISCLOSED LIMITATION: a phone-asymmetric
+// twin (binder without a phone — the Kavya case) will NOT match; the chip's
+// absence means "no phone match", never "no twin". Display-only consumers.
+export function phoneKey(p: string | null | undefined): string | null {
+  if (!p) return null;
+  const digits = p.replace(/\D/g, '');
+  if (digits.length < 10) return null;
+  const key = digits.slice(-10);
+  // TDW_04 rider (F-04.3(a), CE-ruled 2026-07-15): reject DEGENERATE keys —
+  // a single repeated digit ("0000000000") is a placeholder, not a phone.
+  // One harvested placeholder is benign; two would FALSE-FUSE strangers by
+  // "phone". Same guard, same comment, in the engine twin (phoneKey.ts).
+  if (/^(\d)\1{9}$/.test(key)) return null;
+  return key;
+}

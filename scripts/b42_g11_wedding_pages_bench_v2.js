@@ -1,0 +1,1211 @@
+#!/usr/bin/env node
+'use strict';
+// DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b42_g11_wedding_pages_bench.js. The original at its own path proves the classic
+// tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
+process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
+// DESIGN-1 · THE LAYOUT SWITCH · THE V2 VIEW OF THE TREE (by label). The v2 tree is the shared tree with v2/ laid over it:
+// a module with a copy in v2/ is served from v2/, and every other module is the shared one. So a directory walk in this
+// copy sees exactly that: under app/, components/, lib/ and hooks/ a file whose v2/ twin exists is left out (the walk
+// meets the twin under v2/ instead), and app/v2 (the route shims) is left out; the walks below also walk the v2/ roots.
+{
+  const __fs = require('fs'), __path = require('path');
+  const __ROOT = __path.resolve(__dirname, '..');
+  const __SHARED = ['app', 'components', 'lib', 'hooks'].map((d) => __path.join(__ROOT, d));
+  const __rd = __fs.readdirSync;
+  __fs.readdirSync = function (dir, opts) {
+    const out = __rd.call(__fs, dir, opts);
+    const abs = __path.resolve(String(dir));
+    if (!__SHARED.some((s) => abs === s || abs.startsWith(s + __path.sep))) return out;
+    const rel = __path.relative(__ROOT, abs);
+    return out.filter((e) => {
+      const name = typeof e === 'string' ? e : e.name;
+      const r = __path.join(rel, name);
+      if (r === __path.join('app', 'v2')) return false;
+      const isDir = typeof e === 'string' ? __fs.statSync(__path.join(abs, name)).isDirectory() : e.isDirectory();
+      return isDir || !__fs.existsSync(__path.join(__ROOT, 'v2', r));
+    });
+  };
+}
+// scripts/b42_g11_wedding_pages_bench.js
+// BLOCK 19 · G1.1 — THE PWA HALF'S BENCH.
+//
+// ⚠ NUMBERED b42, NOT b41. The charter said b41; `scripts/b41_theme_bleed_fixture.js`
+// already holds that number, derived by `ls` rather than taken on the charter's word.
+//
+// Every cell asserts a SURFACE or a BEHAVIOUR. None asserts a line number and none
+// asserts where a constant lives.
+//
+// THE MUTATION PASS (--mutate) edits PRODUCTION CODE, re-runs the cells in a child
+// process, and requires RED. A mutation that leaves the bench green is a cell that
+// was never testing what its name claims.
+
+const fs   = require('fs');
+const path = require('path');
+const { spawnSync, execSync } = require('child_process');
+
+const ROOT = path.resolve(__dirname, '..');
+const P    = (rel) => path.join(ROOT, rel);
+const read = (rel) => fs.readFileSync(P(rel), 'utf8');
+const has  = (rel) => fs.existsSync(P(rel));
+/** Comments stripped before any prohibition is tested — a cell that cannot tell a
+ *  rule from its violation is worse than no cell (b53's e-4, same class). */
+const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+const ROOMS   = 'v2/lib/worklist/rooms.ts';
+const GRIDF   = 'v2/components/worklist/RoomsGrid.tsx';
+const HUB     = 'v2/app/vendor/(shell)/support/page.tsx';
+const SOLCOPY = 'v2/lib/solutions/copy.ts';
+const ROUTES  = 'v2/lib/solutions/routes.ts';
+const PIECES  = 'v2/components/solutions/SolutionsPieces.tsx';
+const ROOM    = 'v2/app/vendor/(shell)/wedding-pages/page.tsx';
+const WPCOPY  = 'lib/worklist/weddingPages.ts';
+const LEAF    = 'app/v/[code]/w/[slug]/page.tsx';
+const CLAIM   = 'app/credits/[token]/page.tsx';
+// ── G1.2's own subjects ─────────────────────────────────────────────────────
+const CONSENT = 'app/consent/[token]/page.tsx';
+const CREW    = 'app/crew/[token]/page.tsx';
+const COPY    = 'lib/public/copy.ts';
+const TOKEN   = 'lib/public/token.ts';
+const CONSENTCOPY = 'lib/public/consentCopy.ts';
+const PUBCOPY = 'lib/public/copy.ts';
+const MOCK    = 'docs/mocks/wedding-pages-mock.html';
+const MOCK2   = 'docs/mocks/wedding-guests-mock.html';
+
+for (const rel of [ROOMS, GRIDF, HUB, SOLCOPY, ROUTES, PIECES, ROOM, WPCOPY, LEAF, CLAIM, PUBCOPY, MOCK]) {
+  if (!has(rel)) { console.log('REFUSED \u2014 ' + rel + ' is absent'); process.exit(3); }
+}
+
+let pass = 0, fail = 0;
+// -- CE-45 FE-1 · LABELLED AMENDMENT: A-45.2'S RETIRED TABLE, AT THE HARNESS (dream-os b65's shape).
+// A retired cell prints RETIRED with its reason and is NEVER counted as a pass. CONTROL: at exit every
+// row below must have been met exactly once, or the bench goes red (a retirement that silently stops
+// matching would otherwise be a hole). Rulings: the chair's read-first and adopt-and-repair rulings,
+// CE-45, 24 Sept 2026.
+const __RETIRE = new Map([
+  ['20 / 19 / 10 / 9', 'A-45.2: the two-band grid constants retired with the founder\u2019s layout; ROOM_COUNT_EXPECTED is pinned on its own below; b122 \u00a72 pins the shelves'],
+  ['roomsInBand filters hosted rooms out of the grid', 'A-45.2: a hollow green, roomsInBand has no reader since the shelves; the function is listed for removal at the next cut that opens rooms.ts (F-05.56)'],
+  ['the eyebrow is KEPT', 'A-45.2: P3 put the four group headings in its place; the byte stays in its home unconsumed, pinned below (chair, CE-45)'],
+  ['the headline is told apart by its icon in the accent, its name in the ink, and nothing else (DESIGN-1)', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; More\u2019s rows have no headline pair; the registry\u2019s headline flags stand, pinned above'],
+  ['the tile renders its headline from the REGISTRY, never from an index', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; no surface draws a headline tile'],
+  ['the host tile sums the counts of the rooms it hosts', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; More\u2019s rows carry no figure, so no host sums one (b40 C62, C64)'],
+  ['a null hosted count is skipped rather than summed as zero', 'DESIGN-1 stage 3: the founder\u2019s five tabs and More (docs/review/REPORT.md \u00a73) retired the tiles; the summation left with the tile figures'],
+]);
+const __seen = new Map();
+const ok = (n, c, d) => {
+  if (__RETIRE.has(n)) { __seen.set(n, (__seen.get(n) || 0) + 1); console.log('  RETIRED ' + n + '  (' + __RETIRE.get(n) + ')'); return; }
+  if (c) { pass++; console.log('  ok   ' + n); }
+  else { fail++; console.log('  FAIL ' + n + (d ? '  \u2192 ' + d : '')); }
+};
+const sec = (t) => console.log('\n' + t);
+
+// ── C1 · THE REGISTRY CARRIES THE RULING, NOT A COUNT ───────────────────────
+sec('C1 \u00b7 the registry (R-40.20/.22)');
+{
+  const src = strip(read(ROOMS));
+  const num = (n) => { const m = src.match(new RegExp(n + '\\s*=\\s*(\\d+)')); return m ? Number(m[1]) : null; };
+  // AMENDED BY LABEL — R-40.98/.99 (founder-ruled 2026-09-07). The directory and
+  // the grid stopped being one number when Contracts was hosted by the hub:
+  // nineteen rooms, eighteen tiles, the business band 10 in the registry and 9 on
+  // the glass. b40 C2 owns the full assertion; this cell reads the same four
+  // constants so the two benches cannot drift apart on the numbers they share.
+  // AMENDED BY LABEL — CE-43 LC-2 F18 (chair-ruled 2026-09-17, F-43.68): Packages joins
+  // the work band beside Leads. Directory 19 → 20, grid 18 → 19, top band 9 → 10.
+  ok('20 / 19 / 10 / 9', num('ROOM_COUNT_EXPECTED') === 20 && num('GRID_TILE_COUNT_EXPECTED') === 19
+    && num('TOP_BAND_EXPECTED') === 10 && num('BOTTOM_BAND_EXPECTED') === 9,
+    [num('ROOM_COUNT_EXPECTED'), num('GRID_TILE_COUNT_EXPECTED'), num('TOP_BAND_EXPECTED'), num('BOTTOM_BAND_EXPECTED')].join('/'));
+  // CE-45 FE-1 · LABELLED AMENDMENT: the room count stands on its own (A-45.2 keeps it), and the id
+  // scan reads the ROOMS array ALONE, since SHELVES' { id: 'business' } keys are not rooms.
+  ok('ROOM_COUNT_EXPECTED stands at 20 (A-45.2 keeps it; no room added or removed)', num('ROOM_COUNT_EXPECTED') === 20, String(num('ROOM_COUNT_EXPECTED')));
+  const roomsBlock = (src.match(/export const ROOMS[\s\S]*?\n\](?: as const)?;/) || [''])[0];
+  const ids = (roomsBlock.match(/\{\s*id:\s*'([a-z]+)'/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
+  ok('twenty rooms (CE-43 LC-2 F18, by label)', ids.length === 20, String(ids.length));
+  ok('Business Solutions is index 0 of the work band (R-40.20)', ids[0] === 'support', ids[0]);
+  const fb = src.match(/FROZEN_ORDER[^=]*=\s*\[([\s\S]*?)\]/);
+  const frozen = fb ? (fb[1].match(/'([a-z]+)'/g) || []).map((s) => s.slice(1, -1)) : [];
+  ok('FROZEN_ORDER equals the registry order', frozen.join(',') === ids.join(','));
+  ok('the bands count to the declared constants',
+    (src.match(/band: 'work'/g) || []).length === 10 && (src.match(/band: 'business'/g) || []).length === 10); // work 9 → 10, CE-43 LC-2 F18, by label
+  // AMENDED BY LABEL — R-40.98. The headline set is read from its DECLARATION and
+  // compared to the actual flags. "Two tiles are headlines" would pass on the
+  // wrong two. The two names did not move; `wide` became `headline` when the
+  // founder replaced the full-width shape with the accent hairline.
+  const hm = src.match(/HEADLINE_TILES_EXPECTED[^=]*=\s*\[([\s\S]*?)\]/);
+  const declared = hm ? (hm[1].match(/'([a-z]+)'/g) || []).map((s) => s.slice(1, -1)) : [];
+  const actual = (src.match(/\{\s*id:\s*'([a-z]+)'[^}]*headline:\s*true/g) || []).map((s) => s.match(/'([a-z]+)'/)[1]);
+  ok('HEADLINE_TILES_EXPECTED is [support, storefront]', declared.join(',') === 'support,storefront', declared.join(','));
+  ok('the flags match the declaration', actual.join(',') === declared.join(','), actual.join(','));
+  // R-40.99 · the hosted room leaves the grid and STAYS in the address book.
+  ok('contracts is hosted by the hub and still in ROOMS',
+    ids.includes('contracts') && /\{\s*id:\s*'contracts'[^}]*hostedBy:\s*'support'/.test(src));
+  // ⚠ AND THE FILTER LIVES HERE, NOT IN THE COMPONENT. `roomsInBand` is the one
+  // door every band render goes through; a grid that filtered on its way past
+  // would put the rule about what a tile IS inside the thing that draws tiles,
+  // and the next surface to list rooms would repeat it or forget it.
+  ok('roomsInBand filters hosted rooms out of the grid',
+    /roomsInBand\([\s\S]*?ROOMS\.filter\(\(r\) => r\.band === band && !r\.hostedBy\)/.test(src));
+  // ⚠ AND THE ADDRESS BOOK IS NOT FILTERED. roomHref and ROOM_FOR_KIND must still
+  // see all nineteen, or TodayCards' unsigned-contract card opens /vendor/rooms.
+  ok('roomHref still resolves against the unfiltered registry',
+    /function roomHref[\s\S]*?ROOMS\.find\(\(r\) => r\.id === id\)/.test(src));
+  ok('the host relation has one home', /export function roomsHostedBy/.test(src));
+  // ⚠ AND NO SURFACE RE-FILTERS. A component adding its own `!r.hostedBy` on the
+  // way past produces the same eighteen tiles today and is still a second copy of
+  // the rule — the copy that gets forgotten when a second room is hosted. Caught
+  // by a mutation that stayed GREEN through every other cell in this section.
+  ok('the grid reads hosted-ness through the registry alone, never its own filter',
+    !/\.hostedBy/.test(strip(read(GRIDF))));
+}
+
+// ── C2 · THE GRID EARNS ITS CLEARANCE FROM `GRID`, NOT FROM A TILE COUNT ────
+sec('C2 \u00b7 the FAB clearance (R-G11.11 / F-40.27)');
+{
+  const src = read(GRIDF);
+  // DESIGN-1 · STAGE 3 (by label): More's list (.wl-more) replaced the bands and stands on the same page as the FAB, so
+  // the clearance rule moved with it, word for word; the cells below read it there.
+  const m = src.match(/\.wl-more\{[^}]*\}/);
+  ok('.wl-more declares a rule (was .wl-bands; DESIGN-1 stage 3)', Boolean(m), 'not found');
+  if (m) {
+    ok('its bottom padding is computed from the FAB seat AND a tile height',
+      /padding-bottom:calc\(var\(--wl-fab-bottom\)\s*\+\s*var\(--wl-tile\)\)/.test(m[0]), m[0]);
+    // The whole point is that neither number is retyped: GRID is the one home
+    // (F-39.4 cured three homes for the FAB's seat once already).
+    ok('neither 136 nor 64 is retyped into the rule', !/\b136\b|\b64\b/.test(m[0]), m[0]);
+    ok('longhand padding only (F-16.39\'s standing cure)', !/[^-]padding:/.test(m[0]), m[0]);
+  }
+  // AMENDED BY LABEL — R-40.98. The full-width span retired with the shape; what
+  // the cell guards is unchanged in kind — the treatment is a REGISTRY fact, never
+  // an index — and the rule it now reads is the accent hairline.
+  // CE-45 FE-1 · LABELLED AMENDMENT (the ruled mock, .row.headline .n; BS-1 close): the headline pair is
+  // told apart by its NAME taking the metal, a token theme.ts already holds, and nothing else. The
+  // R-40.22 accent-border treatment is superseded by the founder's chosen mock.
+  // DESIGN-1 · STAGE 1 (by label, docs/review/REPORT.md P5): gold is the brand mark's alone, so the headline's name takes
+  // the text ink like every row's, and the pair is told apart by its icon in the accent, and nothing else.
+  ok('the headline is told apart by its icon in the accent, its name in the ink, and nothing else (DESIGN-1)',
+    /\.wl-tilehead \.wl-ticon\{color:var\(--atelier-accent-text\)\}/.test(src) && /\.wl-tilehead \.wl-tname\{color:var\(--atelier-ink\)\}/.test(src) && !/\.wl-tilehead\{border-color/.test(src));
+  ok('the tile renders its headline from the REGISTRY, never from an index',
+    // CE-45 FE-1 · LABELLED AMENDMENT: the top pair is ROOMS.filter((r) => r.headline) (repair r6),
+    // which reads the registry's own flag exactly as R-40.98 rules.
+    /ROOMS\.filter\(\(r\) => r\.headline\)/.test(src));
+  // ⚠ THIS ONE READS THE STRIPPED SOURCE, AND THE FIRST CUT DID NOT. Against the
+  // raw file it went RED on the comment that RECORDS the retirement — the same
+  // comment-blindness b40 C10 has already been bitten by twice, in both
+  // directions. A cell asking whether a NAME still exists must read code; the
+  // paragraph explaining that the name is gone is evidence FOR it, not against.
+  ok('the retired wide shape survives nowhere in the grid\u2019s code',
+    !/wl-tilewide|room\.wide/.test(strip(src)));
+  // c-40.42 · THE BADGE RIDES THE HOST, and this is the arm that proves it. The
+  // first cut of this section had none: deleting the summation loop left every
+  // cell in both benches GREEN, so the whole badge ruling shipped unbenched and
+  // the seat would have called that a pass. Found by mutating it, not by reading.
+  {
+    const code = strip(src);
+    ok('the host tile sums the counts of the rooms it hosts',
+      /for \(const hosted of roomsHostedBy\(room\.id\)\)/.test(code)
+      && /count = \(count \?\? 0\) \+ h\.count/.test(code));
+    // ⚠ A HOST WITH NO READING STILL RENDERS NOTHING. `(count ?? 0)` inside the
+    // loop is reached only after a hosted count came back non-null, so a silent
+    // feed cannot turn into a tile wearing 0 (F-38.31).
+    ok('a null hosted count is skipped rather than summed as zero',
+      /if \(h\.count === null\) continue;/.test(code));
+  }
+}
+
+// ── C3 · THE NINE REPLACE THE SIX, AND THE SIX ARE GONE ─────────────────────
+sec('C3 \u00b7 the hub (R-40.23)');
+{
+  const copy = read(SOLCOPY);
+  // R-40.26 lands in ROOM_ROWS; the chip lands in CHIPS. Both are read here so
+  // the two ruled departures have one register between them.
+  ok('the Open chip is declared (Arm C, founder-vetoed 2026-09-05)', /open:\s*'Open'/.test(copy));
+  const rm = copy.match(/ROOM_ROWS = \[([\s\S]*?)\] as const;/);
+  const labels = rm ? [...rm[1].matchAll(/label: '([^']+)'/g)].map((x) => x[1]) : [];
+  // ── AMENDED, LABELLED — R-42.8 (chair, 2026-09-10): THE TENTH ROW OPENS.
+  // `{ key: 'introductions', label: 'Introductions' }`, LAST, after `number`.
+  //
+  // ⚠ THE COUNT IS THE GUARANTEE AND IT IS NAMED UP, NOT LOOSENED. This cell
+  // and the ordered join below are a PAIR: together they make a row nobody
+  // ruled impossible to add quietly. `>= 9` would have bought one edit and
+  // retired that property for this row and every row after it. Precedent:
+  // `b06_forkc` §5.8d, whose replyText census went 5 -> 6 with writer 6 named.
+  // Both halves move in the SAME edit, exactly as C2 does for the registry's
+  // three numbers — a list retyped here and a list in the copy home are two
+  // places to spell one ruling.
+  // ── AMENDED, LABELLED — R-42.16 (founder, 2026-09-10): THE ELEVENTH ROW.
+  // `{ key: 'collabs', label: 'Collabs & barter' }`, IMMEDIATELY AFTER
+  // `referrals`; `Introductions` STAYS LAST (R-42.8 untouched). Both halves of
+  // this pair move in the SAME edit, to eleven, with the label in position —
+  // NOT loosened to `>= 10`. That this cell fired at all is the guarantee
+  // working: an eleventh row could not be added quietly, which is what it is for.
+  ok('eleven rows', labels.length === 11, String(labels.length));
+  ok('the eleven are R-40.1\'s, R-42.8\'s and R-42.16\'s, in order',
+    // AMENDED, LABELLED — R-40.26 (founder, 2026-09-05): R3 alone becomes
+    // `Your website & SEO`; the other eight stand. Both homes move in one edit,
+    // exactly as C2 does for the registry's three numbers — a list retyped here
+    // and a list in the copy home are two places to spell one ruling.
+    // AMENDED BY NAME — R-42.16's label re-ruled by the founder (2026-09-10), carried
+    // in CE-42 SHELL-2's packet: the eighth label `Collabs & barter` becomes
+    // `Hire, collab & barter` (the room takes requirement posts — hiring). The join
+    // fired on the new byte, which is the pin working; the count stays eleven and
+    // every other label and position is unchanged. R-41.121: amended, not loosened.
+    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Hire, collab & barter|Open dates & rates|WhatsApp and Instagram|Introductions", // AMENDED BY LABEL · CE-45 IGD-1 cut 1 · R-45.27: "Your own number" became "WhatsApp and Instagram"; count and order unchanged
+    labels.join('|'));
+  ok('ROWS is gone', !/export const ROWS\b/.test(copy));
+  ok('ROW_EYEBROWS is gone', !/export const ROW_EYEBROWS\b/.test(copy));
+  ok('the nine carry no eyebrow field', !rm || !/eyebrow/i.test(rm[1]));
+  const routes = strip(read(ROUTES));
+  ok('SURFACE_SLUGS is gone', !/SURFACE_SLUGS/.test(routes));
+  ok('surfaceHref is gone', !/surfaceHref/.test(routes));
+  for (const s of ['google', 'website', 'seo', 'marketing', 'proof', 'benchmarks']) {
+    ok('the ' + s + ' route is deleted, not disabled', !has('v2/app/vendor/(shell)/support/' + s + '/page.tsx'));
+  }
+  ok('lib/solutions/client.ts retired with its readers', !has('lib/solutions/client.ts'));
+  ok('lib/solutions/types.ts is UNTOUCHED (F-38.49\'s home)', has('lib/solutions/types.ts'));
+  const hub = strip(read(HUB));
+  ok('the hub no longer fetches', !/fetchIndex/.test(hub));
+  ok('the eyebrow is KEPT', /COPY\.indexEyebrow/.test(hub));
+  ok('the eyebrow byte stays in its home, unconsumed (chair, CE-45)', /indexEyebrow:/.test(read('v2/lib/solutions/copy.ts')) && !/COPY\.indexEyebrow/.test(hub));
+  ok('the WhatsApp door is KEPT, class byte-for-byte', /wl-supportaction/.test(hub) && /supportWaNumber\(\)/.test(hub));
+  ok('the footer line is KEPT', /COPY\.footerLine/.test(hub));
+}
+
+// ── C4 · EVERY ROW IS A LINK WITH AN HREF ──────────────────────────────────
+// ── AMENDED BY LABEL — R-42.12 AMENDED, S5(b) (chair, 2026-09-10) ──────────
+// This section read "a row with no destination is a row, not a disabled link"
+// and pinned RoomRow's `<div>` branch — s-G11.2's "absent, not greyed", the
+// ratified W5-hub shape. The founder ruled the opposite: every Business
+// Solutions row navigates to its own screen, and nothing on the hub is inert.
+// With no row left lacking a destination the `<div>` branch RETIRED (the chair's
+// S5(b)), and the guarantee moved into the type: `ROOM_HREFS` is total over
+// `RoomKey`, so a destination-less row fails `tsc`. What this section guards
+// now is the property that replaced it — EVERY ROW IS A LINK WITH AN HREF — and
+// it is asserted as hard as the old one was: a `<div>` branch, an optional
+// `href`, or a `Partial` map all red.
+sec('C4 \u00b7 every row is a Link with an href');
+{
+  const pieces = read(PIECES);
+  const code = strip(pieces);
+  ok('SurfaceRow is retired', !/export function SurfaceRow/.test(pieces));
+  // The window is bound by the FUNCTION'S OWN CLOSE (a brace alone on its line
+  // followed by a newline). The first cut stopped at `\n}` and landed on the
+  // destructuring's closing brace, two lines in — measuring the parameter list
+  // and calling the body absent (R-40.94: a window bound by the statement).
+  const rr = code.match(/export function RoomRow\([\s\S]*?\n\}\n/);
+  ok('RoomRow renders a Link and nothing else',
+    !!rr && /<Link href=\{href\} className="sol-row"(?: data-row-href=\{href\})?>/.test(rr[0]) /* CE-45 FE-1: the row's data-row-href, labelled */ && !/<div className="sol-row"/.test(rr[0]),
+    rr ? 'a non-Link branch survives' : 'RoomRow not found');
+  ok('RoomRow\u2019s href is REQUIRED, never optional',
+    !!rr && /\{ href: string; label: string/.test(rr[0]) && !/href\?:/.test(rr[0]));
+  ok('the hub\u2019s map is total over RoomKey, never Partial',
+    /* CE-45 FE-1 · LABELLED AMENDMENT: ROOM_HREFS MOVED to routes.ts byte for byte */ /const ROOM_HREFS: Record<RoomKey, string> = \{/.test(strip(read(ROUTES))) && !/Partial<Record/.test(strip(read(ROUTES))) && !/const ROOM_HREFS/.test(strip(read(HUB))));
+  // COMMENTS STRIPPED FIRST. The first cut read this file raw and hit RoomRow's
+  // own comment EXPLAINING why aria-disabled is refused — the prohibition
+  // reported as the breach. Third sighting of that class in this arc.
+  ok('no aria-disabled anywhere in the row', !/aria-disabled/.test(strip(pieces)));
+  // ── AMENDED, LABELLED — ARM C (founder, 2026-09-05) ──────────────────────
+  // This cell read: the chip is drawn ONLY for a row with no destination. That
+  // was the mock's shape and the founder's walk REVERSED it — bare, the one
+  // working row read as a heading beside eight `Coming` rows. Every row now
+  // carries a chip and the two differ by WORD AND INK.
+  //
+  // The assertion is not weakened, it is re-aimed: it now pins that the chip
+  // TRACKS the destination, so a row that goes nowhere can never wear `Open`.
+  // That is the property worth guarding; "exactly one chip exists" never was.
+  // ── AMENDED BY LABEL — R-42.12 AMENDED, S4(c). The chip's word tracked the
+  // HREF ("a row that goes nowhere can never wear Open"). Every row has an href
+  // now, so the href can no longer carry that meaning; the cell is RE-AIMED to
+  // the set that does — `PREVIEW_KEYS` in the hub. The guarantee survives in
+  // its new form: a row the set names can never wear `Open`, and a row it does
+  // not name can never wear `Coming`.
+  ok('every row carries a chip, and its word tracks the preview set',
+    /<StateChip state=\{preview \? 'coming' : 'open'\} \/>/.test(pieces));
+  ok('the hub hands the set to the row, never a literal',
+    /* CE-45 FE-1: the grouped rows hand the key as k */ /preview=\{PREVIEW_KEYS\.has\((?:r\.key|k)\)\}/.test(strip(read(HUB))));
+  ok('no row is ever handed a literal chip state',
+    !/state="open"/.test(pieces) && !/state=\{'open'\}/.test(pieces) && !/state="coming"/.test(pieces));
+  // ── F-40.42 · THE DIVIDER SURVIVES A MIXED-TAG ROW LIST ──────────────────
+  // The eight rows are div elements and the live row is an anchor, so a rule
+  // keyed on last-of-type silently drops the border under the ONE row that has
+  // a destination. The founder walked it; no cell could see it because the CSS
+  // was present and valid. This asserts the question the rule means to ask.
+  ok('the last-row rule is keyed on position, not on tag name',
+    /\.sol-row:last-child\{border-bottom:none\}/.test(read(PIECES)));
+  ok('no last-of-type rule survives on the row', !/\.sol-row:last-of-type/.test(read(PIECES)));
+
+  // ── THE REQUIRED MARK IS THE ESTATE'S OWN, ON THE DOOR'S OWN FIELDS ───────
+  const room = read(ROOM);
+  ok('the required mark uses the shell token, never a hex literal (F-38.22)',
+    /\.wp-req\{color:var\(--role-metal\)\}/.test(room));
+  ok('exactly the three door-required fields are marked',
+    (room.match(/<Req \/>/g) || []).length === 3,
+    String((room.match(/<Req \/>/g) || []).length));
+
+  const hub = strip(read(HUB));
+  // ── AMENDED BY LABEL — G2. THE TERNARY BECAME A MAP, AND THE CELL DID NOT ──
+  // ── LOOSEN. It read the exact ternary `r.key === 'wedding_pages' ? … : undefined`
+  // and reddened the moment a SECOND room lawfully opened — the same census-pinned-
+  // to-a-shape disease as b05_arc_m1's ack count, one repo over.
+  //
+  // THE PROPERTY IT EXISTS FOR IS THAT AN href COMES FROM A DECLARED ADDRESS AND
+  // NEVER FROM A LITERAL, and that is asserted harder here than before: every
+  // value in the map must be a `*_HREF` identifier, so a hub that hardcoded
+  // `'/vendor/anything'` still reddens. What retires is the ARITY, not the rule.
+  //
+  // `wedding_pages` is still named explicitly, so this bench still owns its own
+  // room's row: G2 opening a second door cannot silently close G1.1's.
+  // CE-45 FE-1 · LABELLED AMENDMENT: the declared map now lives in routes.ts (the move); read there.
+  const hrefMap = strip(read(ROUTES)).match(/const ROOM_HREFS[^=]*=\s*\{([\s\S]*?)\}/);
+  ok('the hub addresses rooms through a declared map, not a ternary', !!hrefMap,
+    hrefMap ? 'ROOM_HREFS found' : 'no ROOM_HREFS declaration in the hub');
+  if (hrefMap) {
+    const entries = hrefMap[1].split(',').map((l) => l.trim()).filter(Boolean);
+    ok('wedding_pages still receives its declared address',
+      entries.some((e) => /^wedding_pages:\s*WEDDING_PAGES_HREF$/.test(e)));
+    // ── AMENDED BY LABEL — F-40.239 CUT · RATIFY-OR-REVERT ──────────────────
+    // THIS CELL IS THE G2 SEAT'S OWN, AND IT REDDENED A SIBLING'S CORRECT WORK.
+    // It required `[A-Z_]+_HREF`, so when later rooms began addressing through
+    // `roomHref('contracts')` — a DECLARED address reached by a helper — a right
+    // build went red. Sixth instance this arc of a cell pinned to a SHAPE rather
+    // than a property, and the first that is mine breaking someone else's.
+    //
+    // THE PROPERTY IS: the address is DECLARED, NEVER A LITERAL. A `*_HREF`
+    // constant satisfies it; so does a helper call that resolves one. A raw
+    // `'/vendor/anything'` does not, and still reds — which is the only thing
+    // this cell was ever for, since `b40` C31 matches literals against a declared
+    // set and a stray one there is what breaks the shell.
+  // ── F-40.239 · THE ROOM RENDERS THE DOOR'S REASON ─────────────────────────
+  // The door has always returned `invite.reason` inside its 200 and the room
+  // discarded it for one generic sentence, so the founder pressed Ask the couple
+  // four times against four numbers before anyone learned the number was never
+  // the problem. Benched because removing the render left this file's count
+  // UNCHANGED on the first mutation — an unbenched cure is a cure that leaves
+  // the moment someone tidies it.
+  {
+    const room = strip(read(ROOM));
+    ok('F-40.239 the consent failure keeps its sentence AND shows the door\u2019s reason',
+      /setErr\(WP\.consentFailed\)/.test(room) && /setErrDetail\(/.test(room),
+      'both the sentence and the detail must be set');
+    ok('F-40.239 the reason renders only when the door supplied one',
+      /\{errDetail \? <p className="wp-errdetail">\{errDetail\}<\/p> : null\}/.test(room),
+      'a bare line pretending to be a cause is worse than none');
+    ok('F-40.239 the detail is cleared with the sentence, never left stale',
+      /setErr\(null\); setErrDetail\(null\)/.test(room),
+      'a stale cause under a fresh failure is a lie with a timestamp');
+    // ⚠ NO NEW COPY BYTE. The reason is the DOOR's string; every failure sentence
+    // this room owns ends in `Try again.` and none can say why, so inventing one
+    // would put an unvetoed byte on a vendor's screen.
+    ok('F-40.239 authors no new copy byte for the cause',
+      !/wp-errdetail">[A-Za-z]/.test(room),
+      'the detail element must render a variable, never a literal');
+  }
+
+    ok('every open room addresses a DECLARED address, never a literal',
+      entries.every((e) => /^[a-z_]+:\s*([A-Z_]+_HREF|[a-zA-Z]+\([^)]*\))$/.test(e)),
+      entries.join(' | '));
+  }
+}
+
+// ── C5 · THE ADDRESS HOME (R-G11.12) ────────────────────────────────────────
+sec('C5 \u00b7 the room\'s address has one home');
+{
+  const routes = read(ROUTES);
+  ok('WEDDING_PAGES_HREF is declared', /export const WEDDING_PAGES_HREF = '\/vendor\/wedding-pages'/.test(routes));
+  // A bare literal anywhere else is the two-homes disease and C31's stray.
+  const strays = [];
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (e.name === 'node_modules' || e.name === '.next' || e.name === '.git') continue;
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) { walk(p); continue; }
+      if (!/\.(ts|tsx)$/.test(e.name)) continue;
+      const rel = path.relative(ROOT, p);
+      if (rel === ROUTES) continue;
+      if (/['"`]\/vendor\/wedding-pages/.test(strip(fs.readFileSync(p, 'utf8')))) strays.push(rel);
+    }
+  };
+  for (const d of ['app', 'lib', 'components', 'v2/app', 'v2/lib', 'v2/components']) walk(P(d));
+  ok('no second spelling of the address anywhere', strays.length === 0, strays.join(', '));
+}
+
+// ── C6 · THE ROLE MIRROR CANNOT DRIFT ───────────────────────────────────────
+// "A mirror a bench pins is one home with two readers." The AUTHORITY is
+// dream-os's 0131 CHECK; this lane cannot import a Node module, so the ten are
+// transcribed and pinned here key-for-key AND label-for-label.
+sec('C6 \u00b7 ROLE_OPTIONS against the dream-os home');
+{
+  const sibling = path.resolve(ROOT, '..', 'dream-os');
+  const mig = path.join(sibling, 'db/migrations/0131_wedding_pages.sql');
+  const lib = path.join(sibling, 'src/lib/vendor/weddings.js');
+  if (!fs.existsSync(mig) || !fs.existsSync(lib)) {
+    // A missing sibling is a CLONE LAYOUT fact, not a defect in this tree.
+    console.log('  REFUSED \u2014 dream-os sibling absent; the mirror cannot be checked here');
+    console.log('             (clone the sibling and re-run before reading this as a delta)');
+  } else {
+    const migTxt = fs.readFileSync(mig, 'utf8');
+    const m = migTxt.match(/wedding_credits_role_check CHECK \(role = ANY \(ARRAY\[([\s\S]*?)\]\)\)/);
+    const fromSql = m ? [...m[1].matchAll(/'([a-z_]+)'::text/g)].map((x) => x[1]) : [];
+    const libTxt = fs.readFileSync(lib, 'utf8');
+    const fromLib = [...libTxt.matchAll(/\{ key: '([a-z_]+)',\s*label: '([^']+)'\s*\}/g)].map((x) => [x[1], x[2]]);
+    const mine = [...read(WPCOPY).matchAll(/\{ key: '([a-z_]+)',\s*label: '([^']+)'\s*\}/g)]
+      .map((x) => [x[1], x[2].replace(/\\u00e9/g, '\u00e9')]);
+    ok('the migration declares ten roles', fromSql.length === 10, String(fromSql.length));
+    ok('the pwa mirror has ten', mine.length === 10, String(mine.length));
+    ok('keys match the migration CHECK, in order',
+      mine.map((x) => x[0]).join(',') === fromSql.join(','), mine.map((x) => x[0]).join(','));
+    ok('keys AND labels match the dream-os home',
+      JSON.stringify(mine) === JSON.stringify(fromLib),
+      JSON.stringify(mine) + ' vs ' + JSON.stringify(fromLib));
+  }
+}
+
+// ── C7 · EVERY ROOM BYTE IS IN THE RATIFIED MOCK ────────────────────────────
+// A string not in that file is a BOUNCE. The mock is the authority; this file's
+// own word is not.
+sec('C7 \u00b7 the copy is pinned against the mock');
+{
+  // ── AMENDED, LABELLED — G1.2: THE ROOM NOW DRAWS FROM TWO RATIFIED MOCKS ──
+  // `wedding-pages-mock.html` is G1.1's and remains the authority for every byte
+  // it drew. G1.2's surfaces — the upload strip, the failure lines, the picker's
+  // truncation tell — were ratified from `wedding-guests-mock.html` @ 6eea5bf
+  // (founder, 2026-09-05: "veto all approved as proposed"). A cell reading only
+  // the first mock would BOUNCE every byte of the second, which is a stale pin
+  // rather than a strict one. Both are read; a string in NEITHER is still a
+  // BOUNCE and this cell still reds on it.
+  const mock = read(MOCK) + '\n' + read(MOCK2);
+  const wp = read(WPCOPY);
+  const strings = [...wp.matchAll(/^\s{2}[a-zA-Z]+:\s+'([^']+)',/gm)].map((x) => x[1]);
+  // ⚠ THE DECODER MUST KNOW EVERY ESCAPE THE COPY HOME USES, or a correctly
+  // ratified byte reads as a BOUNCE. It handled \u2019 and \u00e9 and not
+  // \u2014, so the first string carrying an em dash failed this cell while
+  // being perfectly correct. Found by that exact failure.
+  const decode = (s) => s.replace(/\\u2019/g, '\u2019')
+                         .replace(/\\u00e9/g, '\u00e9')
+                         .replace(/\\u2014/g, '\u2014');
+  const mockPlain = mock.replace(/&amp;/g, '&').replace(/&middot;/g, '\u00b7')
+                        .replace(/&rsquo;/g, '\u2019').replace(/&eacute;/g, '\u00e9')
+                        .replace(/&times;/g, '\u00d7');
+  // ── THE TWO RULED DEPARTURES, NAMED — NOT A LOOSENED PIN ──────────────────
+  // The mock is the authority for every byte EXCEPT two the founder ruled past
+  // it on his walk of 2026-09-05. They are listed BY VALUE so the exception is
+  // exactly two strings wide and cannot quietly become a general amnesty:
+  //   · `Open`              — Arm C. `W5-hub` drew the live row BARE; on glass,
+  //                           beside eight `Coming` rows, the one working row
+  //                           read as a heading. R-39.15: the walk outranks the
+  //                           frame. (It lives in CHIPS, not in this file, and
+  //                           is listed here so the register is in one place.)
+  //   · `Your website & SEO` — R-40.26, amending R-40.1 for R3 alone.
+  // NO RE-SHOOT IS OWED on either (his ruling). Anything else absent from the
+  // mock is still a BOUNCE, and this cell still reds on it.
+  const RULED_PAST_THE_MOCK = [
+    'Open', 'Your website & SEO',
+    // ── G1.2's FOUR, EACH WITH ITS PROVENANCE ────────────────────────────────
+    // Every one is RATIFIED; none is mock-DRAWN, which is a different thing and
+    // the reason this list exists rather than the cell being loosened.
+    //
+    // `Remove` is an ACCESSIBLE NAME, not product copy — it is what a screen
+    // reader says for the `\u00d7` glyph, the same class as the sheet's own
+    // `Close`, which this bench has never asked the mock to draw either. A mock
+    // is a picture; a picture cannot draw a label only a screen reader hears.
+    'Remove',
+    // R-G12.8's byte, ratified by the CHAIR under the founder's standing
+    // delegation (R-40.42), not transcribed from a frame. F-40.78's surface was
+    // missing, so no frame was ever drawn for it — the flag had ridden the door
+    // since TDW_04 B6-S1 with nothing rendering it.
+    'Showing your latest 200 events. Older ones aren\u2019t listed here yet.',
+    // F-40.77's two. `wedding-guests-mock.html` drew the CREATE sheet's failure
+    // line (F-40.56, string 28) on G4-create-noevent and did not draw these two,
+    // because the credits sheet's swallows were found by reading the code AFTER
+    // the mock was cut. The founder vetoed all three together as strings 28-30.
+    'That didn\u2019t add. Try again.',
+    'That didn\u2019t publish. Try again.',
+    // ── THE CONSENT ASK'S FIVE — CARVED OUT AND *NOT YET VETOED* ─────────────
+    // ⚠ THESE ARE THE ONLY STRINGS IN THIS ROOM THE FOUNDER HAS NOT SEEN.
+    // `wedding-guests-mock.html` drew the CONSENT LEAF (G3-consent, G3-terminal)
+    // and never drew the vendor-side ask that mints its token — because the door
+    // was built with NO CALLER (F-40.103) and no frame was cut for a surface
+    // nobody had noticed was missing. They ship so the founder's card can be
+    // performed at all, and they are RAISED for his veto in the handover rather
+    // than smuggled through this carve-out. A carve-out that hides an unvetoed
+    // byte is exactly the stale pin this list exists not to become.
+    'The couple\u2019s number',
+    'Ask the couple',
+    // R-40.48.1/.2, replacing the two the hole needed. `consentSentLine` is now
+    // a FUNCTION of the last four digits, so it never appears as a literal here.
+    'Send again',
+    'That didn\u2019t send. Try again.',
+  ];
+  const missing = strings.map(decode)
+    .filter((s) => !RULED_PAST_THE_MOCK.includes(s))
+    .filter((s) => !mockPlain.includes(s));
+  ok('every room string appears verbatim in the ratified mock, bar the two ruled past it',
+    missing.length === 0, missing.join(' | '));
+  // The exception is PINNED BOTH WAYS: if a ruled departure is ever reverted to
+  // the mock's own byte, this reds — so the list cannot rot into a stale carve-out
+  // that excuses strings nobody ruled.
+  // ⚠ AS A WHOLE TEXT NODE, NOT AS A SUBSTRING. The first cut asked
+  // `mockPlain.includes('Open')` and reddened — because `Open` sits inside the
+  // mock's own row label `Open dates & rates`. A containment test cannot tell a
+  // string from a fragment of a different string, and the question this cell
+  // actually asks is "does the mock RENDER this byte" — which is a text node.
+  const stale = RULED_PAST_THE_MOCK.filter((s) => mockPlain.includes('>' + s + '<'));
+  ok('the ruled departures really do depart (the carve-out is not stale)',
+    stale.length === 0, stale.join(' | '));
+  ok('the waiting line carries a TYPOGRAPHIC apostrophe (R-40.19)',
+    /waitingOnCouple:\s+'Waiting on the couple\\u2019s permission\.'/.test(wp));
+  ok('zero straight apostrophes in a product string',
+    !strings.some((s) => /\w'\w/.test(s)), strings.filter((s) => /\w'\w/.test(s)).join(' | '));
+}
+
+// ── C8 · THE HOIST IS A HOIST, NOT A COPY (R-G11.15) ────────────────────────
+sec('C8 \u00b7 the public copy has one home');
+{
+  const pub = read(PUBCOPY);
+  ok('PUBLIC_MISS is declared', /PUBLIC_MISS = 'This page is no longer available\.'/.test(pub));
+  ok('PUBLIC_COLOPHON is declared', /PUBLIC_COLOPHON = 'Created and managed by The Dream Wedding/.test(pub));
+  for (const leaf of ['app/v/[code]/page.tsx', LEAF]) {
+    const s = strip(read(leaf));
+    ok(leaf + ' imports the home', /@\/lib\/public\/copy/.test(s));
+    ok(leaf + ' holds no second copy of the miss sentence',
+      !/'This page is no longer available\.'/.test(s));
+  }
+  // The bytes must equal what the tree carried BEFORE the hoist. Derived from
+  // git, not from this bench's memory of them.
+  try {
+    const old = execSync('git show ae30180:"app/v/[code]/page.tsx"', { cwd: ROOT, encoding: 'utf8' });
+    const oldMiss = (old.match(/unknown:\s*'([^']+)'/) || [])[1];
+    const newMiss = (pub.match(/PUBLIC_MISS = '([^']+)'/) || [])[1];
+    ok('the hoisted miss byte is unchanged since ae30180', oldMiss === newMiss, oldMiss + ' vs ' + newMiss);
+  } catch {
+    console.log('  REFUSED \u2014 git history unavailable; the ae30180 byte comparison did not run');
+  }
+}
+
+// ── C9 · THE PUBLIC LEAF ────────────────────────────────────────────────────
+sec('C9 \u00b7 the wedding page');
+{
+  const s = strip(read(LEAF));
+  ok('the miss is RENDERED, never delegated to notFound()', !/notFound\(\)/.test(s));
+  ok('a miss carries noindex (the consent gate is not defeated via the link preview)',
+    /robots:\s*\{\s*index:\s*false/.test(s));
+  ok('a miss ships no descriptive OG tags',
+    !/openGraph[\s\S]{0,200}PUBLIC_MISS/.test(s));
+  ok('light only \u2014 color-scheme reaches the CASCADE, not only the meta (F-19.42)',
+    /:root\{color-scheme:light\}/.test(read(LEAF)));
+  ok('one gold on the page', (read(LEAF).match(/#C9A84C/g) || []).length === 1,
+    String((read(LEAF).match(/#C9A84C/g) || []).length));
+  ok('no client directive \u2014 a stranger gets no hydration bundle', !/^"use client"/m.test(read(LEAF)));
+  ok('the roll is rendered in the order received, never re-sorted here',
+    !/roll[\s\S]{0,80}\.sort\(/.test(s));
+}
+
+// ── C10 · THE CLAIM PAGE'S CONSTITUTION ─────────────────────────────────────
+sec('C10 \u00b7 the claim page (the crew posture)');
+{
+  const raw = read(CLAIM);
+  const s = strip(raw);
+  ok('no browser storage anywhere', !/localStorage|sessionStorage/.test(s));
+  // ── SEALED CELL AMENDED, LABELLED — G1.2 (R-G12.9 / F-40.40) ──────────────
+  // WAS: the literal `DEAD_LINK = 'This link isn\u2019t active.'` in THIS file.
+  // F-40.40 closed: the byte had three occurrences across two files and no home,
+  // and G1.2's /consent/ leaf would have made a fourth. It now lives once, in
+  // `lib/public/token.ts`, and this leaf READS it. The property the cell exists
+  // to hold is unchanged — the byte carries U+2019, not an ascii quote — so the
+  // assertion moves to where the byte is and gains a second half proving this
+  // leaf no longer respells it. C15 asserts the same for crew and consent.
+  // Ratify or revert; it lands with the code that moved it.
+  ok('the dead-link byte carries U+2019 at its ONE home, and this leaf reads it',
+    /export const TOKEN_DEAD_LINK = 'This link isn\\u2019t active\.'/.test(read(TOKEN))
+    && /DEAD_LINK = TOKEN_DEAD_LINK/.test(raw));
+  ok('only a 404 is a dead link (a 500 is our failure, not her token)',
+    /r\.status === 404/.test(s) && !/!r\.ok[\s\S]{0,40}setDead/.test(s));
+  ok('the terminal state REPLACES the controls rather than greying them',
+    /settled \?/.test(s));
+
+  // ── R-40.29 · THE TAP IS ACKNOWLEDGED, AND A FAILURE SAYS SO (F-40.53) ────
+  // The founder walked a 503 that left the button live and rendered nothing; he
+  // learned it had failed by querying the database. Silence is not honesty.
+  ok('the HTTP status is the verdict, not the body shape',
+    /if \(!r\.ok\) \{ setFailed\(true\)/.test(s),
+    'a 503 carries no JSON — a check keyed only on j.ok reads it as silence');
+  ok('a dropped connection is reported, not swallowed', /catch \{[\s\S]{0,200}setFailed\(true\)/.test(s));
+  // BOTH controls, counted. The first cut tested for ONE occurrence and the
+  // mutation that stripped it from the claim button left the decline button's
+  // copy standing — so the cell passed while the primary action went silent.
+  // A cell that a partial mutation survives is testing presence, not the rule.
+  ok('BOTH controls acknowledge the tap before the request (b)',
+    (s.match(/aria-busy=\{busy\}/g) || []).length === 2,
+    String((s.match(/aria-busy=\{busy\}/g) || []).length) + ' of 2');
+  ok('both controls are also disabled in flight',
+    (s.match(/disabled=\{busy\}/g) || []).length === 2);
+  ok('the failure line renders only when the request failed (a)',
+    /\{failed \? <p className="cl-failed"[\s\S]{0,80}CLAIM_FAILED\}<\/p> : null\}/.test(s));
+  ok('the failure line is cleared on retry, never argued with by a stale sentence',
+    /setBusy\(true\);\s*\n\s*setFailed\(false\);/.test(s));
+  const pub = read(PUBCOPY);
+  ok('CLAIM_FAILED lives in the public copy home, not at the call site',
+    /CLAIM_FAILED = 'That didn\\u2019t go through\. Try again in a moment\.'/.test(pub));
+  ok('and its apostrophe is TYPOGRAPHIC (R-40.19)', !/didn't go through/.test(pub));
+}
+
+// ── C11 · EVERY PUBLIC LANE IS KNOWN TO THE BOOT SCRIPT (F-40.52) ───────────
+// The root layout paints a background per lane. A lane it does not name falls
+// through to the app's near-black above a cream page — F-19.41's defect, and
+// `/credits/` was its third instance despite C38's header promising to refuse
+// one. This asserts the lanes THIS SITTING created are named.
+sec('C11 \u00b7 the public lanes the boot script knows');
+{
+  const root = strip(read('app/layout.tsx'));
+  for (const lane of ['/v/', '/r/', '/credits/']) {
+    ok('the boot script names ' + lane, root.includes(`indexOf('${lane}')===0`));
+  }
+  ok('and something actually branches on the predicate (presence is not behaviour)',
+    /else\s+if\s*\(\s*isPublicStorefront\s*\)\s*\{\s*bg\s*=/.test(root));
+}
+
+// ── C12 · F-40.68 / R-G11c.11 · THE PICKER SPANS THE BACK CATALOGUE ─────────
+// A wedding page is finished work. Before this cure the create sheet's events
+// read passed no window and inherited the door's default — `from = today`
+// (src/api/vendor/events.js:210-212, applied by `.gte` at :258-263) — so it
+// could only ever offer FUTURE events, which is the feature's premise inverted.
+//
+// FOUND ON THE FOUNDER'S GLASS, NOT BY READING (R-39.15). The dropdown held ONE
+// option out of DEV440's seven live events: the only future-dated one, which was
+// also the only leadless one. Two seats had read the POST create door and this
+// file's own client code and neither had opened the GET the picker calls.
+sec('C12 \u00b7 the create picker\u2019s window (F-40.68 / R-G11c.11)');
+{
+  const room = strip(read(ROOM));
+  // BALANCED, NOT `[^)]*`. The first cut used `fetchEvents\([^)]*\)`, which
+  // stops at the first `)` — and that `)` belongs to `istPlusDaysISO(400)`, so
+  // the extracted call was truncated mid-argument and the forward-bound cell
+  // convicted a correct call. A cell that mis-reads its own subject is the same
+  // defect as one that reads the wrong subject.
+  const call = (() => {
+    const at = room.indexOf('fetchEvents(');
+    if (at === -1) return '';
+    let depth = 0;
+    for (let i = room.indexOf('(', at); i < room.length; i++) {
+      if (room[i] === '(') depth++;
+      else if (room[i] === ')' && --depth === 0) return room.slice(at, i + 1);
+    }
+    return '';
+  })();
+  ok('the create picker was FOUND (C12 is not vacuous)', call.length > 0, 'no fetchEvents call');
+  // THE CELL IS THE `from`, NOT THE ARGUMENT COUNT. A four-argument call whose
+  // third argument were `istTodayISO()` would satisfy any arity check and leave
+  // the defect exactly where it was.
+  ok('the picker passes an explicit PAST floor \u2014 the back catalogue is reachable',
+    /fetchEvents\([^)]*,\s*WP_PICKER_FROM\s*,/.test(call), call);
+  ok('and the floor really is in the past (not today, not computed forward)',
+    /const WP_PICKER_FROM\s*=\s*'(\d{4})-\d{2}-\d{2}'/.test(room) &&
+    Number(room.match(/const WP_PICKER_FROM\s*=\s*'(\d{4})/)[1]) <= 2000,
+    'the floor is not a pre-2001 literal');
+  // `to` must be sent too: the helper ships the window only when BOTH bounds are
+  // present (v2/lib/vendor/api/vendor.ts), so a `from` alone is silently dropped.
+  ok('a forward bound rides with it \u2014 a lone `from` is dropped by the helper',
+    /fetchEvents\([^)]*WP_PICKER_FROM\s*,\s*istPlusDaysISO\(\s*400\s*\)\s*\)/.test(call), call);
+  // No second answer to "what is today" is authored here.
+  ok('no UTC-day arithmetic is authored at this site \u2014 the IST home is imported',
+    /from '@\/lib\/vendor\/istDay'/.test(read(ROOM)) &&
+    !/new Date\(\)\.toISOString\(\)/.test(room));
+}
+
+// ── C13 · R-40.33 · A CONSENT GATE MAY NOT SIT BEHIND A CACHE ───────────────
+// The leaf carried `export const revalidate = 300` AND a retyped `{ next:
+// { revalidate: 300 } }` at the call site, under a comment claiming consent was
+// "enforced at the DOOR on every revalidation". Both halves were true and
+// together they were wrong: the door re-checked consent once every five minutes,
+// so a couple who turned her switch OFF stayed published to every visitor for up
+// to five more minutes.
+//
+// ⚠ THE ASSERTION IS ON THE STRIPPED SOURCE, AND THAT IS THE POINT. The cure
+// leaves three occurrences of the word in COMMENTS explaining why it is gone;
+// a cell that cannot tell a rule from its violation would convict the
+// explanation (b53's e-4, same class, quoted in this file's own header).
+//
+// ⚠ AND THE CARD LEAF IS ASSERTED TO KEEP ITS 300. The asymmetry is a ruling,
+// not an oversight: `app/v/[code]/page.tsx` is a vendor's own storefront and a
+// stale minute can only hurt her, while this page is governed by a THIRD PARTY's
+// consent and a stale minute hurts the person who just withdrew it. Without this
+// second half a zealous sweep would "finish the job" on the card leaf and nothing
+// would object.
+sec('C13 \u00b7 consent is not cached (R-40.33 / F-40.80)');
+{
+  const leaf = strip(read(LEAF));
+  ok('the wedding leaf carries NO revalidate in live code',
+    !/revalidate/.test(leaf), leaf.match(/.{0,60}revalidate.{0,60}/)?.[0] || '');
+  // Named separately so a partial revert is legible: deleting one site and not
+  // the other is the exact half-cure F-40.80 recorded.
+  ok('no route-level export survives',
+    !/export\s+const\s+revalidate/.test(leaf));
+  ok('no cache option survives at the door fetch',
+    !/next\s*:\s*\{[^}]*revalidate/.test(leaf));
+  // NON-VACUITY: this cell must be reading a file that actually calls the door.
+  ok('C13 is not vacuous \u2014 the leaf still fetches the wedding door',
+    /\/api\/v2\/public\/wedding\//.test(leaf));
+  // THE ASYMMETRY, PINNED THE OTHER WAY.
+  ok('the CARD leaf keeps its revalidate \u2014 the asymmetry is ruled, not drift',
+    /revalidate/.test(strip(read('app/v/[code]/page.tsx'))));
+}
+
+// ── C14 · THE QUARANTINE IS A MECHANISM, NOT A COMMENT (R-40.34) ────────────
+// R-G11c.11's seat declared b50 out of its gate inside a floor manifest and
+// recorded in that same file that the declaration was INERT — `run-floor.sh:121`
+// strips `#`, so a manifest is a file list and the runner has no exclusion hook.
+// The directory is the arm that closes it: `run-floor.sh:186` globs
+// `scripts/*.js` FLAT, so one directory down is outside the floor by
+// construction rather than by anyone remembering.
+sec('C14 \u00b7 b50 is quarantined by mechanism (R-40.34 / F-40.70 / F-40.71)');
+{
+  ok('b50 no longer sits in the floor\u2019s glob path',
+    !has('scripts/b50_fetch_loop_bench.js'));
+  ok('b50 exists, quarantined \u2014 not deleted',
+    has('scripts/quarantine/b50_fetch_loop_bench.js'));
+  // The mechanism itself is asserted, because if the runner ever learns to
+  // recurse this whole quarantine silently stops working.
+  ok('the floor glob is still FLAT \u2014 the mechanism holds',
+    /ls scripts\/\*\.proof\.mjs scripts\/\*\.mjs scripts\/\*\.js/.test(read('scripts/run-floor.sh')));
+  ok('the README names both findings and the release conditions',
+    /F-40\.70/.test(read('scripts/quarantine/README.md'))
+    && /F-40\.71/.test(read('scripts/quarantine/README.md')));
+  // F-40.72's own subject: a manifest naming a path that no longer exists is a
+  // guard pointing at nothing, and F-14.16's declared-dirt check would pass it.
+  ok('the ce39-smalls manifest names the path that EXISTS',
+    /^scripts\/quarantine\/b50_fetch_loop_bench\.js$/m
+      .test(read('scripts/floor-manifest-ce39-smalls.txt')));
+}
+
+// ── C15 · F-40.40 · THE DEAD-LINK BYTE HAS ONE HOME ────────────────────────
+// It had THREE occurrences across TWO files and no home: two inline JSX
+// literals on the crew leaf and a private `const` on the credits leaf, whose own
+// comment filed the duplication rather than fixing it because the crew page
+// belonged to another arc. G1.2's `/consent/` would have made a fourth.
+sec('C15 \u00b7 the capability-token constitution (R-G12.9 / F-40.40)');
+{
+  const tok = read(TOKEN), crew = read(CREW), claim = read(CLAIM), cons = read(CONSENT);
+  ok('the byte is declared in exactly ONE place',
+    /export const TOKEN_DEAD_LINK/.test(tok));
+  // ⚠ STRIPPED. Each leaf's comments NAME the byte to explain the hoist; a cell
+  // that cannot tell a rule from its violation would convict the explanation
+  // (b53's e-4, and my own e-5 one arc later).
+  for (const [n, src] of [['crew', crew], ['credits', claim], ['consent', cons]]) {
+    ok(`the ${n} leaf reads the byte, never respells it`,
+      !/This link isn(&rsquo;|\u2019)t active\./.test(strip(src)));
+  }
+  ok('the apostrophe is typographic, not ascii (R-40.19)',
+    /isn\\u2019t active/.test(tok) && !/isn't active/.test(strip(tok)));
+  // F-40.53 MADE A TYPE: `dead` is 404 and nothing else; everything else is us.
+  ok('dead is 404 ALONE \u2014 an outage never reads as an expired token',
+    /if \(r\.status === 404\) return \{ kind: 'dead' \}/.test(tok)
+    && /kind: 'offline'/.test(tok) && /kind: 'failed'/.test(tok));
+  ok('the status is checked BEFORE the body is parsed (F-40.53)',
+    tok.indexOf("r.status === 404") < tok.indexOf('r.json()'));
+}
+
+// ── C16 · THE PUBLIC LEAF STAYS A SERVER COMPONENT ─────────────────────────
+// `app/v/[code]/w/[slug]/page.tsx:35-38` refuses a client bundle IN TERMS. G1.2
+// adds a gallery and a form to that page and the refusal must survive both —
+// which is the whole reason the sheet is `<details>` and not React state.
+sec('C16 \u00b7 the guest gallery ships no JavaScript (R-G12.10/.16)');
+{
+  const leaf = strip(read(LEAF));
+  ok('the leaf is NOT a client component', !/["']use client["']/.test(leaf));
+  ok('no React state, no handlers anywhere in live code',
+    !/useState|onClick|onChange|onSubmit/.test(leaf));
+  ok('the download is a real form POST to the door',
+    /<form[\s\S]{0,200}method="POST"/.test(leaf)
+    && /wedding-download\//.test(leaf));
+  // R-G12.16: the ratified frame kept, the browser owning the open.
+  ok('the sheet is a details/summary pair \u2014 a sheet without a script',
+    /<details/.test(leaf) && /<summary/.test(leaf));
+  ok('the summary loses its marker by the documented reset, not a hack',
+    /list-style:none/.test(read(LEAF)) && /-webkit-details-marker\{display:none\}/.test(read(LEAF)));
+  // THE ONE QUESTION, UNTICKED. A pre-ticked box is consent nobody gave.
+  ok('the contact checkbox ships UNCHECKED (master \u00a72.4)',
+    /name="may_contact"/.test(leaf) && !/name="may_contact"[^>]*\bdefaultChecked/.test(leaf)
+    && !/name="may_contact"[^>]*\bchecked/.test(leaf));
+  ok('the month field is optional \u2014 no required attribute on it',
+    !/name="wedding_month"[^>]*\brequired/.test(leaf));
+  // STRIPPED: the retirement is EXPLAINED in a CSS comment that names both
+  // retired classes, and an unstripped cell convicts its own explanation —
+  // e-5's class, caught again by my own cell.
+  ok('the four-item strip is RETIRED WITH ITS READER, not commented out',
+    !/pw-stripimg/.test(strip(read(LEAF))));
+  // ── R-G12.19 / R-40.50 · THE TAP THE FOUNDER COULD NOT FEEL ───────────────
+  // The download worked and NOTHING TOLD HIM SO. This leaf has no script to
+  // acknowledge a tap (F-40.108), so CSS carries the press and copy carries the
+  // expectation — set BEFORE the tap rather than confirmed after it.
+  ok('the download button has a press state', /\.pw-donecta:active\{/.test(read(LEAF)));
+  // iOS paints its own grey flash otherwise, which would fight this and read as
+  // a bug rather than a control.
+  ok('and iOS\u2019s own tap highlight is suppressed so the two do not fight',
+    /-webkit-tap-highlight-color:transparent/.test(read(LEAF)));
+  ok('the line says where the file goes (R-40.50)',
+    /PUBLIC_DOWNLOAD\.readyFine/.test(strip(read(LEAF)))
+    && /phone\\u2019s downloads/.test(read(COPY)));
+  // ⚠ AND THE ATTRIBUTE THAT NEVER DID ANYTHING IS NAMED AS SUCH. `download` is
+  // IGNORED cross-origin; what saves the file is Cloudinary's own
+  // Content-Disposition. The old comment claimed it "asks the browser to save",
+  // which was false and would have sent the next reader hunting the wrong thing.
+  // ⚠ AND THE CELL MUST TEST THE PROPERTY, NOT THE PHRASE. My first cut grepped
+  // for the false sentence — and the CORRECTION QUOTES IT in order to retract
+  // it, so the cell convicted the retraction. Same shape as e-5 and the
+  // "plagiarism" cell: a rule that cannot tell a claim from its withdrawal is
+  // not a stricter rule. What is asserted instead is that the correction is
+  // PRESENT and names the real mechanism.
+  ok('the leaf names Content-Disposition as what actually saves the file',
+    /IGNORED on a\s*\n?\s*(\/\/)?\s*cross-origin URL/.test(read(LEAF))
+    && /Content-Disposition/.test(read(LEAF)));
+}
+
+// ── C17 · THE ROOM'S G1.2 SURFACES ─────────────────────────────────────────
+sec('C17 \u00b7 the upload control, the no-event create, the failure lines');
+{
+  const room = strip(read(ROOM));
+  ok('the room mounts an upload control at last (F-40.57)',
+    /API\.weddingUploadUrl/.test(room) && /API\.weddingPhotos/.test(room));
+  ok('cell one is marked as the hero the public leaf will use',
+    /i === 0 \?[\s\S]{0,80}WP\.photoHero/.test(room));
+  ok('remove goes through the ruled door', /API\.weddingPhoto\(/.test(room));
+  // R-G12.12 was NARROWED: no order door shipped, so no caller may name one.
+  ok('no reorder caller \u2014 the door was never built (F-40.83)',
+    !/photos\/order/.test(room) && !/weddingOrder/.test(room));
+  // SEQUENTIAL, not a fan-out: a phone on venue wifi drops half of a parallel
+  // burst and reports success, and a counter cannot exist under one at all.
+  ok('the upload is sequential so the counter can be honest',
+    /for \(let i = 0; i < files\.length/.test(room) && !/Promise\.all\(files/.test(room));
+  // F-40.56 and F-40.77 — three swallows, all cured.
+  for (const [n, k] of [['create', 'saveFailed'], ['add', 'addFailed'], ['publish', 'publishFailed']]) {
+    ok(`the ${n} failure is SHOWN, not swallowed`, new RegExp(`WP\\.${k}`).test(room));
+  }
+  ok('no empty catch survives in this room',
+    !/catch \{\s*\}/.test(room) && !/catch \{ \/\*/.test(read(ROOM)));
+  // ── THE NO-EVENT CREATE'S THREE CELLS ARE WITHHELD WITH THE ARM — F-40.99 ──
+  // They were written, they passed, and they are held because the SURFACE is
+  // held: `public.weddings` has thirteen columns and none is a date, so a
+  // hand-typed one has nowhere to live and R-G12.6 cannot execute as worded.
+  // A green cell over a withheld surface is worse than no cell — it would read
+  // as proof the arm shipped. What IS asserted is the withholding itself, so
+  // the arm cannot creep back in unbenched.
+  ok('the no-event arm is withheld, not half-shipped (F-40.99)',
+    !/__none/.test(room) && !/WP\.eventNone/.test(room) && !/WP\.fieldDate/.test(room));
+  ok('and its two vetoed bytes are withheld from the copy home too',
+    !/eventNone:/.test(read(WPCOPY)) && !/fieldDate:/.test(read(WPCOPY)));
+  // R-G12.8 / F-40.78: the flag existed, the surface didn't.
+  ok('the truncation tell finally has a surface',
+    /r\.truncated === true/.test(room) && /WP\.pickerTruncated/.test(room));
+  // ── F-40.101 · A FileList IS LIVE, NOT A COPY ─────────────────────────────
+  // The call site resets the input so the same file can be picked twice, and that
+  // reset runs the moment `upload` first awaits — emptying the list the loop is
+  // walking. Four picked, ONE saved, three gone with no error. The snapshot must
+  // be taken before any await, and this cell is what keeps it there.
+  ok('the picked files are SNAPSHOT before any await (F-40.101)',
+    /Array\.from\(picked\)/.test(room)
+    && !/for \(let i = 0; i < files\.length[\s\S]{0,400}FileList/.test(room));
+  // ── F-40.103 · the consent ask has a surface at last ──────────────────────
+  ok('the consent door has a caller', /API\.weddingConsent/.test(room));
+  // It is offered ONLY where it is lawful: a page whose couple is on TDW is
+  // governed by her switch, and a second door onto one decision is the disease.
+  ok('and it is ABSENT, not disabled, when the couple is on TDW',
+    /w\.couple_id \? null :/.test(room));
+  // ── CELL RETIRED WITH ITS SUBJECT — F-40.105 / R-G12.18.1 ─────────────────
+  // WAS: "the link is shown even when the send is dark", asserting the room
+  // printed `consentUrl` beside `consentDarkLine`. THAT WAS THE HOLE. The
+  // founder found on glass that a vendor holding the couple's consent link can
+  // answer as her, and the fallback it served — paste it by hand while the send
+  // is dark — died when Meta approved both templates on 2026-09-05.
+  // A CELL ASSERTING A DEFECT IS WORSE THAN NO CELL: it turns RED on the cure,
+  // which is exactly what it did. Replaced by C20, which asserts the opposite
+  // and is mutated for. Retirement lands with the code that moved it (R-G11c.9);
+  // ratify or revert.
+}
+
+// ── C20 · F-40.105 · THE CONSENT LINK IS NOT IN THIS ROOM ──────────────────
+// THE FOUNDER FOUND THIS ON GLASS. The room printed the couple's consent link,
+// so the VENDOR could answer as her — master §2.4's "neither does the
+// counterparty", defeated by the surface that mints the token. It arrived as a
+// dark-send fallback and outlived the approval that retired its reason.
+//
+// ⚠ THE CELL THAT WOULD HAVE CAUGHT IT: no vendor-facing file may render a
+// consent URL or token at all. Written now so the fallback cannot return.
+sec('C20 \u00b7 the consent token is not vendor-facing (F-40.105 / R-G12.18)');
+{
+  const room = strip(read(ROOM));
+  ok('the room renders NO consent url', !/consentUrl/.test(room) && !/consent_url/.test(room));
+  ok('nor any token', !/consent_token/.test(room));
+  // What she gets is four digits she typed herself.
+  ok('she sees the last four of the number SHE typed, and nothing more',
+    /WP\.consentSentLine\(consentLast4\)/.test(room));
+  // R-G12.18.2: a resend taking a number is the same hole in a different sleeve.
+  ok('Send again takes NO number \u2014 the stored one, or nothing',
+    /API\.weddingConsentResend\(wedding\.id\), \{\}/.test(room));
+  // R-G12.18.3: the dark fallback retires WITH ITS REASON.
+  ok('the dark fallback is gone \u2014 a failed send says so',
+    !/consentDarkLine/.test(room) && !/consentDarkLine/.test(read(WPCOPY))
+    && /WP\.consentFailed/.test(room));
+  // THE WHOLE-LANE SWEEP.
+  for (const rel of [ROOM, ROUTES, WPCOPY]) {
+    ok(`${rel} carries no consent link byte`,
+      !/\/consent\/\$\{/.test(strip(read(rel))) && !/consentUrl/.test(strip(read(rel))));
+  }
+}
+
+// ── C21 · THE LAST-FOUR CHECK STANDS IN FRONT OF THE SWITCH ────────────────
+sec('C21 \u00b7 the consent leaf checks before it offers (R-G12.18.4 / R-40.48)');
+{
+  const leaf = strip(read(CONSENT));
+  ok('there is NO control until the check passes',
+    /\{!pass \?/.test(leaf));
+  // Not a greyed one: s-G11.2's ruling, a fourth time in this arc.
+  ok('and the switch is ABSENT, not disabled, before it',
+    !/disabled=\{!pass\}/.test(leaf));
+  // R-G12.18.4: the pass is the SERVER's word, not a boolean this leaf keeps.
+  ok('the writing doors are sent a signed pass, not a local flag',
+    /\{ pass \}/.test(leaf) && !/verified/.test(leaf));
+  ok('the pass comes from the verify door', /\/verify/.test(leaf) && /setPass\(/.test(leaf));
+  ok('nothing is persisted \u2014 the pass lives in the tab',
+    !/localStorage|sessionStorage/.test(leaf));
+  // R-40.48.5: beneath the switch, never above it.
+  ok('the disclaimer renders', /CONSENT_COPY\.disclaimer/.test(leaf));
+  // ⚠ STRIPPED. The copy home's COMMENT records that the founder said
+  // "plagiarism" and the chair corrected it to "misrepresentation" — so an
+  // unstripped cell convicts the explanation of the very correction it is
+  // checking. This bench's own recurring class; the helper has been here since
+  // G1.1 and I reached past it again.
+  ok('and it names MISREPRESENTATION, the act this link can be misused for',
+    /misrepresentation/.test(strip(read(CONSENTCOPY)))
+    && !/plagiarism/i.test(strip(read(CONSENTCOPY))));
+  // The founder's ask.
+  ok('a yes shows her the page she just published',
+    /CONSENT_COPY\.seePage/.test(leaf) && /data\.page_url/.test(leaf));
+  ok('and only after a yes', /pass && data\.published && data\.page_url/.test(leaf));
+  // ── THE FOUNDER'S SECOND ASK · both are CONTROLS, and there is a share ────
+  ok('the page link is drawn as a control, not a text link',
+    /className="cs-alt" href=\{data\.page_url\}/.test(leaf));
+  ok('share sits beside it', /CONSENT_COPY\.share/.test(leaf) && /void share\(\)/.test(leaf));
+  // The device's own sheet first: anything we built would be a worse copy of a
+  // thing her phone already does better.
+  // ⚠ WEAK ON ITS FIRST CUT AND THE MUTATION PASS SAID SO. It compared textual
+  // POSITIONS — and `nav.share` also appears INSIDE the branch, so killing the
+  // guard left the order intact and the mutation stayed GREEN. The property is
+  // that the native path is reached by a real CAPABILITY CHECK, not merely that
+  // a string sits earlier in the file.
+  ok('the native sheet is behind a real capability check',
+    /if \(typeof nav\.share === 'function'\)/.test(leaf));
+  ok('and the clipboard is only reached after it',
+    leaf.indexOf("typeof nav.share === 'function'") < leaf.indexOf('clipboard.writeText'));
+  // A dismissed sheet is not a failure — saying so would report an error for a
+  // change of mind.
+  ok('a cancelled share reports nothing',
+    /catch \{ return; \}/.test(leaf));
+  ok('and only a clipboard fallback says anything',
+    /clipboard\.writeText\(url\);\s*\n\s*setCopied\(true\)/.test(leaf));
+  // The one gold stays spent on the affirmative above.
+  ok('neither new control takes the gold', !/cs-alt\{[^}]*C9A84C/.test(read(CONSENT)));
+}
+
+// ── C19 · EVERY API ADDRESS HAS A CALLER — F-40.103, ratified mechanism ────
+// I shipped TWO doors with no callers in one delivery — `POST /:id/consent` and
+// the answer render — in the SAME sitting where I flagged the chair that a
+// reorder door with no caller was the F-40.28 shape and had it narrowed out. I
+// applied the rule to the door I was told to build and to neither of the two I
+// chose. The founder found it by trying to perform step 5 of my own card.
+//
+// A COMMENT CANNOT ENFORCE THIS AND A CELL CAN. Every member of `API` must be
+// named by something that is not its own definition. An address nobody calls is
+// either dead weight or, worse, a promise a card will make on its behalf.
+sec('C19 \u00b7 every API address has a caller (F-40.103)');
+{
+  const routes = read(ROUTES);
+  const members = [...routes.matchAll(/^  ([a-zA-Z]+):\s*\(/gm)].map((m) => m[1]);
+  ok('C19 is not vacuous \u2014 the address home was parsed', members.length >= 6,
+    `found ${members.length}`);
+  // The callers are the whole app, not a list someone wrote down — the same
+  // reasoning b16 §2.2 uses when it walks the source tree instead of a census.
+  const callers = ['app', 'lib', 'components', 'hooks']
+    .map((d) => { try { return execSync(`grep -rho "API\\.[a-zA-Z]*" ${d} 2>/dev/null || true`,
+      { cwd: ROOT, encoding: 'utf8' }); } catch { return ''; } })
+    .join('\n');
+  const orphans = members.filter((m) => !new RegExp(`API\\.${m}\\b`).test(callers));
+  ok('no address in API is without a caller', orphans.length === 0,
+    orphans.length ? `orphaned: ${orphans.join(', ')}` : '');
+}
+
+// ── C18 · NO BACKTICK INSIDE A STYLE TEMPLATE LITERAL ──────────────────────
+// e-7 AND e-8: I closed a `<style>{`…`}</style>` literal twice in one sitting by
+// writing a code reference in backticks inside its CSS comments. tsc reports it
+// as dozens of JSX errors nowhere near the cause, which is why it survived a
+// first fix. The chair recorded it as the third instance of the week across two
+// seats. A comment cannot enforce this; a cell can.
+sec('C18 \u00b7 no backtick inside a style literal (e-7/e-8)');
+{
+  for (const rel of [LEAF, CLAIM, CONSENT, ROOM]) {
+    const parts = read(rel).split('<style>{`');
+    let found = 0;
+    for (let i = 1; i < parts.length; i += 1) {
+      const body = parts[i].split('`}</style>')[0];
+      found += (body.match(/`/g) || []).length;
+    }
+    ok(`${rel} carries no backtick inside a style literal`, found === 0, `${found} found`);
+  }
+}
+
+if (process.argv.includes('--cells-only')) process.exit(fail === 0 ? 0 : 1);
+
+// ══════════════════════════════════════════════════════════════════════════════
+if (process.argv.includes('--mutate')) {
+  sec('MUTATIONS \u2014 each must turn the cells RED');
+  const MUT = [
+    [GRIDF, 'the grid loses its clearance \u2014 Advisor returns under the FAB',
+      'padding-bottom:calc(var(--wl-fab-bottom) + var(--wl-tile))', 'padding-bottom:24px'],
+    [GRIDF, 'the wide shape is derived from an index instead of the registry',
+      "room.wide ? 'wl-tile wl-tilewide' : 'wl-tile'", "'wl-tile'"],
+    [ROOMS, 'a third tile is flagged wide without joining the declaration',
+      "{ id: 'leads',     label: 'Leads',     band: 'work', href: '/vendor/leads',     pinnable: true  },",
+      "{ id: 'leads',     label: 'Leads',     band: 'work', href: '/vendor/leads',     pinnable: true, wide: true },"],
+    [ROOMS, 'Business Solutions leaves index 0',
+      "{ id: 'support',   label: 'Business Solutions', band: 'work', href: '/vendor/support', pinnable: false, wide: true },\n  { id: 'leads',",
+      "{ id: 'leads',"],
+    [PIECES, 'an unbuilt row becomes a link to nowhere',
+      "  return href\n    ? <Link href={href} className=\"sol-row\">{body}</Link>\n    : <div className=\"sol-row\">{body}</div>;",
+      "  return <Link href={href ?? '#'} className=\"sol-row\">{body}</Link>;"],
+    [WPCOPY, 'a role label drifts from the dream-os home',
+      "{ key: 'decor',     label: 'D\\u00e9cor' },", "{ key: 'decor',     label: 'Decor' },"],
+    [SOLCOPY, 'R-40.26 is reverted \u2014 row three loses & SEO',
+      "{ key: 'website',       label: 'Your website & SEO' },", "{ key: 'website',       label: 'Your website' },"],
+    [PIECES, 'the divider rule goes back to last-of-type (F-40.42)',
+      '.sol-row:last-child{border-bottom:none}', '.sol-row:last-of-type{border-bottom:none}'],
+    [PIECES, 'the live row loses its chip \u2014 the walk finding returns',
+      "<StateChip state={href ? 'open' : 'coming'} />", "{href ? null : <StateChip state=\"coming\" />}"],
+    [WPCOPY, 'a room byte is re-voiced away from the mock',
+      "emptyHead:         'No wedding pages yet.',", "emptyHead:         'Nothing here yet.',"],
+    [WPCOPY, 'the waiting line loses its typographic apostrophe (R-40.19)',
+      "waitingOnCouple:   'Waiting on the couple\\u2019s permission.',",
+      "waitingOnCouple:   'Waiting on the couple\\'s permission.',"],
+    [LEAF, 'the miss starts leaking through the link preview',
+      'return { title: PUBLIC_MISS, robots: { index: false, follow: false } };',
+      'return { title: PUBLIC_MISS };'],
+    [CLAIM, 'the pending state is dropped \u2014 the tap goes unacknowledged',
+      'aria-busy={busy}\n                    onClick={() => settle(\'claim\')}',
+      'onClick={() => settle(\'claim\')}'],
+    [CLAIM, 'a failure is swallowed again (F-40.53 returns)',
+      'if (!r.ok) { setFailed(true); setBusy(false); return; }', ''],
+    ['app/layout.tsx', 'a public lane leaves the boot script (F-40.52)',
+      "||path.indexOf('/credits/')===0", ''],
+    [CLAIM, 'the claim page starts remembering the token',
+      "  const [busy, setBusy] = useState(false);",
+      "  const [busy, setBusy] = useState(false);\n  if (typeof window !== 'undefined') localStorage.setItem('t', token);"],
+    [ROOM, 'the picker drops its past floor \u2014 the back catalogue vanishes again (F-40.68)',
+      "const r = await fetchEvents(vendorId, 'all', WP_PICKER_FROM, istPlusDaysISO(400));",
+      "const r = await fetchEvents(vendorId, 'all');"],
+
+    [ROOM, 'the floor is quietly moved to today \u2014 the arity survives, the cure does not',
+      "const WP_PICKER_FROM = '2000-01-01';",
+      "const WP_PICKER_FROM = istPlusDaysISO(0);"],
+
+    // ── G1.2's SIX ────────────────────────────────────────────────────────────
+    // F-40.40: the byte's one home is the whole point; a leaf respelling it is
+    // the fourth occurrence returning.
+    [CLAIM, 'the credits leaf respells the dead-link byte \u2014 F-40.40 reopens',
+      "const DEAD_LINK = TOKEN_DEAD_LINK;",
+      "const DEAD_LINK = 'This link isn\\u2019t active.';"],
+    // F-40.53 made a type: a 500 must never read as an expired token.
+    [TOKEN, 'an outage starts reading as a dead token \u2014 she chases a vendor over our 500',
+      "    if (r.status === 404) return { kind: 'dead' };\n    if (!r.ok) return { kind: 'offline' };",
+      "    if (!r.ok) return { kind: 'dead' };"],
+    // R-G12.10/.16: the public lane's whole refusal.
+    [LEAF, 'the public leaf grows a client bundle \u2014 every stranger pays for hydration',
+      "import type { Metadata } from 'next';",
+      "\"use client\";\nimport type { Metadata } from 'next';"],
+    // master §2.4: silence never means yes, and neither does a pre-ticked box.
+    [LEAF, 'the contact box ships PRE-TICKED \u2014 consent nobody gave',
+      'type="checkbox" name="may_contact" value="true"',
+      'type="checkbox" name="may_contact" value="true" defaultChecked'],
+    // F-40.77: the swallow returning is the defect, not the message changing.
+    [ROOM, 'the credit failure is swallowed again \u2014 F-40.77 reopens',
+      "      setErr(e instanceof Error && e.message ? e.message : WP.addFailed);",
+      "      setErr(null);"],
+    // R-G12.12 was narrowed BECAUSE a door with no caller is the F-40.28 shape.
+    [ROOM, 'a reorder caller appears for a door that was never built (F-40.83)',
+      "  async function removePhoto(photoId: string) {",
+      "  async function reorder() { await postJson(WEDDINGS_API_PATH + '/x/photos/order', {}); }\n  async function removePhoto(photoId: string) {"],
+
+    // ── R-G12.19 · THE TAP FEEDBACK, PROVEN ABLE TO RED ───────────────────────
+    [LEAF, 'the press state is dropped \u2014 the phone gives nothing between touch and result',
+      ".pw-donecta:active{background:#2A2523;transform:scale(.985)}",
+      "/* press state removed */"],
+    [LEAF, 'the line goes \u2014 the tap is silent again (R-40.50)',
+      '              <p className="pw-donefine">{PUBLIC_DOWNLOAD.readyFine}</p>',
+      "              {null}"],
+
+    // ── THE SHARE ORDER, PROVEN ABLE TO RED ───────────────────────────────────
+    // Clipboard-first would silently replace her own share sheet with a worse
+    // copy of it on every phone that has one.
+    [CONSENT, 'the clipboard is tried before the native sheet \u2014 her own share sheet is bypassed',
+      "    if (typeof nav.share === 'function') {",
+      "    if (false) {"],
+
+    // ── F-40.105 · THE FOUNDER'S FIND, PROVEN ABLE TO RED ─────────────────────
+    [ROOM, 'the consent link returns to the room \u2014 the vendor can answer as the couple',
+      "          {consentLast4 ? (",
+      "          {consentLast4 ? (\n            <p className=\"wp-consenturl\">{`/consent/${consentLast4}`}</p>"],
+    [CONSENT, 'the check stops gating the switch \u2014 a forwarded link answers for her',
+      "        {!pass ? (",
+      "        {false ? ("],
+    [CONSENT, 'the pass becomes a local flag \u2014 the check is theatre',
+      "      { pass },",
+      "      { pass: 'x' },"],
+
+    // ── F-40.101 · the live FileList, the founder's own walk ──────────────────
+    [ROOM, 'the picked files stop being snapshot \u2014 four chosen, one saved, three gone silently',
+      "    const files = picked ? Array.from(picked) : [];",
+      "    const files = picked as unknown as File[];"],
+    // ── F-40.103 · the mechanism, proven able to red ──────────────────────────
+    [ROOM, 'the consent ask loses its caller \u2014 a door with no button again',
+      "        API.weddingConsent(wedding.id), { phone: consentPhone.trim() },",
+      "        '/api/v2/vendor/studio/weddings/x/consent', { phone: consentPhone.trim() },"],
+    [ROOM, 'the consent ask is offered on a page whose couple is on TDW \u2014 two doors, one decision',
+      "      {w.couple_id ? null : (",
+      "      {false ? null : ("],
+
+    [ROUTES, 'the address home is deleted \u2014 the second spelling returns',
+      "export const WEDDING_PAGES_HREF = '/vendor/wedding-pages';",
+      "export const WEDDING_PAGES_HREF_RETIRED = '/vendor/wedding-pages';"],
+
+    // ── R-40.33 · EACH SITE RESTORED ON ITS OWN ───────────────────────────────
+    // TWO mutations and not one, because F-40.80's whole subject is that this
+    // cure has two sites and the "one line" reading undercounted it. A single
+    // mutation restoring both would leave a half-revert invisible — which is the
+    // exact failure the finding records.
+    [LEAF, 'the route-level revalidate comes back \u2014 consent caches for 5 minutes',
+      "export const viewport = {",
+      "export const revalidate = 300;\n\nexport const viewport = {"],
+
+    [LEAF, 'the door fetch caches again \u2014 the retyped 300 returns (F-40.80)',
+      "${encodeURIComponent(slug)}`,\n    );",
+      "${encodeURIComponent(slug)}`,\n      { next: { revalidate: 300 } },\n    );"],
+
+    // ── R-40.34 · THE QUARANTINE'S MECHANISM, NOT ITS CONTENTS ────────────────
+    // If the runner ever learns to recurse, every bench in `scripts/quarantine/`
+    // silently rejoins the floor and nothing in the tree objects. This is what
+    // makes C14's mechanism cell non-vacuous.
+    ['scripts/run-floor.sh', 'the floor glob learns to recurse \u2014 the quarantine dissolves in silence',
+      "ALL=$(ls scripts/*.proof.mjs scripts/*.mjs scripts/*.js 2>/dev/null | sort -u)",
+      "ALL=$(find scripts -name '*.proof.mjs' -o -name '*.mjs' -o -name '*.js' | sort -u)"],
+  ];
+  for (const [rel, name, from, to] of MUT) {
+    const abs = P(rel);
+    const before = fs.readFileSync(abs);
+    const txt = before.toString('utf8');
+    if (!txt.includes(from)) { ok(name, false, 'mutation site absent \u2014 the code moved'); continue; }
+    fs.writeFileSync(abs, txt.replace(from, to));
+    const r = spawnSync(process.execPath, [__filename, '--cells-only'], { encoding: 'utf8' });
+    fs.writeFileSync(abs, before);
+    ok(name + ' \u2192 RED', r.status !== 0, 'exit ' + r.status);
+    ok(name + ' \u2192 restored byte-for-byte', Buffer.compare(before, fs.readFileSync(abs)) === 0);
+  }
+}
+
+for (const [k] of __RETIRE) { if (__seen.get(k) !== 1) { fail++; console.log('  FAIL A-45.2 control: the retired cell \u201c' + k + '\u201d was met ' + (__seen.get(k) || 0) + ' times, not once'); } }
+console.log('\n' + (fail === 0 ? 'GREEN' : 'RED') + ' \u2014 b42 g11 wedding pages (pwa) ' +
+  pass + '/' + (pass + fail));
+process.exit(fail === 0 ? 0 : 1);

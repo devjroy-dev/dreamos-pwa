@@ -34,6 +34,9 @@ import { gateName, gateSpec, gateMeta, gateMetaId, gateMatches, roomOf, STATUS_W
 // When seat E's re-shape (R-41.82) lands, the element moves to its place in the new
 // group order and nothing else changes.
 import ModelRoutesPanel from './ModelRoutesPanel';
+// DESIGN-1 · THE SWITCHES: the vendor layout's master and per-vendor list have their own card; its two rows are drawn there only.
+import LayoutPanel from './LayoutPanel';
+import { LAYOUT_KEYS } from '../../../lib/admin-api/layoutSwitchCopy';
 
 // ── THE WORDS LIVE IN ONE HOME (C3, F-41.52/.53): lib/admin-api/switchboardCopy.ts.
 // Every gate is TWO LINES (F-41.57): the short name, then the dotted spec. The
@@ -173,11 +176,12 @@ export default function SwitchboardPage() {
     room,
     rows: visible.filter(r => r.key !== STANDING_KEY
       && !GUARDED_TEMPLATES.includes(r.key)
+      && !(LAYOUT_KEYS as readonly string[]).includes(r.key)
       && roomOf(r.key) === room),
   })).filter(g => g.rows.length > 0), [visible]);
 
   const shown = groups.reduce((n, g) => n + g.rows.length, 0) + (standing ? 1 : 0);
-  const total = rows.filter(r => !GUARDED_TEMPLATES.includes(r.key)).length;
+  const total = rows.filter(r => !GUARDED_TEMPLATES.includes(r.key) && !(LAYOUT_KEYS as readonly string[]).includes(r.key)).length;
 
   return (
     <div>
@@ -252,6 +256,9 @@ export default function SwitchboardPage() {
       {/* ── MODEL ROUTES (CE-41 seat F, R-41.85) ─────────────────────────────
           Who answers, per lane and per hand. Its own doors, its own copy home,
           its own bench; this page only gives it its place. */}
+      {/* DESIGN-1 · THE SWITCHES: the vendor layout (master, its 30 days, the per-vendor list) */}
+      <LayoutPanel />
+
       <ModelRoutesPanel />
 
       {/* ── TEMPLATES ON META (C1b, F-41.6's instrument) ─────────────────────

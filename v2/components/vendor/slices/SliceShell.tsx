@@ -1,0 +1,2292 @@
+// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
+// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
+// still reads as the old voice. The mock’s screen four killed the pairing, not just the
+// family. Italic survives only where a surface sets it WITHOUT the script role.
+'use client';
+// components/vendor/slices/SliceShell.tsx — TDW_03 P1
+// Two exports:
+//   SliceShell  — pure screen chrome: masthead slot + search + list + FAB
+//                 (+ FilterRail mount point and skeleton states at P4/P5).
+//   SliceScreen — the shared state assembly the five slice modules
+//                 parameterize (data hook, row mapper, delete route).
+// The SliceScreen state machine is the monofile's, moved VERBATIM: same
+// state atoms, same effects, same fetch bodies. The per-slice conditionals
+// for the invoice schedule and lead thread stay here verbatim in commit 1;
+// P2/P4/P5 will migrate them into their modules as those phases rebuild them.
+// Zero behavior change is the P1 contract.
+
+// `usePathname` LEFT WITH THE HOOK. It was read by exactly one thing — `useInShell`'s body
+// — and once that moved, the specifier was dead. Derived, not assumed: zero call sites
+// remain in this file. An unused import is not tidiness debt; it is a named binding the
+// next reader wires something to (the `vendorName` finding at §4-2, same shape).
+import { INK_DEEP } from '@/lib/vendor/theme';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+import { type ListSlice } from '@/hooks/vendor/useLastSlice';
+import { longDate } from '@/v2/lib/worklist/home';   // CE-46: the Due date in words
+import { API_BASE, getAuthHeader } from '@/lib/vendor/api/_base';
+// BLOCK 19 G5.1 — the control's label comes from the copy home, never spelled here.
+import { RF } from '@/v2/lib/worklist/referrals';
+import { ForwardSheet } from './ForwardSheet';
+import { AddSheet } from '@/v2/components/vendor/AddSheet';
+// ── M-FINISH S2 · CE-38 relay #2 arm (c), REACHING THE LIST FAMILY ──────────
+// `Toast` reads five values off `useT()` as JAVASCRIPT, not as CSS variables, so inside the
+// shell — where no ThemeProvider mounts and none may (F-38.3) — it falls to
+// createContext(DARK)'s default and paints Espresso-dark on a Chalk page, in both modes,
+// forever. It does not throw, which is exactly why it would have shipped: the room renders,
+// the toast is simply the wrong colour, and only a capture with a toast ON SCREEN would
+// have caught it. D-38.1 is the doctrine — observe at the moment the defect is visible.
+// The pair is chosen by the SAME derivation that chooses everything else here, so there is
+// one fact about which tree we are in and one place it is read.
+import { WlToast } from '@/v2/components/worklist/WlToast';
+import { roomHref } from '@/v2/lib/worklist/rooms';
+import { LEGACY_ROOM_HEAD } from '@/v2/lib/worklist/copy';
+// THE TWO PDF SENTENCES AND THE INVOICE ROW'S VERB LIVE IN THE REGISTER, NOT
+// HERE (CE-39 2c-Studio, ruling 4). Both PDF bytes were spelled inline in this
+// file, at the two call sites below; `Mark paid` was spelled twice more, once
+// for the swipe and once for the bulk bar. One home, four readers.
+import { COPY } from '@/v2/lib/worklist/copy';
+import { LeadPackageCard } from '@/v2/components/vendor/packages/LeadPackageCard'; // CE-43 LC-2 packet 2
+import { resetPackagesCache, loadPackagesOnce } from '@/v2/components/vendor/packages/LeadPackageCard'; // CE-43 LC-2 packet 3g · F-43.107
+import { MissingChips } from '@/v2/components/vendor/MissingChips'; // CE-43 LC-2 packet 3g
+import { ConversationWaiting } from '@/v2/components/vendor/ConversationThread'; // CE-43 LC-2 packet 3g · F-43.107
+import type { LeadFacts } from '@/lib/vendor/bookingNeeds';
+import { BookingSheet } from '@/v2/components/vendor/packages/BookingSheet'; // CE-43 LC-2 packet 3: A12, F15(a)
+import { paymentMarked, packageDate, istDateOf } from '@/v2/lib/worklist/packages'; // CE-43 LC-2 packet 3: D3/D4 (F17)
+import { formatRs } from '@/lib/vendor/format';
+import { fetchLeadPackage, type BookingKind, type LeadPackage } from '@/v2/lib/vendor/api/vendor';
+import { NeedFirst } from '@/v2/components/vendor/NeedFirst'; // CE-43 LC-2 packet 3f · R-43.16
+import { useToast } from '@/hooks/vendor/useToast';
+import type { ToastKind } from '@/hooks/vendor/useToast';
+import { fetchLeadDetail, fetchSchedule, createSchedule, markMilestonePaid, sendReminder, fetchMe, fetchInvoicePdf, updateLead, deleteLead, patchLeadState, recordPayment, updateEvent, cancelEvent, deleteExpense } from '@/v2/lib/vendor/api/vendor';
+import { SwipeRow, type SwipeSide } from './SwipeRow'; // TDW_04 A2: the P4 gesture engine
+import { Masthead } from './Masthead'; // TDW_04 A3: P5's card
+import { FilterRail, type FilterChip } from './FilterRail'; // TDW_04 A4: P4's rail
+import { useCabinetData } from '@/v2/hooks/vendor/useVendorData'; // TDW_04 A3: binder truth for money mastheads
+import { deriveClients, derivePipeline, deriveExpensesThisMonth, deriveEventsThisWeek } from '@/v2/lib/vendor/derive'; // TDW_04 A3: THE derivation
+import { BulkBar, type BulkAction } from './BulkBar';   // TDW_04 A2: select mode
+import { queueUndoable, flushAllPending, UNDO_WINDOW_MS } from '@/lib/vendor/undo'; // TDW_04 A2: F2's cure · A4: F-04.14 ruled
+import { WishboneSheet , chipLabel } from './WishboneSheet'; // TDW_04 A1: leads-plane wishbone (own module per tenancy law)
+import { invalidateSlice } from '@/lib/vendor/cache/invalidate';
+import type { ScheduleMilestone } from '@/lib/vendor/types/vendor';
+import { ConversationThread } from '@/v2/components/vendor/ConversationThread';
+import type { ConversationMessage, Invoice, VendorEvent } from '@/lib/vendor/types/vendor';
+import { A, T, LABELS, WaIcon, SliceRow, cap, type Row } from './SliceRow';
+
+// TDW_04 A1 (L-1, ST-1) — the lane declarations, house voice, LOCKED wording:
+// Leads "Enquiries pipeline"; Clients/Invoices/Expenses "From your binders";
+// Events "Your calendar". The cabinet's own line lives in Cabinet.tsx.
+// TDW_04 A3 (L-3/ST-2): what each chip-bearing list cannot see, in its own
+// words. Leads/invoices match by phone (phone-asymmetric twins stay invisible —
+// Exhibit A's flagship pair among them); events match by the binder the row
+// itself names (an event that names none wears no chip). Silence about a
+// blindness is the lie this block exists to kill.
+
+// ROOM_NAME (the registry label per slice) retired with the h1 it fed: CE-46 FE-4, the head is the shell's.
+import { DetailSheet } from './DetailSheet';
+import { reminderPreview, reminderDate } from '@/v2/lib/worklist/paymentReminders';
+import { updateMilestone, deleteSchedule } from '@/v2/lib/vendor/api/vendor';
+
+import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
+import { useRouter } from 'next/navigation'; // DESIGN-1 · STAGE 5a
+import { enquiryHref, invoiceHref, eventHref, saveListScroll, RECORD } from '@/v2/lib/worklist/record';
+import { SliceRecord } from '@/v2/components/vendor/records/SliceRecord';
+// ── F-40.141 · THE FLAG THAT OUTLIVED ITS REASON ──────────────────────────
+// It read `false` from the day it was written, and its comment said why: opening
+// an invoice would fire a 404 at a route that was not built. The route WAS
+// built — `src/api/vendor/schedules.js` carries five and `fetchSchedule`
+// addresses them — so this seat flipped the flag saying it guarded "a 404 that
+// cannot happen".
+//
+// ⚠ THAT WAS WRONG, AND THE FOUNDER'S WALK PROVED IT WITHIN THE HOUR (F-40.181).
+// The GET 404'd anyway, by a mechanism nobody had looked for: `core.js` mounted
+// `/invoices` BEFORE the root-mounted schedules router, and `invoices.js:75`
+// owns `GET /:vendorId` — so `GET /invoices/{uuid}/schedule` entered that router,
+// matched nothing, and 404'd before schedules was consulted. The POST never
+// collided because `/:vendorId` is a GET, which is why create worked and re-read
+// did not, and why the panel looked correct in the session that made it and
+// empty on every reopen.
+//
+// The flag was hiding a REAL 404. It was cured in the dream-os rider by moving
+// the schedules mount ahead of `/invoices`; the flip stands, the reasoning that
+// justified it did not, and a comment that was true when written and false when
+// shipped is worse than none — it is load-bearing for whoever reads it next.
+//
+// ⚠ THE FLIP WAITED ON A FRAME, NOT ON COURAGE. R-G34.10 conditioned it on
+// whether a ratified mock frame existed for this panel. Derived: none did. The
+// only mock in either repo drawing a payment schedule is
+// `invoice-document-mock.html`, and every frame there is an A4 PDF PAGE — the
+// printed invoice a client receives, not this panel. So the panel took its own
+// frame (`payment-reminders-mock.html` @ `d96d9bc`, `P8-schedule-sheet`), was
+// vetoed at §F of `G34_VETO_SHEET.md`, and the byte moves now.
+//
+// It stays a named constant rather than being deleted: G3.4's reminder control
+// hangs off this panel, and one place to switch both off is worth more than the
+// two lines saved by inlining `true`.
+const SCHEDULE_ENABLED: boolean = true;
+
+// ── CE-45 · FE-2 · TYPE_1 · THE SLICE DOOR IS GONE (the founder's ruling, 24 Sept 2026) ──
+// The in-room tab strip (Leads / Clients / Invoices / Expenses / Events / Notes) duplicated the
+// shelves and Home, which reach every one of these rooms. It was the only writer of the stored
+// last-slice key (dreamai_list_last_slice), and nothing reads that key, so nothing that runs
+// is lost with it. b123 pins the absence; b40 C28 is retired under A-45.2.
+
+// ── M-FINISH S2 · §4-3 · `useInShell` MOVED OUT OF THIS FILE, AND ONLY MOVED ──
+// It was DEFINED here at §4-1 because the list family was the only caller. Storefront,
+// Portfolio and Couture cross at §4-3 and each needs the same predicate; none of them is in
+// this family, and a named import from this module reaches `SliceShell`, `SliceDoor` and
+// `DetailSheet` behind it. Its one home is `hooks/vendor/useInShell.ts` now — main-side, so
+// both trees may read it and neither inverts D-2 — and this file IMPORTS it like every
+// other caller rather than keeping a re-export beside it. A re-export would be a second
+// name for one thing, which is the disease one directory over.
+//
+// The reasoning that used to sit here travelled WITH the code and is not summarised: a
+// comment that paraphrases a decision living elsewhere is the next stale comment (F-38.29).
+
+
+// ── SliceShell · pure chrome ─────────────────────────────────────
+// Masthead slot (P5 fills it), search, list + empty state, FAB.
+// Sheets/overlays/toast are passed through as children by SliceScreen.
+interface SliceShellProps {
+  slice: ListSlice;
+  /** THE BACK/LABEL ROW ONLY. Inside the shell the row does not render, so this is never
+      called there — the shell's two nav seats are the way out and there is no chevron. */
+  query: string;
+  setQuery: (q: string) => void;
+  loading: boolean;
+  error: string | null;
+  rows: Row[];
+  onSelect: (row: Row) => void;
+  onAdd: () => void;
+  /** TDW_03 P2: when present, rendered INSTEAD of the default rows/empty-state
+      block (the clients slice supplies binder cards + its own empty state).
+      Other slices untouched. */
+  renderList?: ReactNode;
+  /** TDW_04 A2: per-row decorator (swipe + selection) — default plain SliceRow. */
+  renderRow?: (row: Row) => ReactNode;
+  /** TDW_04 A3: the P5 masthead, composed by the owner (it knows its figures). */
+  masthead?: ReactNode;
+  /** TDW_04 A4: the P4 FilterRail, rendered sticky under the search field. */
+  filterRail?: ReactNode;
+  /** TDW_04 A4: the sort caret, rendered at the masthead row's right. */
+  sortControl?: ReactNode;
+  children?: ReactNode;
+}
+
+// ══ M-FINISH S2 · R-38.11 · WHAT CROSSED HERE, AND WHAT DELIBERATELY DID NOT ══
+//
+// `vendorName` LEFT WITH THE MASTHEAD, exactly as it left SettingsScreen at S1
+// (components/vendor/SettingsScreen.tsx:78). It existed to feed <Header>, and a prop that
+// no longer feeds anything is a prop the next reader will wire something to. Both callers
+// still hold the session; neither needs to hand it here.
+//
+// ⚠ `Header` IS NOT IMPORTED BY THIS FILE ANY MORE, AND THE DIFFERENCE FROM A CONDITIONAL
+// IS THE WHOLE FINDING — S1 paid for it once already. Keeping `import { Header }` and
+// writing `{chrome && <Header …/>}` renders correctly and STILL SHIPS the old masthead into
+// every shell room's chunk, with its drawer, its /vendor rows and 「DreamAi on WhatsApp」
+// (Header.tsx:355, banned by R-37.70/.78/.83). A conditional does not remove a module from
+// a bundle; only not importing it does. `Header` mounts at the fallback ROUTE now
+// (app/vendor/list/[slice]/page.tsx), which is the only place it is wanted.
+//
+// THE BODY DID NOT CROSS AND IS NOT REDESIGNED (R-38.12). Rows, sheets, mastheads and the
+// filter rail keep their current layout. Two things about them are DECLARED GAPS rather
+// than silent ones, and both are named in the handover and excluded from the render arm's
+// tuple cell by name: the slice tree's thirty colour LITERALS (F-38.22) and its old type
+// register. Neither is swept inside a structural crossing.
+// ── G3.4 s2 · the edit sheet's two field styles, one home (mock S3) ─────────
+const msLabel: React.CSSProperties = {
+  font: T.t5,
+  letterSpacing: '0.08em',
+  display: 'block',
+  textTransform: 'uppercase',
+  color: A.inkMute,
+  margin: '12px 0 8px',
+};
+const msInput: React.CSSProperties = {
+  font: T.t3,
+  padding: '8px 12px',
+  boxSizing: 'border-box',
+  width: '100%',
+  background: 'var(--atelier-input-bg)',
+  border: '0.5px solid var(--atelier-card-border)',
+  borderRadius: 12,
+  color: 'var(--atelier-ink)',
+};
+
+// CE-46 (FE-6's note and the chair's read of the twelve rooms, ruled 30 Sept 2026): no floating + over a list. Every
+// list room's add is a button on top of the list, in these words, doing what the + did. One home.
+export const ADD_ON_TOP: Record<ListSlice, string> = {
+  leads: 'New enquiry', clients: 'New client', invoices: 'New invoice', events: 'New event', expenses: 'New expense',
+};
+
+export function SliceShell({ slice, query, setQuery, loading, error, rows, onSelect, onAdd, renderList, renderRow, masthead, filterRail, sortControl, children }: SliceShellProps) {
+  const addOnTop = ADD_ON_TOP[slice];
+  return (
+    <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      {/* ── THE BACK/LABEL ROW IS THE OLD LAYOUT'S CHROME ────────────────────
+          Inside the shell it would be the two-mastheads defect one level down from where
+          R-38.1 removed it: WorklistShell already prints the room's word in its header and
+          already owns the way out. There is no chevron in the shell by construction — the
+          two nav seats are the way back, which is the same contract Billing and Settings
+          crossed under at S1. On the /vendor fallback the row renders exactly as before. */}
+      
+      {/* CE-45 · FE-2 · TYPE_1b · (i) and (ii), ruled: the room opens as the reference surface opens,
+          16px above its first line, and that line is the room's own name at t1, the registry's label
+          byte. CE-46 · FE-4 (Fork A (3), 27 Sept 2026): THAT LINE IS THE SHELL'S NOW. WorklistShell
+          mounts RoomHead above every room's body (components/worklist/PageHelp.tsx), drawing the same
+          byte with the "?" on its line, so the h1 that stood here is retired and ROOM_NAME with it.
+          What this family draws starts at the headline row. */}
+
+      {/* TDW_04 A3 (P5/ST-4): THE number — every figure from lib/vendor/derive.ts,
+          the same function the hub Ledger reads. */}
+      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>{masthead}</div>
+        {/* TYPE_1b: the sort sits on the headline row itself (its first line), no longer 14px below it */}
+        {sortControl && <div style={{ padding: '0 var(--slice-inset, 16px) 0 0' }}>{sortControl}</div>}
+      </div>
+
+
+      {/* Search */}
+      <div style={{ padding: '12px var(--slice-inset, 16px) 8px' }}>
+        <div style={{ position: 'relative' }}>
+          <span style={{ font: T.t3, position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: A.inkMute, pointerEvents: 'none' }}>⌕</span>
+          <input
+            type="text"
+            placeholder={`Search ${LABELS[slice].toLowerCase()}…`}
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            style={{
+              font: T.t3,
+              width: '100%',
+              padding: '12px 12px 12px 32px',
+              boxSizing: 'border-box',
+              background: 'var(--atelier-input-bg)',
+              border: '0.5px solid var(--atelier-card-border)',
+              borderRadius: 12,
+              color: A.ink,
+              outline: 'none',
+              caretColor: A.interactive,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* TDW_04 A4: the P4 FilterRail — sticky chips under search */}
+      {filterRail}
+
+      {/* CE-46 (FE-6's note, ruled 30 Sept 2026): on the rooms ADD_ON_TOP names, the add is a button at the top of the
+          list, in the words ADD_ON_TOP gives, and the floating + is not drawn, so nothing sits over a row's pill. */}
+      <div style={{ padding: '4px 16px 12px', display: 'flex' }}>
+        <button type="button" className="wl-btn" data-add-top={slice} onClick={onAdd}>{addOnTop}</button>
+      </div>
+
+      {/* List */}
+      <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', paddingBottom: 112 }}>
+        {renderList ?? (
+          <>
+            {!loading && !error && rows.length === 0 && (
+              <div style={{
+                font: T.t3,
+                padding: '40px 24px',
+                textAlign: 'center',
+                color: A.inkMute,
+              }}>
+                {query
+                  ? <>Nothing matching <span style={{ color: A.brassWarm }}>&ldquo;{query}&rdquo;</span></>
+                  : <>Nothing here yet.<br/><span style={{ color: A.brassWarm }}>{`Tap ${addOnTop} to add one.`}</span></>}
+              </div>
+            )}
+            {rows.map(row => renderRow ? <div key={row.id}>{renderRow(row)}</div> : <SliceRow key={row.id} row={row} slice={slice} onSelect={() => onSelect(row)} />)}
+
+            {/* TYPE_1b: the foot line under the list (CHIP_BLINDNESS) retired with the founder's row 9. */}
+          </>
+        )}
+      </div>
+
+{/* ── CE-39 S2/6 · F-39.4 · THE SHELL ARM STOPPED DRAWING ITS OWN SEAT ──────
+          This button carried its own geometry — 46px at right 20, bottom 120 inside the
+          shell — and the 120 was DERIVED CORRECTLY (the dock's 8+44+8 over the nav's 52 =
+          112.5, plus one step) and was still wrong, because Rooms' FAB had been MEASURED
+          at 136 against the painted dock and the two numbers were never compared. A
+          derivation and a measurement of the same thing, in two files, disagreeing by
+          16px — which the founder read as the button jumping when he changed rooms.
+          Ruled: Rooms is the reference and its seat is the only seat. The shell arm now
+          draws through components/worklist/Fab.tsx and names no number at all.
+
+          THE /vendor ARM IS UNTOUCHED, AND THAT IS THE RULING TOO. Its 82 clears the old
+          BottomNav, `.wl-fab` does not exist outside the shell scope, and that tree dies
+          whole at Phase 7. Two implementations, each with its reason at its site — the
+          same shape the ask door took two hours ago. */}
+      {/* CE-46: the floating + is retired from every list room; ADD_ON_TOP draws each room's add at the top */}
+
+      {children}
+    </div>
+  );
+}
+
+// ── CE-43 LC-2 packet 3i · F-43.112 · the lead detail's timing marks ─────────────
+// Chair-ruled: the founder's timing snippet measures the moment the package card and the detail
+// rows are stable, and the conversation's landing separately. Three User Timing marks, cleared at
+// each open so the entries always belong to the lead just opened:
+//   tdw:lead-detail:open          the detail's reads start (the tap's commit)
+//   tdw:lead-detail:card-rows     the frame after the card and rows render together
+//   tdw:lead-detail:conversation  the frame after the conversation lands
+// and two measures from the open mark (…:open→card-rows, …:open→conversation). Instrumentation only:
+// nothing on screen reads them, and a browser without the API skips them.
+const LEAD_MARK_PREFIX = 'tdw:lead-detail:';
+const LEAD_MARK_NAMES = ['open', 'card-rows', 'conversation'] as const;
+function perfOk(): boolean {
+  return typeof performance !== 'undefined' && typeof performance.mark === 'function' && typeof performance.measure === 'function';
+}
+function markLeadOpen(): void {
+  if (!perfOk()) return;
+  try {
+    for (const n of LEAD_MARK_NAMES) { performance.clearMarks(LEAD_MARK_PREFIX + n); performance.clearMeasures(`${LEAD_MARK_PREFIX}open→${n}`); }
+    performance.mark(LEAD_MARK_PREFIX + 'open');
+  } catch { /* instrumentation never breaks the sheet */ }
+}
+function markLead(name: 'card-rows' | 'conversation'): void {
+  if (!perfOk()) return;
+  try {
+    performance.mark(LEAD_MARK_PREFIX + name);
+    performance.measure(`${LEAD_MARK_PREFIX}open→${name}`, LEAD_MARK_PREFIX + 'open', LEAD_MARK_PREFIX + name);
+  } catch { /* instrumentation never breaks the sheet */ }
+}
+// Runs fn after the next frame has painted (two animation frames); returns a cancel.
+function afterPaint(fn: () => void): () => void {
+  if (typeof requestAnimationFrame !== 'function') { fn(); return () => {}; }
+  let inner = 0;
+  const outer = requestAnimationFrame(() => { inner = requestAnimationFrame(fn); });
+  return () => { cancelAnimationFrame(outer); if (inner) cancelAnimationFrame(inner); };
+}
+
+// ── SliceScreen · shared state assembly ──────────────────────────
+// The five modules parameterize this with their data hook, row mapper,
+// and delete route. State machine verbatim from the monofile.
+export interface SliceDataState<T> {
+  data: T[] | null;
+  loading: boolean;
+  error: string | null;
+  refresh: () => void;
+  /** P7.2 (FORK 4): the typed invoices read carries the server's summary on the same load
+      state; the invoices masthead reads it here instead of the engine cabinet. Optional so
+      the five other slices' loaders are untouched. */
+  summary?: { total_outstanding: number; total_collected: number } | null;
+}
+
+export interface SliceScreenProps<T extends { id: string }> {
+  slice: ListSlice;
+  vendorId: string;
+  useData: (vendorId: string | null) => SliceDataState<T>;
+  toRows: (data: T[]) => Row[];
+  /** Delete/cancel request per the slice's route. 'unsupported' preserves the
+      monofile's chat-redirect message for any future slice without a door.
+      successMessage (optional) overrides the door's raw reply — some doors
+      answer in tool-display prose with record ids aboard (founder-ruled polish). */
+  deleteRequest: (sel: Row) => { url: string; method: string; body?: string; successMessage?: string } | 'unsupported';
+  /** DESIGN-1 · STAGE 5b: set, the screen draws this one record as its page (SliceRecord) instead of the list and its
+      sheet; every act on the page is this screen's own handler. Invoices and events. */
+  recordId?: string;
+}
+
+export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData, toRows, deleteRequest, recordId }: SliceScreenProps<T>) {
+  // ONE DERIVATION, TWO READERS. `useInShell` was called inline for the toast alone; the
+  // F-39.11 focus arm below needs the same fact, and calling the hook twice in one
+  // component is two statements of one thing that a later edit can let disagree.
+  const ToastView = WlToast;
+  const { session } = useVendorSession();
+  const d = useData(vendorId);
+
+  const rawRows = useMemo(() => toRows(d.data ?? []), [toRows, d.data]);
+
+  const loading = d.loading;
+  const error   = d.error;
+
+  const [query, setQuery]     = useState('');
+  const [sel, setSel]         = useState<Row|null>(null);
+  const router = useRouter();   // DESIGN-1 · STAGE 5a: an enquiry is a page
+  // CE-43 LC-2 packet 3: the one booking sheet, opened by the lead card and by the swipe (F15(a)).
+  const [booking, setBooking] = useState<{ leadId: string; kind: BookingKind } | null>(null);
+  // CE-43 LC-2 packet 3f · R-43.16: the wedding-date completion a refusal line opens (the
+  // WishboneSheet `wedding_date` cell, the walked surface). A month- or year-precision date is
+  // pre-filled so the vendor makes it exact without retyping it (F-43.76, pulled into 3f); saving
+  // stores it at day precision. The sheet she came from stays open under it.
+  const [dateFix, setDateFix] = useState<{ leadId: string; name: string; value: string } | null>(null);
+  const openDateFix = (leadId: string) => {
+    void fetchLeadDetail(leadId).then((res) => {
+      const lead = res && res.ok ? res.lead : null;
+      const stored = lead && lead.wedding_date ? String(lead.wedding_date).slice(0, 10) : '';
+      setDateFix({ leadId, name: (lead && lead.name) || 'Enquiry', value: stored });
+    }).catch(() => setDateFix({ leadId, name: 'Enquiry', value: '' }));
+  };
+  // F-43.105: the lead detail and its package are read together when the sheet opens, and the body
+  // renders once both are in (a still placeholder until then), so the package card never pops in.
+  const [leadPkg, setLeadPkg] = useState<{ id: string; lp: LeadPackage | null } | null>(null);
+  // 3i · F-43.112: which lead the timing marks belong to, and whether its card-and-rows mark is made.
+  const leadMarks = useRef<{ id: string | null; ready: boolean }>({ id: null, ready: false });
+  // 3g: the lead's date facts come from this room's own leads read (no extra request); the booking
+  // and attach sheets use them to say what is missing before anything is sent.
+  // DESIGN-1 · STAGE 4: the lead's name and number, from the room's own read, for the Book sheet's confirmation draft
+  const leadOf = (leadId: string | null | undefined): { name: string; phone: string | null } => {
+    const l = slice === 'leads' && leadId ? (d.data ?? []).find((x) => x.id === leadId) as unknown as { name?: string | null; phone?: string | null } | undefined : undefined;
+    return { name: (l && l.name) || '', phone: (l && l.phone) || null };
+  };
+  const leadFactsOf = (leadId: string | null | undefined): LeadFacts | null => {
+    if (slice !== 'leads' || !leadId) return null;
+    const l = (d.data ?? []).find((x) => x.id === leadId) as unknown as { wedding_date?: string | null; wedding_date_precision?: LeadFacts['wedding_date_precision'] } | undefined;
+    return l ? { wedding_date: l.wedding_date ?? null, wedding_date_precision: l.wedding_date_precision ?? null } : null;
+  };
+  // F-43.107: the vendor's packages are read once per visit to the Leads room.
+  useEffect(() => {
+    if (slice !== 'leads') return;
+    resetPackagesCache();
+    void loadPackagesOnce();
+    return () => resetPackagesCache();
+  }, [slice]);
+  // CE-43 LC-2 packet 3e · F-43.101 (chair-ruled): an open invoice detail follows its row. The
+  // detail rows (Paid, Owed, State, Due) are the row the sheet opened with; when the list
+  // refetches after a payment, the open sheet takes the fresh row with the same id.
+  useEffect(() => {
+    if (slice !== 'invoices' || !sel) return;
+    const fresh = rawRows.find((r) => r.id === sel.id);
+    if (fresh && fresh !== sel) setSel(fresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawRows]);
+  // CE-43 LC-2 packet 3i · F-43.113 (chair-ruled): an open lead detail follows its row the same way.
+  // The chips, the Wedding date row and the booked badge are the row the sheet opened with; when the
+  // leads list refetches (a date filed from a chip, a booking made from the sheet), the open sheet takes
+  // the fresh row with the same id, so they update in place. The detail's own reads are keyed on the
+  // lead's id (below), so following the row re-reads nothing.
+  useEffect(() => {
+    if (slice !== 'leads' || !sel) return;
+    const fresh = rawRows.find((r) => r.id === sel.id);
+    if (fresh && fresh !== sel) setSel(fresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawRows]);
+  // CE-43 LC-2 packet 3c · F-43.88 (chair-ruled): a booking's invoice reads paid the instant
+  // Mark paid is tapped, and further taps are ignored while the request is out (payingRef,
+  // read synchronously, so a double tap cannot slip past a pending state update). Once the
+  // door says the invoice is fully paid, its mark-paid controls are gone (settledRef) until the
+  // list refetches with nothing owed.
+  const payingRef  = useRef<Set<string>>(new Set());
+  const settledRef = useRef<Set<string>>(new Set());
+  const [, setPayTick] = useState(0);
+  const packagePayBlocked = (row: Row) => !!row.isPackage && (payingRef.current.has(row.id) || settledRef.current.has(row.id));
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [deleting,    setDeleting]    = useState(false);
+  const [deleteMsg,   setDeleteMsg]   = useState<string | null>(null);
+  // Schedule state (invoice slice only)
+  const [schedule,       setSchedule]       = useState<ScheduleMilestone[] | null>(null);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleOpen,    setScheduleOpen]    = useState(false);
+  // ── G3.4 · the reminder her tap sends, held until she has SEEN the words ──
+  // `remindMs` is the milestone the confirm sheet is about. Null means no sheet.
+  // The milestone is held rather than an id, because the sheet renders the exact
+  // message and needs the label and the amount to compose it.
+  const [remindMs,        setRemindMs]        = useState<ScheduleMilestone | null>(null);
+  const [remindBusy,      setRemindBusy]      = useState(false);
+  // ── G3.4 s2 · F-40.215 / R-41.61 — the schedule can be corrected ──────────
+  // The milestone being edited is HELD, not its id: the sheet renders its label,
+  // share and date, and the amount it recomputes for her to read before she saves.
+  const [editMs,          setEditMs]          = useState<ScheduleMilestone | null>(null);
+  const [editLabel,       setEditLabel]       = useState('');
+  const [editPct,         setEditPct]         = useState('');
+  const [editDue,         setEditDue]         = useState('');
+  const [editErr,         setEditErr]         = useState<string | null>(null);
+  const [editBusy,        setEditBusy]        = useState(false);
+  const [removeSchedule,  setRemoveSchedule]  = useState(false);
+  const [removeBusy,      setRemoveBusy]      = useState(false);
+  // ⚠ NO `remindedIds` STATE. F-40.209: the control used to be drawn from a local
+  // array, so a reload offered a Remind for a milestone already chased — the UNIQUE
+  // key held and no client was messaged twice, but the surface was offering
+  // something it knew would be refused, because it never asked. The reminder state
+  // lives on `payment_reminders`; the door now joins it and hands back
+  // `reminded_at`, and the record reads THAT. After a send the schedule is
+  // re-fetched rather than a local flag being set, so what she sees is what the
+  // database says — before the reload and after it.
+  // ⚠ `vendors.business_name`, WHICH IS WHAT THE DOOR SENDS AS {{3}} — never the
+  // session's `name`. They are different columns and can hold different words; a
+  // preview showing one while the client receives the other would be a confirm
+  // sheet failing at the only job it has (F-39.70/.71). Fetched once from the
+  // door that already owns this field rather than added to a second one.
+  const [vendorBusinessName, setVendorBusinessName] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetchMe()
+      .then(r => { if (live && r && r.ok && r.vendor) setVendorBusinessName(r.vendor.business_name ?? null); })
+      .catch(() => { /* the sheet renders an em dash; it never guesses a name */ });
+    return () => { live = false; };
+  }, []);
+  const [milestones,      setMilestones]      = useState([{ label: 'Booking', pct: '30', due_date: '' }, { label: 'Shoot day', pct: '40', due_date: '' }, { label: 'Delivery', pct: '30', due_date: '' }]);
+  const [scheduleSaving,  setScheduleSaving]  = useState(false);
+  const [addOpen,     setAddOpen]     = useState(false);
+  const [editRow,     setEditRow]     = useState<Record<string,unknown> | null>(null);
+  const { toast, show: showToast, dismiss: dismissToast } = useToast();
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [leadDetail, setLeadDetail] = useState<{ vendor_summary: string | null; conversation: ConversationMessage[]; name: string | null } | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  async function doCreateSchedule() {
+    if (!sel || scheduleSaving) return;
+    const total = milestones.reduce((s, m) => s + Number(m.pct || 0), 0);
+    if (Math.abs(total - 100) > 0.01) return;
+    setScheduleSaving(true);
+    const res = await createSchedule(sel.id, milestones.map(m => ({
+      label: m.label, pct: Number(m.pct), due_date: m.due_date || undefined,
+    })));
+    if (!res.ok) showToast((res as { error?: string }).error ?? 'Failed to create schedule', 'error');
+    else { setSchedule((res as { schedule: ScheduleMilestone[] }).schedule); setScheduleOpen(false); }
+    setScheduleSaving(false);
+  }
+
+  // Fetch schedule when an invoice row is selected
+  useEffect(() => {
+    if (slice === 'invoices' && sel) {
+      if (!SCHEDULE_ENABLED) { setSchedule([]); return; }
+      setSchedule(null); setScheduleLoading(true);
+      fetchSchedule(sel.id).then(r => {
+        if (r.ok) setSchedule((r as { schedule: ScheduleMilestone[] }).schedule);
+        else setSchedule([]);
+      }).catch(() => setSchedule([])).finally(() => setScheduleLoading(false));
+    }
+  }, [sel, slice]);
+
+  // DESIGN-1 · STAGE 5b: Send on WhatsApp, one handler for the invoice sheet and the invoice's page. Unchanged: it
+  // fetches the PDF's address, then opens wa.me with the client's number and the link in the draft.
+  async function sendInvoiceOnWa(row: Row) {
+    try {
+      const res = await fetchInvoicePdf(row.id);
+      const pdfRes = res as { ok: boolean; pdf_url?: string; error?: string };
+      if (pdfRes.ok && pdfRes.pdf_url) {
+        const phone   = (row.client_phone ?? '').replace(/\D/g, '');
+        const message = encodeURIComponent(`Hi ${row.primary}, please find your booking confirmation for ${row.secondary ?? 'your invoice'} here: ${pdfRes.pdf_url}`);
+        window.open(`https://wa.me/${phone}?text=${message}`, '_blank', 'noopener');
+      } else {
+        // UNCHANGED WORDING, REHOMED. A real precondition is not
+        // the same defect as an invented state — this sentence names
+        // something the vendor can actually do. It moves to the
+        // register for the one-home law alone.
+        showToast(pdfRes.error ?? COPY.studioPdfNoAdvance, 'error');
+      }
+    } catch {
+      showToast('Could not fetch the PDF. Try again.', 'error');
+    }
+  }
+
+  async function downloadInvoicePdf() {
+    if (!sel || pdfBusy) return;
+    setPdfBusy(true);
+    try {
+      const res = await fetchInvoicePdf(sel.id);
+      if (res.ok && (res as { pdf_url?: string }).pdf_url) {
+        window.open((res as { pdf_url: string }).pdf_url, '_blank', 'noopener');
+      } else {
+        // ── F-2c.p10's CURE ────────────────────────────────────────────
+        // WHAT THIS SAID: 「PDF not ready yet — try again in a moment.」 That
+        // described WAITING when what happened was FAILING, and it invented a
+        // state this door cannot report: `GET /:invoiceId/pdf` is SYNCHRONOUS
+        // (`src/api/vendor/money.js` · the `GET /invoices/:vendorId/:invoiceId/pdf` arm's `okRes` — the MONEY plane, which is the door
+        // `fetchInvoicePdf` actually composes; this comment named
+        // `src/api/vendor/invoices.js:398` and that route is never called from
+        // here, c-2c.s7) — it generates and returns a URL or
+        // it errors. `pdf_pending` exists only on `POST /` at :249 and no reader
+        // in this repo consumes it. So the sentence was the `??` fallback for an
+        // ok-false carrying no error, telling the vendor to wait for something
+        // that was never in flight. The founder's walk hit this door and the
+        // retry succeeded: the door works, and only the sentence lied.
+        showToast((res as { error?: string }).error ?? COPY.studioPdfFailed, 'error');
+      }
+    } catch {
+      showToast('Could not fetch the PDF. Try again.', 'error');
+    }
+    setPdfBusy(false);
+  }
+
+  // TDW_04 A2 — interaction state: long-press select mode, optimistic hides
+  // (deferred deletes), optimistic badge overrides (deferred state moves),
+  // and the leads-only Mark-lost confirm (L-2's deliberate separate action).
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const selectMode = selected.size > 0;
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [badgeOverride, setBadgeOverride] = useState<Record<string, string>>({});
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [markLostConfirm, setMarkLostConfirm] = useState(false);
+  // TDW_04 A4 (P4): FilterRail single-select + the masthead sort toggle.
+  const [filterKey, setFilterKey] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<'recent' | 'amount' | 'date'>('recent');
+  const [lostReason, setLostReason] = useState(''); // F-04.12: the optional reason, lands in notes
+  const longPress = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const hideRow = (id: string) => setHiddenIds(s => new Set(s).add(id));
+  const unhideRow = (id: string) => setHiddenIds(s => { const n = new Set(s); n.delete(id); return n; });
+  const setBadge = (id: string, b: string | null) => setBadgeOverride(m => { const n = { ...m }; if (b == null) delete n[id]; else n[id] = b; return n; });
+
+  // One undoable single-row mutation: optimistic apply now, write on the 30s
+  // lapse, UNDO reverts (deferred-fire — see lib/vendor/undo.ts for why).
+  function undoableMutation(opts: { apply: () => void; revert: () => void; commit: () => Promise<void>; toastMsg: string }) {
+    opts.apply();
+    const { undo } = queueUndoable({ slice, commit: opts.commit, revert: opts.revert });
+    // TDW_04 A3.3 (CE meta-finding): an undo that just makes the toast vanish
+    // leaves the vendor unable to tell whether his own undo landed — twice now
+    // that ambiguity has cost a debugging session (Rahul Sharma's trail, and
+    // F-04.14's report). The undo's outcome is now legible after the fact.
+    showToast(opts.toastMsg, 'success', {
+      action: { label: 'Undo', onAction: () => { undo(); showToast('Restored.', 'success'); } },
+      durationMs: UNDO_WINDOW_MS,
+    });
+  }
+
+  // ── TDW_04 A4 (P4): FilterRail chips per slice, counts from the raw rows ──
+  // leads = state segments w/ counts · invoices = payment states · expenses =
+  // month chips (last 6) · events = this week / later / done. Clients keeps the
+  // cabinet's own grouping (its list isn't row-based; no rail there).
+  const monthKey = (iso?: string | null) => (iso ?? '').slice(0, 7);
+  const monthLabel = (k: string) => { const [y, m] = k.split('-'); return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }); };
+  const filterChips: FilterChip[] = useMemo(() => {
+    const count = (fn: (r: Row) => boolean) => rawRows.filter(fn).length;
+    if (slice === 'leads') return ['new', 'contacted', 'quoted', 'booked', 'lost']
+      .map(k => ({ key: k, label: k.charAt(0).toUpperCase() + k.slice(1), count: count(r => (r.badge ?? '').toLowerCase() === k) }));
+    if (slice === 'invoices') return ['overdue', 'unpaid', 'advance_paid', 'paid']
+      .map(k => ({ key: k, label: k === 'advance_paid' ? 'Part paid' : k.charAt(0).toUpperCase() + k.slice(1),
+        count: k === 'overdue' ? count(r => !!r.badgeAlert) : count(r => (r.badge ?? '').toLowerCase().replace(' ', '_') === k) }));
+    if (slice === 'expenses') {
+      const keys = [...new Set(rawRows.map(r => monthKey(r.sortDate)).filter(Boolean))].sort().reverse().slice(0, 6);
+      return keys.map(k => ({ key: k, label: monthLabel(k), count: count(r => monthKey(r.sortDate) === k) }));
+    }
+    if (slice === 'events') {
+      const today = istTodayISO();
+      const week = istPlusDaysISO(7);
+      return [
+        { key: 'week', label: 'This week', count: count(r => (r.sortDate ?? '') >= today && (r.sortDate ?? '') <= week && (r.badge ?? '') === 'upcoming') },
+        { key: 'later', label: 'Later', count: count(r => (r.sortDate ?? '') > week && (r.badge ?? '') === 'upcoming') },
+        { key: 'done', label: 'Done', count: count(r => (r.badge ?? '') === 'done') },
+      ];
+    }
+    return [];
+  }, [slice, rawRows]);
+
+  const passesFilter = (r: Row): boolean => {
+    if (!filterKey) return true;
+    if (slice === 'leads') return (r.badge ?? '').toLowerCase() === filterKey;
+    if (slice === 'invoices') return filterKey === 'overdue' ? !!r.badgeAlert : (r.badge ?? '').toLowerCase().replace(' ', '_') === filterKey;
+    if (slice === 'expenses') return monthKey(r.sortDate) === filterKey;
+    if (slice === 'events') {
+      const today = istTodayISO();
+      const week = istPlusDaysISO(7);
+      if (filterKey === 'week') return (r.sortDate ?? '') >= today && (r.sortDate ?? '') <= week && (r.badge ?? '') === 'upcoming';
+      if (filterKey === 'later') return (r.sortDate ?? '') > week && (r.badge ?? '') === 'upcoming';
+      return (r.badge ?? '') === 'done';
+    }
+    return true;
+  };
+
+  const rows = useMemo(() => {
+    // TDW_04 A2: optimistic layer — deferred deletes hide rows now; deferred
+    // state moves override the badge now; UNDO reverts both (lib/vendor/undo).
+    let out = rawRows.filter(r => !hiddenIds.has(r.id)).map(r => badgeOverride[r.id] ? { ...r, badge: badgeOverride[r.id], badgeAlert: badgeOverride[r.id] === 'lost' } : r);
+    out = out.filter(passesFilter); // TDW_04 A4: the rail's single-select
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      out = out.filter(r => r.primary.toLowerCase().includes(q)||(r.secondary??'').toLowerCase().includes(q)||(r.meta??'').toLowerCase().includes(q));
+    }
+    // TDW_04 A4 (P4): sort toggle — recent (wire order) · amount · date.
+    if (sortKey === 'amount') out = [...out].sort((a, b) => (b.payAmount ?? b.pipelineValue ?? 0) - (a.payAmount ?? a.pipelineValue ?? 0));
+    else if (sortKey === 'date') out = [...out].sort((a, b) => (a.sortDate ?? '9999') < (b.sortDate ?? '9999') ? -1 : 1);
+    return out;
+  }, [rawRows, query, hiddenIds, badgeOverride, filterKey, sortKey, slice]);
+
+  // ── DESIGN-1 · STAGE 5b · RECORD MODE ───────────────────────────────────────────────────────────────────────────
+  // The page's row is read from the whole list (no search or filter applies to a page), with its pending state on it.
+  // `sel` follows it, so every handler below that reads `sel` (the schedule, the PDF, Edit) serves the page as it
+  // serves the sheet; the sheet itself is never opened in record mode.
+  const recRow = useMemo(() => {
+    if (!recordId) return null;
+    const r = rawRows.find((x) => x.id === recordId);
+    return r ? (badgeOverride[r.id] ? { ...r, badge: badgeOverride[r.id] } : r) : null;
+  }, [recordId, rawRows, badgeOverride]);
+  useEffect(() => {
+    if (recRow && (!sel || sel.id !== recRow.id)) setSel(recRow);
+  }, [recRow, sel]);
+
+  // TDW_04 A4 (F-04.14, CE-RATIFIED — returns ruled after the A3.2 revert):
+  // slice→slice navigation REMOUNTS (A2's verdict), so the optimistic badge
+  // reverted while its write sat in the 30s window — read as data loss.
+  // Leaving the screen COMMITS what's pending: the undo window is a courtesy
+  // for the moment you're looking at the row, not a vote to discard the write.
+  useEffect(() => () => { flushAllPending(); }, []);
+
+  // ── F-39.11 · `?lead=<id>` FOCUSES ONE ROW, INSIDE THE SHELL ONLY ──────────
+  //
+  // A Today card names a record; the room it lands in has to be able to show WHICH. There
+  // was no way for a route to say that — this module reads no search param anywhere — so
+  // the param is the smallest thing that closes it.
+  //
+  // ⚠ GATED ON `inShell`, AND THE FALLBACK IGNORES IT BY CONSTRUCTION. `/vendor/list/leads
+  // ?lead=…` does nothing at all: the effect returns before it reads the param. That is
+  // the ruling's shape and it is also the safe one — the /vendor tree is being retired at
+  // Phase 7 and must not grow a behaviour that has to be retired with it.
+  //
+  // ⚠ IT OPENS THE SHEET — AND THE ARM IT REPLACES WAS THIS SEAT'S OWN ARGUMENT.
+  //
+  // The first cut focused and scrolled the row and stopped there, on the reasoning that a
+  // sheet opening itself from an address is a surface the vendor did not ask for. THE
+  // FOUNDER'S WALK CONVICTED IT IN ONE SENTENCE: 「essentially its a double tap to reach
+  // whats alredy there」. She DID ask — she tapped a card carrying one lead's name. Landing
+  // her in a list with that lead outlined answers a question she did not put and then asks
+  // her to put it again. Against W-1 the card removed nothing: Rooms→Leads→row was three
+  // taps and Today→card→row is three. Chair's F-39.11 arm withdrawn at c-39.25.
+  //
+  // ⚠ THE OTHER REFUSAL SURVIVES INTACT, AND IT IS THE ONE THAT MATTERS. `selected` is the
+  // long-press BULK set; a URL must NEVER enter select-mode with a row ticked, because that
+  // is a gesture's state entered without the gesture. `setSel` opens the record. The two
+  // were refused together and only one of them was wrong.
+  //
+  // THE SCROLL STAYS. When the vendor closes the sheet she lands on the row she came for,
+  // in view, rather than at the top of a list of eleven.
+  //
+  // IT RUNS WHEN THE ROWS DO. `rows` is the dependency because the element cannot be found
+  // before the list paints, and a one-shot on mount would silently miss every time.
+  // ── ARM D · EVERY TODAY CARD OPENS ITS RECORD (F-39.68) ──────────────────────────────
+  // The leads card has carried `?lead=<id>` since F-39.17; the other kinds landed on a room
+  // root and left the vendor to find the row he had just tapped. The arm below is the SAME
+  // arm, generalised by one map: each slice names the query key its Today card writes, and
+  // the room the registry gives that kind (ROOM_FOR_KIND) is the room the key is read in.
+  // Uniform on purpose — one reader, one gate, one behaviour to walk.
+  //
+  // `contracts` is absent from the map DELIBERATELY: the contracts room has no record sheet,
+  // so its Today card lands on the room root. That is stated rather than faked with a scroll
+  // (F-39.76 opens the sheet in Block 09).
+  //
+  // `events` reads `?event=` HERE, in the events slice — not CalendarDaySheet, which belongs
+  // to the calendar room. The registry says events_today lives in `events`, and a card may not
+  // send a kind to a room the registry does not name for it (c-P72.19 / c-39.64).
+  const focusedRef = useRef<string | null>(null);
+  useEffect(() => {
+    // DESIGN-1 · STAGE 3: the universal search opens a client the same way (?client=<id>, lib/worklist/search.ts).
+    const KEY_FOR_SLICE: Record<string, string> = { leads: 'lead', invoices: 'invoice', events: 'event', clients: 'client' };
+    const key = KEY_FOR_SLICE[slice];
+    if (!key) return;
+    const want = new URLSearchParams(window.location.search).get(key);
+    if (!want || focusedRef.current === want) return;
+    // DESIGN-1 · STAGE 5a: ?lead=<id> (Today's cards, the search) opens the enquiry's page
+    if (slice === 'leads') { focusedRef.current = want; router.replace(enquiryHref(want)); return; }
+    // DESIGN-1 · STAGE 5b: ?invoice=<id> and ?event=<id> (Today's cards, the search) open the record's page
+    if (slice === 'invoices' || slice === 'events') { focusedRef.current = want; router.replace(slice === 'invoices' ? invoiceHref(want) : eventHref(want)); return; }
+    if (!rows.some((r) => r.id === want)) return;
+    const el = document.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(want)}"]`);
+    if (!el) return;
+    focusedRef.current = want;
+    el.scrollIntoView({ block: 'center' });
+    const row = rows.find((r) => r.id === want);
+    if (row) setSel(row);
+  }, [slice, rows]);
+
+  // Fetch lead detail when a lead row is selected
+  // 3i · F-43.113: keyed on the lead's id, not the row object, so a followed row (or the booked
+  // badge set on success) does not re-run the two reads or reset the timing marks.
+  const selId = sel ? sel.id : null;
+  useEffect(() => {
+    // The lead DETAIL fetch stays leads-only: it reads the lead conversation endpoint, which
+    // the other slices have no twin for. Opening their record is the sheet; enriching it is not.
+    if (slice !== 'leads' || !selId) { setLeadDetail(null); setLeadPkg(null); leadMarks.current = { id: null, ready: false }; return; }
+    setLoadingDetail(true);
+    const id = selId;
+    leadMarks.current = { id, ready: false };
+    markLeadOpen();
+    // F-43.107 (the seat's cure, chair-ratified): the two reads run in parallel but do not wait for
+    // each other. The rows and the package card render together the moment the package read is in;
+    // the conversation fills below on its own read.
+    void fetchLeadPackage(id)
+      .then((pk) => setLeadPkg({ id, lp: pk && pk.ok ? pk.lead_package : null }))
+      .catch(() => setLeadPkg({ id, lp: null }));
+    void fetchLeadDetail(id)
+      .then((res) => { if (res && res.ok) setLeadDetail({ vendor_summary: res.vendor_summary, conversation: res.conversation, name: (res.lead && res.lead.name) || null });
+        // 3i · F-43.112: the conversation's landing, measured on its own.
+        if (res && res.ok && leadMarks.current.id === id) afterPaint(() => { if (leadMarks.current.id === id) markLead('conversation'); });
+      })
+      .catch(() => {})
+      .finally(() => setLoadingDetail(false));
+  }, [selId, slice]);
+
+  // 3i · F-43.112 (chair-ruled): the card and the rows are stable once the package read for this
+  // lead is in (bodyLoading turns false and they render together, F-43.107). The mark lands after
+  // that frame is painted, once per open, so the founder's snippet measures that moment and not the
+  // conversation filling in below.
+  const readyLeadId = slice === 'leads' && sel && leadPkg && leadPkg.id === sel.id ? sel.id : null;
+  useEffect(() => {
+    if (!readyLeadId) return;
+    const m = leadMarks.current;
+    if (m.id !== readyLeadId || m.ready) return;
+    return afterPaint(() => {
+      if (leadMarks.current.id !== readyLeadId || leadMarks.current.ready) return;
+      leadMarks.current.ready = true;
+      markLead('card-rows');
+    });
+  }, [readyLeadId]);
+
+  // TDW_04 A1 — the leads-plane wishbone. DetailSheet's own P3 comment named
+  // this injection; the sheet itself is a module (tenancy law: machinery
+  // migrates out as phases rebuild it). Completion goes through updateLead —
+  // the wire's complete_inline door, "one door, both callers" — and refetches
+  // via the invalidation bus (the F2 lesson).
+  const [wishboneRow, setWishboneRow] = useState<Row | null>(null);
+  // 3g · F-43.108: the chip the vendor tapped; the sheet opens on it.
+  const [wishboneStart, setWishboneStart] = useState<string | undefined>(undefined);
+  // BLOCK 19 G5.1 — the forward sheet's own row, a sibling of the wishbone's.
+  const [forwardRow, setForwardRow] = useState<Row | null>(null);
+
+
+  function onEditHere(row: Row) {
+    setSel(null);
+    let raw: Record<string,unknown> | null = null;
+    raw = ((d.data ?? []).find(r => r.id === row.id) as unknown as Record<string,unknown>) ?? null;
+    if (!raw) raw = { id: row.id };
+    setEditRow(raw);
+    setAddOpen(true);
+  }
+  function onAdd() { setEditRow(null); setAddOpen(true); }
+
+  // TDW_04 A2 (F2's cure): the destructive confirm is now OPTIMISTIC — the row
+  // hides at once, the sheet closes, and the write fires when the 30s undo
+  // window lapses (deferred-fire; see lib/vendor/undo.ts). UNDO restores the
+  // row and no write ever happens. On commit failure the bus refetch restores
+  // truth and an error toast says so.
+  function confirmDelete() {
+    if (!sel || deleting) return;
+    const row = sel;
+    const req = deleteRequest(row);
+    if (req === 'unsupported') { setDeleteMsg("Can’t delete from here yet. Use the chat."); return; }
+    setSel(null); setConfirmDel(false); setDeleteMsg(null);
+    undoableMutation({
+      apply:  () => hideRow(row.id),
+      revert: () => unhideRow(row.id),
+      commit: async () => {
+        const res = await fetch(req.url, { method: req.method, headers: { 'Content-Type': 'application/json', ...getAuthHeader() }, body: req.body });
+        const data = await res.json().catch(() => ({ ok: false, error: 'Server error.' }));
+        if (!res.ok || !data.ok) { unhideRow(row.id); showToast(data.error ?? 'Delete failed. The row is back.', 'error'); }
+      },
+      toastMsg: req.successMessage ?? 'Removed.',
+    });
+  }
+
+  // DESIGN-1 · STAGE 5b: Cancel from the record's page. The same door as the sheet's confirm (deleteRequest), the same
+  // 30-second Undo; but the page stays, reading Cancelled, so the Undo on its toast is still in reach.
+  function cancelHere(row: Row) {
+    const req = deleteRequest(row);
+    if (req === 'unsupported') { showToast('Can’t cancel from here yet. Use the chat.', 'error'); return; }
+    undoableMutation({
+      apply:  () => setBadge(row.id, 'cancelled'),
+      revert: () => setBadge(row.id, null),
+      commit: async () => {
+        const res = await fetch(req.url, { method: req.method, headers: { 'Content-Type': 'application/json', ...getAuthHeader() }, body: req.body });
+        const data = await res.json().catch(() => ({ ok: false, error: 'Server error.' }));
+        setBadge(row.id, null);   // the bus refetch is the truth now
+        if (!res.ok || !data.ok) showToast(data.error ?? `Could not cancel ${row.primary}.`, 'error');
+      },
+      toastMsg: RECORD.cancelledDone(row.primary),
+    });
+  }
+
+  // TDW_04 A2 (L-2): Mark lost — the deliberate, SEPARATE action with its own
+  // confirm. State move, not a delete; deferred-fire + undo like every mutation.
+  // F-04.12 (founder-ruled 2026-07-15): UNGATED BUT CONFESSED. Any state may go
+  // to lost — a booked client can walk at any stage and the vendor must be able
+  // to say so. But a backwards-unusual leap (from booked/consult) gets one line
+  // of confession in the confirm, plus an optional reason that lands in `notes`
+  // through the door. No hard gate: the product warns, the vendor rules, the
+  // record remembers.
+  const BACKWARD_UNUSUAL = ['booked', 'consult'];
+  const isBackwardUnusual = (badge?: string) => BACKWARD_UNUSUAL.includes((badge ?? '').toLowerCase());
+
+  function markLost(row: Row) {
+    setMarkLostConfirm(false);
+    setSel(null);
+    const prevBadge = row.badge ?? 'new';
+    const reason = lostReason.trim();
+    setLostReason('');
+    undoableMutation({
+      apply:  () => setBadge(row.id, 'lost'),
+      revert: () => setBadge(row.id, null),
+      commit: async () => {
+        // The reason rides the door's own contract (PATCH /state takes `reason`
+        // and lands it in the notes trail — verified at HEAD, leads.js).
+        const res = await patchLeadState(row.id, 'lost', reason || undefined);
+        setBadge(row.id, null); // bus refetch takes over as truth
+        if (!('ok' in res) || !res.ok) showToast(`Could not mark ${row.primary} lost. Still ${prevBadge}.`, 'error');
+      },
+      toastMsg: `${row.primary} marked lost.`,
+    });
+  }
+
+
+  // ── TDW_04 A2: the approved swipe table per slice (TDW_03 P4, absorbed) ──
+  // leads R: state→booked · leads L: Call if phone else Mark lost (confirm)
+  // invoices R: mark fully paid (payments door) · L: cancel (existing confirm)
+  // expenses R: repeat last (A4's AddSheet rebuild owns the prefill — deferred,
+  //   logged) · L: delete (existing confirm)
+  // events R: state→done · L: cancel (existing confirm)
+  // Non-destructive moves are deferred-fire + undo; destructive gestures open
+  // the standing confirm sheet (whose confirm is itself undoable now).
+  function swipeSidesFor(row: Row): { right?: SwipeSide; left?: SwipeSide } {
+    if (slice === 'leads') return {
+      // CE-43 LC-2 packet 3 · F15(a): the label is KEPT and the act MOVED. The swipe opens the
+      // booking sheet (A12); nothing is written until the vendor taps Confirm booking, and the
+      // write is the promotion act, never a bare state change (R-43.5).
+      // CE-43 LC-2 packet 3d · F-43.95 (a): withheld on a lead that is already booked, as the card
+      // withholds its booking controls there. No re-run path.
+      right: (row.badge ?? '').toLowerCase() === 'booked'
+        ? undefined
+        : { label: 'Booked', onTrigger: () => setBooking({ leadId: row.id, kind: 'booking_confirmed' }) },
+      // ── R-37.22 · THE LEFT SIDE SUPPRESSES ON A REDACTED ROW ──────────────
+      // THE INCIDENT THIS CLOSES, written down because it was live: Seat A′'s
+      // recut withholds `phone` from a basic vendor's leads wire (R-36.13 — the
+      // gate is the mode to connect). This ternary keyed on `row.phone`, so on
+      // 0dc5a27's deploy every basic vendor's left swipe silently STOPPED being
+      // `Call` and BECAME `Mark lost` — a different verb in a remembered
+      // position, on the paid product, with no ruling behind it.
+      //
+      // GRADED HONESTLY, NOT DRAMATICALLY: it opened the standing confirm and
+      // `Mark lost` is itself undoable, so nothing was destroyed silently. The
+      // defect was the gesture changing identity underneath the vendor's thumb.
+      //
+      // THE RULING IS SUPPRESSION, NOT SUBSTITUTION. On a redacted row the left
+      // side renders NOTHING. The two refused arms are worth keeping visible:
+      // routing the gesture to the upsell was refused because A GESTURE MUST
+      // NEVER OPEN A SALES SURFACE, and keeping `Mark lost` was refused because
+      // per-tier gesture semantics is the muscle-memory trap itself. `Mark lost`
+      // stays reachable through the detail sheet's own control, so nothing is
+      // lost but the ambiguity.
+      //
+      // KEYED ON `redacted`, NEVER ON `!row.phone` (R-37.23). The wire's
+      // positive statement is the signal; an absent phone cannot tell a
+      // withheld number from a lead that never had one, and the second of those
+      // is a perfectly ordinary row whose swipe should keep working.
+      left: row.redacted
+        ? undefined
+        : row.phone
+          ? { label: 'Call', onTrigger: () => { window.location.href = `tel:${row.phone}`; } }
+          : { label: 'Mark lost', destructive: true, onTrigger: () => { setSel(row); setMarkLostConfirm(true); } },
+    };
+    if (slice === 'invoices') return {
+      right: packagePayBlocked(row) ? undefined : { label: COPY.studioMarkPaid, onTrigger: () => {
+        const owed = row.payAmount ?? 0;
+        if (owed <= 0) { showToast('Already settled.', 'success'); return; }
+        // CE-43 LC-2 packet 3 · F17, F-43.86 (c2): on a booking's invoice the door pays the NEXT
+        // milestone, and the toast is D3 (D4 after the last), built from the door's answer. The
+        // sentence needs the answer, so this path commits at once rather than through the undo
+        // window; the row, the swipe and the Mark paid button all arrive here.
+        if (row.isPackage) {
+          if (packagePayBlocked(row)) return;
+          payingRef.current.add(row.id);
+          setBadge(row.id, 'paid');
+          setPayTick((t) => t + 1);
+          void (async () => {
+            let r: Awaited<ReturnType<typeof recordPayment>>;
+            try { r = await recordPayment(row.id, { amount: owed }); }
+            catch { r = { ok: false, error: '' }; }
+            payingRef.current.delete(row.id);
+            if (!('ok' in r) || !r.ok || !r.invoice) {
+              setBadge(row.id, null); setPayTick((t) => t + 1);
+              showToast(`Payment on ${row.secondary ?? row.primary} failed.`, 'error'); return;
+            }
+            invalidateSlice('invoices');
+            const m = r.milestone;
+            const paidInFull = r.invoice.state === 'paid' || !r.invoice.due_date;
+            if (paidInFull) settledRef.current.add(row.id); else setBadge(row.id, null);
+            setPayTick((t) => t + 1);
+            showToast(paymentMarked({
+              client: row.primary,
+              label: m ? m.milestone_label : '',
+              amount: formatRs(m ? (m.paid_amount ?? m.amount_due) : r.payment_recorded),
+              date: packageDate(m && m.paid_at ? istDateOf(m.paid_at) : null),
+              nextDue: paidInFull ? null : packageDate(r.invoice.due_date),
+            }), 'success');
+          })();
+          return;
+        }
+        undoableMutation({
+          apply: () => setBadge(row.id, 'paid'), revert: () => setBadge(row.id, null),
+          commit: async () => { const r = await recordPayment(row.id, { amount: owed }); setBadge(row.id, null); if (!('ok' in r) || !r.ok) showToast(`Payment on ${row.secondary ?? row.primary} failed.`, 'error'); },
+          toastMsg: `${row.secondary ?? row.primary} marked fully paid.` });
+      } },
+      left: { label: 'Cancel', destructive: true, onTrigger: () => { setSel(row); setConfirmDel(true); } },
+    };
+    // ── R-37.43 §8.3 · THE RIGHT SIDE SUPPRESSES ON AN EXPENSE ROW ──────────
+    // THE DISEASE, written down because it was live on the paid shell: the right
+    // swipe was labelled `Repeat` and its entire body was
+    // `showToast('Repeat-last lands with the AddSheet rebuild (A4).', 'success')`.
+    // Zero writes behind it, ungated, on every tier. A vendor swiped a real
+    // expense row, the gesture completed, and the estate answered in the SUCCESS
+    // register — the same green the invoice row beside it uses when a payment
+    // actually lands. §4's house law is one sentence: the UI confirms only what a
+    // tool result or an API response proved. This confirmed nothing and said so
+    // in the voice of proof.
+    //
+    // GRADED HONESTLY, NOT DRAMATICALLY: nothing was destroyed, no money moved,
+    // no row changed — the toast was the entire effect. The defect is that the
+    // vendor was told an act had occurred. A ledger surface that lies about a
+    // small act is not believed about a large one, and that is the whole cost.
+    //
+    // THE CURE IS SUPPRESSION, NOT SUBSTITUTION — R-37.22's shape, reused because
+    // this is the same class one gesture over. The right side renders NOTHING:
+    // SwipeRow clamps `next = 0` when a side is absent, so the row does not
+    // translate, no label reveals, and there is no handler to fire. The two
+    // refused arms are kept visible: an HONEST toast ("Repeat lands later") was
+    // refused because a gesture that answers is a gesture that did something, and
+    // a different verb in the remembered position was refused as the
+    // muscle-memory trap R-37.22 already named. No copy byte ships here — there
+    // is no byte to veto because there is no surface.
+    //
+    // WHAT RETURNS WHEN A4 LANDS: `Repeat` comes back with the AddSheet rebuild
+    // behind it, writing before it speaks. The gesture is not retired; it is held
+    // until it has something true to say. Delete is untouched — the left side was
+    // never part of this.
+    if (slice === 'expenses') return {
+      right: undefined,
+      left: { label: 'Delete', destructive: true, onTrigger: () => { setSel(row); setConfirmDel(true); } },
+    };
+    if (slice === 'events') return {
+      // TDW_04 A3 (F-04.8, CE-ratified): the state door now stands — A2 stubbed
+      // this honest rather than inventing a route, and the rider shipped with
+      // A3's mastheads. Mark-done is a real write again.
+      right: { label: 'Done', onTrigger: () => undoableMutation({
+        apply: () => setBadge(row.id, 'done'), revert: () => setBadge(row.id, null),
+        commit: async () => { const r = await updateEvent(row.id, { state: 'done' }); setBadge(row.id, null); if (!('ok' in r) || !r.ok) showToast(`Could not mark ${row.primary} done.`, 'error'); },
+        toastMsg: `${row.primary} → done.` }) },
+      left: { label: 'Cancel', destructive: true, onTrigger: () => { setSel(row); setConfirmDel(true); } },
+    };
+    return {};
+  }
+
+  // Long-press (500ms) enters select mode; taps toggle while selecting.
+  // The RELEASE of a long-press also synthesizes a click — which would toggle
+  // the fresh selection straight back off. Suppress that one click.
+  const longPressFired = useRef(false);
+  function rowPressHandlers(row: Row) {
+    return {
+      onPointerDown: () => { longPress.current = setTimeout(() => { longPressFired.current = true; setSelected(s => new Set(s).add(row.id)); }, 500); },
+      onPointerUp:   () => { if (longPress.current) clearTimeout(longPress.current); },
+      onPointerMove: () => { if (longPress.current) clearTimeout(longPress.current); },
+      onPointerCancel: () => { if (longPress.current) clearTimeout(longPress.current); },
+      onClickCapture: (e: React.MouseEvent) => { if (longPressFired.current) { longPressFired.current = false; e.preventDefault(); e.stopPropagation(); } },
+    };
+  }
+  function toggleSelected(row: Row) {
+    setSelected(s => { const n = new Set(s); if (n.has(row.id)) n.delete(row.id); else n.add(row.id); return n; });
+  }
+
+  // ── TDW_04 A3 (P5/ST-4/L-4): THE mastheads ─────────────────────────────
+  // Every figure rides lib/vendor/derive.ts — the same function the hub Ledger
+  // reads, over the same rows. Invoices' "outstanding" here IS the hub's "Owed":
+  // one derivation, two renderers, agreement by construction.
+  const cabForMoney = useCabinetData(slice === 'clients' ? vendorId : null);
+  const masthead = useMemo(() => {
+    if (slice === 'invoices') {
+      // P7.2 (FORK 4): the figure is the server's `summary.total_outstanding` (money.js,
+      // OUTSTANDING_STATES — the one rule); the open count is the rows still owed, which is
+      // `amount_owed > 0` on server-computed rows, not a second rule. Gated on a reading:
+      // no summary, no figure (F-38.31).
+      const outstanding = d.summary ? d.summary.total_outstanding : null;
+      const openCount = rawRows.filter(r => (r.payAmount ?? 0) > 0).length;
+      if (outstanding === null) return null;
+      return <Masthead line={LEGACY_ROOM_HEAD.invoices(openCount)} value={outstanding} isMoney />;
+    }
+    if (slice === 'clients') {
+      const c = deriveClients(cabForMoney.data);
+      return <Masthead line={LEGACY_ROOM_HEAD.clients(c.count)} value={c.count} />;
+    }
+    if (slice === 'leads') {
+      const p = derivePipeline(rawRows.map(r => ({ state: r.badge, budget_total: r.pipelineValue })));
+      return <Masthead line={LEGACY_ROOM_HEAD.leads(p.count)} value={p.value} isMoney />;
+    }
+    if (slice === 'expenses') {
+      const e = deriveExpensesThisMonth(rawRows.map(r => ({ amount: r.pipelineValue, expense_date: r.sortDate })));
+      return <Masthead line={LEGACY_ROOM_HEAD.expenses(e.count)} value={e.total} isMoney />;
+    }
+    if (slice === 'events') {
+      const w = deriveEventsThisWeek(rawRows.map(r => ({ event_date: r.sortDate, state: r.badge?.toLowerCase() })));
+      return <Masthead line={LEGACY_ROOM_HEAD.events(w.count)} value={w.count} />;
+    }
+    return null;
+  }, [slice, cabForMoney.data, rawRows, d.summary]);
+
+  // ── F-2c.p9 · MONEY'S PRIMARY VERB IS NOT GESTURE-ONLY ────────────────────
+  // The founder's 2c walk: an invoice could only be settled by SWIPING it. A
+  // gesture has no affordance — nothing on the row says it exists, nothing tells
+  // a new vendor it is there, and a screen reader reaches none of it. So the
+  // BUTTON IS ADDED AND THE SWIPE STAYS: both call the SAME handler, so there is
+  // one write path and two ways to reach it, and neither can drift from the
+  // other by being edited alone.
+  //
+  // ⚠ OUTSTANDING ROWS ONLY (card ⑥, founder-ruled at the mock). A settled row
+  // carries no button. The swipe still reaches every row and still answers
+  // 「Already settled.」 there — that byte survives as the GESTURE's answer,
+  // because a gesture that lands on a settled row has to say something, while a
+  // button that would say it does not need to exist. The veto sheet's §B6 note
+  // said the opposite and the frame said this; the frame won (c-2c.s2, the
+  // executor's, struck by his own hand).
+  //
+  // ⚠ NOT INSIDE `SwipeRow`. The button sits BELOW the swiping element, so a
+  // press on it is never eaten by a horizontal drag and a drag never fires it.
+  // It also renders outside select mode only: a bulk selection already offers
+  // `Mark paid` on the bar and two live paths to one write on one screen is how
+  // a vendor pays an invoice twice.
+  const markPaidFor = (row: Row) => swipeSidesFor(row).right;
+  const renderRow = (row: Row) => (
+    <div {...rowPressHandlers(row)} style={{ position: 'relative' }}>
+      {selectMode && (
+        <span aria-hidden style={{
+          position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)', zIndex: 2,
+          width: 16, height: 16, borderRadius: '50%', border: '1px solid var(--atelier-accent-text)',
+          background: selected.has(row.id) ? 'var(--atelier-accent-text)' : 'transparent',
+        }} />
+      )}
+      <div style={selectMode ? { paddingLeft: 16 } : undefined}>
+        <SwipeRow right={selectMode ? undefined : swipeSidesFor(row).right} left={selectMode ? undefined : swipeSidesFor(row).left}>
+          <SliceRow row={row} slice={slice} onSelect={() => selectMode ? toggleSelected(row)
+            // DESIGN-1 · STAGE 5a: an enquiry opens as its own page; the list keeps its place for Back
+            : slice === 'leads' ? (saveListScroll(roomHref('leads')), router.push(enquiryHref(row.id)))
+            // DESIGN-1 · STAGE 5b: an invoice and an event open as their own pages too
+            : slice === 'invoices' ? (saveListScroll(roomHref('invoices')), router.push(invoiceHref(row.id)))
+            : slice === 'events' ? (saveListScroll(roomHref('events')), router.push(eventHref(row.id)))
+            : (setSel(row), setConfirmDel(false))} />
+        </SwipeRow>
+        {slice === 'invoices' && !selectMode && (row.payAmount ?? 0) > 0 && !packagePayBlocked(row) && (
+          <div style={{ padding: '0 var(--slice-inset, 16px) 12px' }}>
+            {/* ⚠ INLINE, NOT A `wl-` CLASS, AND THAT IS THE WHOLE REASON THIS
+                LOOKS UNLIKE `TeamTabs`' row button. `SliceShell` is mounted in
+                BOTH trees — inside the shell at `/w/list/[slice]` and on
+                `/vendor/list/[slice]` — and every `wl-` rule is emitted by
+                `WorklistShell`'s SHELL_CSS, which the /vendor tree never mounts.
+                A shell class here would paint an unstyled button on half its
+                sites: the wl-plink disease, with money's primary verb on it.
+                The `--atelier-*` roles below are global in both trees. */}
+            <button type="button" onClick={() => markPaidFor(row)?.onTrigger()}
+              style={{
+                font: T.t4,
+                minHeight: 32,
+                padding: '0 16px',
+                borderRadius: 12,
+                background: 'transparent',
+                border: `0.5px solid ${A.interactive}`,
+                color: A.interactive,
+                cursor: 'pointer',
+              }}>
+              {COPY.studioMarkPaid}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ── TDW_04 A2: bulk (P4-verbatim): sequential calls, per-row result,
+  //    `n done · m failed (retry)` summary; retry re-runs the failures. Bulk
+  //    commits immediately (the spec's own summary grammar), single-row
+  //    mutations carry the undo window.
+  const bulkActions: BulkAction[] =
+    slice === 'leads'    ? [{ key: 'contacted', label: 'Mark contacted' }, { key: 'lose', label: 'Lose', destructive: true }]
+    : slice === 'invoices' ? [{ key: 'paid', label: COPY.studioMarkPaid }]
+    : slice === 'expenses' ? [{ key: 'delete', label: 'Delete', destructive: true }]
+    : slice === 'events'   ? [{ key: 'done', label: 'Mark done' }] // TDW_04 A3: the door landed (F-04.8)
+    : [];
+
+  async function runBulk(key: string, ids?: string[]) {
+    const targets = ids ?? Array.from(selected);
+    if (!targets.length) return;
+    setBulkBusy(true);
+    const failed: string[] = [];
+    for (const id of targets) {
+      const row = rawRows.find(r => r.id === id);
+      try {
+        let ok = false;
+        if (slice === 'leads' && key === 'contacted') { const r = await patchLeadState(id, 'contacted'); ok = 'ok' in r && r.ok; }
+        else if (slice === 'leads' && key === 'lose') { const r = await patchLeadState(id, 'lost'); ok = 'ok' in r && r.ok; }
+        else if (slice === 'invoices' && key === 'paid') { const owed = row?.payAmount ?? 0; if (owed <= 0 || (row && packagePayBlocked(row))) { ok = true; } else { const r = await recordPayment(id, { amount: owed }); ok = 'ok' in r && r.ok; } }
+        else if (slice === 'expenses' && key === 'delete') { const r = await deleteExpense(id); ok = 'ok' in r && r.ok === true; }
+        else if (slice === 'events' && key === 'done') { const r = await updateEvent(id, { state: 'done' }); ok = 'ok' in r && r.ok; }
+        if (!ok) failed.push(id);
+      } catch { failed.push(id); }
+    }
+    setBulkBusy(false);
+    setSelected(new Set(failed));
+    invalidateSlice(slice);
+    const done = targets.length - failed.length;
+    if (failed.length) showToast(`${done} done · ${failed.length} failed`, 'error', { action: { label: 'Retry', onAction: () => { void runBulk(key, failed); } }, durationMs: 8000 });
+    else showToast(`${done} done.`, 'success');
+  }
+
+  // ── CE-43 LC-2 · THE PACKAGE CARD ON THE LEAD ─────────────────────────────────
+  // Packet 2 made it live (components/vendor/packages/LeadPackageCard.tsx); packet 3 gave it
+  // the booking controls. Packet 3c · 1(a) (chair-ruled): it sits at the TOP of the detail
+  // body, above the detail rows, through DetailSheet's `detailTop` slot. Leads only.
+  const detailTop = slice === 'leads' && sel ? (
+    <LeadPackageCard leadId={sel.id}
+      booked={(sel.badge ?? '').toLowerCase() === 'booked'}
+      onBook={(k) => setBooking({ leadId: sel.id, kind: k })}
+      onToast={(m, k) => showToast(m, k)}
+      onNeedWeddingDate={() => openDateFix(sel.id)}
+      initial={leadPkg && leadPkg.id === sel.id ? leadPkg.lp : undefined}
+      leadFacts={leadFactsOf(sel.id)}
+    />
+  ) : null;
+  // 3g · F-43.109: the "Still missing" chips sit at the top of the body, directly under the package
+  // card and above the detail rows, and are absent when nothing is missing. F-43.108: a tapped chip
+  // opens its own cell. (TDW_04 A1's render truth: the wire's missing set.)
+  const missingTop = slice === 'leads' && sel && (sel.draftMissing?.length ?? 0) > 0 ? (
+    <div style={{ marginBottom: 16 }}>
+      <MissingChips heading testId="lead"
+        // ── F-44.3 (CE-44) · ONE LABEL HOME FOR A CELL ─────────────────────────
+        // The chip read `+ Wedding Date` while the sheet it opens says `+ Wedding date`,
+        // because `cap()` (SliceRow.tsx:217) capitalises EVERY word and that is right for
+        // a detail VALUE and wrong for a column name. `chipLabel` is the WishboneSheet's
+        // own, and it falls back to the same `cap(...)` for a cell with no FIELD_META
+        // entry, so nothing else moves. Swept at CE-44: this was the only `cap()` on a
+        // cell KEY in the tree.
+        cells={sel.draftMissing!.map((c) => ({ key: c, label: chipLabel(c) }))}
+        onPick={(c) => { setWishboneStart(c); setWishboneRow(sel); }} />
+    </div>
+  ) : null;
+
+  // DESIGN-1 · STAGE 5b: the invoice's payment schedule, one panel for two readers: the invoice sheet below and the
+  // invoice's page (SliceRecord, record mode). Moved here unchanged from the sheet's body.
+  const schedulePanel = slice === 'invoices' && sel ? (
+        <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <span style={{ font: T.t5, color: A.inkMute }}>Payment schedule</span>
+            <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
+            {schedule && schedule.length === 0 && (
+              <button type="button" onClick={() => setScheduleOpen(true)} style={{
+                font: T.t4,
+                padding: '4px 12px',
+                background: 'transparent',
+                border: '0.5px solid var(--atelier-input-border)',
+                borderRadius: 12,
+                cursor: 'pointer',
+                color: A.interactiveWarm,
+              }}>Add</button>
+            )}
+            {/* ── F-40.215 · REMOVE THE WHOLE SCHEDULE ─────────────────────
+                `deleteSchedule` and its door have existed since s1 with NO
+                affordance onto them. It lives in the panel's own header, at the
+                rule's end, in the critical ink at rest — rare, and unmistakably
+                the SCHEDULE's, which the invoice's own Delete never was. */}
+            {/* CE-43 LC-2 packet 3 · F16: a booking's schedule is its own and is never removed
+                (the door refuses too, F-43.86 (b1)). The control is not drawn on it. */}
+            {schedule && schedule.length > 0 && !removeSchedule && !sel.isPackage && (
+              <button type="button" onClick={() => setRemoveSchedule(true)} style={{
+                font: T.t4,
+                padding: '4px 12px',
+                background: 'transparent',
+                border: '1px solid var(--atelier-sheet-border)',
+                borderRadius: 12,
+                cursor: 'pointer',
+                color: A.ink,   // DESIGN-1: red is Delete's alone (REPORT.md §3, Buttons)
+                flexShrink: 0,
+              }}>{COPY.studioScheduleRemove}</button>
+            )}
+          </div>
+          {scheduleLoading && <div style={{ font: T.t3, color: A.inkMute }}>Fetching…</div>}
+          {/* #18 · NO SCHEDULE ⇒ NO CONTROL, AND A SENTENCE INSTEAD. The reminder
+              has nothing to be about, so nothing is drawn greyed. The Add control
+              is already in the header one line up. */}
+          {schedule && schedule.length === 0 && !scheduleLoading && (
+            <div style={{ font: T.t3, color: A.inkMute, maxWidth: '40ch' }}>
+              {COPY.studioReminderNone}
+            </div>
+          )}
+          {schedule && schedule.map(ms => (
+            /* ── THE ROW IS TWO LINES (R-41.70 §A 3) ─────────────────────────
+               The shipped row put the words and up to five controls on ONE flex
+               line, and at 374 the amount wrapped over three lines ("Rs 18,000 ·"
+               / "30% · 8" / "Sep 2026") — visible in the founder's own screens and
+               transcribed as S1 of the mock. With Edit and a third chip state it
+               went to one word per line. Line one is hers to read; line two is
+               hers to tap. Nothing shrinks, nothing truncates. */
+            <div key={ms.id} style={{ padding: '12px 0', borderBottom: '0.5px solid var(--atelier-card-border)' }}>
+              <div style={{ font: T.t3, color: A.ink }}>{ms.milestone_label}</div>
+              <div style={{ font: T.t4, color: A.inkMute }}>
+                {/* ── F-40.182 · THE HOUSE DATE, NOT THE COLUMN ──────────────
+                    This printed `2026-09-08` — the raw DATE column — because the
+                    panel was written dark and never read by an eye. `8 Sep 2026`
+                    is the house format the invoice document and the WhatsApp
+                    message about it already use, and it comes from the room's
+                    one date home rather than a second `toLocaleString` here.
+                    The money keeps `toLocaleString('en-IN')`: it is the shipped
+                    byte on this row and matches `reminderRs`'s grouping exactly. */}
+                Rs {ms.amount_due.toLocaleString('en-IN')} · {ms.pct}%{ms.due_date ? ` · ${reminderDate(ms.due_date)}` : ''}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                <span style={{
+                  font: T.t5,
+                  letterSpacing: '0.08em',
+                  color: ms.state === 'paid' ? A.green : ms.state === 'waived' ? A.inkMute : A.brassWarm,
+                  textTransform: 'uppercase',
+                  border: `0.5px solid ${ms.state === 'paid' ? A.green : ms.state === 'waived' ? 'var(--atelier-ink-dim)' : 'var(--role-metal)'}`,
+                  borderRadius: 12,
+                  padding: '4px 8px',
+                  flexShrink: 0,
+                }}>{cap(ms.state)}</span>
+
+                <span style={{ flex: 1 }} />
+
+                {/* ── F-41.15 · THE CHIP'S THREE HONEST STATES ────────────────
+                    `sent_at` is a wamid — the message reached Meta. `reminded_at`
+                    is only a ROW, and the record said "Reminder sent" over a row
+                    whose wamid was null (the founder's walk, 2026-09-08). A failed
+                    attempt says so and offers Remind again, because 0152's partial
+                    UNIQUE (`WHERE status <> 'failed'`) frees the milestone. */}
+                {ms.sent_at && (
+                  <span style={{
+                    font: T.t5,
+                    letterSpacing: '0.08em',
+                    color: A.inkMute,
+                    textTransform: 'uppercase',
+                    flexShrink: 0,
+                  }}>{COPY.studioReminderSent}</span>
+                )}
+                {!ms.sent_at && ms.reminder_failed && (
+                  <span style={{
+                    font: T.t5,
+                    letterSpacing: '0.08em',
+                    color: A.brassWarm,
+                    textTransform: 'uppercase',
+                    flexShrink: 0,
+                  }}>{COPY.studioReminderDidntGo}</span>
+                )}
+
+                {/* ── G3.4 · SEND THE REMINDER ─────────────────────────────
+                    ⚠ ON THE MILESTONE ROW, NOT AT THE FOOT OF THE PANEL. An
+                    invoice has three milestones; a single button below them all
+                    would have to ask her WHICH — a question the row she is looking
+                    at has already answered. It names no milestone in its own label
+                    because the row it sits on is the label.
+                    It DISAPPEARS once SENT rather than greying: once-per-milestone
+                    is the database's key, and a disabled button would be a control
+                    lying about a state it does not own. A FAILED attempt brings it
+                    back, because the key no longer holds the milestone. */}
+                {ms.state === 'pending' && !ms.sent_at && (
+                  <button type="button" onClick={() => setRemindMs(ms)} style={{
+                    font: T.t4,
+                    padding: '4px 12px',
+                    background: 'transparent',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    border: '0.5px solid var(--atelier-input-border)',
+                    color: A.interactiveWarm,
+                    flexShrink: 0,
+                  }}>Remind</button>
+                )}
+
+                {/* ── F-40.215 · EDIT, ON THE ROW IT EDITS ────────────────────
+                    A paid milestone has no Edit: a paid share is history, and the
+                    door would have to re-share the rest to accept a change. */}
+                {ms.state === 'pending' && (
+                  <button type="button" onClick={() => {
+                    setEditMs(ms); setEditLabel(ms.milestone_label); setEditPct(String(ms.pct));
+                    setEditDue(ms.due_date || ''); setEditErr(null);
+                  }} style={{
+                    font: T.t4,
+                    padding: '4px 12px',
+                    background: 'transparent',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    border: '0.5px solid var(--atelier-card-border)',
+                    color: A.inkDim,
+                    flexShrink: 0,
+                  }}>{COPY.studioMsEdit}</button>
+                )}
+
+                {ms.state === 'pending' && (
+                  <button type="button" onClick={async () => {
+                    setScheduleSaving(true);
+                    const res = await markMilestonePaid(ms.id, ms.amount_due);
+                    if (res.ok) setSchedule(prev => prev ? prev.map(m => m.id === ms.id ? (res as { milestone: ScheduleMilestone }).milestone : m) : prev);
+                    // F-43.101: the list refetches, and the open detail follows its row.
+                    if (res.ok) invalidateSlice('invoices');
+                    setScheduleSaving(false);
+                  }} disabled={scheduleSaving} className="atelier-fab" style={{
+                    font: T.t4,
+                    padding: '4px 12px',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    border: '0.5px solid var(--atelier-label)',
+                    color: INK_DEEP,
+                    flexShrink: 0,
+                  }}>Paid</button>
+                )}
+              </div>
+            </div>
+          ))}
+        </>
+  ) : null;
+
+  // Per-slice detail extras — verbatim from the monofile; P2/P4/P5 migrate
+  // these into their modules as those phases rebuild them.
+  const detailExtra = (
+    <>
+      {/* Invoice payment schedule */}
+      {slice === 'invoices' && sel && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid var(--atelier-card-border)' }}>
+          {/* DESIGN-1 · E12: one primary on the sheet, the likely next step (Send on WhatsApp); the PDF
+              is the outlined secondary. The order is unchanged. */}
+          <button type="button" onClick={downloadInvoicePdf} disabled={pdfBusy}
+            style={{
+              font: T.t4,
+              width: '100%',
+              marginBottom: 8,
+              padding: '12px 16px',
+              background: 'transparent',
+              border: '1px solid var(--atelier-sheet-border)',
+              borderRadius: 12,
+              cursor: pdfBusy ? 'default' : 'pointer',
+              opacity: pdfBusy ? 0.6 : 1,
+              color: 'var(--atelier-accent-text)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}>
+            {pdfBusy ? 'Fetching…' : '↓ Download PDF'}
+          </button>
+
+          {/* Send on WhatsApp — only shown when client has a phone number.
+              Fetches the PDF URL, then opens wa.me pre-loaded with the
+              client's number and the PDF link in the draft message. */}
+          {sel.client_phone && (
+            <button type="button"
+              onClick={() => { void sendInvoiceOnWa(sel); }}
+              className="atelier-fab"
+              style={{
+                font: T.t4,
+                width: '100%',
+                marginBottom: 16,
+                padding: '12px 16px',
+                borderRadius: 12,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}>
+              ↗ Send on WhatsApp
+            </button>
+          )}
+          {schedulePanel}
+        </div>
+      )}
+
+      {/* Lead vendor summary + conversation */}
+      {slice === 'leads' && (leadDetail || loadingDetail) && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid var(--atelier-card-border)' }}>
+          {loadingDetail && !leadDetail
+            ? <ConversationWaiting />
+            : leadDetail && <ConversationThread vendorSummary={leadDetail.vendor_summary} messages={leadDetail.conversation} leadName={leadDetail.name} />
+          }
+        </div>
+      )}
+    </>
+  );
+
+  // Per-slice footer extras — leads WhatsApp/Call row, verbatim
+  // TDW_04 A2 (L-2): the deliberate Mark-lost block for the leads detail sheet.
+  const markLostBlock = slice === 'leads' && sel && sel.badge !== 'lost' ? (
+    <div style={{ marginBottom: 12 }}>
+      {!markLostConfirm ? (
+        <button type="button" onClick={() => setMarkLostConfirm(true)} style={{
+          font: T.t4,
+          width: '100%',
+          padding: '12px 16px',
+          background: 'transparent',
+          border: '0.5px solid var(--atelier-sheet-border)',
+          borderRadius: 12,
+          cursor: 'pointer',
+          color: 'var(--atelier-ink-mute)',
+        }}>Mark lost</button>
+      ) : (
+        <div>
+          {/* F-04.12's confession — one line, only when the leap is backwards-unusual */}
+          {isBackwardUnusual(sel?.badge) && (
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ font: T.t3, color: A.inkSoft, marginBottom: 8 }}>
+                This one&rsquo;s further along — marking lost will keep the record, state the reason?
+              </div>
+              <input
+                type="text"
+                value={lostReason}
+                onChange={e => setLostReason(e.target.value)}
+                placeholder="Optional. It goes in the notes"
+                style={{
+                  font: T.t3,
+                  width: '100%',
+                  padding: '8px 12px',
+                  boxSizing: 'border-box',
+                  background: 'var(--atelier-input-bg)',
+                  border: '0.5px solid var(--atelier-card-border)',
+                  borderRadius: 12,
+                  color: A.ink,
+                }}
+              />
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" onClick={() => sel && markLost(sel)} style={{
+            font: T.t4,
+            flex: 1,
+            padding: '12px 16px',
+            background: 'transparent',
+            border: '0.5px solid var(--role-critical)',
+            borderRadius: 12,
+            cursor: 'pointer',
+            color: 'var(--role-critical)',
+          }}>Yes — mark {sel?.primary} lost</button>
+          <button type="button" onClick={() => setMarkLostConfirm(false)} style={{
+            font: T.t4,
+            padding: '12px 16px',
+            background: 'transparent',
+            border: '0.5px solid var(--atelier-sheet-border)',
+            borderRadius: 12,
+            cursor: 'pointer',
+            color: 'var(--atelier-ink-mute)',
+          }}>Keep</button>
+          </div>
+        </div>
+      )}
+    </div>
+  ) : null;
+
+  // ── BLOCK 19 G5.1 · THE ONE CONTROL THIS SITTING ADDS (R-G51.5) ───────────
+  // It sits ABOVE `Mark lost` because forwarding is a live act on a live enquiry
+  // and marking lost is the end of one; a destructive verb never sits between a
+  // vendor and a constructive one.
+  //
+  // ⚠ NOT OFFERED WHEN THE LEAD IS ALREADY FORWARDED, WHEN IT IS LOST, OR WHEN
+  // IT HAS NO PHONE. Each is a state where the door would refuse, and offering a
+  // control that cannot succeed is the lying-control class this estate has filed
+  // twice. The phone guard matters most: the couple's number IS the enquiry, and
+  // the dedupe the whole ruling turns on is keyed on it.
+  //
+  // ⚠ NOT TIER-GATED (R-G51.8). A basic vendor cannot ring this couple — her
+  // record withholds the number — so this is the ONLY thing she can do with an
+  // enquiry she cannot serve. Gating it would take her last move and give the
+  // work to nobody.
+  const forwardBlock = slice === 'leads' && sel && sel.badge !== 'lost'
+    && !sel.forwarded && !!sel.phone ? (
+    <div style={{ marginBottom: 8 }}>
+      <button type="button" onClick={() => { setForwardRow(sel); setSel(null); }} style={{
+        font: T.t4,
+        width: '100%',
+        padding: '12px 16px',
+        background: 'transparent',
+        border: '0.5px solid var(--atelier-accent-text)',
+        borderRadius: 12,
+        cursor: 'pointer',
+        color: 'var(--atelier-accent-text)',
+      }}>{RF.forwardControl}</button>
+    </div>
+  ) : null;
+
+  const footerExtra = (
+    <>
+      {!confirmDel && forwardBlock}
+      {!confirmDel && markLostBlock}
+      {/* ── R-37.24 · THE CONNECT SLOT ────────────────────────────────────────
+          Where the WhatsApp and Call buttons would sit, a basic vendor gets ONE
+          affordance that says why they are not there and where to go.
+
+          IT SITS HERE AND NOT ON THE LIST ROW, and the reason is a correction
+          this seat had to make to its own committed handover: the list-row
+          contact buttons at SliceRow are `slice === 'clients'` and have NEVER
+          rendered for leads at any tier. Three documents said otherwise —
+          NOTE 36 §3, this arc's kickoff, and the Seat A′ handover I wrote — all
+          from one ungrounded grep. THIS footer is where lead contact actually
+          lives, so this is where its absence gets explained. A slot on the list
+          rows would be NEW chrome rather than a replacement, and R-37.24 refused
+          it this sitting as wanting its own founder word.
+
+          KEYED ON `sel?.redacted` (R-37.23) — the wire's positive statement.
+          Not `!sel?.phone`: a lead that simply never had a number is not a
+          withheld one, and telling that vendor to upgrade would be a lie.
+          Payload-keyed in both directions, so a paying card is byte-identical.
+
+          THE COPY IS THE FOUNDER'S, EXECUTED 2026-08-25, shipped character for
+          character. The CTA ships on his silence per the kickoff's own term. */}
+      {slice === 'leads' && sel?.redacted && !confirmDel && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 4 }}>
+          <div style={{
+            // CE-45 FE-2 TYPE_1: the row's OWN detail-line rung, as it always was
+            // (SliceRow's `detailLine`), which is t4 now. The first cut of this block
+            // shipped 15 and `tdw09_type` named it at the byte; a rung cannot drift so.
+            font: T.t4,
+            color: A.inkMute, textAlign: 'center',
+          }}>Upgrade to Essential or above to contact this couple.</div>
+          {/* ── R-38.1 CURE (S2 ZIP bounce) · THE TIER GATE WAS THE SIXTH OF NINE ──
+              This CTA was a hardcoded `/vendor/billing`, and because `notes.tsx` imports
+              `SliceDoor` from this very file, the whole module \u2014 tier gate included \u2014 is in
+              all six crossed rooms' chunks. One literal, six failing pairs.
+              It is not a door, which is exactly why R-38.11's SliceDoor re-point walked
+              past it. Reachable is reachable (R-38.11 amended by label). `roomHref` asks
+              the registry instead of spelling the answer, so when Billing moves again this
+              link moves with it. */}
+          <a href={roomHref('billing')} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '12px 0',
+            background: 'var(--atelier-input-bg)',
+            border: '0.5px solid var(--atelier-sheet-border)',
+            borderRadius: 12, textDecoration: 'none',
+          }}>
+            <span style={{
+              font: T.t4,
+              color: A.brassWarm,
+            }}>See plans</span>
+          </a>
+        </div>
+      )}
+      {slice === 'leads' && sel?.phone && !confirmDel && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+          <a href={`https://wa.me/${sel.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '12px 0',
+              background: 'transparent',
+              border: '0.5px solid var(--role-positive)',
+              borderRadius: 12, textDecoration: 'none',
+              color: A.green,   // DESIGN-1 · P7: the icon draws in currentColor; without this it was link blue
+            }}>
+            <WaIcon />
+            <span style={{ font: T.t4, color: A.green }}>WhatsApp</span>
+          </a>
+          <a href={`tel:${sel.phone}`}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '12px 0',
+              background: 'var(--atelier-input-bg)',
+              border: '0.5px solid var(--atelier-sheet-border)',
+              borderRadius: 12, textDecoration: 'none',
+            }}>
+            <span style={{ font: T.t3, color: A.brassWarm }}>☎</span>
+            <span style={{ font: T.t4, color: A.brassWarm }}>Call</span>
+          </a>
+        </div>
+      )}
+    </>
+  );
+
+  // DESIGN-1 · STAGE 5b: everything the list mounts beside its rows (the toast, the edit sheet, the schedule's sheets,
+  // the record sheet), one mount for both faces: the list, and the record's page.
+  const body = (
+    <>
+        <ToastView toast={toast} />
+        <AddSheet
+          open={addOpen}
+          slice={slice}
+          onClose={() => { setAddOpen(false); setEditRow(null); }}
+          onToast={(msg: string, kind?: ToastKind) => showToast(msg, kind)}
+          existing={editRow}
+          existingId={editRow?.id as string | undefined}
+        />
+
+        {/* Schedule builder sheet */}
+        {/* ══════════════════════════════════════════════════════════════════
+            G3.4 · THE CONFIRM SHEET — THE TAP IS NOT THE SEND
+            ══════════════════════════════════════════════════════════════════
+            ⚠ SHE SEES THE EXACT WORDS BEFORE THEY LEAVE. F-39.70/.71's law: no
+            message goes to a client until the vendor has read it and said yes to
+            THOSE words. This is why the control opens a sheet instead of firing.
+
+            The body below is `tdw_payment_reminder`'s FILED bytes (R-40.76, Meta
+            ID 1781270206634381) with the four variables substituted — the same
+            composition the backend performs, transcribed because that home is in
+            the other repo. If the two ever disagree, this preview is the lie and
+            the backend is the truth; the bench asserts them identical.
+
+            DISMISSING SENDS NOTHING. Silence never means yes.  */}
+        {/* ══ F-40.215 / R-41.61 · THE EDIT SHEET (mock S3/S4) ══════════════════
+            The three fields `PATCH /schedules/:milestoneId` has accepted since
+            G3.4 s1. The AMOUNT is shown and never typed: the door recomputes it
+            from the share and the invoice total, and a second arithmetic on this
+            side would be a second home for one number. A refusal prints the DOOR's
+            own sentence — `Percentages would sum to 110, not 100.` — because the
+            number is Postgres's answer, not this surface's guess. */}
+        {editMs && sel && (
+          <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+            onClick={() => { if (!editBusy) setEditMs(null); }}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width: '100%', background: 'var(--atelier-sheet-bg)',
+              backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+              borderTop: '0.5px solid var(--atelier-card-border)',
+              borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
+            }}>
+              <div style={{ font: T.t1, color: A.ink, marginBottom: 8 }}>{editMs.milestone_label}</div>
+              <div style={{ font: T.t3, color: A.inkMute, marginBottom: 16 }}>
+                {COPY.studioMsEditTitle}
+              </div>
+
+              <label style={msLabel}>{COPY.studioMsLabel}</label>
+              <input value={editLabel} onChange={e => { setEditLabel(e.target.value); setEditErr(null); }} style={msInput} />
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <label style={msLabel}>{COPY.studioMsShare}</label>
+                  <input value={editPct} inputMode="numeric" onChange={e => { setEditPct(e.target.value); setEditErr(null); }}
+                    style={{ ...msInput, borderColor: editErr ? 'var(--role-critical)' : 'var(--atelier-card-border)' }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <label style={msLabel}>{COPY.studioMsAmount}</label>
+                  {/* ⚠ NOT COMPUTED HERE, AND THAT IS THE POINT. The amount is the
+                      door's arithmetic over the invoice total (`schedules.js:33`),
+                      and this surface does not hold that total — `Row` carries no
+                      money. Reproducing the formula would be a second home for one
+                      number and the first divergence would be a figure a client was
+                      invoiced for. So: the milestone's CURRENT amount while the
+                      share is untouched, and an honest sentence the moment it is. */}
+                  <div style={{ ...msInput, color: A.inkMute }}>
+                    {Number(editPct) === editMs.pct
+                      ? `Rs ${editMs.amount_due.toLocaleString('en-IN')}`
+                      : 'Recomputed on save'}
+                  </div>
+                </div>
+              </div>
+
+              <label style={msLabel}>{COPY.studioMsDue}</label>
+              <input type="date" value={editDue} onChange={e => { setEditDue(e.target.value); setEditErr(null); }} style={msInput} />
+              {/* CE-46 (the chair, 30 Sept 2026): the Due date written out in Indian order under the field */}
+              {/^\d{4}-\d{2}-\d{2}$/.test(editDue) ? <p data-date-words="" style={{ font: T.t5, color: A.inkSoft, margin: '6px 0 0' }}>{longDate(editDue)}</p> : null}
+
+              {editErr && (
+                <p style={{ font: T.t3, color: A.red, margin: '12px 0 0' }}>{editErr}</p>
+              )}
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                <button type="button" disabled={editBusy} onClick={() => setEditMs(null)} style={{
+                  font: T.t4,
+                  flex: 1,
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  border: '0.5px solid var(--atelier-card-border)',
+                  color: A.inkDim,
+                }}>{COPY.studioMsCancel}</button>
+                <button type="button" disabled={editBusy} className="atelier-fab" onClick={async () => {
+                  setEditBusy(true); setEditErr(null);
+                  const patch: { milestone_label?: string; pct?: number; due_date?: string | null } = {};
+                  if (editLabel !== editMs.milestone_label) patch.milestone_label = editLabel.trim();
+                  if (Number(editPct) !== editMs.pct) patch.pct = Number(editPct);
+                  if ((editDue || null) !== editMs.due_date) patch.due_date = editDue || null;
+                  if (!Object.keys(patch).length) { setEditBusy(false); setEditMs(null); return; }
+                  const res = await updateMilestone(editMs.id, patch) as { ok: boolean; error?: string };
+                  if (res.ok) {
+                    // RE-READ, never a local patch: the door recomputes `amount_due`
+                    // and may re-share nothing else, and only it knows the result.
+                    const again = await fetchSchedule(sel.id);
+                    if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
+                    showToast(COPY.studioMsSaved, 'success');
+                    setEditMs(null);
+                  } else {
+                    // The door's own sentence, printed as it came.
+                    setEditErr(res.error ?? COPY.studioMsSaveFailed);
+                  }
+                  setEditBusy(false);
+                }} style={{
+                  font: T.t4,
+                  flex: 1,
+                  padding: '12px 16px',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  border: '0.5px solid var(--atelier-label)',
+                  color: INK_DEEP,
+                }}>{COPY.studioMsSave}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══ F-40.215 · REMOVE THE SCHEDULE (mock S5) ══════════════════════════
+            The sheet's own question shape, aimed at the schedule rather than the
+            invoice. The second line tells her what she KEEPS: 0139's rows outlive
+            their milestone (ON DELETE SET NULL, R-G34.6), so reminders already sent
+            stay in her record. */}
+        {removeSchedule && sel && schedule && (
+          <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+            onClick={() => { if (!removeBusy) setRemoveSchedule(false); }}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width: '100%', background: 'var(--atelier-sheet-bg)',
+              backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+              borderTop: '0.5px solid var(--atelier-card-border)',
+              borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
+            }}>
+              <div style={{ font: T.t3, color: A.inkSoft, textAlign: 'center', padding: '8px 0' }}>
+                Remove the schedule for <span style={{ color: A.ink }}>{sel.primary}</span>?
+                <span style={{ font: T.t4, display: 'block', color: A.inkMute, marginTop: 8 }}>
+                  The {schedule.length === 1 ? 'milestone goes' : `${schedule.length} milestones go`}. Reminders already sent stay in your record.
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <button type="button" disabled={removeBusy} onClick={() => setRemoveSchedule(false)} style={{
+                  font: T.t4,
+                  flex: 1,
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  border: '0.5px solid var(--atelier-card-border)',
+                  color: A.inkDim,
+                }}>{COPY.studioScheduleKeep}</button>
+                <button type="button" disabled={removeBusy} onClick={async () => {
+                  setRemoveBusy(true);
+                  const res = await deleteSchedule(sel.id) as { ok: boolean; error?: string; code?: string };
+                  if (res.ok) {
+                    const again = await fetchSchedule(sel.id);
+                    if ((again as { ok: boolean }).ok) setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
+                    showToast(COPY.studioScheduleGone, 'success');
+                  } else {
+                    // F-43.86 (b1): the package refusal speaks the room's own byte, never the door's text.
+                    showToast(res.code === 'PACKAGE_SCHEDULE' ? COPY.studioScheduleRemoveFailed : (res.error ?? COPY.studioScheduleRemoveFailed), 'error');
+                  }
+                  setRemoveBusy(false); setRemoveSchedule(false);
+                }} style={{
+                  font: T.t4,
+                  flex: 1,
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  border: '1px solid var(--atelier-sheet-border)',
+                  color: A.ink,
+                }}>{COPY.studioScheduleRemove}</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {remindMs && sel && (
+          <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+            onClick={() => { if (!remindBusy) setRemindMs(null); }}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width: '100%',
+              background: 'var(--atelier-sheet-bg)',
+              backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+              borderTop: '0.5px solid var(--atelier-card-border)',
+              borderRadius: '10px 10px 0 0', padding: '16px 16px 24px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <span style={{ font: T.t5, letterSpacing: '0.08em', color: A.brass, textTransform: 'uppercase' }}>
+                  {COPY.studioReminderTitle}
+                </span>
+                <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
+              </div>
+
+              {/* WHO IT GOES TO, BEFORE WHAT IT SAYS. A vendor checks the number
+                  first; the message is only worth reading once she knows where it
+                  is bound. */}
+              <div style={{ font: T.t3, color: A.inkMute, marginBottom: 12 }}>
+                This goes to {sel.primary} on {sel.client_phone ?? '\u2014'}.
+              </div>
+
+              <div style={{
+                font: T.t3,
+                padding: '12px 16px',
+                background: 'var(--atelier-input-bg)',
+                border: '0.5px solid var(--atelier-card-border)',
+                borderRadius: 12,
+                color: A.ink,
+              }}>
+                {reminderPreview(sel.primary, remindMs, vendorBusinessName)}
+              </div>
+
+              <div style={{ font: T.t3, color: A.inkMute, margin: '12px 0 16px', maxWidth: '40ch' }}>
+                {COPY.studioReminderRails}
+              </div>
+
+              <button type="button" disabled={remindBusy} className="atelier-fab"
+                onClick={async () => {
+                  setRemindBusy(true);
+                  try {
+                    const res = await sendReminder(remindMs.id) as { ok: boolean; sent?: boolean; skipped?: boolean; failed?: boolean; reason?: string | null; reason_text?: string | null; error?: string };
+                    if (res.ok && res.sent) {
+                      // ⚠ THE ROW IS MARKED ONLY WHEN THE DOOR SAYS SENT. A skipped
+                      // send leaves the control standing, because the reminder did
+                      // not go and a surface that hid it would be reporting a
+                      // delivery that never happened (F-39.70/.71).
+                      // RE-READ, NEVER A LOCAL FLAG. The door is the only thing that
+                      // knows a reminder landed; asking it again is one request and it
+                      // keeps this surface incapable of disagreeing with the row.
+                      const again = await fetchSchedule(sel.id);
+                      if ((again as { ok: boolean }).ok) {
+                        setSchedule((again as { schedule: ScheduleMilestone[] }).schedule);
+                      }
+                      showToast(COPY.studioReminderDone, 'success');
+                    } else if (res.ok && res.skipped) {
+                      // ── F-41.17 · PLAIN WORDS ON HER GLASS ────────────────
+                      // `reason` is the register's own sentence — the log's word,
+                      // and what she read on 2026-09-08:
+                      // `flag.payment_reminder_send is off on the switchboard`.
+                      // `reason_text` is the door's sentence for a person. The key
+                      // is never printed here; the fallback is this room's own copy.
+                      showToast(res.reason_text ?? COPY.studioReminderDark, 'error');
+                    } else {
+                      // R-41.70 §D 18: the row says "Didn't go"; the toast says why.
+                      showToast(res.reason_text ?? (res.failed ? COPY.studioReminderRetry : COPY.studioReminderFailed), 'error');
+                    }
+                  } catch {
+                    showToast(COPY.studioReminderFailed, 'error');
+                  } finally {
+                    setRemindBusy(false);
+                    setRemindMs(null);
+                  }
+                }}
+                style={{
+                  font: T.t4,
+                  width: '100%',
+                  padding: '12px 16px',
+                  borderRadius: 12,
+                  border: '0.5px solid var(--atelier-label)',
+                  cursor: remindBusy ? 'default' : 'pointer',
+                  opacity: remindBusy ? 0.6 : 1,
+                  color: INK_DEEP,
+                }}>
+                {remindBusy ? 'Sending\u2026' : COPY.studioReminderSend}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {scheduleOpen && sel && (
+          <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 60, display: 'flex', alignItems: 'flex-end' }}
+            onClick={() => setScheduleOpen(false)}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width: '100%',
+              background: 'var(--atelier-sheet-bg)',
+              backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+              borderTop: '0.5px solid var(--atelier-sheet-border)',
+              padding: '24px 24px calc(24px + env(safe-area-inset-bottom))',
+              display: 'flex', flexDirection: 'column', gap: 12, maxHeight: '85vh', overflowY: 'auto',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+                <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
+              </div>
+              <div style={{ font: T.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: A.brass }}>Payment schedule</div>
+              <div style={{ font: T.t1, color: 'var(--atelier-ink)', marginBottom: 4 }}>Add milestones</div>
+              <div style={{ font: T.t3, color: A.inkMute, marginTop: -4, marginBottom: 4 }}>
+                Must sum to 100%. Amounts computed from invoice total.
+              </div>
+
+              {milestones.map((ms, idx) => (
+                <div key={idx} style={{
+                  padding: '12px 16px',
+                  background: 'var(--atelier-row-hover)',
+                  border: '0.5px solid var(--atelier-card-border)',
+                  borderRadius: 12,
+                  display: 'flex', flexDirection: 'column', gap: 8,
+                }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {/* ── F-40.201 · `minWidth: 0` IS THE WHOLE OVERFLOW ────────────
+                        A flex child defaults to `min-width: auto`, and for an <input>
+                        that is its INTRINSIC width — the browser's own `size=20`, about
+                        twenty characters. At 374 the sheet's content box is ~298px and
+                        two inputs that refuse to shrink below ~170px each cannot fit, so
+                        the row ran past the sheet and the percent value was pushed out of
+                        sight. `flex: 2` was never the problem; the floor under it was.
+                        ── F-40.137's class · the accessible name ─────────────────────
+                        `placeholder` is not a label: it disappears the moment she types,
+                        and a screen reader announces an edit box with no name. */}
+                    <input
+                      value={ms.label}
+                      onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, label: e.target.value } : m))}
+                      placeholder="Booking"
+                      aria-label={`Milestone ${idx + 1} name`}
+                      style={{
+                        font: T.t3,
+                        flex: 2,
+                        minWidth: 0,
+                        padding: '8px 12px',
+                        boxSizing: 'border-box',
+                        background: 'var(--atelier-input-bg)',
+                        border: '0.5px solid var(--atelier-card-border)',
+                        borderRadius: 12,
+                        color: A.ink,
+                        outline: 'none',
+                        caretColor: A.interactive,
+                      }}
+                    />
+                    <input
+                      type="number"
+                      value={ms.pct}
+                      onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, pct: e.target.value } : m))}
+                      placeholder="%"
+                      aria-label={`Milestone ${idx + 1} share, percent`}
+                      style={{
+                        font: T.t3,
+                        flex: 1,
+                        minWidth: 0,
+                        padding: '8px 12px',
+                        boxSizing: 'border-box',
+                        background: 'var(--atelier-input-bg)',
+                        border: '0.5px solid var(--atelier-card-border)',
+                        borderRadius: 12,
+                        color: A.ink,
+                        outline: 'none',
+                        textAlign: 'right',
+                        caretColor: A.interactive,
+                      }}
+                    />
+                    {/* ── F-40.201 · THE DUPLICATED `%` IS GONE ─────────────────────
+                        The input's own placeholder already says `%`, and this span was
+                        `flexShrink: 0` — it took its width FIRST, on the tightest row in
+                        the sheet, from the two fields that actually hold her typing. */}
+                    {milestones.length > 2 && (
+                      <button type="button" onClick={() => setMilestones(prev => prev.filter((_, i) => i !== idx))}
+                        style={{ font: T.t3, padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', color: A.red, flexShrink: 0 }}>×</button>
+                    )}
+                  </div>
+                  {/* ⚠ THIS ONE HAD NO ACCESSIBLE NAME AT ALL, not even a weak one:
+                      `type="date"` IGNORES `placeholder` outright, so the field a screen
+                      reader met was an unlabelled date picker. Dark since it was written,
+                      live since G3.4 flipped the flag. */}
+                  <input
+                    type="date"
+                    value={ms.due_date}
+                    aria-label={`Milestone ${idx + 1} due date`}
+                    onChange={e => setMilestones(prev => prev.map((m, i) => i === idx ? { ...m, due_date: e.target.value } : m))}
+                    style={{
+                      font: T.t3,
+                      width: '100%',
+                      padding: '8px 12px',
+                      boxSizing: 'border-box',
+                      background: 'var(--atelier-input-bg)',
+                      border: '0.5px solid var(--atelier-card-border)',
+                      borderRadius: 12,
+                      color: A.inkSoft,
+                      outline: 'none',
+                      caretColor: A.interactive,
+                    }}
+                  />
+                </div>
+              ))}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                <button type="button" onClick={() => setMilestones(prev => [...prev, { label: '', pct: '0', due_date: '' }])}
+                  style={{
+                    font: T.t4,
+                    padding: '8px 12px',
+                    background: 'transparent',
+                    border: '0.5px solid var(--atelier-sheet-border)',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    color: A.interactiveWarm,
+                  }}>+ Add Row</button>
+                <span style={{
+                  font: T.t5,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: Math.abs(milestones.reduce((s,m) => s + Number(m.pct||0), 0) - 100) < 0.01 ? A.green : A.red,
+                }}>{milestones.reduce((s,m) => s + Number(m.pct||0), 0)}% of 100%</span>
+              </div>
+
+              {(() => {
+                const total = milestones.reduce((s,m) => s + Number(m.pct||0), 0);
+                const canSave = Math.abs(total - 100) < 0.01 && milestones.every(m => m.label.trim());
+                return (
+                  <>
+                    {/* CE-43 LC-2 packet 3f · R-43.16: the gate line focuses the field that fixes it. */}
+                    {!canSave && (
+                      <NeedFirst
+                        testId="schedule"
+                        text={Math.abs(total - 100) > 0.01 ? `Percentages must sum to 100% (currently ${total}%)` : 'All milestones need a label'}
+                        onFix={() => {
+                          const unlabelled = milestones.findIndex((m) => !m.label.trim());
+                          const target = Math.abs(total - 100) > 0.01
+                            ? 'input[aria-label="Milestone 1 share, percent"]'
+                            : `input[aria-label="Milestone ${unlabelled + 1} name"]`;
+                          const el = document.querySelector<HTMLInputElement>(target);
+                          if (el) el.focus();
+                        }}
+                      />
+                    )}
+                    <button type="button" onClick={doCreateSchedule} disabled={!canSave || scheduleSaving}
+                      className={canSave && !scheduleSaving ? 'atelier-fab' : undefined}
+                      style={{
+                        font: T.t4,
+                        padding: '16px 0',
+                        borderRadius: 12,
+                        border: '0.5px solid var(--atelier-label)',
+                        cursor: (canSave && !scheduleSaving) ? 'pointer' : 'default',
+                        color: INK_DEEP,
+                        background: !canSave || scheduleSaving ? 'var(--atelier-row-hover)' : undefined,
+                        opacity: !canSave || scheduleSaving ? 0.6 : 1,
+                        marginTop: 4,
+                      }}>{scheduleSaving ? 'Saving…' : 'Create schedule'}</button>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
+        {/* TDW_04 A2: select-mode bar (long-press a row to enter) */}
+        <BulkBar slice={slice} selectedCount={selected.size} actions={bulkActions} busy={bulkBusy}
+          onAction={(k) => { void runBulk(k); }} onCancel={() => setSelected(new Set())} />
+
+        <DetailSheet
+          slice={slice}
+          sel={recordId ? null : sel}   // DESIGN-1 · STAGE 5b: a page never opens the sheet
+          onClose={() => { setSel(null); setConfirmDel(false); }}
+          onEditHere={onEditHere}
+          confirmDel={confirmDel}
+          setConfirmDel={setConfirmDel}
+          deleting={deleting}
+          deleteMsg={deleteMsg}
+          setDeleteMsg={setDeleteMsg}
+          confirmDelete={confirmDelete}
+          detailExtra={detailExtra}
+          detailTop={detailTop}
+          detailMissing={missingTop}
+          bodyLoading={slice === 'leads' && !!sel && !(leadPkg && leadPkg.id === sel.id)}
+          fullHeight={slice === 'leads'}
+          footerExtra={footerExtra}
+        />
+
+        {/* ── BLOCK 19 G5.1 — THE FORWARD SHEET ─────────────────────────────
+            A SIBLING of the record sheet, not a nest: the record closes when this
+            opens, which is what the ratified frame draws — the leads list behind
+            the scrim and ONE sheet in front of it.
+
+            On success the slice is invalidated so the row comes back carrying its
+            `forwarded_to` stamp and the control retires with its act. F2's lesson,
+            inherited: a raw fetch that does not refetch through the bus leaves the
+            surface lying about what just happened. */}
+        {forwardRow && (
+          <ForwardSheet
+            leadId={forwardRow.id}
+            personLabel={forwardRow.primary}
+            onDone={() => setForwardRow(null)}
+            onForwarded={() => {
+              setForwardRow(null);
+              invalidateSlice('leads');
+              showToast('Forwarded.', 'success');
+            }}
+          />
+        )}
+
+        {/* CE-43 LC-2 packet 3 · THE BOOKING SHEET (A12), one mount for both openers: the lead
+            card's A2 controls and the swipe-right Booked (F15(a)). On success the sheet has
+            already refreshed the slices; the open detail reads booked at once. */}
+        {slice === 'leads' && (
+          <BookingSheet
+            open={!!booking}
+            leadId={booking ? booking.leadId : null}
+            initialKind={booking ? booking.kind : 'booking_confirmed'}
+            onClose={() => setBooking(null)}
+            onBooked={() => {
+              // DESIGN-1 · STAGE 4: the sheet stays open on its Booked step (the draft, Send on WhatsApp, Undo) until Done
+              const id = booking ? booking.leadId : null;
+              if (id) setSel((cur) => (cur && cur.id === id ? { ...cur, badge: 'booked' } : cur));
+            }}
+            onToast={(m, k) => showToast(m, k)}
+            onNeedWeddingDate={openDateFix}
+            leadFacts={leadFactsOf(booking ? booking.leadId : null)}
+            // DESIGN-1 · STAGE 4: the name and number the confirmation draft and its WhatsApp link read
+            leadName={leadOf(booking ? booking.leadId : null).name}
+            leadPhone={leadOf(booking ? booking.leadId : null).phone}
+          />
+        )}
+
+        {/* CE-43 LC-2 packet 3f · R-43.16: the wedding-date completion a refusal line opens. */}
+        {dateFix && (
+          <WishboneSheet
+            missing={['wedding_date']}
+            personLabel={dateFix.name}
+            initialValues={{ wedding_date: dateFix.value }}
+            onComplete={async (_cell, value) => {
+              const res = await updateLead(dateFix.leadId, { wedding_date: value, wedding_date_precision: 'day' });
+              if (!res.ok) return ('error' in res && res.error) || 'Could not save it. Try again.';
+              invalidateSlice('leads');
+              return null;
+            }}
+            onDone={() => setDateFix(null)}
+          />
+        )}
+
+        {/* TDW_04 A1 — the wishbone, leads plane. */}
+        {wishboneRow && (
+          <WishboneSheet
+            missing={wishboneRow.draftMissing ?? []}
+            personLabel={wishboneRow.primary}
+            start={wishboneStart}
+            onComplete={async (cell, value) => {
+              // Cells here ∈ LEAD_EXPECTED = name/phone/wedding_date/wedding_city/
+              // budget_max — all UpdateLeadRequest keys; budget is numeric.
+              const body: Record<string, string | number> = { [cell]: cell === 'budget_max' ? Number(value) : value };
+              // ── F-43.122 (CE-44) · A DATE FILED HERE IS A DAY ──────────────────
+              // This route built its body from the cell key alone and could carry no
+              // precision, so a wedding date filed through a chip landed with whatever
+              // precision already stood — driven in a browser at F-43.117's probe, it
+              // PATCHed {"wedding_date":"2027-03-14"} with none. The `dateFix` route at
+              // :2102 has always sent 'day'. Now all three pwa date-write routes do.
+              if (cell === 'wedding_date' && /^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
+                body.wedding_date_precision = 'day';
+              }
+              const res = await updateLead(wishboneRow.id, body);
+              if (!res.ok) return ('error' in res && res.error) || 'Could not save it. Try again.';
+              invalidateSlice('leads');
+              return null;
+            }}
+            onDone={() => { setWishboneRow(null); setWishboneStart(undefined); setSel(null); }}
+          />
+        )}
+    </>
+  );
+
+  if (recordId && (slice === 'invoices' || slice === 'events')) {
+    const raw = (d.data ?? []).find((x) => x.id === recordId) as unknown as (Invoice | VendorEvent | undefined);
+    const side = recRow ? swipeSidesFor(recRow).right : undefined;
+    const canPay = !!recRow && slice === 'invoices' && (recRow.payAmount ?? 0) > 0 && !packagePayBlocked(recRow);
+    const canDone = !!recRow && slice === 'events' && (recRow.badge ?? '').toLowerCase() === 'upcoming';
+    return (
+      <>
+        <SliceRecord slice={slice} vendorId={vendorId} row={recRow} raw={raw ?? null} loading={loading}
+          schedulePanel={schedulePanel} schedule={schedule} pdfBusy={pdfBusy}
+          onSend={() => { if (recRow) void sendInvoiceOnWa(recRow); }}
+          onPdf={() => { void downloadInvoicePdf(); }}
+          onMarkPaid={canPay && side ? () => side.onTrigger() : undefined}
+          onDone={canDone && side ? () => side.onTrigger() : undefined}
+          onEdit={() => { if (recRow) onEditHere(recRow); }}
+          onCancel={() => { if (recRow) cancelHere(recRow); }} />
+        {body}
+      </>
+    );
+  }
+
+  return (
+    <SliceShell
+      slice={slice}
+      query={query}
+      setQuery={setQuery}
+      loading={loading}
+      error={error}
+      rows={rows}
+      onSelect={(row) => { setSel(row); setConfirmDel(false); }}
+      renderRow={renderRow}
+      masthead={masthead}
+      filterRail={<FilterRail slice={slice} chips={filterChips} active={filterKey} onSelect={setFilterKey} />}
+      sortControl={filterChips.length > 0 || slice === 'clients' ? (
+        <button type="button"
+          onClick={() => setSortKey(k => k === 'recent' ? 'amount' : k === 'amount' ? 'date' : 'recent')}
+          style={{
+            font: T.t4,
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '4px 0',
+            color: A.inkMute,
+            whiteSpace: 'nowrap',
+          }}>{sortKey.charAt(0).toUpperCase() + sortKey.slice(1)} ⌄</button>
+      ) : undefined}
+      onAdd={onAdd}
+    >
+      {body}
+    </SliceShell>
+  );
+}
