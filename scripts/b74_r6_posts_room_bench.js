@@ -105,7 +105,7 @@ cell('C6 the copy home carries the vetoed bytes verbatim (4b sheet + frame veto)
     ledeCards: 'Cards made from your last wedding page.',
     ledeBroadcast: 'Send one message to your past couples.',
     ledeSunday: 'Every Sunday: your week on Instagram.',
-    caption: 'Caption', download: 'Download', share: 'Share', copyCaption: 'Copy caption',
+    caption: 'Caption', download: 'Download', share: 'Share', copy: 'Copy', copied: 'Copied',   // R-46.17: 'Copy caption' retired
     notOnYet: 'Not switched on yet.',
     sundayPending: 'This opens once Instagram approves our access.',
   };
