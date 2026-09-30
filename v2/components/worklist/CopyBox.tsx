@@ -5,7 +5,7 @@
 // It takes no children on purpose: there is no way to put a sentence inside.
 import { useEffect, useRef, useState } from 'react';
 
-export function CopyBox({ text, copyValue, label, copied, onCopied, textClassName }: {
+export function CopyBox({ text, copyValue, label, copied, onCopied, textClassName, marks }: {
   /** the text she is given, shown whole */
   text: string;
   /** what the clipboard receives when it is the full form of what is shown (an address shown without https://) */
@@ -14,7 +14,11 @@ export function CopyBox({ text, copyValue, label, copied, onCopied, textClassNam
   copied: string;
   onCopied?: () => void;
   textClassName?: string;
+  /** LANDING: extra data-* names for the box, the text and the control (main's caption box is read as data-caption-box,
+   *  data-caption and data-copy, CE-46 ADS-2) */
+  marks?: { box?: string; text?: string; ctl?: string };
 }) {
+  const m = (n?: string) => (n ? { ['data-' + n]: '' } : {});
   const [done, setDone] = useState(false);
   const t = useRef<number | null>(null);
   useEffect(() => () => { if (t.current) window.clearTimeout(t.current); }, []);
@@ -22,14 +26,19 @@ export function CopyBox({ text, copyValue, label, copied, onCopied, textClassNam
     try { await navigator.clipboard.writeText(copyValue ?? text); } catch { return; /* the text stays selectable in the box */ }
     setDone(true); onCopied?.();
     if (t.current) window.clearTimeout(t.current);
-    t.current = window.setTimeout(() => setDone(false), 1800);
+    // LANDING: "Copied" for two seconds, then the label again (main's ruling, CE-46 ADS-2, R-46.17)
+    t.current = window.setTimeout(() => setDone(false), 2000);
   };
   return (
-    <div className="wl-copybox" data-copybox="">
-      <style>{COPYBOX_CSS}</style>
-      <span className={'wl-copytext' + (textClassName ? ' ' + textClassName : '')} data-copytext="">{text}</span>
-      <button type="button" className="wl-copyctl" data-copyctl="" onClick={() => void copy()}>{done ? copied : label}</button>
+    // LANDING: the style sits beside the box, not in it, so the box holds exactly the text and its one control
+    // (main's caption-box cell, CE-46 ADS-2 10.1)
+    <>
+    <style>{COPYBOX_CSS}</style>
+    <div className="wl-copybox" data-copybox="" {...m(marks?.box)}>
+      <span className={'wl-copytext' + (textClassName ? ' ' + textClassName : '')} data-copytext="" {...m(marks?.text)}>{text}</span>
+      <button type="button" className="wl-copyctl" data-copyctl="" {...m(marks?.ctl)} onClick={() => void copy()}>{done ? copied : label}</button>
     </div>
+    </>
   );
 }
 

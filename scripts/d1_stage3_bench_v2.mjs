@@ -146,7 +146,8 @@ const SITES = [
   ['4.2', 'the TDW enquiry link (Settings)', 'v2/components/vendor/SettingsScreen.tsx', /<CopyBox text=\{waLink\} label="Copy" copied="Copied" onCopied=\{[^}]*\}[^/]*\/>/, /\{waLink\}<\/div>/],
   ['4.3', 'your link (the first-run card)', 'v2/components/worklist/FirstRun.tsx', /<CopyBox text=\{tdwLink\} label=\{COPY\.cardLinkAction\} copied=\{COPY\.cardLinkCopied\} \/>/, /writeText\(tdwLink\);\s*setCopied/],
   ['4.4', 'your website’s address', 'v2/app/vendor/(shell)/your-website/screen.tsx', /<CopyBox text=\{address\} copyValue=\{pageUrl\} label=\{C\.copy\} copied=\{C\.copied\} textClassName="yw-big" \/>/, /<div className="yw-big">\{address\}<\/div>/],
-  ['4.5', 'the post’s caption (Posts and ads)', 'v2/app/vendor/(shell)/posts/page.tsx', /\{body\?\.caption && <CopyBox text=\{body\.caption\} label=\{PO\.copyCaption\} copied=\{PO\.copyCaption\} \/>\}/, /<p className="pst-caption">/],
+  // LANDING (by label): main's CE-46 ADS-2 words on the same box (Copy, then Copied), and main's names for it
+  ['4.5', 'the post’s caption (Posts and ads)', 'v2/app/vendor/(shell)/posts/page.tsx', /\{body\?\.caption && <CopyBox text=\{body\.caption\} label=\{PO\.copy\} copied=\{PO\.copied\} marks=\{\{ box: 'caption-box', text: 'caption', ctl: 'copy' \}\} \/>\}/, /<p className="pst-caption">/],
   ['4.6', 'a contract link she must send herself (Contracts)', 'v2/app/vendor/(shell)/contracts/screen.tsx', /<div style=\{HINT\}>Sending is not open yet\. Send this link to \{first\} yourself\.<\/div>\s*<div style=\{\{ marginTop: 8 \}\}><CopyBox text=\{signLink\.url\} label="Copy" copied="Copied" \/><\/div>/, /show\(r\.sign_url/],
 ];
 const siteCell = (src, re, old) => { const s = strip(src); return (re.test(s) && !old.test(s)) || (!re.test(s) ? 'the text is not in its own CopyBox (or something joined it)' : 'the old loose copy is still drawn'); };

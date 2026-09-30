@@ -5,8 +5,8 @@ One landing branch per repo, each built from the stage branches and brought onto
 
 | Repo | Branch | Tip | Built on |
 |---|---|---|---|
-| dream-os | `design/landing` | `0f745cc` | `design/stage-4-book` (which holds `design/layout-switch`) + main `93f054f` |
-| dreamos-pwa | `design/landing` | see the report (this file is in it) | `design/stage-5b-pages` (which holds stages 2 to 5a) + `design/stage-1-look` + main `640d77e` |
+| dream-os | `design/landing` | see the report | `design/stage-4-book` (which holds `design/layout-switch`) + main `93f054f`, then main `24854d2` (derived again at the moment of the last merge) |
+| dreamos-pwa | `design/landing` | see the report (this file is in it) | `design/stage-5b-pages` (which holds stages 2 to 5a) + `design/stage-1-look` + main `640d77e`, then main `3de27e0` (derived again at the moment of the last merge) |
 
 Nothing is merged to main and there is no pull request. With the master off and no vendor on the per-vendor list, every
 vendor sees today's layout; the new layout lives beside it (pwa `v2/`), served only to a vendor the switches name.
@@ -27,7 +27,7 @@ vendor sees today's layout; the new layout lives beside it (pwa `v2/`), served o
      is kept until (+30 days). Removal is never automatic.
    - `9d3308e` **the one-tap Book, the server's half**: `src/lib/vendor/promotion.js` takes the function dates and the
      amount; `src/lib/vendor/unbooking.js` is Undo and Cancel booking (`POST /leads/unbook`).
-   - `0f745cc` the merge of main `93f054f`.
+   - the merges of main `93f054f` and then `24854d2`.
 2. **Apply migration 0185** (written, never applied here). Main's latest is 0184 (with 0183 applied after it, recorded in
    `OUT_OF_ORDER.json`), so 0185 is the next number, no clash. It seeds two switchboard rows, both **off**:
    `flag.vendor_layout_v2` and `flag.vendor_layout_v2.first_on` (`on conflict (key) do nothing`).
@@ -78,7 +78,8 @@ The full list is the appendix at the end.
 
 ## 4 · The conflicts resolved (each in favour of main's behaviour)
 
-**dream-os.** The merge of main `93f054f` had no textual conflict. One file changed on both sides, `src/api/vendor/me.js`,
+**dream-os.** The merges of main `93f054f` and `24854d2` (CE-46 G6-4 F-44.252, the shared-way Remove) had no textual
+conflict; `24854d2` touches no file of ours. One file changed on both sides, `src/api/vendor/me.js`,
 in separate hunks: ours adds `layout`, main's CE-46 ELZ-3 adds `price_share_enabled`. Both are kept.
 
 **dreamos-pwa.** The merges had no textual conflict. `design/stage-1-look` was merged in only for its report commit
@@ -96,6 +97,22 @@ Each twin was merged three ways (v2 ours, the merge base `85c66ef`, main theirs)
 | `components/worklist/PageHelp.tsx` | the help card | **main's**: "Ask TDW about this" removed from the card, only Got it; the "?" ring in teal. v2's HelpButton (the sheets' "?") kept |
 | `lib/worklist/pageHelp.ts` | the Ads help lines | **main's** what and pays (Facebook, the payment method); the leads line keeps the new layout's tab name, Enquiries |
 | `lib/worklist/pageHelp.ts` | every room's card (main's FE-4 how-to cards) | **main's card, word for word,** on every room the new layout draws as main does (25 rooms: Packages, Expenses, Books, Notes, Storefront, Couture, Team, Contracts, TDS, Advisor, Billing, Settings, and the Business Solutions, Number, Website, Wedding pages, Google reviews, Posts, Ads, Dates, Introductions, Referrals, Payment reminders, Collab and Exchange rows). The reworked rooms (More, Today, Enquiries, Clients, Invoices, Events, Calendar, Portfolio, Collab responses, the four record pages) keep cards naming their own buttons, since main's steps name buttons those screens no longer draw. Main's two new rules (1.8 a connects line on every card; 1.9 every button a step names is drawn) now hold for the v2 cards too: the Collab-responses card gained its connects line, and the Calendar card was reworded so "to block it" is not read as a button. |
+
+**dreamos-pwa, main's second commit today (`3de27e0`, CE-46 ADS-2: the Posts caption in its own box).** The new layout
+already drew the caption in its own box (the one CopyBox, stage 3), so the v2 Posts page conflicted in three places:
+- **the caption box** takes **main's behaviour**: main's words (Copy, then Copied) for two seconds, and main's names for
+  the box, the caption and its control (`data-caption-box`, `data-caption`, `data-copy`, which main's b143 cells read).
+  It stays the one CopyBox;
+- **CopyBox** was changed for all sites to match: two seconds, not 1.8; optional data names; and its style moved beside the
+  box, so the box holds exactly the text and its one control (main's 10.1);
+- **the page's CSS** keeps the new layout's rules; main's `.pst-capbox` and `.pst-copy` rules are not needed, since the
+  box is the CopyBox;
+- main's now-unused copied state was not carried into the twin.
+
+On the benches:
+- `b143_v2` takes main's ADS-2 cells and mutations at the v2 paths. M12 ("Copy moved out of the caption's box") is
+  re-expressed by label for the CopyBox: the box loses its control's mark, the same claim broken.
+- `d1_stage3` 4.5 is amended by label to main's words on the same box.
 
 - **New on main, with v2 twins:**
   - `OwnName.tsx` is copied as it is, except that the live name sits in a CopyBox. The new layout's R-46.17 requires
@@ -121,16 +138,21 @@ Each twin was merged three ways (v2 ours, the merge base `85c66ef`, main theirs)
      line too;
    - `v2/components/worklist/PageHelp.tsx` HelpButton's `setFirst` inside an effect, the same rule main's own line
      draws, since stage 3.
-4. **b143_v2 2.1** (found at landing, and red at the 5b tip too, so it predates the landing): on the Ads draft at 374, Run's bottom is at 711.7
+4. **b143_v2 as a whole**: at landing it outran the ten-minute run limit twice (it kept running past its own
+   `timeout`), so it was stopped and not retried, by rule. Nothing was left running, and M2's planted width was put back.
+   - What it reached: the states phase in full, green but for 2.1 below, and for 10.1, which is fixed since.
+   - The caption cells 10.1 and 10.3 then passed in a short live probe of the v2 Posts page.
+   - The floor runs it whole.
+5. **b143_v2 2.1** (found at landing, and red at the 5b tip too, so it predates the landing): on the Ads draft at 374, Run's bottom is at 711.7
    and the Ask bar's top at 696, where the ruling asks for 44px clear. The new layout's search row takes the height.
    A fix belongs to a rework pass on Ads, which the founder decides from the table below.
-5. **Main's own, noted:**
+6. **Main's own, noted:**
    - main's b140 M9 plants text ("tap Connect ad account. Meta opens") that main's own card no longer contains, so its
      `--mutate` reports the anchor missing on both layouts;
-   - main's new benches (b120, b145, b147, b151, b155, b73, obp_vendor_form) prove today's layout only. The split made
+   - main's new benches (b120, b145, b147, b151, b155, b73, b74, obp_vendor_form) prove today's layout only. The split made
      `_v2` copies only of benches the stages amended; their v2 twins carry the same changes by the three-way merge;
    - main's PIN pages log a hydration mismatch (a background image style) in both layouts.
-6. **dream-os**: every bench reading a changed file gives the same result on `design/landing` as on main, line for line.
+7. **dream-os**: every bench reading a changed file gives the same result on `design/landing` as on main, line for line.
    This clone has no packages, so the reds are the environment's and main's.
 
 ## 6 · What the founder walks after landing
@@ -212,16 +234,17 @@ The founder decides from this table which rooms get a rework pass. Nothing furth
 ## Benches run on each landing branch (only those reading changed files, and the d1_ benches; no floor)
 
 **dream-os `design/landing`**:
-- d1_layout_master 16/16, d1_search 22/22, d1_booking 19/19, b0185_layout_switch 13/13.
+- d1_layout_master 16/16, d1_search 22/22, d1_booking 19/19, b0185_layout_switch 13/13, rerun after `24854d2` too.
 - The 34 other benches reading a changed file: results identical to main's, line for line.
 
 **dreamos-pwa `design/landing`**:
 - d1_records5b 39/39, d1_records 24/24, d1_help 10/10, d1_stage3 37/37, d1_book 32/32, d1_layout_switch 19/19,
   d1_layout_panel 15/15;
 - tdw41_v2 25/25; b80_v2 47/47; b81_v2 65/65; b57_v2 192/192; b126_v2 48/48;
-- b140_v2 646/646; its mutations each bite except main's stale M9 (5.5);
+- b140_v2 646/646; its mutations each bite except main's stale M9 (5.6);
 - b40_v2 has main's C50 and C102 only, as at 5b; b82_v2 only the check that needs the dream-os font file; b122_v2
-  80/81 (main's 3.5); b77_v2 47/51 (5.2); b143_v2 as in 5.4;
+  80/81 (main's 3.5); b77_v2 47/51 (5.2); b143_v2 as in 5.4 and 5.5;
+- after `3de27e0`, every d1_ bench was run again (all green) and the caption probe passed;
 - the typecheck is clean.
 
 ## Appendix · every dreamos-pwa path in the landing (screenshots under docs/design/shots/ aside)

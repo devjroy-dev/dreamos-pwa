@@ -66,6 +66,9 @@ function PostsScreen() {
   const [body, setBody] = useState<CardsBody | null>(null);
   const [failed, setFailed] = useState(false);
   const [kind, setKind] = useState<CardKind>('post');
+  // R-46.17 (the founder's rule, 29 Sept 2026): the caption sits in its own box with its one control.
+  // "Copied" shows for two seconds after the clipboard takes it, then "Copy" again (the founder's words). In the new
+  // layout the box is the one CopyBox (below), which does exactly this.
 
   const load = useCallback(async () => {
     try {
@@ -141,7 +144,9 @@ function PostsScreen() {
             </div>
 
             <span className="pst-lbl">{PO.caption}</span>
-            {body?.caption && <CopyBox text={body.caption} label={PO.copyCaption} copied={PO.copyCaption} />}
+            {/* LANDING · CE-46 ADS-2 onto the new layout: the caption's own box is the one CopyBox, with main's words (Copy, then
+                Copied for two seconds) and main's names for the box, the caption and its control */}
+            {body?.caption && <CopyBox text={body.caption} label={PO.copy} copied={PO.copied} marks={{ box: 'caption-box', text: 'caption', ctl: 'copy' }} />}
 
             <button type="button" className="pst-btn pst-primary" onClick={() => void onDownload()}>{PO.download}</button>
             <div className="pst-two">
