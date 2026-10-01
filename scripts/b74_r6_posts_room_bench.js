@@ -99,11 +99,14 @@ cell('C5 every vendor-facing byte on the page comes from the copy home — no li
   if (!/ROOM_ROWS\.find\(\(r\) => r\.key === 'posts'\)/.test(page)) return 'the title is not read from ROOM_ROWS by key';
 });
 
+// C6 and C11 AMENDED BY LABEL (CE-46 FE-6 cut 1, W1, the chair's yes of 30 Sept 2026 under the founder's no-"couple" rule of
+// 29 Sept): the Broadcast head, its lede, the count (couplesCount renamed clientsCount), the confirm and the empty line now
+// read past clients. Cell counts unchanged; each re-pinned byte is the new vetoed one.
 cell('C6 the copy home carries the vetoed bytes verbatim (4b sheet + frame veto)', () => {
   const want = {
-    sectionCards: 'Cards', sectionBroadcast: 'Broadcast', sectionSunday: 'Sunday',
+    sectionCards: 'Cards', sectionBroadcast: 'Messages to past clients', sectionSunday: 'Sunday',   // W1
     ledeCards: 'Cards made from your last wedding page.',
-    ledeBroadcast: 'Send one message to your past couples.',
+    ledeBroadcast: 'Send one message to your past clients.',   // W1
     ledeSunday: 'Every Sunday: your week on Instagram.',
     caption: 'Caption', download: 'Download', share: 'Share', copy: 'Copy', copied: 'Copied',   // R-46.17: 'Copy caption' retired
     notOnYet: 'Not switched on yet.',
@@ -149,15 +152,15 @@ cell('C10 4b-2 · the fee is formatRs over the door\'s whole paise, with the fig
 
 cell('C11 4b-2 · the broadcast copy carries the vetoed bytes verbatim', () => {
   const fns = {
-    couplesCount: /couplesCount = \(n: number\) => `\$\{n\} couples`/,
+    clientsCount: /clientsCount = \(n: number\) => `\$\{n\} past clients`/,   // W1: renamed from couplesCount
     feeLine: /feeLine = \(rs: string\) => `Meta charges up to \$\{rs\} for this send\.`/,
     sendTo: /sendTo = \(n: number\) => `Send to \$\{n\}`/,
-    confirmLine: /confirmLine = \(n: number, rs: string\) => `Send to \$\{n\} couples\? Meta charges up to \$\{rs\}\.`/,
+    confirmLine: /confirmLine = \(n: number, rs: string\) => `Send to \$\{n\} past clients\? Meta charges up to \$\{rs\}\.`/,   // W1
     sentLine: /sentLine = \(n: number, m: number\) => `Sent to \$\{n\}\. \$\{m\} not delivered\.`/,
     referralNextLine: /referralNextLine = \(iso: string\) => `Your referral message goes once a year\. Next: \$\{fullDate\(iso\)\}\.`/,
   };
   for (const [k, re] of Object.entries(fns)) if (!re.test(copyHome)) return `${k} is not the vetoed byte`;
-  if (!/referralLabel:\s*'Referral message'/.test(copyHome) || !/noCouples:\s*'No past couples with a number yet\.'/.test(copyHome)) return 'a label/empty byte drifted';
+  if (!/referralLabel:\s*'Referral message'/.test(copyHome) || !/noCouples:\s*'No past clients with a number yet\.'/.test(copyHome)) return 'a label/empty byte drifted';
   if (!/month: 'long'/.test(copyHome)) return 'the next date is not a full month (F-42.112)';
 });
 

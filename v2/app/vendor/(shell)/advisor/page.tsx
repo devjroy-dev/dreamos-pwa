@@ -121,7 +121,7 @@ export default function AdvisorPage() {
             asserts advisor, so the chip is constant here; it reads from the same
             literal the useChat call passes, never a second constant, so the chip
             cannot outlive the assertion. */}
-        <div className="wl-advchip">Advisor</div>
+        {/* CE-47 L4 (FE-7), veto 38: the chip repeated the title; gone */}
         {/* Before the first message the ratified header and intro stand. Once a
             turn exists they give way: at 374 the page cannot carry a header, an
             intro, a note AND a thread without the conversation starting below the
@@ -159,9 +159,8 @@ export default function AdvisorPage() {
       </ThemeProvider>
       <style>{`
 .wl-advroom{display:flex;flex-direction:column;height:100%;min-height:0}
-.wl-advchip{align-self:flex-start;font:var(--wl-t5);letter-spacing:.18em;text-transform:uppercase;color:var(--atelier-accent-text);border:1px solid var(--atelier-accent-text);border-radius:999px;padding:4px 12px;margin:8px 0 4px}
-.wl-adv{padding-top:24px;padding-bottom:8px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
-.wl-advbody{font:var(--wl-t3);color:var(--atelier-ink-soft);margin:0;max-width:46ch}
+.wl-adv{padding-top:0;padding-bottom:8px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.wl-advbody{font:var(--wl-t4);color:var(--atelier-ink-mute);margin:0;max-width:46ch}
 .wl-advnote{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:8px 0 0;max-width:52ch}
 .wl-advthread{flex:1;min-height:0;overflow-y:auto;padding-top:12px}
 .wl-advcap{font:var(--wl-t5);color:var(--atelier-accent-text);margin:8px 0}

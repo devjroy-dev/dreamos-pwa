@@ -17,19 +17,19 @@ export const ENQ = {
   /** E1 · the row's label */
   label:          'Where enquiries go',
   /** E2 · the row's line, under the label */
-  line:           'Choose where couples land when they tap Enquire on WhatsApp on your page.',
+  line:           'Choose where clients land when they tap Enquire on WhatsApp on your page.',
   /** E3 · option 1 (default) */
   tdw:            'Your TDW agent answers',
   /** E3b · option 1, its line */
-  tdwLine:        'Couples message TDW’s number. Your agent replies for you and files every enquiry in Enquiries.',
+  tdwLine:        'Clients message TDW’s number. Your agent replies for you and files every enquiry in Enquiries.',
   /** E4 · option 2 */
   own:            'You answer on your number',
   /** E4b · option 2, its line */
-  ownLine:        'Couples message your WhatsApp. You reply yourself; nothing comes to TDW.',
+  ownLine:        'Clients message your WhatsApp. You reply yourself; nothing comes to TDW.',
   /** E5 · option 3, shown disabled */
   waba:           'Your TDW agent answers on your number',
   /** E5b · option 3's description, its state folded in (F-19.20: disabled and stated, never hidden). FE_2b, his. */
-  wabaLine:       'Couples message your WhatsApp. Your agent replies for you there. Available once your own number is connected.',
+  wabaLine:       'Clients message your WhatsApp. Your agent replies for you there. Available once your own number is connected.',
   /** E6 · consent (a), on the second screen (§7c, twice-stated, FK3) */
   consentPublic:  'This number will be shown on your public page, where anyone can see it.',
   /** E7 · consent (b), on the second screen */

@@ -60,13 +60,16 @@ function loadTs(rel, src) {
 // moved. IG.professional loses its dash, as the portfolio's H2 it is carried from does (was 551602b858cce1f7);
 // IG.consent reads "we answer the question, ... take the details, and add the couple to your enquiries" (was
 // 60f754a4cd5c1967); QUIET.line reads "we stay quiet in that chat for" (was db24a8f488684f78).
+// RE-PINNED BY LABEL · CE-47 FE-8 (the chair's ruling A; the founder's rule: no "couple" drawn to a vendor in the new layout).
+// Four bytes moved, each "couple" becoming people, someone or them: IG.lede (was 94a11debf3564f16), IG.consent (was
+// a7b5fd2a868e7787), IG.on (was 6f265681872973a4), QUIET.line (was c07c9cbc16bb2145). Every other byte stands.
 const VETOED = {
   'SECTIONS.number': 'a625fc8d7c9d0554', 'SECTIONS.instagram': '47b83aeaab4df5cd',
-  'IG.lede': '94a11debf3564f16', 'IG.connect': '59641f41ef18e824', 'IG.professional': 'a38fda05ebe7a3c1',
-  'IG.consent': 'a7b5fd2a868e7787', 'IG.turnOn': '5a1f096a0d8d7674', 'IG.notNow': 'a0e63d7c7125d29a',
-  'IG.on': '6f265681872973a4', 'IG.paused': '8d99ae133c50edd5', 'IG.waiting': '7f17bd6b067cc030', 'IG.turnOff': '06f0e210b27d4d62',
+  'IG.lede': '56751648de1052ec', 'IG.connect': '59641f41ef18e824', 'IG.professional': 'a38fda05ebe7a3c1',
+  'IG.consent': '63ab1891973792e6', 'IG.turnOn': '5a1f096a0d8d7674', 'IG.notNow': 'a0e63d7c7125d29a',
+  'IG.on': '6a2049cab8df37e5', 'IG.paused': '8d99ae133c50edd5', 'IG.waiting': '7f17bd6b067cc030', 'IG.turnOff': '06f0e210b27d4d62',
   // RE-PINNED BY LABEL · CE-46 G6-4 (b151): QT1 is F-g's line ("...TDW stays quiet in that chat for", ruled 28 Sept 2026); was db24a8f488684f78.
-  'QUIET.line': 'c07c9cbc16bb2145', 'QUIET.labels': '89222666feeac835',
+  'QUIET.line': '16878044e62d6a57', 'QUIET.labels': '89222666feeac835',
 };
 const ROW_LABEL = 'WhatsApp and Instagram';
 const ROW_LINE = 'Enquiries on WhatsApp and Instagram, answered in the studio\u2019s name';

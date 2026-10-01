@@ -36,6 +36,10 @@ import { selectStyle } from '@/lib/vendor/controls';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Toast } from '@/v2/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
+import { Body, Group, Row, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // FE-5's pill, in the room head (FE-8)
+import { RECORD_CSS, Facts } from '@/v2/components/worklist/RecordPage';
+import { dayInWords } from '@/v2/lib/worklist/dayInWords';
 import { fetchTdsEntries, fetchTdsSummary, createTdsEntry, deleteTdsEntry, exportTdsCsv } from '@/v2/lib/vendor/api/vendor';
 import type { TdsEntry, TdsSummary } from '@/lib/vendor/types/vendor';
 
@@ -77,6 +81,20 @@ function fyOptions(): string[] {
 }
 
 
+// CE-47 L4b (FE-7): TDS's words (V10 approved; the rest carried from the room) and the year in words ("FY 2026-27").
+const TDSW = {
+  addPill: '+ New TDS entry', headline: (fy: string) => `TDS \u00b7 ${fy}`, entries: 'Entries',
+  gross: 'Gross', deducted: 'TDS deducted', net: 'Net received', section: 'Section', rate: 'Rate', date: 'Date',
+  pan: 'Client PAN', tan: 'Client TAN', cert: 'Certificate / Form 16A No.', exportCsv: 'Export CSV',
+  empty: (fy: string) => `No TDS entries for ${fy}.`, back: 'Back to TDS', delete: 'Delete', deleteAsk: 'Delete this entry?', keepIt: 'Keep it',
+} as const;
+const fyWords = (fy: string) => fy.replace(/^FY(\d{4})-(\d{2})$/, 'FY $1-$2');
+const TDS_CSS = `.tds-seg{display:flex;border:1px solid var(--atelier-card-border);border-radius:12px;overflow:hidden;margin:4px 0 16px}
+.tds-segb{flex:1;min-height:44px;background:transparent;border:0;border-right:1px solid var(--atelier-card-border);color:var(--atelier-ink-mute);font:var(--wl-t4)}
+.tds-segb:last-child{border-right:0}.tds-segb.on{color:var(--atelier-ink);font:var(--wl-tb);box-shadow:inset 0 -2px 0 var(--atelier-accent-text)}
+.tds-export{margin:16px 0 32px;align-self:flex-start}.tds-dw{margin:6px 0 0;font:var(--wl-t5);color:var(--atelier-ink-mute)}
+.fx-ask{border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg);padding:16px;margin:8px 0 32px}.fx-askline{margin:0 0 12px;font:var(--wl-tb);color:var(--atelier-ink)}.fx-askrow{display:flex;gap:8px}`;
+
 export function TdsScreen({ vendorId }: { vendorId: string }) {
   const { toast, show } = useToast();
   const [fy, setFy] = useState(currentFY());
@@ -93,6 +111,8 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
   const [pan, setPan] = useState('');
   const [tan, setTan] = useState('');
   const [certNo, setCertNo] = useState('');
+  const [openId, setOpenId] = useState<string | null>(null);   // CE-47 L4b: an entry opens as a page
+  const [asking, setAsking] = useState(false);                 // CE-47 L4b: Delete asks first
 
   function reload(selectedFy = fy) {
     setLoading(true);
@@ -138,134 +158,42 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
   const tdsAmt = grossAmt ? Math.round(Number(grossAmt) * Number(tdsRate) / 100) : 0;
   const netAmt = grossAmt ? Number(grossAmt) - tdsAmt : 0;
 
+  // CE-47 L4b (FE-7): the room as FE-6's approved frame (board 9), in RoomRows; every handler above is unchanged.
+  const Rs = (n: number | null | undefined) => `Rs ${Number(n ?? 0).toLocaleString('en-IN')}`;
+  const open = openId ? entries.find((e) => e.id === openId) ?? null : null;
+  if (open) return (
+    <div>
+      <Body>
+        <button type="button" className="rp-back" onClick={() => { setOpenId(null); setAsking(false); }}>{'\u2039'} {TDSW.back}</button>
+        <h2 className="fr-h" style={{ marginTop: 8 }}>{open.client_name}</h2>
+        <Facts rows={[[TDSW.gross, Rs(open.gross_amount)], [TDSW.deducted, Rs(open.tds_amount)], [TDSW.net, Rs(open.net_received)],
+          [TDSW.section, open.section ?? '\u2014'], [TDSW.rate, `${open.tds_rate}%`], [TDSW.date, dayInWords(open.deduction_date)],
+          [TDSW.pan, open.client_pan ?? '\u2014'], [TDSW.tan, open.client_tan ?? '\u2014'], [TDSW.cert, open.certificate_no ?? '\u2014']]} />
+        {asking ? (
+          <div className="fx-ask"><p className="fx-askline">{TDSW.deleteAsk}</p><div className="fx-askrow">
+            <button type="button" className="rp-job warn" onClick={() => { setAsking(false); setOpenId(null); void doDelete(open); }}>{TDSW.delete}</button>
+            <button type="button" className="rp-job" onClick={() => setAsking(false)}>{TDSW.keepIt}</button></div></div>
+        ) : <button type="button" className="fr-quiet" onClick={() => setAsking(true)}>{TDSW.delete}</button>}
+      </Body>
+      <Toast toast={toast} /><style>{FR_CSS + RECORD_CSS + TDS_CSS}</style>
+    </div>
+  );
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <Toast toast={toast} />
-      {/* CE-46 (the chair's read of the rooms, ruled 30 Sept 2026): no floating +; the add is a button at the top, doing
-          what the + did. */}
-      <div style={{ padding: '4px 16px 12px', display: 'flex' }}>
-        <button type="button" className="wl-btn" data-add-top="tds" onClick={() => setAddOpen(true)}>New TDS entry</button>
-      </div>
-
-      {/* ── THE ROW'S LEFT HALF IS THE OLD LAYOUT'S CHROME ───────────────────
-          The chevron and 「TDS」 retire inside the shell — WorklistShell prints the word and
-          the nav seats are the way back. THE ROW STAYS IN BOTH TREES because Export CSV
-          rides on it, and a spacer takes over the label's `flex: 1` so the control does not
-          move under the thumb. Same shape as Portfolio's and Couture's; Contracts' row went
-          entirely, because nothing rode on that one. */}
-      <div style={{ padding: '12px var(--slice-inset, 16px)', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-        
-        {<div style={{ flex: 1 }} />}
-        <button type="button" onClick={doExport} style={{
-          padding: '8px 12px', background: 'transparent',
-          border: '0.5px solid var(--atelier-input-border)', borderRadius: 12, cursor: 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.interactiveWarm,
-          letterSpacing: '0.32em', textTransform: 'uppercase',
-        }}>Export CSV</button>
-      </div>
-
-      {/* FY pills */}
-      <div style={{ padding: '16px var(--slice-inset, 16px) 8px', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {fyOptions().map(f => (
-          <button key={f} type="button" onClick={() => onFyChange(f)} style={{
-            padding: '8px 12px', borderRadius: 12, cursor: 'pointer',
-            background: fy === f ? 'var(--atelier-card-border)' : 'transparent',
-            border: `0.5px solid ${fy === f ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
-            fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem',
-            color: fy === f ? A.interactiveWarm : A.inkMute,
-            letterSpacing: '0.28em', textTransform: 'uppercase',
-          }}>{f}</button>
-        ))}
-      </div>
-
-      {/* Summary ledger */}
-      {summary && (
-        <div style={{ margin: '16px 24px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-            <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass }}>{fy}</span>
-            <span style={{ flex: 1, height: '0.5px', background: 'var(--atelier-row-hover)' }} />
-            <span style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>{summary.entry_count} entries</span>
-          </div>
-          <div style={{
-            display: 'flex', alignItems: 'stretch',
-            padding: '24px 8px 16px',
-            borderTop: '0.5px solid var(--atelier-card-border)',
-            borderBottom: '0.5px solid var(--atelier-card-border)',
-          }}>
-            {[
-              { label: 'Gross',        val: summary.total_gross, color: 'var(--atelier-ink)' },
-              { label: 'TDS',          val: summary.total_tds,   color: A.red, divider: true },
-              { label: 'Net received', val: summary.total_net,   color: A.brassWarm, divider: true },
-            ].map(item => (
-              <div key={item.label} style={{ flex: 1, textAlign: 'center', padding: '0 4px', position: 'relative' }}>
-                {item.divider && <span aria-hidden style={{ position: 'absolute', left: 0, top: '12%', bottom: '12%', width: '0.5px', background: 'var(--atelier-row-hover)' }} />}
-                <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1, color: item.color, letterSpacing: '-0.005em' }}>Rs {item.val.toLocaleString('en-IN')}</div>
-                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginTop: 12 }}>{item.label}</div>
-              </div>
-            ))}
-          </div>
-          {summary.by_section.length > 0 && (
-            <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-              {summary.by_section.map(s => (
-                <span key={s.section} style={{ fontFamily: F.script, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.005em' }}>
-                  {s.section} · Rs {s.tds.toLocaleString('en-IN')} ({s.count})
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {loading ? (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>Loading…</div>
-        </div>
-      ) : entries.length === 0 ? (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, textAlign: 'center', lineHeight: 1.5 }}>
-            No TDS entries for {fy}.<br /><span style={{ color: A.brassWarm }}>Log your first below.</span>
-          </div>
-        </div>
-      ) : (
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', marginTop: 16, paddingBottom: 112 }}>
-          {entries.map(e => (
-            <div key={e.id} style={{
-              padding: '16px var(--slice-inset, 16px)',
-              borderBottom: '0.5px solid var(--atelier-card-border)',
-              display: 'flex', alignItems: 'center', gap: 16,
-            }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1rem', lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{e.client_name}</div>
-                <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: 'var(--atelier-label)', letterSpacing: '0.28em', textTransform: 'uppercase', marginTop: 4 }}>
-                  {e.deduction_date} · {e.section || '—'} · {e.tds_rate}%
-                </div>
-                <div style={{ display: 'flex', gap: 16, marginTop: 4, fontFamily: F.script, fontSize: '1rem', lineHeight: 1.5 }}>
-                  <span style={{ color: A.inkSoft }}>Gross Rs {e.gross_amount.toLocaleString('en-IN')}</span>
-                  <span style={{ color: A.red }}>TDS Rs {e.tds_amount.toLocaleString('en-IN')}</span>
-                </div>
-              </div>
-              <button type="button" onClick={() => doDelete(e)} style={{
-                padding: '8px 12px', background: 'transparent',
-                border: '0.5px solid var(--role-critical)', borderRadius: 12, cursor: 'pointer',
-                fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.red,
-                letterSpacing: '0.28em', textTransform: 'uppercase', flexShrink: 0,
-              }}>Delete</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── CE-39 S2/8 · F-39.4 · A FIFTH AND SIXTH SEAT, FOUND BY RETIRING A SKIP ──
-          This file inherited SliceShell's 46-at-120 when it crossed, and that was correct at
-          F-38.59. F-39.4 gave the estate ONE seat — 56 at GRID.fab.bottom, reached through
-          components/worklist/Fab.tsx — so an inherited number is now a second home for a
-          fact that has one. NOT FOUND BY A WALK AND NOT BY THE HOTFIX: found the moment
-          C39's inShell skip was retired, which is the ruling that let the cell see its own
-          exemption. The founder saw Calendar; the cell then named these two.
-          The /vendor arm keeps its 82 and DECLARES itself, so the exemption is claimed in
-          the markup rather than inferred from proximity. */}
-      {/* CE-46: the + retired; the add sits at the top */}
-
+    <div>
+      <Body>
+        <RoomHeadAdd addKey="tds" label={TDSW.addPill} onAdd={() => setAddOpen(true)} />
+        <h2 className="fr-h" style={{ marginTop: 0 }}>{TDSW.headline(fyWords(fy))}</h2>
+        <div className="tds-seg" role="tablist">{fyOptions().map((f) => (
+          <button key={f} type="button" role="tab" aria-selected={f === fy} className={'tds-segb' + (f === fy ? ' on' : '')} onClick={() => onFyChange(f)}>{fyWords(f)}</button>))}</div>
+        {summary ? <Facts rows={[[TDSW.gross, Rs(summary.total_gross)], [TDSW.deducted, Rs(summary.total_tds)], [TDSW.net, Rs(summary.total_net)]]} /> : null}
+        <Head text={TDSW.entries} count={entries.length || undefined} />
+        {!loading && entries.length === 0 ? <p className="fr-empty">{TDSW.empty(fyWords(fy))}</p> : (
+          <Group>{entries.map((e) => (
+            <Row key={e.id} title={e.client_name} facts={[e.section ? `${TDSW.section} ${e.section}` : '', dayInWords(e.deduction_date)].filter(Boolean).join(' \u00b7 ')}
+              value={Rs(e.tds_amount)} chevron onClick={() => setOpenId(e.id)} />))}</Group>
+        )}
+        <button type="button" className="rp-job tds-export" onClick={() => void doExport()}>{TDSW.exportCsv}</button>
+      </Body>
       {addOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 20, display: 'flex', alignItems: 'flex-end' }} onClick={() => setAddOpen(false)}>
           <div onClick={e => e.stopPropagation()} style={{
@@ -313,7 +241,7 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
                 <option value="other">Other</option>
               </select>
             </div>
-            <div><div style={labelStyle}>Deduction date</div><input style={inputStyle} type="date" value={dedDate} onChange={e => setDedDate(e.target.value)} /></div>
+            <div><div style={labelStyle}>Deduction date</div><input style={inputStyle} type="date" value={dedDate} onChange={e => setDedDate(e.target.value)} />{dedDate ? <p data-date-words="" className="tds-dw">{dayInWords(dedDate)}</p> : null}</div>
             <div><div style={labelStyle}>Client PAN</div><input style={inputStyle} value={pan} onChange={e => setPan(e.target.value.toUpperCase())} placeholder="AABCS1234X" /></div>
             <div><div style={labelStyle}>Client TAN</div><input style={inputStyle} value={tan} onChange={e => setTan(e.target.value.toUpperCase())} placeholder="DELS01234C" /></div>
             <div><div style={labelStyle}>Certificate / Form 16A No.</div><input style={inputStyle} value={certNo} onChange={e => setCertNo(e.target.value)} placeholder="Optional" /></div>
@@ -330,6 +258,7 @@ export function TdsScreen({ vendorId }: { vendorId: string }) {
           </div>
         </div>
       )}
+      <Toast toast={toast} /><style>{FR_CSS + RECORD_CSS + TDS_CSS}</style>
     </div>
   );
 }

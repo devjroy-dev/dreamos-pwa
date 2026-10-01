@@ -26,6 +26,15 @@
 // this room is money, which is also why the room borrows no `.wl-rfig`.
 
 export const WP = {
+  // ── CE-47 L4 (FE-7): the reworked room's words, veto rows as approved ──
+  addPill: '+ New wedding page',                                  // the pill (veto 15, the founder's "+")
+  waitingOnClient: 'Waiting on the client\u2019s permission.',       // veto 17
+  permissionHead: 'Permission',                                    // veto 18
+  clientNumber: 'The client\u2019s number',
+  askPermission: 'Ask for permission',
+  comingSoon: 'Coming soon',                                        // veto 19 (R-46.14)
+  removePhotoAsk: 'Remove this photograph?',                         // veto 21
+  keepIt: 'Keep it',
   // ── W2-room / W2-empty ───────────────────────────────────────────────────
   roomTitle:         'Wedding pages',
   /**

@@ -1638,14 +1638,15 @@ cell('C35 the Add control: frozen order, seven real legs, Rooms only', () => {
   // assertion naming a LOCATION rather than a property. **Benches move with the code they
   // test.** The subject is unchanged and is what is asserted: the one FAB rule paints from
   // the accent token and no literal. It is read where the rule now is.
-  const fabRule = strip(read('v2/components/worklist/WorklistShell.tsx')).match(/\.wl-fab\{([^}]*)\}/);
-  if (!fabRule) return 'the wl-fab rule is not in the shell — the seat has no home to assert against';
-  if (/#[0-9a-fA-F]{6}|rgba?\(/.test(fabRule[1].replace(/rgba\(0,0,0,\.\d+\)/g, '')))
-    return 'the Add control hard-codes a colour — c-38.11 puts it on a token';
-  // DESIGN-1 · STAGE 1 (by label, REPORT.md P3): the filled control paints from the one primary, never the link colour
-  if (!/background:var\(--role-primary\)/.test(fabRule[1])) return 'the FAB is not on the primary token';
-  // AND THE FILE THAT LOST THE RULE MUST NOT GROW A SECOND ONE.
-  if (/\.wl-fab\{/.test(fab)) return 'AddFab has taken the seat rule back — two homes for one control';
+  // FE-5 (by label, the founder's option B, 30 Sept 2026): the Add control is the room head's "+" pill (.wl-roomadd in
+  // PageHelp.tsx), never a floating seat. The claim is unchanged: it paints from the primary token and no literal, and
+  // AddFab keeps no rule of its own.
+  const addRule = strip(read('v2/components/worklist/PageHelp.tsx')).match(/\.wl-roomadd\{([^}]*)\}/);
+  if (!addRule) return 'the room head has no + rule — the Add control has no home to assert against';
+  if (/#[0-9a-fA-F]{6}|rgba?\(/.test(addRule[1])) return 'the Add control hard-codes a colour — c-38.11 puts it on a token';
+  if (!/background:var\(--role-primary\)/.test(addRule[1]) || !/color:var\(--role-on-primary\)/.test(addRule[1])) return 'the + is not on the primary and on-primary tokens';
+  if (/position:\s*(fixed|sticky)/.test(addRule[1])) return 'the + floats again — the founder: it must not overlap other buttons or text';
+  if (/\.wl-(fab|roomadd)\{/.test(fab)) return 'AddFab has taken a seat rule of its own — two homes for one control';
   return null;
 });
 
@@ -1912,75 +1913,17 @@ cell('C39 a fixed control anywhere in a crossed room\'s graph clears the shell c
 //      (2) the one rule reads those variables rather than restating them
 //      (3) NO shell-reachable file draws a FAB of its own. Absence across the graph, which
 //          is the only shape that catches a seventh seat in a seventh file.
-cell('C49 one FAB seat, read from GRID, and no room draws its own (F-39.4)', () => {
-  const theme = strip(read('v2/lib/worklist/theme.ts'));
-  const g = theme.match(/fab:\s*\{\s*size:\s*(\d+),\s*bottom:\s*(\d+)\s*\}/);
-  if (!g) return 'GRID has no fab seat — the one home for the size and the offset is missing';
-  if (!/--wl-fab:\$\{GRID\.fab\.size\}px/.test(theme) || !/--wl-fab-bottom:\$\{GRID\.fab\.bottom\}px/.test(theme))
-    return 'the fab seat is declared but never emitted — the rule would read an undefined variable';
+// FE-5 (by label): C49 RETIRED AND INVERTED by the founder's option B (30 Sept 2026): "it should not overlap with other
+// buttons or texts". The new layout has no floating seat at all: no .wl-fab rule in the shell, no Fab component, and no
+// room draws a fixed add. Every room's "+" is the room head's, in flow (d1_ce46_rooms_render_v2 proves it on glass).
+cell('C49 no floating + in the new layout: no .wl-fab rule, no Fab component, every room\u2019s + in its head (option B)', () => {
   const shell = strip(read('v2/components/worklist/WorklistShell.tsx'));
-  const rule = shell.match(/\.wl-fab\{([^}]*)\}/);
-  if (!rule) return 'the wl-fab rule is not in the shell — a room using the class would paint an unstyled button';
-  if (!/width:var\(--wl-fab\)/.test(rule[1]) || !/height:var\(--wl-fab\)/.test(rule[1]))
-    return 'the wl-fab rule states its own size instead of reading GRID.fab';
-  if (!/bottom:calc\(var\(--wl-fab-bottom\)/.test(rule[1]))
-    return 'the wl-fab rule states its own bottom offset instead of reading GRID.fab';
-  if (!/right:var\(--wl-gutter\)/.test(rule[1]))
-    return 'the FAB sits at its own x rather than the gutter — the edge defect (R-38.5) wearing a circle';
-
-  // THE GRAPH, walked as C31 walks it. Never a typed list: six seats existed when four
-  // were believed to, and a hand-written corpus is how the seventh would hide.
-  const resolveSpec = (spec, from) => {
-    let base = null;
-    if (spec.startsWith('@/')) base = path.join(ROOT, spec.slice(2));
-    else if (spec.startsWith('.')) base = path.resolve(path.dirname(from), spec);
-    else return null;
-    for (const ext of ['.tsx', '.ts', '/index.tsx', '/index.ts', '']) {
-      const p = base + ext;
-      if (fs.existsSync(p) && fs.statSync(p).isFile()) return p;
-    }
-    return null;
-  };
-  const reach = new Set();
-  const collect = (abs) => {
-    if (reach.has(abs)) return;
-    reach.add(abs);
-    for (const m of strip(fs.readFileSync(abs, 'utf8')).matchAll(/from\s+['"]([^'"]+)['"]/g)) {
-      const r = resolveSpec(m[1], abs);
-      if (r && !r.includes('node_modules')) collect(r);
-    }
-  };
-  const walkRoutes = (rel) => {
-    for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true })) {
-      const r = rel + '/' + e.name;
-      if (e.isDirectory()) { walkRoutes(r); continue; }
-      if (e.name === 'page.tsx') collect(path.join(ROOT, r));
-    }
-  };
-  walkRoutes('v2/app/vendor/(shell)');
-  if (reach.size < 10) return 'only ' + reach.size + ' files reachable from app/w — this cell would pass over a graph it never walked';
-
+  if (/\.wl-fab\{/.test(shell)) return 'the shell still carries the floating seat rule';
+  if (fs.existsSync(path.join(ROOT, 'v2/components/worklist/Fab.tsx'))) return 'the floating Fab component still exists — a later room could draw one';
   const offenders = [];
-  for (const abs of [...reach].sort()) {
-    const rel = path.relative(ROOT, abs);
-    if (rel === 'v2/components/worklist/WorklistShell.tsx') continue;   // the seat's one home
-    const src = strip(fs.readFileSync(abs, 'utf8'));
-    // A FIXED control with a BOTTOM OFFSET is a FAB by shape. The ruled shell arm names no
-    // number at all, so ANY literal or ternary here is a second seat — including one that
-    // happens to hold the ruled value today, because a copy that agrees is still a copy.
-    for (const m of src.matchAll(/position:\s*'fixed',?\s*bottom:\s*([^,}]+)/g)) {
-      if (!/calc\(/.test(m[1])) continue;
-      const tagStart = src.lastIndexOf('<button', m.index);
-      // The /vendor arm is lawful ONLY where the element declares its tree. Read to the
-      // opening tag and no further: a window measured in characters is a verdict that
-      // depends on whitespace, which is how the first cut convicted a lawful arm.
-      if (tagStart !== -1 && /data-tree="vendor"/.test(src.slice(tagStart, m.index))) continue;
-      offenders.push(rel + ' draws its own FAB seat: ' + m[1].trim().slice(0, 56));
-    }
-  }
-  return offenders.length
-    ? offenders.join(' | ') + ' — GRID.fab is the one home, reached through v2/components/worklist/Fab.tsx'
-    : null;
+  (function walk(d) { for (const e of fs.readdirSync(path.join(ROOT, d), { withFileTypes: true })) { const r = d + '/' + e.name; if (e.isDirectory()) walk(r); else if (/\.tsx$/.test(e.name)) { const t = strip(read(r)); if (/className="wl-fab"|<Fab\b/.test(t)) offenders.push(r); } } })('v2');
+  if (fs.existsSync(path.join(ROOT, 'app/v2'))) (function walk(d) { for (const e of fs.readdirSync(path.join(ROOT, d), { withFileTypes: true })) { const r = d + '/' + e.name; if (e.isDirectory()) walk(r); else if (/\.tsx$/.test(e.name) && /className="wl-fab"|<Fab\b/.test(strip(read(r)))) offenders.push(r); } })('app/v2');
+  return offenders.length ? 'a floating + is drawn at ' + offenders.join(', ') : null;
 });
 
 // ── C50 · NO REAL PERSON IS NAMED IN A VENDOR-FACING BYTE  [F-39.6] ────────────
@@ -2527,7 +2470,12 @@ cell('C59 the Couture gate reads its two bytes from copy.ts and routes Billing t
   if (!want.coutureGateSentence.includes(want.coutureGateLinkWord))
     bad.push('the link word is not inside the sentence it must be split from');
   const src = strip(read('v2/app/vendor/(shell)/couture/screen.tsx'));
-  for (const k of Object.keys(want)) if (!new RegExp('COPY\\.' + k + '\\b').test(src)) bad.push('screen.tsx does not read COPY.' + k);
+  // AMENDED BY LABEL (CE-47, FE-6 L3, W3 under the founder's verdict on the reworked Couture room): the locked state is one
+  // plain line and one button, from the room's own words home, v2/lib/worklist/couture.ts; copy.ts keeps its bytes for
+  // the classic room. The remaining claims (roomHref Billing, no invite-only bytes, no person, the one boolean) stand.
+  const co = strip(read('v2/lib/worklist/couture.ts'));
+  if (!/lockedLine: 'Couture appointments are part of Signature and Prestige\.'/.test(co) || !/lockedButton: 'See plans in Billing'/.test(co)) bad.push('the W3 bytes are not in couture.ts');
+  if (!/CO\.lockedLine/.test(src) || !/CO\.lockedButton/.test(src)) bad.push('screen.tsx does not read CO.lockedLine and CO.lockedButton');
   if (!/roomHref\('billing'\)/.test(src)) bad.push('the Billing door does not resolve through roomHref (F-38.27)');
   if (/Invite Only|reserved for invited/.test(src)) bad.push('the retired invite-only bytes are still on the screen');
   if (/\bSwati\b/.test(src)) bad.push('screen.tsx names a person (F-39.6)');
@@ -3307,10 +3255,11 @@ cell('C82 the Team tabs mount all ten verbs through the typed door, in the shell
   for (const m of room.matchAll(/'(\/api\/[^']*)'/g))
     bad.push('the room spells the endpoint ' + m[1] + ' — the door owns paths, not the surface');
 
-  // (4) THE ADD IS ON TOP OF THE TABS (FE-5, by label: CE-46's ruling on the floating +, 30 Sept 2026). The tabs draw
-  // their add as a top button in the words the + carried, from a table, and import no floating button.
-  if (!/data-add-top="team" onClick=\{onFab\}>\{ADD_TO\[tab\]\}</.test(src) || /from '@\/v2\/components\/worklist\/Fab'/.test(src))
-    bad.push('the tabs do not draw their add on top, or still import the floating button');
+  // (4) THE + IS THE ROOM HEAD'S (FE-5, by label: the founder's option B, 30 Sept 2026, retired the floating seat in
+  // the new layout). The tabs register their add with the head and import no floating button.
+  // AMENDED BY LABEL (CE-47, FE-6 L5, the founder's add-pill ruling): the add is the room head's pill, same ADD_TO words.
+  if (!/<RoomHeadAdd addKey="team" label=\{ADD_TO\[tab\]\} onAdd=\{onFab\} \/>/.test(src) || /from '@\/v2\/components\/worklist\/Fab'/.test(src))
+    bad.push('the tabs do not register their + with the room head, or still import a floating button');
 
   // (5) THE FALLBACK TREE KEEPS ITS ADDRESSES UNTIL PHASE 7.
   // P7.2 AMENDMENT (labeled, INVERTED): the three /vendor/studio pages are DELETED with

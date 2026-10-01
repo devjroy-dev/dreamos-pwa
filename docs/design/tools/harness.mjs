@@ -137,6 +137,10 @@ function usable(p) { try { return !!p && fs.statSync(p).isFile(); } catch (_e) {
 export async function browser() {
   let bin = process.env.CHROME_BIN;
   if (!usable(bin)) { for (const c of ['/opt/pw-browsers/chromium-1194/chrome-linux/chrome', '/opt/pw-browsers/chromium']) if (usable(c)) { bin = c; break; } }
+  // CE-47 FE-8 (the chair's ruling C): CHROME_BIN, then /opt/pw-browsers, then @sparticuz/chromium (the estate's browser, the one the
+  // founder's Codespace has), as FE-7's kit and d1_ce46_rooms_render_v2 do. Without this last step a machine with neither of the
+  // first two launches nothing ("An executablePath or channel must be specified").
+  if (!usable(bin)) { try { const mod = await import('../../../node_modules/@sparticuz/chromium/build/index.js'); const c = mod.default || mod; const p = await c.executablePath(); if (usable(p)) bin = p; } catch (_e) { /* no browser found: launch says so */ } }
   return puppeteer.launch({ executablePath: bin, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage', '--font-render-hinting=none', ...(process.env.CHROME_ARGS ? process.env.CHROME_ARGS.split(' ') : [])] });
 }
 

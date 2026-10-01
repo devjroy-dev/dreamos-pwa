@@ -268,7 +268,9 @@ outOfFamily.length === 0
 // EXISTING token read (a hairline -> --atelier-card-border, an outline at alpha 0.3 or more -> --atelier-input-border, a
 // tint -> --atelier-row-hover, a word -> --atelier-ink-mute); the toast's ink is Graphite's own #ECEFEF, one in-family
 // literal added. No alpha-bearing token was minted. The other 22 moved line, not value.
-const RESTATED_PINNED = 23;
+// FE-5 L2 · RE-PINNED 23 -> 21, THE DEBT SHRANK BY TWO (by label): the founder's option B retired the floating + in the
+// new layout, and with it the .wl-fab rule's two rgba shadow literals (WorklistShell.tsx); nothing was widened.
+const RESTATED_PINNED = 21;
 console.log('\n\u00a71b  the restated-token debt is pinned, not passed over');
 restated.length === RESTATED_PINNED
   ? ok(`${RESTATED_PINNED} in-family literals`, 'the ruled debt — awaiting an alpha-bearing token ruling')

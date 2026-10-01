@@ -30,6 +30,8 @@
 // squared corners, brass borders, Italiana titles, Cormorant italic
 // detail lines, atelier-fab buttons, atelier sheet for the post form.
 
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // FE-5's pill, in the room head (FE-8)
+import { COL } from '@/v2/lib/worklist/collabRoom';
 import { useEffect, useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -142,6 +144,7 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
   const [roster,   setRoster]   = useState<RosterEntry[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [showForm, setShowForm] = useState(prefill.open);
+  const [rosterAdding, setRosterAdding] = useState(false);   // CE-47 FE-6 L5: the pill opens Roster's add
 
   useEffect(() => {
     Promise.all([fetchFeed(), fetchMyPosts(), loadRoster()]).finally(() => setLoading(false));
@@ -205,32 +208,23 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
           people.」 stacked beneath it is one room named twice, which is Team's `SectionLabel`
           finding one room over. It stays on the fallback, where nothing else names this
           surface at all. */}
-      <div style={{ padding: '12px 24px 12px'}}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-          {<div style={{ flex: 1 }} />}
-          <button type="button" onClick={() => setShowForm(true)} className="atelier-fab" style={{
-            padding: '8px 16px', borderRadius: 12, cursor: 'pointer',
-            border: '0.5px solid var(--atelier-label)',
-            fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP,
-            letterSpacing: '0.32em', textTransform: 'uppercase',
-            flexShrink: 0, marginTop: 8,
-          }}>+ Post</button>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div style={{ display: 'flex', padding: '0 24px', marginBottom: 4 }}>
-        {TAB_ORDER.map(t => (
-          <button key={t} type="button" onClick={() => setTab(t)} style={{
-            flex: 1, padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: '0.8125rem',
-            color: tab === t ? A.interactiveWarm : A.inkMute,
-            letterSpacing: '0.32em', textTransform: 'uppercase',
-            borderBottom: tab === t ? `0.5px solid ${A.interactive}` : '0.5px solid var(--atelier-card-border)',
-            transition: `all 200ms ${EASE}`,
-          }}>{t === 'opportunities' ? 'Opportunities' : t === 'my_posts' ? 'My posts' : 'Roster'}</button>
+      {/* CE-47 FE-6 L5 (the verdict on mock 5; the add-pill ruling): the add is the room head's pill, by tab: "+ New post"
+          on My posts and Opportunities, "+ Add someone" on Roster, each doing what its old control did. Then the tab's one
+          line (V1). The uppercase "+ Post" control and its row are gone. */}
+      <RoomHeadAdd addKey="collab" label={tab === 'roster' ? COL.addSomeone : COL.newPost}
+        onAdd={() => (tab === 'roster' ? setRosterAdding(true) : setShowForm(true))} />
+      <p className="col-big" data-collab-line="">
+        {tab === 'my_posts' ? COL.myPostsOpen(myPosts.filter((x) => x.state === 'open').length)
+          : tab === 'opportunities' ? COL.opportunities(feed.length) : COL.roster(roster.length)}
+      </p>
+      <div className="col-seg" role="group" data-collab-tabs="">
+        {TAB_ORDER.map((t) => (
+          <button key={t} type="button" aria-pressed={tab === t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
+            {t === 'opportunities' ? 'Opportunities' : t === 'my_posts' ? 'My posts' : 'Roster'}
+          </button>
         ))}
       </div>
+      <style>{COL_CSS}</style>
 
       {/* Content */}
       <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', padding: '16px 24px 96px' }}>
@@ -245,7 +239,7 @@ export function CollabScreen({ vendorId, tier }: { vendorId: string; tier: strin
             onViewResponses={openResponses}
           />
         ) : (
-          <RosterTab roster={roster} onAdded={loadRoster} />
+          <RosterTab roster={roster} onAdded={loadRoster} adding={rosterAdding} setAdding={setRosterAdding} />
         )}
       </div>
 
@@ -389,7 +383,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
           Nothing posted yet.
         </div>
         <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, lineHeight: 1.55 }}>
-          Tap <span style={{ color: A.brassWarm }}>+ Post</span> to find your second shooter,<br />
+          Tap <span style={{ color: A.brassWarm }}>New post</span> to find your second shooter,<br />
           hair stylist, or any collaborator.
         </div>
       </div>
@@ -528,8 +522,7 @@ function MyPostsTab({ posts, onMarkFilled, onViewResponses }: {
 // collab connection is accepted, and a vendor can add someone by hand. The
 // empty state says both, because a vendor who has never connected would
 // otherwise think the tab was broken.
-function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => void }) {
-  const [adding, setAdding] = useState(false);
+function RosterTab({ roster, onAdded, adding, setAdding }: { roster: RosterEntry[]; onAdded: () => void; adding: boolean; setAdding: (v: boolean) => void }) {
   // Per-row outcome. The logic lives in lib/vendor/rosterMint (framework-agnostic,
   // proof-driven); this is its UI shell — the crewCommit precedent.
   const [minting, setMinting] = useState<string | null>(null);
@@ -549,12 +542,7 @@ function RosterTab({ roster, onAdded }: { roster: RosterEntry[]; onAdded: () => 
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-        <button type="button" onClick={() => setAdding(true)} style={{
-          padding: '8px 16px', background: 'transparent', borderRadius: 12,
-          border: '0.5px solid var(--atelier-sheet-border)', cursor: 'pointer',
-          fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.interactiveWarm,
-          letterSpacing: '0.32em', textTransform: 'uppercase',
-        }}>Add someone</button>
+        {/* CE-47 FE-6 L5: Add someone is the room head's pill on this tab; the body keeps no second add */}
       </div>
 
       {roster.length === 0 ? (
@@ -628,7 +616,7 @@ function AddToRosterSheet({ onClose, onAdded }: { onClose: () => void; onAdded: 
   const [crafts, setCrafts]     = useState<string[]>([]);
   useEffect(() => {
     getJson<{ ok: boolean; requirement_types: string[] }>(API.collabRequirementTypes())
-      .then(d => { if (d.ok) setCrafts(d.requirement_types); })
+      .then(d => { if (d.ok) setCrafts(Array.isArray(d.requirement_types) ? d.requirement_types : []); /* FE-8 (E): the door may leave out its list */ })
       .catch(() => { /* the chips stay absent; category is optional on this sheet */ });
   }, []);
 
@@ -715,3 +703,11 @@ const inputStyle: React.CSSProperties = {
   fontSize: '1rem', lineHeight: 1.5, fontWeight: 300, outline: 'none', 
   caretColor: A.interactive,
 };
+
+// CE-47 FE-6 L5 · the count line and the one switch (the list pattern's segmented control)
+const COL_CSS = `
+.col-big{margin:8px 24px 12px;font:var(--wl-t2);color:var(--atelier-ink)}
+.col-seg{display:flex;margin:0 24px 8px;border:1px solid var(--atelier-card-border);border-radius:12px;overflow:hidden}
+.col-seg button{flex:1;min-height:44px;border:0;background:transparent;color:var(--atelier-ink-mute);font:var(--wl-tb);cursor:pointer}
+.col-seg button.on{background:var(--atelier-card-bg);color:var(--atelier-ink);box-shadow:inset 0 -2px 0 var(--atelier-accent-text)}
+`;

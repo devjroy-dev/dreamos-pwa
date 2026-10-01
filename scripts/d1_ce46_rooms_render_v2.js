@@ -20,10 +20,13 @@ const MODE = process.argv.includes('light') ? 'light' : 'dark';
 const MUT = process.argv.includes('--mutate');
 let pass = 0, fail = 0; const failed = [];
 const ok = (c, name, info) => { if (c) { pass++; console.log('  PASS  ' + name); } else { fail++; failed.push(name); console.log('  FAIL  ' + name + (info === undefined ? '' : '  [' + String(info).slice(0, 240) + ']')); } };
+// CE-47 L4 (FE-7), BY LABEL: Notes and Wedding pages draw the founder's "+" pill (RoomHeadAdd; FE-7's stand-in until
+// L2), whose words carry the sign: "+ New note", "+ New wedding page"; and L4b's Expenses and TDS ("+ New expense",
+// "+ New TDS entry"). The cell's shape is unchanged.
 const ROOMS = [
   ['/vendor/more', 'Add'], ['/vendor/leads', 'New enquiry'], ['/vendor/clients', 'New client'], ['/vendor/invoices', 'New invoice'],
   ['/vendor/events', 'New event'], ['/vendor/expenses', 'New expense'], ['/vendor/calendar', 'New event'], ['/vendor/notes', 'New note'],
-  ['/vendor/tds', 'New TDS entry'], ['/vendor/team', 'Add to Team'], ['/vendor/wedding-pages', 'New wedding page'],
+  ['/vendor/tds', 'New TDS entry'], ['/vendor/team', 'Add to Team'], ['/vendor/wedding-pages', 'New wedding page'], ['/vendor/contracts', 'New contract'],
 ];
 const SHORT = /\b\d{1,2} (Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\b(?![a-z])/;
 
@@ -110,7 +113,8 @@ async function run(onlyR1) {
   return out;
 }
 
-const r1 = (o, route, words) => { const r = o.rooms[route]; return !!r && !!r.top && r.top.vis && r.top.text === words && r.fab === 0; };
+// the founder's option B (L2): the add is the room head's pill, drawn "+ <words>" (the sign, then the ruled words)
+const r1 = (o, route, words) => { const r = o.rooms[route]; return !!r && !!r.top && r.top.vis && r.top.text.replace(/\s+/g, ' ') === '+ ' + words && r.fab === 0; };
 
 (async () => {
   console.log(`d1 CE-46 rooms (v2) · the rendered half · 374 x 812 · ${MODE}`);
@@ -118,17 +122,17 @@ const r1 = (o, route, words) => { const r = o.rooms[route]; return !!r && !!r.to
     const F = path.join(ROOT, 'v2/components/vendor/slices/SliceShell.tsx'); const before = fs.readFileSync(F); const h = crypto.createHash('sha256').update(before).digest('hex');
     const restore = () => fs.writeFileSync(F, before); process.once('exit', restore);
     try {
-      const t = before.toString(); const m = t.replace('<button type="button" className="wl-btn" data-add-top={slice} onClick={onAdd}>{addOnTop}</button>', '');
+      const t = before.toString(); const m = t.replace('<RoomHeadAdd addKey={slice} label={addOnTop} onAdd={onAdd} />', '');
       if (m === t) ok(false, 'M1 the anchor is absent');
       else { fs.writeFileSync(F, m); const o = await run(true); if (o.error) ok(false, 'M1 the room came up', o.error);
-        else ok(['/vendor/leads', '/vendor/invoices', '/vendor/clients'].every((rt) => !r1(o, rt, ROOMS.find((x) => x[0] === rt)[1])), 'M1 SliceShell\u2019s top button removed \u2192 R1 RED on Enquiries, Invoices, Clients'); }
+        else ok(['/vendor/leads', '/vendor/invoices', '/vendor/clients'].every((rt) => !r1(o, rt, ROOMS.find((x) => x[0] === rt)[1])), 'M1 SliceShell\u2019s pill registration removed \u2192 R1 RED on Enquiries, Invoices, Clients'); }
     } finally { restore(); ok(crypto.createHash('sha256').update(fs.readFileSync(F)).digest('hex') === h, 'M0 SliceShell.tsx restored byte for byte'); }
   } else {
     const o = await run(false);
     if (o.error) ok(false, '0.1 the rooms came up', o.error);
     for (const [route, words] of ROOMS) {
       const r = o.rooms[route] || {};
-      ok(r1(o, route, words), `R1 ${route}: "${words}" at the top, no floating +`, JSON.stringify({ top: r.top, fab: r.fab }));
+      ok(r1(o, route, words), `R1 ${route}: "+ ${words}" in the room head, no floating +`, JSON.stringify({ top: r.top, fab: r.fab }));
       ok(r.after > r.before, `R2 ${route}: tapping "${words}" opens what the + opened`, JSON.stringify({ before: r.before, after: r.after }));
       ok(Array.isArray(r.short) && r.short.length === 0 && r.ago === false, `R3 ${route}: no short month and no age on the page`, JSON.stringify({ short: r.short, ago: r.ago }));
     }

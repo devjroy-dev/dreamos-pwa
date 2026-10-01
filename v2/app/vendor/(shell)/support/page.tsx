@@ -38,7 +38,9 @@ import { COPY, HUB_GROUPS, ROW_DESC, roomLabel } from '@/v2/lib/solutions/copy';
 // CE-45 FE-1: ROOM_HREFS and PREVIEW_KEYS MOVED to lib/solutions/routes.ts, byte for byte, so the
 // Money shelf and Home's pins resolve a row by the same table as this page (accepted as a move).
 import { ROOM_HREFS, PREVIEW_KEYS } from '@/v2/lib/solutions/routes';
-import { RoomRow, SolutionsStyles } from '@/v2/components/solutions/SolutionsPieces';
+import { SolutionsStyles } from '@/v2/components/solutions/SolutionsPieces';
+import { RoomIcon } from '@/v2/components/worklist/RoomIcon';
+import { Body, Group, Row, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
 
 export default function SolutionsIndexPage() {
   const router = useRouter();
@@ -49,6 +51,7 @@ export default function SolutionsIndexPage() {
 }
 
 function SolutionsIndexScreen() {
+  const router = useRouter();
   // ── R-40.23 · THE NINE REPLACE THE SIX, AND THE FETCH RETIRES WITH THEM ────
   // This screen used to hold `rows`, `err` and a `fetchIndex()` effect, because
   // six surfaces each had a live status behind `GET /solutions`. Exactly one of
@@ -77,62 +80,20 @@ function SolutionsIndexScreen() {
           under its name. Chips, the Coming state, the footer and the route are unchanged.
           THE ROW ELEMENT IS UNCHANGED IN WHAT IT DECIDES: the href is ROOM_HREFS' (total over
           RoomKey), the chip is PREVIEW_KEYS', exactly as before the move. */}
-      {HUB_GROUPS.map((g, gi) => (
-        <section key={g.name} className="sol-group" data-hub-group={g.name}>
-          <p className="sol-eyebrow" style={{ paddingTop: gi === 0 ? 14 : 22 }}>{g.name}</p>
-          <nav className="sol-rows">
-            {g.keys.map((k) => (
-              <RoomRow
-                key={k}
-                label={roomLabel(k)}
-                desc={ROW_DESC[k]}
-                icon={k}
-                href={ROOM_HREFS[k]}
-                preview={PREVIEW_KEYS.has(k)}
-              />
-            ))}
-          </nav>
-        </section>
-      ))}
-
-      {/* The one row that reaches a human. Strings from their own home.
-          ⚠ THE CLASS IS `wl-supportaction`, NOT `sol-btn`, AND THAT IS DELIBERATE.
-          The first cut renamed it — gratuitously, since this is the same button
-          doing the same job in the same place — and `b40` C10 went RED: its tap-
-          target census at `scripts/b40_worklist_shell_bench.js:162` maps
-          `app/w/support/page.tsx` to exactly this class, and the rule vanished
-          from under it. The button is the worklist's support action, not a
-          solutions button, so its name was right and the rename was the error.
-          Cured here rather than relayed: an S2 census that correctly tracks a
-          live element should not be edited to accommodate a rename that bought
-          nothing. Its rule is carried below, ≥44px, where the census can see it. */}
-      <div className="sol-footer">
-        {/* ── DESK NOTE · THE FOOTER SHRINKS TO THE RULED ONE-LINER ──────────
-            Was `WL.supportBody`, a four-line paragraph about SEO, ads and
-            campaign pages — written when this room WAS the offer. The six rows
-            above now say all of that, so the paragraph repeated the page back to
-            itself and pushed the one control that reaches a human below the fold.
-
-            The ruled line is `Something broken? Message us on WhatsApp.` and it
-            renders as exactly that: THE TAIL OF THE SENTENCE IS THE BUTTON.
-            `WL.supportAction` already reads `Message us on WhatsApp`, so those
-            four words keep their one home in the S2 seat's file and this seat
-            adds only the three that are new.
-
-            ⚠ `WL.supportBody` is now unreferenced — an orphan in
-            `lib/worklist/copy.ts`, which is S2's. Reported, not touched. */}
-        <p className="sol-footerbody">{COPY.footerLine}</p>
-        <button
-          type="button"
-          className="wl-supportaction"
-          onClick={() => window.open(
-            `https://wa.me/${supportWaNumber()}?text=${encodeURIComponent('Hi')}`,
-            '_blank', 'noopener',
-          )}
-        >
-          {WL.supportAction}
-        </button>
-      </div>
+      <Body>
+        {HUB_GROUPS.map((g) => (
+          <div key={g.name} data-hub-group={g.name}>
+            <Head text={g.name} />
+            <Group>{g.keys.map((k) => (
+              <Row key={k} title={roomLabel(k)} facts={ROW_DESC[k]} icon={<RoomIcon k={k} className="fr-ic" />} chevron href={ROOM_HREFS[k]} />
+            ))}</Group>
+          </div>
+        ))}
+        <Head text={WL.supportHead} />
+        <Group><div data-support-action=""><Row title={COPY.footerLine} facts={WL.supportAction} chevron
+          onClick={() => window.open(`https://wa.me/${supportWaNumber()}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener')} /></div></Group>
+      </Body>
+      <style>{FR_CSS}</style>
       <SolutionsStyles />
       <style>{`
 /* Carried from the surface this page replaced, byte-for-byte in its properties.

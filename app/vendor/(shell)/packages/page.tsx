@@ -44,7 +44,8 @@ const ROOM_LABEL = ROOMS.find((r) => r.id === 'packages')?.label ?? '';
 
 /** The first three detail values, joined: the vendor's own data (C-43.16). */
 function summaryOf(p: VendorPackage): string {
-  return p.line_items.slice(0, 3).map((it) => it.detail).join(', ');
+  // F-44.259 (CE-47): empty details are filtered BEFORE the join, so an empty list draws nothing, never "," or ", ,".
+  return p.line_items.slice(0, 3).map((it) => it.detail).filter((d) => !!d && String(d).trim() !== '').join(', ');
 }
 
 export default function PackagesPage() {

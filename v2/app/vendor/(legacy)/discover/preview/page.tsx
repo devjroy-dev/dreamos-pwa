@@ -287,7 +287,7 @@ export default function DiscoverPreviewPage() {
               fontStyle: 'italic', color: 'var(--atelier-ink-mute)',
               margin: '18px 0 0', padding: '0 24px', lineHeight: 1.5,
             }}>
-              This is your profile as couples will see it — approval unlocks it on Discover.
+              This is your profile as people will see it — approval unlocks it on Discover.
             </p>
           )}
 

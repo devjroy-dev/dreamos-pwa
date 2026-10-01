@@ -6,6 +6,7 @@
 // shows her recent searches (this phone only). Pure, so the bench drives it directly.
 import { TABS, MORE_GROUPS } from '@/v2/lib/worklist/tabs';
 import { roomHref } from '@/v2/lib/worklist/rooms';
+import { packageDate } from '@/v2/lib/worklist/packages';   // CE-47: dates in words (R-42.13's one home)
 
 export type ResultKind = 'tools' | 'enquiries' | 'clients' | 'events' | 'invoices' | 'packages' | 'notes' | 'crew';
 
@@ -88,6 +89,15 @@ export function isQuestion(q: string): boolean {
 }
 
 /** Where a found record opens: its room, with the record's key where the room reads one. */
+/** A result's second line as a person reads it (CE-47, the founder's walk): the search door sends raw values, so every
+ *  date in it is written out ("2026-12-22 \u00b7 Delhi" reads "22 December 2026 \u00b7 Delhi") and an invoice's amount is
+ *  money ("80000" reads "Rs 80,000"). The door's wire is untouched; only what is drawn changes. */
+export function subWords(kind: string, sub: string | null | undefined): string | null {
+  if (!sub) return null;
+  if (kind === 'invoices' && /^\d+(\.\d+)?$/.test(sub.trim())) return `Rs ${Math.round(Number(sub)).toLocaleString('en-IN')}`;
+  return sub.replace(/\b(\d{4}-\d{2}-\d{2})(T[\d:.]+Z?)?\b/g, (_m, d: string) => packageDate(d) || d);
+}
+
 export function recordHref(kind: Exclude<ResultKind, 'tools'>, id: string): string {
   const enc = encodeURIComponent(id);
   switch (kind) {

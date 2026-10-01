@@ -34,6 +34,13 @@ import { AiDock } from '@/v2/components/worklist/AiDock';
 import { AccountDrawer } from '@/v2/components/worklist/AccountDrawer';
 import { RoomHead, RoomHeadProvider, PAGE_HELP_CSS } from '@/v2/components/worklist/PageHelp';
 import { TABS, tabFor, heldRoomFor, MORE_HREF, TAB_WORDS, ROW_ON_FIRST } from '@/v2/lib/worklist/tabs';
+import { iconFor } from '@/v2/lib/worklist/icons';
+// the bar's icons: the rooms' own glyphs where a tab is a room (Enquiries, Calendar, Clients, Money's Invoices), and a
+// sun for Today, which has no room glyph
+const TAB_ICON: Record<string, string> = {
+  today: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  enquiries: iconFor('leads') ?? '', calendar: iconFor('calendar') ?? '', clients: iconFor('clients') ?? '', money: iconFor('invoices') ?? '',
+};
 import { SearchBox } from '@/v2/components/worklist/SearchBox';
 import { restoreListScroll } from '@/v2/components/worklist/RecordPage';
 
@@ -87,6 +94,8 @@ export function WorklistShell({ title, children }: {
   // and not in the dock because the shell is what every surface is inside; it lives here
   // and not in a module because a writer outside React's tree is F-38.3's class.
   const [askOpen, setAskOpen] = useState(false);
+  const [acctOpen, setAcctOpen] = useState(false);   // CE-47: the coin's account menu
+  useEffect(() => { if (!acctOpen) return; const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setAcctOpen(false); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [acctOpen]);
   const [askPrefill, setAskPrefill] = useState('');
   const openAsk = useCallback((text = '') => { setAskPrefill(text); setAskOpen(true); }, []);
   const closeAsk = useCallback(() => { setAskOpen(false); setAskPrefill(''); }, []);
@@ -180,8 +189,18 @@ export function WorklistShell({ title, children }: {
         {/* DESIGN-1 · STAGE 3: THE COIN IS MORE (the founder's ruling on docs/review/REPORT.md §3). It opens the More
             page, where every room outside the five tabs sits in the founder's groups, above the account rows the coin's
             menu used to hold (one definition, AccountDrawer, mounted there). Still 44, still the vendor's initials. */}
-        <Link href={MORE_HREF} className="wl-coin" aria-label={TAB_WORDS.moreLabel}
-              aria-current={onMore ? 'page' : undefined}>{initials || '\u25ce'}</Link>
+        {/* CE-47 (the founder's ruling after his walk, 30 Sept 2026): the coin opens ONLY his account (Settings, Billing,
+            the report door, the display, sign out), never the rooms; More is the sixth item of the bar below. */}
+        <button type="button" className="wl-coin" aria-label={TAB_WORDS.account} aria-haspopup="menu" aria-expanded={acctOpen}
+                data-coin="" onClick={() => setAcctOpen((v) => !v)}>{initials || '\u25ce'}</button>
+        {acctOpen && (
+          <>
+            <div className="wl-acctscrim" aria-hidden="true" onClick={() => setAcctOpen(false)} />
+            <div className="wl-acctmenu" data-account-menu="">
+              <AccountDrawer mode={mode} onPickMode={pick} onClose={() => setAcctOpen(false)} room={title} />
+            </div>
+          </>
+        )}
       </header>
 
       {/* DESIGN-1 · STAGE 3 · THE UNIVERSAL SEARCH (the founder and the chair; R-37.64's "no search field" is ruled past).
@@ -212,12 +231,6 @@ export function WorklistShell({ title, children }: {
           </nav>
         )}
         {children}
-        {onMore && (
-          <section className="wl-moreacct" aria-label={TAB_WORDS.account}>
-            <h2 className="wl-moreh">{TAB_WORDS.account}</h2>
-            <AccountDrawer mode={mode} onPickMode={pick} onClose={() => {}} room={title} inline />
-          </section>
-        )}
       </main></RoomHeadProvider>
 
       {/* ── R-41.139 · THE DOCK IS NOT MOUNTED ON /vendor/advisor ────────────────
@@ -246,10 +259,22 @@ export function WorklistShell({ title, children }: {
       {/* DESIGN-1 · STAGE 3: FIVE TABS, in the report's order (docs/review/REPORT.md §3, "Five tabs"). Each seat goes
           to its tab's first room and is lit on every room the tab holds. */}
       <nav className="wl-nav" aria-label="Sections">
+        {/* CE-47 (the chair's ruling on the bar, 30 Sept 2026): an icon over the word on all six, the words at the bar's own
+            rung, at least 8 between neighbours at 360, each at least 44 to the touch. */}
         {TABS.map((t) => (
-          <Link key={t.id} href={t.rooms[0].href} className={'wl-seat' + (tab?.id === t.id ? ' on' : '')}
-                aria-current={tab?.id === t.id ? 'page' : undefined}>{t.label}</Link>
+          <Link key={t.id} href={t.rooms[0].href} className={'wl-seat' + (tab?.id === t.id ? ' on' : '')} data-tab={t.id}
+                aria-current={tab?.id === t.id ? 'page' : undefined}>
+            <svg aria-hidden="true" className="wl-seaticon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+                 dangerouslySetInnerHTML={{ __html: TAB_ICON[t.id] }} />
+            <span>{t.label}</span>
+          </Link>
         ))}
+        {/* CE-47: the sixth item, More, at the right end, icon and word on the tabs' own rung; the one door to More */}
+        <Link href={MORE_HREF} className={'wl-seat wl-seatmore' + (onMore ? ' on' : '')} data-tab="more" aria-label={TAB_WORDS.moreLabel}
+              aria-current={onMore ? 'page' : undefined}>
+          <svg aria-hidden="true" className="wl-seaticon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+          <span>{TAB_WORDS.moreTab}</span>
+        </Link>
       </nav>
     </div>
     </AskProvider>
@@ -356,7 +381,6 @@ const SHELL_CSS = `
    above is unchanged and still the warrant; what changed is that it now has one home,
    GRID.fab in lib/worklist/theme.ts, emitted by typeCss as two variables this rule reads.
    Nothing else in the shell may name a FAB size or a bottom offset. */
-.wl-fab{position:fixed;right:var(--wl-gutter);bottom:calc(var(--wl-fab-bottom) + env(safe-area-inset-bottom));z-index:18;width:var(--wl-fab);height:var(--wl-fab);border:none;border-radius:50%;background:var(--role-primary);color:var(--role-on-primary);font:var(--wl-t1);line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);touch-action:manipulation}
 /* ── THE PRESS IS GEOMETRIC, AND THAT IS A RULING RATHER THAN A SHORTCUT ──────
    F-38.14 measured the press FILL to 1.5:1 after 1.1:1 was convicted as an acknowledgement
    nobody could see. That floor is a ratio between a row’s pressed fill and the ground it
@@ -370,9 +394,7 @@ const SHELL_CSS = `
    PRESSED STATE, and that refusal is the point of the paragraph. */
 /* DESIGN-1: globals.css’s light-theme blanket (html.theme-light, color inherit, 0-3-1) outranks this
    class when the html element still carries theme-light from a legacy page; the glyph keeps its ink. */
-.wl .wl-fab,.wl .wl-btn.pri,.wl .wl-docksend{color:var(--role-on-primary)!important}
-.wl-fab:active{transform:scale(.94);box-shadow:0 1px 4px rgba(0,0,0,.28)}
-.wl-fab:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
+.wl .wl-btn.pri,.wl .wl-docksend{color:var(--role-on-primary)!important}
 /* TOUCH. Two defects in the first cut, both found on the founder’s device and neither
    visible in a desktop render: no pressed state anywhere, and no touch-action, so the
    browser held every tap for the double-tap-zoom gesture before dispatching the click. */
@@ -395,8 +417,10 @@ const SHELL_CSS = `
    wrote inline, which is why it is important. A link inside a sentence stays a line of text
    (min-height does not act on an inline box), as WCAG 2.5.8 allows. Checkboxes and radios take
    their label’s hit area; a switch draws its own 44 px area (its room’s stylesheet). */
-.wl button:not(.wl-sw):not(.yw-toggle),.wl [role=button],.wl [role=tab],.wl select,.wl summary,.wl a,
+.wl button:not(.wl-sw):not(.yw-toggle):not(.wl-roomadd),.wl [role=button],.wl [role=tab],.wl select,.wl summary,.wl a,
 .wl input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]){min-height:44px!important}
+/* the room head's + pill draws its own 44 px touch area (::before, 4 px above and below) around a 36 px pill, as a
+   switch does (the chair's ruling on the pill, 30 Sept 2026); PageHelp.tsx .wl-roomadd */
 /* DESIGN-1 · every button is 48 high (REPORT.md §3, Buttons), the 44 floor’s taller twin. The two round icon
    controls, the "?" and the profile coin, keep their 44 circle (R-38.5), and a key and value row that a card
    lists (data-tap44, the Ads settings) is a row at the 44 floor, not a button. */
@@ -420,9 +444,12 @@ const SHELL_CSS = `
 /* R-38.5: the nav’s content box shares the main column’s left edge, which is the container
    half of the edge cell. The seats' TEXT is centred, so the text-edge cell reads the
    wordmark, the grid, the dock and the plan card, and this one reads the boxes. */
-.wl-nav{display:flex;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
-.wl-seat{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t5);font-size:min(0.8125rem, 14px);color:var(--atelier-ink-mute)}
+.wl-nav{display:flex;justify-content:space-between;padding-left:8px;padding-right:8px;flex-shrink:0;border-top:.5px solid var(--atelier-card-border);background:var(--atelier-header-bg);padding-bottom:env(safe-area-inset-bottom)}
+.wl-seat{flex:0 1 auto;min-width:44px;min-height:52px;padding:4px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;text-align:center;text-decoration:none;font:var(--wl-t5);font-size:min(0.8125rem, 14px);color:var(--atelier-ink-mute);white-space:nowrap}
+.wl-seaticon{flex:none;width:20px;height:20px}
 .wl-seat.on{color:var(--atelier-accent-text)}
+.wl-acctscrim{position:fixed;inset:0;z-index:29;background:transparent}
+.wl-acctmenu{position:absolute;right:var(--wl-gutter, 16px);top:calc(100% + 4px);z-index:30}
 .wl-seat:active{background:var(--atelier-row-hover)}
 .wl-coin:active{background:var(--atelier-row-hover)}
 .wl-seat:focus-visible,.wl-coin:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}

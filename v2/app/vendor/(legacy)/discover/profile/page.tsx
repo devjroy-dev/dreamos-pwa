@@ -245,7 +245,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             {/* FOUNDER-VETOED 2026-07-29 (copy slot 3, 「 go 」). BOTH numbers, one line —
                 F-07.4's two readings can never contradict each other on a screen that
                 shows them together. The gate counts uploaded; the feed shows approved. */}
-            {floor} photos required for Discover — you have {total} uploaded, {approved} approved. Couples see the approved ones.
+            {floor} photos required for Discover — you have {total} uploaded, {approved} approved. People see the approved ones.
           </div>
           <button type="button" onClick={() => router.push('/vendor/portfolio')} style={{
             alignSelf: 'flex-start', background: 'none', padding: '6px 0', border: 'none', cursor: 'pointer',
@@ -256,7 +256,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
 
         <SCard title="About">
           <SField label="About" value={current.about} onChange={(v) => update({ about: v })} multiline
-                  placeholder="What a couple should know about your work." />
+                  placeholder="What people should know about your work." />
           <SaveBtn dirty={isDirty(['about'])} loading={saving === 'about'}
                    onSave={() => save('about', ['about'], { about: current.about || undefined })} />
         </SCard>
@@ -267,7 +267,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
               field the ruling sent here despite a second consumer — the card headline AND
               the invoice letterhead. The vendor is told, rather than surprised. */}
           <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
-            This is the name couples see and the name on your invoices.
+            This is the name people see and the name on your invoices.
           </div>
           <SField label="City" value={current.city} onChange={(v) => update({ city: v })} />
           <SaveBtn dirty={isDirty(['business_name', 'city'])} loading={saving === 'business'}
@@ -331,7 +331,7 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
             {/* The register law (tokens.ts:41): always "Rs", never the glyph, never k/L/Cr.
                 formatRs is the on-register donor; lib/vendor/cabinet.ts's short form is not. */}
             {current.rate_display
-              ? (rateShown ? `Couples see: from ${rateShown}` : 'Couples see your starting price once you set one.')
+              ? (rateShown ? `People see: from ${rateShown}` : 'People see your starting price once you set one.')
               : 'Your starting price is hidden from Discover.'}
           </div>
           <SaveBtn dirty={isDirty(['rate_min', 'rate_display'])} loading={saving === 'rates'}
@@ -437,7 +437,7 @@ function TagEditor({ category, value, onChange }: {
       </div>
       {/* FOUNDER-VETOED (relay #2 slate + RIDER4 §5): the custom-tag honesty byte. */}
       <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
-        Your own words are shown on your profile, but couples can&rsquo;t filter by them yet.
+        Your own words are shown on your profile, but people can&rsquo;t filter by them yet.
       </div>
     </div>
   );

@@ -480,7 +480,8 @@ export function AddSheet({ open, slice, onClose, onToast, existing, existingId, 
               )}
               {/* CE-46 (the chair, 30 Sept 2026): the invoice's Due date also written out in Indian order under the field,
                   since a phone draws the field in its own order */}
-              {f.key === 'due_date' && /^\d{4}-\d{2}-\d{2}$/.test(values[f.key] ?? '') ? (
+              {/* CE-47 L4b (FE-7): and the Add expense sheet's Date (SPEC item 4); no other sheet changes */}
+              {(f.key === 'due_date' || f.key === 'expense_date') && /^\d{4}-\d{2}-\d{2}$/.test(values[f.key] ?? '') ? (
                 <p data-date-words="" style={{ font: RUNG.t5, color: 'var(--atelier-ink-soft)', margin: '6px 0 0' }}>{longDate(values[f.key])}</p>
               ) : null}
               {errors[f.key] && (

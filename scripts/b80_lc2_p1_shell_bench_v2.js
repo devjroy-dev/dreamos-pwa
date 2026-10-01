@@ -106,12 +106,13 @@ function pageCells(src) {
   return {
     onlyDefault,
     reads: /fetchPackages\(\)/.test(s) && /from '@\/v2\/lib\/vendor\/api\/vendor'/.test(s),
-    bytes: ['PACKAGES.eyebrow', 'PACKAGES.sub(', 'PACKAGES.empty', 'PACKAGES.defaultMark', 'PACKAGES.edit', 'PACKAGES.setDefault', 'PACKAGES.del', 'PACKAGES.add', 'PACKAGES.feeUnset'].every((k) => s.includes(k)),
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the founder's verdict on mock 12): the reworked room's bytes and its sheet's Set as default
+    bytes: ['PACKAGES.sub(', 'PKG.empty', 'PKG.defaultLine(', 'PACKAGES.edit', 'PACKAGES.setDefault', 'PACKAGES.del', 'PKG.add', 'PACKAGES.feeUnset'].every((k) => s.includes(k)),
     label: /ROOMS\.find\(\(r\) => r\.id === 'packages'\)\?\.label/.test(s),
     // AMENDED BY LABEL — CE-43 LC-2 packet 2: the room's acts are live. The shell's
     // `Launching soon.` is gone from the room; b81 proves each act.
     allSoon: s.length > 0 && !/launchingSoon/.test(s) && soonHandlers === 0,
-    defaultNotOffered: /\{!p\.is_default && <button type="button" className="pkg-act" onClick=\{\(\) => \{ void makeDefault\(p\); \}\}>\{PACKAGES\.setDefault\}/.test(s),
+    defaultNotOffered: /\{!picked\.is_default \? <button type="button" className="pk-job" onClick=\{\(\) => \{ void makeDefault\(picked\); \}\}>\{PACKAGES\.setDefault\}<\/button> : null\}/.test(s),
     failedRead: /COPY\.surfaceUnavailable/.test(s),
     noWrite: s.length > 0 && !/(postJson|patchJson|deleteJson|method:\s*'(POST|PATCH|DELETE)')/.test(s),
   };
@@ -122,7 +123,7 @@ function copyCells(src) {
   try {
     const m = loadModule(src);
     const P = m.PACKAGES, L = m.LEAD_PACKAGE, C = m.CLIENT_BOOKING;
-    r.p = P.eyebrow === 'Your packages' && P.empty === 'No packages yet. Add one to quote a couple.'
+    r.p = P.eyebrow === 'Your packages' && P.empty === 'No packages yet. Add one to quote a client.'   /* AMENDED BY LABEL (CE-47, FE-8, charter E: no "couple" drawn in v2) */
       && P.defaultMark === 'Default' && P.add === 'Add package' && P.edit === 'Edit' && P.del === 'Delete'
       && P.setDefault === 'Set as default' && P.feeUnset === 'Fee not set';
     r.plural = P.sub(1) === 'What you offer · 1 package' && P.sub(3) === 'What you offer · 3 packages' && P.sub(0) === 'What you offer · 0 packages';
@@ -188,6 +189,13 @@ function typeFree(src) {
 // everything but its type, its spacing and corners, and those words: lookFree takes the spacing and corners out as
 // typeFree takes the type, and designWords applies the stage's word changes to the BASE, each one listed, so any
 // other word that moves still reddens this cell.
+// CE-47 L4b (FE-7), BY LABEL: the Add expense sheet's Date takes the invoice's words line (SPEC item 4). This undoes
+// exactly that addition (its comment and the second key) before the comparison, so any other movement still reddens.
+function l4bUndo(src) {
+  return String(src)
+    .replace("{/* CE-47 L4b (FE-7): and the Add expense sheet's Date (SPEC item 4); no other sheet changes */}\n              ", '')
+    .replace("{(f.key === 'due_date' || f.key === 'expense_date') && ", "{f.key === 'due_date' && ");
+}
 function lookFree(src) {
   return typeFree(String(src).replace(/\b(padding\w*|margin\w*|gap|borderRadius)\s*:\s*('[^']*'|[^,}\n]+)\s*,?/g, ''));
 }
@@ -236,7 +244,7 @@ function sheetCells(sheet, clients, addsheet, addsheetBase) {
     // constant, the one rung import) and the layout whitespace and commas the re-dress reflowed.
     // Anything else that moves, a handler, a field, a word or a colour, still reddens it.
     // DESIGN-1 · THE LAYOUT SWITCH: the v2 copy imports its v2 twins by @/v2/, the base by @/ (the same modules)
-    addSheetUntouched: addsheetBase !== null && lookFree(ce46Undo(addsheet)).split('@/v2/').join('@/') === lookFree(designWords(addsheetBase)),   // ce46Undo: FE-5 cut A2, by label
+    addSheetUntouched: addsheetBase !== null && lookFree(ce46Undo(l4bUndo(addsheet))).split('@/v2/').join('@/') === lookFree(designWords(addsheetBase)),   // ce46Undo: FE-5 cut A2, by label
   };
 }
 
@@ -349,7 +357,7 @@ function baseFile(rel) {
     ok(m !== null && !pageCells(m).onlyDefault, '§8 M2 a named export on the page → §2.1 RED');
   }
   {
-    const m = mut(src.page, '{!p.is_default && <button', '{<button');
+    const m = mut(src.page, '{!picked.is_default ? <button', '{true ? <button');   // AMENDED BY LABEL (CE-47, FE-6 L5)
     ok(m !== null && !pageCells(m).defaultNotOffered, '§8 M3 Set as default offered on the default → §2.6 RED');
   }
   {

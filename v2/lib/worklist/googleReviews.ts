@@ -34,6 +34,12 @@
  * byte can be traced to the line the founder ratified without opening the mock.
  */
 export const GR = {
+  // ── CE-47 L4 (FE-7): the reworked room's words, veto rows as approved ──
+  lede: 'Google review requests sent after each published wedding page, and your seal.',          // veto 23
+  askedEmpty: 'When you publish a wedding page, we ask the client for a Google review. Once, and never again.', // veto 25
+  listingRow: 'Claim and sync your listing',          // veto 27
+  listingFromDate: (date: string) => `From ${date}`,
+  comingSoon: 'Coming soon',
   /** The shell title. `ROOM_ROWS` row 2's label, R-40.1, byte-frozen. */
   roomTitle: 'Google reviews',
 
@@ -80,7 +86,7 @@ export const GR = {
    * per couple, ever) — the second being the thing a vendor is actually anxious
    * about: she does not want us pestering her clients.
    */
-  emptyBody: 'When you publish a wedding page, we ask that couple for a Google review. Once, and never again.',
+  emptyBody: 'When you publish a wedding page, we ask that client for a Google review. Once, and never again.',
   /**
    * #11 · where the seal card would be. A SENTENCE, NEVER A GREYED BADGE — a
    * dimmed seal would be a control lying about being available.
@@ -108,7 +114,7 @@ export const GR = {
    * BEING FOUND — master §7 refuses platform-SEO claims, and this is the byte
    * where such a claim would slip in.
    */
-  listingThenBody: 'Your name, hours, service areas and photos stay in step with your page, and every couple we ask lands on your listing.',
+  listingThenBody: 'Your name, hours, service areas and photos stay in step with your page, and every client we ask lands on your listing.',
 
   /**
    * When the room's own read fails. Same shape as `COPY.indexUnavailable`: says

@@ -59,10 +59,11 @@ import { ROOM_DESC } from '@/v2/lib/worklist/copy';
 import { roomLabel, ROW_DESC } from '@/v2/lib/solutions/copy';
 import { RoomIcon } from '@/v2/components/worklist/RoomIcon';
 import { iconFor, type IconKey } from '@/v2/lib/worklist/icons';
-import { MORE_GROUPS, type MoreRow } from '@/v2/lib/worklist/tabs';
-import { openSupport } from '@/v2/components/worklist/AccountDrawer';
 import { itemComing } from '@/v2/lib/solutions/routes';
 import { StateChip } from '@/v2/components/solutions/SolutionsPieces';
+import { ROOMS as CLASSIC_ROOMS, SHELVES as CLASSIC_SHELVES } from '@/lib/worklist/rooms';
+import { COPY as CLASSIC_COPY } from '@/lib/worklist/copy';
+import { itemHref } from '@/v2/lib/solutions/routes';
 
 /**
  * CE-45 FE-1 · AN ITEM'S NAME AND LINE, EACH READ FROM ITS ONE HOME. A room's name is its
@@ -84,41 +85,46 @@ export function itemText(i: ShelfItem): { key: string; label: string; desc: stri
  * room: its icon and its one line read from their homes (lib/worklist/icons.ts, ROOM_DESC, ROW_DESC), its name the
  * founder's word. Support opens TDW on WhatsApp, the act the coin's menu held.
  */
-function rowKey(r: MoreRow): string | null {
-  return 'act' in r ? null : r.room ?? r.row ?? null;
-}
-function rowDesc(r: MoreRow): string {
-  if ('act' in r) return '';
-  if (r.room) return ROOM_DESC[r.room] || '';
-  if (r.row) return ROW_DESC[r.row] || '';
-  return '';
+// CE-47 (the founder's ruling after his walk, 30 Sept 2026): More lists the rooms in TODAY'S Rooms order, read from the
+// classic registry itself (lib/worklist/rooms.ts: the headline pair, then its SHELVES, in order), so the two layouts can
+// never drift. Nothing here reorders them; no Pinned, no "Change pinned". Words and addresses are the new layout's own.
+
+const SHELF_NAME: Record<'business' | 'money' | 'studio', string> = {
+  business: CLASSIC_COPY.shelfBusiness, money: CLASSIC_COPY.shelfMoney, studio: CLASSIC_COPY.shelfStudio,
+};
+
+/** The rooms of More, in the classic Rooms order: [heading or null, items][]. The one reader of that order. */
+export function moreOrder(): { name: string | null; items: ShelfItem[] }[] {
+  return [
+    { name: null, items: CLASSIC_ROOMS.filter((r) => r.headline).map((r) => ({ room: r.id }) as ShelfItem) },
+    ...CLASSIC_SHELVES.map((sh) => ({ name: SHELF_NAME[sh.id], items: [...sh.items] as ShelfItem[] })),
+  ];
 }
 
-function MoreItem({ r }: { r: MoreRow }) {
-  const k = rowKey(r);
-  const desc = rowDesc(r);
-  const inner = (
-    <>
+function MoreItem({ i }: { i: ShelfItem }) {
+  const t = itemText(i);
+  const k = t.key;
+  const label = t.label || (('room' in i) ? (CLASSIC_ROOMS.find((r) => r.id === i.room)?.label ?? '') : '');
+  return (
+    <Link href={itemHref(i)} className="wl-morerow" data-more={k}>
       {k && iconFor(k) !== null && <RoomIcon k={k as IconKey} className="wl-moreicon" />}
       <span className="wl-moretext">
-        <span className="wl-morename">{r.label}</span>
-        {desc ? <span className="wl-moredesc">{desc}</span> : null}
+        <span className="wl-morename">{label}</span>
+        {t.desc ? <span className="wl-moredesc">{t.desc}</span> : null}
       </span>
       {/* F-19.20, kept from the tiles: a row whose screen cannot act yet says so where it stands. */}
-      {!('act' in r) && r.row && itemComing({ row: r.row }) && <StateChip state="coming" />}
-    </>
+      {itemComing(i) && <StateChip state="coming" />}
+    </Link>
   );
-  if ('act' in r) return <button type="button" className="wl-morerow" data-more="contact" onClick={openSupport}>{inner}</button>;
-  return <Link href={r.href} className="wl-morerow" data-more={k ?? undefined}>{inner}</Link>;
 }
 
 export function RoomsGrid() {
   return (
     <div className="wl-more">
-      {MORE_GROUPS.map((g) => (
-        <section key={g.name} className="wl-moregroup" aria-label={g.name}>
-          <h2 className="wl-moreh">{g.name}</h2>
-          <div className="wl-morelist">{g.rows.map((r) => <MoreItem key={r.label} r={r} />)}</div>
+      {moreOrder().map((g, n) => (
+        <section key={g.name ?? 'top'} className="wl-moregroup" aria-label={g.name ?? undefined} data-more-group={n}>
+          {g.name ? <h2 className="wl-moreh">{g.name}</h2> : null}
+          <div className="wl-morelist">{g.items.map((i) => <MoreItem key={itemText(i).key} i={i} />)}</div>
         </section>
       ))}
       <style>{MORE_CSS}</style>
@@ -126,9 +132,6 @@ export function RoomsGrid() {
   );
 }
 
-// NO BACKTICKS INSIDE THIS LITERAL (the estate's standing warning). Rungs and tokens only; spacing on the scale.
-// Longhand vertical padding only: the gutter comes from the scroll column (F-16.39).
-// The bottom padding clears the add button that stands on this page (the FAB's seat, read from typeCss).
 const MORE_CSS = `
 .wl-more{padding-top:8px;padding-bottom:calc(var(--wl-fab-bottom) + var(--wl-tile))}
 .wl-moregroup{padding-top:16px}

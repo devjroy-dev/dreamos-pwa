@@ -31,11 +31,11 @@
 
 export const PO = {
   sectionCards:     'Cards',
-  sectionBroadcast: 'Broadcast',
+  sectionBroadcast: 'Messages to past clients',   // W1
   sectionSunday:    'Sunday',
 
   ledeCards:     'Cards made from your last wedding page.',
-  ledeBroadcast: 'Send one message to your past couples.',
+  ledeBroadcast: 'Send one message to your past clients.',   // W1
   ledeSunday:    'Every Sunday: your week on Instagram.',
 
   caption:     'Caption',
@@ -50,17 +50,33 @@ export const PO = {
 
   // ── 4b-2 · BROADCAST (4b veto sheet + frame veto, 2026-09-10) ─────────────
   referralLabel:  'Referral message',
-  noCouples:      'No past couples with a number yet.',
+  // CE-46 FE-6 cut 1, W1 (the chair's yes, 30 Sept 2026, under the founder's no-"couple" rule of 29 Sept): past clients.
+  noCouples:      'No past clients with a number yet.',
+
+  // ── CE-46 FE-6 cut 1 · the reworked room (the founder's verdict on the mock, 30 Sept 2026) ──────────────────────
+  exampleLine:    'An example card. Yours are made from your last wedding page.',   // W6
+  sectionSundayReport: 'Sunday report',
+  sundayRow:      'Your week on Instagram',
+  coupleLabel:    'Newest work message',   // W11 (the chair's yes under the founder's delegation, 30 Sept 2026): the message is her newest work, not a thanks
+  onceAYear:      'Once a year',
+  comingSoon:     'Coming soon',
 } as const;
 
-/** "6 couples" — the vetoed `{n} couples`. */
-export const couplesCount = (n: number) => `${n} couples`;
+/** R-46.16: the example a vendor with no wedding page sees on her card, marked TDW; the same file the Ads page shows. */
+export const EXAMPLE_CARD = '/examples/ads/example-couple.jpg';
+
+/** "6 past clients" (W1, renamed from couplesCount by the chair's ruling, 30 Sept 2026). */
+export const clientsCount = (n: number) => `${n} past clients`;
 /** "Meta charges up to Rs 6.12 for this send." — the figure is formatRs's, never a literal. */
 export const feeLine = (rs: string) => `Meta charges up to ${rs} for this send.`;
 /** "Send to 6" — the button and the confirm's action, one byte. */
 export const sendTo = (n: number) => `Send to ${n}`;
-/** "Send to 6 couples? Meta charges up to Rs 6.12." — the confirm sheet. */
-export const confirmLine = (n: number, rs: string) => `Send to ${n} couples? Meta charges up to ${rs}.`;
+/** "Send to 6 past clients? Meta charges up to Rs 6.12." — the confirm step (W1). */
+export const confirmLine = (n: number, rs: string) => `Send to ${n} past clients? Meta charges up to ${rs}.`;
+/** "6 past clients · Meta charges up to Rs 6.12" — a message row's facts (the drawn mock). */
+export const messageFacts = (n: number, rs: string | null) => rs ? `${clientsCount(n)} \u00b7 Meta charges up to ${rs}` : clientsCount(n);
+/** "Once a year · next 1 January 2027" — the referral row's facts; full month (R-42.13). */
+export const referralFacts = (iso: string | null | undefined) => iso ? `Once a year \u00b7 next ${fullDate(iso)}` : 'Once a year';
 /** "Sent to 6. 1 not delivered." — the sent line, verbatim as vetoed. */
 export const sentLine = (n: number, m: number) => `Sent to ${n}. ${m} not delivered.`;
 /**

@@ -522,7 +522,10 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   // [amended, 3d] the thread imports the copy home and useState; both are stubbed from the real sources.
   // AMENDED BY LABEL · CE-45 FE-2 TYPE_2: the thread now takes its type from v2/lib/worklist/theme.ts (RUNG_FONT, F7),
   // stubbed from the real source like the copy home beside it; theme.ts imports nothing.
-  const threadStubs = () => ({ react: { useState: (v) => [v, () => {}] }, 'react/jsx-runtime': { jsx: () => null, jsxs: () => null, Fragment: null }, '@/v2/lib/worklist/packages': loadModule(src.copy), '@/v2/lib/worklist/theme': loadModule(read('v2/lib/worklist/theme.ts')) });
+  const threadStubs = () => ({ react: { useState: (v) => [v, () => {}] }, 'react/jsx-runtime': { jsx: () => null, jsxs: () => null, Fragment: null }, '@/v2/lib/worklist/packages': loadModule(src.copy), '@/v2/lib/worklist/theme': loadModule(read('v2/lib/worklist/theme.ts')),
+    // FE-5 L2 (by label): the thread's times come from the clock words' one home (v2/lib/worklist/home.ts, which imports
+    // nothing), stubbed from the real source like the two beside it
+    '@/v2/lib/worklist/home': loadModule(read('v2/lib/worklist/home.ts')) });
   let thread = null;
   try { thread = loadModule(threadSrc.replace(/^'use client';/, ''), threadStubs()); sender = thread.inboundSender; } catch (e) { console.log('  (thread did not load: ' + e.message + ')'); }
   // DESIGN-1 · STAGE 1 (by label, W5): the fallback is "Enquiry", one word for Leads and Enquiries (was "Lead")
@@ -547,7 +550,7 @@ const tokensOnly = (code) => code.length > 0 && !/#[0-9a-fA-F]{3,8}\b|rgba?\(|hs
   ok(/const toggle = messages\.length > COLLAPSED_COUNT \? \(/.test(ts) && /\{!expanded && toggle\}\s*\{shown\.map\(/.test(ts) && /\{expanded && toggle\}/.test(ts)
     && /\{expanded \? THREAD\.showFewer : THREAD\.showAll\}/.test(ts) && !/\{messages\.map\(/.test(ts),
     '§11.7 F-43.93 point 6: one toggle, above the last three while collapsed, below the thread when expanded; the full list is never mapped directly');
-  ok(typeof th.stampOf === 'function' && th.stampOf('2026-09-17T07:07:00Z') === `17 September 2026 · ${new Date('2026-09-17T07:07:00Z').toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}`
+  ok(typeof th.stampOf === 'function' && th.stampOf('2026-09-17T07:07:00Z') === '17 September 2026 · 12:37 pm'   /* FE-5 L2 (by label): the founder's clock words, read in India, no leading zero (07:07Z is 12:37 pm IST) */
     && th.stampOf('2026-09-16T18:45:00Z').startsWith('17 September 2026 · '),
     '§11.8 F-43.96: the stamp is the IST day in full month and the time');
   ok(/\{isIn \? inboundSender\(leadName\) : 'TDW'\} · \{stampOf\(msg\.created_at\)\}/.test(ts)

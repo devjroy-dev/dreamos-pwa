@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { afterBreak, historyBubbles } from '@/lib/vendor/chatBreak';
 import { fetchContext, fetchChatHistory, streamChat, startFreshThread, type StreamBeat } from '@/v2/lib/vendor/api/vendor';
 import { getVendorSession } from '@/lib/vendor/session';
 import type { VendorContextResponse } from '@/lib/vendor/types/vendor';
@@ -92,7 +93,8 @@ export function useChat({ vendorId, room }: UseChatArgs): UseChatReturn {
             // R-41.142: the room rides in from history too, or a reload loses every
             // seam. F-41.103 and F-41.104 were both a cure on a write path with no read;
             // this is the read.
-            history = h.messages.map(m => ({ id: m.id, role: m.role, text: m.text, room: m.room ?? null }));
+            // THE SECOND BUBBLE: a stored two-part answer reloads as its two bubbles (lib/vendor/chatBreak.ts)
+            history = h.messages.flatMap(m => historyBubbles(m)).map(m => ({ id: m.id, role: m.role, text: m.text, room: m.room ?? null }));
           }
         } catch {}
         if (cancelled) return;
@@ -139,7 +141,12 @@ export function useChat({ vendorId, room }: UseChatArgs): UseChatReturn {
     setLoading(true);
 
     // Add empty AI message that will be filled by streaming deltas
-    const aiMsgId = nextId();
+    // THE SECOND BUBBLE (ELZ-3): a turn may draw more than one bubble. `aiMsgId` is the bubble being written now; the
+    // turn's bubbles are kept in order so the guard's replace-at-done can fold them back into one. With no break from
+    // the server there is exactly one, as before.
+    let aiMsgId = nextId();
+    const turnIds: string[] = [aiMsgId];
+    let broke = false;
     setMessages((prev: ChatMessage[]) => [...prev, { id: aiMsgId, role: 'ai', text: '', streaming: true, deliberation: [] }]);
 
     let accumulated = '';
@@ -151,16 +158,21 @@ export function useChat({ vendorId, room }: UseChatArgs): UseChatReturn {
 
       // onDelta — append each word to the streaming message
       (delta: string) => {
+        if (broke) { delta = afterBreak(delta); broke = false; if (!delta) return; }
         accumulated += delta;
+        const id = aiMsgId, text = accumulated;   // read now: the updater may run after a break has moved aiMsgId
         setMessages((prev: ChatMessage[]) => prev.map((m: ChatMessage) =>
-          m.id === aiMsgId ? { ...m, text: accumulated } : m
+          m.id === id ? { ...m, text } : m
         ));
       },
 
       // onDone — finalise message, attach metadata, optionally refresh context
       (result) => {
-        setMessages((prev: ChatMessage[]) => prev.map((m: ChatMessage) =>
-          m.id === aiMsgId
+        // replace-at-done: the guard replaced the TURN, so its words go into the turn's first bubble and the others go
+        const folded = result.intercept?.replaced === true && turnIds.length > 1;
+        const lastId = folded ? turnIds[0] : aiMsgId;   // read now, not in the updater (done is the last event: accumulated no longer moves)
+        setMessages((prev: ChatMessage[]) => (folded ? prev.filter((m: ChatMessage) => !turnIds.slice(1).includes(m.id)) : prev).map((m: ChatMessage) =>
+          m.id === lastId
             ? {
                 ...m,
                 // TDW_06 M-3: replace-at-done. This expression ALREADY rewrote the text
@@ -192,8 +204,9 @@ export function useChat({ vendorId, room }: UseChatArgs): UseChatReturn {
 
       // onError
       (errMsg: string) => {
+        const id = aiMsgId;
         setMessages((prev: ChatMessage[]) => prev.map((m: ChatMessage) =>
-          m.id === aiMsgId ? { ...m, text: errMsg, streaming: false } : m
+          m.id === id ? { ...m, text: errMsg, streaming: false } : m
         ));
         setLoading(false);
         abortRef.current = null;
@@ -201,12 +214,20 @@ export function useChat({ vendorId, room }: UseChatArgs): UseChatReturn {
 
       // onBeat — collect the pair-at-work beats onto the streaming turn
       (beat: StreamBeat) => {
+        const id = aiMsgId;
         setMessages((prev: ChatMessage[]) => prev.map((m: ChatMessage) =>
-          m.id === aiMsgId ? { ...m, deliberation: [...(m.deliberation ?? []), beat] } : m
+          m.id === id ? { ...m, deliberation: [...(m.deliberation ?? []), beat] } : m
         ));
       },
       // F-41.98 — undefined when the mounting surface asserts nothing.
-      { room },
+      // THE SECOND BUBBLE: the part written so far is finished, and a new bubble takes the next deltas (the error arm and
+      // the beats then write to it; an error after a break leaves the first part as it arrived).
+      { room, onBreak: () => {
+        const done = aiMsgId; const next = nextId();
+        setMessages((prev: ChatMessage[]) => [...prev.map((m: ChatMessage) => (m.id === done ? { ...m, streaming: false } : m)),
+          { id: next, role: 'ai', text: '', streaming: true, deliberation: [] }]);
+        aiMsgId = next; turnIds.push(next); accumulated = ''; broke = true;
+      } },
     );
 
     abortRef.current = abort;

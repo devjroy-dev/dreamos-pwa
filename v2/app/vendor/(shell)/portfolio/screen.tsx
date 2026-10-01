@@ -111,7 +111,7 @@ const COPY = {
   E1: 'COVER',
   E2: 'Make this the cover',
   E3: 'Cover photo set',
-  E4: 'Your cover is the first photo couples see.',
+  E4: 'Your cover is the first photo people see.',
   F1: 'Awaiting review',
   F3: 'Not approved',
   // G3 — the filter/drag interlock line. Founder-vetoed byte-exact 2026-07-29.

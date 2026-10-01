@@ -252,7 +252,7 @@ function SubmitScreen({ vendorName }: { vendorName: string | null }) {
             </div>
             {/* FOUNDER-VETOED: the custom-tag honesty byte. */}
             <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>
-              Your own words are shown on your profile, but couples can&rsquo;t filter by them yet.
+              Your own words are shown on your profile, but people can&rsquo;t filter by them yet.
             </div>
             <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute }}>{tags.length} of 10 selected</div>
           </>

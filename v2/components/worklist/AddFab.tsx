@@ -31,6 +31,7 @@
 // checking a date is the thing a vendor reaches for mid-conversation, and the four money
 // rows follow the sequence work actually takes. R-37.22's reasoning binds here as it does
 // on the tiles: a control that moves under the thumb is a control that cannot be learned.
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // the founder (option B): the room's + in its head
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AddSheet } from '@/v2/components/vendor/AddSheet';
@@ -92,9 +93,7 @@ export function AddFab() {
           shared seat honestly. The sheet below is a dialog and names itself. */}
       {/* CE-46 (the chair's read of the rooms, ruled 30 Sept 2026): no floating + on More; "Add" is a button at the top of
           the page, opening the same menu. */}
-      <div style={{ padding: '4px 16px 12px', display: 'flex' }}>
-        <button type="button" className="wl-btn" data-add-top="more" onClick={() => setMenuOpen(true)}>{COPY.addTitle}</button>
-      </div>
+      <RoomHeadAdd addKey="more" label={COPY.addTitle} onAdd={() => setMenuOpen(true)} />
 
       {menuOpen && (
         <div className="wl-addsheet" role="dialog" aria-modal="true" aria-label={COPY.addTitle}>

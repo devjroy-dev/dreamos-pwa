@@ -271,7 +271,10 @@ export function SliceRow({ row, slice, onSelect }: { row: Row; slice: ListSlice;
   // the phone's large text setting nothing is cut off (the founder's rule).
   const detailParts = [row.secondary, row.meta].filter(Boolean) as string[];
   const tags = [row.tdw ? 'TDW' : '', row.referralIn ? RF.chipReferral : '', row.weddingLead ? WP.chipWedding : ''].filter(Boolean);
-  const facts = [...detailParts.map(cap), ...tags, row.crossChip || ''].filter(Boolean);
+  // the wire word (row.secondary, "shoot") is title-cased; the meta is already written words, so only its first letter
+  // rises ("due 3 October" reads "Due 3 October") and a clock keeps its lower case ("10:00 am", the founder, 30 Sept)
+  const firstUp = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+  const facts = [...detailParts.map((d) => (d === row.meta ? firstUp(d) : cap(d))), ...tags, row.crossChip || ''].filter(Boolean);
   const detailLine = facts.join(' · ');
 
   const pillColor = stateColor(slice, row.badge);

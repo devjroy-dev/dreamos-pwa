@@ -1,268 +1,190 @@
-// R-37.84 (3): Cormorant italic dies in room prose. ZIP 7 moved the `script` ROLE to the
-// body family; what survived was `fontStyle: italic` set beside it — italic sans, which
-// still reads as the old voice. The mock's screen four killed the pairing, not just the
-// family. Italic survives only where a surface sets it WITHOUT the script role.
 'use client';
-// app/vendor/couture/screen.tsx — COUTURE'S BODY, ONE DEFINITION, NO CHROME.
-//
-// ── §4-3 · COUTURE CROSSES · R-38.11 · R-38.12 ──────────────────────────────
-// Two routes render this module and neither owns it: `app/w/couture/page.tsx` mounts it
-// inside `WorklistShell`, and `app/vendor/couture/page.tsx` survives as the untouched
-// fallback and supplies the old `<Header/>` itself. IMPORTED by both, copied by neither —
-// two couture screens would be two homes for every slot, every appointment and every
-// vetoed byte, drifting apart without either one erroring.
-//
-// ── THE `Header` IMPORT IS GONE FROM THIS FILE AND ITS ABSENCE IS ASSERTED ──
-// S2 paid for this lesson once: `SliceShell` kept `import { Header }` and wrote
-// `{chrome && <Header/>}`. It rendered correctly and STILL shipped the old masthead — its
-// drawer, its /vendor rows, its banned bytes — into every crossed room's chunk. A
-// conditional does not remove a module from a bundle; only not importing it does.
-//
-// ── COUTURE IS THE ONE ROOM IN THIS BATCH WHOSE MOUNT CENSUS ACTUALLY SHRINKS ─
-// It carried TWO `<Header/>` mounts, not one, and they were in two RETURN ARMS of this one
-// component: the ineligible gate at the top and the main screen below it. Storefront and
-// Portfolio each had one, so their mount MOVES to the fallback route and the census holds
-// (calendar's §4-2 precedent). Couture's two collapse into the fallback's one, so
-// `INTERIM_VENDOR_MOUNTS` goes 2 → 1 for this file. That is a shrink that happened, not a
-// number edited to match a sentence — R-38.11 as amended, working in the direction it is
-// supposed to.
-//
-// ── `vendorName` LEFT WITH THE MOUNTS ───────────────────────────────────────
-// It was read by exactly two things, both `<Header vendorName={…}/>`. Derived, not assumed:
-// after the lift the only occurrence in this file was the signature. An unused prop is a
-// named, typed hole the next reader fills — and then the body knows the vendor's name for
-// no reason, on a surface that must not print it.
-//
-// ── THE DECLARED GAPS, NAMED HERE AND NOT ONLY IN A HANDOVER ────────────────
-// This body did NOT cross typographically (R-38.12). It carries the rooms' older type
-// register and its own colour literals (F-38.22's family), and its sheets are
-// `position:fixed`, so inside the shell they sit over the dock and the nav exactly as
-// calendar's have since §4-2. Captured, excluded from the render arm's tuple cell by name,
-// and priced — not swept inside a structural crossing.
-
+// v2/app/vendor/(shell)/couture/screen.tsx · CE-47 · FE-6 L3 · THE COUTURE ROOM, REWORKED.
+// The founder's verdict on FE-6's mock (CE-46, 30 Sept 2026; W3, W10) and the sprint's standing rules: the add is the
+// room head's pill ("+ New slot"); one switch for Open slots and Appointments; slots and appointments as rows (a full
+// date with its day, then time, minutes and fee; one pill); a tap on an open slot opens a small sheet whose one action,
+// Remove, is last and asks first; the add sheet shows the date in words under its native field; the locked state is one
+// plain line and one button to Billing. Every time through the 12-hour clock ("4:00 pm"). Doors unchanged:
+// fetchMe (couture_eligible), fetchCoutureSlots, fetchCoutureAppointments, addCoutureSlot, removeCoutureSlot.
 import { useEffect, useState } from 'react';
-import { INK_DEEP } from '@/lib/vendor/theme';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { COPY } from '@/v2/lib/worklist/copy';
 import { roomHref } from '@/v2/lib/worklist/rooms';
-import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { Toast } from '@/v2/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchMe, fetchCoutureSlots, addCoutureSlot, removeCoutureSlot, fetchCoutureAppointments } from '@/v2/lib/vendor/api/vendor';
 import type { CoutureSlot, CoutureAppointment } from '@/lib/vendor/types/vendor';
+import { CO } from '@/v2/lib/worklist/couture';
+import { clockAt, clockWords, dayDateWords } from '@/v2/lib/worklist/home';   // FE-5's clock words; the weekday date beside them (FE-8)
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // FE-5's pill, in the room head (FE-8)
 
-const A = {
-  // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
-  // and active states read this; the wordmark, section headers and hairlines keep `brass`.
-  interactive:     'var(--atelier-accent-text)',
-  interactiveWarm: 'var(--atelier-accent-text)',
-  ink: 'var(--atelier-ink)', inkSoft: 'var(--atelier-ink-soft)', inkMute: 'var(--atelier-ink-mute)',
-  brass: 'var(--atelier-ink)' /* DESIGN-1 · P5 */, brassWarm: 'var(--atelier-label)', brassLine: 'var(--atelier-card-border)', red: 'var(--role-critical)',
-} as const;
-const F = {
-  display: 'var(--font-italiana), "GFS Didot", Georgia, serif',
-  script: 'var(--font-dm-sans), system-ui, sans-serif' /* R-37.76 (3)+(7): Cormorant is RETIRED FROM PROSE. The rooms were setting body copy in Cormorant italic while the shell set it in DM Sans, and that — not size — is why they read as two font worlds. One family, one job. Cormorant's feature use survives where a surface deliberately calls for it. */,
-  body: 'var(--font-dm-sans), system-ui, sans-serif',
-  label: 'var(--font-jost), system-ui, sans-serif',
-} as const;
+const rs = (n: number) => 'Rs\u00a0' + Number(n).toLocaleString('en-IN');
+const TONE: Record<string, string> = { open: 'new', booked: 'done', blocked: 'off' };
 
 export function CoutureScreen({ vendorId }: { vendorId: string }) {
+  void vendorId;
   const router = useRouter();
   const { toast, show } = useToast();
   const [eligible, setEligible] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<'availability' | 'appointments'>('availability');
+  const [tab, setTab] = useState<'open' | 'appointments'>('open');
   const [slots, setSlots] = useState<CoutureSlot[]>([]);
   const [appointments, setAppointments] = useState<CoutureAppointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
-  const [slotAt, setSlotAt] = useState('');
-  const [feeInr, setFeeInr] = useState('');
+  const [day, setDay] = useState('');
+  const [at, setAt] = useState('');
+  const [fee, setFee] = useState('');
   const [saving, setSaving] = useState(false);
+  const [picked, setPicked] = useState<CoutureSlot | null>(null);
+  const [asking, setAsking] = useState(false);
 
   useEffect(() => {
-    fetchMe().then(res => { if (res.ok) setEligible((res.vendor as unknown as { couture_eligible?: boolean }).couture_eligible ?? false); });
+    fetchMe().then((res) => { if (res.ok) setEligible((res.vendor as unknown as { couture_eligible?: boolean }).couture_eligible ?? false); }).catch(() => setEligible(false));
   }, []);
-
   useEffect(() => {
-    if (eligible === null) return;
-    setLoading(true);
+    if (!eligible) return;
     Promise.all([fetchCoutureSlots('all'), fetchCoutureAppointments('all')])
-      .then(([sRes, aRes]) => {
-        if (sRes.ok) setSlots(sRes.slots);
-        if (aRes.ok) setAppointments(aRes.appointments);
-      }).catch(() => {}).finally(() => setLoading(false));
+      .then(([sRes, aRes]) => { if (sRes.ok) setSlots(sRes.slots); if (aRes.ok) setAppointments(aRes.appointments); })
+      .catch(() => {}).finally(() => setLoading(false));
   }, [eligible]);
 
-  async function doAddSlot() {
-    if (!slotAt || !feeInr || saving) return;
+  async function doAdd() {
+    if (!day || !at || !fee || saving) return;
     setSaving(true);
-    const res = await addCoutureSlot({ slot_at: slotAt, fee_inr: Number(feeInr) });
-    if (!res.ok) show((res as { error?: string }).error ?? 'Failed.', 'error');
-    else { show('Slot added', 'success'); setAddOpen(false); setSlotAt(''); setFeeInr(''); setSlots(prev => [res.slot, ...prev]); }
+    const res = await addCoutureSlot({ slot_at: `${day}T${at}`, fee_inr: Number(fee) });
+    if (!res.ok) show((res as { error?: string }).error ?? CO.failed, 'error');
+    else { show(CO.added, 'success'); setAddOpen(false); setDay(''); setAt(''); setFee(''); setSlots((prev) => [res.slot, ...prev]); }
     setSaving(false);
   }
-  async function doRemoveSlot(slotId: string) {
-    const res = await removeCoutureSlot(slotId);
-    if (!res.ok) { show((res as { error?: string }).error ?? 'Failed.', 'error'); return; }
-    show('Slot removed', 'success');
-    setSlots(prev => prev.filter(s => s.id !== slotId));
-  }
-  function fmtDate(iso: string) {
-    try { return new Date(iso).toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' }); } catch { return iso; }
+  async function doRemove(id: string) {
+    setSaving(true);
+    const res = await removeCoutureSlot(id);
+    setSaving(false);
+    if (!res.ok) { show((res as { error?: string }).error ?? CO.failed, 'error'); return; }
+    show(CO.removed, 'success'); setSlots((prev) => prev.filter((s) => s.id !== id)); setPicked(null); setAsking(false);
   }
 
   if (eligible === false) {
     return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {/* THE FIRST OF THE TWO MOUNTS THAT LEFT. The ineligible gate carried its own
-            Header (named without its angle brackets on purpose — C26's census counts
-            JSX mounts by that token, and a sentence saying a mount LEFT must not read
-            as one that stayed) because on /vendor it is the whole surface a non-couture vendor ever
-            sees, and a screen with no masthead there has no way out. It is mounted at the
-            fallback ROUTE now, which covers both arms with one, and inside the shell the
-            chrome is WorklistShell's. */}
-        <div className="atelier-card atelier-card-ornate" style={{
-          margin: '40px var(--slice-inset, 16px)', padding: '32px 24px', textAlign: 'center',
-        }}>
-          <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.5em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>{COPY.coutureGateLabel}</div>
-          <div style={{ fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem', color: 'var(--atelier-ink)', marginBottom: 12, lineHeight: 1.15 }}>By appointment only.</div>
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkSoft, lineHeight: 1.55, marginBottom: 24 }}>
-            {/* R-39.6 · the vetoed byte is ONE string in lib/worklist/copy.ts; the link word
-                is split out of it here so the sentence and its door share a home. */}
-            {COPY.coutureGateSentence.split(COPY.coutureGateLinkWord)[0]}
-            <Link href={roomHref('billing')} style={{ color: A.interactiveWarm, textDecoration: 'underline', textUnderlineOffset: 3 }}>{COPY.coutureGateLinkWord}</Link>
-            {COPY.coutureGateSentence.split(COPY.coutureGateLinkWord)[1]}
-          </div>
-          <button type="button" onClick={() => router.back()} style={{
-            padding: '12px 24px', background: 'transparent',
-            border: `0.5px solid var(--atelier-input-border)`, borderRadius: 12, cursor: 'pointer',
-            fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.interactiveWarm,
-            letterSpacing: '0.32em', textTransform: 'uppercase',
-          }}>Back</button>
-        </div>
+      <div className="cou-room" data-couture="locked">
+        <p className="cou-line">{CO.lockedLine}</p>
+        <button type="button" className="cou-btn cou-pri" onClick={() => router.push(roomHref('billing'))}>{CO.lockedButton}</button>
+        <style>{CSS}</style>
       </div>
     );
   }
+  if (eligible === null || loading) return <div className="cou-room" aria-busy="true"><style>{CSS}</style></div>;
+
+  const open = slots.filter((s) => s.state === 'open');
+  const shown = tab === 'open' ? slots : [];
+  // the date typed into the native field, said in words under it (the sprint's rule)
+  const typed = day ? dayDateWords(`${day}T${at || '12:00'}:00+05:30`) : '';
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      <Toast toast={toast} />
-
-      {/* ── THE BACK/LABEL ROW IS THE OLD LAYOUT'S CHROME, AND ONLY THE ROW'S LEFT HALF ──
-          Inside the shell the chevron and the word are the two-mastheads defect one level
-          down from where R-38.1 removed it: WorklistShell already prints 「Couture」 in its
-          header and already owns the way out, and there is no chevron in the shell by
-          construction — the two nav seats are the way back. Same contract Billing and
-          Settings crossed under at S1 and the list family at §4-1.
-          THE ROW ITSELF SURVIVES BOTH WAYS, because its right half is 「+ Slot」, which is
-          this screen's only way to add availability. Retiring the row to retire the word
-          would have taken the action with it. The spacer replaces the label's `flex: 1` so
-          the action stays where the thumb already knows to find it. */}
-      <div style={{ padding: '12px var(--slice-inset, 16px)', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-        
-        {<div style={{ flex: 1 }} />}
-        {tab === 'availability' && eligible && (
-          <button type="button" onClick={() => setAddOpen(true)} className="atelier-fab" style={{
-            padding: '8px 16px', borderRadius: 12, cursor: 'pointer', border: '0.5px solid var(--atelier-label)',
-            fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP,
-            letterSpacing: '0.32em', textTransform: 'uppercase',
-          }}>+ Slot</button>
-        )}
+    <div className="cou-room" data-couture="room">
+      <RoomHeadAdd addKey="couture" label={CO.add} onAdd={() => setAddOpen(true)} />
+      <p className="cou-big" data-couture-line="">{tab === 'open' ? CO.openCount(open.length) : CO.apptCount(appointments.length)}</p>
+      <div className="cou-seg" role="group">
+        <button type="button" aria-pressed={tab === 'open'} className={tab === 'open' ? 'on' : ''} onClick={() => setTab('open')}>{CO.tabs.open}</button>
+        <button type="button" aria-pressed={tab === 'appointments'} className={tab === 'appointments' ? 'on' : ''} onClick={() => setTab('appointments')}>{CO.tabs.appointments}</button>
       </div>
 
-      <div style={{ display: 'flex' }}>
-        {(['availability', 'appointments'] as const).map(t => (
-          <button key={t} type="button" onClick={() => setTab(t)} style={{
-            flex: 1, padding: '16px 0', background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: F.label, fontWeight: tab === t ? 400 : 300, fontSize: '0.8125rem',
-            color: tab === t ? A.interactiveWarm : A.inkMute,
-            letterSpacing: '0.32em', textTransform: 'uppercase',
-            borderBottom: tab === t ? `0.5px solid ${A.interactive}` : '0.5px solid var(--atelier-card-border)',
-          }}>{t}</button>
-        ))}
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '24px var(--slice-inset, 16px) 96px' }}>
-        {loading ? (
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, textAlign: 'center', padding: 40 }}>Loading…</div>
-        ) : tab === 'availability' ? (
-          slots.length === 0 ? (
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', color: A.inkMute, textAlign: 'center', paddingTop: 32, lineHeight: 1.5 }}>No slots yet.<br /><span style={{ color: A.brassWarm }}>Add your first.</span></div>
-          ) : slots.map(slot => (
-            <div key={slot.id} style={{ display: 'flex', alignItems: 'center', padding: '16px 4px', gap: 16, borderBottom: '0.5px solid var(--atelier-card-border)' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1rem', lineHeight: 1.5, color: A.ink, letterSpacing: '0.005em' }}>{fmtDate(slot.slot_at)}</div>
-                <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
-                  Rs {slot.fee_inr.toLocaleString('en-IN')} · {slot.duration_minutes} min · <span style={{ color: slot.state === 'open' ? A.brassWarm : A.inkMute }}>{slot.state}</span>
-                </div>
-              </div>
-              {slot.state === 'open' && (
-                <button type="button" onClick={() => doRemoveSlot(slot.id)} style={{
-                  background: 'none', border: '0.5px solid var(--role-critical)', borderRadius: 12,
-                  padding: '4px 12px', cursor: 'pointer',
-                  fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.red,
-                  letterSpacing: '0.28em', textTransform: 'uppercase',
-                }}>Remove</button>
-              )}
+      {tab === 'open' ? (
+        shown.length === 0 ? <p className="cou-line">{CO.noSlots}</p> : (
+          <div className="cou-list">{shown.map((s) => {
+            const live = s.state === 'open';
+            const inner = (<>
+              <span className="cou-rt"><span className="cou-n">{dayDateWords(s.slot_at)}</span>
+                <span className="cou-f">{clockAt(Date.parse(s.slot_at))} {'\u00b7'} {CO.minutes(s.duration_minutes)} {'\u00b7'} {rs(s.fee_inr)}</span></span>
+              <span className={'cou-pill ' + (TONE[s.state] ?? 'off')} data-pill="">{CO.state[s.state] ?? s.state}</span>
+              {live ? <span className="cou-chev" aria-hidden="true">{'\u203a'}</span> : null}
+            </>);
+            return live
+              ? <button type="button" key={s.id} className="cou-row" data-slot={s.id} onClick={() => { setPicked(s); setAsking(false); }}>{inner}</button>
+              : <div key={s.id} className="cou-row" data-slot={s.id} data-dead="">{inner}</div>;
+          })}</div>
+        )
+      ) : (
+        appointments.length === 0 ? <p className="cou-line">{CO.noAppointments}</p> : (
+          <div className="cou-list">{appointments.map((a) => (
+            <div key={a.id} className="cou-row" data-appt={a.id} data-dead="">
+              <span className="cou-rt"><span className="cou-n">{dayDateWords(a.appointment_at)}</span>
+                <span className="cou-f">{clockAt(Date.parse(a.appointment_at))} {'\u00b7'} {CO.minutes(a.duration_minutes)} {'\u00b7'} {rs(a.fee_inr)}</span></span>
+              <span className={'cou-pill ' + (TONE[a.state] ?? 'off')} data-pill="">{CO.state[a.state] ?? a.state}</span>
             </div>
-          ))
-        ) : (
-          appointments.length === 0 ? (
-            <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, textAlign: 'center', paddingTop: 32 }}>No appointments yet.</div>
-          ) : appointments.map(appt => (
-            <div key={appt.id} className="atelier-card" style={{ padding: '16px 16px', marginBottom: 12 }}>
-              <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1rem', lineHeight: 1.5, color: A.ink }}>{fmtDate(appt.appointment_at)}</div>
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>
-                Rs {appt.fee_inr.toLocaleString('en-IN')} · {appt.state}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+          ))}</div>
+        )
+      )}
 
       {addOpen && (
-        <>
-          <div onClick={() => setAddOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'var(--atelier-overlay)' }} />
-          <div style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-            background: 'var(--atelier-sheet-bg)',
-            backdropFilter: 'blur(40px) saturate(1.8)', WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
-            borderTop: '0.5px solid var(--atelier-sheet-border)',
-            padding: '16px 24px calc(24px + env(safe-area-inset-bottom))',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <div style={{ width: 36, height: 3, borderRadius: 12, background: 'var(--atelier-label)' }} />
-            </div>
-            <div style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase', color: A.brass, marginBottom: 12 }}>New slot</div>
-
-            <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 8 }}>Date & time</label>
-            <input type="datetime-local" value={slotAt} onChange={e => setSlotAt(e.target.value)} style={{
-              width: '100%', padding: '12px 16px', boxSizing: 'border-box',
-              background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
-              fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.ink, outline: 'none',
-               marginBottom: 16, caretColor: A.interactive,
-            }} />
-
-            <label style={{ display: 'block', fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', color: A.inkMute, letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 8 }}>Fee (Rs)</label>
-            <input type="number" value={feeInr} onChange={e => setFeeInr(e.target.value)} placeholder="3000" style={{
-              width: '100%', padding: '12px 16px', boxSizing: 'border-box',
-              background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)', borderRadius: 12,
-              fontFamily: F.body, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.ink, outline: 'none',
-              marginBottom: 16, caretColor: A.interactive,
-            }} />
-
-            <button type="button" onClick={doAddSlot} disabled={saving || !slotAt || !feeInr} className="atelier-fab" style={{
-              width: '100%', padding: '16px 0', borderRadius: 12,
-              border: '0.5px solid var(--atelier-label)',
-              cursor: (saving || !slotAt || !feeInr) ? 'default' : 'pointer',
-              fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP,
-              letterSpacing: '0.42em', textTransform: 'uppercase',
-              opacity: (saving || !slotAt || !feeInr) ? 0.5 : 1,
-            }}>{saving ? 'Saving…' : 'Add slot'}</button>
+        <div className="cou-over" role="dialog" aria-modal="true" aria-label={CO.addTitle} onClick={() => !saving && setAddOpen(false)} data-couture-sheet="add">
+          <div className="cou-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="cou-sh"><h2>{CO.addTitle}</h2><button type="button" className="cou-x" aria-label="Close" onClick={() => setAddOpen(false)}>{'\u00d7'}</button></div>
+            <label className="cou-lbl" htmlFor="cou-day">{CO.date}</label>
+            <input id="cou-day" className="cou-in" type="date" value={day} onChange={(e) => setDay(e.target.value)} />
+            {typed ? <p className="cou-words" data-date-words="">{typed}</p> : null}
+            <label className="cou-lbl" htmlFor="cou-at">{CO.time}</label>
+            <input id="cou-at" className="cou-in" type="time" value={at} onChange={(e) => setAt(e.target.value)} />
+            {at ? <p className="cou-words" data-time-words="">{clockWords(at)}</p> : null}
+            <label className="cou-lbl" htmlFor="cou-fee">{CO.fee}</label>
+            <input id="cou-fee" className="cou-in" type="number" inputMode="numeric" min={0} value={fee} onChange={(e) => setFee(e.target.value)} placeholder="Rs" />
+            <button type="button" className="cou-btn cou-pri" disabled={saving || !day || !at || !fee} onClick={() => void doAdd()}>{CO.addButton}</button>
           </div>
-        </>
+        </div>
       )}
+
+      {picked && (
+        <div className="cou-over" role="dialog" aria-modal="true" aria-label={dayDateWords(picked.slot_at)} onClick={() => !saving && setPicked(null)} data-couture-sheet="slot">
+          <div className="cou-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="cou-sh"><h2>{dayDateWords(picked.slot_at)}</h2><button type="button" className="cou-x" aria-label="Close" onClick={() => setPicked(null)}>{'\u00d7'}</button></div>
+            <p className="cou-line">{clockAt(Date.parse(picked.slot_at))} {'\u00b7'} {CO.minutes(picked.duration_minutes)} {'\u00b7'} {rs(picked.fee_inr)}</p>
+            {asking ? (
+              <>
+                <p className="cou-q">{CO.removeAsk}</p>
+                <div className="cou-two">
+                  <button type="button" className="cou-btn" disabled={saving} onClick={() => setAsking(false)}>{CO.keep}</button>
+                  <button type="button" className="cou-btn cou-warn" disabled={saving} onClick={() => void doRemove(picked.id)}>{CO.removeYes}</button>
+                </div>
+              </>
+            ) : (
+              <button type="button" className="cou-btn cou-warn" onClick={() => setAsking(true)}>{CO.remove}</button>
+            )}
+          </div>
+        </div>
+      )}
+      <Toast toast={toast} />
+      <style>{CSS}</style>
     </div>
   );
 }
+
+const CSS = `
+.cou-room{padding:8px 0 32px;display:flex;flex-direction:column}
+.cou-big{margin:0 0 12px;font:var(--wl-t2);color:var(--atelier-ink)}
+.cou-line{margin:0 0 16px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.cou-q{margin:0 0 12px;font:var(--wl-t3);color:var(--atelier-ink)}
+.cou-seg{display:flex;border:1px solid var(--atelier-card-border);border-radius:12px;overflow:hidden;margin:0 0 12px}
+.cou-seg button{flex:1;min-height:44px;border:0;background:transparent;color:var(--atelier-ink-mute);font:var(--wl-tb);cursor:pointer}
+.cou-seg button.on{background:var(--atelier-card-bg);color:var(--atelier-ink);box-shadow:inset 0 -2px 0 var(--atelier-accent-text)}
+.cou-list{border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg);overflow:hidden}
+.cou-row{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 16px;box-sizing:border-box;background:transparent;border:0;text-align:left;color:inherit;font:inherit}
+button.cou-row{cursor:pointer;touch-action:manipulation}
+.cou-row + .cou-row{border-top:1px solid var(--atelier-card-border)}
+.cou-rt{flex:1;min-width:0;display:flex;flex-direction:column}
+.cou-n{font:var(--wl-tb);color:var(--atelier-ink)}
+.cou-f{font:var(--wl-t4);color:var(--atelier-ink-mute);margin-top:2px}
+.cou-pill{font:var(--wl-t5);padding:4px 10px;border-radius:999px;border:1px solid currentColor;white-space:nowrap;color:var(--atelier-ink-mute)}
+.cou-pill.new{color:var(--atelier-accent-text)}.cou-pill.done{color:var(--role-positive)}
+.cou-chev{color:var(--atelier-ink-mute);font:var(--wl-t2)}
+.cou-over{position:fixed;inset:0;z-index:60;background:var(--role-scrim);display:flex;align-items:flex-end}
+.cou-sheet{width:100%;box-sizing:border-box;max-height:85vh;overflow-y:auto;background:var(--atelier-card-bg);border-top-left-radius:16px;border-top-right-radius:16px;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+.cou-sh{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px}
+.cou-sh h2{margin:0;font:var(--wl-t2);color:var(--atelier-ink)}
+.cou-x{min-width:44px;min-height:44px;border:0;background:transparent;color:var(--atelier-ink-mute);font:var(--wl-t2);cursor:pointer}
+.cou-lbl{display:block;font:var(--wl-t4);color:var(--atelier-ink-mute);margin:0 0 6px}
+.cou-in{width:100%;box-sizing:border-box;min-height:48px;padding:0 14px;border-radius:12px;border:1px solid var(--atelier-input-border);background:var(--atelier-input-bg);color:var(--atelier-ink);font:var(--wl-tb);margin:0 0 6px}
+.cou-words{margin:0 0 12px;font:var(--wl-t4);color:var(--atelier-ink-soft)}
+.cou-btn{width:100%;min-height:48px;border-radius:12px;font:var(--wl-tb);border:1px solid var(--atelier-card-border);background:transparent;color:var(--atelier-accent-text);cursor:pointer;margin-top:8px}
+.cou-pri{background:var(--role-primary);color:var(--role-on-primary);border:0}
+.cou-warn{color:var(--role-critical);border-color:var(--role-critical)}
+.cou-two{display:flex;gap:8px}.cou-two > .cou-btn{flex:1}
+`;

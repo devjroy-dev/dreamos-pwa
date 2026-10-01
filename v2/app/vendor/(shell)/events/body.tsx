@@ -8,6 +8,7 @@
 // "this row names no binder", never "no binder exists". SliceShell prints that
 // blindness once per list, per ST-2's own rule.
 
+import { clockWords } from '@/v2/lib/worklist/home';   // the founder: "7:00 pm", one home
 import { roomHref } from '@/v2/lib/worklist/rooms';
 import { useCallback, useMemo } from 'react';
 import { useEventsData, useCabinetData } from '@/v2/hooks/vendor/useVendorData';
@@ -21,7 +22,7 @@ import { useCrew, crewWords } from '@/v2/lib/worklist/crew';
 import { istPlusDaysISO } from '@/lib/vendor/istDay';
 
 function baseRows(events: VendorEvent[]): Row[] {
-  return events.map(ev => ({ id: ev.id, primary: ev.title, secondary: ev.kind, meta: fmtDate(ev.event_date)+(ev.event_time?` · ${ev.event_time.slice(0,5)}`:''), badge: ev.state, sortDate: ev.event_date, twinBinderId: ev.linked_binder_id ?? undefined, aiPrimer: `About ${ev.title} on ${fmtDate(ev.event_date)}: `, deletePrimer: `Delete the event "${ev.title}" on ${fmtDate(ev.event_date)} (id: ${ev.id}).`, detail: [{label:'Kind',value:ev.kind},{label:'Date',value:fmtDate(ev.event_date)},{label:'Time',value:ev.event_time?ev.event_time.slice(0,5):'—'},{label:'State',value:ev.state},{label:'Notes',value:ev.notes??'—',verbatim:true}] }));
+  return events.map(ev => ({ id: ev.id, primary: ev.title, secondary: ev.kind, meta: fmtDate(ev.event_date)+(ev.event_time?` · ${clockWords(ev.event_time)}`:''), badge: ev.state, sortDate: ev.event_date, twinBinderId: ev.linked_binder_id ?? undefined, aiPrimer: `About ${ev.title} on ${fmtDate(ev.event_date)}: `, deletePrimer: `Delete the event "${ev.title}" on ${fmtDate(ev.event_date)} (id: ${ev.id}).`, detail: [{label:'Kind',value:ev.kind},{label:'Date',value:fmtDate(ev.event_date)},{label:'Time',value:ev.event_time?clockWords(ev.event_time):'—'},{label:'State',value:ev.state},{label:'Notes',value:ev.notes??'—',verbatim:true}] }));
 }
 
 function deleteRequest(sel: Row) {

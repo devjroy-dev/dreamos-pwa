@@ -40,6 +40,7 @@ import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { getJson } from '@/lib/vendor/api/_base';
+import { Body, Group, Row, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
 import { API } from '@/v2/lib/solutions/routes';
 import { GR, sealFacts } from '@/v2/lib/worklist/googleReviews';
 import type { GoogleReviewsRoom } from '@/lib/solutions/types';
@@ -64,7 +65,7 @@ export default function GoogleReviewsPage() {
  * other repo. It is twelve tokens and a bench cell would be worth more than this
  * sentence — named as owed rather than claimed as covered.
  */
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'] as const;
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'] as const; // CE-47 L4 (FE-7): full months (veto 24)
 function houseDate(iso: string | null): string {
   if (!iso) return '';
   const d = new Date(iso);
@@ -107,113 +108,22 @@ function GoogleReviewsScreen() {
       ) : null}
 
       {room ? (
-        <div className="gr-room">
-
-          {/* ── ASKED ─────────────────────────────────────────────────────
-              The empty state replaces this band ENTIRELY rather than showing
-              `Asked 0` above two lines of explanation. A zero with a heading is
-              a room reporting on itself; the empty state is the room. */}
-          {asked.length > 0 ? (
-            <>
-              <div className="gr-sec">{GR.sectionAsked}<span>{room.askedCount}</span></div>
-              {asked.map((a, i) => (
-                <div className="gr-row" key={`${a.askedAt}-${i}`}>
-                  <div>
-                    {/* HER NAME OR NOTHING. The door sends null where a name is
-                        genuinely absent and this renders an em dash rather than
-                        inventing `a couple` — an invented name on a vendor's
-                        screen is a fact she cannot check. */}
-                    <span className="gr-rprimary">{a.coupleName || '\u2014'}</span>
-                    <span className="gr-rdetail">{a.weddingTitle || '\u2014'}</span>
-                  </div>
-                  <div className="gr-rstate">{GR.askedState} {houseDate(a.askedAt)}</div>
-                </div>
-              ))}
-            </>
-          ) : null}
-
-          {asked.length === 0 ? (
-            <div className="gr-empty">
-              <span className="gr-eh">{GR.emptyHead}</span>
-              <span className="gr-ep">{GR.emptyBody}</span>
-            </div>
-          ) : null}
-
-          {/* ── REVIEWS ───────────────────────────────────────────────────
-              IT READS 0 AND IT WILL KEEP READING 0 UNTIL 27 Oct 2026, and the
-              sentence beneath is what stops that being read as broken. The count
-              is the door's field, not a literal here — when Google becomes
-              readable the number moves and this markup does not.
-              Rendered only once something has been asked: a Reviews band above
-              an empty Asked band would be counting replies to nothing. */}
-          {asked.length > 0 ? (
-            <>
-              <div className="gr-sec" style={{ marginTop: 24 }}>{GR.sectionReviews}<span>{room.landedCount}</span></div>
-              <p className="gr-note">{GR.reviewsWaiting}</p>
-            </>
-          ) : null}
-
-          {/* ── THE SEAL ──────────────────────────────────────────────────
-              Present or ABSENT, and absent is a SENTENCE. No greyed card, no
-              placeholder, no `coming soon`: a dimmed seal would be a control
-              lying about being available, and the veto sheet's row 11 is the
-              byte that replaces it. */}
-          <div className="gr-sec" style={{ marginTop: 24 }}>{GR.sectionSeal}</div>
-          {seal ? (
-            <>
-              <div className="gr-row">
-                <div>
-                  <span className="gr-rprimary">{GR.sealMark}</span>
-                  <span className="gr-rdetail">{sealFacts(seal.weddings, seal.deliveryDays)}</span>
-                </div>
-                <div className="gr-rstate live">{GR.sealState}</div>
-              </div>
-              <p className="gr-note">{GR.sealNote}</p>
-            </>
-          ) : (
-            <p className="gr-note">{GR.sealAbsent}</p>
-          )}
-
-          {/* ── THE LISTING, DRAWN ABSENT ─────────────────────────────────
-              NEVER A DISABLED BUTTON. There is no control here, greyed or
-              otherwise, because there is nothing she can do before the date.
-              The date is the DOOR's `gbpAvailableFrom` rendered through the
-              house format — not typed into copy, so the sentence cannot
-              disagree with the field the backend sends. */}
-          <div className="gr-sec" style={{ marginTop: 24 }}>{GR.sectionListing}</div>
-          <p className="gr-note">{GR.listingFrom.replace('{date}', houseDate(room.gbpAvailableFrom))}</p>
-          <p className="gr-note" style={{ marginTop: 12 }}>{GR.listingWhy}</p>
-          <div className="gr-sec" style={{ marginTop: 24 }}>{GR.listingThenHead}</div>
-          <p className="gr-note">{GR.listingThenBody}</p>
-        </div>
+        <Body>
+          <p className="fr-lede">{GR.lede}</p>
+          {asked.length > 0 ? (<>
+            <Head text={GR.sectionAsked} count={room.askedCount} />
+            <Group>{asked.map((a, i) => <Row key={i} title={a.coupleName || a.weddingTitle || ''} facts={`${GR.askedState} ${houseDate(a.askedAt)}`} />)}</Group>
+            <Head text={GR.sectionReviews} count={room.landedCount || undefined} />
+            <p className="fr-empty">{GR.reviewsWaiting}</p>
+          </>) : (<><Head text={GR.sectionAsked} /><p className="fr-empty">{GR.askedEmpty}</p></>)}
+          <Head text={GR.sectionSeal} />
+          {seal ? (<><Group><Row title={GR.sealMark} facts={sealFacts(seal.weddings, seal.deliveryDays)} pill={{ text: GR.sealState, tone: 'ok' }} /></Group>
+            <p className="fr-empty" style={{ marginTop: 8 }}>{GR.sealNote}</p></>) : <p className="fr-empty">{GR.sealAbsent}</p>}
+          <Head text={GR.sectionListing} />
+          <Group><Row title={GR.listingRow} facts={GR.listingFromDate(houseDate(room.gbpAvailableFrom))} pill={{ text: GR.comingSoon, tone: 'soon' }} /></Group>
+        </Body>
       ) : null}
-
-      <style>{`
-/* THE LEADS-CARD IDIOM, SHARED WITH THE WEDDING-PAGES ROOM. Every rule below is
-   transcribed from that room’s own block, property for property — the two Block
-   19 rooms are the same room with different rows, and a second set of metrics is
-   how they start to drift. Only .gr-note is new: the idiom had no NON-CARD
-   sentence inside a room (.wp-ep is the empty state’s), and this room needs four
-   of them. NO MONEY RULE APPEARS ANYWHERE IN THIS FILE — there is no figure on
-   this room, so there is no wl-rfig to inherit.
-   ⚠ NO BACKTICKS IN THIS BLOCK. It is a template literal, and a backtick in a
-   CSS comment closes the string — which is exactly how the first cut of this
-   file failed tsc with eleven errors none of which mentioned a backtick. */
-.gr-room{padding-top:24px;padding-bottom:32px}
-.gr-sec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px;display:flex;justify-content:space-between}
-.gr-sec span{font-variant-numeric:lining-nums tabular-nums}
-.gr-row{display:grid;grid-template-columns:1fr auto;align-items:start;column-gap:12px;width:100%;text-align:left;
-        background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;
-        padding:12px 16px;margin-bottom:var(--wl-step)}
-.gr-rprimary{font:var(--wl-t3);color:var(--atelier-ink);display:block}
-.gr-rdetail{font:var(--wl-t5);color:var(--atelier-ink-mute);display:block;margin-top:4px;font-variant-numeric:lining-nums tabular-nums}
-.gr-rstate{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);white-space:nowrap;padding-top:4px}
-.gr-rstate.live{color:var(--atelier-accent-text)}
-.gr-note{font:var(--wl-t5);color:var(--atelier-ink-fade);line-height:1.5;text-transform:none;letter-spacing:0;margin:4px 0 0;max-width:40ch}
-.gr-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:56px 0 32px}
-.gr-eh{font:var(--wl-t2);color:var(--atelier-ink)}
-.gr-ep{font:var(--wl-t3);color:var(--atelier-ink-mute);max-width:250px}
-      `}</style>
+      <style>{FR_CSS}</style>
     </WorklistShell>
   );
 }

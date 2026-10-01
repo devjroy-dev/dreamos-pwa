@@ -507,6 +507,8 @@ export const COPY = {
    *  permission she grants, and `Let` is the word for granting one. Not
    *  `Date checks`, which names a feature rather than a decision. */
   storefrontDateSwitch: 'Let couples check a date',
+  // CE-46 ELZ-3 · 0183 (the chair's words): her permission for approximate prices in chat, beside the date switch
+  priceShareSwitch: 'Share approximate prices in chat',
   /** D4 · beside the switch, in BOTH states. A sentence that appears only once
    *  the door is open is a sentence she reads too late to decide with. The
    *  second clause is the one she is owed: F-40.163 examined whether the check

@@ -24,7 +24,9 @@
 //   REMOVED BY RULING (C-43.16): the boxed button style; the always-open card.
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
+import { useLayoutEffect, useRef } from 'react';
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // FE-5's pill, in the room head (FE-8)
+import { PKG } from '@/v2/lib/worklist/packagesRoom';
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { WlToast } from '@/v2/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
@@ -44,7 +46,31 @@ const ROOM_LABEL = ROOMS.find((r) => r.id === 'packages')?.label ?? '';
 
 /** The first three detail values, joined: the vendor's own data (C-43.16). */
 function summaryOf(p: VendorPackage): string {
-  return p.line_items.slice(0, 3).map((it) => it.detail).join(', ');
+  // F-44.259 (CE-47): empty details are filtered BEFORE the join, so an empty list draws nothing, never "," or ", ,".
+  return p.line_items.slice(0, 3).map((it) => it.detail).filter((d) => !!d && String(d).trim() !== '').join(', ');
+}
+
+/** THE TWO-LINE CAP, MEASURED ON GLASS (the chair's f): as many WHOLE item names as two rendered lines hold, then
+ *  "and N more". A name is never cut. Nothing is drawn for a package with no items. */
+function FitNames({ names }: { names: string[] }) {
+  const list = names.filter((n) => !!n && String(n).trim() !== '');
+  const ref = useRef<HTMLSpanElement>(null);
+  const [k, setK] = useState(list.length);
+  const text = (n: number) => list.slice(0, n).join(' \u00b7 ') + (n < list.length ? `${n ? ' ' : ''}${PKG.andMore(list.length - n)}` : '');
+  useLayoutEffect(() => {
+    const el = ref.current; if (!el) return;
+    const lh = parseFloat(getComputedStyle(el).lineHeight) || 20;
+    let n = list.length;
+    for (; n > 0; n -= 1) { el.textContent = text(n); if (el.clientHeight <= lh * 2 + 1) break; }
+    el.textContent = text(n); setK(n); el.dataset.lines = String(Math.round(el.clientHeight / lh));
+  });
+  if (!list.length) return null;
+  return <span className="pk-f" ref={ref} data-fit="">{text(k)}</span>;
+}
+function deliveryLine(p: VendorPackage): string {
+  if (p.delivery_basis === 'on_the_day') return PACKAGES.dOnTheDay;
+  if (p.delivery_basis === 'handover') return PACKAGES.dHandover;
+  return p.delivery_days ? PKG.daysAfter(p.delivery_days) : PACKAGES.dDays;
 }
 
 export default function PackagesPage() {
@@ -62,6 +88,7 @@ function PackagesScreen() {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [confirming, setConfirming] = useState<string | null>(null);
   const [sheet, setSheet] = useState<{ pkg: VendorPackage | null; focusFee: boolean } | null>(null);
+  const [pick, setPick] = useState<string | null>(null);   // CE-47 FE-6 L5: the package whose sheet is open
 
   const load = useCallback(async () => {
     try {
@@ -92,79 +119,66 @@ function PackagesScreen() {
     } catch { show(PACKAGE_FAILURES.deleteFailed, 'error'); }
   }
 
+  // CE-47 FE-6 L5 · THE ROOM REWORKED (the founder's verdict on FE-6's mock 12, with the chair's changes f to h): the add is
+  // the head's pill ("+ New package"); the packages as rows (name / the items' NAMES, at most two lines MEASURED, then
+  // "and N more" / the price on the right); the default said once under the list; a tap opens the package's sheet
+  // (Price, Deposit, Delivery; What's included with each item's detail under its name; Edit, Set as default, then
+  // Delete last and asked first). A package with no items draws no second line (F-44.259).
+  const picked = packages && pick ? packages.find((x) => x.id === pick) || null : null;
+  const def = packages ? packages.find((x) => x.is_default) : undefined;
   return (
     <WorklistShell title={ROOM_LABEL}>
-      <section className="sol-surface">
-        <p className="sol-kicker">{PACKAGES.eyebrow}</p>
-        {packages && <p className="sol-subhead">{PACKAGES.sub(packages.length)}</p>}
-        {failed && <p className="sol-err">{COPY.surfaceUnavailable}</p>}
-        {packages === null && !failed && <div className="pkg-wait" aria-busy="true" />}
-        {packages && packages.length === 0 && <p className="sol-empty">{PACKAGES.empty}</p>}
+      <RoomHeadAdd addKey="packages" label={PKG.add} onAdd={() => setSheet({ pkg: null, focusFee: false })} />
+      <section className="pk-room" data-packages="">
+        {packages && <p className="pk-big" data-packages-line="">{PACKAGES.sub(packages.length)}</p>}
+        {failed && <p className="pk-line">{COPY.surfaceUnavailable}</p>}
+        {packages === null && !failed && <div className="pk-list" aria-busy="true" style={{ minHeight: 64 }} />}
+        {packages && packages.length === 0 && <p className="pk-line">{PKG.empty}</p>}
         {packages && packages.length > 0 && (
-          <ul className="pkg-list">
-            {packages.map((p) => {
-              const isOpen = !!open[p.id];
-              const parts = p.split || [];
-              return (
-                <li key={p.id} className={`pkg-card${p.is_default ? ' pkg-card--default' : ''}`} data-package-id={p.id}>
-                  <div className="pkg-top">
-                    <button type="button" className="pkg-fold" aria-expanded={isOpen} onClick={() => toggle(p.id)}>
-                      <span className="pkg-name">{p.name}</span>
-                      {p.is_default && <span className="pkg-default">{PACKAGES.defaultMark}</span>}
-                    </button>
-                    {p.total == null
-                      ? <button type="button" className="pkg-fee pkg-fee--unset" onClick={() => setSheet({ pkg: p, focusFee: true })}>{PACKAGES.feeUnset}</button>
-                      : <span className="pkg-fee pkg-fee--set">{formatRs(p.total)}</span>}
-                  </div>
-                  <button type="button" className="pkg-fold pkg-fold--body" aria-expanded={isOpen} onClick={() => toggle(p.id)}>
-                    {p.line_items.length > 0 && <span className="pkg-summary">{summaryOf(p)}</span>}
-                    <span className="pkg-barrow">
-                      <span className="pkg-bar" aria-hidden="true">
-                        {parts.map((s) => <span key={s.kind} className={`pkg-seg pkg-seg--${s.kind}`} style={{ flexGrow: s.pct }} />)}
-                      </span>
-                      <span className="pkg-numerals">{splitNumerals(parts, formatRs)}</span>
-                      <ChevronDown aria-hidden="true" size={18} className={`pkg-chev${isOpen ? ' pkg-chev--open' : ''}`} />
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div className="pkg-more">
-                      {p.description && <p className="pkg-desc">{p.description}</p>}
-                      {p.line_items.length > 0 && (
-                        <dl className="pkg-items">
-                          {p.line_items.map((it, i) => (
-                            <div key={`${p.id}-${i}`} className="pkg-item">
-                              <dt>{it.label}</dt>
-                              <dd>{it.detail}</dd>
-                            </div>
-                          ))}
-                        </dl>
-                      )}
-                      {confirming === p.id ? (
-                        <div className="pkg-confirm" role="alert">
-                          <p>{PACKAGES.deleteConfirm}</p>
-                          <div className="pkg-actions">
-                            <button type="button" className="pkg-act pkg-act--quiet" onClick={() => setConfirming(null)}>{PACKAGES.cancel}</button>
-                            <button type="button" className="pkg-act pkg-act--right" onClick={() => { void remove(p); }}>{PACKAGES.del}</button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="pkg-actions">
-                          <button type="button" className="pkg-act" onClick={() => setSheet({ pkg: p, focusFee: false })}>{PACKAGES.edit}</button>
-                          {!p.is_default && <button type="button" className="pkg-act" onClick={() => { void makeDefault(p); }}>{PACKAGES.setDefault}</button>}
-                          <button type="button" className="pkg-act pkg-act--quiet pkg-act--right" onClick={() => setConfirming(p.id)}>{PACKAGES.del}</button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+          <div className="pk-list">
+            {packages.map((p) => (
+              <button type="button" key={p.id} className="pk-row" data-package-id={p.id} onClick={() => { if (p.total == null) { setSheet({ pkg: p, focusFee: true }); return; } setPick(p.id); setConfirming(null); }}>
+                <span className="pk-rt"><span className="pk-n">{p.name}</span><FitNames names={p.line_items.map((it) => it.label)} /></span>
+                {/* a package with no fee opens straight onto Fee in its edit sheet (b81's condition 2, kept) */}
+                <span className={'pk-amt' + (p.total == null ? ' pk-unset' : '')}>{p.total == null ? PACKAGES.feeUnset : formatRs(p.total).replace(' ', '\u00a0')}</span>
+                <span className="pk-chev" aria-hidden="true">{'\u203a'}</span>
+              </button>
+            ))}
+          </div>
         )}
-        {packages && (
-          <button type="button" className="pkg-add" onClick={() => setSheet({ pkg: null, focusFee: false })}>{PACKAGES.add}</button>
-        )}
+        {def ? <p className="pk-line" style={{ marginTop: 8 }} data-default-line="">{PKG.defaultLine(def.name)}</p> : null}
       </section>
+      {picked && (
+        <div className="pk-over" role="dialog" aria-modal="true" aria-label={picked.name} onClick={() => setPick(null)} data-package-sheet={picked.id}>
+          <div className="pk-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="pk-sh"><h2>{picked.name}</h2><button type="button" className="pk-x" aria-label={PACKAGES.cancel} onClick={() => setPick(null)}>{'\u00d7'}</button></div>
+            <div className="pk-facts">
+              <div className="pk-fact"><span>{PKG.price}</span><b>{picked.total == null ? PACKAGES.feeUnset : formatRs(picked.total)}</b></div>
+              <div className="pk-fact"><span>{PKG.deposit}</span><b>{picked.deposit_pct}%</b></div>
+              <div className="pk-fact"><span>{PKG.delivery}</span><b>{deliveryLine(picked)}</b></div>
+            </div>
+            {picked.line_items.length > 0 && (<>
+              <h3 className="pk-h">{PACKAGES.fIncluded}</h3>
+              <div className="pk-list">{picked.line_items.map((it, i) => (
+                <div className="pk-row pk-dead" key={i}><span className="pk-rt"><span className="pk-n">{it.label}</span>{it.detail && String(it.detail).trim() ? <span className="pk-f">{it.detail}</span> : null}</span></div>
+              ))}</div>
+            </>)}
+            <div className="pk-jobs">
+              <button type="button" className="pk-job" onClick={() => { const pp = picked; setPick(null); setSheet({ pkg: pp, focusFee: false }); }}>{PACKAGES.edit}</button>
+              {!picked.is_default ? <button type="button" className="pk-job" onClick={() => { void makeDefault(picked); }}>{PACKAGES.setDefault}</button> : null}
+              {confirming === picked.id ? (
+                <div className="pk-ask" role="alert" data-delete-ask="">
+                  <p>{PACKAGES.deleteConfirm}</p>
+                  <div className="pk-two">
+                    <button type="button" className="pk-job" onClick={() => setConfirming(null)}>{PACKAGES.cancel}</button>
+                    <button type="button" className="pk-job pk-warn" onClick={() => { const pp = picked; setPick(null); void remove(pp); }}>{PACKAGES.del}</button>
+                  </div>
+                </div>
+              ) : <button type="button" className="pk-job pk-warn" onClick={() => setConfirming(picked.id)}>{PACKAGES.del}</button>}
+            </div>
+          </div>
+        </div>
+      )}
       <PackageEditSheet
         open={sheet !== null}
         pkg={sheet ? sheet.pkg : null}
@@ -176,6 +190,30 @@ function PackagesScreen() {
       <WlToast toast={toast} />
       <SolutionsStyles />
       <style>{`
+.pk-room{padding:8px 16px 32px;display:flex;flex-direction:column}
+.pk-big{margin:0 0 12px;font:var(--wl-t2);color:var(--atelier-ink)}
+.pk-line{margin:0 0 12px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.pk-list,.pk-facts{border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg);overflow:hidden}
+.pk-row{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 16px;box-sizing:border-box;background:transparent;border:0;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.pk-row + .pk-row{border-top:1px solid var(--atelier-card-border)}
+.pk-dead{cursor:default}
+.pk-rt{flex:1;min-width:0;display:flex;flex-direction:column}
+.pk-n{font:var(--wl-tb);color:var(--atelier-ink)}
+.pk-f{font:var(--wl-t4);color:var(--atelier-ink-mute);margin-top:2px}
+.pk-amt{font:var(--wl-tb);color:var(--atelier-ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pk-unset{color:var(--atelier-accent-text)}
+.pk-chev{color:var(--atelier-ink-mute);font:var(--wl-t2)}
+.pk-over{position:fixed;inset:0;z-index:60;background:var(--role-scrim);display:flex;align-items:flex-end}
+.pk-sheet{width:100%;box-sizing:border-box;max-height:85vh;overflow-y:auto;background:var(--atelier-card-bg);border-top-left-radius:16px;border-top-right-radius:16px;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+.pk-sh{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px}.pk-sh h2{margin:0;font:var(--wl-t2);color:var(--atelier-ink)}
+.pk-x{min-width:44px;min-height:44px;border:0;background:transparent;color:var(--atelier-ink-mute);font:var(--wl-t2);cursor:pointer}
+.pk-fact{display:flex;justify-content:space-between;gap:12px;min-height:48px;align-items:center;padding:8px 16px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.pk-fact + .pk-fact{border-top:1px solid var(--atelier-card-border)}.pk-fact b{font:var(--wl-tb);color:var(--atelier-ink)}
+.pk-h{margin:20px 0 8px;font:var(--wl-t2);color:var(--atelier-ink)}
+.pk-jobs{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.pk-job{min-height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--atelier-card-border);background:transparent;color:var(--atelier-accent-text);font:var(--wl-tb);cursor:pointer}
+.pk-warn{color:var(--role-critical);border-color:var(--role-critical)}
+.pk-ask{width:100%}.pk-ask p{margin:0 0 8px;font:var(--wl-t3);color:var(--atelier-ink)}.pk-two{display:flex;gap:8px}
 .pkg-wait{min-height:120px}
 .pkg-list{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
 .pkg-card{background:var(--atelier-sheet-top);border:.5px solid var(--atelier-card-border);border-radius:12px;padding:16px 16px 12px}

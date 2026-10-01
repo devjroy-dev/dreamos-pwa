@@ -1,4 +1,5 @@
 'use client';
+import { clockWords } from '@/v2/lib/worklist/home';   // the founder: "7:00 pm", one home
 import { RUNG_FONT as RUNG } from '@/v2/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
 // components/CalendarBlockSheet.tsx
 // Bottom sheet for blocking/unblocking a calendar date.
@@ -208,7 +209,7 @@ export function CalendarBlockSheet({
                 {onDay.map((e) => (
                   <div key={e.id} style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
                     <span style={{ font: RUNG.t3, color: 'var(--atelier-accent-text)', minWidth: 54 }}>
-                      {e.event_time ? e.event_time.slice(0, 5) : 'all day'}
+                      {e.event_time ? clockWords(e.event_time) : 'all day'}
                     </span>
                     <span style={{ font: RUNG.t3, color: D.cream, flex: 1 }}>
                       {e.title}{e.kind ? <span style={{ color: D.muted }}> · {e.kind}</span> : null}

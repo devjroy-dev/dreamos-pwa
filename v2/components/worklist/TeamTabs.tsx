@@ -60,6 +60,8 @@
 // cell, the section counts are `list.length` — a count of what is rendered,
 // which is not a derivation — and the Payments figures are each row's
 // `amount_inr`. No total is composed here and none is asked for by the frames.
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // the founder (option B): the room's + in its head
+import { TEAM } from '@/v2/lib/worklist/teamRoom';
 import { useCallback, useEffect, useState } from 'react';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { WlToast } from '@/v2/components/worklist/WlToast';
@@ -465,9 +467,14 @@ export function TeamTabs({ vendorName }: { vendorName: string | null }) {
 
       {/* CE-46 (the chair's read of the rooms, ruled 30 Sept 2026): no floating +; the add is a button at the top, doing
           what the + did. */}
-      <div style={{ padding: '4px 16px 12px', display: 'flex' }}>
-        <button type="button" className="wl-btn" data-add-top="team" onClick={onFab}>{ADD_TO[tab]}</button>
-      </div>
+      {/* CE-47 FE-6 L5 (the founder's add-pill ruling): the add is the room head's pill, "+ Add to Team / Tasks / Payments"
+          by the tab, doing what the + did (onFab). Then the tab's one line (V7). */}
+      <RoomHeadAdd addKey="team" label={ADD_TO[tab]} onAdd={onFab} />
+      <p className="wl-tmhead" data-team-line="">
+        {tab === 'team' ? TEAM.members(members.length)
+          : tab === 'tasks' ? TEAM.tasksOpen(tasks.filter((t) => t.state === 'open' || t.state === 'in_progress').length)
+          : TEAM.owed(formatRs(rawPayments.filter((p) => p.state === 'owed').reduce((n, p) => n + (p.amount_inr || 0), 0)).replace(' ', '\u00a0'))}
+      </p>
       <div className="wl-tmbody" role="tabpanel">
         {tab === 'team' && <TeamList rows={members} state={state.team} onOpen={openMember} />}
         {tab === 'tasks' && (
@@ -720,6 +727,7 @@ function isToday(iso: string | null): boolean {
 // font-variant-numeric, so the figure's `font` line and its numeral line are two
 // rules and the numeral rule comes second.
 const TEAM_CSS = `
+.wl-tmhead{margin:12px 16px;font:var(--wl-t2);color:var(--atelier-ink)}
 .wl-tm{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
 .wl-tabs{display:flex;gap:24px;padding:16px 0 12px;border-bottom:.5px solid var(--role-metal)}
 .wl-tab{background:none;border:none;padding:0;cursor:pointer;font:var(--wl-t4);

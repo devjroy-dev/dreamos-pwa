@@ -1,4 +1,5 @@
 'use client';
+import { clockAt } from '@/v2/lib/worklist/home';   // the founder: "7:00 pm", one home
 import { RUNG_FONT as RUNG } from '@/v2/lib/worklist/theme'; // CE-45 FE-2 TYPE_2: the app's own type, holding outside the shell (F7)
 // components/ConversationThread.tsx
 // Read-only couple conversation thread for lead detail view.
@@ -13,7 +14,7 @@ const D = { card: 'var(--atelier-sheet-bg)', border: 'var(--atelier-sheet-border
 
 function fmtTime(iso: string) {
   try {
-    return new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return clockAt(Date.parse(iso));   // the founder: "7:00 pm" (was "07:00 pm"), read in India
   } catch { return ''; }
 }
 

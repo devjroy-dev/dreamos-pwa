@@ -57,6 +57,10 @@ export type IntroStaged = {
 };
 
 export const IN = {
+  // ── CE-47 L4 (FE-7): the reworked room's words, veto rows as approved ──
+  newIntro: 'New introduction',                      // veto 5: the sheet's title
+  addPill: '+ New introduction',                     // the pill (the founder's correction of the "+")
+  metAt: (where: string) => `Met at ${where}`,       // veto 6
   /** #1 — the screen title. Passed to `WorklistShell`, which owns its ink. */
   title: 'Introductions',
   /** #2 */

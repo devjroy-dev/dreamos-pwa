@@ -310,6 +310,7 @@ export const COPY = {
   supportHeader: 'Customised solutions for your business',
   supportBody:  'SEO, marketing automation, ads, campaign pages, a feature built for how you work. Tell us what would grow your business and we build it with you. Something broken? That reaches us here too.',
   supportAction: 'Message us on WhatsApp',
+  supportHead: 'Help', // CE-47 L4 (FE-7): Business Solutions' help row head, veto 43
 
   // ── 10 · 11 — the coin's two modes ───────────────────────────────────────
   themeDarkName:  'Graphite',
@@ -502,7 +503,9 @@ export const COPY = {
   /** D5 · the switch. `Let`, not `Enable` or `Show` — R-40.77 made it a
    *  permission she grants, and `Let` is the word for granting one. Not
    *  `Date checks`, which names a feature rather than a decision. */
-  storefrontDateSwitch: 'Let couples check a date',
+  storefrontDateSwitch: 'Let people check a date',   // V18 (CE-47 FE-6 L5, the founder's no-"couple" rule)
+  // CE-46 ELZ-3 · 0183 (the chair's words): her permission for approximate prices in chat, beside the date switch
+  priceShareSwitch: 'Share approximate prices in chat',
   /** D4 · beside the switch, in BOTH states. A sentence that appears only once
    *  the door is open is a sentence she reads too late to decide with. The
    *  second clause is the one she is owed: F-40.163 examined whether the check
@@ -510,7 +513,7 @@ export const COPY = {
    *  ruled D4 stands unamended — a persistent stranger can narrow a DATE, never
    *  a NAME, and `crew.js`'s bucket bounds the enumeration. */
   storefrontDateStanding:
-    'Couples can check a date on this page. It answers free, held or booked, never a client\u2019s name.',
+    'People can check a date on this page. It answers free, held or booked, never a client\u2019s name.',
   /** D6a · R-40.78, `ruled_off`. A DECISION: a planner's occupancy is off by
    *  ruling until the crew math lands. `don\u2019t apply` says the rule has been
    *  made, which is true and is not an apology. */
@@ -763,7 +766,7 @@ export const COPY = {
   // This sentence is how she learns that at the moment she would wonder.
   studioReminderSend:    'Send the reminder',                                    // #14
   studioReminderTitle:   'Send this reminder?',                                  // #15
-  studioReminderRails:   'Your UPI and bank details are on the invoice PDF. Send that with the reminder if the couple needs them.', // #16b
+  studioReminderRails:   'Your UPI and bank details are on the invoice PDF. Send that with the reminder if the client needs them.', // #16b
   studioReminderSent:    'Reminder sent',                                        // #17
   // ── G3.4 s2 (R-41.70 §D 16/18) ─────────────────────────────────────────────
   // The row says the short form; the toast on a failed tap says the sentence.
@@ -878,7 +881,7 @@ export const COPY = {
   // chat.js:buildLlmForTurn floors an unrecognised tier to basic. The three paid tiers
   // have NO inclusion source anywhere in this repo; they ship without a line this sitting
   // and are owed as bytes in docs/COPY_REGISTER_M-FINISH.md rather than invented here.
-  planBasicIncludes: 'Profile and enquiries. No AI replies.',
+  planBasicIncludes: 'Your enquiries and clients. Collab. Your one-page website. TDW does not reply to clients for you.',   // CE-47: the chair's ruled Basic line (the founder may change it on his walk)
   planAction:        'Choose',
   planCurrent:       'Current',
   // ── CE-39 step 2a · R-39.6 · COUTURE = SIGNATURE + PRESTIGE ─────────────────
@@ -903,13 +906,13 @@ export const COPY = {
  */
 export const ROOM_DESC: Readonly<Record<string, string>> = {
   support:    'Get found, get booked, get paid, work together',
-  storefront: 'The public page couples see',
+  storefront: 'The public page people see',   // CE-47 FE-6 L5: no "couple" (the founder's rule)
   leads:      'Enquiries, replies and follow-ups in one list',
-  clients:    'Booked couples and their records',
+  clients:    'Booked clients and their records',
   packages:   'Packages on offer, with prices',
   calendar:   'Shoots, holds and blocked dates',
   events:     'Every function of every wedding, by date',
-  notes:      'Notes kept on couples',
+  notes:      'Notes kept on clients', // CE-47 L4 (FE-7): no "couple" (the founder's rule)
   invoices:   'Invoices raised, and what is still due',
   expenses:   'Costs recorded against each wedding',
   books:      'All money in and out, in one view',

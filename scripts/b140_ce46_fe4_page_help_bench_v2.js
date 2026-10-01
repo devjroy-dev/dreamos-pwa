@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// FLOOR-SUBJECTS: v2/components/vendor/Header.tsx v2/components/worklist/PageHelp.tsx v2/lib/worklist/pageHelp.ts scripts/lib/floor_reap.sh scripts/lib/mutation_guard.js
+// FLOOR-STATES: env
+// FLOOR-WHOLE: args --mutate
+// (CE-47 FE-6 L3 r2: the floor runs this bench's mutations only when a delivery names it or a subject above;
+//  scripts/lib/floor_slice.sh reads these three lines. b174 §F proves the subjects cover every file the bench mutates.)
 'use strict';
 // DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b140_ce46_fe4_page_help_bench.js. The original at its own path proves the classic
 // tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
@@ -47,6 +52,9 @@ const cell = (name, why) => { if (!why) { pass++; console.log('GREEN ' + name); 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const argv = (k, d) => { const a = process.argv.find((x) => x.startsWith('--' + k + '=')); return a ? a.split('=')[1] : d; };
 const MUTATE = process.argv.includes('--mutate');
+// F-44.258's cure (CE-47, FE-6 cut 1): mutations go through the pending-marker guard; every start recovers first.
+const guard = require(path.join(ROOT, 'scripts/lib/mutation_guard.js'));
+guard.recoverOrRefuse(ROOT, 'b140_v2');
 const MODES = argv('modes', 'dark,light').split(',');
 const SAMPLE = ['/vendor/leads', '/vendor/dates', '/vendor/billing', '/vendor/calendar', '/vendor/today'];   // a legacy room, a solutions room, a plain room, and the two F-44.219 exception rooms
 const LOG = path.join(process.env.TMPDIR || '/tmp', 'b140-last-run.log'); // A-45.6
@@ -378,7 +386,8 @@ const done = () => { console.log(`b140: ${pass} pass, ${fail} fail`); process.ex
         { id: 'M3', file: 'v2/components/worklist/PageHelp.tsx', from: 'className="wl-helpscrim" aria-label={COPY.helpClose} onClick={onClose} />', to: 'className="wl-helpscrim" aria-label={COPY.helpClose} />', route: '/vendor/leads', depth: 'full', red: (x) => !!(x.afterScrim && x.afterScrim.card), cell: '2.10' },
         { id: 'M4', file: 'v2/components/worklist/PageHelp.tsx', from: 'if (first) { writeSeen(seenKey); setFirst(false); }', to: 'if (first) { setFirst(false); }', route: '/vendor/leads', red: (x) => x.storedAfterOpen !== '1', cell: '2.8' },
         { id: 'M5', file: 'v2/components/worklist/PageHelp.tsx', from: '.wl-helpname{font:var(--wl-t2);', to: '.wl-helpname{font:500 19px/1.3 var(--font-dm-sans);', route: '/vendor/leads', red: (x) => !!(x.open && x.open.texts.some((t) => !anyRung(t))), cell: '3.1' },
-        { id: 'M8', file: 'v2/lib/worklist/pageHelp.ts', from: "    connects: 'Every cost lands in Books.' }),", to: "    connects: '' }),", source: () => { try { const h = loadPageHelp(); return !h.PAGE_HELP[Object.keys(h.PAGE_HELP).find((k) => /expenses/.test(k))].connects; } catch (_e) { return true; } }, cell: '1.8' },
+        // RE-AIMED BY LABEL (CE-47, FE-8, the chair's ruling B): Expenses' help is FE-7's now; the anchor is its connects line as it stands
+        { id: 'M8', file: 'v2/lib/worklist/pageHelp.ts', from: "    connects: 'Connects to Books and TDS.' }),", to: "    connects: '' }),", source: () => { try { const h = loadPageHelp(); return !h.PAGE_HELP[Object.keys(h.PAGE_HELP).find((k) => /expenses/.test(k))].connects; } catch (_e) { return true; } }, cell: '1.8' },
         // FE-5 (landing list 5.6, by label): the Ads card now names Continue to Meta, which its sheet draws; M9 plants a button no control draws
         { id: 'M9', file: 'v2/lib/worklist/pageHelp.ts', from: "To start: tap Connect ad account, then Continue to Meta. Meta opens", to: "To start: tap Connect ad account, then Continue to Facebook. Meta opens", source: () => { let red = false; try { const h = loadPageHelp(); const L = drawnLabels(ROOT, stripComments); const n = (x) => x.toLowerCase().replace(/[^a-z0-9+ ]/g, '').trim(); red = !Object.values(h.PAGE_HELP).every((e) => (e.can || []).every((c) => tapped(c.line).every((w) => L.some((x) => n(x) === n(w))))); } catch (_e) { red = true; } return red; }, cell: '1.9' },
         { id: 'M7', file: 'scripts/lib/floor_reap.sh', from: 'scope=root; [ "$member" = "(before the floor)" ] && scope=any', to: 'scope=root', source: () => !!reapCell(P('scripts/lib/floor_reap.sh')), cell: '1.7' },
@@ -387,12 +396,12 @@ const done = () => { console.log(`b140: ${pass} pass, ${fail} fail`); process.ex
       for (const m of muts) {
         const abs = P(m.file); const orig = fs.readFileSync(abs, 'utf8'); const h = sha(orig);
         if (!orig.includes(m.from)) { cell(`4.${m.id} the anchor exists`, 'anchor not found in ' + m.file); continue; }
-        let red = false;
+        let red = false; let planted = null;
         try {
-          fs.writeFileSync(abs, orig.replace(m.from, m.to));
+          planted = guard.apply(ROOT, m.file, m.from, m.to, 'b140_v2');   // F-44.258: kept original and marker first, then the mutation
           if (m.source) red = m.source();
           else { await sleep(7000); const x = probe('dark', m.route, m.depth || 'quick', 'unseen'); red = !!(x && x.loaded) && m.red(x); }
-        } finally { fs.writeFileSync(abs, orig); }
+        } finally { if (planted) planted.restore(); else fs.writeFileSync(abs, orig); }
         const restored = sha(fs.readFileSync(abs, 'utf8')) === h;
         cell(`4.${m.id} reddens ${m.cell}, and the file is restored by sha`, !restored ? 'NOT RESTORED' : red ? null : `${m.cell} stayed green under the mutation`);
         if (!m.source) await sleep(7000);

@@ -74,7 +74,12 @@ const R = {
     : { fontFamily: F.label, fontWeight: 400, fontSize: '0.8125rem', color: INK_DEEP, letterSpacing: '0.36em', textTransform: 'uppercase' },
 };
 
+// CE-47 L4b (FE-7): Settings opens ONE section in a sheet. SettingsScreen provides the chosen section's title here;
+// a card whose title is not it draws nothing. With no provider (every other caller) every card draws, as before.
+export const SCardOnly = React.createContext<string | null>(null);
 export function SCard({ title, children, register = 'engraved' }: { title: string; children: React.ReactNode; register?: Register }) {
+  const only = React.useContext(SCardOnly);
+  if (only && only !== title) return null;
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>

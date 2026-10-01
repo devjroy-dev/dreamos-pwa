@@ -10,8 +10,7 @@ import { searchRowFor } from '@/v2/lib/worklist/searchRow';   // CE-46 2.1 (a): 
 import { getJson } from '@/lib/vendor/api/_base';
 import { useAsk } from '@/lib/worklist/askContext';
 import {
-  SEARCH_WORDS as W, MIN_CHARS, matchTools, isQuestion, recordHref, readRecent, saveRecent, type ResultKind,
-} from '@/v2/lib/worklist/search';
+  SEARCH_WORDS as W, MIN_CHARS, matchTools, isQuestion, recordHref, readRecent, saveRecent, type ResultKind, subWords } from '@/v2/lib/worklist/search';
 
 type Group = { kind: Exclude<ResultKind, 'tools'>; total: number; items: { id: string; title: string; sub: string | null }[] };
 type Wire = { ok?: boolean; groups?: Group[] };
@@ -101,7 +100,7 @@ export function SearchBox({ canAsk }: { canAsk: boolean }) {
                   {g.items.map((it) => (
                     <Link key={it.id} href={recordHref(g.kind, it.id)} className="wl-srow" data-kind={g.kind} onClick={chose}>
                       <span className="wl-stitle">{it.title}</span>
-                      {it.sub && <span className="wl-ssub">{it.sub}</span>}
+                      {it.sub && <span className="wl-ssub">{subWords(g.kind, it.sub)}</span>}
                     </Link>
                   ))}
                   {g.total > g.items.length && <p className="wl-smore">{W.more(g.total - g.items.length)}</p>}

@@ -47,7 +47,10 @@ const EMPTY: CrewReading = { byEvent: new Map(), functions: [], loaded: false };
 export function useCrew(vendorId: string | null | undefined, from: string, to: string): CrewReading {
   const [reading, setReading] = useState<CrewReading>(EMPTY);
   useEffect(() => {
-    if (!vendorId) return;
+    // CE-47 (the founder's walk, 30 Sept 2026): the Calendar's day sheet is mounted closed with no day, and asked the
+    // bands door for from=null&to=null on every load, a 400 each time. No window, no question: a reading only for two
+    // real dates (the door's own YYYY-MM-DD rule).
+    if (!vendorId || !/^\d{4}-\d{2}-\d{2}$/.test(String(from)) || !/^\d{4}-\d{2}-\d{2}$/.test(String(to))) return;
     let live = true;
     fetchBands(vendorId, from, to).then((r) => {
       if (!live || !r || !('bands' in r) || !r.ok) { if (live) setReading({ ...EMPTY, loaded: true }); return; }

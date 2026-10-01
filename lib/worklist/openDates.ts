@@ -36,3 +36,15 @@ export const DATES = {
   /** D6 · the act. On tap: `COPY.launchingSoon`. */
   cta:     'Suggest rates',
 } as const;
+
+// CE-47 L4 (FE-7): the reworked room's own words (veto rows 1 to 4), in their own object so DATES keeps its four vetted
+// keys (b73's sheet) and classic reads it unchanged.
+export const DATES_ROWS = {
+  rowChecks: 'Date checks on your page',            // veto 1
+  rowChecksFacts: 'How often each date was checked, in Storefront',
+  rowOffer: 'Offer your open dates',                 // veto 2 (the chair's 4b sentence, split)
+  rowOfferFacts: 'To people who already enquired',
+  rowRates: 'Suggested rates',                       // veto 3
+  rowRatesFacts: 'A rate for a date that is in demand',
+  comingSoon: 'Coming soon',                         // R-46.14
+} as const;

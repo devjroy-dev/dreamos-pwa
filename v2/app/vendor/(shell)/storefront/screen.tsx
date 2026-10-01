@@ -40,6 +40,7 @@
 // F-38.22's colour-literal family. Captured, excluded from the render arm's tuple cell by
 // name, priced.
 
+import { Group, Row, FR_CSS } from '@/v2/components/worklist/RoomRows';   // FE-7's shared rows (L4), used as landed
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
@@ -69,7 +70,9 @@ const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.
 const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'https://dream-os-production.up.railway.app';
 import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 import { photoFloor } from '@/lib/vendor/discoverFloor';
-import { buildGaps, scoreOf } from '@/lib/vendor/profileMeter';
+import { buildGaps, scoreOf, W, SECTION_ORDER } from '@/lib/vendor/profileMeter';
+import { SF } from '@/v2/lib/worklist/storefrontRoom';
+import { CopyBox } from '@/v2/components/worklist/CopyBox';
 import { Meter } from '@/v2/components/vendor/ProfileMeter';
 // ── WALK HOTFIX MICRO · F-09.111 — the late-load flash, this screen's limb ──
 import { Reserve } from '@/components/vendor/Reserve';
@@ -265,6 +268,7 @@ function BioBlock({ vendorId }: { vendorId: string }) {
   // same SectionLabel, same paddings, and the meter's box reserved by GHOST
   // (Reserve renders the real Meter invisibly) so the reserved height is the
   // browser's own measurement and no executor arithmetic sits under it.
+  const router = useRouter();   // CE-47 FE-6 L5: RoomRows' Row opens by onClick (declared before any early return)
   if (loading || !metricsReady) {
     return (
       <div style={{ borderBottom: '0.5px solid var(--atelier-card-border)', paddingBottom: 8 }}>
@@ -294,38 +298,49 @@ function BioBlock({ vendorId }: { vendorId: string }) {
     ig: current.instagram_handle,
   });
   const score = scoreOf(gaps);
+  // CE-47 FE-6 L5 · THE STRENGTH, AND WHAT RAISES IT (the founder's verdict on mock 11; the chair's d and e): the score as
+  // a line and a bar; the photos line alone; "See your profile" full width; then "What to add": at most three rows from
+  // the meter's OWN gaps, the biggest gain first (weight times gap), each opening where she fixes it. Nothing is drawn
+  // when nothing is missing. "Add N more photos" carries the meter's real need minus have.
+  const pct = Math.round(score * 100);
+  const missing = SECTION_ORDER.filter((k) => !gaps[k].met)
+    .sort((x, y) => W[y] * gaps[y].gap - W[x] * gaps[x].gap || SECTION_ORDER.indexOf(x) - SECTION_ORDER.indexOf(y)).slice(0, 3);
+  const rowOf = (k: typeof SECTION_ORDER[number]): { t: string; f: string; href: string } => {
+    const g = gaps[k];
+    if (k === 'photos') { const [t, f] = SF.add.photos(Math.max(1, (g.need ?? 0) - (g.have ?? 0))); return { t, f, href: '/vendor/portfolio' }; }
+    if (k === 'tags') { const [t, f] = SF.add.tags(Math.max(1, (g.need ?? 0) - (g.have ?? 0))); return { t, f, href: '/vendor/discover/profile' }; }
+    const [t, f] = SF.add[k] as readonly [string, string]; return { t, f, href: '/vendor/discover/profile' };
+  };
   return (
-    <div style={{ borderBottom: '0.5px solid var(--atelier-card-border)', paddingBottom: 8 }}>
-      {/* FOUNDER-VETOED heading (relay #2 slate). */}
-      <SectionLabel label="Complete your bio" first />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '0 var(--slice-inset, 16px)' }}>
-        <Meter score={score} />
-        {/* F-P72.C (founder walk, 2026-09-04): this row read as a ROW — title, hint, chevron —
-            the same grammar as Portfolio and Discover below. But those two are DOORS and this
-            one is the ASK: it is the surface that gets a profile finished. The title and the
-            drawer's vetoed line stay; the chevron-link becomes the shell's primary button
-            beneath the meter. Mock frame `P72C-bio-call`; S19 vetoed. Portfolio and Discover
-            KEEP the row grammar on purpose — one call per screen, or the contrast that makes a
-            call read as one is gone (founder: Discover becomes a call when Block 09 ports it). */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: F.script, fontWeight: 500, fontSize: '1.375rem', color: A.ink, lineHeight: 1.15 }}>Your bio</div>
-          {/* The drawer's own vetoed byte, carried. */}
-          <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginTop: 4 }}>How couples see you</div>
+    <div className="sf-bio" data-storefront-bio="">
+      <p className="sf-big" data-strength="">{SF.strength(pct)}</p>
+      <div className="sf-bar" aria-hidden="true"><i style={{ width: `${pct}%` }} /></div>
+      <p className="sf-line" data-photos-live="">{SF.photosLive(approved, pending)}</p>
+      <Link href="/vendor/discover/profile" className="wl-btn pri" style={{ textDecoration: 'none' }}>{COPY.storefrontBioCta}</Link>
+      {missing.length > 0 && (<>
+        <h2 className="sf-h">{SF.whatToAdd}</h2>
+        <div data-what-to-add="">
+          {/* FE-7's shared rows (RoomRows), used as landed: each row opens where she fixes it */}
+          <Group>{missing.map((k) => { const r = rowOf(k); return (
+            <div key={k} data-gap={k} data-href={r.href}><Row title={r.t} facts={r.f} chevron onClick={() => router.push(r.href)} /></div>); })}</Group>
         </div>
-      </div>
-      {/* The shell's button register, read from its one home (WorklistShell's SHELL_CSS, hoisted
-          at P7.2 Arm C). The two properties below are this SITE's, not the register's: the
-          margin that seats the call under the meter, and the link's own text-decoration. */}
-      <Link href="/vendor/discover/profile" className="wl-btn pri"
-            style={{ textDecoration: 'none', margin: '12px var(--slice-inset, 16px) 0' }}>
-        {COPY.storefrontBioCta}
-      </Link>
-      {/* Live counts under the same roof (readouts, not copy): */}
-      <div style={{ display: 'flex', gap: 16, padding: '12px var(--slice-inset, 16px) 4px' }}>
-        <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: A.inkMute }}>
-          {approved} photos live{pending > 0 ? ` · ${pending} pending` : ''}
-        </span>
-      </div>
+      </>)}
+      <style>{FR_CSS}</style>
+      <style>{`
+.sf-bio{padding:8px 0 16px;display:flex;flex-direction:column;border-bottom:.5px solid var(--atelier-card-border)}
+.sf-big{margin:0 0 8px;font:var(--wl-t2);color:var(--atelier-ink)}
+.sf-bar{height:8px;border-radius:4px;background:var(--atelier-card-bg);border:1px solid var(--atelier-card-border);overflow:hidden;margin:0 0 8px}
+.sf-bar > i{display:block;height:100%;background:var(--atelier-accent-text)}
+.sf-line{margin:0 0 12px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.sf-h{margin:20px 0 8px;font:var(--wl-t2);color:var(--atelier-ink)}
+.sf-list{border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg);overflow:hidden}
+.sf-row{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 16px;box-sizing:border-box;text-decoration:none;color:inherit}
+.sf-row + .sf-row{border-top:1px solid var(--atelier-card-border)}
+.sf-rt{flex:1;min-width:0;display:flex;flex-direction:column}
+.sf-n{font:var(--wl-tb);color:var(--atelier-ink)}
+.sf-f{font:var(--wl-t4);color:var(--atelier-ink-mute);margin-top:2px}
+.sf-chev{color:var(--atelier-ink-mute);font:var(--wl-t2)}
+`}</style>
     </div>
   );
 }
@@ -471,17 +486,8 @@ function PublicPageBand() {
     <>
       <SectionLabel label={COPY.storefrontPublicLabel} />
       <div style={{ padding: '0 var(--slice-inset, 16px)' }}>
-        {handle ? (
-          <a
-            href={publicUrlFor(handle, SITE_BASE)}
-            target="_blank" rel="noopener noreferrer"
-            style={{
-              fontFamily: F.script, fontWeight: 400, fontSize: '1rem', lineHeight: 1.5,
-              color: A.brass, textDecoration: 'underline', textUnderlineOffset: 3,
-              wordBreak: 'break-all', display: 'block',
-            }}
-          >{publicUrlFor(handle, SITE_BASE).replace(/^https?:\/\//, '')}</a>
-        ) : null}
+        {/* CE-47 FE-6 L5 (R-46.17, the verdict on mock 11): the address she copies sits in its own box, with Copy */}
+        {handle ? <CopyBox text={publicUrlFor(handle, SITE_BASE).replace(/^https?:\/\//, '')} label="Copy" copied="Copied" marks={{ box: 'public-box', text: 'public-address', ctl: 'public-copy' }} /> : null}
 
         {/* ── THREE STATES, AND THE THIRD SAYS NOTHING — F-40.175 ───────────
             `undefined` is the door not having answered, which is not a fact

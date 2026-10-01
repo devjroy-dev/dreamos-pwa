@@ -39,6 +39,8 @@ import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { getJson } from '@/lib/vendor/api/_base';
+import { Body, Group, Row, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
+import { RECORD_CSS, Facts } from '@/v2/components/worklist/RecordPage';
 import { API } from '@/v2/lib/solutions/routes';
 import { ROOM_ROWS } from '@/v2/lib/solutions/copy';
 import { RF, peerFigure } from '@/v2/lib/worklist/referrals';
@@ -113,55 +115,19 @@ function ReferralsScreen() {
       ) : null}
 
       {room ? (
-        <div className="rf-room">
-
-          {/* ── THE BALANCE ───────────────────────────────────────────────
-              Rendered only when something has happened. A `Sent 0 · Received 0`
-              header above an empty state is a room reporting on itself; the
-              empty state IS the room, and G2's Asked band takes the same
-              position for the same reason. */}
-          {hasAny ? (
-            <>
-              <div className="rf-bal">
-                <div className="rf-balfig">
-                  <span className="rf-ballabel">{RF.balanceSent}</span>
-                  <span className="rf-balval">{room.sent_count}</span>
-                </div>
-                <div className="rf-balfig">
-                  <span className="rf-ballabel">{RF.balanceReceived}</span>
-                  <span className="rf-balval">{room.received_count}</span>
-                </div>
-              </div>
-
-              <div className="rf-sec">{RF.sectionPeers}<span>{peers.length}</span></div>
-              {peers.map((p) => (
-                <div className="rf-row" key={p.vendor_id}>
-                  <div>
-                    {/* HER NAME OR NOTHING. The door sends null where a peer's
-                        business name is genuinely absent, and this renders an em
-                        dash rather than inventing `a peer` — an invented name on
-                        a vendor's screen is a fact she cannot check. G2's own
-                        couple-name row is the precedent. */}
-                    <span className="rf-rprimary">{p.name || '\u2014'}</span>
-                    <span className="rf-rdetail">{p.category || '\u2014'}</span>
-                  </div>
-                  {/* ONE INK FOR EVERY PEER. See `peerFigure`. */}
-                  <div className="rf-rstate">{peerFigure(p.sent, p.received)}</div>
-                </div>
-              ))}
-            </>
-          ) : (
-            <div className="rf-empty">
-              <span className="rf-eh">{RF.emptyHead}</span>
-              <span className="rf-ep">{RF.emptyBody}</span>
-            </div>
-          )}
-
-          <ShootsBlock />
-          <div className="rf-xrow"><RoomRow href={EXCHANGE_HREF} label={EXCHANGE.rowLabel} /></div>
-        </div>
+        <Body>
+          <p className="fr-lede">{RF.lede}</p>
+          {hasAny ? (<>
+            <Facts rows={[[RF.balanceSent, String(room.sent_count)], [RF.balanceReceived, String(room.received_count)]]} />
+            <Head text={RF.sectionPeers} count={peers.length} />
+            <Group>{peers.map((p) => <Row key={p.vendor_id} title={p.name || ''} facts={[p.category, peerFigure(p.sent, p.received)].filter(Boolean).join(' \u00b7 ')} />)}</Group>
+          </>) : (<><Head text={RF.sectionPeers} /><p className="fr-empty">{RF.emptyBody}</p></>)}
+          <div className="fe7-shoots"><ShootsBlock /></div>
+          <Head text={RF.sectionMore} />
+          <Group><Row title={EXCHANGE.rowLabel} facts={RF.exchangeLine} chevron onClick={() => { window.location.href = EXCHANGE_HREF; }} /></Group>
+        </Body>
       ) : null}
-
+      <style>{FR_CSS + RECORD_CSS + '.fe7-shoots{margin-top:24px}'}</style>
       <SolutionsStyles />
       <style>{`
 .rf-xrow{margin-top:16px}

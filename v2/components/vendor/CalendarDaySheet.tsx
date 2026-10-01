@@ -1,4 +1,5 @@
 'use client';
+import { clockWords } from '@/v2/lib/worklist/home';   // the founder: "7:00 pm", one home
 import { RUNG_FONT as RUNG } from '@/v2/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
 import { useCrew, crewWords, CREW_WORDS } from '@/v2/lib/worklist/crew';
 // components/vendor/CalendarDaySheet.tsx
@@ -471,7 +472,7 @@ export function CalendarDaySheet({
                       the buttons entirely. */}
                   <div style={{ minWidth: 0 }}>
                     <div style={{ font: RUNG.t5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--atelier-label)', marginBottom: 4 }}>
-                      {ev.kind ? ev.kind.charAt(0).toUpperCase() + ev.kind.slice(1) : ''}{ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}{ev.state === 'done' ? ' · Done' : ''}
+                      {ev.kind ? ev.kind.charAt(0).toUpperCase() + ev.kind.slice(1) : ''}{ev.event_time ? ` · ${clockWords(ev.event_time)}` : ''}{ev.state === 'done' ? ' · Done' : ''}
                     </div>
                     <div style={{ font: RUNG.t3, color: D.cream }}>{ev.title}</div>
                     {/* DESIGN-1 · STAGE 2: the crew on the card itself, by first name, no tap needed (REPORT.md E6, E8).

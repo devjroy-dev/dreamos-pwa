@@ -36,9 +36,9 @@ import { WlToast } from '@/v2/components/worklist/WlToast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { CHIPS, COPY, roomLabel } from '@/v2/lib/solutions/copy';
-import { DATES } from '@/lib/worklist/openDates';
+import { DATES, DATES_ROWS } from '@/lib/worklist/openDates';
 import { ROOMS, roomHref } from '@/v2/lib/worklist/rooms';
-import { RoomRow, SolutionsStyles } from '@/v2/components/solutions/SolutionsPieces';
+import { Body, Group, Row, FR_CSS } from '@/v2/components/worklist/RoomRows';
 
 export default function OpenDatesPage() {
   const router = useRouter();
@@ -52,31 +52,19 @@ export default function OpenDatesPage() {
 const STOREFRONT_LABEL = ROOMS.find((r) => r.id === 'storefront')?.label ?? '';
 
 function OpenDatesScreen() {
-  // THE MOUNT IS LOAD-BEARING (honest controls, CE-209): `show()` is the ONLY
-  // thing the CTA does, so a screen without `<WlToast>` would ship a button that
-  // answers nothing — the dead tap R-42.12 exists to end.
-  const { toast, show } = useToast();
+  // CE-47 L4 (FE-7): one group of three rows; the two not yet open read Coming soon (R-46.14), veto rows 1 to 4.
+  const router = useRouter();
   return (
     <WorklistShell title={roomLabel('dates')}>
-      <section className="sol-surface">
-        <p className="sol-kicker">{CHIPS.coming}</p>
-        <p className="sol-empty">{DATES.lede}</p>
-        <p className="sol-subhead">{COPY.canHead}</p>
-        <ul className="sol-can">
-          {DATES.can.map((line) => <li key={line}>{line}</li>)}
-        </ul>
-        <div className="sol-actions">
-          <button type="button" className="sol-btn" onClick={() => show(COPY.launchingSoon)}>
-            {DATES.cta}
-          </button>
-        </div>
-        <div className="sol-aside">
-          <p className="sol-asideline">{DATES.already}</p>
-          <RoomRow href={roomHref('storefront')} label={STOREFRONT_LABEL} />
-        </div>
-      </section>
-      <WlToast toast={toast} />
-      <SolutionsStyles />
+      <Body>
+      <p className="fr-lede">{DATES.lede}</p>
+      <Group>
+        <Row title={DATES_ROWS.rowChecks} facts={DATES_ROWS.rowChecksFacts} chevron onClick={() => router.push(roomHref('storefront'))} />
+        <Row title={DATES_ROWS.rowOffer} facts={DATES_ROWS.rowOfferFacts} pill={{ text: DATES_ROWS.comingSoon, tone: 'soon' }} />
+        <Row title={DATES_ROWS.rowRates} facts={DATES_ROWS.rowRatesFacts} pill={{ text: DATES_ROWS.comingSoon, tone: 'soon' }} />
+      </Group>
+      </Body>
+      <style>{FR_CSS}</style>
     </WorklistShell>
   );
 }

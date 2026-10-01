@@ -51,13 +51,15 @@ function loadTs(rel, src) {
   // re-cut; were "Through TDW", "TDW answers for you in your voice, and every enquiry lands in your leads.",
   // "Straight to my WhatsApp", "Couples message the number you type here.", "My own number in TDW app",
   // "Arrives with Own number", "Enter a WhatsApp number with its country code.". tdwLine carries U+2019 (R-40.57).
-  const VETOED = { label: 'Where enquiries go', line: 'Choose where couples land when they tap Enquire on WhatsApp on your page.',
+  // CE-47 L4b (FE-7), BY LABEL: "couple" becomes "client" in the four lines (the founder's standing no-"couple" rule);
+  // nothing else in them moves. Classic's copy (lib/worklist/enquiryRouting.ts) is untouched.
+  const VETOED = { label: 'Where enquiries go', line: 'Choose where clients land when they tap Enquire on WhatsApp on your page.',
     // DESIGN-1 · STAGE 1 (by label): one word for Leads and Enquiries (REPORT.md W5), so tdwLine and consentBypass
     // say "in Enquiries" where they said "as a lead" and "in your leads". The other bytes of his table stand.
-    tdw: 'Your TDW agent answers', tdwLine: 'Couples message TDW\u2019s number. Your agent replies for you and files every enquiry in Enquiries.',
-    own: 'You answer on your number', ownLine: 'Couples message your WhatsApp. You reply yourself; nothing comes to TDW.',
+    tdw: 'Your TDW agent answers', tdwLine: 'Clients message TDW\u2019s number. Your agent replies for you and files every enquiry in Enquiries.',
+    own: 'You answer on your number', ownLine: 'Clients message your WhatsApp. You reply yourself; nothing comes to TDW.',
     waba: 'Your TDW agent answers on your number',
-    wabaLine: 'Couples message your WhatsApp. Your agent replies for you there. Available once your own number is connected.',
+    wabaLine: 'Clients message your WhatsApp. Your agent replies for you there. Available once your own number is connected.',
     consentPublic: 'This number will be shown on your public page, where anyone can see it.',
     consentBypass: 'Enquiries sent there skip TDW: no replies from TDW, and they will not appear in Enquiries.',
     phoneLabel: 'Your WhatsApp number', confirm: 'Yes, send enquiries to this number', phoneInvalid: 'Enter a WhatsApp number.' };
@@ -72,7 +74,11 @@ function loadTs(rel, src) {
   const bad = ['12345', '123456789', '9123456789012345', 'abc9888294440', '', '   '];
   ok(good.every(W.phoneLooksRight) && !bad.some(W.phoneLooksRight), '1.4 the row\u2019s phone check is the door\u2019s rule (10 to 15 digits, optional +)');
   const pg = strip(read(PAGE));
-  ok(/<EnquiryRoutingRow \/>/.test(pg) && /<ExchangeOptInSwitch \/>\s*<EnquiryRoutingRow \/>/.test(pg), '1.5 the row is mounted once, beside the two switches, in settings/page.tsx');
+  // CE-47 L4b (FE-7), BY LABEL (board 6): the row is mounted ONCE, in its section's sheet; the Enquiries group draws its
+  // opener ("Where enquiries go", its current value) beside the two switches.
+  ok((pg.match(/<EnquiryRoutingRow \/>/g) || []).length === 1
+     && /\{row\(ENQ\.label, routing\)\}\s*<div className="set-sw"><PeerDiscoverySwitch \/><\/div>\s*<div className="set-sw"><ExchangeOptInSwitch \/><\/div>/.test(pg),
+     '1.5 the row is mounted once (in its sheet), its opener beside the two switches, in settings/page.tsx');
   // (?<!=) : a `>` that belongs to `=>` (a TypeScript arrow) is not a JSX tag's close.
   ok(!/(?<!=)>\s*[A-Za-z][^<{]*</.test(pg.slice(pg.indexOf('function EnquiryRoutingRow'), pg.indexOf('function ExchangeOptInSwitch'))), '1.6 no text node typed into the row: every word from its home');
 

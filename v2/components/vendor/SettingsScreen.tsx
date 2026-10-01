@@ -74,7 +74,7 @@ import { getVendorSession, setVendorSession } from '@/lib/vendor/session';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { roomHref } from '@/v2/lib/worklist/rooms';
 import { useSignOut } from '@/v2/components/worklist/SignOutSheet';
-import { SCard, SField, SToggle, SReadRow, SaveBtn, A, F, type Register } from '@/v2/components/vendor/AtelierForm';
+import { SCard, SCardOnly, SField, SToggle, SReadRow, SaveBtn, A, F, type Register } from '@/v2/components/vendor/AtelierForm';
 import { CopyBox } from '@/v2/components/worklist/CopyBox'; // DESIGN-1 · R-46.17: the text she copies sits in its own box
 
 // ── M-FINISH S1 · R-38.1 · EXPORTED AND CHROME-OPTIONAL. TWO CALLERS, ONE HOME. ────
@@ -96,8 +96,10 @@ import { CopyBox } from '@/v2/components/worklist/CopyBox'; // DESIGN-1 · R-46.
 // `vendorName` LEFT WITH THE MASTHEAD. It existed to feed <Header>, and a prop that no
 // longer feeds anything is a prop the next reader will wire something to. Both callers
 // still hold the session; neither needs to hand it here.
-export function SettingsScreen({ chrome = true, ToastView = Toast }: {
+export function SettingsScreen({ chrome = true, ToastView = Toast, only = null }: {
   chrome?: boolean;
+  /** CE-47 L4b (FE-7): draw one section only (its SCard title), for Settings' sheets. Default: every section. */
+  only?: string | null;
   ToastView?: (p: { toast: ToastState | null }) => React.ReactElement | null;
 }) {
   const router = useRouter();
@@ -204,10 +206,11 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
   const handle = handleSaved ?? current.routing_handle;
   const waLink = `https://wa.me/917982159047?text=TDW-${handle.toUpperCase()}`;
 
+  // F-44.166 (CE-45 G6-1): IN THE SHELL (chrome false) this block takes its natural height, so the shell's own page
+  // scroller (main.wl-main) scrolls the whole page. As `flex: 1; min-height: 0` it was squeezed into whatever height the
+  // rows above it left (89 px at 374 x 900) and :219 below scrolled inside it. The chrome (standalone) mode is unchanged.
   return (
-    // F-44.166 (CE-45 G6-1): IN THE SHELL (chrome false) this block takes its natural height, so the shell's own page
-    // scroller (main.wl-main) scrolls the whole page. As `flex: 1; min-height: 0` it was squeezed into whatever height the
-    // rows above it left (89 px at 374 x 900) and :219 below scrolled inside it. The chrome (standalone) mode is unchanged.
+    <SCardOnly.Provider value={only}>
     <div ref={signOutAnchor} style={chrome ? { flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 } : { flex: '0 0 auto', display: 'flex', flexDirection: 'column' }}>
       <ToastView toast={toast} />
       {chrome && (
@@ -546,16 +549,17 @@ export function SettingsScreen({ chrome = true, ToastView = Toast }: {
             THE BYTE IS THE FOUNDER'S, from the copy register: 「Sign out」, sentence case,
             the same key the drawer row carries. 「Sign Out」 in Title Case went with the
             engraved register that carried it. */}
-        <button type="button" onClick={askSignOut} style={{
+        {(!only || only === 'Account') && <button type="button" onClick={askSignOut} style={{
           width: '100%', minHeight: 44, padding: '16px 0', marginTop: 24,
           background: 'transparent', border: '0.5px solid var(--role-critical)', borderRadius: 12,
           cursor: 'pointer', color: A.red,
           ...(register === 'rungs'
             ? { font: 'var(--wl-t4)' }
             : { fontFamily: F.label, fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.42em', textTransform: 'uppercase' }),
-        }}>{COPY.drawerSignOut}</button>
+        }}>{COPY.drawerSignOut}</button>}
       </div>
       {signOutSheet}
     </div>
+    </SCardOnly.Provider>
   );
 }

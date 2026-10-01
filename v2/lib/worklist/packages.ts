@@ -25,7 +25,7 @@ export const PACKAGES = {
    *  "1 package", any other count "{n} packages". Presentation of the vetoed byte, not copy. */
   sub: (n: number) => `What you offer · ${n} ${n === 1 ? 'package' : 'packages'}`,
   /** P4 · no packages at all. */
-  empty: 'No packages yet. Add one to quote a couple.',
+  empty: 'No packages yet. Add one to quote a client.',
   /** P5 · the default marker. */
   defaultMark: 'Default',
   /** P6 · the room's controls (packet 1: each answers Launching soon.). */
@@ -89,7 +89,7 @@ export const LEAD_PACKAGE = {
   sheetTitle: 'Attach a package',
   /** A4 · the attach fields. */
   fPackage: 'Package',
-  fFee: 'Fee for this couple',
+  fFee: 'Fee for this client',
   fHandover: 'Handover date',
   /** A6 · the fold tell (C-43.3). */
   folded: 'The event is under a month away, so the middle payment is part of the final one.',
@@ -107,7 +107,7 @@ export const LEAD_PACKAGE = {
   needLabel: {
     wedding_date: 'Wedding date',
     package: 'Package',
-    fee: 'Fee for this couple',
+    fee: 'Fee for this client',
     handover: 'Handover date',
   },
   /** A9 · the refusals; the fourth line is F25's, chair-approved. */
@@ -123,7 +123,7 @@ export const LEAD_PACKAGE = {
      *  because none exists: a booked couple's package cannot be changed until the
      *  invoice and its instalments can move with it. When they can, this line must
      *  name that way rather than close the door. */
-    already_booked: 'This couple is booked. The package is fixed on their invoice.',
+    already_booked: 'This client is booked. The package is fixed on their invoice.',
   },
   /** The booked sheet's one way out. CARRIED, NOT COINED: `referrals.ts:118`
    *  `refusalClose` is the estate's own Close on a refusal, which is this case. */

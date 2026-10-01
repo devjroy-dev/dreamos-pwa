@@ -37,7 +37,14 @@ import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { getJson, patchJson } from '@/lib/vendor/api/_base';
 import { API } from '@/v2/lib/solutions/routes';
-import { PR, reminderDate, reminderDetail } from '@/v2/lib/worklist/paymentReminders';
+import { Body, Group, Row, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
+// CE-47 L4b (FE-7): the switch row's own pieces; tokens only.
+const PR2_CSS = `.pr2-swrow{min-height:56px}.pr2-line{margin:0;padding:0 16px 12px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.wl button.pr2-sw[data-tap44]{position:relative;width:52px;height:32px!important;min-height:0!important;border-radius:999px;border:1px solid var(--atelier-card-border);background:var(--atelier-card-bg);padding:0}
+.pr2-sw span{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--atelier-ink-mute);transition:left .15s}
+.wl button.pr2-sw.on[data-tap44]{background:var(--role-primary);border-color:var(--role-primary)}.pr2-sw.on span{left:23px;background:var(--role-on-primary)}
+.pr2-sw::after{content:'';position:absolute;inset:-6px -4px}.pr2-sw:disabled{opacity:.5}`;
+import { PR, reminderRs, reminderDate, reminderDetail } from '@/v2/lib/worklist/paymentReminders';
 import type { PaymentRemindersRoom } from '@/lib/solutions/types';
 
 export default function PaymentRemindersPage() {
@@ -129,103 +136,40 @@ function PaymentRemindersScreen() {
       ) : null}
 
       {room ? (
-        <div className="pr-room">
-
-          {/* ── ASKED ─────────────────────────────────────────────────────
-              The empty state REPLACES this band rather than showing `Asked 0`
-              above two lines of explanation. A zero with a heading is a room
-              reporting on itself; the empty state is the room. */}
-          {asked.length > 0 ? (
-            <>
-              <div className="pr-sec">{PR.sectionAsked}<span>{asked.length}</span></div>
-              {asked.map((a) => (
-                <div className="pr-row" key={a.id}>
-                  <div>
-                    {/* HER CLIENT'S NAME OR AN EM DASH. The door sends null where
-                        the name is genuinely absent — including when the invoice
-                        itself is gone, since 0139's FK is ON DELETE SET NULL and
-                        the reminder OUTLIVES it. An invented name on a vendor's
-                        screen is a fact she cannot check. */}
-                    <span className="pr-rprimary">{a.client || '\u2014'}</span>
-                    <span className="pr-rdetail">{reminderDetail(a.milestone, a.amount_due)}</span>
-                  </div>
-                  <div className="pr-rstate">{PR.askedState} {reminderDate(a.asked_at)}</div>
-                </div>
-              ))}
-            </>
-          ) : null}
-
-          {asked.length === 0 ? (
-            <div className="pr-empty">
-              <span className="pr-eh">{PR.emptyHead}</span>
-              <span className="pr-ep">{PR.emptyBody}</span>
+        <Body>
+          {/* CE-47 L4b (FE-7): FE-6's approved frame (board 9) in RoomRows. The switch is its own row, first; it stays
+              inert while sending is shut, and beneath it EITHER its state sentence OR the dark line, as before. "Scheduled"
+              only when the switch is on and sending is open (then a due reminder will go out); rows open nothing, as today. */}
+          <div className="fr-group">
+            <div className="fr-row pr2-swrow">
+              <span className="fr-t">{PR.switchLabel}</span>
+              <span className="fr-aside">
+                <button type="button" role="switch" aria-checked={room.auto_send} aria-label={PR.switchLabel} data-tap44=""
+                  className={`pr2-sw${room.auto_send ? ' on' : ''}`} onClick={toggle} disabled={!sendingOpen || saving}><span /></button>
+              </span>
             </div>
-          ) : null}
-
-          {/* ── SENT ──────────────────────────────────────────────────────
-              `sent` is `wamid IS NOT NULL`, computed by the door. The note is
-              NOT optional decoration: without it, `Sent 2` is read as "she got
-              it", which is a claim nothing on this path can support. Rendered
-              only once something has been asked — a Sent band above an empty
-              Asked band would be counting deliveries of nothing. */}
-          {asked.length > 0 ? (
-            <>
-              <div className="pr-sec" style={{ marginTop: 24 }}>{PR.sectionSent}<span>{sent.length}</span></div>
-              {sent.map((a) => (
-                <div className="pr-row" key={`s-${a.id}`}>
-                  <div>
-                    <span className="pr-rprimary">{a.client || '\u2014'}</span>
-                    <span className="pr-rdetail">{a.milestone}</span>
-                  </div>
-                  <div className="pr-rstate live">{PR.sentState} {reminderDate(a.asked_at)}</div>
-                </div>
-              ))}
-              <p className="pr-note">{PR.sentNote}</p>
-            </>
-          ) : null}
-
-          {/* ── DUE ───────────────────────────────────────────────────────
-              Pending milestones inside the window with no reminder row. The
-              door computes the window from `state = 'pending'` and the IST day;
-              this side renders what it is handed and derives no dates. */}
-          {due.length > 0 ? (
-            <>
-              <div className="pr-sec" style={{ marginTop: 24 }}>{PR.sectionDue}<span>{due.length}</span></div>
-              {due.map((d) => (
-                <div className="pr-row" key={d.milestone_id}>
-                  <div>
-                    <span className="pr-rprimary">{d.client || '\u2014'}</span>
-                    <span className="pr-rdetail">{reminderDetail(d.milestone, d.amount_due)}</span>
-                  </div>
-                  <div className="pr-rstate">{PR.sectionDue} {reminderDate(d.due_date)}</div>
-                </div>
-              ))}
-            </>
-          ) : null}
-
-          {/* ── SENDING ───────────────────────────────────────────────────
-              The switch, and beneath it EITHER its own state sentence OR the
-              dark line — never both, and never a state sentence that describes
-              a cadence which cannot happen. */}
-          <div className="pr-sec" style={{ marginTop: 24 }}>{PR.sectionSending}</div>
-          <button
-            type="button"
-            className="pr-switch"
-            onClick={toggle}
-            disabled={!sendingOpen || saving}
-            aria-pressed={room.auto_send}
-          >
-            <span className="pr-rprimary">{PR.switchLabel}</span>
-            <span className={`pr-swstate${room.auto_send && sendingOpen ? ' on' : ''}`}>
-              {room.auto_send ? PR.switchOnState : PR.switchOffState}
-            </span>
-          </button>
-          <p className="pr-note">
-            {!sendingOpen
-              ? (approved ? PR.darkNote : PR.darkNotFiled)
-              : (room.auto_send ? PR.switchOn : PR.switchOff)}
-          </p>
-        </div>
+            <p className="pr2-line">{!sendingOpen ? (approved ? PR.darkNote : PR.darkNotFiled) : (room.auto_send ? PR.switchOn : PR.switchOff)}</p>
+          </div>
+          {due.length > 0 ? (<>
+            <Head text={PR.sectionDue} count={due.length} />
+            <Group>{due.map((d) => (
+              <Row key={d.milestone_id} title={d.client || '\u2014'} facts={[reminderRs(d.amount_due), d.due_date ? PR.dueOn(reminderDate(d.due_date)) : ''].filter(Boolean).join(' \u00b7 ')}
+                pill={room.auto_send && sendingOpen ? { text: PR.scheduled, tone: 'warn' } : null} />))}</Group>
+          </>) : null}
+          {asked.some((a) => !a.sent) ? (<>
+            <Head text={PR.sectionAsked} count={asked.filter((a) => !a.sent).length} />
+            <Group>{asked.filter((a) => !a.sent).map((a) => (
+              <Row key={a.id} title={a.client || '\u2014'} facts={`${reminderDetail(a.milestone, a.amount_due)} \u00b7 ${reminderDate(a.asked_at)}`} pill={{ text: PR.askedState, tone: 'plain' }} />))}</Group>
+          </>) : null}
+          {sent.length > 0 ? (<>
+            <Head text={PR.sectionSent} count={sent.length} />
+            <Group>{sent.map((a) => (
+              <Row key={`s-${a.id}`} title={a.client || '\u2014'} facts={`${reminderDetail(a.milestone, a.amount_due)} \u00b7 ${reminderDate(a.asked_at)}`} pill={{ text: PR.sentState, tone: 'ok' }} />))}</Group>
+            <p className="fr-empty" style={{ marginTop: 8 }}>{PR.sentNote}</p>
+          </>) : null}
+          {asked.length === 0 && due.length === 0 ? (<><Head text={PR.emptyHead} /><p className="fr-empty">{PR.emptyBody}</p></>) : null}
+          <style>{FR_CSS + PR2_CSS}</style>
+        </Body>
       ) : null}
 
       <style>{`

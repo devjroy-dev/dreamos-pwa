@@ -104,6 +104,8 @@ export interface MeResponse {
     // services, so a door that has not shipped it yet must read as "not granted"
     // rather than crash or, worse, read as granted.
     date_check_enabled?: boolean;
+    // CE-46 ELZ-3 · 0183: her permission for approximate prices in chat, OFF by default (read as not granted when absent)
+    price_share_enabled?: boolean;
     // ── BLOCK 19 · G5.1 s2 · R-40.107 — MAY OTHER VENDORS FIND HER BY NAME
     // ⚠ ON by default, which is the OPPOSITE of the flag directly above, and
     // the difference is the act rather than an inconsistency. `date_check_enabled`
@@ -172,6 +174,8 @@ export interface UpdateMeRequest {
   // so a non-boolean is a 400 and never a silent coercion — which matters more
   // for a consent flag than for a display preference.
   date_check_enabled?: boolean;
+  // CE-46 ELZ-3 · 0183: on dream-os's ALLOWED_FIELDS and BOOLEAN_FIELDS (me.js), echoed on the PATCH
+  price_share_enabled?: boolean;
   // G5.1 s2 · R-40.107. On dream-os's ALLOWED_FIELDS and BOOLEAN_FIELDS at
   // `9b6321f`. It is in BOOLEAN_FIELDS for a sharper reason than its neighbour:
   // it is the only flag in that list whose default is TRUE, so a value the driver
@@ -214,6 +218,7 @@ export interface UpdateMeResponse {
     // verified rather than assumed. The room reads THIS echo to settle its
     // optimistic toggle: the door's own answer, not the value we hoped for.
     date_check_enabled: boolean;
+    price_share_enabled?: boolean;   // CE-46 ELZ-3 · 0183: the switch reads its own echo (me.js)
     seo_title?:       string | null;   // G3.1 s2 · echoed by PATCH /me
     seo_description?: string | null;
     // G5.1 s2 · R-40.107. The PATCH echoes it too (`me.js` at `9b6321f`), and the
@@ -1062,6 +1067,8 @@ export interface ClarifyPayload {
 export interface ChatResponse {
   ok:       boolean;
   reply:    string;
+  /** THE SECOND BUBBLE (ELZ-3): two or more messages, each its own bubble; `reply` keeps them joined. partsOf() reads it. */
+  replies?: string[];
   tool_calls: string[];
   contact?:  ContactCard;
   clarify?:  ClarifyPayload;

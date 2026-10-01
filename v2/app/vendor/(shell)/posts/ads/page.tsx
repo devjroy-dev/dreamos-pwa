@@ -13,6 +13,7 @@
 //   · the confirm sheet echoes every setting; /run is sent the settings /prepare returned and the echo, nothing rebuilt.
 //   · Your ads: every ad, its state in a sentence, and its sheet (pause, start again, amount, end date, end now, run
 //     again as new, results by day), each change confirmed in words before it goes to Meta.
+import { clockAt, dayDateWords } from '@/v2/lib/worklist/home';   // FE-5's clock words; the weekday date beside them (FE-8)
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
@@ -193,6 +194,7 @@ function Ready({ handle, onDisconnected }: { handle: string; onDisconnected: () 
   const [notice, setNotice] = useState<string | null>(null);
   const [list, setList] = useState<AdRow[]>([]);
   const [manage, setManage] = useState<AdRow | null>(null);
+  const [askDisc, setAskDisc] = useState(false);
 
   const loadList = useCallback(async () => { try { const r = await getJson<{ ok: boolean; ads?: AdRow[] }>(API.adsList()); setList(r && r.ads ? r.ads : []); } catch { /* quiet */ } }, []);
   useEffect(() => {
@@ -236,6 +238,38 @@ function Ready({ handle, onDisconnected }: { handle: string; onDisconnected: () 
 
   return (
     <>
+      {/* CE-47 FE-6 L3 (the founder's verdict): her ads come first, each with its pill, then the month's money, then the next ad. */}
+      {list.length ? (
+        <div className="ads-card">
+          <span className="ads-lbl">{ADS.yours.label}</span>
+          {list.map((a) => (
+            <button type="button" key={a.id} className="ads-adrow" onClick={() => setManage(a)}>
+              <span className="ads-adhead">
+                {a.settings && a.settings.post && a.settings.post.url
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img className="ads-adthumb" src={a.settings.post.url} alt="" /> : null}
+                <span className="ads-who">{(a.settings && a.settings.post && a.settings.post.caption_line) || shortDate(a.created_at)}</span>
+              </span>
+              <span className="ads-body">{adSentence(a)}</span>
+              {ADS.pill[a.status as keyof typeof ADS.pill] ? <span className={'ads-pill ads-pill-' + a.status} data-pill="">{ADS.pill[a.status as keyof typeof ADS.pill]}</span> : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {list.length ? (() => {
+        // CE-47 FE-6 L3 (V8): the month's money, from the same daily figures each ad's sentence reads; nothing typed.
+        const ym = new Date(Date.now() + 5.5 * 3600000).toISOString().slice(0, 7);
+        const days: Day[] = list.flatMap((x) => (x.last_insights || []).filter((d) => String(d.day).startsWith(ym)));
+        const spent = Math.round(days.reduce((n, x) => n + x.spend, 0) * 100); const enq = days.reduce((n, x) => n + x.conversations, 0);
+        return (
+          <div className="ads-card" data-ads-money="">
+            <span className="ads-lbl">{ADS.money.label}</span>
+            <div className="ads-kv"><span className="ads-rowk">{ADS.money.spent}</span><span className="ads-rowv">{rs(spent)}</span></div>
+            <div className="ads-kv"><span className="ads-rowk">{ADS.money.enquiries}</span><span className="ads-rowv">{enq}</span></div>
+            <div className="ads-kv"><span className="ads-rowk">{ADS.money.paidFrom}</span><span className="ads-rowv">{ADS.money.account}</span></div>
+          </div>
+        );
+      })() : null}
       <div className="ads-card ads-draft">
         {/* R-46.13 as ruled (a): the post WHOLE on the left at a fixed width, its own aspect; the one sentence beside it. */}
         <div className="ads-lead">
@@ -267,27 +301,20 @@ function Ready({ handle, onDisconnected }: { handle: string; onDisconnected: () 
 
       {lastWithResults ? <LastAd ad={lastWithResults} /> : null}
 
-      {list.length ? (
-        <div className="ads-card">
-          <span className="ads-lbl">{ADS.yours.label}</span>
-          {list.map((a) => (
-            <button type="button" key={a.id} className="ads-adrow" onClick={() => setManage(a)}>
-              <span className="ads-adhead">
-                {a.settings && a.settings.post && a.settings.post.url
-                  // eslint-disable-next-line @next/next/no-img-element
-                  ? <img className="ads-adthumb" src={a.settings.post.url} alt="" /> : null}
-                <span className="ads-who">{(a.settings && a.settings.post && a.settings.post.caption_line) || shortDate(a.created_at)}</span>
-              </span>
-              <span className="ads-body">{adSentence(a)}</span>
-            </button>
-          ))}
-        </div>
-      ) : null}
 
       {/* The approved S6 control (ADS.disconnect): the connection row goes; her ads on Meta are hers and untouched. */}
-      <button type="button" className="ads-quiet" data-disconnect onClick={() => {
-        postJson<{ ok: boolean }>(API.adsDisconnect(), {}).then((r) => { if (r && r.ok) onDisconnected(); }, () => setNotice(COPY.surfaceUnavailable));
-      }}>{ADS.disconnect}</button>
+      {/* CE-47 FE-6 L3 (the chair's change to the verdict): a quiet text action at the foot, asked first. */}
+      {askDisc ? (
+        <div className="ads-card" data-disconnect-ask="">
+          <p className="ads-q">{ADS.disconnectAsk}</p>
+          <div className="ads-two ads-gapsm">
+            <button type="button" className="ads-btn ads-ghost" onClick={() => setAskDisc(false)}>{ADS.disconnectKeep}</button>
+            <button type="button" className="ads-btn ads-ghost ads-warn" data-disconnect onClick={() => {
+              postJson<{ ok: boolean }>(API.adsDisconnect(), {}).then((r) => { if (r && r.ok) onDisconnected(); }, () => setNotice(COPY.surfaceUnavailable));
+            }}>{ADS.disconnectYes}</button>
+          </div>
+        </div>
+      ) : <button type="button" className="ads-quiet" data-disconnect-open onClick={() => setAskDisc(true)}>{ADS.disconnect}</button>}
 
       {sheet === 'all' ? <AllSettings s={s} posts={posts} onOpen={(q) => setSheet({ q })} onClose={() => setSheet(null)} /> : null}
       {sheet && sheet !== 'all' ? <Question q={sheet.q} s={s} posts={posts} onDone={(n) => { setS(n); setSheet(null); }} onBack={() => setSheet(null)} /> : null}
@@ -475,7 +502,11 @@ function Question({ q, s, posts, onDone, onBack }: { q: string; s: Settings; pos
         onChange={(e) => setN({ ...n, budget: { kind: isTotal ? 'lifetime' : 'daily', minor: Number(e.target.value.replace(/[^0-9]/g, '')) * 100 || null } })} /></label>);
   } else if (q === 'start' || q === 'end') {
     const v = (iso: string) => new Date(Date.parse(iso) - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    inner = <input className="ads-input" type="datetime-local" value={v(n[q])} onChange={(e) => setN({ ...n, [q]: new Date(e.target.value).toISOString() })} />;
+    // CE-47 FE-6 L3: the date said in words under the native field, full month, with the 12-hour clock.
+    inner = (<>
+      <input className="ads-input" type="datetime-local" value={v(n[q])} onChange={(e) => setN({ ...n, [q]: new Date(e.target.value).toISOString() })} />
+      {n[q] ? <p className="ads-note" data-date-words="">{dayDateWords(n[q])}, {clockAt(Date.parse(n[q]))}</p> : null}
+    </>);
   } else if (q === 'spend') {
     inner = (<>{Object.entries(Q.spend).map(([k, label]) => opt(label, null, n.bid.strategy === k, () => setN({ ...n, bid: { strategy: k, amount_minor: k === 'LOWEST_COST_WITHOUT_CAP' ? null : n.bid.amount_minor || null } }), k))}
       {n.bid.strategy !== 'LOWEST_COST_WITHOUT_CAP' ? <label className="ads-field"><span className="ads-note">{Q.capHint}</span><input className="ads-input" inputMode="numeric"
@@ -632,6 +663,9 @@ const ADS_CSS = `
 .ads-ghost{background:transparent;color:var(--atelier-ink-soft);border:.5px solid var(--atelier-card-border)}
 .ads-btn:focus-visible,.ads-row:focus-visible,.ads-srow:focus-visible,.ads-opt:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .ads-run{margin-top:0}   /* CE-46 2.1 (a): the rows' own 44 px carry the space */.ads-two{display:flex;gap:8px;margin-top:8px}
+.ads-pill{align-self:flex-start;margin-top:6px;font:var(--wl-t5);padding:4px 10px;border-radius:999px;border:1px solid currentColor;color:var(--atelier-ink-mute)}
+.ads-pill-running{color:var(--role-positive)}.ads-pill-paused{color:var(--role-caution)}
+.ads-warn{color:var(--role-critical);border-color:var(--role-critical)}
 .ads-quiet{display:block;margin:12px auto 0;background:transparent;border:0;color:var(--atelier-ink-dim);font:var(--wl-t5);min-height:44px;cursor:pointer}
 .ads-who{font:var(--wl-t4);color:var(--atelier-ink)}
 .ads-adhead{display:flex;align-items:center;gap:12px}

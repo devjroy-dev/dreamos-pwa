@@ -34,6 +34,8 @@ import { EXCHANGE } from '@/lib/worklist/exchange';
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { WlToast } from '@/v2/components/worklist/WlToast';
 import { SettingsScreen } from '@/v2/components/vendor/SettingsScreen';
+import { Body, Group, Row, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
+import { Sheet, SHEET_CSS } from '@/v2/components/worklist/StudioSheets';
 import { SCard } from '@/v2/components/vendor/AtelierForm';   // FE_2b: the settings section header, his ask
 import { getAuthHeader } from '@/lib/vendor/api/_base';     // FE_2b: the storefront revalidate door (R-G31.7)
 import { COPY } from '@/v2/lib/worklist/copy';
@@ -324,6 +326,51 @@ function ExchangeOptInSwitch() {
   );
 }
 
+// ── CE-47 L4b (FE-7): Settings as FE-6's approved board 6 ────────────────────────────────────────────────────────
+// One screen of grouped rows. Each row shows its current value and opens that section's EXISTING fields in a sheet
+// (SettingsScreen only=<its title>, with the section's own Save). The two on/off settings stay switches in their rows;
+// Profile layout stays the legacy link it was (R-38.7). Nothing is rebuilt; no section is added.
+const SETW = { business: 'Your business', enquiries: 'Enquiries', money: 'Money', work: 'Your work', account: 'Account',
+  on: 'On', off: 'Off' } as const;
+function SettingsRows() {
+  const { current } = useSettings();
+  const [open, setOpen] = useState<string | null>(null);
+  const routing = current.enquiry_routing === 'own_number' ? ENQ.own : ENQ.tdw;
+  const row = (title: string, facts?: string) => <Row title={title} facts={facts || undefined} chevron onClick={() => setOpen(title)} />;
+  return (
+    <Body>
+      <Head text={SETW.business} />
+      <Group>
+        {row('Business', current.business_name)}
+        {row('Discover profile', current.city)}
+        <Link href="/vendor/discover/preview" className="fr-row" data-legacy="true"><span className="fr-t">{COPY.roomsProfileTitle}</span><span className="fr-aside"><span className="fr-chev" aria-hidden="true">{'\u203A'}</span></span></Link>
+      </Group>
+      <Head text={SETW.enquiries} />
+      <Group>
+        {row(ENQ.label, routing)}
+        <div className="set-sw"><PeerDiscoverySwitch /></div>
+        <div className="set-sw"><ExchangeOptInSwitch /></div>
+        {row('TDW enquiry link', current.routing_handle)}
+      </Group>
+      <Head text={SETW.money} />
+      <Group>{row('Payments', current.upi_id)}{row('Invoice settings', current.invoice_prefix)}</Group>
+      <Head text={SETW.work} />
+      <Group>
+        {current.capacity_applicable ? row('Working capacity', current.slot_capacity) : null}
+        {row('Morning briefing', current.briefing_enabled ? SETW.on : SETW.off)}
+      </Group>
+      <Head text={SETW.account} />
+      <Group>{row('Subscription', current.tier)}{row('Account')}</Group>
+      {open ? (
+        <Sheet title={open} onClose={() => setOpen(null)}>
+          {open === ENQ.label ? <EnquiryRoutingRow /> : <SettingsScreen chrome={false} ToastView={WlToast} only={open} />}
+        </Sheet>
+      ) : null}
+      <style>{FR_CSS + SHEET_CSS + '.set-sw + .set-sw, .fr-row + .set-sw, .set-sw + .fr-row{border-top:1px solid var(--atelier-card-border)} .set-sw .wl-swrow{padding:12px 16px}'}</style>
+    </Body>
+  );
+}
+
 export default function ShellSettingsPage() {
   const router = useRouter();
   const { session, loading } = useVendorSession();
@@ -332,25 +379,7 @@ export default function ShellSettingsPage() {
 
   return (
     <WorklistShell title={COPY.settingsTitle}>
-      <div className="wl-set">
-        {/* ── R-38.7 · THE SECOND VETOED ROW LANDS HERE ────────────────────────
-            「Profile layout」 left the Rooms body with the WhatsApp row. Settings is its
-            home because this is where the profile is edited, and a link belongs beside
-            the thing that defines it.
-            ⚠ LEGACY DESTINATION (P7.2). /vendor/discover/preview lives in app/vendor/(legacy)
-            — the flip kept it (FORK 1 arm (a)); Block 09 ports it (F-39.77). This row leaves
-            the shell's layout and is one of the three declared doors in
-            lib/worklist/rooms.ts LEGACY_VENDOR_LINKS, asserted as a set by the inverted C31,
-            so a second one cannot appear quietly. */}
-        <Link href="/vendor/discover/preview" className="wl-setrow" data-legacy="true">
-          <span className="wl-setrowlabel">{COPY.roomsProfileTitle}</span>
-          <span className="wl-setrowchev" aria-hidden>&rsaquo;</span>
-        </Link>
-      </div>
-      <PeerDiscoverySwitch />
-      <ExchangeOptInSwitch />
-      <EnquiryRoutingRow />
-      <SettingsScreen chrome={false} ToastView={WlToast} />
+      <SettingsRows />
       <style>{`
 .wl-set{padding-top:16px}
 .wl-setrow{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--wl-row);padding:0 16px;background:var(--atelier-card-bg);border:.5px solid var(--atelier-card-border);border-radius:12px;text-decoration:none;touch-action:manipulation}

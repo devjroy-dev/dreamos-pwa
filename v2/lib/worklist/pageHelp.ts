@@ -61,7 +61,7 @@ const TYPED_WHAT = {
   event:     'One event, whole: the day, the crew, the client and the booking behind it',
   rooms:     'Every part of the app, in groups',
   today:     'Your day: a date to check, enquiries to answer, today\u2019s functions and money due',
-  exchange:  'Gear and services traded with peers',
+  exchange:  'Influencers and their audience, and the requests you send them', // CE-47 L4 (FE-7): was the retired gear-trade line
   responses: 'Replies to one collab post',
 } as const;
 
@@ -69,10 +69,10 @@ const TYPED_WHAT = {
 // home). Line 1 of the Ads card is READ from the Posts & ads row (ROW_DESC.posts), b140 1.2's rule: typed line 1s stay four;
 // these three are the card's "can" lines.
 const ADS_HELP = {
-  what:  'Boosting shows one of your Instagram or Facebook posts to couples in your city who are planning a wedding, for a daily amount you set and a number of days you choose.',
+  what:  'Boosting shows one of your Instagram or Facebook posts to people in your city who are planning a wedding, for a daily amount you set and a number of days you choose.',
   pays:  'Meta takes the amount from your ad account\u2019s payment method. TDW never charges for ads and never runs one without your tap.',   // cut1e 5, the founder's ok (29 September 2026)
   // LANDING (conflict 1, main's words kept for what and pays; leads names the new layout's own tab, Enquiries, and 'this page')
-  leads: 'Couples who write after seeing the ad land in Enquiries, and this page tells you what each ad reached, what it cost, and what to try next.',
+  leads: 'People who write after seeing the ad land in Enquiries, and this page tells you what each ad reached, what it cost, and what to try next.',
 } as const;
 
 // DESIGN-1 · STAGE 2 · THE PORTFOLIO'S EXPLANATIONS, MOVED OFF THE PAGE (the founder, 29 Sept 2026: "make the photos the
@@ -81,7 +81,7 @@ const ADS_HELP = {
 // tdw07_p3 pins G1 and G3 as rendered by the reorder state), so they are not repeated here. None is reworded.
 export const PORTFOLIO_HELP = {
   H2: "Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is free and takes a minute in Instagram’s own settings.",
-  F4: 'Couples see your approved photos. The rest are with our team.',
+  F4: 'People see your approved photos. The rest are with our team.',
   H12: 'Photos are copied into your portfolio, so they stay put even if your Instagram changes.',
 } as const;
 
@@ -127,102 +127,106 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
     { icon: 'list', line: 'Search enquiries, or tap New, Contacted, Quoted or Booked to see only those. Recent changes the order.' },
     // DESIGN-1 · STAGE 5a: an enquiry opens as its own page (its own card, below)
     { icon: 'reply', line: 'Tap an enquiry to open its page: the dates, money, notes and history, with the next step on top.' },
-    { icon: 'add', line: 'Swipe an enquiry right to book it. New enquiry, at the top of the list, adds one.' },
+    { icon: 'add', line: 'Swipe an enquiry right to book it. + New enquiry, beside the page\u2019s name, adds one.' },
   ], connects: 'A booked enquiry becomes a client in Clients, its dates go on your Calendar and its invoice into Money.' }),
   [roomHref('packages')]: entry(ROOM_DESC.packages, {
-    can: how(['add', 'To add a package: tap Add package, give it a name and price.'],
-             ['list', 'To list what it includes: tap Add item for each line.'],
-             ['send', 'Tap Save. Cancel leaves it unchanged.']),
+    // CE-47 FE-6 L5: the reworked room; three lines, each button drawn on the room or its sheet.
+    can: how(['add', 'To add a package: tap New package, give it a name and price.'],
+             ['edit', 'To change one: tap it, then Edit.'],
+             ['switch', 'To choose the one quotes start from: tap it, then Set as default.']),
     connects: 'You quote these to leads, and a booked package goes on the client.' }),
   [roomHref('clients')]: entry(ROOM_DESC.clients, { can: [
     { icon: 'list', line: 'Search clients. Each card shows what has come in and what is still due.' },
     // DESIGN-1 · STAGE 5a: a client opens as its own page (its own card, below)
     { icon: 'read', line: 'Tap a client to open their page: the dates, money, notes and history, with the next step on top.' },
-    { icon: 'add', line: 'New client, at the top of the list, adds a client who booked without an enquiry.' },
+    { icon: 'add', line: '+ New client, beside the page\u2019s name, adds a client who booked without an enquiry.' },
   ], connects: 'A client\u2019s invoices are in Money and the dates are on your Calendar.' }),
   [roomHref('invoices')]: entry(ROOM_DESC.invoices, { can: [
     { icon: 'list', line: 'Search invoices, or tap Overdue, Unpaid or Part paid to see only those. Recent changes the order.' },
     // DESIGN-1 · STAGE 5b: an invoice opens as its own page (its own card, below)
     { icon: 'money', line: 'Mark paid records a payment on that invoice. Tap an invoice to open its page.' },
-    { icon: 'add', line: 'New invoice, at the top of the list, makes an invoice.' },   // CE-46 (FE-6's note): the + retired here
+    { icon: 'add', line: '+ New invoice, beside the page\u2019s name, makes an invoice.' },   // the founder (option B): the + in the room head
   ], connects: 'The row under the heading opens the rest of Money: Payment reminders, Expenses, TDS and Books.' }),
   [roomHref('expenses')]: entry(ROOM_DESC.expenses, {
-    can: how(['add', 'To record a cost: tap New expense, type the amount, tap Log expense.'],
-             ['list', 'Costs are grouped by month, newest first.'],
-             ['edit', 'To change or remove one: tap it, then Edit or Delete.']),
-    connects: 'Every cost lands in Books.' }),
+    can: how(['add', 'To add one: tap + New expense.'],
+             ['edit', 'To change one: tap it.'],
+             ['calendar', 'To see another month: tap the month.']),
+    connects: 'Connects to Books and TDS.' }),
   [roomHref('books')]: entry(ROOM_DESC.books, {
-    can: how(['read', 'Read money in and money out, month by month, from the Opening balance.'],
-             ['calendar', 'Months run down the page from the Opening balance.']),
-    connects: 'Reads Invoices and Expenses. Nothing is typed here.' }),
+    can: how(['read', 'Received and Outstanding come from your invoices.'],
+             ['list', 'Paid out comes from your expenses.']),
+    connects: 'Connects to Invoices and Expenses.' }),
   // DESIGN-1 · STAGE 5b: an event opens as its own page (its own card, below)
   [roomHref('events')]: entry(ROOM_DESC.events, { can: [
     { icon: 'list', line: 'Search events, or tap This week, Later or Done to see only those. Recent changes the order.' },
     { icon: 'read', line: 'Tap an event to open its page: the day, the crew, the money and the history, with the next step on top.' },
-    { icon: 'add', line: 'Swipe an event right to mark it done, or left to cancel it. New event, at the top of the list, adds one.' },
+    { icon: 'add', line: 'Swipe an event right to mark it done, or left to cancel it. + New event, beside the page\u2019s name, adds one.' },
   ], connects: 'Every event is on your Calendar too, and a booking puts each of its dates here.' }),
   [roomHref('notes')]: entry(ROOM_DESC.notes, {
-    can: how(['add', 'To write a note: tap New note, type it, tap Save Note.'],
-             ['read', 'To find a note: type in Search your notes.']),
+    can: how(['add', 'To write a note: tap + New note, type it, tap Save note.'],
+             ['read', 'To find a note: type in Search your notes. Tap a note to read it whole.'],
+             ['edit', 'To delete a note: open it and tap Delete. It asks first.']),
     connects: 'Notes are yours only. No client sees them.' }),
   [roomHref('calendar')]: entry(ROOM_DESC.calendar, { can: [
     { icon: 'calendar', line: 'Month shows the dates and Weddings lists each wedding. The arrows move a month; Good dates shows or hides the good dates.' },
     // LANDING: reworded for main's step reader (A-46.9), which read "to block it" as a button; the facts are unchanged
     { icon: 'list', line: 'Tap a day: it shows what is on it, and you can block it there. Coming up lists the next functions.' },
-    { icon: 'add', line: 'New event, at the top of the page, adds an event.' },
+    { icon: 'add', line: '+ New event, beside the page\u2019s name, adds an event.' },
   ], connects: 'Every booking puts each of its dates here as its own event.' }),
   [roomHref('storefront')]: entry(ROOM_DESC.storefront, {
-    can: how(['read', 'To see your page as couples see it: tap See your profile.'],
-             ['share', 'To share it: copy your link, thedreamwedding.in/v/ and your name.'],
-             ['edit', 'To change the photos on it: tap Portfolio.']),
-    connects: 'Built from Portfolio. Couples reach it from your link, Instagram and Google.' }),
+    // CE-47 FE-6 L5: the reworked room; three lines, each button drawn; no "couple" (the founder's rule).
+    can: how(['read', 'To see your page as people see it: tap See your profile.'],
+             ['share', 'To share it: tap Copy on your address.'],
+             ['edit', 'To raise your profile strength: tap a row under What to add.']),
+    connects: 'Built from Portfolio. People reach it from your link, Instagram and Google.' }),
   // Each line names only what the page draws: Upload and the Instagram button beside it, the All filter, the photos.
   [roomHref('portfolio')]: entry(ROOM_DESC.portfolio, { can: [
     { icon: 'add', line: PORTFOLIO_HELP.H2 },
     { icon: 'read', line: PORTFOLIO_HELP.F4 },
   ], connects: PORTFOLIO_HELP.H12 }),
   [roomHref('couture')]: entry(ROOM_DESC.couture, {
-    can: how(['add', 'To open a time for fittings: tap New Slot, choose the date and time.'],
-             ['edit', 'To take a time back: tap Remove on it.']),
-    connects: 'Part of the Signature and Prestige plans. Plans are in Billing.' }),
+    // CE-47 FE-6 L3: the reworked room (FE-4's findings aligned with W3; the pill reads "+ New slot"). Three lines at most.
+    can: how(['add', 'On the Signature or Prestige plan: tap New slot, choose the date and time.'],
+             ['edit', 'To remove an open slot: tap it, then Remove this slot.'],
+             ['read', 'Without the plan: tap See plans in Billing on this page.']),
+    connects: 'Connects to Billing.' }),
   [roomHref('team')]: entry(ROOM_DESC.team, {
     can: how(['add', 'To add crew: on Team, tap Add to Team, type the name and role, tap Save.'],
              ['list', 'To switch view: tap Team, Tasks or Payments.'],
              ['money', 'To see what is owed to crew: tap Payments.']),
     connects: 'Crew are assigned to functions in Events.' }),
   [roomHref('contracts')]: entry(ROW_DESC.contracts, {
-    can: how(['switch', 'Once, first: tap Set up to set your terms.'],
-             ['read', 'To read the agreement before sending: tap See the standard agreement first.'],
-             ['send', 'To send one: tap New contract, then From a client or Someone new.'],
-             ['add', 'To use your own agreement: tap New contract, then Upload my own PDF.']),
+    // CE-47 FE-6 L3: the reworked room (the chair's yes on FE-6's drafts); three lines at most, each button drawn.
+    can: how(['send', 'To start one: tap New contract, then From a client or Someone new.'],
+             ['switch', 'To fill your standard terms once: tap Your contract policies.'],
+             ['read', 'To send, copy the link or cancel: tap the agreement.']),
     connects: 'A signed agreement holds the date on Calendar.' }),
   [roomHref('tds')]: entry(ROOM_DESC.tds, {
-    can: how(['add', 'To record tax a client held back: tap New TDS entry, fill it in, tap Log Entry.'],
-             ['calendar', 'To see another year: tap the financial year at the top.'],
-             ['share', 'For your accountant: tap Export CSV.']),
-    connects: 'Read against the payments in Invoices.' }),
+    can: how(['add', 'To add one: tap + New TDS entry.'],
+             ['calendar', 'To see another year: tap the year.'],
+             ['share', 'To send it to your accountant: tap Export CSV.']),
+    connects: 'Connects to Invoices and Books.' }),
   [roomHref('advisor')]: entry(ROOM_DESC.advisor, {
     can: how(['reply', 'Type a question about your business in Ask anything, tap Send.'],
              ['read', 'The answer is read from your own numbers.']),
-    connects: 'Reads Invoices, Expenses and Leads. It changes nothing.' }),
+    connects: 'Reads Invoices, Expenses and Enquiries. It changes nothing.' }),
   [roomHref('billing')]: entry(ROOM_DESC.billing, {
     can: how(['read', 'See the plan you are on and what it costs.'],
              ['money', 'To change plan: tap Choose on the plan you want.']),
     connects: 'Your plan decides which rooms are open to you.' }),
   [roomHref('settings')]: entry(ROOM_DESC.settings, {
-    can: how(['edit', 'To change your details: tap Edit profile.'],
-             ['money', 'To change or stop your plan: tap Manage subscription.'],
-             ['share', 'To copy a detail: tap Copy beside it.'],
-             ['switch', 'To leave this phone: tap Sign out.']),
-    connects: 'Every room reads these details.' }),
+    can: how(['edit', 'To change a section: tap its row.'],
+             ['switch', 'To turn a setting on or off: tap its switch.'],
+             ['send', 'To change where enquiries go: tap Where enquiries go.']),
+    connects: 'Connects to every room.' }),
   [SOLUTIONS_INDEX_HREF]: entry(ROOM_DESC.support, {
-    can: how(['list', 'To open a solution: tap its row.'],
-             ['read', 'Each row says what it does and whether it is on.']),
+    can: how(['list', 'To open a solution: tap its row. Each row says what the room does.'],
+             ['reply', 'Something broken? Tap it to message us on WhatsApp.']),
     connects: 'Each row opens its own room.' }),
   [NUMBER_HREF]: entry(ROW_DESC.number, {
     can: how(['switch', 'To answer enquiries on your own number: tap Connect.'],
              ['reply', 'Once connected, enquiries on WhatsApp and Instagram are answered for you.']),
-    connects: 'Enquiries answered here land in Leads. Dates are checked against Calendar.' }),
+    connects: 'Enquiries answered here land in Enquiries. Dates are checked against Calendar.' }),
   [WEBSITE_HREF]: entry(ROW_DESC.website, {
     can: how(['list', 'Work down the list: add a cover photo, two lines about your work, a starting price.'],
              ['add', 'To show a whole wedding: tap Publish a wedding page.'],
@@ -230,58 +234,64 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
              ['share', 'Put your link in your Instagram bio.']),
     connects: 'Built from Storefront and Portfolio. Found on Google shows whether Google lists it.' }),
   [WEDDING_PAGES_HREF]: entry(ROW_DESC.wedding_pages, {
-    can: how(['add', 'To make a page for a wedding: tap New wedding page, choose the wedding, tap Save.'],
-             ['share', 'Share the page with the couple and on Instagram.']),
-    connects: 'Built from Portfolio and Events. Google reviews are asked for after a page is published.' }),
+    can: how(['add', 'Tap + New wedding page, choose the event, give it a title, tap Save.'],
+             ['edit', 'To add photographs and credits: tap a wedding.'],
+             ['send', 'Under Permission, type the client\u2019s number and tap Ask for permission. The page goes live when they agree.']),
+    connects: 'Built from Events.' }),
   [GOOGLE_REVIEWS_HREF]: entry(ROW_DESC.google, {
-    can: how(['send', 'Couples are asked for a Google review after their wedding page is published.'],
-             ['list', 'See who was Asked, and the Reviews that came in.'],
-             ['read', 'Your seal shows when your reviews are TDW-verified.']),
+    can: how(['send', 'When a wedding page goes live, the client is asked once for a Google review.'],
+             ['read', 'Your seal shows TDW-verified after three delivered weddings. It is counted every night.'],
+             ['calendar', 'Claim and sync your listing reads Coming soon until Google allows it.']),
     connects: 'Asked after Wedding pages.' }),
+  // CE-46 FE-6 cut 1: the reworked room's card, the chair's yes on FE-6's drafts (30 Sept 2026), FE-4's finding
+  // applied (Share sits BESIDE Download on this screen). Every button a step names is drawn on the room.
   [POSTS_HREF]: entry(ROW_DESC.posts, {
-    can: how(['list', 'Posts are grouped under Cards and Broadcast.'],
-             ['share', 'To post one: tap Share on it.'],
-             ['send', 'To boost a post to couples: tap Open Ads.'],
-             ['read', 'If something is not ready yet: tap Check again.']),
-    connects: 'Drawn from Portfolio and Calendar. Ads opens from here.' }),
+    // three how-to lines at most (the room-rework standard, 30 Sept 2026: nothing scrolls inside a "?" card at 374); the
+    // caption's Copy is named on its own box and is not a step here
+    can: how(['share', 'To post one: tap Download or Share beside it.'],
+             ['send', 'To run or see your ads: tap the row under Ads.'],
+             ['send', 'To send a message to past clients: tap Newest work message or Referral message.']),
+    connects: 'Connects to your wedding pages and your Meta ad account.' }),
   [ADS_HREF]: entry(ROW_DESC.posts, {
     app: ADS_HELP.what + ' ' + ADS_HELP.pays,
     // ADS-1's four lines, VERBATIM, read by ADS-1 from the live page at 85c66ef5 (relayed by the chair 29 Sept 2026).
     // ADS-1's cut1e later updates the first to the restored consent sheet.
     can: how(['switch', 'To start: tap Connect ad account, then Continue to Meta. Meta opens in its own window; come back when it is done.'],
              ['send', 'To run an ad: check the post at the top, tap Change beside Who sees it, Where it appears, Amount or Dates if you want, then tap Run this ad and confirm.'],
-             ['read', 'To see it as couples will: the post at the top is shown the way couples see it.'],
+             ['read', 'To see it as people will: the post at the top is shown the way people see it.'],
              ['edit', 'To stop an ad: tap the ad under Your ads, then Pause this ad or End it now.']),
     connects: ADS_HELP.leads }),
   [DATES_HREF]: entry(ROW_DESC.dates, {
-    can: how(['calendar', 'See the dates still open in the season.'],
-             ['money', 'To get a price to fill them: tap Suggest rates.']),
-    connects: 'Reads Calendar.' }),
+    can: how(['calendar', 'How often each date was checked is in Storefront: tap the first row.'],
+             ['read', 'Offer your open dates and Suggested rates read Coming soon until they open.']),
+    connects: 'Date checks are shown in Storefront.' }),
   [INTRODUCTIONS_HREF]: entry(ROW_DESC.introductions, {
-    can: how(['add', 'To introduce a couple to a peer: type the number and a name.'],
-             ['send', 'Tap Review the message to read it before it goes.']),
-    connects: 'Introductions you receive arrive in Leads.' }),
+    can: how(['add', 'Tap New introduction; fill in their number, name and where you met; tap Review the message.'],
+             ['send', 'Read what they will receive, then tap the button with their name on it.'],
+             ['list', 'Sent shows each as Delivered, Sent or Not delivered.']),
+    connects: 'The message carries a See my work button.' }),
   [REFERRALS_HREF]: entry(ROW_DESC.referrals, {
-    can: how(['add', 'To pass on a shoot you cannot take: tap Post a shoot.'],
-             ['list', 'Peers you work with are listed with what was sent and received.']),
-    connects: 'Referrals you receive arrive in Leads. Influencer exchange opens from here.' }),
+    can: how(['list', 'Sent and Received count every forward; Your peers lists each peer with what went both ways.'],
+             ['add', 'To pass on a shoot you cannot take: tap Post a shoot.'],
+             ['send', 'To forward an enquiry: open it in Enquiries and tap Forward to a peer.']),
+    connects: 'Forwards you receive arrive in Enquiries. Influencer exchange opens from here.' }),
   [PAYMENT_REMINDERS_HREF]: entry(ROW_DESC.reminders, {
-    can: how(['switch', 'Turn reminders on or off with the switch.'],
-             ['list', 'Due shows who is owed a reminder. Asked shows who was sent one.']),
-    connects: 'Reads unpaid invoices in Invoices.' }),
+    can: how(['switch', 'To stop the automatic ones: tap the switch beside Send the rest automatically.'],
+             ['read', 'Sent means WhatsApp accepted it; we cannot tell whether it was read.']),
+    connects: 'Connects to Invoices.' }),
   [roomHref('collab')]: entry(ROW_DESC.collabs, {
-    can: how(['add', 'To ask for crew, models or partners: tap + Post.'],
-             ['list', 'Opportunities are posts from others. My Posts are yours.'],
-             ['read', 'Roster lists the people you have worked with.']),
+    // CE-47 FE-6 L5: the reworked room; the pill's words, each button drawn
+    can: how(['add', 'To ask for crew, models or partners: tap New post.'],
+             ['list', 'Opportunities are posts from others. My posts are yours.'],
+             ['read', 'To add someone you have worked with: open Roster, tap Add someone.']),
     connects: 'Replies to your posts open in their own list.' }),
   // LANDING: main's rule (1.8), every card has a connects line
   '/vendor/collab/[post_id]/responses':     entry(TYPED_WHAT.responses, { can: [{ icon: 'share', line: RESPONSES_HELP.identity }], connects: 'These are the replies to your post in Collab.' }),
   [EXCHANGE_HREF]: entry(TYPED_WHAT.exchange, {
-    can: how(['list', 'To narrow the list: choose a City and a Craft.'],
-             ['read', 'Your requests and Requests to you are listed apart.'],
-             ['send', 'On a request to you: tap Accept. When it is done: tap Mark completed.'],
-             ['edit', 'To take back your own request: tap Withdraw.']),
-    connects: 'Reached from Referrals.' }),
+    can: how(['list', 'Choose a City and a Craft to narrow the list.'],
+             ['send', 'Tap an influencer, then tap Send request.'],
+             ['edit', 'To mark a request completed or withdrawn: tap it under Your requests. Withdraw asks first.']),
+    connects: 'Verified means Instagram confirmed their audience.' }),
   // DESIGN-1 · STAGE 5a · RECORDS AS PAGES (lib/worklist/record.ts): each names only what its page draws
   '/vendor/leads/[id]': entry(TYPED_WHAT.enquiry, { can: [
     { icon: 'send', line: 'The button on top is the next step: Reply on WhatsApp for a new enquiry, Book for one you are talking to, Open the client once booked.' },
@@ -342,5 +352,5 @@ export const SHEET_HELP = {
     { icon: 'calendar', line: 'Tick the dates line to take the booking\u2019s dates off your calendar.' },
     { icon: 'money', line: 'Tick the invoice line to remove the unpaid invoice. An invoice with payments on it stays.' },
     { icon: 'read', line: 'Nothing is removed unless you tick it. Keep booking closes this with no change.' },
-  ], connects: 'The couple stays in Enquiries, ready to book again.' }) },
+  ], connects: 'The client stays in Enquiries, ready to book again.' }) },
 } as const;

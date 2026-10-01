@@ -19,6 +19,7 @@
 // — and once that moved, the specifier was dead. Derived, not assumed: zero call sites
 // remain in this file. An unused import is not tidiness debt; it is a named binding the
 // next reader wires something to (the `vendorName` finding at §4-2, same shape).
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // the founder (option B): the room's + in its head
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
@@ -276,9 +277,7 @@ export function SliceShell({ slice, query, setQuery, loading, error, rows, onSel
 
       {/* CE-46 (FE-6's note, ruled 30 Sept 2026): on the rooms ADD_ON_TOP names, the add is a button at the top of the
           list, in the words ADD_ON_TOP gives, and the floating + is not drawn, so nothing sits over a row's pill. */}
-      <div style={{ padding: '4px 16px 12px', display: 'flex' }}>
-        <button type="button" className="wl-btn" data-add-top={slice} onClick={onAdd}>{addOnTop}</button>
-      </div>
+      <RoomHeadAdd addKey={slice} label={addOnTop} onAdd={onAdd} />
 
       {/* List */}
       <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', paddingBottom: 112 }}>
@@ -1620,7 +1619,7 @@ export function SliceScreen<T extends { id: string }>({ slice, vendorId, useData
             // shipped 15 and `tdw09_type` named it at the byte; a rung cannot drift so.
             font: T.t4,
             color: A.inkMute, textAlign: 'center',
-          }}>Upgrade to Essential or above to contact this couple.</div>
+          }}>Upgrade to Essential or above to contact this person.</div>
           {/* ── R-38.1 CURE (S2 ZIP bounce) · THE TIER GATE WAS THE SIXTH OF NINE ──
               This CTA was a hardcoded `/vendor/billing`, and because `notes.tsx` imports
               `SliceDoor` from this very file, the whole module \u2014 tier gate included \u2014 is in

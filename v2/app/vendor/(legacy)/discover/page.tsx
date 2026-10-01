@@ -171,7 +171,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               fontFamily: F.display, fontWeight: 400, fontSize: '1.75rem',
               color: '#F0E6D2', lineHeight: 1.08, letterSpacing: '0.005em',
               marginBottom: 10,
-            }}>Appear before couples<br />planning their wedding.</div>
+            }}>Appear before people<br />planning their wedding.</div>
             <div style={{
               fontFamily: F.script, fontWeight: 300,
               fontSize: '1rem', lineHeight: 1.5, color: 'rgba(240,230,210,0.78)',
@@ -207,7 +207,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
             <span style={{
               fontFamily: F.script, fontWeight: 300,
               fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, letterSpacing: '0.01em',
-            }}>How couples see you</span>
+            }}>How people see you</span>
           </span>
           <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.brassWarm }}>›</span>
         </button>
@@ -328,7 +328,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                 fontSize: '1rem', color: A.inkSoft, lineHeight: 1.5, /* same shoot's species: pinned cream on the THEMED page — cream-on-cream on Paper; the hero's pinned creams sit on the SCRIM and stay (per-site law). Both state-card italics cured together: the other card was one state away from the same invisibility. */
               }}>
                 {approvedButHidden
-                  ? 'You\u2019re approved, but your profile is hidden from couples right now. We\u2019ll be in touch.'
+                  ? 'You\u2019re approved, but your profile is hidden from people right now. We\u2019ll be in touch.'
                   : 'You\u2019re on Discover. Your work is live on The Dream Wedding.'}
               </div>
             </div>
@@ -360,7 +360,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
                   fontFamily: F.script, fontWeight: 300,
                   fontSize: '1rem', color: A.inkSoft, lineHeight: 1.5,
                 }}>
-                  Your profile is hidden from couples right now. You can apply again
+                  Your profile is hidden from people right now. You can apply again
                   whenever you&apos;re ready.
                 </div>
               </div>
@@ -426,7 +426,7 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
               fontFamily: F.script, fontWeight: 300,
               fontSize: '1rem', lineHeight: 1.5, color: A.inkMute, marginBottom: 18,
               letterSpacing: '0.01em',
-            }}>As couples will see it, curated.</div>
+            }}>As people will see it, curated.</div>
 
             <div style={{
               display: 'grid',

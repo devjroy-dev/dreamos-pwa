@@ -153,8 +153,11 @@ ok(FORM.includes('Based in') && !FORM.includes('Based in *'),
    '5.5 the asterisk is dropped — a marker on one of six teaches that five are optional');
 
 console.log('\n── 5b · the attention token is theme-aware (F-09.3) ──');
-ok(/const ATTN\s+= T\.caution;/.test(FORM) || 'no caution token',
-   '5b.1 the attention colour is T.caution — theme-aware, 4.68:1 on light');
+// CE-47 L4 (FE-7), BY LABEL (veto 54, approved by the chair under the founder's delegation): the page draws from the
+// theme's own tokens on its scope (scopeCss/typeCss), so the attention colour is the caution ROLE, not a T.caution
+// constant; the meaning (theme-aware, the marker and the refusal share it) is unchanged.
+ok(/\.ob-need\{[^}]*color:var\(--role-caution\)/.test(FORM) || 'no caution token',
+   '5b.1 the attention colour is the caution role — theme-aware');
 ok(!/color: BRASS/.test(FORM) || 'brass is still used as TEXT — 2.05:1 on Editorial Paper',
    '5b.2 F-09.3 — the brass mark is NEVER body text');
 // NARROWED after the mutation run: this asserted `background: BRASS` and matched
@@ -164,15 +167,19 @@ ok(!/color: BRASS/.test(FORM) || 'brass is still used as TEXT — 2.05:1 on Edit
 // DESIGN-1 · STAGE 1 (by label): the two filled buttons moved from brass to the app's one primary
 // (docs/review/REPORT.md §3 "one primary colour for the whole app", P13). The cells keep their shape and
 // their two named controls; the fill they pin is PRIMARY now, and brass is pinned where it stays (the chips).
-ok(/background: submitting \? `color-mix\(in srgb, \$\{PRIMARY\} 40%, transparent\)` : PRIMARY/.test(FORM)
+// CE-47 L4 (FE-7), BY LABEL (veto 54): the two filled buttons are the record pieces' primary (.rp-next, RECORD_CSS,
+// background var(--role-primary)); the chosen chip is filled with the primary role (brass retired from it, approved).
+// The cells keep their three named controls.
+ok((/className="rp-next ob-go"[^>]*onClick=\{\(\) => void submit\(\)\}/.test(FORM) && /RECORD_CSS/.test(FORM))
    || 'the submit button lost its primary fill',
    '5b.3 the SUBMIT control is filled with the one primary');
-ok((FORM.match(/background: PRIMARY,/g) || []).length >= 1
+ok(/className="rp-next ob-go" onClick=\{\(\) => router\.replace\('\/vendor'\)\}/.test(FORM)
    || 'the done-screen button lost its primary fill',
    '5b.3b the done-screen control is filled with the one primary');
-ok(/background: category === token \? BRASS : 'transparent'/.test(FORM) || 'brass left the chosen chip',
-   '5b.3c brass stays on the chosen chip');
-ok(/color: ATTN/.test(FORM), '5b.4 the marker and the refusal both read from the attention token');
+ok(/\.ob-chip\.on\{background:var\(--role-primary\)/.test(FORM) || 'the chosen chip lost its fill',
+   '5b.3c the chosen chip is filled with the primary role (veto 54)');
+ok(/\.ob-need\{[^}]*color:var\(--role-caution\)/.test(FORM) && /\.ob-refusal\{[^}]*color:var\(--role-caution\)/.test(FORM),
+   '5b.4 the marker and the refusal both read from the attention token');
 
 console.log('\n── 6 · the guard: MOVED, verdict-reading, loop-safe ──');
 ok(/onboarding\?\.complete === false/.test(GUARD) && /router\.replace\('\/vendor\/onboarding'\)/.test(GUARD)

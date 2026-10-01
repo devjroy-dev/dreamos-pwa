@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+// FLOOR-SUBJECTS: components/vendor/Header.tsx components/worklist/PageHelp.tsx lib/worklist/pageHelp.ts scripts/lib/floor_reap.sh
+// FLOOR-STATES: env
+// FLOOR-WHOLE: args --mutate
+// (CE-47 FE-6 L3 r2: the floor runs this bench's mutations only when a delivery names it or a subject above;
+//  scripts/lib/floor_slice.sh reads these three lines. b174 §F proves the subjects cover every file the bench mutates.)
 'use strict';
 // scripts/b140_ce46_fe4_page_help_bench.js · TDW CE-46 · FE-4 · the "?" on every surface (the founder's ruling of
 // 27 Sept 2026; Fork A (3): the shell draws every room's t1 head with the "?" on its line).
@@ -345,7 +350,9 @@ const done = () => { console.log(`b140: ${pass} pass, ${fail} fail`); process.ex
         { id: 'M4', file: 'components/worklist/PageHelp.tsx', from: 'if (first) { writeSeen(seenKey); setFirst(false); }', to: 'if (first) { setFirst(false); }', route: '/vendor/leads', red: (x) => x.storedAfterOpen !== '1', cell: '2.8' },
         { id: 'M5', file: 'components/worklist/PageHelp.tsx', from: '.wl-helpname{font:var(--wl-t2);', to: '.wl-helpname{font:500 19px/1.3 var(--font-dm-sans);', route: '/vendor/leads', red: (x) => !!(x.open && x.open.texts.some((t) => !anyRung(t))), cell: '3.1' },
         { id: 'M8', file: 'lib/worklist/pageHelp.ts', from: "    connects: 'Every cost lands in Books.' }),", to: "    connects: '' }),", source: () => { try { const h = loadPageHelp(); return !h.PAGE_HELP[Object.keys(h.PAGE_HELP).find((k) => /expenses/.test(k))].connects; } catch (_e) { return true; } }, cell: '1.8' },
-        { id: 'M9', file: 'lib/worklist/pageHelp.ts', from: "To start: tap Connect ad account. Meta opens", to: "To start: tap Connect ad account, then Continue to Meta. Meta opens", source: () => { let red = false; try { const h = loadPageHelp(); const L = drawnLabels(ROOT, stripComments); const n = (x) => x.toLowerCase().replace(/[^a-z0-9+ ]/g, '').trim(); red = !Object.values(h.PAGE_HELP).every((e) => (e.can || []).every((c) => tapped(c.line).every((w) => L.some((x) => n(x) === n(w))))); } catch (_e) { red = true; } return red; }, cell: '1.9' },
+        // RE-AIMED BY LABEL (CE-47, FE-8, the chair's ruling B): the Ads card names Continue to Meta already (the line as it stands), which
+        // its sheet draws; M9 plants a button no control draws, as b140_v2's M9 does
+        { id: 'M9', file: 'lib/worklist/pageHelp.ts', from: "To start: tap Connect ad account, then Continue to Meta. Meta opens", to: "To start: tap Connect ad account, then Continue to Facebook. Meta opens", source: () => { let red = false; try { const h = loadPageHelp(); const L = drawnLabels(ROOT, stripComments); const n = (x) => x.toLowerCase().replace(/[^a-z0-9+ ]/g, '').trim(); red = !Object.values(h.PAGE_HELP).every((e) => (e.can || []).every((c) => tapped(c.line).every((w) => L.some((x) => n(x) === n(w))))); } catch (_e) { red = true; } return red; }, cell: '1.9' },
         { id: 'M7', file: 'scripts/lib/floor_reap.sh', from: 'scope=root; [ "$member" = "(before the floor)" ] && scope=any', to: 'scope=root', source: () => !!reapCell(P('scripts/lib/floor_reap.sh')), cell: '1.7' },
         { id: 'M6', file: 'components/vendor/Header.tsx', from: "import { useVendorMe } from '@/hooks/vendor/useVendorMe';", to: "import { useVendorMe } from '@/hooks/vendor/useVendorMe';\nimport { TipsCarousel } from '@/components/vendor/TipsCarousel';", source: () => { const refs = code(read('components/vendor/Header.tsx')); return /TipsCarousel/.test(refs); }, cell: '1.4' },
       ];

@@ -14,7 +14,7 @@ export const GET_FOUND_HIDDEN_KEY = 'tdw_getfound_hidden';
 
 export const GET_FOUND: Record<GetFoundKey, { line: string; act: string; href: string }> = {
   website: { line: 'Your website is not set up yet.', act: 'Set up your website', href: WEBSITE_HREF },
-  google:  { line: 'You have not asked a couple for a Google review yet.', act: 'Ask for reviews', href: GOOGLE_REVIEWS_HREF },
+  google:  { line: 'You have not asked a client for a Google review yet.', act: 'Ask for reviews', href: GOOGLE_REVIEWS_HREF },
   posts:   { line: 'Posts and ads are not set up yet.', act: 'Set up posts and ads', href: POSTS_HREF },
 };
 export const GET_FOUND_WORDS = { eyebrow: 'Get found', hide: 'Hide' } as const;

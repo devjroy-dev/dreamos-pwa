@@ -8,6 +8,7 @@
 // here is the list's own handler, handed in: Mark paid is the row's Mark paid, Done is the swipe's Done, Edit opens the
 // same edit sheet, the schedule panel (Add, Remove schedule, Remind, Edit, Paid) and its sheets are the ones the old
 // invoice sheet drew. Nothing is re-authored here, and at most one sheet is open at a time.
+import { clockWords } from '@/v2/lib/worklist/home';   // the founder: "7:00 pm", one home
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useLeadsData, useCabinetData } from '@/v2/hooks/vendor/useVendorData';
 import { fetchLeadDetail } from '@/v2/lib/vendor/api/vendor';
@@ -128,7 +129,7 @@ export function SliceRecord(p: SliceRecordProps) {
 
   const e = ev as VendorEvent;
   const next = eventNext(state, e.event_date, istTodayISO(), !!evClient);
-  const time = e.event_time ? e.event_time.slice(0, 5) : '';
+  const time = e.event_time ? clockWords(e.event_time) : '';
   const onCrew = crew.byEvent.has(e.id) ? (crewWords(crew.byEvent.get(e.id)) ?? CREW_WORDS.none) : null;
   const items = historyOf({ conversation: detail?.conversation, invoices: detail?.invoices, events: detail?.events?.filter((x) => x.id !== e.id) });
   const recv = evClient ? Number(evClient.amount_received || 0) : 0;

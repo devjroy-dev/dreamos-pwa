@@ -9,17 +9,15 @@
 // inside it.
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { RoomsGrid } from '@/v2/components/worklist/RoomsGrid';
-import { PinnedRooms } from '@/v2/components/worklist/PinnedRooms';
 import { AddFab } from '@/v2/components/worklist/AddFab';
 import { COPY } from '@/v2/lib/worklist/copy';
 
 export default function RoomsPage() {
   return (
     <WorklistShell title={COPY.navRooms}>
-      {/* DESIGN-1 · STAGE 2: the pinned rooms are KEPT, moved here from Home (founder's ruling); Home is the day. */}
+      {/* CE-47 (the founder, after his walk): More is the rooms in today's Rooms order; Pinned and Change pinned go. */}
       {/* CE-46: Add sits at the top of More (its + retired) */}
       <AddFab />
-      <PinnedRooms />
       <RoomsGrid />
     </WorklistShell>
   );

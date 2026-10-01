@@ -49,6 +49,19 @@ import { getJson, postJson } from '@/lib/vendor/api/_base';
 import { forgetVendorMe } from '@/hooks/vendor/useVendorHandle';
 import { useT } from '@/lib/vendor/ThemeContext';
 import { labelFor } from '@/lib/frost/categoryLabels';
+import { scopeCss, typeCss } from '@/v2/lib/worklist/theme';
+import { RECORD_CSS } from '@/v2/components/worklist/RecordPage';
+import { CopyBox } from '@/v2/components/worklist/CopyBox';
+// CE-47 L4 (FE-7): Onboarding's words, veto rows 54 to 59 as approved.
+const OB = {
+  brand: 'The Dream Wedding', title: 'Set up your studio', sub: 'Two minutes. Clients use this to reach you.',
+  name: 'Your name', business: 'Studio or business name', craft: 'What you do', city: 'Based in', cityHint: 'Mumbai',
+  price: 'Your starting price, in Rs', priceHint: '80,000', area: 'Where you work', cities: 'Which cities',
+  citiesHint: 'Add a city', ig: 'Instagram handle', igHint: '@yourhandle', stillNeeded: 'Still needed',
+  go: 'Get started', setting: 'Setting up\u2026',
+  doneTitle: (first: string) => `You\u2019re all set, ${first}.`, doneLine: 'Share your TDW link. Clients message you there.',
+  linkLabel: 'Your TDW link', copy: 'Copy', copied: 'Copied', open: 'Open your studio',
+} as const;
 
 // ── DISPLAY LABELS · founder-signed 2026-08-13 · MOVED, NOT EDITED ─────────
 // `CAT_LABEL` and `labelFor` left this file at TDW_15 P2 (R-34.33) for
@@ -94,6 +107,24 @@ interface OnboardResp {
   allowed?: string[];
   routing_handle?: string;
   tdw_link?: string;
+}
+
+// CE-47 L4 (FE-7): each box's label, keyed on its interface field; the Still-needed marker is drawn from the
+// SERVER's missing[] and nothing else (no local emptiness rule), as the page did before the rework.
+function Label({ text, field, missing }: { text: string; field: string; missing: string[] }) {
+  return (
+    <label className="ob-lbl">{text}
+      {missing.includes(field) && <span className="ob-need">{OB.stillNeeded}</span>}
+    </label>
+  );
+}
+
+// CE-47 L4 (FE-7): the chip row, at module level (react-hooks/static-components).
+function Chips({ items, on, pick }: { items: { token: string; label: string }[]; on: string; pick: (t: string) => void }) {
+  return (
+    <div className="ob-chips">{items.map(({ token, label }) => (
+      <button key={token} type="button" className={'ob-chip' + (on === token ? ' on' : '')} aria-pressed={on === token} onClick={() => pick(token)}>{label}</button>))}</div>
+  );
 }
 
 export default function VendorOnboardingPage() {
@@ -211,244 +242,75 @@ export default function VendorOnboardingPage() {
     setSubmitting(false);
   }, [name, igHandle, businessName, category, city, rate, area, cities, submitting]);
 
-  // ── Tokens ──────────────────────────────────────────────────────────────
-  const INK    = T.ink;
-  const MUTE   = T.inkMute;
-  const BRASS  = T.brass;
-  // DESIGN-1 · THE ONE PRIMARY (docs/review/REPORT.md §3, P4, P13): the filled buttons take Teal Ledger's
-  // primary and its ink, in the mode this page is in. The legacy theme has no token for it yet, so the two
-  // palette values are named here once. Brass stays on the chosen chips.
-  const PRIMARY    = T.isLight ? '#0B6B5A' : '#4DBBA4';
-  const ON_PRIMARY = T.isLight ? '#FFFFFF' : '#0A1A16';
-  // ── ARC OB · OB-P · THE ATTENTION TOKEN, WITNESSED NOT REMEMBERED ─────────
-  // Founder caught 「 Still needed 」 and the refusal reading too faint on the
-  // light theme. Derived from lib/vendor/theme.ts rather than adjusted by eye:
-  //
-  //   brass  '#C9A84C' on BOTH themes — measures 2.05:1 on Editorial Paper
-  //   metal  '#826A27' on light (4.66:1), corrected FOR THAT EXACT REASON
-  //   caution '#9B5E22' on light (4.68:1) / '#E0A870' on dark (8.47:1)
-  //
-  // I had reached for `brass`, which is the BRASS CONTROL colour and is held
-  // identical across themes on purpose — the gold button below is its correct
-  // use. As TEXT on a cream page it renders at 2:1, which is not dim, it is
-  // nearly invisible, and F-09.3 already ruled the brass mark is NEVER body
-  // text. The estate had the right token the whole time.
-  //
-  // CAUTION, not CRITICAL: theme.ts defines caution as 「 pending, attention, a
-  // soft warning 」 and critical as 「 overdue, lost, destructive 」. A field the
-  // vendor has not filled in yet is pending, not destroyed, and dressing an
-  // unfinished form in the destructive colour would teach the palette to lie
-  // the first time something genuinely IS destructive.
-  const ATTN   = T.caution;
-  // THE BRASS MARK, THEME-CORRECTED. `metal` is what theme.ts calls 「 the brass
-  // mark — rules, badges, marks 」 and it is the SAME hue as brass, moved only in
-  // lightness so it survives a cream page (#826A27, 4.66:1) instead of dissolving
-  // into it (#C9A84C, 2.05:1). The eyebrow and the TDW link are MARKS, so they
-  // keep the brass identity and gain the legibility. Found by the bench, not by
-  // eye: cell 5b.2 caught three brass-as-text sites this patch had missed.
-  const METAL  = T.metal;
-  const BORDER = T.cardBorder;
-  const BG     = T.cardBg;
-
-  const inp: React.CSSProperties = {
-    width: '100%', background: 'transparent',
-    border: 'none', borderBottom: `1px solid ${BORDER}`,
-    outline: 'none',
-    fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)',
-    fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: INK,
-    padding: '8px 0', marginBottom: 20, boxSizing: 'border-box',
-  };
-  const lbl: React.CSSProperties = {
-    fontFamily: 'var(--font-jost, system-ui, sans-serif)',
-    fontWeight: 200, fontSize: '0.8125rem', letterSpacing: '0.22em',
-    textTransform: 'uppercase', color: MUTE,
-    display: 'block', marginBottom: 6,
-  };
-
-  // THE MISSING MARKER — rendered from the server's missing[], never from a
-  // local rule about which boxes are empty. A field the server has not asked
-  // for does not wear this, even if it looks blank here.
-  const Label = ({ text, field }: { text: string; field: string }) => (
-    <label style={lbl}>
-      {text}
-      {missing.includes(field) && (
-        <span style={{ color: ATTN, marginLeft: 8, letterSpacing: '0.14em' }}>Still needed</span>
-      )}
-    </label>
-  );
-
-  const Toast = toast ? (
-    <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'rgba(201,168,76,0.12)', border: `0.5px solid ${BRASS}`, borderRadius: 100, padding: '10px 20px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontSize: '1rem', lineHeight: 1.5, color: ATTN, whiteSpace: 'nowrap', zIndex: 99 }}>
-      {toast}
-    </div>
-  ) : null;
+  // CE-47 L4 (FE-7), veto 54: the old hand-set colours (and the Label and toast that used them) are gone; the toast
+  // draws from the theme's tokens on this page's scope (.ob-toast below).
+  const Toast = toast ? <div className="ob-toast" role="status">{toast}</div> : null;
 
   if (loading) {
     return <div style={{ position: 'fixed', inset: 0, background: T.headerBg }} aria-busy="true" />;
   }
 
   // ── Done screen ──────────────────────────────────────────────────────────
+  // CE-47 L4 (FE-7), veto 54: the app's own type and tokens (scopeCss + typeCss onto this page's scope); no hand-set
+  // faces, no literal colour (R-42.6).
+  const mode = T.isLight ? 'light' : 'dark';
+  const css = scopeCss('.ob2') + typeCss('.ob2') + RECORD_CSS + `
+.ob2{min-height:100dvh;background:var(--atelier-page-bg);color:var(--atelier-ink);padding:32px 16px 48px;box-sizing:border-box}
+.ob-in{max-width:420px;margin:0 auto;display:flex;flex-direction:column}
+.ob-brand{margin:0 0 24px;font:500 1.25rem/1.2 var(--font-brand),Georgia,serif;color:var(--atelier-ink)}
+.ob-h{margin:0 0 4px;font:var(--wl-t1);color:var(--atelier-ink)}
+.ob-sub{margin:0 0 24px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.ob-lbl{display:flex;justify-content:space-between;margin:16px 0 8px;font:var(--wl-t5);color:var(--atelier-ink-mute)}
+.ob-need{color:var(--role-caution)}
+.ob-f{box-sizing:border-box;width:100%;min-height:48px;padding:12px 16px;border:1px solid var(--atelier-input-border);border-radius:12px;background:var(--atelier-input-bg);color:var(--atelier-ink);font:var(--wl-tn)}
+.ob-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ob-chip{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--atelier-card-border);background:transparent;color:var(--atelier-ink);font:var(--wl-t4)}
+.ob-chip.on{background:var(--role-primary);border-color:var(--role-primary);color:var(--role-on-primary)}
+.ob-refusal{margin:0 0 16px;padding:12px 16px;border:1px solid var(--role-caution);border-radius:12px;font:var(--wl-t4);color:var(--role-caution)}
+.ob-go{margin-top:32px}
+.ob-toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:99;padding:10px 20px;border:1px solid var(--role-caution);border-radius:999px;background:var(--atelier-card-bg);color:var(--role-caution);font:var(--wl-t4);white-space:nowrap}
+`;
   if (done) {
     return (
-      <div style={{ position: 'fixed', inset: 0, background: T.headerBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px' }}>
-        {Toast}
-        <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.75rem', lineHeight: 1.5, color: INK, margin: '0 0 8px', textAlign: 'center' }}>
-          You&apos;re all set, {name.split(' ')[0]}.
-        </p>
-        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: '1rem', color: MUTE, textAlign: 'center', lineHeight: 1.6, margin: '0 0 28px', maxWidth: 320 }}>
-          Your PA is ready. Share your TDW link — that&apos;s where clients message you.
-        </p>
-        {tdwLink && (
-          <div style={{ background: BG, border: `0.5px solid ${BORDER}`, borderRadius: 12, padding: '16px 20px', width: '100%', maxWidth: 360, marginBottom: 24 }}>
-            <p style={{ ...lbl, marginBottom: 8 }}>Your TDW link</p>
-            <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: METAL, letterSpacing: '0.04em', wordBreak: 'break-all', margin: 0 }}>
-              {tdwLink}
-            </p>
-            <button
-              onClick={() => { navigator.clipboard.writeText(tdwLink); showToast('Copied!'); }}
-              style={{ marginTop: 12, background: 'transparent', border: `0.5px solid ${BORDER}`, borderRadius: 6, padding: '6px 14px', fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 300, fontSize: '0.8125rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: MUTE, cursor: 'pointer' }}
-            >
-              Copy link
-            </button>
-          </div>
-        )}
-        <button
-          onClick={() => router.replace('/vendor')}
-          style={{ width: '100%', maxWidth: 360, height: 52, background: PRIMARY, border: 'none', borderRadius: 12, fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 600, fontSize: '0.9375rem', color: ON_PRIMARY, cursor: 'pointer' }}
-        >
-          Open your studio →
-        </button>
+      <div className="ob2" data-wl-mode={mode}><style>{css}</style>
+        <div className="ob-in">
+          <p className="ob-brand">{OB.brand}</p>
+          <h1 className="ob-h">{OB.doneTitle(name.split(' ')[0])}</h1>
+          <p className="ob-sub">{OB.doneLine}</p>
+          {tdwLink ? (<><p className="ob-lbl">{OB.linkLabel}</p><CopyBox text={tdwLink.replace(/^https?:\/\//, '')} copyValue={tdwLink} label={OB.copy} copied={OB.copied} /></>) : null}
+          <button type="button" className="rp-next ob-go" onClick={() => router.replace('/vendor')}>{OB.open}</button>
+        </div>
       </div>
     );
   }
-
-  // ── The six-box form ─────────────────────────────────────────────────────
   return (
-    <div style={{ position: 'fixed', inset: 0, background: T.headerBg, overflowY: 'auto' }}>
+    <div className="ob2" data-wl-mode={mode}><style>{css}</style>
       {Toast}
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: 'calc(env(safe-area-inset-top, 0px) + 40px) 28px calc(env(safe-area-inset-bottom, 0px) + 40px)' }}>
-
-        <p style={{ fontFamily: 'var(--font-jost, system-ui, sans-serif)', fontWeight: 200, fontSize: '0.8125rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: METAL, margin: '0 0 12px' }}>
-          The Dream Wedding
-        </p>
-        <p style={{ fontFamily: 'var(--font-cormorant, Georgia, serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.75rem', color: INK, lineHeight: 1.15, margin: '0 0 6px' }}>
-          Let&apos;s set up your studio.
-        </p>
-        <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: '1rem', color: MUTE, lineHeight: 1.6, margin: '0 0 36px' }}>
-          Two minutes. Your clients will use this to reach you.
-        </p>
-
-        {/* THE SERVER'S REFUSAL — verbatim, above the boxes it is about */}
-        {refusal && (
-          <p style={{ fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)', fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: ATTN, background: T.cardBg, border: `0.5px solid ${ATTN}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 28px' }}>
-            {refusal}
-          </p>
-        )}
-
-        <Label text="Your name" field="name" />
-        <input value={name} onChange={(e) => setName(e.target.value)} style={inp} />
-
-        <Label text="Studio or business name" field="business_name" />
-        <input value={businessName} onChange={(e) => setBusiness(e.target.value)} style={inp} />
-
-        {/* THE PICKER — built from allowed[], never from a list held here */}
-        <Label text="What you do" field="category" />
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-          {allowed.map((token) => (
-            <button
-              key={token}
-              onClick={() => setCategory(token)}
-              style={{
-                background: category === token ? BRASS : 'transparent',
-                border: `0.5px solid ${category === token ? BRASS : BORDER}`,
-                borderRadius: 100, padding: '8px 14px', cursor: 'pointer',
-                fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)',
-                fontWeight: 300, fontSize: '1rem', lineHeight: 1.2,
-                color: category === token ? '#0C0A09' : INK,
-                transition: 'all 150ms ease',
-              }}
-            >
-              {labelFor(token)}
-            </button>
-          ))}
-        </div>
-
-        <Label text="Based in" field="city" />
-        <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="e.g. Mumbai" style={inp} />
-
-        <Label text="Your starting price" field="starting_price" />
-        <input value={rate} onChange={(e) => setRate(e.target.value)} placeholder="e.g. 80,000" style={inp} />
-
-        <Label text="Where you work" field="service_area" />
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-          {SERVICE_AREAS.map(({ token, label }) => (
-            <button
-              key={token}
-              onClick={() => setArea(token)}
-              style={{
-                background: area === token ? BRASS : 'transparent',
-                border: `0.5px solid ${area === token ? BRASS : BORDER}`,
-                borderRadius: 100, padding: '8px 14px', cursor: 'pointer',
-                fontFamily: 'var(--font-dm-sans, system-ui, sans-serif)',
-                fontWeight: 300, fontSize: '1rem', lineHeight: 1.2,
-                color: area === token ? '#0C0A09' : INK,
-                transition: 'all 150ms ease',
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {area === 'select_cities' && (
-          <>
-            <label style={lbl}>Which cities</label>
-            <input value={cities} onChange={(e) => setCities(e.target.value)} placeholder="Add a city" style={inp} />
-          </>
-        )}
-
-        {/* ── THE HELPER LINE IS CUT — founder ruling, 2026-08-13 ───────────
-            It said 「 Your clients tap this to reach your PA. Becomes your TDW
-            link. 」 and both halves were false. Nobody taps an Instagram handle:
-            generateHandle strips the @, drops non-alphanumerics, caps at 30 and
-            uses the result as the routing_handle SLUG — the client taps the TDW
-            link, a different string. And 「 Becomes your TDW link 」 holds only on
-            a FIRST run, because generateHandle returns any existing handle
-            unchanged (src/api/vendor/onboarding.js:129), so a returning vendor
-            can type anything here and her link will not move. Witnessed live on
-            the walk: the founder left this blank and still holds DEV440.
-
-            CUT, NOT REWRITTEN. Removing a false sentence is a subtraction from a
-            vetoed byte; minting a replacement is the founder's pen. The label
-            alone is unambiguous, and the TDW link already gets its own explained
-            block on the done screen — which is where the explanation belongs,
-            next to the thing it describes. */}
-        <label style={lbl}>Instagram handle</label>
-        <input
-          value={igHandle}
-          onChange={(e) => setIgHandle(e.target.value.replace(/\s/g, ''))}
-          placeholder="@yourhandle"
-          style={inp}
-        />
-
-
-        <button
-          onClick={submit}
-          disabled={submitting}
-          style={{
-            width: '100%', height: 52, borderRadius: 100, border: 'none',
-            cursor: submitting ? 'default' : 'pointer',
-            // DESIGN-1: the app's one primary, not gold. The old dark ink on light brass measured 4.13.
-            background: submitting ? `color-mix(in srgb, ${PRIMARY} 40%, transparent)` : PRIMARY,
-            color: ON_PRIMARY,
-            fontFamily: 'var(--font-jost, system-ui, sans-serif)',
-            fontWeight: 400, fontSize: '0.8125rem', letterSpacing: '0.2em', textTransform: 'uppercase',
-            transition: 'all 200ms ease',
-          }}
-        >
-          {submitting ? 'Setting up…' : 'Get started →'}
-        </button>
-
+      <div className="ob-in">
+        <p className="ob-brand">{OB.brand}</p>
+        <h1 className="ob-h">{OB.title}</h1>
+        <p className="ob-sub">{OB.sub}</p>
+        {refusal ? <p className="ob-refusal">{refusal}</p> : null}
+        <Label text={OB.name} field="name" missing={missing} />
+        <input className="ob-f" value={name} onChange={(e) => setName(e.target.value)} />
+        <Label text={OB.business} field="business_name" missing={missing} />
+        <input className="ob-f" value={businessName} onChange={(e) => setBusiness(e.target.value)} />
+        <Label text={OB.craft} field="category" missing={missing} />
+        <div className="ob-chips">{allowed.map((token) => (
+          <button key={token} type="button" className={'ob-chip' + (category === token ? ' on' : '')} aria-pressed={category === token} onClick={() => setCategory(token)}>
+            {labelFor(token)}
+          </button>))}</div>
+        <Label text={OB.city} field="city" missing={missing} />
+        <input className="ob-f" value={city} onChange={(e) => setCity(e.target.value)} placeholder={OB.cityHint} />
+        <Label text={OB.price} field="starting_price" missing={missing} />
+        <input className="ob-f" value={rate} onChange={(e) => setRate(e.target.value)} placeholder={OB.priceHint} inputMode="numeric" />
+        <Label text={OB.area} field="service_area" missing={missing} />
+        <Chips items={SERVICE_AREAS} on={area} pick={setArea} />
+        {area === 'select_cities' ? (<><label className="ob-lbl">{OB.cities}</label>
+          <input className="ob-f" value={cities} onChange={(e) => setCities(e.target.value)} placeholder={OB.citiesHint} /></>) : null}
+        <label className="ob-lbl">{OB.ig}</label>
+        <input className="ob-f" value={igHandle} onChange={(e) => setIgHandle(e.target.value)} placeholder={OB.igHint} />
+        <button type="button" className="rp-next ob-go" disabled={submitting} onClick={() => void submit()}>{submitting ? OB.setting : OB.go}</button>
       </div>
     </div>
   );

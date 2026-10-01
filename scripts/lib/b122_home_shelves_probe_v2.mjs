@@ -164,21 +164,24 @@ try {
     await shot('rooms');
   } else if (SCENARIO === 'hub') {
     await p.goto(`http://localhost:${PORT}/vendor/support`, { waitUntil: 'domcontentloaded', timeout: 90000 });
-    await waitFor(() => p.evaluate(() => !!document.querySelector('.sol-group')), 60000);
+    // CE-47 L4 (FE-7), BY LABEL: the hub draws in RoomRows (vetoes 40 to 44): a group is [data-hub-group] with its head
+    // (.fr-h); a row is a link (.fr-row, its href the room's route) with its title (.fr-t) and line (.fr-f); no chip (C1);
+    // the footer's human control is [data-support-action]. What each cell reads is unchanged.
+    await waitFor(() => p.evaluate(() => !!document.querySelector('[data-hub-group]')), 60000);
     await settle(2500);
     out.chrome = await chrome();
     out.hub = await p.evaluate(() => { const icons = (el) => [...el.querySelectorAll('svg[data-icon]')].map((sv) => ({ k: sv.getAttribute('data-icon'), html: sv.innerHTML, color: getComputedStyle(sv).color })); return ({
-      groups: [...document.querySelectorAll('section.sol-group')].map((g) => ({
-        name: (g.querySelector('.sol-eyebrow') || {}).textContent || null,
-        rows: [...g.querySelectorAll('a.sol-row')].map((r) => ({
+      groups: [...document.querySelectorAll('[data-hub-group]')].map((g) => ({
+        name: (g.querySelector('.fr-h') || {}).textContent || null,
+        rows: [...g.querySelectorAll('a.fr-row')].map((r) => ({
           icons: icons(r),
-          label: (r.querySelector('.sol-rowlabel') || {}).textContent || null,
-          desc: (r.querySelector('.sol-rowdesc') || {}).textContent || null,
+          label: (r.querySelector('.fr-t') || {}).textContent || null,
+          desc: (r.querySelector('.fr-f') || {}).textContent || null,
           href: r.getAttribute('href'),
           chip: (r.querySelector('[data-state]') || { getAttribute: () => null }).getAttribute('data-state'),
         })),
       })),
-      footer: !!document.querySelector('.wl-supportaction'),
+      footer: !!document.querySelector('[data-support-action] .fr-row'),
     }); });
     await shot('hub');
   } else if (SCENARIO === 'today') {
@@ -192,26 +195,10 @@ try {
     // not deleted"), so the pins scene reads them where they now stand, above the rooms directory on /vendor/rooms. The
     // anchor they stand above is the directory (.wl-bands), which took the place Today's masthead held; Home has none.
     await p.goto(`http://localhost:${PORT}/vendor/more`, { waitUntil: 'domcontentloaded', timeout: 90000 });
-    if (trade === 'slow') {
-      await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-more') && !!document.querySelector('.wl-pins')), 60000);
-      await settle(600);
-      out.early = await p.evaluate(() => ({
-        mastTop: Math.round(document.querySelector('.wl-more').getBoundingClientRect().top),
-        pinsH: Math.round(document.querySelector('.wl-pins').getBoundingClientRect().height),
-        waiting: document.querySelector('.wl-pins').getAttribute('aria-busy') === 'true',
-        links: document.querySelectorAll('.wl-pins a.wl-pin').length,
-      }));
-      await waitFor(() => p.evaluate(() => document.querySelectorAll('.wl-pins a.wl-pin').length === 6), 20000);
-      await settle(600);
-      out.late = await p.evaluate(() => ({
-        mastTop: Math.round(document.querySelector('.wl-more').getBoundingClientRect().top),
-        pinsH: Math.round(document.querySelector('.wl-pins').getBoundingClientRect().height),
-        waiting: document.querySelector('.wl-pins').getAttribute('aria-busy') === 'true',
-        links: document.querySelectorAll('.wl-pins a.wl-pin').length,
-      }));
-    }
-    await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-pins') || !!document.querySelector('.wl-more')), 60000);
-    await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-pins')), 20000);
+    // RE-AIMED BY LABEL (CE-47, FE-8, the chair's ruling B; the founder after his walk, 30 Sept 2026, landed by FE-5): More is
+    // the rooms in today's Rooms order with NO Pinned shelf and no Change pinned. The scene waits for More's list alone and
+    // reports what pins it finds (none is the ruled answer); the slow-load measure of the pins retired with them.
+    await waitFor(() => p.evaluate(() => !!document.querySelector('.wl-more')), 60000);
     await settle(2000);
     out.chrome = await chrome();
     out.home = await p.evaluate(() => {
@@ -221,6 +208,8 @@ try {
       const ch = document.querySelector('.wl-pinchange');
       return {
         masthead: !!mast,
+        pinCount: document.querySelectorAll('.wl-pins, a.wl-pin, .wl-pinchange, .wl-pinshead').length,
+        pinWords: /\bPinned\b|Change pinned/.test((document.querySelector('main') || document.body).innerText || ''),
         mdate: (document.querySelector('.wl-more section.wl-moregroup') || {}).textContent ? 'directory' : null,
         mastheadBeforePins: !!(mast && pins && (mast.compareDocumentPosition(pins) & Node.DOCUMENT_POSITION_FOLLOWING)),
         pinsBeforeMasthead: !!(mast && pins && (pins.compareDocumentPosition(mast) & Node.DOCUMENT_POSITION_FOLLOWING)),

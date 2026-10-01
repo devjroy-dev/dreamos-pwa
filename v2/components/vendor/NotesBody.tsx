@@ -17,6 +17,16 @@ import { useAsk } from '@/lib/worklist/askContext';
 import { Toast } from '@/v2/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchNotes, createNote, deleteNote, type OwnerNote } from '@/v2/lib/vendor/api/vendor';
+import { RECORD_CSS } from '@/v2/components/worklist/RecordPage';
+import { FR_CSS } from '@/v2/components/worklist/RoomRows';
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // FE-5's pill, in the room head (FE-8)
+// CE-47 L4 (FE-7): Notes' words, veto rows 50 to 53 as approved (NotesBody is drawn in the Notes room and the Clients tab).
+const NOTES = {
+  addPill: '+ New note',
+  deleteAsk: 'Delete this note?',
+  keepIt: 'Keep it',
+  placeholder: 'Write your note',
+} as const;
 
 const D = {
   // TDW_09 F-09.34 — COLOUR ONLY, and renamed from `border` on purpose.
@@ -47,7 +57,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 function fmtDate(iso: string): string {
-  try { return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' }); }
+  try { return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); } // CE-47 L4 (FE-7): full months (veto 50)
   catch { return ''; }
 }
 
@@ -61,6 +71,7 @@ export function NotesBody() {
   const [addOpen, setAddOpen] = useState(false);
   const [draft, setDraft]     = useState('');
   const [saving, setSaving]   = useState(false);
+  const [asking, setAsking]   = useState(false);
 
   // ── R-38.17 item 5 · THE ADD SHEET OPENS FROM THE ADDRESS ──────────────────
   //
@@ -128,13 +139,9 @@ export function NotesBody() {
 
   return (
     <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative' }}>
-      {/* CE-46 (the chair's read of the rooms, ruled 30 Sept 2026): no floating +; the add is a button at the top, doing
-          what the + did. */}
-      <div style={{ padding: '4px 16px 12px', display: 'flex' }}>
-        <button type="button" className="wl-btn" data-add-top="notes" onClick={() => setAddOpen(true)}>New note</button>
-      </div>
-      <Toast toast={toast} />
+      <Toast toast={toast} /><style>{RECORD_CSS + FR_CSS + '.fe7-clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}'}</style>
 
+      <div style={{ padding: '16px var(--slice-inset, 16px) 0' }}><RoomHeadAdd addKey="note" label={NOTES.addPill} onAdd={() => setAddOpen(true)} /></div>
       {/* Search */}
       <div style={{ padding: '16px var(--slice-inset, 16px) 12px', flexShrink: 0 }}>
         <input
@@ -160,7 +167,7 @@ export function NotesBody() {
           )}
         </div>
       ) : (
-        <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', padding: '4px var(--slice-inset, 16px) 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ /* DESIGN-1 stage 3 · not a scroller: overflowX clip (never hidden, which makes y a scroller); main scrolls */ overflowX: 'clip', padding: '4px var(--slice-inset, 16px) 24px' }}><div className="fr-group">
           {filtered.map(note => (
             // TDW_06 P7e: a paper card via the design system's own .atelier-card class, so it
             // wears each theme's card treatment (bg · border · lift · the per-theme inset
@@ -168,30 +175,13 @@ export function NotesBody() {
             // note-specific touches: a thin accent margin-rule down the left (the jotted
             // notebook cue) and compact padding + a 2-line clamp so more notes fit. Date kept,
             // quiet, in the corner — all colours are theme tokens.
-            <div key={note.id} onClick={() => setSelected(note)} className="atelier-card" style={{
-              borderLeft: '2px solid var(--atelier-accent-text)',
-              padding: '12px 12px 12px 16px',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'flex-start', gap: 12,
-            }}>
-              <div style={{
-                font: RUNG.t3,
-                flex: 1,
-                minWidth: 0,
-                color: 'var(--atelier-ink)',
-                overflowWrap: 'anywhere',   // DESIGN-1: the note is shown whole; nothing is cut at the large text setting
-              }}>{note.body}</div>
-              <span style={{
-                font: RUNG.t5,
-                letterSpacing: '0.08em',
-                color: 'var(--atelier-ink-mute)',
-                textTransform: 'uppercase',
-                flexShrink: 0,
-                paddingTop: 4,
-                whiteSpace: 'nowrap',
-              }}>{fmtDate(note.created_at)}</span>
-            </div>
+            <button type="button" key={note.id} className="fr-row" onClick={() => setSelected(note)}>
+              <span className="fr-t fe7-clamp">{note.body}</span>
+              <span className="fr-aside"><span className="fr-chev" aria-hidden="true">{'\u203A'}</span></span>
+              <span className="fr-f">{fmtDate(note.created_at)}</span>
+            </button>
           ))}
+        </div>
         </div>
       )}
 
@@ -207,7 +197,7 @@ export function NotesBody() {
           at Phase 7, and deleting the button there would take the only way to write a note
           with it. Disclosed as s-39.8: the ruling named SliceShell's carve-out and this
           component has the identical dual-tree property. */}
-      {/* CE-46: the + retired; the add sits at the top */}
+      {/* CE-47 L4 (FE-7): the floating + is the pill now (veto 50) */}
 
       {/* Detail sheet */}
       {selected && (
@@ -253,17 +243,10 @@ export function NotesBody() {
                 cursor: 'pointer',
                 color: 'var(--role-on-primary)',
               }}>Send to chat</button>
-              <button type="button" onClick={() => doDelete(selected)} disabled={saving} style={{
-                font: RUNG.t4,
-                width: '100%',
-                padding: '12px 0',
-                background: 'transparent',
-                opacity: saving ? 0.5 : 1,
-                border: '0.5px solid var(--role-critical)',
-                borderRadius: 999,
-                cursor: saving ? 'default' : 'pointer',
-                color: D.red,
-              }}>{saving ? 'Working…' : 'Delete'}</button>
+              {asking ? (<span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}><span style={{ font: RUNG.t4, color: 'var(--atelier-ink)', width: '100%' }}>{NOTES.deleteAsk}</span>
+                <button type="button" className="rp-job warn" onClick={() => { setAsking(false); void doDelete(selected); }} disabled={saving}>Delete</button>
+                <button type="button" className="rp-job" onClick={() => setAsking(false)}>{NOTES.keepIt}</button></span>)
+              : <button type="button" className="rp-job warn" onClick={() => setAsking(true)} disabled={saving}>Delete</button>}
             </div>
           </div>
         </div>
@@ -285,7 +268,7 @@ export function NotesBody() {
               <div style={{ font: RUNG.t1, color: D.cream }}>Note to self</div>
               <textarea
                 value={draft} onChange={e => setDraft(e.target.value)} autoFocus rows={4}
-                placeholder="Jot it down, just for you"
+                placeholder={NOTES.placeholder}
                 style={{ ...inputStyle, resize: 'none', minHeight: 96 }}
               />
               <button type="button" onClick={doCreate} disabled={!canSave || saving} style={{

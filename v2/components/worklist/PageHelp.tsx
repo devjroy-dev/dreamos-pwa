@@ -35,7 +35,7 @@
 // EVERY WORD COMES FROM lib/worklist/pageHelp.ts. Nothing here types a vendor-facing byte
 // except the two control labels and the target's aria-label, which live in COPY like every
 // other shell string.
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, useLayoutEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { helpFor, helpSeenKey, type HelpIcon, type PageHelp as PageHelpEntry } from '@/v2/lib/worklist/pageHelp';
@@ -55,8 +55,31 @@ type HeadOverride = { line: string | null | undefined; set: (line: string | null
 const RoomHeadOverride = createContext<HeadOverride>({ line: undefined, set: () => {} });
 export function RoomHeadProvider({ children }: { children: React.ReactNode }) {
   const [line, set] = useState<string | null | undefined>(undefined);
-  return <RoomHeadOverride.Provider value={{ line, set }}>{children}</RoomHeadOverride.Provider>;
+  const add = useRoomHeadAddState();
+  return <RoomHeadOverride.Provider value={{ line, set }}><RoomHeadAddCtx.Provider value={add}>{children}</RoomHeadAddCtx.Provider></RoomHeadOverride.Provider>;
 }
+// ── THE ROOM'S "+" (the founder, 30 Sept 2026, option B): the add lives in the room head, on the title line, right
+// side, immediately left of the "?": a compact filled pill, "+ New invoice", in flow (never fixed, so it overlaps
+// nothing). A room mounts <RoomHeadAdd> anywhere beneath the shell; the head draws it. If the title and the pill do not
+// fit on one line, the pill drops to its own line under the title, right-aligned, and the title is never truncated.
+type HeadAdd = { add: { key: string; label: string } | null; run: () => void; set: (a: { key: string; label: string } | null, run?: () => void) => void };
+const RoomHeadAddCtx = createContext<HeadAdd>({ add: null, run: () => {}, set: () => {} });
+function useRoomHeadAddState(): HeadAdd {
+  const [add, setAdd] = useState<{ key: string; label: string } | null>(null);
+  const runRef = useRef<() => void>(() => {});
+  const set = useCallback((a: { key: string; label: string } | null, run?: () => void) => { setAdd(a); runRef.current = run ?? (() => {}); }, []);
+  const run = useCallback(() => runRef.current(), []);
+  return { add, run, set };
+}
+/** A room's "+": the words after the sign, and what it does. Registered while mounted; cleared on unmount. */
+export function RoomHeadAdd({ addKey, label, onAdd }: { addKey: string; label: string; onAdd: () => void }) {
+  const { set } = useContext(RoomHeadAddCtx);
+  const fn = useRef(onAdd); fn.current = onAdd;
+  // FE-8 (CE-47): the head draws the "+" itself, so a label that already carries one ("+ New note", FE-7's rooms) gives it up here.
+  useEffect(() => { set({ key: addKey, label: label.replace(/^\+\s*/, '') }, () => fn.current()); return () => set(null); }, [addKey, label, set]);
+  return null;
+}
+
 /** Mounted by Calendar and Today only. Sets the head's line while mounted; clears it on unmount. */
 export function RoomHeadTitle({ line }: { line: string | null }) {
   const { set } = useContext(RoomHeadOverride);
@@ -98,6 +121,27 @@ function writeSeen(key: string) {
 export function RoomHead({ title }: { title: string }) {
   const pathname = usePathname() ?? '/vendor';
   const { line: override } = useContext(RoomHeadOverride);
+  const { add, run } = useContext(RoomHeadAddCtx);
+  // Does the title keep one line with the pill beside it? Measured, never guessed: the title is drawn unwrapped and, if
+  // it would overflow, the pill takes its own line under it (right-aligned) and the title wraps freely.
+  const headRef = useRef<HTMLDivElement>(null);
+  const [below, setBelow] = useState(false);
+  useLayoutEffect(() => {
+    const el = headRef.current; if (!el) return;
+    const check = () => {
+      const t = el.querySelector<HTMLElement>('[data-room-title]'); const pill = el.querySelector<HTMLElement>('[data-add-top]'); const q = el.querySelector<HTMLElement>('.wl-helpq');
+      if (!t || !pill) { setBelow(false); return; }
+      const probe = document.createElement('span'); const cs = getComputedStyle(t);
+      probe.style.cssText = `position:absolute;visibility:hidden;white-space:nowrap;font:${cs.font};letter-spacing:${cs.letterSpacing}`;
+      probe.textContent = t.textContent || ''; document.body.appendChild(probe);
+      const need = probe.getBoundingClientRect().width + pill.getBoundingClientRect().width + (q ? q.getBoundingClientRect().width : 0) + 16;
+      probe.remove();
+      setBelow(need > el.getBoundingClientRect().width);
+    };
+    check();
+    const ro = new ResizeObserver(check); ro.observe(el);
+    return () => ro.disconnect();
+  }, [add, override, title]);
   // undefined: the room's name; a string: the room's own line (F-44.219); null: no title, the "?" alone
   const headLine = override === undefined ? title : override;
   const help = helpFor(pathname);
@@ -118,8 +162,9 @@ export function RoomHead({ title }: { title: string }) {
 
   return (
     <>
-      <div className="wl-roomhead">
+      <div ref={headRef} className={'wl-roomhead' + (below ? ' wl-roomhead-below' : '')}>
         {headLine !== null ? <h1 data-room-title="" className="wl-roomtitle">{headLine}</h1> : <span className="wl-roomtitle wl-roomtitle-none" aria-hidden="true" />}
+        {add ? <button type="button" className="wl-roomadd" data-add-top={add.key} data-add-key={add.key} data-room-add={add.key} data-tap44="" onClick={run}><span aria-hidden="true">+</span> {add.label}</button> : null}
         {help && (
           <button ref={qRef} type="button" className="wl-helpq" aria-label={COPY.helpAria}
                   aria-haspopup="dialog" aria-expanded={open} data-first={first ? '1' : '0'} onClick={openCard}>
@@ -194,6 +239,15 @@ function HelpCard({ title, help, onClose, zIndex }: { title: string; help: PageH
 // inset (b140 2.7 caught the doubled 32px on the first run).
 export const PAGE_HELP_CSS = `
 .wl-roomhead{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wl-roomhead .wl-roomtitle{flex:1 1 auto}
+.wl-roomadd{position:relative;flex:none;display:inline-block;box-sizing:border-box;line-height:34px;height:36px;min-height:36px;padding:0 14px;margin:8px 0;border-radius:var(--wl-btn-r);border:1px solid var(--role-primary);background:var(--role-primary);color:var(--role-on-primary);font:var(--wl-tb);cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.wl-roomadd::before{content:"";position:absolute;left:0;right:0;top:-4px;bottom:-4px}   /* drawn at 36, touched at 44 (the chair's ruling) */
+/* FE-8 (CE-47): the sign and the words sit on one text line (inline-block, not flex), so the pill reads "+ New note" as one
+   line of text to every seat's test and to a screen reader, never "+" and the words as two lines. */
+.wl-roomadd:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:3px}
+.wl-roomhead-below{flex-wrap:wrap}
+.wl-roomhead-below .wl-roomtitle{flex:1 1 calc(100% - 60px)}
+.wl-roomhead-below .wl-roomadd{order:3;margin:4px 0 8px auto}
 .wl-roomtitle{font:var(--wl-t1);color:var(--atelier-ink);margin:0;padding:16px 0 8px;min-width:0}
 .wl-roomtitle-none{padding:0;flex:1}
 .wl-helpq{width:44px;height:44px;min-width:44px;min-height:44px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;margin:0 -11px 0 0;padding:0;touch-action:manipulation}

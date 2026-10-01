@@ -131,6 +131,7 @@ const ok = (n, c, d) => { if (c) { pass++; console.log('  ok   ' + n); } else { 
 const sec = (t) => console.log('\n' + t);
 
 for (const rel of [PIECES, SOLC, THEME, SHELL, DPAGE, NPAGE, DCOPY, NCOPY]) {
+
   if (!has(rel)) { console.log('REFUSED — ' + rel + ' is absent'); process.exit(3); }
 }
 
@@ -190,10 +191,14 @@ const pieces = load(PIECES, { 'next/link': STUBS['next/link'] });
 const piecesCss = server.renderToStaticMarkup(h(pieces.SolutionsStyles))
   .replace(/^<style>|<\/style>$/g, '').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
 const render = (rel) => server.renderToStaticMarkup(h(load(rel, STUBS).default));
+// CE-47 L4 (FE-7), BY LABEL: Open dates & rates was reworked to its approved board (veto rows 1 to 4; the chair's 4c):
+// no eyebrow, no sub-head, no bullet list, no Suggest rates; one group of three rows, the two not yet open reading
+// R-46.14's "Coming soon". Its old hierarchy checks below now walk Your own number alone (unchanged; out of the sprint);
+// Open dates' own checks follow the walk (§1d).
 const SCREENS = [
-  { key: 'dates', rel: DPAGE, aside: true },
   { key: 'number', rel: NPAGE, aside: false },
 ].map((s) => ({ ...s, html: render(s.rel) }));
+const DATES_HTML = render(DPAGE);
 const surfaceOf = (html) => (html.match(/<section class="sol-surface">([\s\S]*?)<\/section>/) || [])[1] || '';
 const topLevel = (inner) => {
   // the section's direct children, in order, as tag.class
@@ -255,6 +260,16 @@ sec('§5 · COPY.canHead has one home and both screens read it');
   // FE-5 (landing list 5.2): the v2 tree is walked (the classic tree keeps its own copy, which b77 proves)
   ['v2/app', 'v2/components', 'v2/lib', 'v2/hooks'].forEach((d) => has(d) && walk(d));
   ok('the byte is written once, in v2/lib/solutions/copy.ts', hits.length === 1 && hits[0] === SOLC, hits.join(', '));
+{
+  // §1d · Open dates & rates as approved (CE-47 L4, FE-7): from the same server render the old walk read.
+  const R = load(DCOPY).DATES_ROWS, D0 = load(DCOPY).DATES, html = DATES_HTML, src = strip(read(DPAGE));
+  const rowTitles = [...html.matchAll(/<span class="fr-t">([^<]*)<\/span>/g)].map((m) => m[1].replace(/&amp;/g, '&'));
+  const pills = [...html.matchAll(/<span class="fr-pill soon">([^<]*)<\/span>/g)].map((m) => m[1]);
+  ok('dates: the lede reads DATES.lede, then one group of three rows', html.includes('<p class="fr-lede">' + D0.lede + '</p>') && rowTitles.join('|') === [R.rowChecks, R.rowOffer, R.rowRates].join('|'), rowTitles.join('|'));
+  ok('dates: the two not yet open read "Coming soon" (R-46.14)', pills.length === 2 && pills.every((p) => p === R.comingSoon), pills.join('|'));
+  ok('dates: no eyebrow, no sub-head, no bullet list, no Suggest rates', !/sol-kicker|sol-subhead|sol-can/.test(html) && !html.includes(D0.cta || 'Suggest rates'));
+  ok('dates: its words are READ from their homes, none typed', /DATES_ROWS\.rowChecks/.test(src) && /DATES\.lede/.test(src) && !/<Row title="/.test(src));
+}
   for (const s of SCREENS) ok(s.key + ' reads {COPY.canHead}', /<p className="sol-subhead">\{COPY\.canHead\}<\/p>/.test(strip(read(s.rel))));
 }
 

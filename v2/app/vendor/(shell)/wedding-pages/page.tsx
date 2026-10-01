@@ -44,6 +44,10 @@ import { fetchEvents } from '@/v2/lib/vendor/api/vendor';
 import { istPlusDaysISO } from '@/lib/vendor/istDay';
 import { API } from '@/v2/lib/solutions/routes';
 import { WP, ROLE_OPTIONS } from '@/lib/worklist/weddingPages';
+import { Body, Group, Row as FRow, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // FE-5's pill, in the room head (FE-8)
+import { RECORD_CSS } from '@/v2/components/worklist/RecordPage';
+import { RECORD } from '@/v2/lib/worklist/record';
 
 // F-40.68 / R-G11c.11 · THE PICKER'S PAST FLOOR, one home, one reader.
 // A constant rather than a literal at the call site because a bare `2000-01-01`
@@ -107,52 +111,38 @@ function WeddingPagesScreen({ session }: { session: { id: string } }) {
   const published = (rows ?? []).filter((w) => w.visibility === 'published');
   const drafts    = (rows ?? []).filter((w) => w.visibility !== 'published');
 
+  // CE-47 L4 (FE-7): the pill replaces the floating +; two groups of rows; a row opens the wedding as a page (A1).
+  const stateOf = (w: Wedding) => (w.visibility === 'published' && w.couple_consent ? { text: WP.stateLive, tone: 'ok' as const }
+    : w.visibility === 'published' ? { text: WP.stateWaiting, tone: 'warn' as const } : { text: WP.stateNotPublished, tone: 'soon' as const });
+  const facts = (w: Wedding) => [w.venue, w.city].filter(Boolean).join(' \u00b7 ');
+  if (sheet === 'credits' && active) return (
+    <WorklistShell title={active.title}>
+      <CreditsSheet wedding={active} reelSeed={reel} onClose={() => setSheet('none')} onChanged={() => { void load(); }} />
+      <WeddingPagesStyles /><style>{FR_CSS + RECORD_CSS + WP_PAGE_CSS}</style>
+    </WorklistShell>
+  );
   return (
     <WorklistShell title={WP.roomTitle}>
-      {/* CE-46 (the chair's read of the rooms, ruled 30 Sept 2026): no floating +; the add is a button at the top, doing
-          what the + did. */}
-      <div style={{ padding: '4px 16px 12px', display: 'flex' }}>
-        <button type="button" className="wl-btn" data-add-top="wedding-pages" onClick={() => setSheet('create')}>New wedding page</button>
-      </div>
-      {rows === null ? <div style={{ flex: 1 }} aria-busy="true" /> : null}
-
-      {rows !== null && rows.length === 0 ? (
-        // TWO LINES AND NO CONTROL. New wedding page, at the top (CE-46), is the way in, and a
-        // second button here would be a second home for one action.
-        <div className="wp-empty">
-          <span className="wp-eh">{WP.emptyHead}</span>
-          <span className="wp-ep">{WP.emptyBody}</span>
-        </div>
-      ) : null}
-
-      {rows !== null && rows.length > 0 ? (
-        <div className="wp-room">
-          {published.length ? (
-            <Section label={WP.sectionPublished} count={published.length}>
-              {published.map((w) => <Row key={w.id} w={w} onOpen={() => { setActive(w); setSheet('credits'); }} />)}
-            </Section>
-          ) : null}
-          {drafts.length ? (
-            <Section label={WP.sectionDraft} count={drafts.length}>
-              {drafts.map((w) => <Row key={w.id} w={w} onOpen={() => { setActive(w); setSheet('credits'); }} />)}
-            </Section>
-          ) : null}
-        </div>
-      ) : null}
-
-      {/* CE-46: the + retired; the add sits at the top */}
-
+      <Body>
+        <p className="fr-lede">{WP.emptyBody}</p>
+        <RoomHeadAdd addKey="wedding-page" label={WP.addPill} onAdd={() => setSheet('create')} />
+        {rows !== null && rows.length === 0 ? <><Head text={WP.sectionPublished} /><p className="fr-empty">{WP.emptyHead}</p></> : null}
+        {published.length ? <><Head text={WP.sectionPublished} count={published.length} /><Group>
+          {published.map((w) => <FRow key={w.id} title={w.title} facts={facts(w)} pill={stateOf(w)} chevron onClick={() => { setActive(w); setSheet('credits'); }} />)}
+        </Group></> : null}
+        {drafts.length ? <><Head text={WP.sectionDraft} count={drafts.length} /><Group>
+          {drafts.map((w) => <FRow key={w.id} title={w.title} facts={facts(w)} pill={stateOf(w)} chevron onClick={() => { setActive(w); setSheet('credits'); }} />)}
+        </Group></> : null}
+      </Body>
       {sheet === 'create' ? (
         <CreateSheet vendorId={session.id} onClose={() => setSheet('none')} onSaved={() => { setSheet('none'); void load(); }} />
       ) : null}
-      {sheet === 'credits' && active ? (
-        <CreditsSheet wedding={active} reelSeed={reel} onClose={() => setSheet('none')} onChanged={() => { void load(); }} />
-      ) : null}
-
-      <WeddingPagesStyles />
+      <WeddingPagesStyles /><style>{FR_CSS + RECORD_CSS + WP_PAGE_CSS}</style>
     </WorklistShell>
   );
 }
+
+const WP_PAGE_CSS = `.wp-ask{margin:12px 0 0;padding:12px 16px;border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg)}.wp-askline{margin:0 0 8px;font:var(--wl-tb);color:var(--atelier-ink)}.wp-askrow{display:flex;gap:8px}.wp-page{display:flex;flex-direction:column}.wp-soon{color:var(--atelier-ink-mute)!important;align-self:flex-start}.wp-page .wp-sec{font:var(--wl-t2);color:var(--atelier-ink);margin:0 0 8px}.wp-page .wp-g13{padding-top:24px}.wp-page .wp-upgrid{margin-top:0}.wp-addcard{margin-top:12px;padding:16px;border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg);display:flex;flex-direction:column}.wp-soon{opacity:.6}`;
 
 function Section({ label, count, children }: { label: string; count: number; children: React.ReactNode }) {
   return (
@@ -333,6 +323,7 @@ function CreditsSheet(
   { wedding: Wedding; reelSeed: { reel_enabled: boolean } | null; onClose: () => void; onChanged: () => void },
 ) {
   const [credits, setCredits] = useState<Credit[] | null>(null);
+  const [askPhoto, setAskPhoto] = useState<string | null>(null);   // CE-47 L4 (FE-7), veto 21: the × asks first
   const [photos, setPhotos] = useState<Photo[] | null>(null);
   const [w, setW] = useState<Wedding>(wedding);
   const [role, setRole] = useState(ROLE_OPTIONS[0].key);
@@ -591,8 +582,13 @@ function CreditsSheet(
 
   const live = w.visibility === 'published' && w.couple_consent;
 
+  const status = live ? WP.pageIsLive : w.visibility === 'published' ? WP.waitingOnClient : WP.stateNotPublished;
   return (
-    <Sheet title={WP.creditsTitle} onClose={onClose}>
+    <Body><div className="wp-page">
+      <button type="button" className="rp-back" onClick={onClose}>{'\u2039'} {RECORD.back(WP.roomTitle)}</button>
+      <p className="rp-status">{status}</p>
+      {!live && w.visibility !== 'published' ? <button type="button" className="rp-next" disabled={busy} onClick={publish}>{WP.publish}</button> : null}
+      <h2 className="rp-h" style={{ marginTop: 16 }}>{WP.photos}</h2>
       {/* ── PHOTOGRAPHS — F-40.57's cure ────────────────────────────────────
           The room mounted no upload control though both doors existed. This
           sheet IS the wedding record — a row's only action opens it, and there
@@ -609,7 +605,6 @@ function CreditsSheet(
           the scroll on a phone and the estate has no drag idiom to inherit;
           R-G12.12 was narrowed so no order door ships without a caller. Order
           changes by remove-and-re-add until a gesture is ruled (F-40.83). */}
-      <span className="wp-fl">{WP.photos}</span>
       {photos !== null && photos.length === 0 && !upBusy
         ? <div className="wp-upempty">{WP.photosEmpty}</div> : null}
       <div className="wp-upgrid">
@@ -618,7 +613,7 @@ function CreditsSheet(
             <img className="wp-upimg" src={p.url} alt="" />
             {i === 0 ? <span className="wp-uphero">{WP.photoHero}</span> : null}
             <button type="button" className="wp-upx" aria-label={WP.photoRemove}
-                    disabled={Boolean(upBusy)} onClick={() => void removePhoto(p.id)}>&times;</button>
+                    disabled={Boolean(upBusy)} aria-pressed={askPhoto === p.id} onClick={() => setAskPhoto(p.id)}>&times;</button>
           </div>
         ))}
         {/* The label IS the control — a hidden input plus a styled label is the
@@ -631,9 +626,24 @@ function CreditsSheet(
                  onChange={(e) => { void upload(e.target.files); e.target.value = ''; }} />
         </label>
       </div>
+      {askPhoto ? (
+        <div className="wp-ask" role="group" aria-label={WP.removePhotoAsk}>
+          <p className="wp-askline">{WP.removePhotoAsk}</p>
+          <div className="wp-askrow">
+            <button type="button" className="rp-job warn" disabled={Boolean(upBusy)} onClick={() => { const id = askPhoto; setAskPhoto(null); void removePhoto(id); }}>{WP.photoRemove}</button>
+            <button type="button" className="rp-job" onClick={() => setAskPhoto(null)}>{WP.keepIt}</button>
+          </div>
+        </div>
+      ) : null}
       {upBusy ? <p className="wp-upbusy">{WP.photosAdding(upBusy.done + 1, upBusy.total)}</p> : null}
       {upErr ? <p className="wp-uperr" role="status">{WP.photoFailed}</p> : null}
 
+
+      <section className="rp-sec"><h2 className="rp-h">{WP.creditsTitle}</h2>
+      <Group>{(credits ?? []).map((c) => (
+        <FRow key={c.id} title={c.name || ''} facts={ROLE_OPTIONS.find((r) => r.key === c.role)?.label ?? c.role}
+          pill={c.status === 'claimed' ? { text: WP.stateClaimed, tone: 'ok' as const } : c.status === 'declined' ? { text: WP.stateDeclined, tone: 'bad' as const } : { text: WP.stateInvited, tone: 'warn' as const }} />))}</Group>
+      <div className="wp-addcard">
       <span className="wp-fl">{WP.fieldRole}</span>
       <select className="wp-fi wp-pick" value={role} onChange={(e) => setRole(e.target.value)}>
         {ROLE_OPTIONS.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
@@ -643,22 +653,7 @@ function CreditsSheet(
       <span className="wp-fl">{WP.fieldName}</span>
       <input className="wp-fi" value={name} onChange={(e) => setName(e.target.value)} />
       <button type="button" className="wp-btn" disabled={busy} onClick={add}>{WP.add}</button>
-
-      <div className="wp-clist">
-        {(credits ?? []).map((c) => (
-          <div className="wp-crow" key={c.id}>
-            <span>
-              <span className="wp-crole">{ROLE_OPTIONS.find((r) => r.key === c.role)?.label ?? c.role}</span>
-              <span className="wp-cname">{c.name}</span>
-            </span>
-            {/* NO EDIT CONTROL ON ANOTHER VENDOR'S CREDIT — absent, not disabled.
-                master §4 G1.1's own refusal, and s-G11.2's shape. */}
-            <span className={c.status === 'claimed' ? 'wp-cstate on' : c.status === 'declined' ? 'wp-cstate no' : 'wp-cstate'}>
-              {c.status === 'claimed' ? WP.stateClaimed : c.status === 'declined' ? WP.stateDeclined : WP.stateInvited}
-            </span>
-          </div>
-        ))}
-      </div>
+      </div></section>
 
       {/* ── THE CONSENT ASK — F-40.49's whole reason, F-40.103's cure ──────
           Offered ONLY when this page has no couple on TDW. A page whose couple
@@ -666,12 +661,12 @@ function CreditsSheet(
           a second door onto one decision is the disease the writer-set census
           exists to prevent — so the field is ABSENT, not disabled. */}
       {w.couple_id ? null : (
-        <div className="wp-consent">
-          <span className="wp-fl">{WP.consentLabel}</span>
+        <section className="rp-sec wp-consent"><h2 className="rp-h">{WP.permissionHead}</h2>
+          <span className="wp-fl">{WP.clientNumber}</span>
           <input className="wp-fi" value={consentPhone} inputMode="tel"
                  onChange={(e) => setConsentPhone(e.target.value)} />
           <button type="button" className="wp-btn" disabled={busy || !consentPhone.trim()}
-                  onClick={() => void askConsent()}>{WP.consentSend}</button>
+                  onClick={() => void askConsent()}>{WP.askPermission}</button>
           {/* The link is shown whether or not the message went — it is the thing
               she pastes while the send is dark, and it is the honest artefact
               either way. `consentSent` reports the door's own answer, never an
@@ -686,7 +681,7 @@ function CreditsSheet(
                       onClick={() => void resendConsent()}>{WP.consentResend}</button>
             </>
           ) : null}
-        </div>
+        </section>
       )}
 
       {/* F-40.77's byte, under the controls it belongs to. */}
@@ -737,27 +732,12 @@ function CreditsSheet(
         <div className="wp-g13">
           <div className="wp-sec">{WP.reelLabel}</div>
           <p className="wp-note">{WP.reelNote}</p>
-          <p className="wp-probe">{probe === null ? '\u2014' : (probe.reel_enabled ? WP.reelProbeOn : WP.reelProbeOff)}</p>
-          {probe?.reel_enabled ? (
-            <button type="button" className="wp-btn" disabled>{WP.reelMake}</button>
-          ) : null}
-          <button type="button" className="wp-btn ghost" disabled={busy} onClick={checkProbe}>{WP.reelCheck}</button>
+          <button type="button" className="rp-job wp-soon" disabled>{WP.comingSoon}</button>
         </div>
       ) : null}
 
-      <div className="wp-pubrow">
-        {live ? <div className="wp-live">{WP.pageIsLive}</div> : null}
-        {/* THE THREE FOOT STATES, AND THE ABSENCES ARE THE RULING.
-            live            -> #26 「This page is live.」
-            published, no   -> #25 「Waiting on the couple's permission.」 ALONE;
-              consent          the publish control is ABSENT, not greyed.
-            draft           -> #24 「Publish this page」 */}
-        {!live && w.visibility === 'published' ? <div className="wp-wait">{WP.waitingOnCouple}</div> : null}
-        {!live && w.visibility !== 'published' ? (
-          <button type="button" className="wp-btn" disabled={busy} onClick={publish}>{WP.publish}</button>
-        ) : null}
-      </div>
-    </Sheet>
+      <div style={{ height: 32 }} />
+    </div></Body>
   );
 }
 

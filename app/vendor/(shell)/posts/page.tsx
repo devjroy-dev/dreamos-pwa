@@ -34,7 +34,7 @@ import { API } from '@/lib/solutions/routes';
 import { COPY, ROOM_ROWS } from '@/lib/solutions/copy';
 import { formatRs } from '@/lib/vendor/format';
 import {
-  PO, KINDS, cardFileName, couplesCount, feeLine, sendTo, confirmLine, sentLine, referralNextLine,
+  PO, KINDS, cardFileName, clientsCount, feeLine, sendTo, confirmLine, sentLine, referralNextLine,
 } from '@/lib/worklist/posts';
 import type { CardKind, CardsBody, BroadcastPreview, BroadcastSent, BroadcastKind } from '@/lib/worklist/posts';
 // CARRIED, not retyped: "They will receive" and "Back" are the Introductions room's vetoed bytes.
@@ -410,7 +410,7 @@ function BroadcastSection() {
   return (
     <>
       <div className="pst-card">
-        <div className="pst-count">{couplesCount(n)}</div>
+        <div className="pst-count">{clientsCount(n)}</div>
         <div className="pst-list">
           {(pv.couples ?? []).map((c, i) => (
             <div className="pst-row" key={`${c.last4}-${i}`}>

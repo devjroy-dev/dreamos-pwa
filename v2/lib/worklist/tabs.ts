@@ -121,7 +121,8 @@ export const MORE_GROUPS: readonly { name: string; rows: readonly MoreRow[] }[] 
 
 export const TAB_WORDS = {
   more:        'More',
-  moreLabel:   'More: your business, getting found, working together, messages and help',
+  moreLabel:   'More: every room, in the order of Rooms',
+  moreTab:     'More',   // CE-47: the sixth item of the bar
   heldRooms:   (tab: string) => `In ${tab}`,
   account:     'Your account',
 } as const;

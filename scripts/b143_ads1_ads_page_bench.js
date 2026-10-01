@@ -1,4 +1,9 @@
 'use strict';
+// FLOOR-SUBJECTS: app/vendor/(shell)/posts/ads/page.tsx app/vendor/(shell)/posts/page.tsx components/worklist/AdsCard.tsx
+// FLOOR-STATES: env B143_PART=states
+// FLOOR-WHOLE: args
+// (CE-47 FE-6 L3 r2: the floor runs this bench's mutations only when a delivery names it or a subject above;
+//  scripts/lib/floor_slice.sh reads these three lines. b174 §F proves the subjects cover every file the bench mutates.)
 // scripts/b143_ads1_ads_page_bench.js · TDW CE-46 · ADS-1 · cut 1 · rung b143.
 //
 // WHAT IT HOLDS (R-46.10 to R-46.13), in the REAL app: `next dev` in mock-session mode, the Ads page at

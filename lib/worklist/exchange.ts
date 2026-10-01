@@ -32,6 +32,15 @@ export const EXCHANGE_PREVIEW = false;
 export const PREVIEW_ROLE_PARAM = 'as';
 
 export const EXCHANGE = {
+  // ── CE-47 L4 (FE-7): the reworked room's words, veto rows as approved ──
+  badgeShort: 'Verified',                                            // veto 8
+  inCity: (pct: number, city: string) => `${pct}% in ${city}`,       // veto 9
+  untilDate: (date: string) => `until ${date}`,                         // veto 10
+  askCount: (n: number, kind: string) => `${n} ${n === 1 ? kind : kind === 'story' ? 'stories' : kind + 's'}`, // veto 10
+  requestHead: 'The request',                                        // veto 12
+  withdrawAsk: (name: string) => `Withdraw your request to ${name}?`, // veto 13
+  declineAsk: (name: string) => `Decline this request from ${name}?`, // veto 14
+  keepIt: 'Keep it',
   rowLabel:   'Influencer exchange',            // the row under Shoots AND the screen title — one string
   banner:     'Requests open once Instagram approves our access. You can look around.',
   filterCity: 'City',

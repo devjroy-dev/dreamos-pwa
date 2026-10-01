@@ -227,7 +227,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   if (isUser) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 22px' }}>
+      <div data-bubble="user" style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 22px' }}>
         <div style={{
           maxWidth: '80%', padding: '10px 14px',
           borderRadius: '14px 14px 4px 14px',
@@ -251,7 +251,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     : 'linear-gradient(180deg, transparent 0%, rgba(201,168,76,0.5) 25%, rgba(201,168,76,0.75) 50%, rgba(201,168,76,0.5) 75%, transparent 100%)';
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '8px 22px' }}>
+    <div data-bubble="ai" style={{ display: 'flex', justifyContent: 'flex-start', padding: '8px 22px' }}>
       <div style={{ maxWidth: '92%', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ padding: '8px 18px 4px 16px', position: 'relative' }}>
           {/* R-41.142 — THE ADVISOR EDGE IS THIS HAIRLINE, RECOLOURED. The bubble

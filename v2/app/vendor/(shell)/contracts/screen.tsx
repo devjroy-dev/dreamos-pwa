@@ -39,10 +39,12 @@
 //     (F-40.245), where signed → deposit → the date is held can actually be reached.
 
 import { CopyBox } from '@/v2/components/worklist/CopyBox'; // DESIGN-1 · R-46.17: the text she copies sits in its own box
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // the founder (option B): the room's + in its head
 import { useEffect, useRef, useState } from 'react';
 import { INK_DEEP } from '@/lib/vendor/theme';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
-import { Fab } from '@/v2/components/worklist/Fab';
+import { CT } from '@/v2/lib/worklist/contractsRoom';
+import { clockWords } from '@/v2/lib/worklist/home';   // FE-5's clock words (FE-8: the stand-in is gone)
 import { Toast } from '@/v2/components/vendor/Toast';
 import { useToast } from '@/hooks/vendor/useToast';
 import { fetchAllContracts, requestContractUpload, finalizeContract,
@@ -91,12 +93,12 @@ const PROFILE_SECTIONS: ProfileSection[] = [
     { key: 'vendor_category_words', label: 'What you do', why: 'How your business is described in the agreement, for example “a makeup and hair business”.' },
     { key: 'vendor_signatory_name', label: 'Who signs for you', why: 'The name on your signature line. Usually you.' },
     // F-40.266: the name clause 12.2 promises — a PROFILE token beside the signatory (register v3 §0-ter).
-    { key: 'named_professional',    label: 'Who attends', why: 'The person the couple is booking to be there in person. Leave it empty and the agreement makes no such promise.' },
-    { key: 'vendor_credit_role',    label: 'Credited as', why: 'How your name appears on the couple’s wedding page and in the agreement, e.g. Makeup by Swati Roy.' },
+    { key: 'named_professional',    label: 'Who attends', why: 'The person the client is booking to be there in person. Leave it empty and the agreement makes no such promise.' },
+    { key: 'vendor_credit_role',    label: 'Credited as', why: 'How your name appears on the client’s wedding page and in the agreement, e.g. Makeup by Swati Roy.' },
   ] },
   { head: 'What is not included', rows: [
-    { key: 'exclusions',      label: 'Never included', why: 'Things couples sometimes expect that you don’t provide unless agreed separately. Printed as not included.' },
-    { key: 'meals_provision', label: 'Meals on a long day', why: 'What the couple provides for you and your team when a function runs long.' },
+    { key: 'exclusions',      label: 'Never included', why: 'Things clients sometimes expect that you don’t provide unless agreed separately. Printed as not included.' },
+    { key: 'meals_provision', label: 'Meals on a long day', why: 'What the client provides for you and your team when a function runs long.' },
   ] },
   { head: 'Money', rows: [
     // register v3 §5 — one sentence, hers, printed as written (R-40.121)
@@ -107,8 +109,8 @@ const PROFILE_SECTIONS: ProfileSection[] = [
     { key: 'late_interest_pct', label: 'Late charge', unit: '% per month', why: 'Interest you may add to a late payment, for each month it stays unpaid.', numeric: true },
   ] },
   { head: 'If plans change', rows: [
-    { key: 'postpone_notice_days',   label: 'Postpone notice', unit: 'days', why: 'How many days before the first function the couple must tell you to move the dates.', numeric: true },
-    { key: 'postpone_window_months', label: 'Move within', unit: 'months', why: 'If the couple postpones, how many months later you’ll still honour the booking.', numeric: true },
+    { key: 'postpone_notice_days',   label: 'Postpone notice', unit: 'days', why: 'How many days before the first function the client must tell you to move the dates.', numeric: true },
+    { key: 'postpone_window_months', label: 'Move within', unit: 'months', why: 'If the client postpones, how many months later you’ll still honour the booking.', numeric: true },
     // The four slab labels are generated from her thresholds — see `slabLabels`.
     { key: 'cancel_tier_1_pct', label: 'More than 90 days before', unit: '% you keep', why: 'If they cancel this early, the share of the fee you keep.', numeric: true },
     { key: 'cancel_tier_2_pct', label: '60 to 90 days before', unit: '% you keep', why: '', numeric: true },
@@ -120,7 +122,7 @@ const PROFILE_SECTIONS: ProfileSection[] = [
   { head: 'What you deliver', rows: [
     { key: 'delivery_days',    label: 'Delivered within', unit: 'days', why: 'Counted from the last function.', numeric: true },
     { key: 'delivery_method',  label: 'How', why: 'A private online gallery, a drive, handed over in person.' },
-    { key: 'link_live_days',   label: 'Link stays live', unit: 'days', why: 'How long the couple can download before the link expires.', numeric: true },
+    { key: 'link_live_days',   label: 'Link stays live', unit: 'days', why: 'How long the client can download before the link expires.', numeric: true },
     { key: 'revision_rounds',  label: 'Rounds of changes', why: 'How many rounds of edits are included in the fee.', numeric: true },
     { key: 'revision_rate',    label: 'Each further round', unit: 'Rs', why: 'What you charge for a round beyond those.', numeric: true },
     { key: 'archive_months',   label: 'Files kept for', unit: 'months', why: 'How long you keep the originals before you may delete them.', numeric: true },
@@ -160,6 +162,12 @@ function switchOn(terms: Record<string, unknown>, key: string): boolean {
 
 /** A manual function as the room writes it — the shape `contractSource.manualFunctions` reads (register v3 §3). */
 type ManualFn = { title: string; date: string; time?: string; venue?: string; city?: string };
+/** CE-47 FE-6 L3: a function's date in full month ("12 December 2026"); anything else is shown as it was typed. */
+function fullDay(d: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); if (!m) return d;
+  const M = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${Number(m[3])} ${M[Number(m[2]) - 1]} ${m[1]}`;
+}
 function manualFns(terms: Record<string, unknown>): ManualFn[] {
   const m = terms.functions_manual;
   return Array.isArray(m) ? (m as ManualFn[]).filter(f => f && f.title && f.date) : [];
@@ -206,7 +214,7 @@ function requiredRows(
 }
 
 type PickRow = { key: string; id: string | null; name: string; phone: string | null; from: 'client' | 'cabinet' };
-type View = 'room' | 'policies' | 'overrides' | 'newPerson' | 'pick' | 'record' | 'send' | 'after';
+type View = 'room' | 'page' | 'policies' | 'overrides' | 'newPerson' | 'pick' | 'record' | 'send' | 'after';
 
 // ── PRIMITIVES ───────────────────────────────────────────────────────────────
 const SCRIM: React.CSSProperties = { position: 'fixed', inset: 0, background: 'var(--atelier-overlay)', zIndex: 20, display: 'flex', alignItems: 'flex-end' };
@@ -329,7 +337,7 @@ function stage(c: Contract): number {
   return 1;
 }
 const THREAD_STEPS: [string, string][] = [
-  ['Policies', 'set once'], ['This agreement', 'couple, dates, fee, what’s included'], ['Preview', 'read it as they will'],
+  ['Policies', 'set once'], ['This agreement', 'client, dates, fee, what’s included'], ['Preview', 'read it as they will'],
   ['Sent', 'to their WhatsApp'], ['Signed', 'they read and agree'], ['Deposit received', 'you mark it'], ['The date is held', ''],
 ];
 function Thread({ c, policiesSet }: { c: Contract; policiesSet: boolean }) {
@@ -378,7 +386,9 @@ export function ContractsScreen() {
   const [title, setTitle] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [selected, setSelected] = useState<Contract | null>(null);   // an UPLOADED contract's detail sheet
+  const [selected, setSelected] = useState<Contract | null>(null);
+  const [pageC, setPageC] = useState<Contract | null>(null);   // CE-47 FE-6 L3: the agreement whose page is open
+  const [askCancel, setAskCancel] = useState(false);   // an UPLOADED contract's detail sheet
 
   // the fork and the picker — three states, three bytes (F-40.138)
   const [startOpen, setStartOpen] = useState(false);
@@ -752,64 +762,114 @@ export function ContractsScreen() {
   // input would lose focus. `Room()` returns JSX into ONE tree.
 
   // ── S0 · THE ROOM — the policies card first and persistent (R-40.120 C3) ──
+  // CE-47 FE-6 L3 · THE ROOM REWORKED (the founder's verdict on FE-6's mock): the pill "+ New contract" on the room head;
+  // the count line; the policies as ONE row (W2); the agreements as rows (name / first function and its full date · fee /
+  // one pill); a composed agreement opens its own page, an uploaded one its sheet as before; "Read the standard
+  // agreement" (W9) as a job at the foot. The floating + is gone.
   function Room() {
+    const open = contracts.filter((c) => c.state === 'draft' || c.state === 'sent').length;
     return (
       <>
-        <Scroll fab>
-          <div style={{ margin: '16px 16px 0', padding: '16px 16px 12px', border: `0.5px solid ${A.hair}`, borderRadius: 12, background: 'var(--atelier-card-bg)' }}>
-            <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.0625rem', lineHeight: 1.25, color: A.ink }}>
-              {policiesSet ? 'Your contract policies' : 'Set up your contract policies'}
+        <RoomHeadAdd addKey="contracts" label={CT.add} onAdd={() => setStartOpen(true)} />
+        <Scroll>
+          <div className="ctr-room">
+            <p className="ctr-big" data-contracts-line="">{CT.openCount(open)}</p>
+            <div className="ctr-list">
+              <button type="button" className="ctr-row" data-policies-row="" onClick={() => void openProfile(false)}>
+                <span className="ctr-rt"><span className="ctr-n">{CT.policies}</span>
+                  <span className="ctr-f">{policiesSet ? 'Your prices, notice periods and what’s never included. They go onto every agreement you send.' : CT.policiesUnset}</span></span>
+                {!policiesSet ? <span className="ctr-pill new" data-pill="">{CT.setUp}</span> : null}
+                <span className="ctr-chev" aria-hidden="true">{'›'}</span>
+              </button>
             </div>
-            <div style={{ ...HINT, margin: '4px 0 0' }}>
-              {policiesSet
-                ? 'Your prices, notice periods and what’s never included. They go onto every agreement you send.'
-                : 'Once. Then every agreement starts filled in, and you only add the couple, the dates and the fee.'}
-            </div>
-            <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
-              <button type="button" onClick={() => void openProfile(false)} style={{ background: 'none', border: 0, padding: 0, fontFamily: F.body, fontWeight: 500, fontSize: '0.8125rem', color: A.accent, cursor: 'pointer' }}>{policiesSet ? 'Edit' : 'Set up'}</button>
-              <button type="button" disabled={saving} onClick={() => void doStandard()} style={{ background: 'none', border: 0, padding: 0, fontFamily: F.body, fontWeight: 500, fontSize: '0.8125rem', color: A.accent, cursor: 'pointer' }}>{policiesSet ? 'See the standard agreement' : 'See the standard agreement first'}</button>
-            </div>
+            {loading ? (
+              <div className="ctr-list" aria-busy="true" style={{ minHeight: 64, marginTop: 16 }} />
+            ) : contracts.length === 0 ? (
+              <div style={{ padding: '48px 16px 0', textAlign: 'center' }}>
+                <div className="ctr-big">No agreements yet.</div>
+                <div className="ctr-f" style={{ marginTop: 8 }}>Start one from a client, or from a name and a number.</div>
+              </div>
+            ) : (
+              <div className="ctr-list" style={{ marginTop: 16 }}>
+                {contracts.map((c) => {
+                  const fns = manualFns((c.terms as Record<string, unknown>) ?? {});
+                  const fee = (c.terms as Record<string, unknown> | undefined)?.fee_total;
+                  const st = stage(c);
+                  const tone = st >= 5 ? 'done' : st === 3 ? 'wait' : st === 7 ? 'bad' : 'off';
+                  // TWO FACT LINES AT MOST, BY CONSTRUCTION (measured by b175 1.5 and 1.7), and NO FIGURE EVER CUT: the full date
+                  // on the first line; the fee, then the first function's name on the second, where only the name's tail can end
+                  // in an ellipsis (seen on glass: "Rs 2,50,0…" when the fee came last).
+                  const feeTxt = fee ? formatRs(Number(fee)).replace(' ', ' ') : '';
+                  const facts = isComposed(c)
+                    ? <><span className="ctr-l1">{fns[0] ? fullDay(fns[0].date) : CT.noDates}</span>
+                        {(feeTxt || fns[0]) ? <span className="ctr-l2">{[feeTxt, fns[0] ? fns[0].title : ''].filter(Boolean).join(' · ')}</span> : null}</>
+                    : <span className="ctr-l2">{`Uploaded · ${new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })}`}</span>;
+                  return (
+                    <button type="button" key={c.id} className="ctr-row" data-contract={c.id}
+                      onClick={() => (isComposed(c) ? openPage(c) : setSelected(c))}>
+                      <span className="ctr-rt"><span className="ctr-n">{clientName(c)}</span><span className="ctr-f">{facts}</span></span>
+                      <span className={'ctr-pill ' + tone} data-pill="">{st === 6 ? CT.status.held : stateWord(c.state)}</span>
+                      <span className="ctr-chev" aria-hidden="true">{'›'}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <div className="ctr-jobs"><button type="button" className="ctr-job" disabled={saving} onClick={() => void doStandard()}>{CT.readStandard}</button></div>
           </div>
-          {loading ? (
-            <div style={{ ...HINT, padding: '40px 16px', textAlign: 'center' }}>Loading…</div>
-          ) : contracts.length === 0 ? (
-            <div style={{ padding: '80px 32px 0', textAlign: 'center' }}>
-              <div style={{ fontFamily: F.title, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.2, color: A.ink }}>No agreements yet.</div>
-              <div style={{ ...HINT, marginTop: 8 }}>Start one from a client, or from a name and a number.</div>
-            </div>
-          ) : (
-            <div style={{ marginTop: 16 }}>
-              {contracts.map(c => {
-                const fns = manualFns((c.terms as Record<string, unknown>) ?? {});
-                const fee = (c.terms as Record<string, unknown> | undefined)?.fee_total;
-                const st = stage(c);
-                const pillColour = st >= 5 ? A.green : st === 3 ? A.metal : st === 7 ? A.red : 'var(--atelier-ink-dim)';
-                return (
-                  <div key={c.id} onClick={() => (isComposed(c) ? openRecord(c) : setSelected(c))}
-                       style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 16px', borderBottom: `0.5px solid ${A.hair}`, cursor: 'pointer' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: F.body, fontWeight: 500, fontSize: '0.9375rem', lineHeight: 1.25, color: A.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isComposed(c) ? clientName(c) : c.title}</div>
-                      <div style={{ fontFamily: F.body, fontSize: '0.8125rem', lineHeight: 1.3, color: A.inkMute }}>
-                        {isComposed(c)
-                          ? `${fns[0] ? `${fns[0].title} · ${fns[0].date}` : 'No dates yet'}${fee ? ` · ${formatRs(Number(fee))}` : ''}`
-                          : `Uploaded · ${new Date(c.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`}
-                      </div>
-                    </div>
-                    <span style={{ fontFamily: F.body, fontWeight: 500, fontSize: '0.8125rem', lineHeight: 1, padding: '4px 8px', borderRadius: 12, border: `0.5px solid ${pillColour}`, color: pillColour, whiteSpace: 'nowrap' }}>
-                      {st === 6 ? 'Date held' : stateWord(c.state)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </Scroll>
-        <Fab label="New contract" onClick={() => setStartOpen(true)} />
       </>
     );
   }
 
-  // ── S1 · YOUR POLICIES / POLICIES FOR THIS COUPLE — one sheet, two homes ─
+  // CE-47 FE-6 L3 · AN AGREEMENT'S OWN PAGE (the verdict's page, W4): back to Contracts, its status, ONE next action, the
+  // signing link in its own box (R-46.17) once it has one, Dates (full months, 12-hour times), Money, then Read the PDF,
+  // Edit, and Cancel this agreement last, asked first. Every action is the room's existing one.
+  function openPage(c: Contract) { setPageC(c); setAskCancel(false); go('page'); }
+  function Page() {
+    const c = pageC as Contract;
+    const st = stage(c);
+    const fns = manualFns((c.terms as Record<string, unknown>) ?? {});
+    const fee = (c.terms as Record<string, unknown> | undefined)?.fee_total;
+    const link = signLink && signLink.id === c.id ? signLink.url : null;
+    const status = st === 6 ? CT.status.held : CT.status[c.state] ?? stateWord(c.state);
+    return (
+      <Scroll>
+        <div className="ctr-room" data-contract-page={c.id}>
+          <button type="button" className="ctr-back" onClick={() => go('room')}>{'‹ '}{CT.back}</button>
+          <p className="ctr-title" data-page-title="">{clientName(c)}</p>
+          <p className="ctr-status" data-page-status="">{status}</p>
+          {c.state === 'sent' ? <button type="button" className="ctr-next" disabled={saving} onClick={() => void doSendToCouple(c)}>{CT.sendAgain}</button>
+            : c.state === 'draft' ? <button type="button" className="ctr-next" onClick={() => openRecord(c)}>{CT.edit}</button>
+            : c.state === 'signed' && !c.deposit_received_at ? <button type="button" className="ctr-next" disabled={saving} onClick={() => void doDeposit(c)}>Mark the deposit received</button>
+            : c.state === 'signed' ? <button type="button" className="ctr-next" disabled={saving} onClick={() => void doDownload(c)}>{CT.readPdf}</button> : null}
+          {link ? (<><h2 className="ctr-h">{CT.signingLink}</h2><CopyBox text={link} label="Copy" copied="Copied" /></>) : null}
+          <h2 className="ctr-h">{CT.dates}</h2>
+          <div className="ctr-facts">{fns.length ? fns.map((f, i) => (
+            <div className="ctr-fact" key={i}><span>{f.title}</span><b>{fullDay(f.date)}{f.time ? ` · ${clockWords(f.time)}` : ''}</b></div>
+          )) : <div className="ctr-fact"><span>{CT.noDates}</span><b /></div>}</div>
+          <h2 className="ctr-h">{CT.money}</h2>
+          <div className="ctr-facts">
+            <div className="ctr-fact"><span>{CT.fee}</span><b>{fee ? formatRs(Number(fee)) : CT.notSet}</b></div>
+            {typeof c.deposit_pct === 'number' ? <div className="ctr-fact"><span>{CT.deposit(c.deposit_pct)}</span><b>{fee ? formatRs(Math.round(Number(fee) * c.deposit_pct / 100)) : CT.notSet}</b></div> : null}
+          </div>
+          <div className="ctr-jobs">
+            {!(c.state === 'signed' && c.deposit_received_at) ? <button type="button" className="ctr-job" disabled={saving} onClick={() => void doDownload(c)}>{CT.readPdf}</button> : null}
+            {c.state !== 'cancelled' && c.state !== 'signed' ? (askCancel ? (
+              <div className="ctr-ask" data-cancel-ask="">
+                <p>{CT.cancelAsk}</p>
+                <div className="ctr-two">
+                  <button type="button" className="ctr-job" onClick={() => setAskCancel(false)}>{CT.keep}</button>
+                  <button type="button" className="ctr-job warn" disabled={saving} onClick={() => { void doCancel(c); setAskCancel(false); go('room'); }}>{CT.cancelYes}</button>
+                </div>
+              </div>
+            ) : <button type="button" className="ctr-job warn" onClick={() => setAskCancel(true)}>{CT.cancel}</button>) : null}
+          </div>
+        </div>
+      </Scroll>
+    );
+  }
+
   function PolicySheet({ over }: { over: boolean }) {
     const src = over ? overrides : profile;
     const under: ContractProfileFields = over ? { ...seeds, ...profile } : {};
@@ -817,7 +877,7 @@ export function ContractsScreen() {
     const omitted = annexMap?.omitted ?? [];
     return (
       <>
-        <Head title={over ? `Policies for ${record ? clientFirstName(record) : 'this couple'}` : 'Your contract policies'}
+        <Head title={over ? `Policies for ${record ? clientFirstName(record) : 'this client'}` : 'Your contract policies'}
               sub={over ? undefined : 'Every agreement starts from these'} onBack={() => go(over ? 'record' : record ? 'record' : 'room')} />
         <Scroll>
           <Blk>
@@ -875,7 +935,7 @@ export function ContractsScreen() {
             <Field label="Their name" why="The bride or groom you’re speaking to. Their partner’s name comes later." value={newName} placeholder="e.g. Priya Sharma" onChange={setNewName} />
             <Field label="WhatsApp number" why="Where the agreement is sent. It goes on their client record too, so you type it once." value={newPhone} placeholder="98xxx xxxxx" inputMode="tel" onChange={setNewPhone} />
             <button type="button" disabled={saving} onClick={() => void doNewPerson()} style={CTA}>Start the agreement</button>
-            <div style={HINT}>The couple is added to your Clients the moment you tap this.</div>
+            <div style={HINT}>The client is added to your Clients the moment you tap this.</div>
           </Blk>
         </Scroll>
       </>
@@ -920,7 +980,7 @@ export function ContractsScreen() {
         <Scroll>
           <Thread c={c} policiesSet={policiesSet} />
           <Blk>
-            <div style={H3}>The couple</div>
+            <div style={H3}>The client</div>
             <Field label="Name" value={clientName(c)} readOnly />
             <Field label="WhatsApp number" required={savedPhone ? undefined : 'Needed to send'}
                    why="The agreement is sent here. It’s saved on their client record." value={phone} placeholder="98xxx xxxxx" inputMode="tel"
@@ -995,7 +1055,7 @@ export function ContractsScreen() {
             </div>
 
             <div style={H3}>What’s printed</div>
-            <div style={HINT}>These clauses are yours to leave out for this couple. Everything else always prints.</div>
+            <div style={HINT}>These clauses are yours to leave out for this client. Everything else always prints.</div>
             {CLAUSE_SWITCHES.map(sw => {
               if (sw.key === 'accommodation' && !outstationGate(terms, vendorCity)) return null;
               if (sw.key === 'tax_block' && !(p.gst_pct && p.gst_treatment)) return null;
@@ -1085,7 +1145,7 @@ export function ContractsScreen() {
               <div style={HINT}>Sending is not open yet. Send this link to {first} yourself.</div>
               <div style={{ marginTop: 8 }}><CopyBox text={signLink.url} label="Copy" copied="Copied" /></div>
             </>}
-            {st === 3 && <><div style={H3}>Waiting for {first}</div><div style={HINT}>The couple has the link on WhatsApp. When they agree, this changes on its own. You can still read the PDF; you can’t change it now — cancel and start again if something’s wrong.</div></>}
+            {st === 3 && <><div style={H3}>Waiting for {first}</div><div style={HINT}>The client has the link on WhatsApp. When they agree, this changes on its own. You can still read the PDF; you can’t change it now — cancel and start again if something’s wrong.</div></>}
             {st === 5 && <>
               <div style={H3}>{first} signed</div>
               <div style={HINT}>The agreement is sealed with her code. {dep} is now due to you — she pays you directly, by UPI or bank, as printed on the agreement. Nothing comes through TDW.</div>
@@ -1107,6 +1167,8 @@ export function ContractsScreen() {
     <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <Toast toast={toast} />
       {view === 'room' && Room()}
+      {view === 'page' && pageC && Page()}
+      <style>{CTR_CSS}</style>
       {view === 'policies' && PolicySheet({ over: false })}
       {view === 'overrides' && record && PolicySheet({ over: true })}
       {view === 'newPerson' && NewPerson()}
@@ -1198,7 +1260,7 @@ export function ContractsScreen() {
             <button type="button" onClick={() => void doDownload(selected)} className="atelier-fab" style={{ ...CTA, color: INK_DEEP }}>Download</button>
             {selected.state === 'draft' && <button type="button" disabled={saving} onClick={() => void doMarkSent(selected)} style={GHOST}>Mark as sent</button>}
             {selected.state === 'sent' && !isComposed(selected) && <button type="button" disabled={saving} onClick={() => void doMarkSigned(selected)} style={GHOST}>Mark as signed</button>}
-            {selected.state === 'sent' && isComposed(selected) && <div style={{ ...HINT, color: A.red }}>This one was filled here and is signed by the couple. Mark signed is for a contract you uploaded.</div>}
+            {selected.state === 'sent' && isComposed(selected) && <div style={{ ...HINT, color: A.red }}>This one was filled here and is signed by the client. Mark signed is for a contract you uploaded.</div>}
             {selected.state !== 'cancelled' && <button type="button" disabled={saving} onClick={() => void doCancel(selected)} style={QUIET}>Cancel</button>}
           </div>
         </div>
@@ -1206,3 +1268,31 @@ export function ContractsScreen() {
     </div>
   );
 }
+
+const CTR_CSS = `
+.ctr-room{padding:8px 0 40px;display:flex;flex-direction:column}
+.ctr-big{margin:0 0 12px;font:var(--wl-t2);color:var(--atelier-ink)}
+.ctr-title{margin:8px 0 4px;font:var(--wl-t1);color:var(--atelier-ink)}
+.ctr-status{margin:0 0 12px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.ctr-back{align-self:flex-start;min-height:44px;padding:0;border:0;background:none;color:var(--atelier-accent-text);font:var(--wl-tb);cursor:pointer}
+.ctr-next{width:100%;min-height:48px;border:0;border-radius:12px;background:var(--role-primary);color:var(--role-on-primary);font:var(--wl-tb);cursor:pointer}
+.ctr-h{margin:24px 0 8px;font:var(--wl-t2);color:var(--atelier-ink)}
+.ctr-list,.ctr-facts{border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg);overflow:hidden}
+.ctr-row{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 16px;box-sizing:border-box;background:transparent;border:0;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.ctr-row + .ctr-row{border-top:1px solid var(--atelier-card-border)}
+.ctr-rt{flex:1;min-width:0;display:flex;flex-direction:column}
+.ctr-n{font:var(--wl-tb);color:var(--atelier-ink)}
+.ctr-f{font:var(--wl-t4);color:var(--atelier-ink-mute);margin-top:2px}
+.ctr-l1,.ctr-l2{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctr-pill{font:var(--wl-t5);padding:4px 10px;border-radius:999px;border:1px solid currentColor;white-space:nowrap;color:var(--atelier-ink-mute)}
+.ctr-pill.new{color:var(--atelier-accent-text)}.ctr-pill.done{color:var(--role-positive)}.ctr-pill.wait{color:var(--role-caution)}.ctr-pill.bad{color:var(--role-critical)}
+.ctr-chev{color:var(--atelier-ink-mute);font:var(--wl-t2)}
+.ctr-fact{display:flex;justify-content:space-between;gap:12px;min-height:48px;align-items:center;padding:8px 16px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.ctr-fact + .ctr-fact{border-top:1px solid var(--atelier-card-border)}
+.ctr-fact b{font:var(--wl-tb);color:var(--atelier-ink);text-align:right}
+.ctr-jobs{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.ctr-job{min-height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--atelier-card-border);background:transparent;color:var(--atelier-accent-text);font:var(--wl-tb);cursor:pointer}
+.ctr-job.warn{color:var(--role-critical);border-color:var(--role-critical)}
+.ctr-ask{width:100%}.ctr-ask p{margin:0 0 8px;font:var(--wl-t3);color:var(--atelier-ink)}
+.ctr-two{display:flex;gap:8px}
+`;

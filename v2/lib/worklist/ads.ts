@@ -17,6 +17,13 @@
 
 export const ADS = {
   comingSoon: 'Coming soon',
+  // CE-46 FE-6 cut 1 (the founder's verdict on FE-6's mock, 30 Sept 2026): the state pill on an ad's row.
+  pill: { running: 'Running', paused: 'Paused', ended: 'Ended' },
+  // CE-47 FE-6 L3 (the founder's verdict on the reworked Ads page, V8 and the chair's change): the money facts and the
+  // disconnect, now asked first.
+  money: { label: 'Money', spent: 'Spent this month', enquiries: 'Enquiries from ads', paidFrom: 'Paid from', account: 'Your Meta ad account' },
+  disconnectAsk: 'Disconnect your ad account? Your ads on Meta stay as they are.',
+  disconnectYes: 'Disconnect', disconnectKeep: 'Keep it',
 
   // cut1e 2 · the chooser (e2), approved 29 September 2026. {n} is Meta's own count on her login.
   choose: {
@@ -77,11 +84,11 @@ export const ADS = {
   },
 
   draft: {
-    whySaves: '{post}, posted {date}, is your most saved post this month: {saves} saves and {reach} reach with no money behind it. Posts that couples save are the ones that bring enquiries, so this is the one to boost first.',
+    whySaves: '{post}, posted {date}, is your most saved post this month: {saves} saves and {reach} reach with no money behind it. Posts that people save are the ones that bring enquiries, so this is the one to boost first.',
     whyNewest: 'Your newest post.',   // the chair's ruling 2, approved
-    whyLikes: '{post}, posted {date}, is your most liked post this month: {likes} likes and {comments} comments with no money behind it. Posts couples respond to are the ones that bring enquiries, so this is the one to boost first.',
+    whyLikes: '{post}, posted {date}, is your most liked post this month: {likes} likes and {comments} comments with no money behind it. Posts people respond to are the ones that bring enquiries, so this is the one to boost first.',
     whyShort: 'Your most saved post this month: {saves} saves and {reach} people reached, with no money behind it.',   // R-46.13 item 2
-    preview: 'How couples will see it',
+    preview: 'How people will see it',
     plan: 'For Rs {daily} a day over {days} days, Meta shows this post to people in {places}, aged {min} to {max}. Meta takes up to Rs {total} in all from your ad account\u2019s payment method, never more.',   // cut1e 5 spliced, for the chair
     minimum: 'Rs {min} a day is the least Meta allows on your account.',
     rows: { who: 'Who sees it', where: 'Where it appears', amount: 'Amount', dates: 'Dates' },
@@ -91,7 +98,7 @@ export const ADS = {
   },
 
   settings: {
-    groups: { who: 'Who sees it', where: 'Where it appears', money: 'Money and time', see: 'What couples see' },
+    groups: { who: 'Who sees it', where: 'Where it appears', money: 'Money and time', see: 'What people see' },
     who: { places: 'Places', leaveOut: 'Leave out', age: 'Age', gender: 'Gender', languages: 'Languages',
       interests: 'Interests and life events', widen: 'Let Meta find more people like these' },
     where: { instagram: 'Instagram', facebook: 'Facebook', auto: 'Let Meta choose' },
@@ -134,7 +141,7 @@ export const ADS = {
   results: {
     label: 'Your last ad',
     story: 'Meta showed this ad {impressions} times to {reach} people in {places}. {clicks} of them tapped it, and {enquiries} wrote to you. Meta took Rs {spent} from your ad account\u2019s payment method. That is Rs {each} for each person who wrote.',   // e4 (G3), approved
-    inLeads: 'All {enquiries} are in Leads.',
+    inLeads: 'All {enquiries} are in Enquiries.',
     days: 'Day by day: {days}.',
     next: 'What to try next: {next}',
     another: 'Run another ad',
@@ -186,8 +193,8 @@ export const ADS = {
     postFilter: { all: 'All', instagram: 'Instagram', facebook: 'Facebook' },   // e5, approved
     postKinds: 'Your Instagram posts and your Facebook Page posts. A Facebook post sends people to Messenger; an Instagram post sends them to your Instagram messages.',   // e5, approved
     markInstagram: 'Instagram', markFacebook: 'Facebook',
-    greetingHint: 'What couples see first when they tap Send message',
-    questionHint: 'A question couples can tap',
+    greetingHint: 'What people see first when they tap Send message',
+    questionHint: 'A question people can tap',
     done: 'Done',                                                  // approved (R-46.13)
     back: 'Back',
     reel: 'Reel',

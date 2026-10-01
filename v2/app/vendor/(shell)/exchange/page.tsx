@@ -55,6 +55,10 @@ import {
 import { CITIES } from '@/lib/vendor/cityMatch';
 import { labelFor, CAT_LABEL } from '@/lib/frost/categoryLabels';
 import { fmtDate } from '@/lib/vendor/collabFormat';
+import { Body, Group, Row, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
+import { dayInWords } from '@/v2/lib/worklist/dayInWords';
+import { RECORD_CSS, Facts } from '@/v2/components/worklist/RecordPage';
+import { RECORD } from '@/v2/lib/worklist/record';
 
 export default function ExchangePage() {
   const router = useRouter();
@@ -98,6 +102,45 @@ function ExchangeRoom() {
 // ── THE CREATOR'S SEAT (Y1/Y2) ───────────────────────────────────────────────
 // Accept and Decline on `sent` only; the other states read their label and carry
 // no act. The sender's note is HERS to read and ours only to render.
+// ── CE-47 L4 (FE-7): the reworked room's helpers ──
+const xday = (iso: string) => dayInWords(String(iso).slice(0, 10));
+const xrange = (a: string, b: string) => `${xday(a)} to ${xday(b)}`;
+const xtone = (st: string) => (st === 'accepted' ? 'ok' : st === 'declined' ? 'bad' : st === 'sent' ? 'warn' : 'plain') as 'ok' | 'bad' | 'warn' | 'plain';
+const nfmt = (n: number) => n.toLocaleString('en-IN');
+const asks = EXCHANGE.askCount;
+function Ask({ line, yes, onYes, onNo }: { line: string; yes: string; onYes: () => void; onNo: () => void }) {
+  return (<div className="fx-ask"><p className="fx-askline">{line}</p><div className="fx-askrow">
+    <button type="button" className="rp-job warn" onClick={onYes}>{yes}</button>
+    <button type="button" className="rp-job" onClick={onNo}>{EXCHANGE.keepIt}</button></div></div>);
+}
+const FX_CSS = `.wl-dw{display:block;margin-top:4px;font:var(--wl-t5);color:var(--atelier-ink-mute)}.fx-ask{border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg);padding:16px;margin:8px 0 32px}.fx-askline{margin:0 0 12px;font:var(--wl-tb);color:var(--atelier-ink)}.fx-askrow{display:flex;gap:8px}.fx-note{margin:0;font:var(--wl-t4);color:var(--atelier-ink);white-space:pre-wrap}`;
+function RequestPage({ r, back, mineSide, onBack, onDone, onEnd, endWord, askLine }: { r: RequestRow; back: string; mineSide: boolean; onBack: () => void; onDone?: () => void; onEnd: () => void; endWord: string; askLine: string }) {
+  const [asking, setAsking] = useState(false);
+  return (
+    <Body>
+      <button type="button" className="rp-back" onClick={onBack}>{'\u2039'} {RECORD.back(back)}</button>
+      <p className="rp-status">{EXCHANGE.states[r.state]}</p>
+      {onDone ? <button type="button" className="rp-next" onClick={onDone}>{mineSide ? EXCHANGE.complete : EXCHANGE.accept}</button> : null}
+      <section className="rp-sec"><h2 className="rp-h">{EXCHANGE.requestHead}</h2>
+        <Facts rows={[[EXCHANGE.offer, labelFor(r.offer_kind)], [EXCHANGE.ask, asks(r.ask_count, r.ask_kind)], [EXCHANGE.from, xday(r.date_from)], [EXCHANGE.until, xday(r.date_to)]]} /></section>
+      {r.offer_note ? <section className="rp-sec"><h2 className="rp-h">{RECORD.notesHead}</h2><p className="fx-note">{r.offer_note}</p></section> : null}
+      {r.state === 'sent' ? (asking ? <Ask line={askLine} yes={endWord} onYes={() => { setAsking(false); onEnd(); }} onNo={() => setAsking(false)} />
+        : <button type="button" className="fr-quiet" onClick={() => setAsking(true)}>{endWord}</button>) : null}
+    </Body>
+  );
+}
+
+function inboxFromFixture(): RequestRow[] {
+  return EXCHANGE_INBOX.map(r => ({
+    id: r.id, counterpart_name: r.from_name, offer_kind: r.offer.craft, offer_note: r.offer.note,
+    ask_kind: r.ask.kind.toLowerCase() as AskKind, ask_count: r.ask.count,
+    date_from: r.dates.from, date_to: r.dates.to, state: r.state as RequestState,
+  }));
+}
+
+type CreatorView = CreatorRow;
+
+
 function InboxScreen() {
   const { toast, show } = useToast();
   const [rows, setRows]   = useState<RequestRow[] | null>(EXCHANGE_PREVIEW ? inboxFromFixture() : null);
@@ -133,56 +176,25 @@ function InboxScreen() {
     }
   }, [busy, show]);
 
+  const [openR, setOpenR] = useState<RequestRow | null>(null);
   return (
-    <WorklistShell title={EXCHANGE.rowLabel}>
-      <div className="xc-room">
-        <div className="xc-sec xc-first">{EXCHANGE.headInbox}{rows && rows.length ? <span>{rows.length}</span> : null}</div>
-        {rows === null ? <div aria-busy="true" style={{ minHeight: 40 }} />
-          : rows.length === 0 ? <p className="xc-none">{EXCHANGE.emptyMine}</p>
-          : rows.map(r => (
-            <div className="xc-card" key={r.id} style={{ opacity: busy === r.id ? 0.6 : 1 }}>
-              <div className="xc-hd">
-                <span>
-                  <span className="xc-name">{r.counterpart_name}</span>
-                  <span className="xc-line">{requestLine(labelFor(r.offer_kind), r.ask_count, r.ask_kind)} {'\u00B7'} {fmtDate(r.date_from)} {'\u2013'} {fmtDate(r.date_to)}</span>
-                </span>
-                <span className={stateClass(r.state)}>{EXCHANGE.states[r.state]}</span>
-              </div>
-              {r.offer_note ? <span className="xc-note">{r.offer_note}</span> : null}
-              {r.state === 'sent' ? (
-                <div className="xc-acts">
-                  <button type="button" className="xc-go" disabled={busy === r.id} onClick={() => act(r.id, 'accept')}>{EXCHANGE.accept}</button>
-                  <button type="button" className="xc-no" disabled={busy === r.id} onClick={() => act(r.id, 'decline')}>{EXCHANGE.decline}</button>
-                </div>
-              ) : null}
-            </div>
-          ))}
-      </div>
+    <WorklistShell title={openR ? openR.counterpart_name : EXCHANGE.rowLabel}>
+      {openR ? <RequestPage r={openR} back={EXCHANGE.rowLabel} mineSide={false} onBack={() => setOpenR(null)}
+          onDone={openR.state === 'sent' ? () => act(openR.id, 'accept') : undefined} onEnd={() => act(openR.id, 'decline')}
+          endWord={EXCHANGE.decline} askLine={EXCHANGE.declineAsk(openR.counterpart_name)} /> : (
+        <Body>
+          <p className="fr-lede">{EXCHANGE.optInLine}</p>
+          <Head text={EXCHANGE.headInbox} count={rows?.length} />
+          {rows && rows.length ? <Group>{rows.map(r => (
+            <Row key={r.id} title={r.counterpart_name} facts={`${asks(r.ask_count, r.ask_kind)} \u00B7 ${EXCHANGE.untilDate(xday(r.date_to))}`}
+              pill={{ text: EXCHANGE.states[r.state], tone: xtone(r.state) }} chevron onClick={() => setOpenR(r)} />))}</Group>
+            : <p className="fr-empty">{EXCHANGE.emptyMine}</p>}
+        </Body>)}
       <WlToast toast={toast} />
-      <style>{SHEET_CSS + XC_CSS}</style>
+      <style>{SHEET_CSS + XC_CSS + FR_CSS + RECORD_CSS + FX_CSS}</style>
     </WorklistShell>
   );
 }
-
-/** The fixture in the DOOR'S shape, so the glass above never learns two row shapes. */
-function inboxFromFixture(): RequestRow[] {
-  return EXCHANGE_INBOX.map(r => ({
-    id: r.id, counterpart_name: r.from_name, offer_kind: r.offer.craft, offer_note: r.offer.note,
-    ask_kind: r.ask.kind.toLowerCase() as AskKind, ask_count: r.ask.count,
-    date_from: r.dates.from, date_to: r.dates.to, state: r.state as RequestState,
-  }));
-}
-
-function stateClass(s: RequestState): string {
-  return 'xc-state' + (s === 'accepted' ? ' ok' : s === 'sent' ? '' : ' no');
-}
-
-// ── THE SENDER'S SEAT (X2-X7), NOW SOURCED THROUGH THE FLAG ──────────────────
-// One row shape on the glass either way: the fixtures are mapped INTO the door's
-// shape below rather than the glass learning two of them (the flip must change
-// where rows come from, never what they look like).
-// No local widening any more: the card shows exactly what the door serves (F-42.208).
-type CreatorView = CreatorRow;
 
 function ExchangeScreen() {
   const { toast, show } = useToast();
@@ -261,73 +273,54 @@ function ExchangeScreen() {
     }
   }, [show]);
 
+  const [openR, setOpenR] = useState<RequestRow | null>(null);
+  const fit = (c: CreatorView) => c.reach?.cities.find(x => x.city === city)?.pct ?? 0;
+  const title = open ? open.business_name : openR ? openR.counterpart_name : EXCHANGE.rowLabel;
   return (
-    <WorklistShell title={EXCHANGE.rowLabel}>
-      <div className="xc-room">
-        {open ? (
-          <>
-            <button type="button" className="xc-back" onClick={() => setOpen(null)}>{EXCHANGE.back}</button>
-            <Card c={open} fitCity={city} />
-            {open.reach ? (
-              <>
-                <div className="xc-sec">{EXCHANGE.audience}</div>
-                <div className="xc-sub">{EXCHANGE.byCity}</div>
-                <Bars rows={open.reach.cities.map(c => [c.city, c.pct])} />
-                <div className="xc-sub">{EXCHANGE.byAge}</div>
-                <Bars rows={open.reach.age.map(a => [a.band, a.pct])} />
-                <div className="xc-sub">{EXCHANGE.byGender}</div>
-                <Bars rows={open.reach.gender.map(g => [g.k, g.pct])} />
-                <div className="xc-sec">{EXCHANGE.engagement}</div>
-                <span className="xc-name">{open.reach.engagement_pct}%</span>
-              </>
-            ) : null}
-            {/* THE POST TILES ARE DROPPED (F-42.208, ruled 2026-09-10). The shell drew
-                them from a fixture and no door serves them: R6's /posts/cards renders HER
-                cards from HER wedding pages, which is a different read entirely. The card
-                is audience, engagement and verified state. 4c-3b-2 lands recent posts
-                beside the demographics reader, or nothing does. */}
-            <div className="xc-cta"><button type="button" className="wl-btn pri" onClick={() => setOffering(true)}>{EXCHANGE.sendReq}</button></div>
-          </>
-        ) : (
-          <>
-            <p className="xc-banner">{EXCHANGE.banner}</p>
-            <div className="xc-filters">
-              <select className="xc-fi" aria-label={EXCHANGE.filterCity} value={city} onChange={e => setCity(e.target.value)}>
-                {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <select className="xc-fi" aria-label={EXCHANGE.filterCraft} value={craft} onChange={e => setCraft(e.target.value)}>
-                <option value="">{EXCHANGE.filterCraft}</option>
-                {Object.keys(CAT_LABEL).map(t => <option key={t} value={t}>{labelFor(t)}</option>)}
-              </select>
-            </div>
-            <div className="xc-sec xc-first">{EXCHANGE.headList}{list.length ? <span>{list.length}</span> : null}</div>
-            {creators === null ? <div aria-busy="true" style={{ minHeight: 40 }} />
-              : list.length === 0 ? <p className="xc-none">{EXCHANGE.emptyList}</p>
-              : list.map(c => <Card key={c.id} c={c} fitCity={city} onOpen={() => setOpen(c)} />)}
-
-            <div className="xc-sec">{EXCHANGE.headMine}{mine && mine.length ? <span>{mine.length}</span> : null}</div>
-            {mine === null ? <div aria-busy="true" style={{ minHeight: 40 }} />
-              : mine.length === 0 ? <p className="xc-none">{EXCHANGE.emptyMine}</p>
-              : mine.map(r => (
-                <div className="xc-card" key={r.id} style={{ opacity: busy === r.id ? 0.6 : 1 }}>
-                  <div className="xc-hd">
-                    <span>
-                      <span className="xc-name">{r.counterpart_name}</span>
-                      <span className="xc-line">{requestLine(labelFor(r.offer_kind), r.ask_count, r.ask_kind)} {'\u00B7'} {fmtDate(r.date_from)} {'\u2013'} {fmtDate(r.date_to)}</span>
-                    </span>
-                    <span className={stateClass(r.state)}>{EXCHANGE.states[r.state]}</span>
-                  </div>
-                  {r.state === 'sent'     ? <button type="button" className="xc-ghost" disabled={busy === r.id} onClick={() => move(r.id, 'withdraw')}>{EXCHANGE.withdraw}</button> : null}
-                  {r.state === 'accepted' ? <button type="button" className="xc-ghost" disabled={busy === r.id} onClick={() => move(r.id, 'complete')}>{EXCHANGE.complete}</button> : null}
-                </div>
-              ))}
-          </>
-        )}
-      </div>
-
+    <WorklistShell title={title}>
+      {open ? (
+        <Body>
+          <button type="button" className="rp-back" onClick={() => setOpen(null)}>{EXCHANGE.back}</button>
+          <p className="rp-status">{[open.reach?.verified ? EXCHANGE.badgeOn : EXCHANGE.badgeOff, `${open.reach?.engagement_pct ?? 0}% ${EXCHANGE.engagement.toLowerCase()}`].join(' \u00B7 ')}</p>
+          <button type="button" className="rp-next" onClick={() => setOffering(true)}>{EXCHANGE.sendReq}</button>
+          {open.reach ? (<>
+            <section className="rp-sec"><h2 className="rp-h">{EXCHANGE.byCity}</h2><Facts rows={open.reach.cities.map(c => [c.city, `${c.pct}%`] as [string, string])} /></section>
+            <section className="rp-sec"><h2 className="rp-h">{EXCHANGE.byAge}</h2><Facts rows={open.reach.age.map(c => [c.band, `${c.pct}%`] as [string, string])} /></section>
+            <section className="rp-sec"><h2 className="rp-h">{EXCHANGE.byGender}</h2><Facts rows={open.reach.gender.map(c => [c.k, `${c.pct}%`] as [string, string])} /></section>
+          </>) : null}
+          <div style={{ height: 32 }} />
+        </Body>
+      ) : openR ? (
+        <RequestPage r={openR} back={EXCHANGE.rowLabel} mineSide onBack={() => setOpenR(null)}
+          onDone={openR.state === 'accepted' ? () => move(openR.id, 'complete') : undefined} onEnd={() => move(openR.id, 'withdraw')}
+          endWord={EXCHANGE.withdraw} askLine={EXCHANGE.withdrawAsk(openR.counterpart_name)} />
+      ) : (
+        <Body>
+          <p className="fr-lede">{EXCHANGE.banner}</p>
+          <div className="xc-filters">
+            <select className="xc-fi" aria-label={EXCHANGE.filterCity} value={city} onChange={e => setCity(e.target.value)}>
+              {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select className="xc-fi" aria-label={EXCHANGE.filterCraft} value={craft} onChange={e => setCraft(e.target.value)}>
+              <option value="">{EXCHANGE.filterCraft}</option>
+              {Object.keys(CAT_LABEL).map(t => <option key={t} value={t}>{labelFor(t)}</option>)}
+            </select>
+          </div>
+          <Head text={EXCHANGE.headList} count={list.length} />
+          {list.length ? <Group>{list.map(c => (
+            <Row key={c.id} title={c.business_name} facts={`${nfmt(c.reach?.follower_count ?? 0)} ${EXCHANGE.followers} \u00B7 ${EXCHANGE.inCity(fit(c), city)}`}
+              pill={{ text: c.reach?.verified ? EXCHANGE.badgeShort : EXCHANGE.badgeOff, tone: c.reach?.verified ? 'ok' : 'soon' }} chevron onClick={() => setOpen(c)} />))}</Group>
+            : <p className="fr-empty">{EXCHANGE.emptyList}</p>}
+          <Head text={EXCHANGE.headMine} count={mine?.length} />
+          {mine && mine.length ? <Group>{mine.map(r => (
+            <Row key={r.id} title={r.counterpart_name} facts={`${asks(r.ask_count, r.ask_kind)} \u00B7 ${EXCHANGE.untilDate(xday(r.date_to))}`}
+              pill={{ text: EXCHANGE.states[r.state], tone: xtone(r.state) }} chevron onClick={() => setOpenR(r)} />))}</Group>
+            : <p className="fr-empty">{EXCHANGE.emptyMine}</p>}
+        </Body>
+      )}
       {offering && open ? <OfferSheet c={open} onClose={() => setOffering(false)} onSend={body => { void send(open.id, body); }} /> : null}
       <WlToast toast={toast} />
-      <style>{SHEET_CSS + XC_CSS}</style>
+      <style>{SHEET_CSS + XC_CSS + FR_CSS + RECORD_CSS + FX_CSS}</style>
     </WorklistShell>
   );
 }
@@ -421,8 +414,8 @@ function OfferSheet({ c, onClose, onSend }: { c: CreatorView; onClose: () => voi
         </div>
       </div>
       <div className="xc-two">
-        <label className="wl-fld"><span className="wl-fl">{EXCHANGE.from}</span><input className="wl-fi" type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>
-        <label className="wl-fld"><span className="wl-fl">{EXCHANGE.until}</span><input className="wl-fi" type="date" value={to} onChange={e => setTo(e.target.value)} /></label>
+        <label className="wl-fld"><span className="wl-fl">{EXCHANGE.from}</span><input className="wl-fi" type="date" value={from} onChange={e => setFrom(e.target.value)} />{from ? <span className="wl-dw" data-date-words="">{dayInWords(from)}</span> : null}</label>
+        <label className="wl-fld"><span className="wl-fl">{EXCHANGE.until}</span><input className="wl-fi" type="date" value={to} onChange={e => setTo(e.target.value)} />{to ? <span className="wl-dw" data-date-words="">{dayInWords(to)}</span> : null}</label>
       </div>
       <div className="wl-brow"><button type="button" className="wl-btn pri" onClick={submit}>{EXCHANGE.send}</button></div>
     </Sheet>

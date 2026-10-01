@@ -1,5 +1,9 @@
 'use client';
+import { Group, Row, FR_CSS } from '@/v2/components/worklist/RoomRows';   // FE-7's shared rows (L4), used as landed
+import { CAL, fullDay } from '@/v2/lib/worklist/calendarRoom';
+import { clockWords } from '@/v2/lib/worklist/home';   // the founder: "7:00 pm", one home
 import { RUNG_FONT as RUNG } from '@/v2/lib/worklist/theme'; // CE-45 FE-2 cut 2: the app's own type (F7)
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // the founder (option B): the room's + in its head
 import { useCrew, crewWords, CREW_WORDS } from '@/v2/lib/worklist/crew';
 import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 // app/vendor/calendar/screen.tsx — THE CALENDAR'S BODY, ONE DEFINITION, NO CHROME.
@@ -155,12 +159,12 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
   const { data: winData, refresh: refreshWindow } = useEventsWindow(vendorId, win.from, win.to);
 
   useEffect(() => {
-    fetchAvailability(vendorId).then(res => { if (res.ok) setBlocks(res.blocks); }).catch(() => {});
+    fetchAvailability(vendorId).then(res => { if (res.ok) setBlocks(Array.isArray(res.blocks) ? res.blocks : []); /* FE-8 (E): the door may leave out blocks */ }).catch(() => {});
     fetchHotDates().then(res => { if (res.ok) setHotDates(res.dates); }).catch(() => {});
   }, [vendorId]);
 
   function refreshBlocks() {
-    fetchAvailability(vendorId).then(res => { if (res.ok) setBlocks(res.blocks); }).catch(() => {});
+    fetchAvailability(vendorId).then(res => { if (res.ok) setBlocks(Array.isArray(res.blocks) ? res.blocks : []); /* FE-8 (E): the door may leave out blocks */ }).catch(() => {});
   }
 
   const hotSet = useMemo(() => new Set(hotDates.map(h => h.date)), [hotDates]);
@@ -218,6 +222,11 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
       .slice(0, 3),
   [events, todayIso]);
 
+  // CE-47 FE-6 L5: whether this month draws a blocked day (the legend names it only then)
+  const blockedThisMonth = useMemo(() => {
+    const prefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
+    return Array.from(blockMap.keys()).some((k) => k.startsWith(prefix) && (blockMap.get(k) ?? []).length > 0);
+  }, [blockMap, year, month]);
   // Count this-month hot dates for the ribbon
   const hotThisMonth = useMemo(() => {
     const prefix = `${year}-${String(month+1).padStart(2,'0')}`;
@@ -304,9 +313,11 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
     <div style={{ /* DESIGN-1 stage 3 · one page, one scroll (Settings' cure, F-44.166): natural height, the shell's main scrolls */ flex: '0 0 auto', display: 'flex', flexDirection: 'column', overflowX: 'clip', position: 'relative' }}>
       {/* CE-46 (the chair's read of the twelve rooms, ruled 30 Sept 2026): no floating + over the month; the add is a
           button at the top of the page, doing what the + did. */}
-      <div style={{ padding: '4px 16px 12px', display: 'flex' }}>
-        <button type="button" className="wl-btn" data-add-top="calendar" onClick={onAdd}>New event</button>
-      </div>
+      {/* CE-47 FE-6 L5 (the founder's ruling, 30 Sept 2026): the add is the room head's pill, "+ New event", on the title's
+          line left of the "?"; it overlaps nothing. It does what the + did (onAdd). */}
+      <RoomHeadAdd addKey="calendar" label={CAL.add} onAdd={onAdd} />
+      <style>{CAL_CSS}</style>
+      <style>{FR_CSS}</style>
 
       {/* ── THE MASTHEAD LEFT THIS FILE AT §4-2, AND `vendorName` LEFT WITH IT ──────
           It did not become a prop or a flag. It is mounted by the fallback route
@@ -457,30 +468,15 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
           both surfaces share one navigator. Nothing was lost; one block moved up. */}
 
       {/* Brass divider with hot-dates toggle on the right */}
-      <div style={{
-        padding: '0 16px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 16,
-      }}>
-        <div style={{ width: 34, height: '0.5px', background: A.brass, opacity: 0.9 }} />
-        <button type="button" onClick={() => setHotOn(!hotOn)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: 'none', border: `0.5px solid ${hotOn ? 'var(--atelier-input-border)' : 'var(--atelier-card-border)'}`,
-            borderRadius: 999, padding: '4px 12px', cursor: 'pointer',
-          }}>
-          <span style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: hotOn ? A.terracotta : 'var(--atelier-card-border)',
-            boxShadow: 'none',
-          }} />
-          <span style={{
-            font: RUNG.t5,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: hotOn ? A.interactiveWarm : A.inkMute,
-          }}>Good dates</span>
-        </button>
+      {/* CE-47 FE-6 L5 · THE LEGEND (the verdict on mock 10; the chair's a and c): what the grid's marks mean, and the good
+          dates' show or hide on the SAME rung as the legend, one line at 360. Nothing is shaded that the legend does not name. */}
+      <div className="cal-legend" data-cal-legend="">
+        <span><i className="cal-dot" style={{ background: A.brass }} />{CAL.booked}</span>
+        <span><i className="cal-dot" style={{ background: A.terracotta }} />{CAL.goodDates}</span>
+        {/* Blocked is named only when this month draws one: the legend names every mark the grid draws, and at 360 an
+            unused word would push the control off its line */}
+        {blockedThisMonth ? <span><i className="cal-ring" />{CAL.blocked}</span> : null}
+        <button type="button" className="cal-legbtn" data-good-toggle="" aria-pressed={hotOn} onClick={() => setHotOn(!hotOn)}>{hotOn ? CAL.hideGood : CAL.showGood}</button>
       </div>
 
       {/* Hot dates ribbon — only when toggle on and there are any */}
@@ -704,57 +700,20 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
             padding: '4px 0 8px',
           }}>Nothing on the horizon.</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {nextThree.map((ev, idx) => {
-              const { day, month: mm } = splitDay(ev.event_date);
+          <Group>
+            {nextThree.map((ev) => {
+              // CE-47 FE-6 L5: FE-7's shared Row (RoomRows): the name; then the full date and the 12-hour time, and who is on
+              // it; "No crew yet" is the row's pill in the critical tone, as the red line was.
+              const crewLine = crew.byEvent.has(ev.id) ? (crewWords(crew.byEvent.get(ev.id)) ?? CREW_WORDS.none) : null;
+              const noCrew = crew.byEvent.has(ev.id) && !crewWords(crew.byEvent.get(ev.id));
+              const when = `${fullDay(ev.event_date)}${ev.event_time ? ` \u00b7 ${clockWords(ev.event_time)}` : ''}`;
               return (
-                <div key={ev.id} data-cal-next="" style={{
-                  display: 'flex', alignItems: 'center', gap: 16,
-                  padding: '16px 0',
-                  borderBottom: idx < nextThree.length - 1 ? `0.5px solid var(--atelier-card-border)` : 'none',
-                }}>
-                  <div style={{
-                    flexShrink: 0, width: 56, textAlign: 'center',
-                  }}>
-                    <div style={{
-                      font: RUNG.t5,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      color: 'var(--atelier-label)',
-                      marginBottom: 4,
-                    }}>{mm}</div>
-                    <div style={{
-                      font: RUNG.t2,
-                      color: 'var(--atelier-ink)',
-                    }}>{day}</div>
-                  </div>
-                  <div style={{
-                    flex: 1, minWidth: 0,
-                    paddingLeft: 16,
-                    borderLeft: '0.5px solid var(--atelier-card-border)',
-                  }}>
-                    <div style={{
-                      font: RUNG.t5,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      color: 'var(--atelier-label)',
-                      marginBottom: 4,
-                    }}>{ev.kind ? ev.kind.charAt(0).toUpperCase() + ev.kind.slice(1) : ''}{ev.event_time ? ` · ${ev.event_time.slice(0,5)}` : ''}</div>
-                    <div style={{
-                      font: RUNG.t3,
-                      color: 'var(--atelier-ink)',
-                    }}>{ev.title}</div>
-                    {/* DESIGN-1 · STAGE 2: the crew on it, by first name (REPORT.md E6). */}
-                    {crew.byEvent.has(ev.id) && (
-                      <div data-cal-crew="" style={{ font: RUNG.t4, marginTop: 4, color: crewWords(crew.byEvent.get(ev.id)) ? 'var(--atelier-ink-mute)' : 'var(--role-critical)' }}>
-                        {crewWords(crew.byEvent.get(ev.id)) ?? CREW_WORDS.none}
-                      </div>
-                    )}
-                  </div>
+                <div key={ev.id} data-cal-next="" data-cal-when={when}>
+                  <Row title={ev.title} facts={noCrew || !crewLine ? when : `${when} \u00b7 ${crewLine}`} pill={noCrew ? { text: CREW_WORDS.none, tone: 'bad' } : null} />
                 </div>
               );
             })}
-          </div>
+          </Group>
         )}
       </div>{/* end Coming up */}
       </>)}{/* end view === 'month' */}
@@ -836,3 +795,21 @@ export function CalendarScreen({ vendorId }: { vendorId: string }) {
     </div>
   );
 }
+
+// CE-47 FE-6 L5 · the legend and the Coming up rows (the list pattern: 64 px rows, at most two fact lines)
+const CAL_CSS = `
+.cal-legend{display:flex;flex-wrap:wrap;align-items:center;column-gap:10px;row-gap:0;padding:0 16px;margin:0 0 12px;font:var(--wl-t5);color:var(--atelier-ink-mute);white-space:nowrap}
+/* one line whenever it fits; when a month adds Blocked at 360 the control drops under the marks, right-aligned, and
+   nothing overflows or overlaps (the founder's rule for every control) */
+.cal-legend > span{display:inline-flex;align-items:center;gap:6px}
+.cal-dot{display:inline-block;width:6px;height:6px;border-radius:50%}
+.cal-ring{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--atelier-row-hover);border:.5px dashed var(--atelier-input-border)}
+.cal-legbtn{margin-left:auto;min-height:44px;padding:0 2px;border:0;background:transparent;font:var(--wl-t5);color:var(--atelier-accent-text);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.cal-list{border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg);overflow:hidden}
+.cal-row{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 16px;box-sizing:border-box}
+.cal-row + .cal-row{border-top:1px solid var(--atelier-card-border)}
+.cal-rt{flex:1;min-width:0;display:flex;flex-direction:column}
+.cal-n{font:var(--wl-tb);color:var(--atelier-ink)}
+.cal-f{font:var(--wl-t5);color:var(--atelier-ink-mute);margin-top:2px}
+.cal-crit{color:var(--role-critical)}
+`;

@@ -68,7 +68,7 @@ function copyCells(src) {
       && [P.fDelivery, P.dOnTheDay, P.dDays, P.dHandover, P.fDays].join('|') === 'Delivery|On the event date|Days after the event|Handover date|Days'
       && [P.saved, P.deleted, P.defaultSet].join('|') === 'Package saved.|Package deleted.|Default set.';
     r.a = L.attach === 'Attach package' && L.change === 'Change package' && L.sheetTitle === 'Attach a package'
-      && [L.fPackage, L.fFee, L.fHandover].join('|') === 'Package|Fee for this couple|Handover date'
+      && [L.fPackage, L.fFee, L.fHandover].join('|') === 'Package|Fee for this client|Handover date'   /* AMENDED BY LABEL (CE-47, FE-8, charter E: no "couple" drawn in v2) */
       && L.folded === 'The event is under a month away, so the middle payment is part of the final one.'
       && L.counted === 'Counted from the wedding date.'
       && L.delivery('5 February 2027') === 'Delivery · 5 February 2027';
@@ -135,31 +135,38 @@ async function apiCells(src) {
 function pageCells(src) {
   const s = strip(src);
   return {
-    folded: /useState<Record<string, boolean>>\(\{\}\)/.test(s) && /const isOpen = !!open\[p\.id\];/.test(s) && !/setOpen\(\{\s*\[/.test(s) && !/useEffect\([^)]*setOpen/.test(s),
-    feePair: /\{p\.total == null\s*\?\s*<button type="button" className="pkg-fee pkg-fee--unset" onClick=\{\(\) => setSheet\(\{ pkg: p, focusFee: true \}\)\}>\{PACKAGES\.feeUnset\}<\/button>/.test(s)
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the founder's verdict on mock 12 and the chair's f to h): the packages are rows; no package's sheet is open on arrival
+    folded: /const \[pick, setPick\] = useState<string \| null>\(null\);/.test(s) && !/useEffect\(\(\) => \{[^}]*setPick/.test(s),
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the founder's verdict on mock 12 and the chair's f to h): a package with no fee opens straight onto Fee (condition 2 kept)
+    feePair: /if \(p\.total == null\) \{ setSheet\(\{ pkg: p, focusFee: true \}\); return; \}/.test(s)
       && /\.pkg-fee--unset\{[^}]*border-bottom:1px dashed var\(--atelier-accent-text\)/.test(s)
       && !/\.pkg-fee--set\{[^}]*dashed/.test(s) && !/\.pkg-fee\{[^}]*dashed/.test(s),
-    feeSet: /: <span className="pkg-fee pkg-fee--set">\{formatRs\(p\.total\)\}<\/span>/.test(s),
-    bar: /parts\.map\(\(s\) => <span key=\{s\.kind\} className=\{`pkg-seg pkg-seg--\$\{s\.kind\}`\} style=\{\{ flexGrow: s\.pct \}\} \/>\)/.test(s)
-      && /const parts = p\.split \|\| \[\];/.test(s)
-      && /\.pkg-seg--deposit\{background:var\(--atelier-accent-text\)\}/.test(s)
-      && /\.pkg-seg--middle\{background:var\(--atelier-accent-text\);opacity:\.45\}/.test(s)
-      && /\.pkg-seg--final\{background:var\(--atelier-ink\);opacity:\.22\}/.test(s),
-    numerals: /\{splitNumerals\(parts, formatRs\)\}/.test(s),
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the founder's verdict on mock 12 and the chair's f to h): a set fee is the row's plain figure on the right
+    feeSet: /\{p\.total == null \? PACKAGES\.feeUnset : formatRs\(p\.total\)\.replace\(' ', '\\u00a0'\)\}<\/span>/.test(s),
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the verdict on mock 12): the split bar left the room; the sheet states the deposit and the delivery from the package's own fields
+    bar: /<div className="pk-fact"><span>\{PKG\.deposit\}<\/span><b>\{picked\.deposit_pct\}%<\/b><\/div>/.test(s),
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the founder's verdict on mock 12 and the chair's f to h): the split bar and numerals left the room with the verdict; the sheet states the package's own deposit and delivery
+    numerals: /\{picked\.deposit_pct\}%/.test(s) && /\{deliveryLine\(picked\)\}/.test(s),
     noDateInRoom: !/packageDate|due_on|formatLongDate/.test(s),
-    summary: /return p\.line_items\.slice\(0, 3\)\.map\(\(it\) => it\.detail\)\.join\(', '\);/.test(s),
-    actions: /className="pkg-act pkg-act--quiet pkg-act--right" onClick=\{\(\) => setConfirming\(p\.id\)\}>\{PACKAGES\.del\}/.test(s)
-      && /<p>\{PACKAGES\.deleteConfirm\}<\/p>/.test(s) && /onClick=\{\(\) => \{ void remove\(p\); \}\}>\{PACKAGES\.del\}/.test(s)
-      // AMENDED BY LABEL at P2b (F-43.79): the quiet button carries the muted ink as colour and border.
-      && /\.pkg-act--quiet\{color:var\(--atelier-ink-mute\);border-color:var\(--atelier-ink-mute\)\}/.test(s),
+    // AMENDED BY LABEL (CE-47, F-44.259, FE-6 L3): the first three detail values, EMPTIES FILTERED, then joined
+    summary: /return p\.line_items\.slice\(0, 3\)\.map\(\(it\) => it\.detail\)\.filter\(\(d\) => !!d && String\(d\)\.trim\(\) !== ''\)\.join\(', '\);/.test(s),
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the founder's verdict on mock 12 and the chair's f to h): Delete is last in the sheet and asks first
+    actions: /<button type="button" className="pk-job pk-warn" onClick=\{\(\) => setConfirming\(picked\.id\)\}>\{PACKAGES\.del\}<\/button>\}/.test(s)
+      && /<p>\{PACKAGES\.deleteConfirm\}<\/p>/.test(s) && /onClick=\{\(\) => \{ const pp = picked; setPick\(null\); void remove\(pp\); \}\}>\{PACKAGES\.del\}/.test(s)
+      // AMENDED BY LABEL (CE-47, FE-6 L5, the verdict on mock 12): Delete confirms in place; the confirm is the only caller of remove()
+      && /\.pk-warn\{color:var\(--role-critical\);border-color:var\(--role-critical\)\}/.test(s),
     // DESIGN-1 · STAGE 1 (by label, REPORT.md §3 Buttons): the outlined button is 48 high with 12px corners and a 1px edge,
     // on the spacing scale and at tb (was 2px corners, 40 high, a half-pixel edge, DM Sans at 14)
-    buttonForm: /\.pkg-act\{background:transparent;border:1px solid var\(--atelier-accent-text\);border-radius:12px;padding:0 16px;min-height:48px;cursor:pointer;font:var\(--wl-tb\);/.test(s)
-      && /className="pkg-act pkg-act--quiet" onClick=\{\(\) => setConfirming\(null\)\}>\{PACKAGES\.cancel\}/.test(s)
-      && /className="pkg-fee pkg-fee--unset"/.test(s) && /\.pkg-fee--unset\{background:none;border:none;/.test(s),
-    defaultRule: /\.pkg-card--default\{border-left:2px solid var\(--atelier-accent-text\);border-radius:0\}/.test(s) && /\{p\.is_default && <span className="pkg-default">\{PACKAGES\.defaultMark\}<\/span>\}/.test(s),
-    addTile: /className="pkg-add" onClick=\{\(\) => setSheet\(\{ pkg: null, focusFee: false \}\)\}>\{PACKAGES\.add\}/.test(s) && /\.pkg-add\{[^}]*border:1px dashed var\(--atelier-input-border\)/.test(s),
-    chevron: /import \{ ChevronDown \} from 'lucide-react';/.test(s) && /<ChevronDown aria-hidden="true"/.test(s),
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the verdict on mock 12): the actions are outlined 48 px buttons with 12px corners; "Fee not set" stays text, in the accent
+    buttonForm: /\.pk-job\{min-height:48px;padding:0 16px;border-radius:12px;border:1px solid var\(--atelier-card-border\);/.test(s)
+      && /className="pk-job" onClick=\{\(\) => setConfirming\(null\)\}>\{PACKAGES\.cancel\}/.test(s)
+      && /\.pk-unset\{color:var\(--atelier-accent-text\)\}/.test(s),
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the founder's verdict on mock 12 and the chair's f to h): the default is said once, under the list (V20)
+    defaultRule: /\{def \? <p className="pk-line" style=\{\{ marginTop: 8 \}\} data-default-line="">\{PKG\.defaultLine\(def\.name\)\}<\/p> : null\}/.test(s),
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the founder's verdict on mock 12 and the chair's f to h): the add is the head's pill, "+ New package"
+    addTile: /<RoomHeadAdd addKey="packages" label=\{PKG\.add\} onAdd=\{\(\) => setSheet\(\{ pkg: null, focusFee: false \}\)\} \/>/.test(s),
+    // AMENDED BY LABEL (CE-47, FE-6 L5, the founder's verdict on mock 12 and the chair's f to h): each row ends in the list pattern's chevron
+    chevron: /<span className="pk-chev" aria-hidden="true">\{'\\u203a'\}<\/span>/.test(s),
     noSoon: s.length > 0 && !/launchingSoon/.test(s),
     raceReported: /r\.error === 'default_race'/.test(s) && /PACKAGE_FAILURES\.defaultRace/.test(s),
   };
@@ -315,10 +322,10 @@ function tokenCells(files) { return files.every((f) => f.length > 0 && !LITERAL.
     [src.copy, "const FULL_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',\n  'August', 'September', 'October', 'November', 'December'] as const;", "const FULL_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;", (m) => copyCells(m).fullMonth !== true, 'M2 short months → §1.6 RED'],
     [src.copy, "const priced = parts.length > 0 && parts.every((p) => typeof p.amount === 'number');", "const priced = parts.some((p) => typeof p.amount === 'number');", (m) => copyCells(m).numerals !== true, 'M3 rupees shown on a part-priced split → §1.8 RED'],
     [src.copy, "    no_handover_date: 'Add the handover date first.',\n", '', (m) => copyCells(m).a9 !== true, "M4 A9's fourth line removed → §1.3 RED"],
-    [src.page, 'const [open, setOpen] = useState<Record<string, boolean>>({});', "const [open, setOpen] = useState<Record<string, boolean>>({ all: true });\n  useEffect(() => { if (packages) setOpen(Object.fromEntries(packages.map((x) => [x.id, true]))); }, [packages]);", (m) => !pageCells(m).folded, 'M5 cards open on arrival → §3.1 RED'],
-    [src.page, 'onClick={() => setSheet({ pkg: p, focusFee: true })}>{PACKAGES.feeUnset}', '>{PACKAGES.feeUnset}', (m) => !pageCells(m).feePair, 'M6 a dashed fee with no handler (a false tell) → §3.2 RED'],
-    [src.page, '<span className="pkg-numerals">{splitNumerals(parts, formatRs)}</span>', '<span className="pkg-numerals">{parts.map((q) => q.pct).join(\' · \')}</span>', (m) => !pageCells(m).numerals, 'M7 numerals that never show rupees → §3.5 RED'],
-    [src.page, 'className="pkg-act pkg-act--quiet pkg-act--right" onClick={() => setConfirming(p.id)}', 'className="pkg-act pkg-act--quiet pkg-act--right" onClick={() => { void remove(p); }}', (m) => !pageCells(m).actions, 'M8 Delete without P7 → §3.8 RED'],
+    [src.page, 'const [pick, setPick] = useState<string | null>(null);', "const [pick, setPick] = useState<string | null>(null);\n  useEffect(() => { if (packages && packages[0]) setPick(packages[0].id); }, [packages]);", (m) => !pageCells(m).folded, 'M5 cards open on arrival → §3.1 RED'],
+    [src.page, 'if (p.total == null) { setSheet({ pkg: p, focusFee: true }); return; }', '', (m) => !pageCells(m).feePair, 'M6 a dashed fee with no handler (a false tell) → §3.2 RED'],
+    [src.page, '{deliveryLine(picked)}', '{picked.delivery_basis}', (m) => !pageCells(m).numerals, 'M7 numerals that never show rupees → §3.5 RED'],
+    [src.page, 'className="pk-job pk-warn" onClick={() => setConfirming(picked.id)}', 'className="pk-job pk-warn" onClick={() => { void remove(picked); }}', (m) => !pageCells(m).actions, 'M8 Delete without P7 → §3.8 RED'],
     [src.edit, "if (!name.trim()) { setBad('name'); setGate(PACKAGE_FAILURES.nameGate); return; }", '', (m) => !editCells(m).nameGate, 'M9 the name gate removed → §4.2 RED'],
     [src.edit, "      const t = setTimeout(() => feeRef.current?.focus(), 340);", '      const t = setTimeout(() => {}, 340);', (m) => !editCells(m).feeFocus, 'M10 the fee focus dropped → §4.1 RED'],
     [src.card, '{scheduleRow(row.kind, row.pct, formatRs(row.amount), row.due_on)}', '{scheduleRow(row.kind, row.pct, formatRs(Math.round(lp.total * row.pct / 100)), row.due_on)}', (m) => !cardCells(m, src.shell).serverMoney, 'M11 the card computing money → §5.1 RED'],
@@ -327,7 +334,8 @@ function tokenCells(files) { return files.every((f) => f.length > 0 && !LITERAL.
     [src.card, "color: T.ink, whiteSpace: 'nowrap' }}>{formatRs(lp.total)}", "color: '#0E1112', whiteSpace: 'nowrap' }}>{formatRs(lp.total)}", (m) => !tokenCells([src.page, src.fields, src.edit, m, src.copy]), 'M14 a colour literal on the card → §6.1 RED'],
   ];
   muts.push(
-    [src.page, '.pkg-act{background:transparent;border:1px solid var(--atelier-accent-text);border-radius:12px;padding:0 16px;', '.pkg-act{background:none;border:none;padding:8px 0;', (m) => !pageCells(m).buttonForm, 'M15 the actions back to plain text → §3.14 RED (F-43.79)'],
+    // AMENDED BY LABEL (CE-47, FE-6 L5): M15 on the reworked sheet's buttons
+    [src.page, '.pk-job{min-height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--atelier-card-border);', '.pk-job{background:none;border:none;padding:8px 0;', (m) => !pageCells(m).buttonForm, 'M15 the actions back to plain text → §3.14 RED (F-43.79)'],
     [src.edit, '...(takeMiddle ? { middle_pct: m } : {}),', 'middle_pct: m,', (m) => !editCells(m).middleOmitted, 'M16 the share sent with the middle payment off → §4.8 RED (F-43.78)'],
     [src.card, '<button type="button" style={actionButton()} onClick={() => setSheetOpen(true)}>', '<button type="button" style={textButton()} onClick={() => setSheetOpen(true)}>', (m) => !cardCells(m, src.shell).cardButton, 'M17 the card button back to text → §5.10 RED (F-43.79)'],
     [src.fields, "style={{ ...actionButton(), alignSelf: 'flex-start' }}", "style={{ ...textButton(), alignSelf: 'flex-start' }}", (m) => !fieldsCells(m).addItem, 'M18 Add item back to text → §5.12 RED (F-43.79)'],

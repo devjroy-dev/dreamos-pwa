@@ -34,7 +34,7 @@ import { API } from '@/v2/lib/solutions/routes';
 import { COPY, ROOM_ROWS } from '@/v2/lib/solutions/copy';
 import { formatRs } from '@/lib/vendor/format';
 import {
-  PO, KINDS, cardFileName, couplesCount, feeLine, sendTo, confirmLine, sentLine, referralNextLine,
+  PO, KINDS, cardFileName, clientsCount, feeLine, sendTo, confirmLine, sentLine, referralNextLine, messageFacts, referralFacts, EXAMPLE_CARD,
 } from '@/lib/worklist/posts';
 import type { CardKind, CardsBody, BroadcastPreview, BroadcastSent, BroadcastKind } from '@/lib/worklist/posts';
 // CARRIED, not retyped: "They will receive" and "Back" are the Introductions room's vetoed bytes.
@@ -114,17 +114,19 @@ function PostsScreen() {
   // DESIGN-1 · R-46.17: the caption's Copy is its box's (CopyBox). No confirmation byte: none was vetoed, so the
   // control keeps its word; the caption stays selectable in the box if the clipboard refuses.
 
+  // CE-46 FE-6 cut 1 · THE ROOM REWORKED (the founder's verdict on FE-6's mock, 30 Sept 2026): the card is the page,
+  // as Portfolio's photos are. One line, the Post/Status/Story switch, the card, Download and Share side by side, the
+  // caption in its own box (R-46.17). Then one row each for Ads, the two messages to past clients and the Sunday report.
+  // A vendor with no wedding page yet sees the TDW-marked example (R-46.16) under W6, and the door's own sentence for
+  // what to do; the example is never offered for Download or Share (R-46.16: never in a real post or ad).
+  const example = !!body && !body.ok && body.code === 'no_gallery';
+  const pic = example ? EXAMPLE_CARD : url;
   return (
     <WorklistShell title={TITLE}>
       <div className="pst-room">
-        {/* ── CARDS ───────────────────────────────────────────────────────── */}
-        <div className="pst-sec">{PO.sectionCards}</div>
-        <p className="pst-lede">{PO.ledeCards}</p>
-
-        {refusal ? (
-          <div className="pst-card"><p className="pst-state">{refusal}</p></div>
-        ) : cards ? (
-          <div className="pst-card">
+        <p className="pst-line" data-posts-line="">{example ? PO.exampleLine : PO.ledeCards}</p>
+        {(cards || example) ? (
+          <>
             <div className="pst-seg" role="group" aria-label={PO.sectionCards}>
               {KINDS.map((k) => (
                 <button
@@ -136,40 +138,40 @@ function PostsScreen() {
                 </button>
               ))}
             </div>
-
-            {/* The render IS the card: Cloudinary's pixels, Graphite on both arms. */}
-            <div className={'pst-render' + (kind === 'post' ? ' pst-square' : ' pst-tall')}>
+            {/* The render IS the card: Cloudinary's pixels, or the marked example. */}
+            <div className={'pst-render' + (kind === 'post' ? ' pst-square' : ' pst-tall')} data-posts-card="">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt={body?.page?.title ?? ''} />
+              <img src={pic} alt={example ? '' : (body?.page?.title ?? '')} />
+              {example ? <span className="pst-mark" data-example-mark="">TDW</span> : null}
             </div>
-
-            <span className="pst-lbl">{PO.caption}</span>
-            {/* LANDING · CE-46 ADS-2 onto the new layout: the caption's own box is the one CopyBox, with main's words (Copy, then
-                Copied for two seconds) and main's names for the box, the caption and its control */}
-            {body?.caption && <CopyBox text={body.caption} label={PO.copy} copied={PO.copied} marks={{ box: 'caption-box', text: 'caption', ctl: 'copy' }} />}
-
-            <button type="button" className="pst-btn pst-primary" onClick={() => void onDownload()}>{PO.download}</button>
-            <div className="pst-two">
-              <button type="button" className="pst-btn pst-ghost" onClick={onShare}>{PO.share}</button>
-            </div>
-          </div>
+            {example ? (
+              <p className="pst-state pst-gap" data-posts-refusal="">{refusal}</p>
+            ) : (
+              <>
+                <div className="pst-two" data-posts-actions="">
+                  <button type="button" className="pst-btn pst-primary" onClick={() => void onDownload()}>{PO.download}</button>
+                  <button type="button" className="pst-btn pst-ghost" onClick={onShare}>{PO.share}</button>
+                </div>
+                {/* LANDING · CE-46 ADS-2: the caption's own box is the one CopyBox, main's words and names */}
+                {body?.caption && <CopyBox text={body.caption} label={PO.copy} copied={PO.copied} marks={{ box: 'caption-box', text: 'caption', ctl: 'copy' }} />}
+              </>
+            )}
+          </>
+        ) : refusal ? (
+          <div className="pst-card"><p className="pst-state">{refusal}</p></div>
         ) : (
           <div className="pst-card" aria-busy="true" />
         )}
 
-        {/* ── BROADCAST (4b-2) ───────────────────────────────────────────────── */}
-        {/* ── ADS (CE-46 ADS-1, R-46.13 item 2): one card, the tap into /vendor/posts/ads ── */}
+        {/* ── ADS (CE-46 ADS-1, R-46.13 item 2): one row, the tap into /vendor/posts/ads ── */}
         <AdsCard />
 
-        <div className="pst-sec pst-secgap">{PO.sectionBroadcast}</div>
-        <p className="pst-lede">{PO.ledeBroadcast}</p>
+        <h2 className="pst-h">{PO.sectionBroadcast}</h2>
         <BroadcastSection />
 
-        {/* ── SUNDAY (4b-3a: the shell; 4b-3b: the door, SUNDAY_PREVIEW false) ── */}
-        <div className="pst-sec pst-secgap">{PO.sectionSunday}</div>
+        <h2 className="pst-h">{PO.sectionSundayReport}</h2>
         {SUNDAY_PREVIEW ? <div className="pst-eyebrow">{SU.eyebrow}</div> : null}
-        <p className="pst-lede">{PO.ledeSunday}</p>
-        {SUNDAY_PREVIEW ? <SundaySection state="live" brief={FIXTURE_BRIEF} /> : <SundayLive />}
+        <SundayRow />
       </div>
 
       <style>{`
@@ -178,7 +180,28 @@ function PostsScreen() {
    (R-41.140, R-42.6); role colours use the --role- branch of prefixFor, never the
    --atelier- spelling of the frame (F-42.113). This block ships to the browser,
    so it carries no apostrophe (R-40.57) and no backtick (it is a template literal). */
-.pst-room{padding-top:24px;padding-bottom:32px}
+.pst-room{padding-top:8px;padding-bottom:32px}
+.pst-line{font:var(--wl-t4);color:var(--atelier-ink-mute);margin:0 0 16px}
+.pst-h{font:var(--wl-t2);color:var(--atelier-ink);margin:24px 0 8px}
+.pst-list{border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg);overflow:hidden;min-height:20px}
+.pst-lrow{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:10px 16px;box-sizing:border-box;background:transparent;border:0;text-align:left;color:inherit;font:inherit;cursor:pointer;touch-action:manipulation}
+.pst-lrow + .pst-lrow{border-top:1px solid var(--atelier-card-border)}
+.pst-lrow:active{background:var(--atelier-row-hover)}
+.pst-lrow:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
+.pst-dead{cursor:default}.pst-dead:active{background:transparent}
+.pst-rt{flex:1;min-width:0;display:flex;flex-direction:column}
+.pst-rn{font:var(--wl-tb);color:var(--atelier-ink)}
+.pst-rf{font:var(--wl-t4);color:var(--atelier-ink-mute);margin-top:2px}
+.pst-pill{font:var(--wl-t5);padding:4px 10px;border-radius:999px;border:1px solid currentColor;white-space:nowrap;color:var(--atelier-ink-mute)}
+.pst-pill-run{color:var(--role-positive)}.pst-pill-wait{color:var(--role-caution)}
+.pst-chev{color:var(--atelier-ink-mute);font:var(--wl-t2);transition:transform .15s}
+.pst-chev-open{transform:rotate(90deg)}
+.pst-under{margin-top:12px}
+.pst-mark{position:absolute;right:10px;bottom:8px;font:var(--wl-t5);color:var(--role-on-primary);opacity:.85;letter-spacing:.04em;pointer-events:none}
+.pst-sh{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px}
+.pst-st{margin:0;font:var(--wl-t2);color:var(--atelier-ink)}
+.pst-x{min-width:44px;min-height:44px;border:0;background:transparent;color:var(--atelier-ink-mute);font:var(--wl-t2);cursor:pointer}
+.pst-who-list{margin:8px 0 0;padding:0 16px}
 .pst-sec{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--atelier-ink-mute);margin:0 0 8px}
 .pst-secgap{margin-top:24px}
 .pst-lede{font:var(--wl-t3);color:var(--atelier-ink-soft);line-height:1.5;margin:0 0 12px}
@@ -189,19 +212,20 @@ function PostsScreen() {
 .pst-segbtn+.pst-segbtn{border-left:.5px solid var(--atelier-card-border)}
 .pst-on{background:var(--role-primary);color:var(--role-on-primary)}
 .pst-segbtn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:-2px}
-.pst-render{margin:0 auto;background:var(--atelier-section-bg);overflow:hidden}
+.pst-render{position:relative;border-radius:12px;margin:0 auto 12px;background:var(--atelier-section-bg);overflow:hidden}
 .pst-render img{display:block;width:100%;height:100%;object-fit:cover}
 .pst-square{width:100%;aspect-ratio:1/1}
 .pst-tall{width:56%;aspect-ratio:9/16}
 .pst-lbl{display:block;font:var(--wl-t5);letter-spacing:.07em;text-transform:uppercase;color:var(--atelier-label);margin:16px 0 4px}
 .pst-caption{font:var(--wl-t3);color:var(--atelier-ink);line-height:1.5;background:var(--atelier-section-bg);padding:12px 12px;margin:0 0 12px;word-break:break-word;user-select:text}
-.pst-btn{width:100%;padding:12px;min-height:44px;border-radius:12px;font:var(--wl-t3);cursor:pointer;touch-action:manipulation}
+.pst-btn{width:100%;padding:12px;min-height:48px;border-radius:12px;font:var(--wl-tb);cursor:pointer;touch-action:manipulation}
 .pst-primary{background:var(--role-primary);color:var(--role-on-primary);border:1px solid var(--role-primary)}
 .pst-primary:active{background:var(--atelier-row-hover)}
-.pst-ghost{background:transparent;color:var(--atelier-ink-soft);border:.5px solid var(--atelier-card-border)}
+.pst-ghost{background:transparent;color:var(--atelier-accent-text);border:.5px solid var(--atelier-card-border)}
 .pst-ghost:active{background:var(--atelier-row-hover)}
 .pst-btn:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
-.pst-two{display:flex;gap:8px;margin-top:8px}
+.pst-two{display:flex;gap:8px;margin:0 0 12px}
+.pst-two > .pst-btn{flex:1}
 .pst-eyebrow{font:var(--wl-t5);letter-spacing:.08em;text-transform:uppercase;color:var(--role-caution);margin:0 0 8px}
 .pst-week{font:var(--wl-t3);color:var(--atelier-ink);margin:0 0 12px}
 .pst-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
@@ -231,7 +255,7 @@ function PostsScreen() {
 .pst-row{font:var(--wl-t3);color:var(--atelier-ink);padding:8px 0;border-top:.5px solid var(--atelier-card-border)}
 .pst-row:first-child{border-top:0}
 .pst-over{position:fixed;inset:0;background:var(--atelier-overlay);display:flex;align-items:flex-end;z-index:50}
-.pst-sheet{width:100%;padding:24px 16px 24px;background:linear-gradient(180deg,var(--atelier-sheet-top),var(--atelier-sheet-bot));border-top:.5px solid var(--atelier-sheet-border)}
+.pst-sheet{width:100%;box-sizing:border-box;max-height:85vh;overflow-y:auto;border-top-left-radius:16px;border-top-right-radius:16px;padding:16px 16px calc(24px + env(safe-area-inset-bottom));background:linear-gradient(180deg,var(--atelier-sheet-top),var(--atelier-sheet-bot));border-top:.5px solid var(--atelier-sheet-border)}
 .pst-q{font:var(--wl-t2);color:var(--atelier-ink);line-height:1.4;margin:0 0 16px}
       `}</style>
     </WorklistShell>
@@ -252,6 +276,7 @@ function SundayLive() {
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [connectHref, setConnectHref] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   const load = useCallback(async (refresh = false) => {
     try {
@@ -304,9 +329,33 @@ function SundayLive() {
     onShare, onDownload, shareCardUrl: cardUrl, busy,
   };
 
-  if (!door && !failed) return <div className="pst-card" aria-busy="true" />;
+  if (!door && !failed) return <div className="pst-list" aria-busy="true" />;
   const state = failed || !door ? 'error' : door.state;
-  return <SundaySection state={state} brief={door ? door.brief : null} actions={actions} />;
+  // CE-46 FE-6 cut 1: the report is ONE row. Waiting on Instagram's approval it reads Coming soon, with no chevron and
+  // no tap (R-46.14); otherwise the row opens the section in place, below it (never a sheet on a sheet).
+  if (state === 'pending') return (
+    <div className="pst-list"><div className="pst-lrow pst-dead" data-sunday-row="" data-dead="">
+      <div className="pst-rt"><div className="pst-rn">{PO.sundayRow}</div><div className="pst-rf">{PO.sundayPending}</div></div>
+      <span className="pst-pill" data-pill="">{PO.comingSoon}</span>
+    </div></div>
+  );
+  const fact = state === 'connect' || state === 'notconnected' ? SU.connect : state === 'expired' ? SU.expired
+    : state === 'error' ? COPY.surfaceUnavailable : PO.ledeSunday;
+  return (
+    <>
+      <div className="pst-list">
+        <button type="button" className="pst-lrow" data-sunday-row="" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+          <span className="pst-rt"><span className="pst-rn">{PO.sundayRow}</span><span className="pst-rf">{fact}</span></span>
+          <span className={'pst-chev' + (open ? ' pst-chev-open' : '')} aria-hidden="true">{'\u203a'}</span>
+        </button>
+      </div>
+      {open ? <div className="pst-under"><SundaySection state={state} brief={door ? door.brief : null} actions={actions} /></div> : null}
+    </>
+  );
+}
+
+function SundayRow() {
+  return SUNDAY_PREVIEW ? <SundaySection state="live" brief={FIXTURE_BRIEF} /> : <SundayLive />;
 }
 
 // ═══ 4b-2 · THE BROADCAST SECTION ═══════════════════════════════════════════
@@ -321,6 +370,7 @@ function BroadcastSection() {
   const [pv, setPv] = useState<BroadcastPreview | null>(null);
   const [failed, setFailed] = useState(false);
   const [confirm, setConfirm] = useState<BroadcastKind | null>(null);
+  const [openKind, setOpenKind] = useState<BroadcastKind | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<{ kind: BroadcastKind; line: string } | null>(null);
   const [refusal, setRefusal] = useState<{ kind: BroadcastKind; line: string } | null>(null);
@@ -334,11 +384,10 @@ function BroadcastSection() {
   useEffect(() => { void load(); }, [load]);
 
   if (failed) return <div className="pst-card"><p className="pst-state">{COPY.surfaceUnavailable}</p></div>;
-  if (!pv) return <div className="pst-card" aria-busy="true" />;
+  if (!pv) return <div className="pst-list" aria-busy="true" />;
   const n = pv.count ?? 0;
-  if (n === 0) return <div className="pst-card"><p className="pst-state">{PO.noCouples}</p></div>;
   // WHOLE OR NOT AT ALL (the wallet law, frame 5): the space inside "Rs 6.12" becomes a
-  // no-break space so the figure can never split across a line in the sheet or the card.
+  // no-break space so the figure can never split across a line in the sheet or the row.
   const fee = typeof pv.fee_paise === 'number' ? formatRs(pv.fee_paise / 100).replace(' ', '\u00a0') : null;
 
   function refusalLine(code: string | undefined, error: string | undefined): string {
@@ -366,58 +415,75 @@ function BroadcastSection() {
     }
   }
 
-  const card = (kind: BroadcastKind) => {
+  // CE-46 FE-6 cut 1: each message is ONE row (its name, who and what it costs). A tap opens its sheet: who receives
+  // it, the message, then Send; Send turns the same sheet into the confirm step (never a sheet on a sheet).
+  const label = (kind: BroadcastKind) => (kind === 'couple' ? PO.coupleLabel : PO.referralLabel);
+  const facts = (kind: BroadcastKind) => (n === 0 ? PO.noCouples : kind === 'couple' ? messageFacts(n, fee) : referralFacts(pv.referral_next));
+  const row = (kind: BroadcastKind) => (n === 0 ? (
+    <div className="pst-lrow pst-dead" key={kind} data-message-row={kind} data-dead="">
+      <div className="pst-rt"><div className="pst-rn">{label(kind)}</div><div className="pst-rf">{facts(kind)}</div></div>
+    </div>
+  ) : (
+    <button type="button" className="pst-lrow" key={kind} data-message-row={kind} onClick={() => { setOpenKind(kind); setConfirm(null); }}>
+      <span className="pst-rt"><span className="pst-rn">{label(kind)}</span><span className="pst-rf">{facts(kind)}</span></span>
+      <span className="pst-chev" aria-hidden="true">{'\u203a'}</span>
+    </button>
+  ));
+
+  const sheet = (kind: BroadcastKind) => {
     const on = !!pv.on?.[kind];
     const spent = kind === 'referral' && !!pv.referral_next;
+    const close = () => { if (!busy) { setOpenKind(null); setConfirm(null); } };
     return (
-      <div className="pst-card" key={kind}>
-        <span className="pst-lbl pst-lbl0">{kind === 'couple' ? COPY_PREVIEW_EYEBROW : PO.referralLabel}</span>
-        <p className="pst-body">{pv.bodies?.[kind]}</p>
-        {pv.button_label ? <div className="pst-btnchip">{pv.button_label}</div> : null}
-        {pv.page_url ? <div className="pst-link">{pv.page_url.replace(/^https?:\/\//, '')}</div> : null}
-        {fee ? <p className="pst-fee">{feeLine(fee)}</p> : null}
-        {done?.kind === kind ? <p className="pst-state pst-gap">{done.line}</p> : null}
-        {refusal?.kind === kind ? <p className="pst-state pst-gap">{refusal.line}</p> : null}
-        {spent ? (
-          <p className="pst-foot">{referralNextLine(pv.referral_next as string)}</p>
-        ) : !on ? (
-          <p className="pst-state pst-gap">{PO.notOnYet}</p>
-        ) : fee ? (
-          <button type="button" className="pst-btn pst-primary pst-gap" disabled={busy} onClick={() => setConfirm(kind)}>
-            {sendTo(n)}
-          </button>
-        ) : null}
+      <div className="pst-over" role="dialog" aria-modal="true" aria-label={label(kind)} onClick={close} data-message-sheet={kind}>
+        <div className="pst-sheet" onClick={(e) => e.stopPropagation()}>
+          <div className="pst-sh"><h2 className="pst-st">{label(kind)}</h2><button type="button" className="pst-x" aria-label={COPY_BACK} onClick={close}>{'\u00d7'}</button></div>
+          {confirm === kind && fee ? (
+            <>
+              <p className="pst-q">{confirmLine(n, fee)}</p>
+              <div className="pst-two">
+                <button type="button" className="pst-btn pst-ghost" disabled={busy} onClick={() => setConfirm(null)}>{COPY_BACK}</button>
+                <button type="button" className="pst-btn pst-primary" disabled={busy} onClick={() => void onSend(kind)}>{sendTo(n)}</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="pst-count">{clientsCount(n)}</div>
+              <div className="pst-list pst-who-list">
+                {(pv.couples ?? []).map((c, i) => (
+                  <div className="pst-row" key={`${c.last4}-${i}`}>
+                    {/* A list is not a phonebook: her book's name, else the last four. */}
+                    {c.name || `\u2022\u2022\u2022\u2022 ${c.last4}`}
+                  </div>
+                ))}
+              </div>
+              <span className="pst-lbl">{COPY_PREVIEW_EYEBROW}</span>
+              <p className="pst-body">{pv.bodies?.[kind]}</p>
+              {pv.button_label ? <div className="pst-btnchip">{pv.button_label}</div> : null}
+              {pv.page_url ? <div className="pst-link">{pv.page_url.replace(/^https?:\/\//, '')}</div> : null}
+              {fee ? <p className="pst-fee">{feeLine(fee)}</p> : null}
+              {done?.kind === kind ? <p className="pst-state pst-gap">{done.line}</p> : null}
+              {refusal?.kind === kind ? <p className="pst-state pst-gap">{refusal.line}</p> : null}
+              {spent ? (
+                <p className="pst-foot">{referralNextLine(pv.referral_next as string)}</p>
+              ) : !on ? (
+                <p className="pst-state pst-gap">{PO.notOnYet}</p>
+              ) : fee ? (
+                <button type="button" className="pst-btn pst-primary pst-gap" disabled={busy} onClick={() => setConfirm(kind)}>
+                  {sendTo(n)}
+                </button>
+              ) : null}
+            </>
+          )}
+        </div>
       </div>
     );
   };
 
   return (
     <>
-      <div className="pst-card">
-        <div className="pst-count">{couplesCount(n)}</div>
-        <div className="pst-list">
-          {(pv.couples ?? []).map((c, i) => (
-            <div className="pst-row" key={`${c.last4}-${i}`}>
-              {/* A list is not a phonebook: her book's name, else the last four. */}
-              {c.name || `\u2022\u2022\u2022\u2022 ${c.last4}`}
-            </div>
-          ))}
-        </div>
-      </div>
-      {card('couple')}
-      {card('referral')}
-
-      {confirm && fee ? (
-        <div className="pst-over" role="dialog" aria-modal="true">
-          <div className="pst-sheet">
-            <p className="pst-q">{confirmLine(n, fee)}</p>
-            <div className="pst-two">
-              <button type="button" className="pst-btn pst-ghost" disabled={busy} onClick={() => setConfirm(null)}>{COPY_BACK}</button>
-              <button type="button" className="pst-btn pst-primary" disabled={busy} onClick={() => void onSend(confirm)}>{sendTo(n)}</button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <div className="pst-list">{row('couple')}{row('referral')}</div>
+      {openKind ? sheet(openKind) : null}
     </>
   );
 }

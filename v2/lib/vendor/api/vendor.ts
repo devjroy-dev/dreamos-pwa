@@ -205,7 +205,7 @@ export function editBinder(binderId: string, fields: BinderEditFields): Promise<
 }
 
 // ── Chat history (3.0-B: display-only scrollback) ─────────────────────────
-export type ChatHistoryMessage = { id: string; role: 'user' | 'ai'; text: string; at: string; room?: 'advisor' | 'business' | null };   // R-41.142: the room rides in from history, or a reload loses every seam
+export type ChatHistoryMessage = { id: string; role: 'user' | 'ai'; text: string; at: string; room?: 'advisor' | 'business' | null; replies?: string[] };   // replies: a stored two-part answer (the second bubble), once the history route sends it   // R-41.142: the room rides in from history, or a reload loses every seam
 export type ChatHistoryResponse = { ok: boolean; messages: ChatHistoryMessage[]; error?: string };
 export function fetchChatHistory(vendorId: string, limit = 10): Promise<ChatHistoryResponse> {
   return getJson<ChatHistoryResponse>(`/api/v2/vendor/chat/history/${vendorId}?limit=${limit}`);
@@ -602,7 +602,7 @@ export function streamChat(
   // bare optionals in a row is how a caller silently passes the wrong one.
   // `useChat` is this function's ONLY caller (derived at 1d57dd9), so the shape is
   // free to be the right one rather than the compatible one.
-  opts?: { room?: string },
+  opts?: { room?: string; onBreak?: () => void },   // onBreak: the server began a second message (the second bubble)
 ): () => void {
   const controller = new AbortController();
   const bodyPayload: Record<string, unknown> = { vendor_id: vendorId, message, history: [] };
@@ -694,7 +694,10 @@ export function streamChat(
 
         try {
           const event = JSON.parse(payload);
-          if (event.type === 'text_delta' && event.text) {
+          if (event.type === 'message_break') {
+            // THE SECOND BUBBLE (ELZ-3): the next deltas are a new message; the hook opens a new bubble for them
+            opts?.onBreak?.();
+          } else if (event.type === 'text_delta' && event.text) {
             onDelta(event.text);
           } else if (event.type === 'handoff') {
             onBeat?.({ kind: 'handoff', message: event.message ?? '' });

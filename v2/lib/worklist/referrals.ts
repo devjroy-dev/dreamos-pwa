@@ -18,6 +18,10 @@
 import type { ForwardRefusalCode } from '@/lib/solutions/types';
 
 export const RF = {
+  // ── CE-47 L4 (FE-7): the reworked room's words, veto rows as approved ──
+  lede: 'Enquiries passed to peers, and received from them.', // veto 45
+  sectionMore: 'More',                                // veto 48
+  exchangeLine: 'Influencers, and the requests you send them',
   // ── A · THE LEAD RECORD (veto sheet §A) ───────────────────────────────────
   // A1. Not `Refer` — a referral is what the couple did to get here (Victor's
   // own word, `systemPrompt.js:92`), and reusing it makes two acts share one
@@ -52,7 +56,7 @@ export const RF = {
   // second is R-G51.7 said out loud BEFORE she taps. She will otherwise assume
   // TDW told the couple, and find out it didn't when the couple asks.
   sheetStandingLine:
-    'They get it as a new enquiry, with your name and your note. Nothing is sent to the couple.',
+    'They get it as a new enquiry, with your name and your note. Nothing is sent to the client.',
   pickerTitle: 'Choose a peer',
   // B8, RULED AT RELAY 3: no way in from the picker this sitting. This line
   // deliberately does NOT name where to add a peer — the roster is written by

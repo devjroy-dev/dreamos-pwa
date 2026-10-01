@@ -47,8 +47,8 @@ export function ShootsBlock() {
       getJson<{ ok: boolean; feed: Shoot[] }>(API.collabFeed('shoot')).catch(() => null),
       getJson<{ ok: boolean; posts: Shoot[] }>(API.collabMyPosts('shoot')).catch(() => null),
     ]);
-    if (f?.ok) setOpen(f.feed);
-    if (m?.ok) setMine(m.posts);
+    if (f?.ok) setOpen(f.feed ?? []);   // CE-47 L4 (FE-7): a reply without the list no longer takes Referrals down
+    if (m?.ok) setMine(m.posts ?? []);
   }, []);
   useEffect(() => {
     void load();

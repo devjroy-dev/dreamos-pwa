@@ -78,6 +78,7 @@ export interface SettingsState {
   // the same PATCH as every other posture flag, but saved on toggle rather than
   // by a Save button — see the room.
   date_check_enabled:  boolean;
+  price_share_enabled: boolean;   // CE-46 ELZ-3 · 0183: prices in chat, OFF unless her row says true
   peer_discoverable:   boolean;
   // CE-42 4c-3b-1p · G5.3. TWO fields, both read-only to this hook's form half.
   // `category` is here so the exchange row can be drawn for a content_creator
@@ -115,7 +116,7 @@ const EMPTY: SettingsState = {
   // permission not granted (R-40.77). Silence never means yes, on this side too.
   // ⚠ `undefined`, NOT `'unmapped'` — F-40.175. Defaulting to the unmapped BYTE
   // made an unanswered door print a false sentence about her trade.
-  capacity_reason: undefined, date_check_enabled: false,
+  capacity_reason: undefined, date_check_enabled: false, price_share_enabled: false,
   // ⚠ THIS ONE DEFAULTS TRUE AND ITS NEIGHBOUR DEFAULTS FALSE, DELIBERATELY.
   // The rule above is fail-CLOSED, and closed means something different for each
   // flag. For `date_check_enabled`, a permission that could not be read is a
@@ -209,6 +210,7 @@ export function useSettings() {
         // operator that cannot distinguish it from absence.
         capacity_reason:     v.capacity_reason === undefined ? undefined : v.capacity_reason,
         date_check_enabled:  v.date_check_enabled === true,
+        price_share_enabled: v.price_share_enabled === true,
         // `!== false` and NOT `=== true` — the opposite coercion to the line
         // above, for the reason its default paragraph gives. dream-os `me.js`
         // reads it the same way on both the GET shape and the PATCH echo.

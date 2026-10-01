@@ -194,8 +194,8 @@ export const ROW_DESC: Readonly<Record<RoomKey, string>> = {
   wedding_pages: 'A page for each wedding, with its credit list',
   google:        'Review requests sent after each published wedding',
   posts:         'Posts, reels and ad briefs, drafted from the portfolio and calendar',
-  dates:         'Dates still open, and offers to fill them',
-  introductions: 'Couples introduced, in both directions',
+  dates:         'Date checks, and offers to fill open dates',             // CE-47 L4 (FE-7) A2, veto 42; R-45.20 (no your)
+  introductions: 'Pages sent once to people met in person',                // CE-47 L4 (FE-7) A2, veto 42; R-45.20 (no your)
   referrals:     'Enquiries passed to peers, and received from them',
   // CE-45 IGD-1 cut 1 · R-45.27, A3 (his, 25 Sept 2026): D28 retires with the row's old name; R-45.20's plain register.
   number:        'Enquiries on WhatsApp and Instagram, answered in the studio\u2019s name',
@@ -323,11 +323,11 @@ export const COPY = {
   // ── THE EMPTY STATES (R-19.2: the empty state is the product's real first
   //    state, not a placeholder). Each says what the row will do and what the
   //    vendor's one next action is. None of them apologises.
-  googleEmpty:     'Connect your Google listing and we keep your name, hours and photos in step with your page, and ask each couple for a review after their date.',
+  googleEmpty:     'Connect your Google listing and we keep your name, hours and photos in step with your page, and ask each client for a review after their date.',
   websiteEmpty:    'Every vendor gets an address on our domain. Search for your own name here and we buy it, wire it up and put your page on it.',
-  seoEmpty:        'Once your page is live we make it findable (structured, fast, indexed) and show you what couples searched to reach it.',
+  seoEmpty:        'Once your page is live we make it findable (structured, fast, indexed) and show you what people searched to reach it.',
   marketingEmpty:  'Posts and ad briefs written from your own portfolio and calendar. Nothing goes out without you sending it.',
-  proofEmpty:      'The three documents you send most: a rate card, a one-page profile, and answers to what couples always ask.',
+  proofEmpty:      'The three documents you send most: a rate card, a one-page profile, and answers to what people always ask.',
   benchmarksEmpty: 'How your reply time and enquiries compare with your category in your city. We never show another vendor\u2019s numbers.',
 
   // ── THE /v/<code> HOLDING PAGE (R-19.7, ruled at relay #1) ───────────────

@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useTodayFeed } from '@/v2/lib/worklist/feed';
 import { roomHref } from '@/v2/lib/worklist/rooms';
-import { HOME, shortDate, longDate, dayHeading, agoWords, sentence, OPEN_ENQUIRY } from '@/v2/lib/worklist/home';
+import { HOME, shortDate, longDate, dayHeading, agoWords, sentence, OPEN_ENQUIRY, clockWords } from '@/v2/lib/worklist/home';
 import { useCrew, crewWords, CREW_WORDS, type CrewFunction } from '@/v2/lib/worklist/crew';
 import { fetchDay, fetchLeadsWhole, fetchLeadDetail, fetchEvents, fetchInvoices } from '@/v2/lib/vendor/api/vendor';
 import type { LeadsResponse, VendorDayResponse, VendorEvent, InvoicesResponse } from '@/lib/vendor/types/vendor';
@@ -29,9 +29,9 @@ type Answer = { kind: 'free' | 'booked' | 'enquiry'; lines: string[]; hot: boole
 export function answerFor(date: string, day: VendorDayResponse, leads: readonly LeadRow[]): Answer {
   const live = (day.events ?? []).filter((e) => e.state !== 'cancelled');
   const asked = leads.filter((l) => OPEN_ENQUIRY.has((l.state || '').toLowerCase()) && (l.wedding_date || '').slice(0, 10) === date);
-  const names = asked.map((l) => l.name || 'A couple');
+  const names = asked.map((l) => l.name || 'Someone');
   const lines: string[] = [];
-  for (const e of live) lines.push([e.event_time ? e.event_time.slice(0, 5) : '', e.title, e.binder_name || ''].filter(Boolean).join(' · '));
+  for (const e of live) lines.push([e.event_time ? clockWords(e.event_time) : '', e.title, e.binder_name || ''].filter(Boolean).join(' · '));
   const blocks = day.blocks ?? [];
   for (const b of blocks) lines.push(HOME.blocked(b.reason));
   if (live.length || blocks.length) {
@@ -103,7 +103,7 @@ function FunctionRow({ f, ev, leadCity }: { f: CrewFunction; ev: VendorEvent | u
           {crew ? <span>{crew}</span> : <span className="wl-home-nocrew">{CREW_WORDS.none}</span>}
         </span>
       </span>
-      <span className="wl-home-right">{f.event_time ? f.event_time.slice(0, 5) : ''}</span>
+      <span className="wl-home-right">{f.event_time ? clockWords(f.event_time) : ''}</span>
     </Link>
   );
 }

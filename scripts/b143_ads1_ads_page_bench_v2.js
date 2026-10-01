@@ -1,4 +1,9 @@
 'use strict';
+// FLOOR-SUBJECTS: v2/app/vendor/(shell)/posts/ads/page.tsx v2/app/vendor/(shell)/posts/page.tsx v2/components/worklist/AdsCard.tsx scripts/lib/mutation_guard.js
+// FLOOR-STATES: env B143_PART=states
+// FLOOR-WHOLE: args
+// (CE-47 FE-6 L3 r2: the floor runs this bench's mutations only when a delivery names it or a subject above;
+//  scripts/lib/floor_slice.sh reads these three lines. b174 §F proves the subjects cover every file the bench mutates.)
 // DESIGN-1 · THE LAYOUT SWITCH: the v2 copy of b143_ads1_ads_page_bench.js. The original at its own path proves the classic
 // tree (main's, unchanged); this one proves the redesign in v2/, with its stage 1-3 amendments by label.
 process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this copy proves the v2 tree (middleware.ts serves it with no cookie)
@@ -36,6 +41,8 @@ const ROOT = process.env.B143_ROOT || path.join(__dirname, '..');   // B143_ROOT
 const PORT = 3143;
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const dev = require(path.join(ROOT, 'scripts/lib/b126_dev_server.js'));
+// F-44.258's cure (CE-47, FE-6 cut 1): every mutation goes through the pending-marker guard, and every start recovers first.
+const guard = require(path.join(ROOT, 'scripts/lib/mutation_guard.js'));
 const { stripComments } = require(path.join(ROOT, 'scripts/lib/stripComments.cjs'));   // the estate's one comment stripper (tdw_f0774_readers)
 const PHOTO = process.env.B143_PHOTO || path.join(ROOT, 'scripts/fixtures/b143_portrait.jpeg');
 let pass = 0; let fail = 0; const failed = []; let quiet = false;
@@ -161,6 +168,7 @@ function scenario(name) {
 }
 
 async function main() {
+  guard.recoverOrRefuse(ROOT, 'b143_v2');   // F-44.258: a mutation a killed run left on disk is restored by sha, or the run refuses
   const puppeteer = (await import(path.join(ROOT, 'node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js'))).default;
   const chromium = (await import(path.join(ROOT, 'node_modules/@sparticuz/chromium/build/index.js'))).default;
   if (!fs.existsSync(PHOTO)) { console.log(`b143: the post photograph is missing at ${PHOTO}. Set B143_PHOTO, or add the fixture the handover names. Nothing ran.`); process.exit(2); }
@@ -269,7 +277,7 @@ async function main() {
       await p.close();
       p = await open(mode, 'shut', '/vendor/posts', { wait: '[data-ads-card-line]' });
       ok((await text(p, '[data-ads-card-line]')) === 'You have not run an ad yet. Your ads run from your own Meta ad account.'
-        && (await p.evaluate(() => Array.from(document.querySelectorAll('.pst-room button')).some((b) => b.textContent === 'Open ads' && !b.disabled))),   // DESIGN-1 (by label): sentence case, ads.ts 'Open ads'; LANDING: main's card line
+        && (await p.evaluate(() => { const r = document.querySelector('.pst-room [data-ads-row]'); return !!r && r.tagName === 'BUTTON' && !r.disabled && r.contains(document.querySelector('[data-ads-card-line]')); })),   // CE-46 FE-6 cut 1 (AMENDED BY LABEL, the founder's verdict on the reworked room, 30 Sept 2026): the card is now ONE row, the whole row the tap, carrying the same line. Before: DESIGN-1 (by label) sentence case, ads.ts 'Open ads'; LANDING: main's card line
         `${mode} 1.1c shut: the Posts card renders and opens the page`, await text(p, '[data-ads-card-line]'));
       await p.close();
       p = await open(mode, 'connect', '/vendor/posts/ads', { wait: '[data-connect]', settle: 1500 });
@@ -360,10 +368,15 @@ async function main() {
       p = await open(mode, 'running', '/vendor/posts/ads', { wait: '.ads-adrow', settle: 1500 });
       ok(has(await text(p, '.ads-room'), 'Aanya and Rohan', 'Running until'), `${mode} 3.6 Your ads: the post's caption line and its state`);
       sent.length = 0;
+      // AMENDED BY LABEL (CE-47, FE-6 L3, the chair's change to the verdict): Disconnect asks first. The quiet foot action
+      // opens the question; nothing is sent until the confirm; the confirm calls the door and the page returns to connect.
+      await p.evaluate(() => { const b = document.querySelector('[data-disconnect-open]'); if (b) b.click(); });
+      await new Promise((r) => setTimeout(r, 500));
+      const askedFirst = !sent.some((x) => x.route === '/api/v2/vendor/ads/disconnect') && !!(await p.evaluate(() => !!document.querySelector('[data-disconnect-ask]')));
       await p.evaluate(() => { const b = document.querySelector('[data-disconnect]'); if (b) b.click(); });
       await new Promise((r) => setTimeout(r, 700));
-      ok(sent.some((x) => x.route === '/api/v2/vendor/ads/disconnect') && has(await text(p, '.ads-room'), 'Connect ad account'),
-        `${mode} 3.7 Disconnect ad account calls the disconnect door and the page returns to the connect (b42: no orphaned address)`);
+      ok(askedFirst && sent.some((x) => x.route === '/api/v2/vendor/ads/disconnect') && has(await text(p, '.ads-room'), 'Connect ad account'),
+        `${mode} 3.7 Disconnect ad account asks first, then calls the disconnect door and the page returns to the connect (b42: no orphaned address)`);
       await p.close();
       p = await open(mode, 'running', '/vendor/posts', { wait: '[data-ads-card-line]', settle: 1200 });
       ok((await text(p, '[data-ads-card-line]')) === 'Aanya and Rohan is running. 1,240 people have seen it today.', `${mode} 4.1 the card: the post's name and today's reach`, await text(p, '[data-ads-card-line]'));
@@ -377,12 +390,17 @@ async function main() {
         const b = document.querySelector('[data-caption-box]'); if (!b) return null;
         const kids = Array.from(b.children).map((e) => ({ tag: e.tagName, cap: e.hasAttribute('data-caption'), copy: e.hasAttribute('data-copy'), t: e.textContent }));
         const outside = (re) => Array.from(document.querySelectorAll('.pst-room button, .pst-room .pst-lbl')).filter((e) => re.test(e.textContent) && !b.contains(e)).length;
-        return { kids, buttonsIn: b.querySelectorAll('button').length, label: outside(/^Caption$/), download: outside(/^Download$/), share: outside(/^Share$/),
+        // CE-46 FE-6 cut 1 (by label): Download and Share sit side by side ABOVE the box; the reworked room draws no "Caption" label
+        const above = (re) => Array.from(document.querySelectorAll('.pst-room button')).filter((e) => re.test(e.textContent) && !b.contains(e) && e.getBoundingClientRect().bottom <= b.getBoundingClientRect().top + 1).length;
+        return { kids, buttonsIn: b.querySelectorAll('button').length, label: outside(/^Caption$/), download: above(/^Download$/), share: above(/^Share$/),
           old: Array.from(document.querySelectorAll('button')).some((e) => e.textContent === 'Copy caption') };
       }).catch(() => null);
       ok(!!box && box.kids.length === 2 && box.kids[0].cap && box.kids[0].t === CAPTION && box.kids[1].copy && box.kids[1].tag === 'BUTTON' && box.kids[1].t === 'Copy' && box.buttonsIn === 1,
         `${mode} 10.1 the caption's own box holds exactly the caption and its one control, "Copy"`, JSON.stringify(box));
-      ok(!!box && box.label === 1 && box.download === 1 && box.share === 1 && !box.old, `${mode} 10.2 "Caption", Download and Share stay outside the box; "Copy caption" is gone`, JSON.stringify(box));
+      // 10.2 AMENDED BY LABEL (CE-46 FE-6 cut 1, the founder's verdict on the reworked room): the room draws no "Caption"
+      // label; Download and Share stay OUTSIDE the box, now side by side above it. The claim kept: nothing but the caption
+      // and its one control is inside the box, and "Copy caption" is gone.
+      ok(!!box && box.label === 0 && box.download === 1 && box.share === 1 && !box.old, `${mode} 10.2 Download and Share stay outside the box, above it; no "Caption" label; "Copy caption" is gone`, JSON.stringify(box));
       await p.evaluate(() => document.querySelector('[data-caption-box] [data-copy]')?.click()).catch(() => {});
       await new Promise((r) => setTimeout(r, 300));
       const c1 = await p.evaluate(() => ({ copied: window.__copied || [], label: document.querySelector('[data-caption-box] [data-copy]')?.textContent })).catch(() => ({ copied: [], label: null }));
@@ -425,7 +443,7 @@ async function main() {
   ];
   // A run killed mid-mutation (a timeout, Ctrl-C) must still put the file back: e-(ADS-1), a killed run once left M5 on disk.
   let live = null;
-  const restore = () => { if (live) { fs.writeFileSync(live.file, live.orig); live = null; } };
+  const restore = () => { if (live) { live.restore(); live = null; } };   // F-44.258: the guard's restore (sha-checked, marker cleared)
   process.on('exit', restore);
   for (const sig of ['SIGTERM', 'SIGINT', 'SIGHUP']) process.on(sig, () => { restore(); process.exit(130); });
   const ONLY = (process.env.B143_MUTS || '').split(',').filter(Boolean);
@@ -433,11 +451,10 @@ async function main() {
     if (ONLY.length && !ONLY.includes(name.split(' ')[0])) continue;
     const file = path.join(ROOT, rel); const orig = fs.readFileSync(file, 'utf8'); const h = sha(orig);
     if (orig.split(from).length !== 2) { ok(false, `${name}: anchor found exactly once`); continue; }
-    live = { file, orig };
-    fs.writeFileSync(file, orig.replace(from, to));
+    live = guard.apply(ROOT, rel, from, to, 'b143_v2');   // F-44.258: kept original and marker written and synced BEFORE the mutation
     await new Promise((r) => setTimeout(r, 2500));
     const red = await judgeMutation(name, () => runAll(['dark'], true));   // a crash is its own FAIL, never this mutation's red
-    fs.writeFileSync(file, orig); live = null;
+    live.restore(); live = null;
     quiet = false;
     ok(red && sha(fs.readFileSync(file, 'utf8')) === h, `${name}: reddens, restored by sha`);
     await new Promise((r) => setTimeout(r, 2000));

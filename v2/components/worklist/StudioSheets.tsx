@@ -34,6 +34,8 @@
 // reach them and nothing in the estate could bring them back. That is F-2b2.1's
 // premise one layer up, and `C80` guards the row's half of it. An
 // 「inactive members」 view is unbuilt and unruled and belongs to a later seat.
+import { dateWords } from '@/v2/lib/worklist/teamRoom';
+import { clockWords } from '@/v2/lib/worklist/home';   // the founder: "7:00 pm", one home
 import { useState } from 'react';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { formatRs, formatLongDate } from '@/lib/vendor/format';
@@ -45,7 +47,7 @@ import { confirmationWord, ASSIGNMENTS_ERROR_MSG } from '@/lib/vendor/assignment
 // the same question in both trees until Phase 7 retires one of them. Re-minting
 // them in `copy.ts` would be two homes for one word, mid-crossing.
 import { FUNCTION_LABEL, NO_WEDDING_OPTION } from '@/v2/lib/vendor/settleWords';
-import { slotWord, hhmm } from '@/lib/vendor/slotWords';
+import { slotWord } from '@/lib/vendor/slotWords';   // hhmm stays for the classic layout and the crew page; v2 draws clockWords
 // F-2c.w4: the crew role's ONE HOME. What is stored is what is shown, and a
 // value this picker does not offer is carried rather than dropped.
 import { roleOptionsFor } from '@/lib/vendor/roleWords';
@@ -234,7 +236,7 @@ export function MemberSheet({
               : assignments.map((a) => (
                   <div key={a.event_id} className="wl-asg">
                     <span className="wl-rprimary">
-                      {[formatLongDate(a.date), slotWord(a.slot), hhmm(a.call_time)].filter(Boolean).join(' · ')}
+                      {[formatLongDate(a.date), slotWord(a.slot), clockWords(a.call_time)].filter(Boolean).join(' · ')}
                     </span>
                     <span className="wl-rdetail">
                       {[a.title, a.wedding, confirmationWord(a.confirmation)].filter(Boolean).join(' · ')}
@@ -307,6 +309,8 @@ export function TaskSheet({ draft, setDraft, members, saving, onCreate, onClose 
       </Field>
       <Field label={COPY.studioFieldDueDate}>
         <input className="wl-fi" type="date" value={draft.dueDate} onChange={(e) => set('dueDate')(e.target.value)} />
+        {/* CE-47 FE-6 L5: the date said in words under the native field (the sprint's rule) */}
+        {dateWords(draft.dueDate) ? <p className="wl-dwords" data-date-words="" style={{ margin: "6px 0 0", font: "var(--wl-t4)", color: "var(--atelier-ink-soft)" }}>{dateWords(draft.dueDate)}</p> : null}
       </Field>
       <Field label={COPY.studioFieldPriority}>
         <Select value={draft.priority} onChange={set('priority')} options={PRIORITIES} />

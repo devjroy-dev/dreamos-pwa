@@ -49,7 +49,8 @@ const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'Au
 // CE-46: no ages. An independent reading of the rule: the time in India today, else the date with the month written out
 const WHEN = (iso) => { const ist = (ms) => new Date(ms + 330 * 60000); const a = ist(Date.parse(iso)), b = ist(Date.now());
   const k = (d) => `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
-  if (k(a) === k(b)) return `${String(a.getUTCHours()).padStart(2, '0')}:${String(a.getUTCMinutes()).padStart(2, '0')}`;
+  // the founder (L2, by label): the time today in clock words, "10:40 am", read independently of the app's helper
+  if (k(a) === k(b)) { const h = a.getUTCHours(); return `${h % 12 === 0 ? 12 : h % 12}:${String(a.getUTCMinutes()).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`; }
   return `${a.getUTCDate()} ${MON[a.getUTCMonth()]}` + (a.getUTCFullYear() === b.getUTCFullYear() ? '' : ` ${a.getUTCFullYear()}`); };
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dayHead = (iso) => { const [y, m, d] = iso.split('-').map(Number); return `${DAY[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]} ${d} ${MON[m - 1]}`; };
@@ -96,7 +97,8 @@ async function main() {
   // FE-5 (by label): /vendor/rooms goes to Today in the new layout; More is /vendor/more, where the pinned rooms are
   const rooms = code('v2/app/vendor/(shell)/more/page.tsx');
   const today = code('v2/app/vendor/(shell)/today/page.tsx');
-  ok(/<PinnedRooms\s*\/>/.test(rooms), '7.1 the pinned rooms are KEPT: More (/vendor/more) mounts <PinnedRooms />');
+  // CE-47 (the founder's ruling after his walk, by label): More is the rooms in today's Rooms order; Pinned goes
+  ok(!/<PinnedRooms\b/.test(rooms) && /<RoomsGrid\s*\/>/.test(rooms), '7.1 More (/vendor/more) mounts the rooms in the classic order and no Pinned (the founder, after his walk)');
   ok(!/PinnedRooms/.test(today), '7.2 the pinned rooms MOVED: Home no longer mounts them');
   ok(fs.existsSync(path.join(ROOT, 'v2/components/worklist/PinnedRooms.tsx')), '7.3 the pinned rooms are not deleted (v2/components/worklist/PinnedRooms.tsx stands)');
   ok(/<TodayHome\s*\/>/.test(today), '7.4 Home mounts TodayHome');
@@ -181,7 +183,7 @@ async function main() {
       ok(free && free.word === 'Free all day' && free.kind === 'free' && free.lines.length === 0, `2.1 ${tag} an empty day is "Free all day"`, JSON.stringify(free));
       ok(free && free.href === `/vendor/calendar?day=${D_FREE}`, `2.2 ${tag} Open in calendar opens that day`, free && free.href);
       const booked = await check(p, D_BOOK);
-      ok(booked && booked.word === 'Booked' && booked.lines.includes('18:00 · Kapoor wedding · Kapoor'), `2.3 ${tag} a day with a function is "Booked" and names it`, JSON.stringify(booked));
+      ok(booked && booked.word === 'Booked' && booked.lines.includes('6:00 pm · Kapoor wedding · Kapoor')   /* the founder's clock words (L2, by label) */, `2.3 ${tag} a day with a function is "Booked" and names it`, JSON.stringify(booked));
       const enq = await check(p, D_ENQ);
       ok(enq && enq.word === 'Enquiry' && enq.lines.includes('Meera Shah asked for this date'), `2.4 ${tag} a day an open enquiry asked for is "Enquiry" and says who`, JSON.stringify(enq));
       const lost = await check(p, D_LOST);
@@ -207,7 +209,7 @@ async function main() {
           const want = getComputedStyle(probe).color; probe.remove(); return { text: n.innerText.trim(), color: getComputedStyle(n).color, want }; })() })), sel);
       const todays = await rowsOf('section[aria-labelledby="wl-home-today"] > a.wl-home-row');
       ok(todays.map((r) => r.name).join('|') === 'Sharma pre-wedding|Gupta haldi', `4.1 ${tag} today’s functions, earliest first, and nothing from later in the week`, todays.map((r) => r.name).join('|'));
-      ok(todays[0] && todays[0].facts === 'Shoot · Lodhi Garden · Rhea, Arjun (not replied yet)' && todays[0].time === '10:00', `4.2 ${tag} a function says its time, place and crew in words`, JSON.stringify(todays[0]));
+      ok(todays[0] && todays[0].facts === 'Shoot · Lodhi Garden · Rhea, Arjun (not replied yet)' && todays[0].time === '10:00 am'   /* the founder's clock words (L2, by label) */, `4.2 ${tag} a function says its time, place and crew in words`, JSON.stringify(todays[0]));
       ok(todays[1] && todays[1].facts === 'Haldi · Jaipur · No crew yet' && todays[1].nocrew && todays[1].nocrew.color === todays[1].nocrew.want, `4.3 ${tag} a function nobody is on says "No crew yet" in the critical ink`, JSON.stringify(todays[1]));
       ok(todays.length > 0 && todays.every((r) => r.h >= 64), `4.4 ${tag} each row is at least 64 high`, todays.map((r) => r.h).join(','));
       ok(!(await p.evaluate(() => !!document.querySelector('.wl-home-weeklist'))), `4.5 ${tag} the rest of the week waits behind This week`);

@@ -100,7 +100,15 @@ try {
   const tapButton = (text) => p.evaluate((t) => { const b2 = [...document.querySelectorAll('[data-enquiry-row] button')].find((e) => e.textContent.trim() === t); if (b2) { b2.click(); return true; } return false; }, text);
   const type = async (v) => { await p.evaluate(() => { const i = document.querySelector('#wl-enquiry-phone'); if (i) { i.focus(); i.select(); } }); await p.keyboard.press('Backspace'); await p.type('#wl-enquiry-phone', v); };
   await p.goto(`http://localhost:${PORT}/vendor/settings`, { waitUntil: 'domcontentloaded', timeout: 90000 });
-  for (let i = 0; i < 120; i += 1) { if (await p.evaluate(() => !!document.querySelector('[data-enquiry-row]'))) break; await settle(500); }
+  // CE-47 L4b (FE-7), BY LABEL: in the new layout's Settings (board 6) the row lives in its section's sheet, opened
+  // from the Enquiries group's "Where enquiries go" row; classic draws it inline. Wait for either; open the sheet if
+  // the row is not yet on the page. What the probe then reads is unchanged.
+  for (let i = 0; i < 120; i += 1) {
+    const st = await p.evaluate(() => ({ row: !!document.querySelector('[data-enquiry-row]'), opener: !![...document.querySelectorAll('.fr-row')].find((e) => (e.querySelector('.fr-t') || {}).textContent === 'Where enquiries go') }));
+    if (st.row) break;
+    if (st.opener) { await p.evaluate(() => { const e = [...document.querySelectorAll('.fr-row')].find((x) => (x.querySelector('.fr-t') || {}).textContent === 'Where enquiries go'); if (e) e.click(); }); await settle(800); continue; }
+    await settle(500);
+  }
   await settle(1200);
   await p.evaluate(() => { const e = document.querySelector('[data-enquiry-row]'); if (e) e.scrollIntoView(); });
   await readRow('list');

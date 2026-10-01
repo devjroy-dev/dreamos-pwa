@@ -687,8 +687,10 @@ section('11. sitting 3 — the room as a vendor uses it');
   const src = code(SCREEN);
   const api = code('v2/lib/vendor/api/vendor.ts');
   // 9a · the policies card is first, and the standard agreement has a door
-  ok('the room draws the policies card before the list', src.indexOf('Set up your contract policies') < src.indexOf('No agreements yet.'));
-  ok('the card says set up or edit on a FACT', /policiesSet \? 'Edit' : 'Set up'/.test(src));
+  // AMENDED BY LABEL (CE-47, FE-6 L3, W2): the policies are ONE row, still drawn before the list
+  ok('the room draws the policies card before the list', src.indexOf('data-policies-row') > -1 && src.indexOf('data-policies-row') < src.indexOf('No agreements yet.'));
+  // AMENDED BY LABEL (CE-47, FE-6 L3, W2): the row carries "Set up" only when the policies are not set (a fact)
+  ok('the card says set up or edit on a FACT', /\{!policiesSet \? <span className="ctr-pill new" data-pill="">\{CT\.setUp\}<\/span> : null\}/.test(src));
   ok('the api client has the standard door, with no id', /export function fetchStandardAgreement\(\): /.test(api) && /contracts\/standard'/.test(api));
   ok('the room asks the door and opens what it gets back', /fetchStandardAgreement\(\)[\s\S]{0,300}window\.open\(\(res as \{ pdf_url: string \}\)\.pdf_url/.test(src));
   ok('and never opens the door itself in a tab', !/window\.open\([^)]*contracts\/standard/.test(src));
@@ -714,7 +716,9 @@ section('11. sitting 3 — the room as a vendor uses it');
   ok('the record is a screen, not a sheet a scrim can close', !/onClick=\{\(\) => setRecord\(null\)\}/.test(src));
   // 9f · post-send states are reachable from the list (F-40.245)
   ok('a composed, non-draft contract opens on its status', /go\(isComposed\(c\) && c\.state !== 'draft' \? 'after' : 'record'\)/.test(src));
-  ok('the list routes every composed row through openRecord', /isComposed\(c\) \? openRecord\(c\) : setSelected\(c\)/.test(src));
+  // AMENDED BY LABEL (CE-47, FE-6 L3, the verdict: each agreement its own page): a composed row opens its page; the page's
+  // draft action still goes through openRecord
+  ok('the list routes every composed row through openRecord', /isComposed\(c\) \? openPage\(c\) : setSelected\(c\)/.test(src) && /onClick=\{\(\) => openRecord\(c\)\}>\{CT\.edit\}/.test(src));
   ok('signed \u2192 deposit \u2192 the date is held are drawn there', /Mark the deposit received/.test(src) && /The date is held/.test(src));
   // 9g · register v3 on the surface
   ok('the sheet asks travel_and_stay_terms', /key: 'travel_and_stay_terms'/.test(src));

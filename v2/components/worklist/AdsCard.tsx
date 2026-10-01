@@ -38,20 +38,21 @@ export function AdsCard() {
     const d = last.last_insights || [];
     line = fill(ADS.card.last, { reach: d.reduce((n, x) => n + x.reach, 0).toLocaleString('en-IN'), enquiries: d.reduce((n, x) => n + x.conversations, 0) });
   }
+  // CE-46 FE-6 cut 1 (the founder's verdict on the mock, 30 Sept 2026): the section is ONE row. Its name is the post
+  // when an ad has run, else the page's own action ("Open ads"); its facts are the state sentence above, unchanged;
+  // a pill says Running or Paused. The whole row is the tap into /vendor/posts/ads (R-46.14: it always renders).
   const shown = running || last;
-  const pic = shown && shown.settings && shown.settings.post ? shown.settings.post.url : null;
+  const name = (shown && shown.settings && shown.settings.post && shown.settings.post.caption_line) || ADS.card.open;
+  const pill = running ? ADS.pill.running : last && last.status === 'paused' ? ADS.pill.paused : last ? ADS.pill.ended : null;
   return (
     <>
-    <div className="pst-sec pst-secgap">{ADS.card.label}</div>
-    <div className="pst-card">
-      {pic ? (
-        <div className="pst-best" style={{ marginTop: 0, marginBottom: 12 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="pst-thumb" src={pic} alt="" style={{ objectFit: 'cover', objectPosition: '50% 50%' }} />
-          <div className="pst-who" data-ads-card-line>{line}</div>
-        </div>
-      ) : <p className="pst-state" style={{ marginBottom: 12 }} data-ads-card-line>{line}</p>}
-      <button type="button" className="pst-btn pst-primary" onClick={() => router.push(ADS_HREF)}>{ADS.card.open}</button>
+    <h2 className="pst-h">{ADS.card.label}</h2>
+    <div className="pst-list">
+      <button type="button" className="pst-lrow" data-ads-row="" onClick={() => router.push(ADS_HREF)}>
+        <span className="pst-rt"><span className="pst-rn">{name}</span><span className="pst-rf" data-ads-card-line="">{line}</span></span>
+        {pill ? <span className={'pst-pill' + (running ? ' pst-pill-run' : last && last.status === 'paused' ? ' pst-pill-wait' : '')} data-pill="">{pill}</span> : null}
+        <span className="pst-chev" aria-hidden="true">{'\u203a'}</span>
+      </button>
     </div>
     </>
   );

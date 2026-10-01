@@ -449,6 +449,7 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
           </Link>
         )) : <div className="yw-empty">{C.wedNone}</div>}
         <DateSwitch cap={cap} revalidate={revalidate} />
+        <PriceSwitch />
       </div>
 
       <div className="yw-sec" style={{ paddingBottom: 32 }}>
@@ -512,6 +513,39 @@ function DateSwitch({ cap, revalidate }: { cap: 'ruled_off' | 'unmapped' | null 
       </>
     );
   return body;
+}
+
+
+// ── CE-46 ELZ-3 · 0183 · THE PRICE SWITCH, beside the date switch ──
+// Her permission for approximate prices in chat (vendors.price_share_enabled, OFF by default). The date switch's own
+// mechanism: optimistic, saved through updateMe, reverted on a refusal, settled on the door's echo. No capacity gate:
+// every trade can share a price range.
+function PriceSwitch() {
+  const { current } = useSettings();
+  const [on, setOn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const live = on ?? current.price_share_enabled;
+  async function toggle() {
+    if (busy) return;
+    const next = !live;
+    setOn(next);
+    setBusy(true);
+    try {
+      const r = await updateMe({ price_share_enabled: next });
+      if (!('ok' in r) || !r.ok) { setOn(!next); return; }
+      setOn(r.vendor.price_share_enabled === true);
+    } catch {
+      setOn(!next);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <button type="button" className="yw-switchrow" role="switch" data-price-switch="" aria-checked={live === true} aria-label={COPY.priceShareSwitch} onClick={toggle}>
+      <span>{COPY.priceShareSwitch}</span>
+      <span className={'yw-toggle' + (live ? ' on' : '')} />
+    </button>
+  );
 }
 
 // ── W2 · HER ADDRESS ──────────────────────────────────────────────────────────

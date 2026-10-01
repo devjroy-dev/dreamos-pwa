@@ -142,7 +142,8 @@ function pageCells(src) {
       && /\.pkg-seg--final\{background:var\(--atelier-ink\);opacity:\.22\}/.test(s),
     numerals: /\{splitNumerals\(parts, formatRs\)\}/.test(s),
     noDateInRoom: !/packageDate|due_on|formatLongDate/.test(s),
-    summary: /return p\.line_items\.slice\(0, 3\)\.map\(\(it\) => it\.detail\)\.join\(', '\);/.test(s),
+    // AMENDED BY LABEL (CE-47, F-44.259, FE-6 L3): the first three detail values, EMPTIES FILTERED, then joined
+    summary: /return p\.line_items\.slice\(0, 3\)\.map\(\(it\) => it\.detail\)\.filter\(\(d\) => !!d && String\(d\)\.trim\(\) !== ''\)\.join\(', '\);/.test(s),
     actions: /className="pkg-act pkg-act--quiet pkg-act--right" onClick=\{\(\) => setConfirming\(p\.id\)\}>\{PACKAGES\.del\}/.test(s)
       && /<p>\{PACKAGES\.deleteConfirm\}<\/p>/.test(s) && /onClick=\{\(\) => \{ void remove\(p\); \}\}>\{PACKAGES\.del\}/.test(s)
       // AMENDED BY LABEL at P2b (F-43.79): the quiet button carries the muted ink as colour and border.

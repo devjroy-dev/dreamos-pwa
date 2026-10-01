@@ -33,6 +33,8 @@
 // caller, never trusted.
 import { useState } from 'react';
 import { PLAN_LABEL, PLAN_PRICE, V2 } from '@/v2/lib/vendor/billing/plans';
+// CE-47 FE-6 L5: the fact labels (V6)
+const BILL = { plan: 'Plan', price: 'Price', includes: 'Includes' } as const;
 import { subscribeToTier, upgradeToTier, cancelSubscription } from '@/v2/lib/vendor/api/vendor';
 import { billingChip } from '@/v2/lib/worklist/billingChip';
 import { COPY } from '@/v2/lib/worklist/copy';
@@ -60,32 +62,18 @@ export function BillingRoom({ current, show, loading = false }: { current: Field
           Basic, and it was two claims: a price and a capability, neither of which belongs
           in a figure slot. Basic's inclusion line below carries the capability; the price
           slot simply has no figure to show. */}
-      <section className="wl-billcard">
-        <div className="wl-billlead">{COPY.billingPlanLead}</div>
-        {/* THE FRAME RENDERS BEFORE THE FETCH; THE CLAIMS DO NOT. `useSettings` seeds
-            `tier: ''`, and an empty tier resolves to 「Basic」 through the same `?? basic`
-            floor that keeps an unrecognised word safe at rest — which is correct AFTER a
-            read and a lie BEFORE one. A vendor on Prestige must never see 「Basic」 on her
-            own money page because a fetch had not landed yet. So the card's shape is
-            immediate and every word inside it waits. */}
+      {/* CE-47 FE-6 L5 · THE PLAN AS FACTS (the founder's verdict on mock 7): a sentence-case head, then one card of
+          label and value rows: Plan (and its rail chip when the rail says something of its own), then Price, or for Basic
+          what it includes. The words and the no-figure rule for Basic are as before (F-10.110, R-38.8). */}
+      <h2 className="wl-billh" data-bill-head="">{COPY.billingPlanLead}</h2>
+      <section className="wl-billcard wl-billfacts" data-bill-plan="">
         {!loading && (
           <>
-            <div className="wl-billname">{planLabel}</div>
-            {PLAN_PRICE[current.tier] && (
-              <div className="wl-billprice">{PLAN_PRICE[current.tier]}</div>
-            )}
-            {!PLAN_PRICE[current.tier] && (
-              <p className="wl-billbasic">{COPY.planBasicIncludes}</p>
-            )}
-            {/* NO CHIP ON AN UNRECOGNISED STATUS — see billingChip.ts.
-                ── DESK DEFECT, founder's walk: the card read 「Basic」 and then 「BASIC」.
-                The chip is the RAIL and the card above it is the PLAN, and on a floor-tier
-                vendor those two words collide — the chip was repeating the plan name back
-                at her and saying nothing. A chip that duplicates the line above it is not a
-                status, it is decoration. Absent on the floor tier now: her plan says Basic
-                once, and the rail speaks only when it has something of its own to say. */}
-            {chip.label !== null && chip.label !== planLabel &&
-              <span className={'wl-chipstatus ' + chip.tone}>{chip.label}</span>}
+            <div className="wl-billfact"><span>{BILL.plan}</span><b className="wl-billname">{planLabel}
+              {chip.label !== null && chip.label !== planLabel && <span className={'wl-chipstatus ' + chip.tone}>{chip.label}</span>}</b></div>
+            {PLAN_PRICE[current.tier]
+              ? <div className="wl-billfact"><span>{BILL.price}</span><b className="wl-billprice">{PLAN_PRICE[current.tier]}</b></div>
+              : <div className="wl-billfact"><span>{BILL.includes}</span><b className="wl-billbasic" data-basic-line="">{COPY.planBasicIncludes}</b></div>}
           </>
         )}
       </section>
@@ -169,7 +157,7 @@ function PlansList({ currentTier, isUpgrade, show }: {
 
   return (
     <section className="wl-plans">
-      <div className="wl-billlead">{COPY.billingPlansHead}</div>
+      <h2 className="wl-billh" data-plans-head="">{V2.pickerHeading}</h2>
       {/* The offer sits above the rows because it is true of all three uniformly. One
           string, one home; its warrant for the word 「free」 is at the string itself. */}
       <p className="wl-billoffer">{V2.offer}</p>
@@ -255,6 +243,12 @@ function CancelBlock({ label, show }: { label: string; show: (m: string) => void
 }
 
 const BILL_CSS = `
+.wl-billh{margin:8px 0 0;font:var(--wl-t2);color:var(--atelier-ink)}
+.wl-billfacts{padding:0!important;min-height:0!important;gap:0!important;align-items:stretch!important;overflow:hidden}
+.wl-billfact{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;padding:8px 16px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
+.wl-billfact + .wl-billfact{border-top:1px solid var(--atelier-card-border)}
+.wl-billfact b{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.wl-billfact b.wl-billbasic{font:var(--wl-t4);color:var(--atelier-ink);margin:0;max-width:62%}
 .wl-bill{padding-top:16px;padding-bottom:24px;display:flex;flex-direction:column;gap:16px}
 /* R-38.5 · THE EDGE. The plan card’s left border is one of the four x values the text-edge
    cell reads — with the wordmark, the first tile and the dock field. It takes NO

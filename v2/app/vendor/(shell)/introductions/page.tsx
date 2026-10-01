@@ -35,6 +35,11 @@ import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { getJson, postJson } from '@/lib/vendor/api/_base';
 import { API } from '@/v2/lib/solutions/routes';
+import { Body, Group, Row, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
+import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';   // FE-5's pill, in the room head (FE-8)
+import { dayInWords } from '@/v2/lib/worklist/dayInWords';
+import { RECORD_CSS } from '@/v2/components/worklist/RecordPage';
+import { Sheet, SHEET_CSS } from '@/v2/components/worklist/StudioSheets';
 import {
   IN, BUTTON_LABEL, sendTo, introMeta, introSent, chipWord, pageLabel,
 } from '@/lib/worklist/introductions';
@@ -146,124 +151,55 @@ function IntroductionsScreen() {
   // working room puts the action first and the history under it.
   const isEmpty = sent.length === 0;
 
+  // CE-47 L4 (FE-7): the pill opens the form as a sheet; the preview is the sheet's second step; Sent is one group.
+  const [sheet, setSheet] = useState(false);
+  const meta = (r: IntroRow) => [r.where_met ? IN.metAt(r.where_met) : '', dayInWords(r.sent_at || r.created_at)].filter(Boolean).join(' \u00B7 ');
+  const tone = (c: IntroRow['chip']) => (c === 'delivered' || c === 'read' ? 'ok' : c === 'not_delivered' ? 'bad' : 'plain') as 'ok' | 'bad' | 'plain';
+  const closeSheet = () => { setSheet(false); setStaged(null); setRefusal(null); };
   return (
     <WorklistShell title={IN.title}>
-      {/* CORRECTION 3 OF THE FOUR. The frame drew its own masthead with an `h1`
-          in `--atelier-ink-deep`, which on the dark arm is #0F1011 on #141516 —
-          the title was very nearly invisible in the GRAPHITE shot. The shell
-          owns the room title: it renders it as `.wl-lbl` in `--atelier-ink-mute`
-          (components/worklist/WorklistShell.tsx:162, :336). So the title is
-          PASSED and no colour is named anywhere on this page. */}
-      <div className="itr-room">
-        <p className="itr-lede">{IN.lede}</p>
-
-        {isEmpty ? (
-          <>
-            <div className="itr-sec">{IN.sectionSent}</div>
-            <p className="itr-empty">{IN.empty}</p>
-          </>
-        ) : null}
-
-        {/* ── THE FORM. Present at every row count, including zero. ─────── */}
-        <div className="itr-card">
-          <label className="itr-lbl" htmlFor="itr-phone">{IN.labelNumber}</label>
-          <input
-            id="itr-phone" className="itr-field" type="tel" inputMode="tel"
-            autoComplete="off" value={phone}
-            onChange={(e) => edit(setPhone)(e.target.value)}
-          />
-          <label className="itr-lbl" htmlFor="itr-name">{IN.labelName}</label>
-          <input
-            id="itr-name" className="itr-field" type="text"
-            autoComplete="off" value={name}
-            onChange={(e) => edit(setName)(e.target.value)}
-          />
-          <label className="itr-lbl" htmlFor="itr-where">{IN.labelWhere}</label>
-          <input
-            id="itr-where" className="itr-field" type="text"
-            autoComplete="off" value={where}
-            onChange={(e) => edit(setWhere)(e.target.value)}
-          />
-
-          {/* THE REFUSAL SITS ABOVE THE BUTTON AND STAYS THERE. Not a toast:
-              `Toast` lives three seconds at bottom:76px and F-42.64 is the
-              founder walking past a refusal twice because of it. */}
-          {refusal && !staged ? <p className="itr-refusal">{refusal}</p> : null}
-
-          <button
-            type="button" className="itr-btn itr-primary"
-            disabled={busy} onClick={() => void onReview()}
-          >
-            {IN.review}
-          </button>
-        </div>
-
-        {/* ── THE PREVIEW. CORRECTION 4: the body is the DOOR'S. ──────────
-            `body_filled` is built by the arm from `TEMPLATES.introduction.body`,
-            which is byte-for-byte the string Meta holds. This page holds no copy
-            of that sentence and builds none: a paraphrase on the glass is how a
-            registry and a filing drift apart, and she is approving the words a
-            stranger will read. */}
-        {staged ? (
-          <div className="itr-card itr-preview">
-            <div className="itr-eyebrow">{IN.previewEyebrow}</div>
-            <p className="itr-body">{staged.body_filled}</p>
-            {/* F-42.110 — the button label has no field on the 201 and this is
-                the pwa's only copy of it. Declared in the copy home. */}
-            <div className="itr-btnchip">{BUTTON_LABEL}</div>
-            {staged.page_url ? (
-              <div className="itr-link">{pageLabel(staged.page_url)}</div>
-            ) : null}
-
-            {refusal ? <p className="itr-refusal">{refusal}</p> : null}
-
-            {/* CORRECTION 1 OF THE FOUR. The frame drew Back and Send two-up and
-                `Send to Anita Verma` wrapped to a second line inside the button
-                at 374. #9 is a TEXT LINK ABOVE #8, and #8 takes the full column,
-                one line, ellipsis on overflow. */}
-            <button
-              type="button" className="itr-back"
-              disabled={busy} onClick={() => { setStaged(null); setRefusal(null); }}
-            >
-              {IN.back}
-            </button>
-            <button
-              type="button" className="itr-btn itr-primary itr-send"
-              disabled={busy} onClick={() => void onSend()}
-            >
-              {sendTo(staged.recipient_name)}
-            </button>
-          </div>
-        ) : null}
-
-        {/* ── THE SENT LIST. The frame's position, drawn only when it has rows.
-            `chip` is the door's DERIVED vendor-facing state and is what the
-            glass trusts — `status` is on the row and is deliberately not read
-            here (a `sent` with no wamid has no receipt to speak from). */}
-        {!isEmpty ? (
-          <>
-            <div className="itr-sec itr-secgap">{IN.sectionSent}</div>
+      <Body>
+        <p className="fr-lede">{IN.lede}</p>
+        <RoomHeadAdd addKey="introduction" label={IN.addPill} onAdd={() => setSheet(true)} />
+        <Head text={IN.sectionSent} count={sent.length} />
+        {isEmpty ? <p className="fr-empty">{IN.empty}</p> : (
+          <Group>
             {sent.map((r) => (
-              <div className="itr-card itr-row" key={r.id}>
-                <div className="itr-rowtext">
-                  {/* HER RECIPIENT'S NAME, OR THE LAST FOUR. The door never
-                      sends the number — a list is not a phonebook — so a row
-                      with no name shows the four digits she typed rather than
-                      an invented word. */}
-                  <span className="itr-who">
-                    {r.recipient_name || (r.recipient_phone_last4 ? `\u2022\u2022\u2022\u2022 ${r.recipient_phone_last4}` : '\u2014')}
-                  </span>
-                  <span className="itr-meta">{introMeta(r.where_met, r.sent_at || r.created_at)}</span>
-                </div>
-                <span className={'itr-chip' + (r.chip === 'delivered' || r.chip === 'read' ? ' itr-ok' : '') + (r.chip === 'not_delivered' ? ' itr-bad' : '')}>
-                  {chipWord(r.chip)}
-                </span>
-              </div>
+              <Row key={r.id}
+                title={r.recipient_name || (r.recipient_phone_last4 ? `\u2022\u2022\u2022\u2022 ${r.recipient_phone_last4}` : '')}
+                facts={meta(r)} pill={{ text: chipWord(r.chip) || '', tone: tone(r.chip) }} />
             ))}
-          </>
-        ) : null}
-      </div>
-
+          </Group>
+        )}
+      </Body>
+      {sheet ? (
+        <Sheet title={staged ? IN.previewEyebrow : IN.newIntro} onClose={closeSheet}>
+          {!staged ? (
+            <div className="itr-form">
+              <label className="itr-lbl" htmlFor="itr-phone">{IN.labelNumber}</label>
+              <input id="itr-phone" className="itr-field" type="tel" inputMode="tel" autoComplete="off" value={phone} onChange={(e) => edit(setPhone)(e.target.value)} />
+              <label className="itr-lbl" htmlFor="itr-name">{IN.labelName}</label>
+              <input id="itr-name" className="itr-field" type="text" autoComplete="off" value={name} onChange={(e) => edit(setName)(e.target.value)} />
+              <label className="itr-lbl" htmlFor="itr-where">{IN.labelWhere}</label>
+              <input id="itr-where" className="itr-field" type="text" autoComplete="off" value={where} onChange={(e) => edit(setWhere)(e.target.value)} />
+              {refusal ? <p className="itr-refusal">{refusal}</p> : null}
+              <button type="button" className="rp-next itr-go" disabled={busy} onClick={() => void onReview()}>{IN.review}</button>
+            </div>
+          ) : (
+            <div className="itr-form">
+              <div className="itr-card itr-preview">
+                <p className="itr-body">{staged.body_filled}</p>
+                <div className="itr-btnchip">{BUTTON_LABEL}</div>
+                {staged.page_url ? <div className="itr-link">{pageLabel(staged.page_url)}</div> : null}
+              </div>
+              {refusal ? <p className="itr-refusal">{refusal}</p> : null}
+              <button type="button" className="rp-next itr-go itr-send" disabled={busy} onClick={() => void onSend()}>{sendTo(staged.recipient_name)}</button>
+              <button type="button" className="itr-back" disabled={busy} onClick={() => { setStaged(null); setRefusal(null); }}>{'\u2039'} {IN.back}</button>
+            </div>
+          )}
+        </Sheet>
+      ) : null}
+      <style>{FR_CSS + RECORD_CSS + SHEET_CSS + '.itr-form{display:flex;flex-direction:column}.itr-go{margin-top:16px}'}</style>
       <style>{`
 /* THE LEADS-CARD IDIOM, SHARED WITH REFERRALS, GOOGLE REVIEWS AND WEDDING PAGES.
    Every rule is transcribed from those rooms’ own blocks, property for property.

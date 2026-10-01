@@ -29,6 +29,8 @@ export const PR = {
   sectionAsked: 'Asked',                                               // #2
   sectionSent:  'Sent',                                                // #3 (amended)
   sectionDue:   'Due',                                                 // #4
+  scheduled:    'Scheduled',                                           // CE-47 L4b (FE-7), V12: a due reminder that will go out
+  dueOn: (date: string) => `due ${date}`,                              // CE-47 L4b (FE-7): a due row's date
 
   askedState: 'Asked',                                                 // #5
   sentState:  'Sent',                                                  // #6 (amended)

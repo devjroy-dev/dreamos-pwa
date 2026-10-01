@@ -373,9 +373,21 @@ for b in $NEEDS_CLEAN $REST $WRAPPERS; do
   # DISPATCH ON EXTENSION. The `.proof.ts` benches cannot be run by node — they
   # compile first — so their wrappers run through bash. Two invocations, one
   # verdict rule: the exit code, exactly as the header states.
+  # CE-47 · THE MUTATION SLICE RUNS ONLY WHEN TOUCHED (the chair's ruling, 30 Sept 2026; scripts/lib/floor_slice.sh).
+  # A member that declares FLOOR-SUBJECTS runs WHOLE when the --delivery manifest names it or a subject, or when there is
+  # no --delivery at all; otherwise its STATES slice only, by its own declared recipe. Its verdict is its verdict either
+  # way. A member that declares nothing runs exactly as before.
+  SLICE=$(bash scripts/lib/floor_slice.sh "$b" "${MANIFEST:-}")
+  SLICE_ENV=""; SLICE_ARGS=""
+  case "$SLICE" in
+    states*) SLICE_ENV=$(sed -n 's|^// FLOOR-STATES: env||p' "$b" | head -n 1)
+             echo "${n}: states only ${SLICE#states }" | tee -a "$LOG" ;;
+    whole*)  SLICE_ARGS=$(sed -n 's|^// FLOOR-WHOLE: args||p' "$b" | head -n 1)
+             echo "${n}: whole ${SLICE#whole }" | tee -a "$LOG" ;;
+  esac
   case "$b" in
     *.sh) bash "$b" >>"$LOG" 2>&1 ;;
-    *)    node "$b" >>"$LOG" 2>&1 ;;
+    *)    env $SLICE_ENV node "$b" $SLICE_ARGS >>"$LOG" 2>&1 ;;
   esac
   rc=$?
   LEAK_LINE=$(bash scripts/lib/floor_reap.sh "$n")
