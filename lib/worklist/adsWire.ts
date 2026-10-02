@@ -15,7 +15,7 @@ export type Settings = {
   welcome: { text: string; icebreakers: string[] };
   post?: { url: string | null; caption_line: string | null } | null;   // stored by /run (gap 1); not part of the echo
 };
-export type Choice = { id: string; name: string; currency?: string | null; ig?: { id: string; username: string | null } | null };
+export type Choice = { id: string; name: string; currency?: string | null; ig?: { id: string; username: string | null } | null; funds?: { amount: number; currency: string } | null };   // item 4 (CE-47): rupees from Meta's funding details, or null and no line
 export type Gap = { gap: null | 'scopes' | 'page' | 'link' | 'ad_account' | 'choose' | 'expired' | 'not_connected' | 'meta_unavailable';
   choose?: { pages?: Choice[]; accounts?: Choice[] };
   page?: { id: string; name: string }; ig?: { id: string; username: string | null }; account?: { id: string; name: string };

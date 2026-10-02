@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { getJson, postJson } from '@/lib/vendor/api/_base';
+import { formatRs } from '@/lib/vendor/format';   // the one money home (item 4)
 import { API, POSTS_HREF } from '@/v2/lib/solutions/routes';
 import { COPY, ROOM_ROWS } from '@/v2/lib/solutions/copy';
 import { ADS, fill } from '@/v2/lib/worklist/ads';
@@ -87,19 +88,26 @@ function AdsScreen() {
 }
 
 // ═══ THE CONNECT ════════════════════════════════════════════════════════════════════════════════════════════════
-function Connect({ live }: { live: boolean }) {
+// ── THE AUTHORIZE CALL, ONE HOME (CE-47 ruling 2): FE-6's Connect and ConnectAgain both call this ──
+// keep: mint now and re-mint while visible (Connect's own behaviour); otherwise mint on demand only.
+function useAuthorize(live: boolean, keep: boolean) {
   const [href, setHref] = useState<string | null>(null);
-  const [before, setBefore] = useState(false);
-  const ios = isIosStandalone();   // client-only: this page renders after the session loads
   const mint = useCallback(() => {
     getJson<{ ok: boolean; authorize_url?: string }>(API.adsAuthorize()).then((r) => setHref(r && r.authorize_url ? r.authorize_url : null), () => setHref(null));
   }, []);
   useEffect(() => {
-    if (!live) return undefined;   // shut: no request leaves (R-46.14)
+    if (!live || !keep) return undefined;   // shut: no request leaves (R-46.14)
     mint();
     const t = window.setInterval(() => { if (document.visibilityState === 'visible') mint(); }, MINT_REFRESH_MS);
     return () => window.clearInterval(t);
-  }, [mint, live]);
+  }, [mint, live, keep]);
+  return { href, mint };
+}
+
+function Connect({ live }: { live: boolean }) {
+  const { href, mint } = useAuthorize(live, true);   // LABELLED CHANGE to FE-6's Connect (CE-47 ruling 2): it only calls the hook
+  const [before, setBefore] = useState(false);
+  const ios = isIosStandalone();   // client-only: this page renders after the session loads
   return (
     <div className="ads-card">
       <p className="ads-state">{ADS.connect.body1}</p>
@@ -146,8 +154,35 @@ function Gaps({ gap, onCheck }: { gap: Gap; onCheck: () => void }) {
       {gap.gap === 'link' ? <p className="ads-foot" data-link-switch>{ADS.gaps.linkSwitch}</p> : null}
       {tap ? <button type="button" className="ads-btn ads-primary ads-gap" onClick={() => open(url)}>{tap}</button> : null}
       <button type="button" className="ads-quiet" onClick={onCheck}>{ADS.gaps.again}</button>
+      <ConnectAgain />
     </div>
   );
+}
+
+// ── CONNECT AGAIN (CE-47 ADS-2 cut 2 item 5: every gap card offers "Connect ad account") ──
+// The same way through Meta as the first connect: the screen before Meta, then Continue to Meta. A stale or partial
+// connection is never a dead end.
+function ConnectAgain() {
+  const { href, mint } = useAuthorize(true, false);
+  const [before, setBefore] = useState(false);
+  const ios = isIosStandalone();
+  return (<>
+    <button type="button" className="ads-btn ads-ghost ads-gap" data-connect-again onClick={() => { mint(); setBefore(true); }}>{ADS.connect.cta}</button>
+    {before ? (
+      <div className="ads-over" role="dialog" aria-modal="true" data-before-meta>
+        <div className="ads-sheet">
+          <p className="ads-q">{ADS.connect.sheetQ}</p>
+          <p className="ads-body ads-gapsm">{ADS.connect.sheetBody}</p>
+          {ios && href ? <p className="ads-foot">{ADS.connect.iphone}</p> : null}
+          <div className="ads-two ads-gap">
+            <button type="button" className="ads-btn ads-ghost" onClick={() => setBefore(false)}>{ADS.connect.back}</button>
+            {href ? <a className="ads-btn ads-primary" href={href} data-continue>{ADS.connect.sheetGo}</a>
+              : <button type="button" className="ads-btn ads-primary" disabled aria-busy="true">{ADS.connect.sheetGo}</button>}
+          </div>
+        </div>
+      </div>
+    ) : null}
+  </>);
 }
 
 
@@ -158,7 +193,12 @@ function Chooser({ gap, onDone }: { gap: Gap; onDone: () => void }) {
   const [account, setAccount] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const C = ADS.choose;
-  const ready = (!pages.length || page) && (!accounts.length || account);
+  // THE RUPEE LOCK (CE-47, app half): an account whose currency is known and not INR is shown, named, and never
+  // pickable, so no vendor sees rupee words over a dollar spend. funds.currency first, then the account's own currency.
+  const curOf = (a: { currency?: string | null; funds?: { currency: string } | null }) => (a.funds && a.funds.currency) || a.currency || null;
+  const foreign = (a: { currency?: string | null; funds?: { currency: string } | null }) => { const c = curOf(a); return !!c && c !== 'INR'; };
+  const picked = accounts.find((a) => a.id === account);
+  const ready = (!pages.length || page) && (!accounts.length || (account && picked && !foreign(picked)));
   const mark = (on: boolean) => <span className={`ads-mark${on ? ' ads-on' : ''}`} aria-hidden="true">{on ? '\u2713' : ''}</span>;
   function save() {
     setBusy(true);
@@ -176,7 +216,7 @@ function Chooser({ gap, onDone }: { gap: Gap; onDone: () => void }) {
         {accounts.length ? (<>
           <p className="ads-q ads-gap">{C.accountQ}</p>
           <p className="ads-body ads-gapsm">{fill(C.accountBody, { n: accounts.length })}</p>
-          {accounts.map((a) => <button type="button" key={a.id} className="ads-opt" aria-pressed={account === a.id} onClick={() => setAccount(a.id)}><span className="ads-optt">{a.name}</span>{mark(account === a.id)}</button>)}
+          {accounts.map((a) => <button type="button" key={a.id} className="ads-opt" aria-pressed={account === a.id} aria-disabled={foreign(a)} data-foreign={foreign(a) ? '' : undefined} onClick={() => { if (!foreign(a)) setAccount(a.id); }}><span className="ads-optt">{a.name}{a.funds && a.funds.currency === 'INR' && Number.isFinite(a.funds.amount) ? <span className="ads-foot" style={{ display: 'block', margin: '2px 0 0' }} data-funds>{fill(C.funds, { amount: formatRs(a.funds.amount) })}</span> : null}{foreign(a) ? <span className="ads-foot" style={{ display: 'block', margin: '2px 0 0' }} data-currency>{fill(C.currencyLine, { name: C.currencyNames[String(curOf(a))] || String(curOf(a)) })} {C.rupeesOnly}</span> : null}</span>{mark(account === a.id)}</button>)}
         </>) : null}
         <button type="button" className="ads-btn ads-primary ads-gap" data-choose-go disabled={!ready || busy} onClick={save}>{accounts.length ? C.useAccount : C.usePage}</button>
       </div>

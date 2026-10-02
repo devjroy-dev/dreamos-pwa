@@ -1,5 +1,5 @@
 'use strict';
-// FLOOR-SUBJECTS: v2/app/vendor/(shell)/posts/ads/page.tsx v2/app/vendor/(shell)/posts/page.tsx v2/components/worklist/AdsCard.tsx scripts/lib/mutation_guard.js
+// FLOOR-SUBJECTS: v2/app/vendor/(shell)/posts/ads/page.tsx v2/app/vendor/(shell)/posts/page.tsx v2/components/worklist/AdsCard.tsx scripts/lib/mutation_guard.js v2/lib/worklist/ads.ts
 // FLOOR-STATES: env B143_PART=states
 // FLOOR-WHOLE: args
 // (CE-47 FE-6 L3 r2: the floor runs this bench's mutations only when a delivery names it or a subject above;
@@ -160,6 +160,9 @@ function scenario(name) {
   if (name === 'running') base.list = [AD({ url: MEDIA_URL, caption_line: 'Aanya and Rohan' })];
   if (name === 'running_nocap') base.list = [AD({ url: MEDIA_URL, caption_line: null })];
   if (name === 'choose') base.door = { ...base.door, gaps: { gap: 'choose', choose: { accounts: [{ id: 'act_4681657125400464', name: 'THE DREAM WEDDING ADS' }, { id: 'act_799617249564163', name: 'Dev Roy' }] } } };
+  if (name === 'choose_funds') base.door = { ...base.door, gaps: { gap: 'choose', choose: { accounts: [
+    { id: 'act_1', name: 'WHOLE RUPEES', funds: { amount: 200, currency: 'INR' } }, { id: 'act_2', name: 'WITH PAISE', funds: { amount: 200.5, currency: 'INR' } },
+    { id: 'act_3', name: 'IN DOLLARS', funds: { amount: 50, currency: 'USD' } }, { id: 'act_4', name: 'NO FUNDS READ', funds: null }, { id: 'act_5', name: 'UNMAPPED CODE', currency: 'XYZ', funds: null }] } } };   // CE-47 ADS-2 item 4 and the rupee lock
   if (name === 'noposts') { base.noPosts = true; }
   if (name === 'fbposts') { base.fbPosts = true; }
   if (name === 'cards') { base.cards = true; }
@@ -384,6 +387,32 @@ async function main() {
       p = await open(mode, 'running_nocap', '/vendor/posts', { wait: '[data-ads-card-line]', settle: 1200 });
       ok((await text(p, '[data-ads-card-line]')) === 'Your ad is running. 1,240 people have seen it today.', `${mode} 4.2 the card without a caption: the fallback line`, await text(p, '[data-ads-card-line]'));
       await p.close();
+      // ── 11 · CE-47 ADS-2 cut 2: CONNECT AGAIN ON EVERY GAP CARD (item 5); THE FUNDS LINE (item 4) ──
+      for (const scene of ['page', 'link', 'account']) {
+        p = await open(mode, scene, '/vendor/posts/ads', { wait: '.ads-room .ads-card' });
+        const again = await p.evaluate(() => { const b = document.querySelector('[data-connect-again]'); return b ? b.textContent : null; }).catch(() => null);
+        await p.evaluate(() => document.querySelector('[data-connect-again]')?.click()).catch(() => {});
+        await new Promise((r) => setTimeout(r, 900));
+        const sheet = await p.evaluate(() => { const a = document.querySelector('[data-before-meta] a[data-continue]'); return { open: !!document.querySelector('[data-before-meta]'), href: a ? a.getAttribute('href') : '' }; }).catch(() => ({ open: false, href: '' }));
+        ok(again === 'Connect ad account' && sheet.open && /dialog\/oauth/.test(sheet.href || ''), `${mode} 11.1 the ${scene} gap card offers Connect ad account, which opens the screen before Meta`, JSON.stringify({ again, sheet }));
+        await p.close();
+      }
+      p = await open(mode, 'choose_funds', '/vendor/posts/ads', { wait: '[data-chooser]' });
+      const f = await p.evaluate(() => Array.from(document.querySelectorAll('[data-chooser] .ads-opt')).map((o) => { const x = o.querySelector('[data-funds]'); return x ? x.textContent : null; })).catch(() => null);
+      ok(!!f && f[0] === 'Funds: Rs 200' && f[1] === 'Funds: Rs 200.50', `${mode} 11.2 the funds line in the money words: Rs 200, and Rs 200.50 when paise exist`, JSON.stringify(f));
+      ok(!!f && f.length === 5 && f[2] === null && f[3] === null && f[4] === null, `${mode} 11.3 no line for another currency or when Meta returned nothing`, JSON.stringify(f));
+      const cl = await p.evaluate(() => Array.from(document.querySelectorAll('[data-chooser] .ads-opt')).map((o) => { const x = o.querySelector('[data-currency]'); return x ? x.textContent : null; })).catch(() => null);
+      ok(!!cl && cl[2] === 'This account pays in US dollars. TDW runs ads on rupee accounts for now.' && cl[0] === null && cl[1] === null && cl[3] === null,
+        `${mode} 11.4 a dollar account names its currency and says rupee accounts only; INR and unread rows carry no such line`, JSON.stringify(cl));
+      ok(!!cl && cl[4] === 'This account pays in XYZ. TDW runs ads on rupee accounts for now.', `${mode} 11.5 an unmapped currency is named by its code, read from the account itself`, JSON.stringify(cl));
+      await p.evaluate(() => document.querySelectorAll('[data-chooser] .ads-opt')[2]?.click()).catch(() => {});
+      await new Promise((r) => setTimeout(r, 300));
+      const lockA = await p.evaluate(() => ({ pressed: document.querySelectorAll('[data-chooser] .ads-opt')[2]?.getAttribute('aria-pressed'), go: document.querySelector('[data-choose-go]')?.disabled })).catch(() => null);
+      await p.evaluate(() => document.querySelectorAll('[data-chooser] .ads-opt')[0]?.click()).catch(() => {});
+      await new Promise((r) => setTimeout(r, 300));
+      const lockB = await p.evaluate(() => document.querySelector('[data-choose-go]')?.disabled).catch(() => null);
+      ok(!!lockA && lockA.pressed === 'false' && lockA.go === true && lockB === false, `${mode} 11.6 a dollar account cannot be picked and leaves Use this ad account off; a rupee account turns it on`, JSON.stringify({ lockA, lockB }));
+      await p.close();
       // ── 10 · THE CAPTION BOX (R-46.17, the founder's words, 29 Sept 2026) ──
       p = await open(mode, 'cards', '/vendor/posts', { wait: '[data-caption-box]', settle: 1200 });
       const box = await p.evaluate(() => {
@@ -436,6 +465,10 @@ async function main() {
     ['v2/app/vendor/(shell)/posts/ads/page.tsx', "const [account, setAccount] = useState<string | null>(null);", "const [account, setAccount] = useState<string | null>((gap.choose?.accounts || [])[0]?.id || null);", 'M8 the chooser preselects the first found'],
     // M9 (CE-46 ADS-2): the room absent on glass. It must be the named red 1.0 under the mutation, never a crash.
     ['v2/app/vendor/(shell)/posts/ads/page.tsx', '<div className="ads-room">', '<div className="ads-room-gone">', 'M9 the Ads room absent on glass'],
+    ['v2/app/vendor/(shell)/posts/ads/page.tsx', '      <ConnectAgain />\n', '', 'M13 a gap card without Connect ad account'],
+    ['v2/app/vendor/(shell)/posts/ads/page.tsx', "a.funds && a.funds.currency === 'INR' && ", 'a.funds && ', 'M14 a funds line for any currency'],
+    ['v2/app/vendor/(shell)/posts/ads/page.tsx', 'onClick={() => { if (!foreign(a)) setAccount(a.id); }}', 'onClick={() => setAccount(a.id)}', 'M15 a dollar account can be picked'],
+    ['v2/lib/worklist/ads.ts', "USD: 'US dollars', ", '', 'M16 the currency names lost'],
     // M12 (R-46.17): Copy moved out of the caption's box, back beside Share.
     // LANDING (by label): in the new layout the caption's box is the one CopyBox; the same claim (its one control is in
     // the box) is broken by taking the control's mark away, so the box holds the caption and no Copy of its own

@@ -1,0 +1,18 @@
+# scripts/floor-manifest-ce47-ads2-app.txt
+# CE-47 · ADS-2 · the app-side cut (dreamos-pwa). BASE: 84fa063 (FE-8 landed). No new folder; two added files.
+# The switchboard words (flag.ads and 0192's seven named; two ads rows corrected), item 5 (Connect ad account on every
+# gap card, one shared authorize hook; a labelled change to FE-6's Connect), item 4's app half (Funds: Rs …), and the
+# rupee lock (a non-INR account named and unpickable). Both rooms, app/ and v2/. Rungs: b143 and b143 v2 (11.1 to 11.6,
+# M13 to M16); b173 green.
+# F-19.16: a dirty path outside this list is a STOP.
+app/vendor/(shell)/posts/ads/page.tsx
+v2/app/vendor/(shell)/posts/ads/page.tsx
+lib/worklist/ads.ts
+v2/lib/worklist/ads.ts
+lib/worklist/adsWire.ts
+v2/lib/worklist/adsWire.ts
+lib/admin-api/switchboardCopy.ts
+scripts/b143_ads1_ads_page_bench.js
+scripts/b143_ads1_ads_page_bench_v2.js
+docs/handovers/TDW_CE47_ADS2_APP_HANDOVER.md
+scripts/floor-manifest-ce47-ads2-app.txt
