@@ -24,6 +24,8 @@ import { PALETTE_SECTIONS, type Section } from './adminNav';
 import { GATE_KEYS, gateMatches, gateName, gateSpec, gateMeta, gatePath } from '../../../lib/admin-api/switchboardCopy';
 import { adminSearch, getRecentJumps, recordJump, type SearchGroup, type RecentJump } from '@/lib/admin-api/search';
 
+// ADM-1 (CE-47 change 2): the server's search words are mapped here by key, so the founder never
+// reads "couple": the group keyed 'couples' reads Dreamers, and its fallback name reads Unnamed Dreamer.
 interface Row { key: string; label: string; sub?: string; path: string; group: string; }
 
 const DEBOUNCE_MS = 180;
@@ -63,7 +65,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
 
   const serverRows: Row[] = useMemo(
     () => groups.flatMap(g => g.hits.map(h => ({
-      key: `${g.key}:${h.id}`, label: h.label, sub: h.sub, path: h.path, group: g.label,
+      key: `${g.key}:${h.id}`, label: /^Unnamed couple$/.test(h.label) ? 'Unnamed Dreamer' : h.label, sub: h.sub, path: h.path, group: g.key === 'couples' ? 'Dreamers' : g.label,
     }))),
     [groups],
   );
@@ -167,7 +169,7 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
             value={q}
             onChange={e => setQ(e.target.value)}
             onKeyDown={onKey}
-            placeholder="Jump to anything — vendor, couple, prospect, section"
+            placeholder="Search vendors, Dreamers, numbers being reached and pages"
             aria-label="Search"
             style={{
               width: '100%', background: 'transparent', border: 'none', outline: 'none',

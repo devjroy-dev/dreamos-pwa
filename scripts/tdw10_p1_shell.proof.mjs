@@ -129,15 +129,21 @@ ok('the shell imports it', /import\s+'\.\/_components\/tokens\.css'/.test(LAYOUT
 console.log('\n② the six-domain IA');
 
 const domainKeys = [...NAV.matchAll(/key:\s*'(growth|marketplace|people|money|engine|content)'/g)].map(m => m[1]);
-ok('exactly six domains are declared', domainKeys.length === 6, domainKeys.join(', '));
+// LABELED AMENDMENT (ADM-1, CE-47 redesign approved 1 Oct 2026): A-1's six domains are replaced
+// by the founder-approved five places (Home, Demo profiles, Vendors, Dreamers, More) with everything
+// else in More's plain groups. The five cells keep their promises: a fixed, ordered registry; the
+// numbers page is a destination, not a place; Money is shown honestly, not hidden; the shell draws
+// the registry and owns no second nav list.
+const placeKeys = [...NAV.matchAll(/\{ key: '(home|demo|vendors|dreamers|more)',/g)].map(m => m[1]);
+ok('exactly six domains are declared', placeKeys.length === 5, placeKeys.join(', '));
 ok("the six are A-1's own names, in A-1's own order",
-   domainKeys.join(',') === 'growth,marketplace,people,money,engine,content',
-   domainKeys.join(','));
-ok('the Bridge is a destination, not a domain', /export const BRIDGE: Section/.test(NAV) && !domainKeys.includes('bridge'));
+   placeKeys.join(',') === 'home,demo,vendors,dreamers,more',
+   placeKeys.join(','));
+ok('the Bridge is a destination, not a domain', /path: '\/admin\/numbers'/.test(NAV) && !placeKeys.includes('numbers'));
 ok('Money ships with an honest empty state rather than being hidden',
-   /key:\s*'money'[\s\S]{0,600}?empty:\s*'/.test(NAV) && /sections:\s*\[\]/.test(NAV));
+   /<Group title="Money">[\s\S]{0,300}?soon/.test(readOr('app/admin/more/page.tsx', '')));
 ok('the shell renders the registry, not a second nav const',
-   /DOMAINS\.map/.test(LAYOUT) && !/const NAV = \[/.test(LAYOUT));
+   /PLACES\.map/.test(LAYOUT) && !/const NAV = \[/.test(LAYOUT));
 
 // ════════════════════════════════════════════════════════════════════════════
 // ③ THE MAPPING TABLE — checked against the DISK, not against itself
@@ -209,10 +215,12 @@ ok('NO tombstoned route survives on disk — retired means gone, not hidden',
 // the phantom fifteen are unchanged; the cell shape is unchanged.
 // ── CENSUS MOVED BY ONE — CE-41 seat C, C2: /admin/switchboard is a new LIVE route
 // (R-41.8, the Engine domain). 35→36 on disk, 38→39 rows, 19→20 LIVE. Same shape.
+// LABELED AMENDMENT (ADM-1): two routes ADDED, /admin/numbers (the old Bridge) and /admin/more,
+// both LIVE and both in ROUTE_MAP: 36→38 on disk, 39→41 rows, 20→22 LIVE. Same shape.
 ok('the disk carries exactly 36 non-login admin routes (39 minus F-10.76\'s three)',
-   routes.length === 36 && new Set(routes).size === 36, `disk=${routes.length}`);
+   routes.length === 38 && new Set(routes).size === 38, `disk=${routes.length}`);
 ok('the table still carries 39 rows — the three retired persist as tombstones',
-   tablePaths.length === 39 && new Set(tablePaths).size === 39,
+   tablePaths.length === 41 && new Set(tablePaths).size === 41,
    `table=${tablePaths.length}`);
 ok('table minus disk equals the retired count, exactly — no other row is dangling',
    tablePaths.length - routes.length === retiredPaths.size,
@@ -228,7 +236,7 @@ const corpseCount  = (NAV.match(/disposition:\s*'CORPSE'/g)  || []).length;
 // the point of a tombstone, and the reason this cell is amended rather than
 // deleted: the ledger must still balance.
 ok('20 LIVE + 1 RETIRES + 15 PHANTOM + 3 RETIRED = 39',
-   liveCount + retireCount + phantomCount + retiredCount === 39 && liveCount === 20,
+   liveCount + retireCount + phantomCount + retiredCount === 41 && liveCount === 22,
    `LIVE=${liveCount} RETIRES=${retireCount} PHANTOM=${phantomCount} RETIRED=${retiredCount}`);
 ok('F-10.76 reduced the phantom ledger by exactly three (acceptance ②)',
    phantomCount === 15 && retiredCount === 3, `PHANTOM=${phantomCount} RETIRED=${retiredCount}`);
@@ -267,8 +275,9 @@ ok('both heroes surfaces are excluded from the palette',
    /PALETTE_EXCLUDED/.test(NAV)
    && /'\/admin\/content\/heroes'/.test(NAV.slice(NAV.indexOf('PALETTE_EXCLUDED')))
    && /'\/admin\/discover-heroes'/.test(NAV.slice(NAV.indexOf('PALETTE_EXCLUDED'))));
+// LABELED AMENDMENT (ADM-1): the retiring page is reached from More, whose row says so in words.
 ok('the nav shows the death warrant to the operator',
-   /retiring/.test(LAYOUT) && /retiresAt/.test(LAYOUT));
+   /sub: 'Being replaced by Vendors of the week', retiresAt:/.test(NAV) && /sub=\{s\.sub\}/.test(readOr('app/admin/more/page.tsx', '')));
 
 // ════════════════════════════════════════════════════════════════════════════
 // ⑤ THE ACCENT (R-A1 rider ii)
@@ -358,7 +367,7 @@ ok('F-09.20 holds: no invite surface returned',
 ok('the stale invite-requests pointer in the shell comment is cured',
    !/app\/admin\/invite-requests\/_list\.tsx\) trapping/.test(LAYOUT));
 ok('48px thumb targets on the domain bar (A-4)',
-   /minHeight: 56/.test(LAYOUT) || /minHeight: 48/.test(LAYOUT));
+   /minHeight: 56/.test(LAYOUT) || /minHeight: 48/.test(LAYOUT) || /flex: 1, minHeight: 60/.test(LAYOUT));
 ok('the money register is untouched by this phase — no glyph, no shorthand, in the rebuilt set',
    !REBUILT.some(([, s]) => /₹/.test(s)) && !REBUILT.some(([, s]) => /\bRs\s?\d+(\.\d+)?\s?[kLC]/.test(s)));
 ok('W-1 holds trivially: this delivery opens no soul, lens, prompt or engine file',

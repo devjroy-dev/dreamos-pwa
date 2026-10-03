@@ -1,130 +1,108 @@
 'use client';
+// ADM-1 · DREAMERS, ALL (route kept: /admin/dreamers). One page with Asked for help
+// (/admin/assistance), a tab each. Every action that was here is still here, on the Dreamer's
+// card: plan and delete. Delete is the card's last item, names what is lost (schema cascade,
+// CE-47), asks again, and is not offered on a paid plan. WhatsApp and Call sit on every row.
+// "couple" stays only in data keys, routes and server doors; no word Dev reads carries it.
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, Toast, FieldInput, ActionChip, ActionLink, GhostBtn } from '../_components/AdminUI';
+import { Toast } from '../_components/AdminUI';
 import MintSheet from '../_components/MintSheet';
-import { waDialHref } from '../../../lib/admin/waDial';
-import { getCouples, patchCoupleTier, type AdminCouple } from '../../../lib/admin-api/index';
-import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
+import { getCouples, getVendors, patchCoupleTier, type AdminCouple, type AdminVendor } from '../../../lib/admin-api/index';
+import { listAssistance } from '@/lib/admin-api/assistance';
+import { adminHeaders, API_BASE } from '@/lib/admin-api/_base';
+import { alsoMatch, alsoLine } from '../_components/alsoLine';
+import { DREAMER_LOST, PAID_BLOCK } from '../_components/peopleWords';
+import { C, F, PageHead, Pill, RouteTabs, Chips, SearchField, CountLine, List, Empty, PersonRow, Sheet, SheetNote, DangerLast, fullDate } from '../_components/Kit';
 
-const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
-const TIERS = ['basic','gold','platinum'];
-function fmt(d: string | null) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'; }
+const TIERS = ['basic', 'gold', 'platinum'];
+const PLAN: Record<string, string> = { basic: 'Basic', gold: 'Gold', platinum: 'Platinum' };
+const wed = (d: string | null) => (d ? `Wedding ${fullDate(d)}` : 'Wedding date not set');
 
 export default function DreamersPage() {
-  const [couples, setCouples] = useState<AdminCouple[]>([]);
+  const [people, setPeople] = useState<AdminCouple[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch]   = useState('');
-  const [openId, setOpenId]   = useState<string | null>(null);
-  const [confirmDel, setConfirmDel] = useState<string | null>(null);
-  const [toast, setToast]     = useState('');
-  // TDW_10 P3 — People -> + New -> one sheet. The mint lives in ONE component;
-  // this screen owns only the door and the reload after a birth.
-  const [minting, setMinting]   = useState(false);
+  const [helpOpen, setHelpOpen] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [vendors, setVendors] = useState<AdminVendor[] | null>(null);
+  const [toast, setToast] = useState('');
   const [toastErr, setToastErr] = useState(false);
-
+  const [minting, setMinting] = useState(false);
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
-  const toggleOpen = (id: string) => { setConfirmDel(null); setOpenId(o => o === id ? null : id); };
-
-  const deleteCouple = async (id: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/api/v2/admin/couples/${id}`, {
-        method: 'DELETE',
-        headers: adminHeaders(),
-        body: JSON.stringify({ confirm: true }),
-      });
-      if (!res.ok) throw new Error('Failed');
-      setCouples(c => c.filter(x => x.id !== id));
-      showToast('Couple deleted.');
-      setOpenId(null); setConfirmDel(null);
-    } catch { showToast('Failed to delete.', true); }
-  };
 
   const load = useCallback(() => {
     setLoading(true);
-    getCouples().then(d => { setCouples(d.couples); setLoading(false); }).catch(() => setLoading(false));
+    getCouples().then(d => { setPeople(d.couples); setLoading(false); }).catch(() => setLoading(false));
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+    listAssistance('open').then(d => setHelpOpen(typeof d.counts?.open === 'number' ? d.counts.open : d.requests.length)).catch(() => {});
+  }, [load]);
 
+  const open = people.find(c => c.id === openId) || null;
+  const openCard = (id: string) => {
+    setOpenId(id);
+    // The "also a vendor" line reads the vendors list through its existing door, on open.
+    if (vendors === null) getVendors().then(d => setVendors(d.vendors)).catch(() => setVendors([]));
+  };
   const setTier = async (id: string, tier: string) => {
-    try { await patchCoupleTier(id, tier); setCouples(v => v.map(x => x.id === id ? { ...x, tier } : x)); showToast('Tier updated.'); }
-    catch { showToast('Failed.', true); }
+    try { await patchCoupleTier(id, tier); setPeople(v => v.map(x => x.id === id ? { ...x, tier } : x)); showToast('Plan changed.'); }
+    catch { showToast('Could not change the plan.', true); }
+  };
+  const deleteDreamer = async (id: string) => {
+    const res = await fetch(`${API_BASE}/api/v2/admin/couples/${id}`, { method: 'DELETE', headers: adminHeaders(), body: JSON.stringify({ confirm: true }) });
+    if (!res.ok) throw new Error('Could not delete. Nothing was removed.');
+    setPeople(c => c.filter(x => x.id !== id));
+    setOpenId(null);
+    showToast('Dreamer deleted.');
   };
 
-  const filtered = couples.filter(c => !search || c.name?.toLowerCase().includes(search.toLowerCase()) || c.phone?.includes(search));
+  const q = search.trim().toLowerCase();
+  const filtered = people.filter(c => {
+    const s = !q || c.name?.toLowerCase().includes(q) || (c.phone || '').includes(search.trim()) || (c.wedding_city || '').toLowerCase().includes(q);
+    const f = filter === 'all' || (filter === 'paid' ? c.tier !== 'basic' : c.tier === filter);
+    return s && f;
+  });
+  const also = open && vendors ? alsoLine(alsoMatch(open, vendors), 'vendor') : null;
 
   return (
     <div>
-      <PageHeader title="Dreamers" sub={`${couples.length} total couples`}
-        action={<GhostBtn label="+ New" onClick={() => setMinting(true)} small />} />
+      <PageHead title="Dreamers" sub={`${people.length} on TDW${typeof helpOpen === 'number' ? ` · ${helpOpen} asking for help` : ''}`} action={<Pill onClick={() => setMinting(true)}>+ New Dreamer</Pill>} />
       <MintSheet visible={minting} kind="couple" onClose={() => setMinting(false)} onMinted={load} />
-      <FieldInput label="Search" value={search} onChange={setSearch} placeholder="Name or phone…" />
-
+      <RouteTabs active="/admin/dreamers" items={[{ href: '/admin/dreamers', label: 'All', n: loading ? null : people.length }, { href: '/admin/assistance', label: 'Asked for help', n: helpOpen }]} />
+      <SearchField value={search} onChange={setSearch} placeholder="Search by name, phone or city" />
+      <Chips value={filter} onChange={setFilter} items={[{ key: 'all', label: 'All' }, { key: 'paid', label: 'Paid' }, ...TIERS.map(t => ({ key: t, label: PLAN[t] }))]} />
       {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-          {[1,2,3].map(i => <div key={i} className="shimmer" style={{ background: T.card, borderRadius: 12, height: 72 }} />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: T.muted, fontFamily: T.ff.display, fontStyle: 'italic', fontSize: 18 }}>No dreamers found</div>
+        <List>{[1, 2, 3].map(i => <div key={i} className="shimmer" style={{ height: 72, borderBottom: `0.5px solid ${C.line}` }} />)}</List>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-          {filtered.map(c => {
-            const open = openId === c.id;
-            return (
-              <div key={c.id} style={{ background: T.card, border: `0.5px solid ${open ? T.borderStrong : T.border}`, borderRadius: 12, overflow: 'hidden', transition: 'border-color 150ms' }}>
-                <div onClick={() => toggleOpen(c.id)} style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', minHeight: 72 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
-                    <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.08em' }}>{c.phone} · {c.wedding_city || 'City TBD'} · {fmt(c.wedding_date)}</div>
-                    <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted, marginTop: 3 }}>{c.muse_saves} saves · {c.circle_members} circle</div>
-                  </div>
-                  <span style={{ fontFamily: T.ff.label, fontSize: 8, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: T.gold, background: T.goldSoft, border: `0.5px solid ${T.gold}`, borderRadius: 20, padding: '3px 10px', flexShrink: 0 }}>{c.tier}</span>
-                  <span style={{ color: T.soft, fontSize: 13, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 180ms', flexShrink: 0 }}>›</span>
-                </div>
-
-                {open && (
-                  <div style={{ padding: '4px 16px 18px', borderTop: `0.5px solid ${T.border}` }}>
-                    <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.12em', margin: '14px 0 12px' }}>Joined {fmt(c.created_at)}</div>
-
-                    <div style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 9, color: T.soft, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 10 }}>Tier</div>
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
-                      {TIERS.map(t => (
-                        <button key={t} onClick={() => setTier(c.id, t)} style={{ flex: 1, padding: '12px 0', borderRadius: 9, border: `0.5px solid ${c.tier === t ? T.gold : T.border}`, background: c.tier === t ? T.goldSoft : 'transparent', fontFamily: T.ff.label, fontWeight: c.tier === t ? 600 : 400, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: c.tier === t ? T.gold : T.soft, minHeight: 44, cursor: 'pointer' }}>{t}</button>
-                      ))}
-                    </div>
-
-                    {/* ── MICRO-WA-DIAL (CE-225) ───────────────────────────────
-                        The maker twin of this block lives at
-                        app/admin/makers/page.tsx and carries the same three
-                        bytes; both read the ONE predicate at lib/admin/waDial.ts,
-                        so the two surfaces cannot drift on which rows are
-                        dialable. Absent, never dead — null renders nothing.
-
-                        This lane's silent rows are not the same rows as the
-                        maker lane's: the 2026-08-24 census found the retirement
-                        sentinel HERE, among the dreamers, which is why one of
-                        these 52 rows shows no button and every maker shows one. */}
-                    {(() => {
-                      const href = waDialHref(c.phone);
-                      return href && (
-                        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                          <ActionLink label="WhatsApp" tone="ok" href={href} />
-                        </div>
-                      );
-                    })()}
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {confirmDel === c.id
-                        ? <ActionChip label="Tap again to delete permanently" tone="no" onClick={() => deleteCouple(c.id)} />
-                        : <ActionChip label="Delete" tone="no" onClick={() => setConfirmDel(c.id)} />}
-                    </div>
-                    {confirmDel === c.id && <p style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted, letterSpacing: '0.08em', marginTop: 8 }}>Deletes all couple data — muse saves, circle, conversations. Cannot be undone.</p>}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <>
+          <CountLine n={filtered.length} one="Dreamer" many="Dreamers" />
+          <List>
+            {filtered.length === 0 ? <Empty>No Dreamers match.</Empty> : filtered.map((c, i) => (
+              <PersonRow key={c.id} last={i === filtered.length - 1} onOpen={() => openCard(c.id)} name={c.name}
+                tag={PLAN[c.tier] || c.tier} tagTone={c.tier === 'basic' ? C.mute : C.accent}
+                line={[wed(c.wedding_date), c.wedding_city, `${c.muse_saves} saves`, `${c.circle_members} in circle`].filter(Boolean).join(' · ')} phone={c.phone} />
+            ))}
+          </List>
+        </>
       )}
 
+      {open && (
+        <Sheet title={open.name} sub={`${wed(open.wedding_date)} · joined ${fullDate(open.created_at)}`} onClose={() => setOpenId(null)}>
+          <div style={{ borderTop: `0.5px solid ${C.line}`, padding: '12px 18px' }}>
+            <div style={{ font: F.t4, color: C.mute, marginBottom: 8 }}>Plan</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {TIERS.map(t => (
+                <button key={t} type="button" aria-pressed={open.tier === t} onClick={() => setTier(open.id, t)} style={{ flex: '1 1 90px', minHeight: 44, borderRadius: 12, border: `1px solid ${open.tier === t ? C.primary : C.line}`, background: open.tier === t ? C.primary : 'transparent', color: open.tier === t ? C.onPrimary : C.soft, font: F.t5, fontWeight: 600 }}>{PLAN[t]}</button>
+              ))}
+            </div>
+          </div>
+          <SheetNote>{open.muse_saves} saves · {open.circle_members} in their circle{open.wedding_city ? ` · ${open.wedding_city}` : ''}</SheetNote>
+          <DangerLast label="Delete Dreamer" lost={DREAMER_LOST} extra={also} confirmWord="Yes, delete"
+            blockedBy={open.tier !== 'basic' ? PAID_BLOCK : null} onConfirm={() => deleteDreamer(open.id)} />
+        </Sheet>
+      )}
       {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
     </div>
   );

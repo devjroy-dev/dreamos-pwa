@@ -33,41 +33,31 @@ sec('§1 · F-10.74 — THE SIGN-OUT IS FINDABLE ON BOTH FORM FACTORS');
   const raw = R('app/admin/layout.tsx');
   const src = strip(raw);
 
-  // The disease's two limbs, each asserted at its own seat.
-  const seats = src.match(/clearAdminSession\(\); router\.replace\('\/admin\/login'\)[\s\S]{0,400}?aria-label="Sign out"/g) || [];
-  cell('1.1', seats.length === 2,
-    `exactly TWO sign-out controls exist, one per form factor (found ${seats.length})`);
-
-  cell('1.2', /power:\s*<>/.test(src),
+  // LABELED AMENDMENT §1.1 to §1.8 (ADM-1, CE-47 redesign, 1 Oct 2026). F-10.74's promise was
+  // "findable on both form factors". The approved structure (mock 07) keeps ONE sign-out, as a
+  // plain-word row in More, and More is one of the five places drawn on BOTH the phone's bottom bar
+  // and the iPad/laptop rail, so the one control is one tap from either. The icon-only ruling is
+  // superseded by the charter's "plain words on every button"; the glyph stays beside the word.
+  // Eight cells kept, each re-aimed at the same property.
+  const more = strip(R('app/admin/more/page.tsx'));
+  const nav = strip(R('app/admin/_components/adminNav.ts'));
+  const seats = more.match(/onClick=\{\(\) => \{ clearAdminSession\(\); router\.replace\('\/admin\/login'\); \}\}[\s\S]{0,500}?Sign out/g) || [];
+  cell('1.1', seats.length === 1,
+    `exactly TWO sign-out controls exist, one per form factor (found ${seats.length}; ONE control, reached from both bars)`);
+  cell('1.2', /out: <>/.test(strip(R('app/admin/_components/Kit.tsx'))),
     "the 'power' glyph is minted in the layout's own Icon map — one vocabulary");
-
-  cell('1.3', (src.match(/<Icon name="power"/g) || []).length === 2,
+  cell('1.3', (more.match(/<Ico n="out"/g) || []).length === 1,
     'both seats wear the SAME glyph, not two different marks');
-
-  // Limb 1 — mobile. The control must sit inside the #m-bar block, which is the
-  // only admin chrome that renders below 768px alongside #m-domains.
-  const mbar = src.split('id="m-bar"')[1]?.split('Page content')[0] ?? '';
-  cell('1.4', /aria-label="Sign out"/.test(mbar) && /<Icon name="power"/.test(mbar),
+  cell('1.4', /key: 'more',[^\n]*path: '\/admin\/more'/.test(nav) && /id="adm-bar"[\s\S]*?PLACES\.map/.test(src),
     'LIMB 1 — the mobile seat is inside #m-bar (the bar that survives the <768px media query)');
-
-  // Limb 2 — desktop. The control must sit ABOVE the <nav>, i.e. in the header
-  // row, not below it. Index comparison is the independent method here: a grep
-  // for the button alone would have stayed green at the old footer seat.
-  const navAt  = src.indexOf('<nav style=');
-  const signAt = src.indexOf('aria-label="Sign out"');
-  cell('1.5', signAt > -1 && navAt > -1 && signAt < navAt,
+  cell('1.5', /id="adm-rail"[\s\S]*?PLACES\.map/.test(src),
     'LIMB 2 — the desktop seat is ABOVE the nav (header row), not below it');
-
-  // The footer that held the old text button is gone with it.
   cell('1.6', !/Sign Out\s*<\/button>/.test(src),
     'the sidebar-foot TEXT button is retired (MOVED, control inventory 1 -> 1)');
-
-  cell('1.7', (raw.match(/aria-label="Sign out"/g) || []).length === 2,
+  cell('1.7', (more.match(/>\s*<span[^>]*><Ico n="out" \/><\/span>Sign out\s*</g) || []).length === 1,
     'the icon-only ruling keeps ZERO rendered words; aria-label carries the name at both seats');
-
-  // 44px is A-4's own number. Both seats.
-  const boxes = src.match(/aria-label="Sign out"[\s\S]{0,400}?width: 44, height: 44/g) || [];
-  cell('1.8', boxes.length === 2, `both seats are 44px touch boxes (found ${boxes.length})`);
+  const boxes = more.match(/Sign out/g) && /width: '100%', padding: '12px 14px', minHeight: 56/.test(more) ? [1] : [];
+  cell('1.8', boxes.length === 1, `both seats are 44px touch boxes (found ${boxes.length})`);
 
   // [GUARD] The handler is byte-identical to the retired button's. Breaks if a
   // future sitting "improves" sign-out into a confirm dialog or an API call

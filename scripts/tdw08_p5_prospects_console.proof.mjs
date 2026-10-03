@@ -81,18 +81,21 @@ function okMutate(name, rel, anchor, replacement, predicate, label) {
 // ═════════════════════════════════════════════════════════════════════════════
 H('§1 · THE CONTROL INVENTORY (CE-115) — every control NEW, each accounted');
 
+// LABELED AMENDMENT (ADM-1, CE-47 redesign, 1 Oct 2026): the same eleven controls, drawn in the
+// new look (adding opens as a card from "+ Add numbers", the cap as a card from "Change", the row's
+// acts as a strip). Count kept at eleven; each anchor follows its control.
 const CONTROLS = [
-  ['the state filter',        /<FilterPills/],
-  ['add one prospect',        /label=\{[^}]*'Add prospect'/],
+  ['the state filter',        /<Chips value=\{state\} onChange=\{setState\}/],
+  ['add one prospect',        /'Add this number'/],
   ['paste a list',            /<textarea/],
-  ['add the pasted list',     /label=\{[^}]*'Add all'/],
-  ['the cap dial',            /label="Save cap"/],
-  ['send opener (confirm)',   /label="Send opener"[\s\S]{0,120}setConfirmSend/],
-  ['the confirm tap itself',  /label="Send it"/],
-  ['cancel the send',         /label="Cancel"/],
-  ['view the conversation',   /label="Conversation"/],
-  ['mark converted',          /label="Converted"/],
-  ['clear the paste result',  /label="Clear"/],
+  ['add the pasted list',     /'Add all'/],
+  ['the cap dial',            /await saveCap\(\); setCapOpen\(false\); \}\}>Save</],
+  ['send opener (confirm)',   /label: 'Send opener'[\s\S]{0,120}setConfirmSend/],
+  ['the confirm tap itself',  /label: 'Tap again to send'/],
+  ['cancel the send',         /label: 'Cancel'/],
+  ['view the conversation',   /label: 'See chat'/],
+  ['mark converted',          /label: 'Mark signed up'/],   // RE-PINNED BY LABEL (CE-47 note 1)
+  ['clear the paste result',  /setPasteResult\(null\)[^>]*>Clear</],
 ];
 for (const [name, re] of CONTROLS) {
   ok(`§1 · ${name}`, re.test(code(PAGE)));
@@ -131,7 +134,8 @@ ok('§3.4 an unknown key still says something true rather than nothing',
 
 okMutate('§M.1 the refusal map is load-bearing — remove the guard key and it reddens',
   PAGE,
-  "  already_registered:      'Already a vendor with us — this lane is for people who have not joined yet.',\n",
+  // RE-PINNED BY LABEL (CE-47 note 1): the refusal reads in plain words now; the key is the guard.
+  "  already_registered:        'Already a vendor with us. This list is for people who have not joined yet.',\n",
   '',
   () => assert.ok(/already_registered:/.test(code(PAGE))),
   '§3.1');
@@ -161,8 +165,9 @@ H('§5 · THE SEND IS CONFIRM-TAPPED, BECAUSE IT SPENDS A REAL TEMPLATE');
 
 ok('§5.1 the first tap arms, it does not send',
   /setConfirmSend\(p\.id\)/.test(C));
+// LABELED AMENDMENT (ADM-1): the armed control is "Tap again to send" on the row's strip.
 ok('§5.2 only the armed control calls the route',
-  /label="Send it" onClick=\{\(\) => sendOpener\(p\)\}/.test(C));
+  /label: 'Tap again to send', primary: true, onClick: \(\) => sendOpener\(p\)/.test(C) && (C.match(/sendOpener\(p\)/g) || []).length === 1);
 ok('§5.3 and the armed state says what it will do, to which number',
   /This sends a real WhatsApp template to \{p\.phone\}/.test(C));
 ok('§5.4 an opted-out row cannot be armed at all',
@@ -170,9 +175,9 @@ ok('§5.4 an opted-out row cannot be armed at all',
 
 okMutate('§M.3 remove the arming step and the send becomes one stray tap',
   PAGE,
-  '? <GoldBtn label="Send it" onClick={() => sendOpener(p)} small />',
-  '? <GoldBtn label="Send it" onClick={() => {}} small />',
-  () => assert.ok(/label="Send it" onClick=\{\(\) => sendOpener\(p\)\}/.test(code(PAGE))),
+  "? { label: 'Tap again to send', primary: true, onClick: () => sendOpener(p) }",
+  "? { label: 'Tap again to send', primary: true, onClick: () => {} }",
+  () => assert.ok(/label: 'Tap again to send', primary: true, onClick: \(\) => sendOpener\(p\)/.test(code(PAGE))),
   '§5.2');
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -182,20 +187,22 @@ ok('§6.1 outbound is named Mira, inbound is named Them',
   /outbound \? 'Mira' : 'Them'/.test(C));
 ok('§6.2 the name comes from the persona\'s own vocabulary, not "bot" or "system"',
   !/'system'\s*:\s*'/.test(C) && /'Mira'/.test(C));
+// RE-PINNED BY LABEL (CE-47 note 1): "chat" is the plain word.
 ok('§6.3 an empty thread is an invitation, not a blank',
-  /The conversation starts when they reply to the opener/.test(C));
+  /The chat starts when they reply to the opener/.test(C));
 ok('§6.4 message bodies render whitespace as sent — a WhatsApp message is shaped',
   /whiteSpace: 'pre-wrap'/.test(C));
 
 // ═════════════════════════════════════════════════════════════════════════════
 H('§7 · THE SCREEN IS REACHABLE');
 
+// LABELED AMENDMENT (ADM-1): registered as "Vendors, being reached", a daily page under Vendors.
 ok('§7.1 it is registered in the admin nav, under Growth',
-  /label:\s*'Prospects',\s*path:\s*'\/admin\/prospects'/.test(code(NAV)));
+  /label:\s*'Vendors, being reached',\s*path:\s*'\/admin\/prospects'/.test(code(NAV)));
 
 okMutate('§M.4 a screen nobody can navigate to is a screen nobody uses',
   NAV,
-  "      { label: 'Prospects',     path: '/admin/prospects',              icon: 'inbox', hints: ['lane', 'outreach', 'closer', 'marketing'] },\n",
+  "  { label: 'Vendors, being reached',  path: '/admin/prospects',  icon: 'vendors',  hints: ['prospects', 'openers', 'outreach'] },\n",
   '',
   () => assert.ok(/path:\s*'\/admin\/prospects'/.test(code(NAV).slice(0, code(NAV).indexOf('ROUTE_MAP')))),
   '§7.1');
@@ -247,7 +254,7 @@ okMutate('§M.5 a form that collects the fields but does not send them is decora
 
 okMutate('§M.6 a bare row that LOOKS full hides the thing the founder needs to see',
   PAGE,
-  'No handle, trade or city — Mira has nothing of theirs to work with.',
+  'No Instagram, trade or city yet. Mira has nothing of theirs to work with.',   // RE-PINNED BY LABEL (CE-47 note 1)
   '',
   () => assert.ok(/Mira has nothing of theirs to work with/.test(code(PAGE))),
   '§9.5');

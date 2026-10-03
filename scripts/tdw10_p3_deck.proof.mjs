@@ -133,8 +133,10 @@ section('§3  FORK 5 — TWO LABELLED COUNTS, FLOOR FROM THE SERVER');
   ok('the deck renders photos_approved', /card\.photos_approved/.test(DECKC));
   // A number with no label is a number that will be read as the other one.
   ok('the total is labelled for what it measures (the floor)', /photos · floor/.test(DECKC));
+  // LABELED AMENDMENT (ADM-1, CE-47 change 2): no "couple" in the founder's words; the label
+  // still says what the number measures, the approved photos a Dreamer can see on Discover.
   ok('the approved count is labelled for what IT measures (what couples see)',
-     /visible to couples/.test(DECKC));
+     /shown on Discover/.test(DECKC));
   ok('the floor number comes from the server row, never a client constant',
      /card\.photo_floor/.test(DECKC) && !/DISCOVER_PHOTO_FLOOR/.test(DECKC) && !/= 6\b/.test(DECKC));
   ok('the approve control is disabled below the floor (decoration over the server rule)',
@@ -182,8 +184,9 @@ section('§5  THE MINT SHEET');
   ok('the mint sheet exists', MINT.length > 0);
   ok('it is mounted on Makers as a vendor mint', /kind="vendor"/.test(strip(readOr(P_MAK))));
   ok('it is mounted on Dreamers as a couple mint', /kind="couple"/.test(strip(readOr(P_DRE))));
+  // LABELED AMENDMENT (ADM-1, approved mocks 03 and 12): each door names what it makes.
   ok('both doors are labelled "+ New" per the spec', 
-     /label="\+ New"/.test(readOr(P_MAK)) && /label="\+ New"/.test(readOr(P_DRE)));
+     />\+ New vendor</.test(readOr(P_MAK)) && />\+ New Dreamer</.test(readOr(P_DRE)));
 
   // The spec's fields, both species.
   for (const f of ['Phone', 'Business name', 'Category', 'City']) {
@@ -196,7 +199,8 @@ section('§5  THE MINT SHEET');
   ok('the phone hint carries the vetoed byte', /A phone with no existing TDW account\./.test(MINT));
 
   // F-10.47 — two outcomes, two cards.
-  ok('the created variant exists', /Vendor created/.test(MINT) && /Couple created/.test(MINT));
+  // LABELED AMENDMENT (ADM-1, CE-47 change 2): the Dreamer variant is worded without "couple".
+  ok('the created variant exists', /Vendor created/.test(MINT) && /Dreamer account made/.test(MINT));
   ok('the existing variant exists', /Already on TDW/.test(MINT));
   ok('the existing variant states that nothing was overwritten',
      /This number already had an account\. Nothing was overwritten\./.test(MINT));
@@ -407,13 +411,15 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
   // ── THE STANDING CHIP · three standings no longer collapse into one blank ───
   ok('the row reads discover_request_state, not eligibility alone',
      /const st = v\.discover_request_state;/.test(MAK0C));
-  for (const chip of ['● DISCOVER', '● HIDDEN', '● PENDING', '● NOT APPROVED']) {
+  // RE-PINNED BY LABEL (CE-47 note 1, 2 Oct 2026): the badges in the approved design's plain
+  // words, no dot, no long dash. Same four standings, same cells.
+  for (const chip of ["'On Discover'", "'Hidden'", "'Waiting'", "'Not approved'"]) {
     ok(`the row can render ${chip}`, MAK0.includes(chip), chip);
   }
   ok('never-applied renders NOTHING — an honest blank, not a fifth chip',
      /: null;   \/\/ not_requested/.test(MAK0));
   ok('a split legacy pair reads HIDDEN, because that is what a couple experiences',
-     /st === 'approved'\s*\? \['● HIDDEN'/.test(MAK0C));
+     /st === 'approved'\s*\? \['Hidden'/.test(MAK0C));
   ok('the optimistic row update moves the PAIR, never half of it',
      /discover_request_state: v\.discover_eligible \? 'revoked' : 'approved'/.test(MAK0C));
   // F-10.61 — the client may not invent a stored value the database forbids.
@@ -423,7 +429,8 @@ section('§7  THE ESPRESSO GATE EXTENDS TO EVERY P3 SURFACE');
   // ── F-10.57 · THE WELCOME IS REACHABLE AFTER THE THIRTY SECONDS ────────────
   const MAK = readOr('app/admin/makers/page.tsx');
   const MAKC = strip(MAK);
-  ok('Makers rows carry Send welcome', /label="Send welcome"/.test(MAKC));
+  // RE-PINNED BY LABEL (CE-47 note 1): "Send welcome message".
+  ok('Makers rows carry Send welcome', /label="Send welcome message"/.test(MAKC));
   ok('…calling the SAME endpoint the mint sheet calls, never a second door',
      /import \{ sendWelcome \} from '\.\.\/\.\.\/\.\.\/lib\/admin-api\/mint'/.test(MAKC));
   ok('…behind a tap-to-confirm, matching Delete on the same row',
@@ -533,9 +540,9 @@ section('§8  MUTATION — every cure cell proven able to REDDEN');
   }
   // M3 — collapse the two labels; §3's cell reddens.
   {
-    const a = mutate(P_DECK, 'label="visible to couples"', 'label="photos"');
+    const a = mutate(P_DECK, 'label="shown on Discover"', 'label="photos"');
     ok('M3 collapsing the two count labels ⇒ the labelled-for-what-it-measures cell reddens',
-       a && !/visible to couples/.test(strip(readOr(P_DECK))));
+       a && !/shown on Discover/.test(strip(readOr(P_DECK))));
     restore();
   }
   // M4 — a client-side floor constant; §3's cell reddens.

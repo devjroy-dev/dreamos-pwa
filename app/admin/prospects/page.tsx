@@ -1,4 +1,9 @@
 'use client';
+// ADM-1 · VENDORS, BEING REACHED (route kept: /admin/prospects). One page with Joined
+// (/admin/makers). Every door and handler below is unchanged; the screen is redrawn: rows carry
+// Send opener (tap again to send), See chat, Mark signed up, WhatsApp and Call; Delete, Remove
+// from the list and Put back sit on the person's card, last, and ask again (CE-47 change 1).
+// Adding numbers and the daily opener limit open as cards from the page head.
 // app/admin/prospects/page.tsx
 // Admin: the prospect console — the marketing lane's intake, board and dial.
 //
@@ -28,10 +33,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { adminHeaders, API_BASE } from '@/lib/admin-api/_base';
-import {
-  PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput,
-  FilterPills, Row, SectionDivider, BottomSheet, LoadingGrid, StatCard,
-} from '../_components/AdminUI';
+import { getVendors } from '@/lib/admin-api/index';
+import { T, Toast, FieldInput, BottomSheet } from '../_components/AdminUI';
+import { C, F, PageHead, Pill, RouteTabs, Stat, Chips, CountLine, List, Empty, PersonRow, ActionStrip, Sheet, SheetRow, SheetNote, DangerLast, when as whenWords, cap as capWord } from '../_components/Kit';
 
 const BASE = `${API_BASE}/api/v2/admin/prospects`;
 
@@ -60,27 +64,21 @@ interface Msg {
 // The one place a refusal key becomes a sentence a person can act on. The
 // interface's voice: what happened, and what to do about it.
 const REFUSAL: Record<string, string> = {
-  already_registered:      'Already a vendor with us — this lane is for people who have not joined yet.',
-  missing_country_code:    'Add the country code: 91 and then the ten digits.',
-  phone_required:          'A phone number is needed.',
-  phone_not_numeric:       'That is not a phone number.',
-  duplicate_phone:         'Already on the board.',
-  registered_check_failed: 'Could not check that number against existing vendors. Nothing was added.',
-  opted_out:               'They opted out. Nothing sent.',
-  // ── THE EXIT DOOR'S REFUSALS — founder-vetoed 「 approve all 」 2026-08-11 ──
-  // One line per member, because a refusal that does not say WHICH member fired
-  // is a shrug, and a shrug does not tell the founder what to press next. Each
-  // of these three names the member and then names the way through.
-  already_contacted:       'Already messaged — discard instead of deleting.',
-  has_conversation:        'This prospect has a conversation on file — discard instead of deleting.',
-  has_demo:                'A demo was built for this prospect — discard instead of deleting.',
-  // R-30.19/.20 · F-05.68. The opt-out register belongs to the human, not the
-  // house: neither exit verb may erase or relabel it.
-  opted_out_locked:        'They opted out — this row stays as the record of that.',
-  already_discarded:       'This number was discarded. Restore it from the Discarded list to re-add.',
-  discarded:               'This prospect is discarded — restore first if you want to message them.',
-  conversation_check_failed: 'Could not check whether this prospect has a conversation. Nothing was deleted.',
-  not_discarded:           'Only a discarded prospect can be restored.',
+  already_registered:        'Already a vendor with us. This list is for people who have not joined yet.',
+  missing_country_code:      'Add the country code: 91 and then the ten digits.',
+  phone_required:            'A phone number is needed.',
+  phone_not_numeric:         'That is not a phone number.',
+  duplicate_phone:           'Already on the list.',
+  registered_check_failed:   'Could not check that number against existing vendors. Nothing was added.',
+  opted_out:                 'They opted out. Nothing sent.',
+  already_contacted:         'Already messaged. Remove them from the list instead of deleting.',
+  has_conversation:          'There is a chat with this number. Remove them from the list instead of deleting.',
+  has_demo:                  'A demo was made for this number. Remove them from the list instead of deleting.',
+  opted_out_locked:          'They opted out. This row stays as the record of that.',
+  already_discarded:         'This number was removed. Put it back from the Removed list to add it again.',
+  discarded:                 'This number was removed. Put it back on the list first to message them.',
+  conversation_check_failed: 'Could not check whether there is a chat with this number. Nothing was deleted.',
+  not_discarded:             'Only a removed number can be put back.',
 };
 
 // ── THE EXIT CONTROL'S THREE FACES — founder-vetoed 「 approve all 」 2026-08-11 ─
@@ -90,20 +88,18 @@ const REFUSAL: Record<string, string> = {
 // thing you might do to this row", and the ruling's whole point is that it is not.
 const EXIT_LABEL: Record<string, string> = {
   delete:  'Delete',
-  discard: 'Discard',
-  restore: 'Restore',
+  discard: 'Remove from the list',
+  restore: 'Put back on the list',
 };
 const EXIT_CONFIRM: Record<string, string> = {
-  delete:  'Delete this prospect? This number has never been messaged — the row will be removed permanently.',
-  discard: "Discard this prospect? They've already been messaged. The record stays, but the lane will never touch them again.",
-  // NAMES ITS CONSEQUENCE ON PURPOSE: this is the one act in this delivery that
-  // re-arms a send, and a byte never hides the state it creates.
-  restore: "Restore this prospect? They'll return to the lane as cold — the next morning sweep can message them again.",
+  delete:  'This number has never been messaged. The row is removed for good.',
+  discard: 'They have already been messaged. The record stays, but the morning send never messages them again.',
+  restore: 'They go back to waiting for the morning send, and it can message them again.',
 };
 const EXIT_TOAST: Record<string, string> = {
-  delete:  'Prospect deleted.',
-  discard: 'Prospect discarded.',
-  restore: 'Prospect restored.',
+  delete:  'Deleted.',
+  discard: 'Removed from the list.',
+  restore: 'Put back on the list.',
 };
 // ── THE BOARD'S COPY BOOK — founder-vetoed 「 approve all 」 2026-08-12 ────────
 // F-05.70's cure, arm (c). THE TILES WERE FIVE HARDCODED CARDS over eight states,
@@ -116,30 +112,25 @@ const EXIT_TOAST: Record<string, string> = {
 // curated labels are vetoed bytes and the fallback exists for the state nobody
 // has named yet: a ninth state now RENDERS (with the server counting it, per
 // R-30.23) instead of vanishing. The hardcoded list is retired, not extended.
+// CE-47 note 1 (2 Oct 2026): the plain words of the approved design. ONE held back for the
+// founder: `cold` reads "Waiting for the morning send", not "Not messaged yet", because a row put
+// back after removal is cold AND was messaged (R-30.24); the drawn word would say the opposite.
 const TILE_LABEL: Record<string, string> = {
-  cold:       'Cold',
-  // NOT 'Opener sent'. That byte read `counts.templated`, which is a WAYPOINT —
-  // the state a row occupies between the send and their first word. Both tiles
-  // now stand: this one is where-they-are-now, `Openers sent` below is ever.
-  templated:  'Opener sent, no reply yet',
+  cold:       'Waiting for the morning send',
+  templated:  'Opener sent',
   replied:    'Replied',
-  in_session: 'In session',
-  converted:  'Converted',
+  in_session: 'Talking',
+  converted:  'Signed up',
   opted_out:  'Opted out',
   expired:    'Window closed',
-  discarded:  'Discarded',
+  discarded:  'Removed',
 };
 const TILE_SUB: Record<string, string> = {
-  // ── R-30.24 · THE SEAT'S OWN CATCH, RATIFIED ────────────────────────────────
-  // THIS READ 「 no opener sent yet 」 and it became FALSE one sitting ago, by the
-  // hand of the delivery that shipped the restore verb: POST /:id/restore writes
-  // `state: 'cold'` and correctly does NOT clear `last_template_at`, because the
-  // send happened. So a restored row is COLD AND MESSAGED, and the old sub-line
-  // said the opposite about exactly the rows that verb creates.
-  cold:       'awaiting the morning sweep',
+  cold:       'the morning send messages them next',
+  templated:  'no reply yet',
   in_session: 'Mira is talking to them',
-  expired:    'the 24h reply window ran out',
-  discarded:  'off the lane, record kept',
+  expired:    'the 24-hour reply window ran out',
+  discarded:  'off the list, record kept',
 };
 // The unknown ninth: the pills' own humanising, so an unnamed state reads as
 // something rather than as nothing.
@@ -149,12 +140,6 @@ const tileLabel = (state: string) => TILE_LABEL[state] ?? humanise(state);
 const refusalLine = (code?: string, fallback?: string) =>
   (code && REFUSAL[code]) || fallback || 'That did not work.';
 
-const when = (iso: string | null) => {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
-    + ' · ' + d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
-};
 
 export default function ProspectsPage() {
   const [rows, setRows]         = useState<Prospect[]>([]);
@@ -184,6 +169,10 @@ export default function ProspectsPage() {
   const [thread, setThread]     = useState<{ p: Prospect; msgs: Msg[] } | null>(null);
   const [confirmSend, setConfirmSend] = useState<string | null>(null);
   const [confirmExit, setConfirmExit] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [capOpen, setCapOpen] = useState(false);
+  const [joined, setJoined] = useState<number | null>(null);
+  useEffect(() => { getVendors().then(d => setJoined(d.vendors.length)).catch(() => {}); }, []);
 
   const call = useCallback(async (path: string, opts?: RequestInit) => {
     const res = await fetch(`${BASE}${path}`, { ...opts, headers: adminHeaders() });
@@ -260,12 +249,12 @@ export default function ProspectsPage() {
     // PER-ROW RESULTS, because a bulk that reports only a count hides the row
     // that mattered — and on this door a refusal is the row that mattered.
     const lines: string[] = [];
-    (r.inserted || []).forEach((x: { phone: string }) => lines.push(`Added — ${x.phone}`));
-    (r.skipped  || []).forEach((p: string) => lines.push(`Already on the board — ${p}`));
+    (r.inserted || []).forEach((x: { phone: string }) => lines.push(`Added: ${x.phone}`));
+    (r.skipped  || []).forEach((p: string) => lines.push(`Already on the list: ${p}`));
     (r.refused  || []).forEach((x: { phone: string; error: string }) =>
-      lines.push(`${refusalLine(x.error)} — ${x.phone}`));
+      lines.push(`${refusalLine(x.error)} (${x.phone})`));
     (r.failed   || []).forEach((x: { phone: string | null; error: string }) =>
-      lines.push(`${refusalLine(x.error)} — ${x.phone || 'no number'}`));
+      lines.push(`${refusalLine(x.error)} (${x.phone || 'no number'})`));
     setPasteResult(lines);
     setPaste('');
     setToast({ msg: `${r.insertedCount} added` });
@@ -315,179 +304,125 @@ export default function ProspectsPage() {
     else setToast({ msg: r?.error || 'Could not open that conversation.', error: true });
   }
 
-  const stateOptions = [{ value: 'all', label: `All ${rows.length ? '' : ''}` }]
-    .concat(Object.keys(counts).map(s => ({ value: s, label: `${s.replace('_', ' ')} ${counts[s]}` })));
+  const [openId, setOpenId] = useState<string | null>(null);
+  const open = rows.find(r => r.id === openId) || null;
+  const replying = (counts.replied || 0) + (counts.in_session || 0);
+  const chips = [{ key: 'all', label: 'All' }].concat(Object.keys(counts).map(k => ({ key: k, label: tileLabel(k), n: counts[k] }) as { key: string; label: string }));
+  const lineFor = (p: Prospect) => {
+    const facts = [p.ig_handle, p.category, p.city].filter(Boolean).join(' · ');
+    const last = p.session_opened_at || p.last_template_at || p.created_at;
+    return (facts || 'No Instagram, trade or city yet. Mira has nothing of theirs to work with.') + ` · last activity ${whenWords(last)}`;
+  };
+  const tone = (st: string) => (st === 'replied' || st === 'in_session' ? C.ok : st === 'converted' ? C.accent : st === 'cold' ? C.warn : C.mute);
 
   return (
-    <div style={{ padding: '0 0 80px' }}>
-      <PageHeader
-        title="Prospects"
-        sub="The marketing lane — who Mira has met, and who she has not."
-      />
+    <div>
+      <PageHead title="Vendors" sub={`${openersSent ?? '—'} openers sent · ${replying} replying now`} action={<Pill onClick={() => setAdding(true)}>+ Add numbers</Pill>} />
+      <RouteTabs active="/admin/prospects" items={[{ href: '/admin/makers', label: 'Joined', n: joined }, { href: '/admin/prospects', label: 'Being reached', n: Object.values(counts).reduce((a, b) => a + b, 0) }]} />
 
-      {/* ── THE BOARD AT A GLANCE ─────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 8 }}>
-        {/* THE CUMULATIVE TILE FIRST — it is the question the founder actually
-            asked of this row ("how many openers went out"), and the one the old
-            board answered wrongly. Every tile after it is a where-they-are-now
-            state count, off the same counts object the FilterPills read. */}
-        <StatCard label="Openers sent" value={openersSent ?? '—'} sub="every opener ever sent" accent />
-        {Object.keys(counts).map(s => (
-          <StatCard key={s} label={tileLabel(s)} value={counts[s] ?? 0} sub={TILE_SUB[s]} />
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 6px 6px 14px', borderRadius: 14, border: `0.5px solid ${C.line}`, marginBottom: 12, background: C.card }}>
+        <span style={{ flex: 1, font: F.t4, color: C.soft }}>Openers go out each morning, up to <b style={{ color: C.ink }}>{cap === null ? '—' : cap}</b> a day</span>
+        <button type="button" onClick={() => setCapOpen(true)} style={{ minHeight: 44, padding: '0 12px', background: 'none', border: 'none', color: C.accent, font: F.t4 }}>Change</button>
       </div>
 
-      {/* ── THE DIAL ──────────────────────────────────────────────────────── */}
-      <SectionDivider label="Daily opener cap" />
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, flexWrap: 'wrap' }}>
-        <div style={{ minWidth: 140 }}>
-          <FieldInput label="Openers per day" value={capDraft} onChange={setCapDraft} type="text" />
-        </div>
-        <div style={{ paddingBottom: 18 }}><GoldBtn label="Save cap" onClick={saveCap} small /></div>
-        <p style={{ fontFamily: T.ff.body, fontSize: 12, color: T.muted, maxWidth: 460, paddingBottom: 20, margin: 0 }}>
-          How many cold prospects the morning job may send an opener to. Set it to 0 to send none —
-          the job still runs, and sends nothing. Currently {cap === null ? '—' : cap}.
-        </p>
-      </div>
+      <div style={{ marginBottom: 12 }}><Stat label="Openers sent" value={openersSent ?? '—'} sub="every opener ever sent" /></div>
+      <Chips value={state} onChange={setState} items={chips} />
+      {state !== 'all' && TILE_SUB[state] && <div style={{ font: F.t4, color: C.mute, padding: '0 4px 10px' }}>{tileLabel(state)}: {TILE_SUB[state]}</div>}
+      {loading ? (
+        <List>{[1, 2, 3].map(i => <div key={i} className="shimmer" style={{ height: 96, borderBottom: `0.5px solid ${C.line}` }} />)}</List>
+      ) : (
+        <>
+          <CountLine n={rows.length} one="person" many="people" />
+          <List>
+            {rows.length === 0 ? <Empty>No one here yet. Add numbers and they wait for the morning send.</Empty> : rows.map((p, i) => {
+              const canSend = p.state !== 'opted_out' && p.state !== 'discarded';
+              const canMark = p.state !== 'converted' && p.state !== 'opted_out' && p.state !== 'discarded';
+              return (
+                <PersonRow key={p.id} last={i === rows.length - 1} onOpen={() => { setConfirmSend(null); setOpenId(p.id); }}
+                  name={p.name || p.phone} tag={tileLabel(p.state)} tagTone={tone(p.state)} line={lineFor(p)} phone={p.phone} bare>
+                  <ActionStrip items={[
+                    canSend && (confirmSend === p.id
+                      ? { label: 'Tap again to send', primary: true, onClick: () => sendOpener(p) }
+                      : { label: 'Send opener', primary: p.state === 'cold', onClick: () => { setConfirmExit(null); setConfirmSend(p.id); } }),
+                    confirmSend === p.id && { label: 'Cancel', onClick: () => setConfirmSend(null) },
+                    { label: 'See chat', onClick: () => openThread(p) },
+                    canMark && { label: 'Mark signed up', onClick: () => markConverted(p) },
+                  ]} />
+                  {confirmSend === p.id && <div style={{ font: F.t4, color: C.warn, padding: '0 14px 12px' }}>This sends a real WhatsApp template to {p.phone}.</div>}
+                </PersonRow>
+              );
+            })}
+          </List>
+        </>
+      )}
 
-      {/* ── INTAKE ────────────────────────────────────────────────────────── */}
-      <SectionDivider label="Add prospects" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, alignItems: 'end' }}>
-        <FieldInput label="Phone" value={phone} onChange={setPhone} placeholder="91 98882 94440" hint="With the country code." />
-        <FieldInput label="Name (optional)" value={name} onChange={setName} placeholder="Kanupriya" />
-        <FieldInput label="Instagram (optional)" value={igHandle} onChange={setIgHandle} placeholder="kanupriyasethi.studio" hint="Arms what Mira can say about their work." />
-        <FieldInput label="Trade (optional)" value={category} onChange={setCategory} placeholder="photography" />
-        <FieldInput label="City (optional)" value={city} onChange={setCity} placeholder="Chandigarh" />
-        <div style={{ paddingBottom: 18 }}>
-          <GoldBtn label={busy ? 'Adding…' : 'Add prospect'} onClick={addOne} disabled={busy || !phone.trim()} />
-        </div>
-      </div>
-
-      <div style={{ marginTop: 24 }}>
-        <div style={{ fontFamily: T.ff.label, fontSize: 10, fontWeight: 600, letterSpacing: '0.13em', textTransform: 'uppercase', color: T.soft, marginBottom: 10 }}>
-          Or paste a list
-        </div>
-        <textarea
-          value={paste}
-          onChange={e => setPaste(e.target.value)}
-          placeholder={'One per line — phone, name, instagram, trade, city\n919888294440\nKanupriya, 919000000123\n919000000456, Meher, meherstudio, photography, Jaipur'}
-          rows={5}
-          style={{
-            width: '100%', background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12,
-            padding: '14px 16px', color: T.ink, fontFamily: T.ff.body, fontSize: 14,
-            outline: 'none', resize: 'vertical',
-          }}
-        />
-        <div style={{ marginTop: 12 }}>
-          <GoldBtn label={busy ? 'Adding…' : 'Add all'} onClick={addMany} disabled={busy || !paste.trim()} />
-        </div>
-        {pasteResult && (
-          <div style={{ marginTop: 16, border: `0.5px solid ${T.border}`, borderRadius: 12, padding: '12px 16px' }}>
-            {pasteResult.map((l, i) => (
-              <div key={i} style={{
-                fontFamily: T.ff.body, fontSize: 13, padding: '4px 0',
-                color: l.startsWith('Added') ? T.success : T.soft,
-              }}>{l}</div>
-            ))}
-            <div style={{ marginTop: 10 }}>
-              <GhostBtn label="Clear" onClick={() => setPasteResult(null)} small />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── THE BOARD ─────────────────────────────────────────────────────── */}
-      <SectionDivider label="The board" />
-      <FilterPills options={stateOptions} value={state} onChange={setState} />
-
-      {loading ? <LoadingGrid /> : rows.length === 0 ? (
-        <p style={{ fontFamily: T.ff.body, fontSize: 14, color: T.muted }}>
-          No one here yet. Add a number above and it lands on the board as cold.
-        </p>
-      ) : rows.map(p => (
-        <Row key={p.id}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-            <div style={{ minWidth: 200 }}>
-              <div style={{ fontFamily: T.ff.body, fontSize: 15, color: T.ink }}>
-                {p.name || p.phone}{p.name && <span style={{ color: T.muted }}> · {p.phone}</span>}
-              </div>
-              <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.soft, marginTop: 6 }}>
-                {p.state.replace('_', ' ')} · {p.source || 'manual'} · last activity {when(p.session_opened_at || p.last_template_at || p.created_at)}
-              </div>
-              {/* WHAT SHE HAS TO WORK WITH — rendered only when it exists, so a
-                  bare row LOOKS bare and the founder can see the gap he is
-                  handing her. Absence is the signal. */}
-              {(p.ig_handle || p.category || p.city) ? (
-                <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.muted, marginTop: 5 }}>
-                  {[p.ig_handle, p.category, p.city].filter(Boolean).join(' · ')}
-                </div>
-              ) : (
-                <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.dim, marginTop: 5 }}>
-                  No handle, trade or city — Mira has nothing of theirs to work with.
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {confirmSend === p.id
-                ? <GoldBtn label="Send it" onClick={() => sendOpener(p)} small />
-                : <GhostBtn label="Send opener" onClick={() => { setConfirmExit(null); setConfirmSend(p.id); }} small disabled={p.state === 'opted_out' || p.state === 'discarded'} />}
-              {confirmSend === p.id && <GhostBtn label="Cancel" onClick={() => setConfirmSend(null)} small />}
-              <GhostBtn label="Conversation" onClick={() => openThread(p)} small />
-              <GhostBtn label="Converted" onClick={() => markConverted(p)} small disabled={p.state === 'converted' || p.state === 'opted_out' || p.state === 'discarded'} />
-              {/* THE EXIT — the two-press pattern this page already uses for
-                  Send opener, because a destructive act should cost the same
-                  deliberate second press as a real WhatsApp template does. The
-                  confirm SENTENCE below the row is the second press's signal;
-                  the label does not change, so no unvetoed byte appears. */}
-              {p.exit_kind && p.exit_kind !== 'none' && (
-                confirmExit === p.id
-                  ? <>
-                      <GhostBtn label={EXIT_LABEL[p.exit_kind]} onClick={() => runExit(p)} small danger={p.exit_kind !== 'restore'} />
-                      <GhostBtn label="Cancel" onClick={() => setConfirmExit(null)} small />
-                    </>
-                  : <GhostBtn label={EXIT_LABEL[p.exit_kind]} onClick={() => { setConfirmSend(null); setConfirmExit(p.id); }} small danger={p.exit_kind === 'delete'} />
-              )}
-            </div>
-          </div>
-          {confirmSend === p.id && (
-            <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.warning, marginTop: 10 }}>
-              This sends a real WhatsApp template to {p.phone}.
-            </div>
+      {open && (
+        <Sheet title={open.name || open.phone} sub={[tileLabel(open.state), open.source || 'added by hand', `added ${whenWords(open.created_at)}`].join(' · ')} onClose={() => setOpenId(null)}>
+          <SheetNote>{[open.phone, open.ig_handle ? '@' + open.ig_handle.replace(/^@/, '') : null, capWord(open.category), open.city].filter(Boolean).join(' · ') || open.phone}</SheetNote>
+          <SheetRow label="See chat" onClick={() => openThread(open)} />
+          {open.exit_kind === 'restore' && (
+            <SheetRow label={confirmExit === open.id ? 'Tap again to put back' : EXIT_LABEL.restore} sub={EXIT_CONFIRM.restore}
+              onClick={() => (confirmExit === open.id ? runExit(open).then(() => setOpenId(null)) : setConfirmExit(open.id))} />
           )}
-          {confirmExit === p.id && p.exit_kind && p.exit_kind !== 'none' && (
-            <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.warning, marginTop: 10 }}>
-              {EXIT_CONFIRM[p.exit_kind]}
-            </div>
+          {(open.exit_kind === 'delete' || open.exit_kind === 'discard') && (
+            <DangerLast label={EXIT_LABEL[open.exit_kind]} lost={EXIT_CONFIRM[open.exit_kind]} confirmWord={open.exit_kind === 'delete' ? 'Yes, delete' : 'Yes, remove'}
+              onConfirm={async () => { await runExit(open); setOpenId(null); }} />
           )}
-        </Row>
-      ))}
+          {open.exit_kind === 'none' && <SheetNote>{REFUSAL.opted_out_locked}</SheetNote>}
+        </Sheet>
+      )}
 
-      {/* ── THE THREAD ────────────────────────────────────────────────────── */}
+      {adding && (
+        <Sheet title="Add numbers" sub="They wait for the morning send" onClose={() => setAdding(false)}>
+          <div style={{ borderTop: `0.5px solid ${C.line}`, padding: '12px 18px' }}>
+            <FieldInput label="Phone" value={phone} onChange={setPhone} placeholder="91 98882 94440" hint="With the country code." />
+            <FieldInput label="Name (optional)" value={name} onChange={setName} placeholder="Kanupriya" />
+            <FieldInput label="Instagram (optional)" value={igHandle} onChange={setIgHandle} placeholder="kanupriyasethi.studio" hint="Gives Mira something of theirs to talk about." />
+            <FieldInput label="Trade (optional)" value={category} onChange={setCategory} placeholder="photography" />
+            <FieldInput label="City (optional)" value={city} onChange={setCity} placeholder="Chandigarh" />
+            <Pill onClick={addOne} disabled={busy || !phone.trim()}>{busy ? 'Adding…' : 'Add this number'}</Pill>
+          </div>
+          <div style={{ borderTop: `0.5px solid ${C.line}`, padding: '12px 18px' }}>
+            <div style={{ font: F.t4, color: C.mute, marginBottom: 8 }}>Or paste a list, one per line: phone, name, instagram, trade, city</div>
+            <textarea value={paste} onChange={e => setPaste(e.target.value)} rows={5}
+              placeholder={'919888294440\nKanupriya, 919000000123\n919000000456, Meher, meherstudio, photography, Jaipur'}
+              style={{ width: '100%', background: C.input, border: `1px solid ${C.inputLine}`, borderRadius: 12, padding: '12px 14px', color: C.ink, font: F.t3, outline: 'none', resize: 'vertical', marginBottom: 10 }} />
+            <Pill onClick={addMany} disabled={busy || !paste.trim()}>{busy ? 'Adding…' : 'Add all'}</Pill>
+            {pasteResult && (
+              <div style={{ marginTop: 12 }}>
+                {pasteResult.map((l, i) => <div key={i} style={{ font: F.t4, padding: '3px 0', color: l.startsWith('Added') ? C.ok : C.soft }}>{l}</div>)}
+                <button type="button" onClick={() => setPasteResult(null)} style={{ minHeight: 44, background: 'none', border: 'none', color: C.accent, font: F.t4 }}>Clear</button>
+              </div>
+            )}
+          </div>
+        </Sheet>
+      )}
+
+      {capOpen && (
+        <Sheet title="Openers per day" sub={`Now ${cap === null ? '—' : cap} a day`} onClose={() => setCapOpen(false)}>
+          <div style={{ borderTop: `0.5px solid ${C.line}`, padding: '12px 18px' }}>
+            <p style={{ font: F.t4, color: C.soft, margin: '0 0 10px' }}>Currently {cap === null ? '—' : cap} a day</p>
+            <FieldInput label="Openers per day" value={capDraft} onChange={setCapDraft} type="text" />
+            <p style={{ font: F.t4, color: C.mute, margin: '0 0 12px' }}>How many people waiting for the morning send get an opener each day. Set it to 0 to send none: the morning job still runs and sends nothing.</p>
+            <Pill onClick={async () => { await saveCap(); setCapOpen(false); }}>Save</Pill>
+          </div>
+        </Sheet>
+      )}
+
       <BottomSheet visible={!!thread} onClose={() => setThread(null)} title={thread ? (thread.p.name || thread.p.phone) : ''}>
         {thread && thread.msgs.length === 0 && (
-          <p style={{ fontFamily: T.ff.body, fontSize: 14, color: T.muted }}>
-            Nothing yet. The conversation starts when they reply to the opener.
-          </p>
+          <p style={{ fontFamily: T.ff.body, fontSize: 14, color: T.muted }}>Nothing yet. The chat starts when they reply to the opener.</p>
         )}
         {thread && thread.msgs.map(m => {
           const outbound = m.direction === 'outbound';
           return (
             <div key={m.id} style={{ marginBottom: 14, textAlign: outbound ? 'right' : 'left' }}>
-              <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: outbound ? T.gold : T.soft, marginBottom: 4 }}>
-                {outbound ? 'Mira' : 'Them'} · {when(m.created_at)}
-              </div>
-              <div style={{
-                display: 'inline-block', textAlign: 'left', maxWidth: '86%',
-                background: outbound ? T.goldSoft : T.card,
-                border: `0.5px solid ${outbound ? T.borderStrong : T.border}`,
-                borderRadius: 12, padding: '10px 14px',
-                fontFamily: T.ff.body, fontSize: 14, color: T.ink, whiteSpace: 'pre-wrap',
-              }}>{m.body}</div>
+              <div style={{ font: F.t5, color: outbound ? C.accent : C.soft, marginBottom: 4 }}>{outbound ? 'Mira' : 'Them'} · {whenWords(m.created_at)}</div>
+              <div style={{ display: 'inline-block', textAlign: 'left', maxWidth: '86%', background: C.card, border: `0.5px solid ${C.line}`, borderRadius: 12, padding: '10px 14px', font: F.t3, color: C.ink, whiteSpace: 'pre-wrap' }}>{m.body}</div>
             </div>
           );
         })}
       </BottomSheet>
-
       {toast && <Toast msg={toast.msg} error={toast.error} onDone={() => setToast(null)} />}
     </div>
   );

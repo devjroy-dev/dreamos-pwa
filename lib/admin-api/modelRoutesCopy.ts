@@ -34,7 +34,7 @@ export const SURFACE_ORDER = ['wa_vendor', 'pwa_vendor', 'wa_couple', 'wa_market
 const SURFACE_NAME: Record<string, string> = {
   wa_vendor:    'Answer vendors on WhatsApp',
   pwa_vendor:   'Answer vendors in the app',
-  wa_couple:    'Answer couples on WhatsApp',
+  wa_couple:    'Answer Dreamers on WhatsApp',
   wa_marketing: 'Write the marketing outreach',
   // F-41.109 — `Harvest prospects` was false twice over: harvest is the post-turn
   // extraction on Victor's app chat that fills a vendor's own missing lead and record
@@ -42,18 +42,18 @@ const SURFACE_NAME: Record<string, string> = {
   // prospect and never touches WhatsApp. A row naming a surface the founder does not
   // have is a switch he cannot reason about.
   harvest:      'Fill gaps after an app chat',
-  bride_app:    'Answer couples in the app',
+  bride_app:    'Answer Dreamers in the app',
 };
 
 const SURFACE_SUB: Record<string, string> = {
   wa_vendor:    'vendor line · Victor and Donna',
   pwa_vendor:   'vendor rooms · Victor and Donna',
-  wa_couple:    'couple line',
+  wa_couple:    'Dreamer line',
   wa_marketing: 'marketing line · Mira and Mira’s nudge',
   harvest:      'one role · the app',
   // Witnessed on the founder's walk, 2026-09-09 05:45: the bride row reads set on
   // the server, not in a row, and BRIDE_LLM_PROVIDER is not set.
-  bride_app:    'bride app lane · set on the server',
+  bride_app:    'Dreamer app · set on the server',
 };
 
 // ── TIERS ───────────────────────────────────────────────────────────────────
@@ -152,5 +152,5 @@ export function provenanceWord(
 export function shortDate(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
 }

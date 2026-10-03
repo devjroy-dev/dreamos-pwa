@@ -72,11 +72,15 @@ const has = (n) => !ABSENT && PAGE.includes(n);
 
 // ═══ 1 · THE HARDCODED LIST IS RETIRED, NOT EXTENDED ═════════════════════════
 section('1 · R-30.22 arm (c) — the tile row is GENERATED');
-cell(has('{Object.keys(counts).map(s => ('),
+// LABELED AMENDMENT (ADM-1, CE-47 redesign, 1 Oct 2026): the per-state tiles became state
+// chips with their counts (approved mocks 04 and 11). The promise is unchanged and the cell count
+// is kept (three): the row is GENERATED from the served counts, each chip's label and sub-line
+// are LOOKED UP, and no hand-placed per-state tile survives; the cumulative figure is one Stat.
+cell(has('Object.keys(counts).map(k => ({ key: k, label: tileLabel(k), n: counts[k] })'),
   'the tiles come from the counts object — the same source the FilterPills already read');
-cell(has('<StatCard key={s} label={tileLabel(s)} value={counts[s] ?? 0} sub={TILE_SUB[s]} />'),
+cell(has("{state !== 'all' && TILE_SUB[state] && <div") && has('{tileLabel(state)}: {TILE_SUB[state]}'),
   'one tile per served state, its label and sub-line looked up rather than positioned');
-cell(!ABSENT && (PAGE.match(/<StatCard/g) || []).length === 2,
+cell(!ABSENT && (PAGE.match(/<StatCard/g) || []).length === 0 && (PAGE.match(/<Stat /g) || []).length === 1,
   'exactly TWO StatCard call sites survive — the generated one and the cumulative one; the five hardcoded tiles are GONE');
 cell(!ABSENT && !/counts\.(cold|in_session|converted|opted_out) \?\? 0/.test(PAGE),
   'and no tile reaches into the counts object by state name any more — the class dies, not the instance');
@@ -87,7 +91,8 @@ cell(has("value={openersSent ?? '—'}"),
   'the cumulative tile reads the SERVED total, and renders an em-dash when it is absent');
 cell(has("setOpenersSent(typeof board.openers_sent_total === 'number' ? board.openers_sent_total : null);"),
   'NEVER `?? 0`: a backend without the field is UNKNOWN, and a 0 there would re-commit the exact false zero this cure exists to kill');
-cell(has("templated:  'Opener sent, no reply yet'"),
+// RE-PINNED BY LABEL (CE-47 note 1): the waypoint is "Opener sent", its sub-line "no reply yet".
+cell(has("templated:  'Opener sent',") && has("templated:  'no reply yet',"),
   'and the waypoint keeps its own tile under an honest label — dropping it would have made `templated` tileless and reopened the disease one state over');
 
 // ═══ 3 · THE NINTH STATE RENDERS ═════════════════════════════════════════════
@@ -100,19 +105,22 @@ cell(has('const tileLabel = (state: string) => TILE_LABEL[state] ?? humanise(sta
 // ═══ 4 · EVERY RENDERED BYTE IS THE VETOED BYTE ══════════════════════════════
 // 「 approve all 」, founder, 2026-08-12.
 section('4 · the board copy book, byte for byte (founder-vetoed 2026-08-12)');
+// RE-PINNED BY LABEL (CE-47 note 1, ruled 2 Oct 2026, the founder delegated and confirmed): the
+// approved design's plain words supersede the 12 Aug copy book. Same fourteen cells, new bytes.
+// `cold` keeps an honest word (R-30.24, see 4.1): it is held for the founder's veto, not drawn.
 const BYTES = [
-  ["cold:       'Cold',", 'label — Cold'],
-  ["templated:  'Opener sent, no reply yet',", 'label — the waypoint tile'],
+  ["cold:       'Waiting for the morning send',", 'label — Cold'],
+  ["templated:  'Opener sent',", 'label — the waypoint tile'],
   ["replied:    'Replied',", 'label — Replied'],
-  ["in_session: 'In session',", 'label — In session'],
-  ["converted:  'Converted',", 'label — Converted'],
+  ["in_session: 'Talking',", 'label — In session'],
+  ["converted:  'Signed up',", 'label — Converted'],
   ["opted_out:  'Opted out',", 'label — Opted out'],
   ["expired:    'Window closed',", 'label — Window closed'],
-  ["discarded:  'Discarded',", 'label — Discarded'],
-  ["cold:       'awaiting the morning sweep',", 'sub — Cold (R-30.24, the false line replaced)'],
+  ["discarded:  'Removed',", 'label — Discarded'],
+  ["cold:       'the morning send messages them next',", 'sub — Cold (R-30.24, the false line replaced)'],
   ["in_session: 'Mira is talking to them',", 'sub — In session'],
-  ["expired:    'the 24h reply window ran out',", 'sub — Window closed'],
-  ["discarded:  'off the lane, record kept',", 'sub — Discarded'],
+  ["expired:    'the 24-hour reply window ran out',", 'sub — Window closed'],
+  ["discarded:  'off the list, record kept',", 'sub — Discarded'],
   ['label="Openers sent"', 'label — the cumulative tile'],
   ['sub="every opener ever sent"', 'sub — the cumulative tile'],
 ];

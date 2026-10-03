@@ -1,80 +1,55 @@
+// app/admin/layout.tsx — THE ADMIN SHELL, REDESIGNED (ADM-1, approved by CE-47, 1 Oct 2026)
+//
+// Five places with plain names: Home, Demo profiles, Vendors, Dreamers, More. A bottom bar on a
+// phone, a left rail from 768px (iPad and laptop). The house name and a Search button sit in the
+// top bar on every
+// width opens the same palette Ctrl-K opens. One look: the new vendor app's design
+// (v2/lib/worklist/theme.ts scope and type rungs, Inter, the TDW name in the brand serif),
+// Graphite dark by default, Chalk light from More > Look. Every route path is kept.
+// What stays exactly as it was: the session check and the login bypass, the one html.adm scope
+// (R-41.72/.73) and its mode cookie, the head meta and the one theme-color read, the palette.
 'use client';
-// app/admin/layout.tsx — TDW Control Room shell
-// TDW_10 P1 — the six-domain IA, the dark token set, the command palette.
-// A-1 (founder law) · A-4 mobile-first · CE rulings R-A1 / R-A3 / R-A4 / R-A5 / R-A7.
-//
-// ── WHAT CHANGED AND WHY, IN ONE PLACE ──────────────────────────────────────
-// 1. COLOUR LEFT THIS FILE. It held six module-level consts (G/INK/SOFT/DIM/
-//    BORDER/BORDER_STRONG) and inline hex literals; app/admin as a whole
-//    carried hundreds of hex occurrences and ZERO `var(--…)` reads. Every
-//    colour here is now a role from app/admin/_components/tokens.css. The
-//    values did not change — they were NAMED. The one exception is the accent,
-//    below.
-// 2. THE ACCENT IS GOLD, NOT ROSE. `const G = '#C44058'` is retired.
-//    TDW_10_ADMIN_FINAL P1.1 reserves gold for the wordmark and genuine alerts;
-//    R-A1 rider (ii) ruled the spec over the screen (the-product-is-the-spec)
-//    and put the byte on the founder's smoke card with an OPEN VETO. Measured,
-//    not asserted: rose 3.31:1 against the darkest ground, gold 7.18:1.
-// 3. THE NAV LEFT THIS FILE. Eight ad-hoc groups became the six ruled domains,
-//    and the registry now lives at ./_components/adminNav.ts so the shell, the
-//    palette and the mapping table read ONE source.
-// 4. MOBILE IS A DOMAIN BAR, NOT A HAMBURGER DRAWER (A-4). Six thumb-reachable
-//    domains along the bottom; tapping one raises that domain's sections.
-//
-// ── ROUTE PATHS ARE UNTOUCHED ───────────────────────────────────────────────
-// Every path below is byte-identical to the one it replaced. Deep links are
-// preserved BY CONSTRUCTION, not by redirect — see the §0.2 report in
-// ./_components/adminNav.ts, which names the unbuilt alternative rather than
-// letting its absence pass for a decision.
-//
-// ── AUTH IS BYTE-UNTOUCHED (P1 item 4) ──────────────────────────────────────
-// The gate below is the same three statements it was at f9b0600, and
-// src/api/admin/requireAdmin.js has a zero-line diff in this delivery.
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { hasAdminSession, clearAdminSession } from '@/lib/admin-api/_base';
-// R-41.73 — THE COCKPIT'S TOKENS ARE THE SHELL'S, AND ITS FILE IS GONE.
-// `_components/tokens.css` held 34 --admin-* roles, each citing lib/vendor/theme.ts
-// DARK as its donor. The donor moved to Graphite at CE-40 and the citations went
-// false without a cell to catch it (scripts/tdw10_p2_retint.proof.mjs read 21/76
-// RED at 1619cae — retired in this rider, R-41.78). One home now: every colour in
-// app/admin is a var() emitted by lib/worklist/theme.ts, the same emitter the vendor
-// rooms mount. No alias file — 34 names for 33 tokens is F-40.143's class.
-import { scopeCss, typeCss, GRAPHITE } from '@/lib/worklist/theme';
+import { Inter, Cormorant_Garamond } from 'next/font/google';
+import { hasAdminSession, clearAdminSession, adminGet } from '@/lib/admin-api/_base';
+import { scopeCss, typeCss, GRAPHITE } from '@/v2/lib/worklist/theme';
 import { ModeProvider, useMode } from '@/lib/worklist/ModeContext';
-import { BRIDGE, DOMAINS, type Domain, type Section } from './_components/adminNav';
-import { adminGet } from '@/lib/admin-api/_base';
+import { PLACES, placeFor } from './_components/adminNav';
 import CommandPalette from './_components/CommandPalette';
+import { Ico, C, F, OpenHelpContext } from './_components/Kit';
+
+// The same faces the new vendor app loads (app/v2/vendor/layout.tsx): Inter for every word,
+// the brand serif for the TDW name only. v2's typeCss points the old face variables at Inter
+// inside html.adm, so pages written against them read Inter too.
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], display: 'block' });
+const brand = Cormorant_Garamond({ subsets: ['latin'], weight: ['400', '500'], display: 'swap' });
 
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
-const SIDEBAR_W = 236;
+const RAIL_W = 96;
 
 const FONTS = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&family=Jost:wght@200;300;400;500;600&display=swap');
+  :root { --font-inter: ${inter.style.fontFamily}; --font-brand: ${brand.style.fontFamily}; }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
   body {
     background: var(--atelier-page-bg);
-    background-attachment: fixed;
     color: var(--atelier-ink);
+    font-family: var(--font-inter), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
+    overflow-x: hidden;
   }
-  ::-webkit-scrollbar { width: 2px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--atelier-card-border); border-radius: 2px; }
-  scrollbar-width: thin;
-  scrollbar-color: var(--atelier-card-border) transparent;
-
   input, select, textarea {
-    font-family: "DM Sans", sans-serif;
+    font-family: var(--font-inter), system-ui, sans-serif;
     color: var(--atelier-ink) !important;
     -webkit-appearance: none;
   }
   input::placeholder, textarea::placeholder { color: var(--atelier-ink-dim) !important; }
-  button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  button { cursor: pointer; -webkit-tap-highlight-color: transparent; font-family: inherit; }
   option { background: var(--atelier-sheet-bg); }
 
   /* ── F-08.42 LIMB 1 · CE-RULED FORK 1(e) ──────────────────────────────────
@@ -129,113 +104,28 @@ const FONTS = `
   .fade-up   { animation: fadeUp 300ms ${EASE} both; }
   .shimmer   { animation: shimmer 1.6s ease-in-out infinite; }
   .slide-in  { animation: slideIn 240ms ${EASE} both; }
+
+  .fade-up   { animation: fadeUp 300ms ${EASE} both; }
+  .shimmer   { animation: shimmer 1.6s ease-in-out infinite; }
+  .slide-in  { animation: slideIn 240ms ${EASE} both; }
+
+  #adm-rail { display: none; }
+  #adm-main { padding: calc(64px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom)); max-width: 1100px; margin: 0 auto; }
+  @media (min-width: 768px) {
+    #adm-rail { display: flex; }
+    #adm-bar  { display: none !important; }
+    #adm-top  { left: ${RAIL_W}px !important; }
+    #adm-main { margin-left: ${RAIL_W}px; padding: 76px 28px 40px; }
+  }
 `;
 
-function Icon({ name, size = 18 }: { name: string; size?: number }) {
-  const p: Record<string, React.ReactNode> = {
-    // ── Domains ──
-    bridge:      <><path d="M3 18h18M5 18V9M19 18V9"/><path d="M3 9l9-5 9 5"/><path d="M9 18v-4h6v4"/></>,
-    growth:      <><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/></>,
-    marketplace: <><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9"/><path d="M3 9h18"/></>,
-    people:      <><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0112 0"/><path d="M16 5.2a3.2 3.2 0 010 5.6M17.5 20a6 6 0 00-2-4.5"/></>,
-    money:       <><circle cx="12" cy="12" r="9"/><path d="M9 8h6M9 12h6M11 8v8M15 16c-2.2 0-4-1.4-4-4"/></>,
-    engine:      <><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></>,
-    content:     <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 13h8M8 16h5"/></>,
-    // ── Sections ──
-    inbox:     <><path d="M3 12l3-7h12l3 7v6a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M3 12h5l2 3h4l2-3h5"/></>,
-    demo:      <><path d="M9 3h6M10 3v6l-5 9a2 2 0 001.8 3h10.4a2 2 0 001.8-3l-5-9V3"/><path d="M7.5 15h9"/></>,
-    discover:  <><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4M11 8v6M8 11h6"/></>,
-    photos:    <><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.5-2h5L16 6"/></>,
-    portfolio: <><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></>,
-    couture:   <><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M8 7.5L20 18M8 16.5L20 6"/></>,
-    calendar:  <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></>,
-    makers:    <><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9"/><path d="M3 9h18"/></>,
-    dreamers:  <path d="M12 20s-7-4.3-7-9.5A3.5 3.5 0 0112 7a3.5 3.5 0 017 3.5C19 15.7 12 20 12 20z"/>,
-    chat:      <path d="M21 12a8 8 0 01-11.5 7.2L4 21l1.8-5.5A8 8 0 1121 12z"/>,
-    chatHeart: <><path d="M21 12a8 8 0 01-11.5 7.2L4 21l1.8-5.5A8 8 0 1121 12z"/><path d="M12 14.5s-2.4-1.5-2.4-3a1.2 1.2 0 012.4-.5 1.2 1.2 0 012.4.5c0 1.5-2.4 3-2.4 3z"/></>,
-    config:    <><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h6M14 18h6"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></>,
-    // CE-41 seat C: two switch handles, one up, one down.
-    switchboard: <><rect x="3" y="9" width="8" height="6" rx="3"/><circle cx="8" cy="12" r="1.6"/><rect x="13" y="9" width="8" height="6" rx="3"/><circle cx="16" cy="12" r="1.6"/></>,
-    landing:   <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></>,
-    exploring: <><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></>,
-    heroes:    <path d="M12 3l2.6 5.6 6.1.6-4.6 4 1.4 6L12 16.9 6.5 19.2l1.4-6-4.6-4 6.1-.6z"/>,
-    spotlight: <><path d="M12 3v3M12 18v3M5 12H2M22 12h-3M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/><circle cx="12" cy="12" r="3.5"/></>,
-    muse:      <><path d="M4 7l8-4 8 4-8 4z"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4"/></>,
-    surprise:  <><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13"/><path d="M12 8S9 3 6.5 4.5 9 8 12 8zM12 8s3-5 5.5-3.5S15 8 12 8z"/></>,
-    search:    <><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></>,
-    // ── F-10.74 · the sign-out glyph, MINTED HERE ────────────────────────────
-    // The founder's word, verbatim: 「 just an icon---its for admin panel only.
-    // the power button shall do fine. 」 Derived before minting: no glyph in
-    // this map carried a power/exit sense, so this is a new entry, not a reuse.
-    // The standard symbol — a broken ring with a vertical stem. Used at BOTH
-    // seats (sidebar header, mobile bar) so the panel has one sign-out
-    // vocabulary and not two.
-    power:     <><path d="M12 3v9"/><path d="M6.8 6.8a7.5 7.5 0 1010.4 0"/></>,
-  };
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-      {p[name] || null}
-    </svg>
-  );
-}
-
-function NavItem({ label, icon, active, retiring, onClick, count }: {
-  label: string; icon: string; active: boolean; retiring?: boolean; onClick: () => void; count?: number | null;
-}) {
-  const [hov, setHov] = useState(false);
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 11,
-        width: '100%', textAlign: 'left',
-        padding: '9px 18px 9px 14px',
-        border: 'none', outline: 'none',
-        background: active ? 'var(--atelier-row-hover)' : hov ? 'var(--atelier-row-hover)' : 'transparent',
-        borderLeft: `2px solid ${active ? 'var(--role-metal)' : 'transparent'}`,
-        color: active ? 'var(--role-metal)' : hov ? 'var(--atelier-ink)' : 'var(--atelier-ink-mute)',
-        fontFamily: '"DM Sans", sans-serif',
-        fontWeight: active ? 600 : 500,
-        fontSize: 13.5, letterSpacing: '0.005em',
-        transition: `all 140ms ${EASE}`,
-        minHeight: 44,
-        cursor: 'pointer',
-      }}
-    >
-      <span style={{ width: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: active ? 1 : 0.7 }}>
-        <Icon name={icon} size={18} />
-      </span>
-      <span style={{ flex: 1, minWidth: 0 }}>{label}</span>
-      {typeof count === 'number' && count > 0 && (
-        <span aria-label={`${count} open`} style={{
-          marginLeft: 'auto', fontFamily: '"DM Sans", sans-serif', fontWeight: 600, fontSize: 10.5,
-          letterSpacing: '0.04em', color: 'var(--role-metal)', border: '1px solid var(--role-metal)',
-          borderRadius: 999, padding: '1px 7px', lineHeight: 1.5, flexShrink: 0,
-        }}>{count}</span>
-      )}
-      {/* R-A4: the death warrant is VISIBLE. A surface chartered to retire says
-          so on the nav, so nobody builds a habit on it between now and then. */}
-      {retiring && (
-        <span style={{ fontFamily: '"Jost", sans-serif', fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--atelier-ink-dim)' }}>
-          retiring
-        </span>
-      )}
-    </button>
-  );
-}
-
-// Open: N on the Assistance entry (CE-41 A7, the chair's yes): the queue's own
-// `counts.open`, read once per mount of the sidebar and again when the route
-// changes — the same number the page shows in its Open card, from the same door.
+// Open help requests, for the badge on Dreamers. Unfiltered on purpose: the A2 door counts what
+// it returns, so a status filter would count only itself.
 function useOpenAssistanceCount(): number | null {
   const [n, setN] = useState<number | null>(null);
   const pathname = usePathname();
   useEffect(() => {
     let live = true;
-    // Unfiltered on purpose: the A2 door counts what it returns, so a status filter
-    // would count only itself (named for the chair; the server-side count is dream-os's).
     adminGet<{ counts?: { open?: number } }>('/api/v2/admin/assistance?limit=200')
       .then(d => { if (live) setN(typeof d?.counts?.open === 'number' ? d.counts.open : null); })
       .catch(() => { if (live) setN(null); });
@@ -244,180 +134,13 @@ function useOpenAssistanceCount(): number | null {
   return n;
 }
 
-function DomainSections({ domain, onNavigate }: { domain: Domain; onNavigate: () => void }) {
-  const openAssist = useOpenAssistanceCount();
-  const router = useRouter();
-  const pathname = usePathname();
-  const isActive = (p: string) => (p === '/admin' ? pathname === '/admin' : pathname.startsWith(p));
-
-  if (domain.sections.length === 0) {
-    return (
-      <div style={{
-        padding: '10px 18px 14px', fontFamily: '"DM Sans", sans-serif',
-        fontSize: 12, lineHeight: 1.5, color: 'var(--atelier-ink-dim)',
-      }}>
-        {domain.empty}
-      </div>
-    );
-  }
-  return (
-    <>
-      {domain.sections.map((s: Section) => (
-        <NavItem
-          key={s.path}
-          label={s.label}
-          icon={s.icon}
-          active={!!isActive(s.path)}
-          retiring={!!s.retiresAt}
-          count={s.path === '/admin/assistance' ? openAssist : null}
-          onClick={() => { router.push(s.path); onNavigate(); }}
-        />
-      ))}
-    </>
-  );
-}
-
-function Sidebar({ onNavigate, onSearch }: { onNavigate: () => void; onSearch: () => void }) {
-  // R-41.134 — the masthead's arm read is gone with the image it fed. `useMode` is still
-  // imported by this file for AdmScope, which is the cockpit's one mode authority; this
-  // component no longer needs it and does not hold a second read of it.
-  const router = useRouter();
-  const pathname = usePathname();
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--atelier-header-bg)', borderRight: '0.5px solid var(--atelier-card-border)' }}>
-      {/* Wordmark — the metal's first sanctioned home (spec P1.1) */}
-      <div style={{ padding: '26px 20px 14px', flexShrink: 0 }}>
-        {/* ── F-10.74 LIMB 2 — THE SIGN-OUT MOVED UP HERE, AND WHY ────────────
-            IT USED TO SIT AT THE SIDEBAR'S FOOT: a 10px uppercase word in
-            --atelier-ink-dim, below the wordmark, the Search box, the Bridge row
-            and six domains' worth of nav. Bench-green the whole time
-            (tdw07_f0784_panel §2.3 asserted the handler clears the real
-            session, 34/34) — and the founder still said, verbatim:
-              「 cant see the signout in desktop or phone. the button i have no
-                idea where it is. 」
-            That is CE-115's twin law by name, BENCHED-THE-MECHANISM-NOT-THE-
-            AFFORDANCE: a cell proved the wiring existed; nothing ever asserted
-            a human could find it, and he couldn't. A bench cannot catch what
-            nobody told it to look for.
-            THE HANDLER IS BYTE-IDENTICAL to the retired footer button's. Only
-            the seat and the dress changed: header row, top-right, beside the
-            wordmark — always visible, zero scroll, first glance. Icon-only per
-            his ruling; aria-label carries the word. */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-          <div style={{ minWidth: 0 }}>
-            {/* R-41.134 — REVERTED TO TYPE (c-41.74). The lockup, then the monogram,
-                then neither: the founder ruled the mark off every masthead. Restored from
-                6116627 rather than re-typed, so the bytes are the ones that stood. */}
-            <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontWeight: 400, fontSize: 22, color: 'var(--role-metal)', letterSpacing: '-0.01em', lineHeight: 1 }}>
-              The Dream Wedding
-            </div>
-            <div style={{ fontFamily: '"Jost",sans-serif', fontWeight: 400, fontSize: 9, color: 'var(--atelier-ink-mute)', letterSpacing: '0.34em', textTransform: 'uppercase', marginTop: 6 }}>
-              Control Room
-            </div>
-          </div>
-          <button
-            onClick={() => { clearAdminSession(); router.replace('/admin/login'); }}
-            aria-label="Sign out"
-            title="Sign out"
-            style={{
-              flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: 44, height: 44, marginTop: -10, marginRight: -10,
-              background: 'none', border: 'none', padding: 0,
-              color: 'var(--atelier-ink-mute)', cursor: 'pointer',
-            }}
-          >
-            <Icon name="power" size={18} />
-          </button>
-        </div>
-        <div style={{ height: '0.5px', background: 'linear-gradient(to right, var(--role-metal), transparent)', marginTop: 14 }} />
-      </div>
-
-      {/* Palette opener — a visible door, not only a keystroke */}
-      <div style={{ padding: '0 14px 10px', flexShrink: 0 }}>
-        <button
-          onClick={onSearch}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 9, width: '100%',
-            background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)',
-            borderRadius: 8, padding: '0 10px', minHeight: 40,
-            color: 'var(--atelier-ink-mute)', fontFamily: '"DM Sans", sans-serif', fontSize: 13,
-          }}
-        >
-          <Icon name="search" size={15} />
-          <span style={{ flex: 1, textAlign: 'left' }}>Search</span>
-          <span style={{ fontFamily: '"Jost", sans-serif', fontSize: 10, letterSpacing: '0.1em', color: 'var(--atelier-ink-dim)' }}>⌘K</span>
-        </button>
-      </div>
-
-      <nav style={{ flex: 1, overflowY: 'auto', paddingBottom: 28, scrollbarWidth: 'none' }}>
-        <NavItem
-          label={BRIDGE.label}
-          icon={BRIDGE.icon}
-          active={pathname === '/admin'}
-          onClick={() => { router.push(BRIDGE.path); onNavigate(); }}
-        />
-        {DOMAINS.map(d => (
-          <div key={d.key} style={{ marginBottom: 4 }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              fontFamily: '"Jost",sans-serif', fontWeight: 600, fontSize: 10,
-              color: 'var(--atelier-ink-dim)', letterSpacing: '0.14em', textTransform: 'uppercase',
-              padding: '18px 18px 6px',
-            }}>
-              <Icon name={d.icon} size={13} />
-              {d.label}
-            </div>
-            <DomainSections domain={d} onNavigate={onNavigate} />
-          </div>
-        ))}
-      </nav>
-
-      {/* F-10.74 · CONTROL INVENTORY — the foot's "Sign Out" text button is
-          MOVED, not removed: its handler now hangs on the header's power glyph
-          above (1 → 1, desktop). Nothing else lived in this footer, so the
-          footer goes with it rather than standing as an empty hairline. */}
-    </div>
-  );
-}
-
-// R-41.112 — THE SCOPE AND THE MODE, IN ONE SMALL COMPONENT.
-// It lives inside the provider so it can read the cockpit's mode; the provider itself
-// has to sit above the layout's tree, which is why the export below is a thin wrapper
-// and the old body moved into AdminLayoutInner.
-//
-// ONE FRAME OF DARK ON A COLD LOAD, ACCEPTED (ruled). /w seeds its provider from the
-// cookie the SERVER read off the request; this file is a client component by
-// construction — it holds the session gate — so there is no server read to seed from.
-// The gate renders null until authed, which puts that frame behind a redirect, and the
-// alternative is an inline <head> script nobody asked for.
 function AdmScope() {
   const { mode } = useMode();
   useEffect(() => {
     const el = document.documentElement;
     el.classList.add('adm');
     el.setAttribute('data-wl-mode', mode);
-    // ── F-41.117 · THE ATTRIBUTE ALONE COULD NEVER WIN ────────────────────────
-    // `scopeCss` emits `html.adm[data-wl-mode="light"]{…}` — far more specific than
-    // `:root` and still beaten by it, because app/globals.css:1293 declares every
-    // --atelier-* at :root with !important (a forced Graphite palette) and :1329
-    // carries the matching `html.theme-light` layer that undoes it. Specificity does
-    // not outrank !important. So the cockpit resolved Graphite under BOTH arms: the
-    // switch wrote, the cookie held, the attribute landed, and the page ignored all
-    // three. The dark arm agreed with the override, which is why (i) and (ii) walked
-    // clean and both cells stayed green — a green that was green for the wrong reason.
-    //
-    // The cure is the estate's OWN light layer, not a third forced palette. Toggling
-    // `theme-light` puts the cockpit on the mechanism the vendor lane already walks;
-    // adding `!important` to the admin scope would have won too, and left the next
-    // seat a third override in a file that already has two.
-    //
-    // NOTHING ELSE UNDER /admin READS theme-light (derived at c9423e4). A future seat
-    // that mounts something here which reads it differently owns that finding then.
     el.classList.toggle('theme-light', mode === 'light');
-    // Removed on unmount: /admin shares an SPA with the bride's wine and the vendor's
-    // Graphite, and a class left on <html> follows the founder out of the cockpit —
-    // `theme-light` most of all, since the whole estate is keyed on it.
     return () => {
       el.classList.remove('adm');
       el.classList.remove('theme-light');
@@ -428,8 +151,6 @@ function AdmScope() {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  // `initial` is only the server-render seed; the provider's lazy initialiser re-reads
-  // the cockpit's own cookie on the client before the first client frame.
   return (
     <ModeProvider initial="dark" lane="admin">
       <AdmScope />
@@ -438,35 +159,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 }
 
+// The badge sits just right of the icon's centre by an offset, never by viewport arithmetic:
+// a subtracting calc(50% - …) is the shape tdw14_f1410_fab_clamp guards (F-SW.2).
+function Badge({ n }: { n: number | null }) {
+  if (typeof n !== 'number' || n <= 0) return null;
+  return <span aria-label={`${n} open`} style={{ position: 'absolute', top: 4, left: '50%', marginLeft: 6, minWidth: 18, height: 18, borderRadius: 999, background: C.primary, color: C.onPrimary, font: F.t5, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{n}</span>;
+}
+
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [authed, setAuthed] = useState(false);
-  const [openDomain, setOpenDomain] = useState<string | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
-
-  // ── R-41.72/.73 — THE SCOPE, WORN BY THE DOCUMENT ELEMENT ──────────────────
-  // `scopeCss('html.adm')` above emits `html.adm[data-wl-mode="dark"]{…}`, so both
-  // halves have to be on <html> for a single token to resolve. They go on in an
-  // effect and come OFF on unmount: /admin is one route group inside the same SPA
-  // as the bride's wine and the vendor's Graphite, and a class left behind on the
-  // document element would follow the founder out of the cockpit and re-token
-  // whatever he opened next. R-41.74 pins the arm; nothing writes 'light'.
-
+  const openAssist = useOpenAssistanceCount();
 
   useEffect(() => {
-    // ── F-07.84 CURED — THE BOOLEAN OPENS NOTHING ────────────────────────────
-    // THIS READ: `localStorage.getItem('admin_session')`, admitting on the mere
-    // PRESENCE of a string anyone could type into devtools in four seconds. The
-    // gate now demands a real, unexpired, server-minted session token; a hand-set
-    // `admin_session='true'` satisfies nothing, and clearAdminSession() removes
-    // that retired key from any browser still carrying it.
     const ok = hasAdminSession();
     if (!ok && pathname !== '/admin/login') { clearAdminSession(); router.replace('/admin/login'); }
     else setAuthed(true);
   }, [pathname, router]);
 
-  // ⌘K / Ctrl-K. Bound at the shell so it works from every admin surface.
   const onKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
       e.preventDefault();
@@ -479,39 +191,22 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   }, [onKeyDown]);
 
   if (!authed && pathname !== '/admin/login') return null;
-  if (pathname === '/admin/login') return <><style>{FONTS}</style>{children}</>;
+  if (pathname === '/admin/login') return <><style>{scopeCss('html.adm') + typeCss('html.adm')}</style><style>{FONTS}</style>{children}</>;
 
-  const activeDomain = DOMAINS.find(d => d.key === openDomain) || null;
+  const here = placeFor(pathname);
 
   return (
     <>
-      {/* R-41.72/.73 — THE ONE MOUNT. `html.adm` and not a wrapper <div>: this file
-          returns a fragment of position:fixed panes, and wrapping them would put the
-          <head> below inside a <div> and give every fixed pane a new containing
-          block. The scope rides the document element instead, set in the effect
-          above, so the panes are untouched and the tokens still cascade to all 37
-          routes. R-41.74 pins the dark arm — the cockpit is the protocol's sanctioned
-          dark exception and has no mode switch; scopeCss still emits the light arm
-          because it emits one home's whole map, and nothing sets data-wl-mode to it. */}
+      {/* R-41.72/.73 — THE ONE MOUNT, on the document element (see AdmScope), so the fixed
+          panes below keep the viewport as their containing block. */}
       <style>{scopeCss('html.adm') + typeCss('html.adm')}</style>
       <style>{FONTS}</style>
 
       {/* PWA meta — admin scope installs as separate app on Android */}
       <head>
         <link rel="manifest" href="/admin-manifest.json" />
-        {/* R-B1 — THE ONE HEX IN THIS FILE, AND IT MOVES WITH THE GROUND.
-            A browser reads this attribute BEFORE any stylesheet, so it cannot be
-            a var() — that is why the exception exists at all (P1). It was
-            #0F1622, the cockpit navy. The retint made it a defect the moment it
-            stopped matching: the phone's status bar and the Android splash would
-            have stayed NAVY while every pixel below them went espresso, which is
-            precisely the seam the founder's smoke test looks at. Caught by
-            scripts/tdw10_p2_retint.proof.mjs §6, not by eye.
-            R-41.73 CURES THE CITATION ITSELF. The literal is gone: the attribute now
-            reads GRAPHITE['page-bg'] from lib/worklist/theme.ts, so the status bar
-            cannot drift from the ground again — there is no second copy to drift.
-            The cockpit's ink census cell allows this one site by name and asserts the
-            equality; it is the only place in app/admin a colour may leave the var(). */}
+        {/* R-B1 — the one colour that leaves the var(): a browser reads theme-color before any
+            stylesheet. It reads the ground from the theme file, so it cannot drift. */}
         <meta name="theme-color" content={GRAPHITE['page-bg']} />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -522,156 +217,45 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
 
-      {/* Desktop sidebar */}
-      <div id="d-nav" style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: SIDEBAR_W, zIndex: 10, display: 'none', flexDirection: 'column' }}>
-        <Sidebar onNavigate={() => {}} onSearch={() => setPaletteOpen(true)} />
-      </div>
-
-      {/* Mobile: the raised domain sheet */}
-      {activeDomain && (
-        <>
-          <div
-            onClick={() => setOpenDomain(null)}
-            style={{ position: 'fixed', inset: 0, background: 'var(--role-scrim)', zIndex: 190, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
-          />
-          <div
-            id="m-sheet"
-            style={{
-              position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 191,
-              background: 'var(--atelier-sheet-bg)', borderTop: '0.5px solid var(--atelier-sheet-border)',
-              borderRadius: '14px 14px 0 0', paddingBottom: 'calc(74px + env(safe-area-inset-bottom))',
-              maxHeight: '70vh', overflowY: 'auto',
-            }}
-          >
-            <div style={{
-              fontFamily: '"Jost",sans-serif', fontWeight: 600, fontSize: 10,
-              letterSpacing: '0.14em', textTransform: 'uppercase',
-              color: 'var(--atelier-ink-dim)', padding: '18px 18px 8px',
-            }}>
-              {activeDomain.label}
-            </div>
-            <DomainSections domain={activeDomain} onNavigate={() => setOpenDomain(null)} />
-          </div>
-        </>
-      )}
-
-      {/* Main */}
-      <div id="admin-main" style={{ background: 'var(--atelier-page-bg)', backgroundAttachment: 'fixed', minHeight: '100dvh' }}>
-
-        {/* Mobile top bar — wordmark + the palette's pull-down */}
-        <div id="m-bar" style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 18px', height: 54,
-          borderBottom: '0.5px solid var(--atelier-card-border)',
-          background: 'var(--atelier-header-bg)',
-          position: 'sticky', top: 0, zIndex: 100,
-          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        }}>
-          <div style={{ fontFamily: '"Cormorant Garamond",serif', fontStyle: 'italic', fontSize: 18, fontWeight: 400, color: 'var(--role-metal)' }}>TDW</div>
-          {/* F-10.74: the bar's justifyContent is space-between and it carried
-              exactly two children. A third would have floated the Jump box into
-              the middle of the bar, so the two right-hand controls group. */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button
-            onClick={() => { setOpenDomain(null); setPaletteOpen(true); }}
-            aria-label="Search"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              background: 'var(--atelier-input-bg)', border: '0.5px solid var(--atelier-input-border)',
-              borderRadius: 8, padding: '0 12px', minHeight: 40, minWidth: 48,
-              color: 'var(--atelier-ink-mute)', fontFamily: '"DM Sans", sans-serif', fontSize: 13,
-            }}
-          >
-            <Icon name="search" size={15} />
-            <span>Jump</span>
-          </button>
-          {/* ── F-10.74 LIMB 1 — THE MOBILE SIGN-OUT, WHICH DID NOT EXIST ─────
-              Below 768px the responsive block at the foot of this file sets
-              `#d-nav { display: none !important }`, and the sidebar is where
-              the ONLY sign-out lived. So on the founder's phone the control was
-              not hidden behind a tap — it was absent from the DOM entirely, on
-              a panel A-4 declared mobile-first. Fork 1 ruled (b): this seat,
-              #m-bar top-right beside Jump, present on every admin route.
-              Same glyph as the sidebar's, one vocabulary; 44px box (A-4's own
-              number); aria-label carries the word the icon doesn't say. */}
-          <button
-            onClick={() => { clearAdminSession(); router.replace('/admin/login'); }}
-            aria-label="Sign out"
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: 44, height: 44, marginRight: -10,
-              background: 'none', border: 'none', padding: 0,
-              color: 'var(--atelier-ink-mute)', cursor: 'pointer',
-            }}
-          >
-            <Icon name="power" size={18} />
-          </button>
-          </div>
-        </div>
-
-        {/* Page content */}
-        <div style={{ padding: '28px 22px 120px', maxWidth: 980, margin: '0 auto' }} className="fade-up">
-          {children}
-        </div>
-      </div>
-
-      {/* Mobile bottom domain bar (A-4) — six domains, one hand */}
-      <div id="m-domains" style={{
-        position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 195,
-        display: 'flex', alignItems: 'stretch',
-        background: 'var(--atelier-header-bg)',
-        borderTop: '0.5px solid var(--atelier-card-border)',
-        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-      }}>
-        <button
-          onClick={() => { setOpenDomain(null); router.push('/admin'); }}
-          aria-label="The Bridge"
-          style={domainBtn(pathname === '/admin')}
-        >
-          <Icon name={BRIDGE.icon} size={18} />
-          <span style={domainBtnLabel}>Bridge</span>
+      {/* Top bar: the TDW name on a phone, Search on every width */}
+      <header id="adm-top" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, height: 'calc(56px + env(safe-area-inset-top))', paddingTop: 'env(safe-area-inset-top)', display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 16, paddingRight: 12, background: C.header, borderBottom: `0.5px solid ${C.line}` }}>
+        {/* The ruled masthead (ce41_brand_family): the house name as type, on every width. */}
+        <Link href="/admin" className="adm-brand" style={{ font: F.brand, fontSize: 22, color: C.accent, textDecoration: 'none', minHeight: 44, display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+          The Dream Wedding
+        </Link>
+        <button type="button" onClick={() => setPaletteOpen(true)} aria-label="Search" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 14px', borderRadius: 12, border: `1px solid ${C.inputLine}`, background: C.input, color: C.soft, font: F.t4 }}>
+          <Ico n="search" s={18} />Search
         </button>
-        {DOMAINS.map(d => (
-          <button
-            key={d.key}
-            onClick={() => setOpenDomain(k => (k === d.key ? null : d.key))}
-            aria-label={d.label}
-            style={domainBtn(openDomain === d.key)}
-          >
-            <Icon name={d.icon} size={18} />
-            <span style={domainBtnLabel}>{d.label}</span>
-          </button>
-        ))}
-      </div>
+      </header>
 
-      {/* Responsive styles */}
-      <style>{`
-        @media (min-width: 768px) {
-          #d-nav      { display: flex !important; }
-          #m-bar      { display: none !important; }
-          #m-domains  { display: none !important; }
-          #m-sheet    { display: none !important; }
-          #admin-main { margin-left: ${SIDEBAR_W}px; }
-        }
-        @media (max-width: 767px) {
-          #d-nav { display: none !important; }
-        }
-      `}</style>
+      {/* Left rail, iPad and laptop */}
+      <nav id="adm-rail" aria-label="Admin" style={{ position: 'fixed', top: 0, bottom: 0, left: 0, width: RAIL_W, zIndex: 101, flexDirection: 'column', alignItems: 'center', gap: 6, paddingTop: 'calc(14px + env(safe-area-inset-top))', background: C.header, borderRight: `0.5px solid ${C.line}` }}>
+        <Link href="/admin" style={{ font: F.brand, color: C.accent, textDecoration: 'none', marginBottom: 12, minHeight: 44, display: 'flex', alignItems: 'center' }}>TDW</Link>
+        {PLACES.map(p => {
+          const on = here === p.key;
+          return (
+            <Link key={p.key} href={p.path} aria-current={on ? 'page' : undefined} style={{ position: 'relative', width: 82, minHeight: 60, padding: '8px 0', borderRadius: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, textDecoration: 'none', color: on ? C.accent : C.soft, background: on ? C.hover : 'transparent', font: F.t5, fontWeight: on ? 600 : 500, textAlign: 'center' }}>
+              <Ico n={p.icon} s={22} />{p.label}
+              {p.key === 'dreamers' && <Badge n={openAssist} />}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <main id="adm-main" className="fade-up"><OpenHelpContext.Provider value={openAssist}>{children}</OpenHelpContext.Provider></main>
+
+      {/* Bottom bar, phone */}
+      <nav id="adm-bar" aria-label="Admin" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 195, display: 'flex', alignItems: 'stretch', background: C.header, borderTop: `0.5px solid ${C.line}`, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        {PLACES.map(p => {
+          const on = here === p.key;
+          return (
+            <Link key={p.key} href={p.path} aria-current={on ? 'page' : undefined} style={{ position: 'relative', flex: 1, minHeight: 60, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, textDecoration: 'none', color: on ? C.accent : C.soft, font: F.t5, fontWeight: on ? 600 : 500 }}>
+              <Ico n={p.icon} s={22} />{p.short}
+              {p.key === 'dreamers' && <Badge n={openAssist} />}
+            </Link>
+          );
+        })}
+      </nav>
     </>
   );
 }
-
-// 48px targets, A-4's own number, applied at every bar button.
-function domainBtn(active: boolean): React.CSSProperties {
-  return {
-    flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    gap: 3, border: 'none', background: 'transparent', minHeight: 56, padding: '6px 2px',
-    color: active ? 'var(--role-metal)' : 'var(--atelier-ink-mute)',
-  };
-}
-
-const domainBtnLabel: React.CSSProperties = {
-  fontFamily: '"Jost", sans-serif', fontSize: 9, letterSpacing: '0.08em',
-  textTransform: 'uppercase', whiteSpace: 'nowrap',
-};

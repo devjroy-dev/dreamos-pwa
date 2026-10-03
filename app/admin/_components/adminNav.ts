@@ -38,6 +38,12 @@
 //            gets asked.
 //   CORPSE   dead code awaiting a sweep.
 
+// ── ADM-1 · THE NEW STRUCTURE (CE-47, 1 Oct 2026) ───────────────────────────
+// Five places, plain names: Home, Demo profiles, Vendors, Dreamers, More. Every route path is
+// kept; nothing is removed. Vendors shows two routes as one page (Joined = /admin/makers,
+// Being reached = /admin/prospects); Dreamers likewise (All = /admin/dreamers, Asked for help =
+// /admin/assistance). Everything else lives in More, in plain groups. The old Bridge is
+// "All numbers" at /admin/numbers. The ROUTE_MAP below is unchanged apart from those two routes.
 export type Disposition = 'LIVE' | 'PHANTOM' | 'RETIRES' | 'RETIRED' | 'CORPSE';
 
 export type DomainKey = 'bridge' | 'growth' | 'marketplace' | 'people' | 'money' | 'engine' | 'content';
@@ -46,112 +52,76 @@ export interface Section {
   label: string;
   path: string;
   icon: string;
-  /** Extra words the palette matches on but the nav does not show. */
+  sub?: string;
   hints?: string[];
-  /** Present only on RETIRES entries: the sitting that ends this surface. */
   retiresAt?: string;
 }
 
-export interface Domain {
-  key: DomainKey;
-  label: string;
-  icon: string;
-  /** Rendered when a domain has no live sections yet. Honest, never blank. */
-  empty?: string;
-  sections: Section[];
-}
+export type PlaceKey = 'home' | 'demo' | 'vendors' | 'dreamers' | 'more';
+export interface Place { key: PlaceKey; label: string; short: string; path: string; icon: string; owns: string[] }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// THE SIX DOMAINS (A-1: Growth · Marketplace · People · Money · Engine ·
-// Content), plus the Bridge, which is a destination and not a domain.
-// ═════════════════════════════════════════════════════════════════════════════
-
-export const BRIDGE: Section = { label: 'The Bridge', path: '/admin', icon: 'bridge', hints: ['home', 'dashboard', 'today'] };
-
-export const DOMAINS: Domain[] = [
-  {
-    key: 'growth', label: 'Growth', icon: 'growth',
-    sections: [
-      { label: 'Prospects',     path: '/admin/prospects',              icon: 'inbox', hints: ['lane', 'outreach', 'closer', 'marketing'] },
-      { label: 'Demo Profiles', path: '/admin/demo',                   icon: 'demo',  hints: ['factory', 'invites', 'claim'] },
-    ],
-  },
-  {
-    key: 'marketplace', label: 'Marketplace', icon: 'marketplace',
-    sections: [
-      { label: 'Discover Approvals', path: '/admin/approvals/discover', icon: 'discover',  hints: ['deck', 'eligible', 'review'] },
-      { label: 'Photo Approvals',    path: '/admin/approvals/photos',   icon: 'photos',    hints: ['portfolio', 'queue'] },
-      { label: 'Portfolios',         path: '/admin/vendors/portfolio',  icon: 'portfolio', hints: ['gallery', 'images'] },
-      { label: 'Couture',            path: '/admin/couture',            icon: 'couture',   hints: ['appointments'] },
-      { label: 'Hot Dates',          path: '/admin/hot-dates',          icon: 'calendar',  hints: ['availability'] },
-    ],
-  },
-  {
-    key: 'people', label: 'People', icon: 'people',
-    sections: [
-      { label: 'Makers',        path: '/admin/makers',                 icon: 'makers',    hints: ['vendors', 'tier', 'suppliers'] },
-      { label: 'Dreamers',      path: '/admin/dreamers',               icon: 'dreamers',  hints: ['couples', 'brides'] },
-      { label: 'Assistance',    path: '/admin/assistance',             icon: 'dreamers',  hints: ['concierge', 'requests', 'forward', 'couples'] }, // Block 20 s1 (R-41.3)
-      { label: 'Vendor Chats',  path: '/admin/conversations/vendors',  icon: 'chat',      hints: ['conversations', 'threads', 'transcripts'] },
-      { label: 'Bride Chats',   path: '/admin/conversations/brides',   icon: 'chatHeart', hints: ['conversations', 'threads', 'transcripts'] },
-    ],
-  },
-  {
-    key: 'money', label: 'Money', icon: 'money',
-    // HONEST EMPTY STATE, NOT A HIDDEN DOMAIN. A-1 rules six domains and six is
-    // what ships. Money's surfaces (revenue, subscriptions, unit economics) are
-    // P5's build and every candidate route today is a PHANTOM — see the table.
-    // F-10.1 is the deeper reason: `billing_events`, the table P5 rolls up from,
-    // does not exist anywhere but spec prose.
-    empty: 'The Money domain arrives at P5. Its surfaces are unbuilt, not hidden.',
-    sections: [],
-  },
-  {
-    key: 'engine', label: 'Engine', icon: 'engine',
-    sections: [
-      { label: 'AI Caps', path: '/admin/config', icon: 'config', hints: ['model', 'matrix', 'provider', 'spend', 'admin_config'] },
-      // CE-41 seat C · R-41.8: every gate in Business Solutions, readable and flippable here.
-      { label: 'Switchboard', path: '/admin/switchboard', icon: 'switchboard', hints: ['gates', 'flags', 'templates', 'permissions', 'scopes', 'capabilities', 'meta'] },
-    ],
-  },
-  {
-    key: 'content', label: 'Content', icon: 'content',
-    sections: [
-      { label: 'Landing',     path: '/admin/content/landing',     icon: 'landing',   hints: ['front door', 'hero copy'] },
-      { label: 'Exploring',   path: '/admin/content/exploring',   icon: 'exploring', hints: ['categories', 'browse'] },
-      { label: 'Spotlight',   path: '/admin/content/spotlight',   icon: 'spotlight', hints: ['top of feed', 'editorial'] },
-      { label: 'Muse Pool',   path: '/admin/content/muse-pool',   icon: 'muse',      hints: ['inspiration'] },
-      { label: 'Surprise Me', path: '/admin/content/surprise-me', icon: 'surprise',  hints: ['random'] },
-      // R-A4: stamped with the SITTING's name, never a block number. The
-      // founder's sequencing (admin → bride → leftovers) has moved the
-      // spotlight consolidation past its old "09" address, and a stamp naming a
-      // slipping date rots into a lie. No palette entry for either heroes
-      // surface — see PALETTE_EXCLUDED below.
-      { label: 'Heroes', path: '/admin/content/heroes', icon: 'heroes', retiresAt: 'SPOTLIGHT-CONSOLIDATION' },
-    ],
-  },
+export const PLACES: Place[] = [
+  { key: 'home',     label: 'Home',          short: 'Home',     path: '/admin',          icon: 'home',     owns: ['/admin'] },
+  { key: 'demo',     label: 'Demo profiles', short: 'Demo',     path: '/admin/demo',     icon: 'demo',     owns: ['/admin/demo'] },
+  { key: 'vendors',  label: 'Vendors',       short: 'Vendors',  path: '/admin/makers',   icon: 'vendors',  owns: ['/admin/makers', '/admin/prospects'] },
+  { key: 'dreamers', label: 'Dreamers',      short: 'Dreamers', path: '/admin/dreamers', icon: 'dreamers', owns: ['/admin/dreamers', '/admin/assistance'] },
+  { key: 'more',     label: 'More',          short: 'More',     path: '/admin/more',     icon: 'more',     owns: [] },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Surfaces that are REACHABLE but must not be OFFERED. The palette proposes
-// destinations; proposing one that is chartered to die teaches the founder a
-// habit the estate intends to break.
-// ─────────────────────────────────────────────────────────────────────────────
+/** Which place a path belongs to. Anything not owned by the first four is More. */
+export function placeFor(pathname: string): PlaceKey {
+  for (const p of PLACES) {
+    if (p.key === 'more') continue;
+    if (p.owns.some(o => (o === '/admin' ? pathname === '/admin' : pathname === o || pathname.startsWith(o + '/')))) return p.key;
+  }
+  return 'more';
+}
+
+/** The four pages Dev uses every day, as the palette names them. */
+export const DAILY: Section[] = [
+  { label: 'Home',                    path: '/admin',            icon: 'home',     hints: ['today', 'bridge', 'dashboard'] },
+  { label: 'Demo profiles',           path: '/admin/demo',       icon: 'demo',     hints: ['factory', 'invites', 'claim'] },
+  { label: 'Vendors, joined',         path: '/admin/makers',     icon: 'vendors',  hints: ['makers', 'tier', 'plan'] },
+  { label: 'Vendors, being reached',  path: '/admin/prospects',  icon: 'vendors',  hints: ['prospects', 'openers', 'outreach'] },
+  { label: 'Dreamers',                path: '/admin/dreamers',   icon: 'dreamers', hints: ['people', 'app users'] },
+  { label: 'Asked for help',          path: '/admin/assistance', icon: 'help',     hints: ['assistance', 'concierge', 'requests', 'forward'] },
+];
+
+export interface MoreGroup { title: string; sections: Section[] }
+export const MORE_GROUPS: MoreGroup[] = [
+  { title: 'Approvals', sections: [
+    { label: 'Discover requests', path: '/admin/approvals/discover', icon: 'star',  sub: 'Vendors asking to be shown on Discover', hints: ['deck', 'eligible', 'review'] },
+    { label: 'Photos to check',   path: '/admin/approvals/photos',   icon: 'photo', sub: 'Portfolio photos waiting for a yes or no', hints: ['portfolio', 'queue', 'looks'] },
+  ] },
+  { title: 'Chats', sections: [
+    { label: 'Vendor chats',  path: '/admin/conversations/vendors', icon: 'chat', sub: 'Vendors talking to the assistant', hints: ['conversations', 'threads'] },
+    { label: 'Dreamer chats', path: '/admin/conversations/brides',  icon: 'chat', sub: 'Dreamers talking to the assistant', hints: ['conversations', 'threads'] },
+  ] },
+  { title: 'Discover and showcase', sections: [
+    { label: 'Couture',                    path: '/admin/couture',           icon: 'star',  sub: 'Invite-only vendors', hints: ['appointments'] },
+    { label: 'Auspicious dates',           path: '/admin/hot-dates',         icon: 'cal',   sub: 'Muhurat dates shown in the app', hints: ['hot dates', 'availability'] },
+    { label: 'Upload photos for a vendor', path: '/admin/vendors/portfolio', icon: 'image', hints: ['portfolio', 'gallery'] },
+  ] },
+  { title: 'Pictures in the Dreamers\' app', sections: [
+    { label: 'Front page slideshow',  path: '/admin/content/landing',     icon: 'image', hints: ['landing', 'front door'] },
+    { label: 'Just exploring gallery', path: '/admin/content/exploring',  icon: 'image', hints: ['exploring', 'browse'] },
+    { label: 'Vendors of the week',   path: '/admin/content/spotlight',   icon: 'image', hints: ['spotlight', 'editorial'] },
+    { label: 'Starter mood board',    path: '/admin/content/muse-pool',   icon: 'image', sub: 'Muse pool', hints: ['muse', 'inspiration'] },
+    { label: 'Taste quiz pictures',   path: '/admin/content/surprise-me', icon: 'image', sub: 'Surprise me', hints: ['surprise', 'random'] },
+    { label: 'Discover top pictures', path: '/admin/content/heroes',      icon: 'image', sub: 'Being replaced by Vendors of the week', retiresAt: 'SPOTLIGHT-CONSOLIDATION' },
+  ] },
+  { title: 'Settings', sections: [
+    { label: 'Switches',          path: '/admin/switchboard', icon: 'sliders', sub: 'Turn features on or off, AI models, vendor layout', hints: ['switchboard', 'gates', 'flags', 'templates', 'meta'] },
+    { label: 'AI message limits', path: '/admin/config',      icon: 'gear',    sub: 'Daily and monthly limits per plan', hints: ['caps', 'model', 'spend'] },
+    { label: 'All numbers',       path: '/admin/numbers',     icon: 'chart',   sub: 'Money, AI spend, outreach and demo progress', hints: ['bridge', 'stats', 'revenue'] },
+  ] },
+];
+
 export const PALETTE_EXCLUDED: string[] = ['/admin/content/heroes', '/admin/discover-heroes'];
 
-/** Every section the shell mounts, flattened, Bridge first. Nav and palette
- *  read this same array so they cannot drift apart. */
-export const ALL_SECTIONS: Section[] = [BRIDGE, ...DOMAINS.flatMap(d => d.sections)];
+export const ALL_SECTIONS: Section[] = [...DAILY, { label: 'More', path: '/admin/more', icon: 'more', hints: ['everything else', 'settings'] }, ...MORE_GROUPS.flatMap(g => g.sections)];
 
-/** The palette's static destinations: mounted, minus the chartered-dead. */
 export const PALETTE_SECTIONS: Section[] = ALL_SECTIONS.filter(s => !PALETTE_EXCLUDED.includes(s.path));
-
-// ═════════════════════════════════════════════════════════════════════════════
-// THE MAPPING TABLE — R-A3. Every non-login admin route at pwa f9b0600,
-// derived by `find app/admin -name page.tsx`, 38 routes, /admin/login excluded
-// as the auth door. 37 rows below; 19 LIVE (18 sections + the Bridge), 18
-// PHANTOM. The count is asserted by the bench, not by this comment.
-// ═════════════════════════════════════════════════════════════════════════════
 
 export interface MappedRoute {
   path: string;
@@ -163,6 +133,8 @@ export interface MappedRoute {
 export const ROUTE_MAP: MappedRoute[] = [
   // ── LIVE ───────────────────────────────────────────────────────────────────
   { path: '/admin',                          domain: 'bridge',      disposition: 'LIVE' },
+  { path: '/admin/numbers',                  domain: 'bridge',      disposition: 'LIVE' }, // ADM-1: the old Bridge, "All numbers"
+  { path: '/admin/more',                     domain: 'bridge',      disposition: 'LIVE' }, // ADM-1: More
   { path: '/admin/prospects',                domain: 'growth',      disposition: 'LIVE' },
   { path: '/admin/demo',                     domain: 'growth',      disposition: 'LIVE' },
   { path: '/admin/approvals/discover',       domain: 'marketplace', disposition: 'LIVE' },

@@ -58,10 +58,10 @@ const GROUPS: Group[] = [
   // covered the vendor lane; widening it to the couple lane would be an executor deciding
   // what a ruling meant to say. It is with him, and it retires by his word or gains a
   // reader by a later sitting's — but it does not get quietly extended by this one.
-  { label: 'Couple WhatsApp',
+  { label: 'Dreamers on WhatsApp',
     keys: ['couple_wa_daily_basic','couple_wa_daily_gold','couple_wa_daily_platinum',
            'couple_wa_monthly_basic','couple_wa_monthly_gold','couple_wa_monthly_platinum'] },
-  { label: 'Couple PWA',
+  { label: 'Dreamers in the app',
     keys: ['couple_pwa_daily_basic','couple_pwa_daily_gold','couple_pwa_daily_platinum',
            'couple_pwa_monthly_basic','couple_pwa_monthly_gold','couple_pwa_monthly_platinum'] },
   // ── TDW_07 P1 · D-5's "hand-tunable" weights ──────────────────────────────────
@@ -136,7 +136,7 @@ export default function ConfigPage() {
 
   return (
     <div>
-      <PageHeader title="AI Caps" sub="Daily and monthly message limits per tier — changes take effect immediately" />
+      <PageHeader title="AI message limits" sub="Daily and monthly message limits per tier — changes take effect immediately" />
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>

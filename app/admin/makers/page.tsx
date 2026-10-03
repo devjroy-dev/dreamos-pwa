@@ -1,259 +1,150 @@
 'use client';
+// ADM-1 · VENDORS, JOINED (route kept: /admin/makers). One page with Being reached
+// (/admin/prospects), a tab each. Every action that was here is still here, on the vendor's
+// card: plan, Discover, Send welcome (tap again to send), upload photos, delete.
+// Delete is the card's last item, names what is lost (read from the schema's cascade, CE-47),
+// asks again, and is not offered for a paid plan. WhatsApp and Call sit on every row.
 import { useEffect, useState, useCallback } from 'react';
-import { PageHeader, T, Toast, FieldInput, ActionChip, ActionLink, GhostBtn } from '../_components/AdminUI';
+import { Toast } from '../_components/AdminUI';
 import MintSheet from '../_components/MintSheet';
-import { waDialHref } from '../../../lib/admin/waDial';
-import { getVendors, patchVendorTier, patchVendorDiscover, type AdminVendor } from '../../../lib/admin-api/index';
+import { getVendors, getCouples, patchVendorTier, patchVendorDiscover, type AdminVendor, type AdminCouple } from '../../../lib/admin-api/index';
 import { sendWelcome } from '../../../lib/admin-api/mint';
-import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
+import { adminGet, adminHeaders, API_BASE } from '@/lib/admin-api/_base';
+import { alsoMatch, alsoLine } from '../_components/alsoLine';
+import { VENDOR_LOST, PAID_BLOCK } from '../_components/peopleWords';
 
-const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
+// The Discover standing chip (TDW_10 P3), in the plain words of the approved design (CE-47 note 1,
+// 2 Oct 2026, superseding the August bytes): three standings kept apart, a split legacy pair reads
+// Hidden because that is what a Dreamer sees, never-applied is an honest blank.
+function standingChip(v: AdminVendor): [string, string] | null {
+  const st = v.discover_request_state;
+  const chip: [string, string] | null =
+    st === 'approved' && v.discover_eligible ? ['On Discover',   C.ok]
+  : st === 'approved'                        ? ['Hidden',        C.warn]
+  : st === 'revoked' || st === 'hidden'      ? ['Hidden',        C.warn]
+  : st === 'requested' || st === 'under_review' ? ['Waiting',    C.accent]
+  : st === 'denied'                          ? ['Not approved', C.bad]
+  : null;   // not_requested — never applied is an honest blank
+  return chip;
+}
+import { C, F, PageHead, Pill, RouteTabs, Chips, SearchField, CountLine, List, Empty, PersonRow, Sheet, SheetRow, SheetNote, DangerLast, cap, fullDate } from '../_components/Kit';
 
-// 0115 — the ruled canon vocabulary (F-10.23). `trial` and `free` both retired;
-// `basic` is the permanent no-AI floor. Mirrors src/api/admin/vendors.js
-// VALID_TIERS and 0115's vendors_tier_check, both live at dream-os 2077214: a
-// word this dropdown offers that the backend refuses is a 400 the founder gets
-// to discover by hand, on a screen built to save him that.
-const TIERS = ['basic','essential','signature','prestige'];
+const TIERS = ['basic', 'essential', 'signature', 'prestige'];
+const PLAN: Record<string, string> = { basic: 'Basic', essential: 'Essential', signature: 'Signature', prestige: 'Prestige' };
 
-function fmt(d: string) { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }); }
-
-export default function MakersPage() {
-  const [vendors, setVendors]   = useState<AdminVendor[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [search, setSearch]     = useState('');
-  const [filter, setFilter]     = useState('all');
-  const [toast, setToast]       = useState('');
-  // TDW_10 P3 — People -> + New -> one sheet. The mint lives in ONE component;
-  // this screen owns only the door and the reload after a birth.
-  const [minting, setMinting]   = useState(false);
+export default function VendorsJoinedPage() {
+  const [vendors, setVendors] = useState<AdminVendor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [beingReached, setBeingReached] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [toast, setToast] = useState('');
   const [toastErr, setToastErr] = useState(false);
-  const [openId, setOpenId]     = useState<string | null>(null);
-  const [confirmDel, setConfirmDel] = useState<string | null>(null);
-  // ── F-10.57 CURED · THE WELCOME WAS REACHABLE FOR THIRTY SECONDS ───────────
-  // `Send welcome` lived ONLY on the mint's success card. Close the sheet and it
-  // was gone: no door existed to welcome a vendor who already existed. The
-  // founder found it the expensive way — he DELETED a vendor and re-minted her
-  // to get the button back, which is a far larger act than the one he needed.
-  // (Re-minting alone would have done it: the button renders on the `existing`
-  // card too. That is a workaround, not a design.)
-  //
-  // The row already carries Add to Discover / Revoke Access / Delete, so this is
-  // where the verb belongs. Same endpoint the sheet calls — no second door.
-  //
-  // TAP-TO-CONFIRM, MATCHING `Delete` ON THIS SAME ROW. Until this evening the
-  // button was harmless because the gate refused everything; `vendor_welcome` is
-  // now APPROVED, so one tap sends a real WhatsApp message to a real number. On
-  // the mint card a bare tap is defensible — you just created the account. In a
-  // list of every vendor you have, one mis-tap messages a stranger. Founder-ruled.
+  const [minting, setMinting] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [dreamers, setDreamers] = useState<AdminCouple[] | null>(null);
   const [confirmWelcome, setConfirmWelcome] = useState<string | null>(null);
-  const [welcomeBusy, setWelcomeBusy] = useState<string | null>(null);
+  const [welcomeBusy, setWelcomeBusy] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
     getVendors().then(d => { setVendors(d.vendors); setLoading(false); }).catch(() => setLoading(false));
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+    adminGet<{ prospects?: unknown[] }>('/api/v2/admin/prospects/?state=all&limit=200').then(d => setBeingReached(Array.isArray(d.prospects) ? d.prospects.length : null)).catch(() => {});
+  }, [load]);
 
   const showToast = (msg: string, err = false) => { setToast(msg); setToastErr(err); };
-  const toggleOpen = (id: string) => { setConfirmDel(null); setConfirmWelcome(null); setOpenId(o => o === id ? null : id); };
+  const open = vendors.find(v => v.id === openId) || null;
+  const openCard = (id: string) => {
+    setOpenId(id); setConfirmWelcome(null);
+    // The "also a Dreamer" line reads the Dreamers list through its existing door, on open.
+    if (dreamers === null) getCouples().then(d => setDreamers(d.couples)).catch(() => setDreamers([]));
+  };
 
-  // The result is the SERVER'S, never the tap's. `sent:false` is a correct outcome
-  // of a working gate — it is reported with the transport's own sentence and as an
-  // error tone, never swallowed into a success toast.
   const welcome = async (v: AdminVendor) => {
-    setWelcomeBusy(v.id);
+    setWelcomeBusy(true);
     try {
       const r = await sendWelcome(v.id);
-      showToast(r.sent ? `Welcome sent to ${v.name} on WhatsApp.`
-                       : (r.message || 'Could not send the welcome message.'), !r.sent);
-    } catch {
-      showToast('Could not send the welcome message.', true);
-    } finally {
-      setWelcomeBusy(null);
-      setConfirmWelcome(null);
-    }
+      showToast(r.sent ? `Welcome sent to ${v.name} on WhatsApp.` : (r.message || 'Could not send the welcome message.'), !r.sent);
+    } catch { showToast('Could not send the welcome message.', true); }
+    finally { setWelcomeBusy(false); setConfirmWelcome(null); }
   };
-
   const setTier = async (id: string, tier: string) => {
-    try { await patchVendorTier(id, tier); setVendors(v => v.map(x => x.id === id ? { ...x, tier } : x)); showToast('Tier updated.'); }
-    catch { showToast('Failed to update tier.', true); }
+    try { await patchVendorTier(id, tier); setVendors(v => v.map(x => x.id === id ? { ...x, tier } : x)); showToast('Plan changed.'); }
+    catch { showToast('Could not change the plan.', true); }
   };
-
   const toggleDiscover = async (v: AdminVendor) => {
     try {
       await patchVendorDiscover(v.id);
-      // The row's OWN copy of the pair moves together too — a list that showed
-      // eligibility flipping while the standing chip stayed put would be F-10.59
-      // reproduced in local state.
-      setVendors(vs => vs.map(x => x.id === v.id
-        // F-10.61 — the STORED word is 'revoked' (0039's CHECK constraint knows no
-        // 'hidden'); every rendered word is HIDDEN. The optimistic row must mirror
-        // what the server actually writes, or the chip lies until the next load.
-        ? { ...x, discover_eligible: !v.discover_eligible,
-                  discover_request_state: v.discover_eligible ? 'revoked' : 'approved' }
-        : x));
+      setVendors(vs => vs.map(x => x.id === v.id ? { ...x, discover_eligible: !v.discover_eligible, discover_request_state: v.discover_eligible ? 'revoked' : 'approved' } : x));
       showToast(v.discover_eligible ? 'Hidden from Discover.' : 'Added to Discover.');
-    }
-    catch { showToast('Failed.', true); }
+    } catch { showToast('That did not work. Try again.', true); }
   };
-
-  // ── RETIRED · `revoke` (founder-ruled) ──────────────────────────────────────
-  // IT READ: `await patchVendorRevoke(id); … showToast('Access revoked.');`
-  // 「 Revoke Access 」 revoked no access — `vendors.status` is read only by the
-  // morning-briefing cron, so the button took a vendor off Discover and stopped
-  // her good-morning message while she kept her account, leads, portfolio and AI.
-  // 「 why suspend any vendor. i can delete the vendor 」 · 「 revoke doesnt serve
-  // any purpose 」. Deleted, not renamed: Delete is one row below and means it.
-
   const deleteVendor = async (id: string) => {
-    try {
-      const res = await fetch(`${API_BASE}/api/v2/admin/vendors/${id}`, {
-        method: 'DELETE',
-        headers: adminHeaders(),
-        body: JSON.stringify({ confirm: true }),
-      });
-      if (!res.ok) throw new Error('Failed');
-      setVendors(v => v.filter(x => x.id !== id));
-      showToast('Vendor deleted.');
-      setOpenId(null); setConfirmDel(null);
-    } catch { showToast('Failed to delete.', true); }
+    const res = await fetch(`${API_BASE}/api/v2/admin/vendors/${id}`, { method: 'DELETE', headers: adminHeaders(), body: JSON.stringify({ confirm: true }) });
+    if (!res.ok) throw new Error('Could not delete. Nothing was removed.');
+    setVendors(v => v.filter(x => x.id !== id));
+    setOpenId(null);
+    showToast('Vendor deleted.');
   };
 
+  const q = search.trim().toLowerCase();
   const filtered = vendors.filter(v => {
-    const q = search.toLowerCase();
-    const matchSearch = !search || v.name?.toLowerCase().includes(q) || v.phone?.includes(search);
-    const matchFilter = filter === 'all' || v.tier === filter;
+    const matchSearch = !q || v.name?.toLowerCase().includes(q) || (v.phone || '').includes(search.trim()) || (v.city || '').toLowerCase().includes(q);
+    const matchFilter = filter === 'all' || (filter === 'paid' ? v.tier !== 'basic' : filter === 'discover' ? (v.discover_request_state === 'approved' && v.discover_eligible) : v.tier === filter);
     return matchSearch && matchFilter;
   });
+  const paid = vendors.filter(v => v.tier !== 'basic').length;
+  const also = open && dreamers ? alsoLine(alsoMatch(open, dreamers), 'Dreamer') : null;
 
   return (
     <div>
-      <PageHeader title="Makers" sub={`${vendors.length} total vendors`}
-        action={<GhostBtn label="+ New" onClick={() => setMinting(true)} small />} />
+      <PageHead title="Vendors" sub={`${vendors.length} on TDW · ${paid} on a paid plan`} action={<Pill onClick={() => setMinting(true)}>+ New vendor</Pill>} />
       <MintSheet visible={minting} kind="vendor" onClose={() => setMinting(false)} onMinted={load} />
-
-      <FieldInput label="Search" value={search} onChange={setSearch} placeholder="Name or phone…" />
-
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24, overflowX: 'auto' as const, paddingBottom: 4, scrollbarWidth: 'none' as const }}>
-        {['all', ...TIERS].map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{ flexShrink: 0, padding: '8px 16px', borderRadius: 20, border: `0.5px solid ${filter === f ? T.gold : T.border}`, background: filter === f ? T.goldSoft : 'transparent', fontFamily: T.ff.label, fontWeight: filter === f ? 600 : 400, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const, color: filter === f ? T.gold : T.soft, minHeight: 36 }}>{f}</button>
-        ))}
-      </div>
-
+      <RouteTabs active="/admin/makers" items={[{ href: '/admin/makers', label: 'Joined', n: loading ? null : vendors.length }, { href: '/admin/prospects', label: 'Being reached', n: beingReached }]} />
+      <SearchField value={search} onChange={setSearch} placeholder="Search by name, phone or city" />
+      <Chips value={filter} onChange={setFilter} items={[{ key: 'all', label: 'All' }, { key: 'paid', label: 'Paid' }, ...TIERS.map(t => ({ key: t, label: PLAN[t] })), { key: 'discover', label: 'On Discover' }]} />
       {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-          {[1,2,3].map(i => <div key={i} className="shimmer" style={{ background: T.card, borderRadius: 12, height: 72 }} />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: T.muted, fontFamily: T.ff.display, fontStyle: 'italic', fontSize: 18 }}>No vendors found</div>
+        <List>{[1, 2, 3].map(i => <div key={i} className="shimmer" style={{ height: 72, borderBottom: `0.5px solid ${C.line}` }} />)}</List>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-          {filtered.map(v => {
-            const open = openId === v.id;
-            return (
-              <div key={v.id} style={{ background: T.card, border: `0.5px solid ${open ? T.borderStrong : T.border}`, borderRadius: 12, overflow: 'hidden', transition: 'border-color 150ms' }}>
-                {/* Header row — tap to expand */}
-                <div onClick={() => toggleOpen(v.id)} style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', minHeight: 72 }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.name}</div>
-                    <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.08em' }}>{v.category || '—'} · {v.city || '—'} · {v.phone}</div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                    <span style={{ fontFamily: T.ff.label, fontSize: 8, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: T.gold, background: T.goldSoft, border: `0.5px solid ${T.gold}`, borderRadius: 20, padding: '3px 10px' }}>{v.tier}</span>
-                    {/* ── THE STANDING CHIP (founder-ruled) ─────────────────────
-                        THIS READ: `{v.discover_eligible && <span>● DISCOVER</span>}`
-                        — one boolean, so a vendor WAITING on the founder looked
-                        identical to one who never applied, and an approved-then-
-                        hidden vendor looked identical to both. Three standings
-                        collapsed into one blank. 「 the screen tells the truth but
-                        is speaking the half truth 」.
-                        The data was already in hand: the list endpoint returns
-                        `discover_request_state`. No backend change; the row simply
-                        stopped reading a field it was already being sent. */}
-                    {(() => {
-                      const st = v.discover_request_state;
-                      // Legacy rows: 'approved' with eligibility off is the pair
-                      // split by the doors that used to write halves. It reads as
-                      // HIDDEN because that is what a couple experiences.
-                      const chip =
-                        st === 'approved' && v.discover_eligible ? ['● DISCOVER',    T.success]
-                      : st === 'approved'                        ? ['● HIDDEN',      T.warning]
-                      : st === 'revoked' || st === 'hidden'      ? ['● HIDDEN',      T.warning]
-                      : st === 'requested' || st === 'under_review' ? ['● PENDING',  T.gold]
-                      : st === 'denied'                          ? ['● NOT APPROVED', T.danger]
-                      : null;   // not_requested — never applied is an honest blank
-                      return chip && (
-                        <span style={{ fontFamily: T.ff.label, fontSize: 7, fontWeight: 600, color: chip[1], letterSpacing: '0.1em' }}>{chip[0]}</span>
-                      );
-                    })()}
-                  </div>
-                  <span style={{ color: T.soft, fontSize: 13, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 180ms', flexShrink: 0 }}>›</span>
-                </div>
-
-                {/* Expanded actions — inline, no sheet */}
-                {open && (
-                  <div style={{ padding: '4px 16px 18px', borderTop: `0.5px solid ${T.border}` }}>
-                    <div style={{ fontFamily: T.ff.label, fontSize: 9, color: T.soft, letterSpacing: '0.12em', margin: '14px 0 12px' }}>Joined {fmt(v.created_at)}</div>
-
-                    <div style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 9, color: T.soft, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 10 }}>Tier</div>
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' as const }}>
-                      {TIERS.map(t => (
-                        <button key={t} onClick={() => setTier(v.id, t)} style={{ flex: 1, minWidth: 72, padding: '11px 0', borderRadius: 9, border: `0.5px solid ${v.tier === t ? T.gold : T.border}`, background: v.tier === t ? T.goldSoft : 'transparent', fontFamily: T.ff.label, fontWeight: v.tier === t ? 600 : 400, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: v.tier === t ? T.gold : T.soft, minHeight: 44, cursor: 'pointer' }}>{t}</button>
-                      ))}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                      {/* ONE VERB. 'Hide', not 'Pause' — `vendors.discover_paused`
-                          is the VENDOR's own switch (migration 0101, hers via
-                          PATCH /vendor/me), and one word may not carry two
-                          mechanisms. Tapping again unhides. */}
-                      <ActionChip label={v.discover_eligible ? 'Hide from Discover' : 'Add to Discover'} tone="neutral" onClick={() => toggleDiscover(v)} />
-                    </div>
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                      {confirmWelcome === v.id
-                        ? <ActionChip label={welcomeBusy === v.id ? 'Sending…' : 'Tap again to send on WhatsApp'} tone="ok" disabled={welcomeBusy === v.id} onClick={() => welcome(v)} />
-                        : <ActionChip label="Send welcome" tone="ok" onClick={() => setConfirmWelcome(v.id)} />}
-                    </div>
-                    {/* ── MICRO-WA-DIAL (CE-225) ───────────────────────────────
-                        The founder's own WhatsApp, opened on this maker's chat.
-                        It replaces: read the number off the row, copy it by
-                        hand, leave the app, paste, search. One tap instead.
-
-                        NO CONFIRM, unlike the two chips around it. `Send welcome`
-                        and `Delete` both act on the founder's behalf the instant
-                        they are tapped — one messages a real vendor, one destroys
-                        her account — so both earned tap-to-confirm. This sends
-                        nothing and changes nothing; it opens a compose window the
-                        founder still has to type into and press send in. A confirm
-                        here would be ceremony without a hazard behind it.
-
-                        ABSENT, NEVER DEAD: waDialHref returns null for a row whose
-                        stored number cannot be dialled safely, and null renders
-                        NOTHING — no greyed chip, no disabled state. The reasoning
-                        for which numbers those are lives at lib/admin/waDial.ts. */}
-                    {(() => {
-                      const href = waDialHref(v.phone);
-                      return href && (
-                        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                          <ActionLink label="WhatsApp" tone="ok" href={href} />
-                        </div>
-                      );
-                    })()}
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {confirmDel === v.id
-                        ? <ActionChip label="Tap again to delete permanently" tone="no" onClick={() => deleteVendor(v.id)} />
-                        : <ActionChip label="Delete" tone="no" onClick={() => setConfirmDel(v.id)} />}
-                    </div>
-                    {confirmDel === v.id && <p style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted, letterSpacing: '0.08em', marginTop: 8 }}>Deletes all vendor data — leads, invoices, events, portfolio. Cannot be undone.</p>}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <>
+          <CountLine n={filtered.length} one="vendor" many="vendors" />
+          <List>
+            {filtered.length === 0 ? <Empty>No vendors match.</Empty> : filtered.map((v, i) => {
+              const chip = standingChip(v);
+              return (
+                <PersonRow key={v.id} last={i === filtered.length - 1} onOpen={() => openCard(v.id)} name={v.name}
+                  tag={PLAN[v.tier] || cap(v.tier)} tagTone={v.tier === 'basic' ? C.mute : C.accent}
+                  line={[cap(v.category), v.city, chip?.[0]].filter(Boolean).join(' · ')} phone={v.phone} />
+              );
+            })}
+          </List>
+        </>
       )}
 
+      {open && (() => { const v = open; return (
+        <Sheet title={open.name} sub={[cap(open.category), open.city, `joined ${fullDate(open.created_at)}`].filter(Boolean).join(' · ')} onClose={() => { setOpenId(null); setConfirmWelcome(null); }}>
+          <div style={{ borderTop: `0.5px solid ${C.line}`, padding: '12px 18px' }}>
+            <div style={{ font: F.t4, color: C.mute, marginBottom: 8 }}>Plan</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {TIERS.map(t => (
+                <button key={t} type="button" aria-pressed={open.tier === t} onClick={() => setTier(open.id, t)} style={{ flex: '1 1 90px', minHeight: 44, borderRadius: 12, border: `1px solid ${open.tier === t ? C.primary : C.line}`, background: open.tier === t ? C.primary : 'transparent', color: open.tier === t ? C.onPrimary : C.soft, font: F.t5, fontWeight: 600 }}>{PLAN[t]}</button>
+              ))}
+            </div>
+          </div>
+          <SheetRow label={v.discover_eligible ? 'Hide from Discover' : 'Add to Discover'} sub={standingChip(v)?.[0] || 'Has not asked for Discover'} onClick={() => toggleDiscover(v)} />
+          {confirmWelcome === v.id
+            ? <SheetRow label={welcomeBusy ? 'Sending…' : 'Tap again to send on WhatsApp'} sub="The welcome message, from TDW" onClick={() => welcome(v)} />
+            : <SheetRow label="Send welcome message" sub="On WhatsApp, from TDW" onClick={() => setConfirmWelcome(v.id)} />}
+          <SheetRow label="Upload photos for this vendor" href={`/admin/vendors/portfolio?vendor=${open.id}`} />
+          {open.founding_cohort && <SheetNote>Founding vendor</SheetNote>}
+          <DangerLast label="Delete vendor" lost={VENDOR_LOST} extra={also} confirmWord="Yes, delete"
+            blockedBy={open.tier !== 'basic' ? PAID_BLOCK : null}
+            onConfirm={() => deleteVendor(open.id)} />
+        </Sheet>
+      ); })()}
       {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
     </div>
   );

@@ -51,7 +51,7 @@ export default function PhotosPage() {
 
   return (
     <div>
-      <PageHeader title="Photo Approvals" sub="Vendor portfolio photo queue" />
+      <PageHeader title="Photos to check" sub="Vendor portfolio photo queue" />
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
         <div style={{ flex: 1 }}><FieldSelect label="State" value={state} onChange={setState} options={STATES} /></div>

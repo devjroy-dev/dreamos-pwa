@@ -66,13 +66,13 @@ export interface GateCopy {
 
 export const GATE_COPY: Readonly<Record<string, GateCopy>> = Object.freeze({
   // ── Features you switch on (flag.*) ──────────────────────────────────────
-  'flag.contract_sign_send':               { name: 'Send the contract for signing', spec: 'to the couple · vendor line · Utility', meta: 'tdw_contract_sign' },
-  'flag.contract_copy_send':               { name: 'Send the signed contract back', spec: 'to the vendor and the couple · vendor line · Utility', meta: 'tdw_contract_copy' },
-  'flag.payment_reminder_send':            { name: 'Send payment reminders', spec: 'to the client · couple line · Utility', meta: 'tdw_payment_reminder' },
+  'flag.contract_sign_send':               { name: 'Send the contract for signing', spec: 'to the client · vendor line · Utility', meta: 'tdw_contract_sign' },
+  'flag.contract_copy_send':               { name: 'Send the signed contract back', spec: 'to the vendor and the client · vendor line · Utility', meta: 'tdw_contract_copy' },
+  'flag.payment_reminder_send':            { name: 'Send payment reminders', spec: 'to the client · Dreamer line · Utility', meta: 'tdw_payment_reminder' },
   'flag.referral_alert_send':              { name: 'Tell a peer vendor about a referral', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_referral_alert' },
   'flag.wedding_credit_send':              { name: 'Invite a peer vendor to claim wedding credit', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_wedding_credit' },
-  'flag.wedding_consent_send':             { name: 'Ask the couple to allow the guest gallery', spec: 'to the couple · vendor line · Utility', meta: 'tdw_wedding_consent' },
-  'flag.review_ask_send':                  { name: 'Ask the couple for a Google review', spec: 'to the couple · couple line · Marketing', meta: 'tdw_review_request' },
+  'flag.wedding_consent_send':             { name: 'Ask the client to allow the guest gallery', spec: 'to the client · vendor line · Utility', meta: 'tdw_wedding_consent' },
+  'flag.review_ask_send':                  { name: 'Ask the client for a Google review', spec: 'to the client · Dreamer line · Marketing', meta: 'tdw_review_request' },
   'flag.wedding_reel':                     { name: 'Make the wedding reel', spec: 'no message · needs ffmpeg on the server · absent today' },
   // ── F-41.144 · THE NINTH FLAG, AND WHAT THE FILING GOT WRONG ────────────────
   // Filed by D3c as "renders its raw key". It does not: `gateName`'s fallback below
@@ -91,14 +91,14 @@ export const GATE_COPY: Readonly<Record<string, GateCopy>> = Object.freeze({
   'flag.assist_forward_alert':             { name: 'Tell a vendor a concierge forward landed', spec: 'to the vendor · vendor line · Utility · records only until you switch it on', meta: 'tdw_lead_alert_utility', metaId: '1753685715867036' },
 
   // ── Message templates on Meta (template.*) — the words themselves ─────────
-  'template.tdw_contract_sign':            { name: 'Contract signing link', spec: 'to the couple · vendor line · Utility', meta: 'tdw_contract_sign' },
-  'template.tdw_contract_sign_otp':        { name: 'Contract signing code', spec: 'to the couple · vendor line · Authentication', meta: 'tdw_contract_sign_otp' },
-  'template.tdw_contract_copy':            { name: 'Signed contract copy', spec: 'to the vendor and the couple · vendor line · Utility', meta: 'tdw_contract_copy' },
-  'template.tdw_payment_reminder':         { name: 'Payment reminder', spec: 'to the client · couple line · Utility', meta: 'tdw_payment_reminder' },
+  'template.tdw_contract_sign':            { name: 'Contract signing link', spec: 'to the client · vendor line · Utility', meta: 'tdw_contract_sign' },
+  'template.tdw_contract_sign_otp':        { name: 'Contract signing code', spec: 'to the client · vendor line · Authentication', meta: 'tdw_contract_sign_otp' },
+  'template.tdw_contract_copy':            { name: 'Signed contract copy', spec: 'to the vendor and the client · vendor line · Utility', meta: 'tdw_contract_copy' },
+  'template.tdw_payment_reminder':         { name: 'Payment reminder', spec: 'to the client · Dreamer line · Utility', meta: 'tdw_payment_reminder' },
   'template.tdw_referral_alert':           { name: 'Peer referral alert', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_referral_alert' },
   'template.tdw_wedding_credit':           { name: 'Wedding credit invite', spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_wedding_credit' },
-  'template.tdw_wedding_consent':          { name: 'Guest gallery consent ask', spec: 'to the couple · vendor line · Utility', meta: 'tdw_wedding_consent' },
-  'template.tdw_review_request':           { name: 'Google review ask', spec: 'to the couple · couple line · Marketing', meta: 'tdw_review_request' },
+  'template.tdw_wedding_consent':          { name: 'Guest gallery consent ask', spec: 'to the client · vendor line · Utility', meta: 'tdw_wedding_consent' },
+  'template.tdw_review_request':           { name: 'Google review ask', spec: 'to the client · Dreamer line · Marketing', meta: 'tdw_review_request' },
   // The concierge four — arms dark behind these rows until A10 wakes the send (R-41.20).
   // F-41.122 · THE RELABEL. Retired by 0155 and replaced by the _v2 row below. The KEY
   // does not move: gatePath, gateMatches and any capabilities row keyed on it all
@@ -111,8 +111,8 @@ export const GATE_COPY: Readonly<Record<string, GateCopy>> = Object.freeze({
   // The register has held all four since 0155; without these entries they rendered as raw
   // keys on the founder's glass, which is the finding.
   'template.tdw_assist_lead_outside_v2':   { name: 'Send an outside vendor the enquiry notice', spec: 'to the outside vendor · marketing line · Utility', meta: 'tdw_assist_lead_outside_v2', metaId: '2544506315978894' },
-  'template.tdw_assist_found_vendor':      { name: 'Tell the couple we found a TDW vendor', spec: 'to the couple · couple line · Utility', meta: 'tdw_assist_found_vendor', metaId: '3160852754105015' },
-  'template.tdw_assist_found_outside':     { name: 'Tell the couple we found an outside vendor', spec: 'to the couple · couple line · Utility', meta: 'tdw_assist_found_outside', metaId: '3115277355330375' },
+  'template.tdw_assist_found_vendor':      { name: 'Tell the Dreamer we found a TDW vendor', spec: 'to the Dreamer · Dreamer line · Utility', meta: 'tdw_assist_found_vendor', metaId: '3160852754105015' },
+  'template.tdw_assist_found_outside':     { name: 'Tell the Dreamer we found an outside vendor', spec: 'to the Dreamer · Dreamer line · Utility', meta: 'tdw_assist_found_outside', metaId: '3115277355330375' },
   'template.tdw_introduction':             { name: 'Introduce a vendor to The Dream Wedding', spec: 'to the vendor · marketing line · Marketing · not sent before R9', meta: 'tdw_introduction' },
   // F-41.69 — THE SPEC SAID `not yet filed at Meta` AND IT IS ACTIVE. A shipped byte
   // on the founder's glass asserting a false fact about Meta is worse than a blank

@@ -77,7 +77,7 @@ export default function SpotlightPage() {
 
   return (
     <div>
-      <PageHeader title="Spotlight" sub="Vendors of the week — shown in EXPLORE grid on discover landing" action={<GoldBtn label={showAdd ? 'Close' : 'Add'} onClick={() => { if (showAdd) { setShowAdd(false); resetForm(); } else { setShowAdd(true); } }} />} />
+      <PageHeader title="Vendors of the week" sub="Shown in the Explore grid on the Discover front page" action={<GoldBtn label={showAdd ? 'Close' : 'Add'} onClick={() => { if (showAdd) { setShowAdd(false); resetForm(); } else { setShowAdd(true); } }} />} />
 
       {/* Add form — inline, no sheet */}
       {showAdd && (

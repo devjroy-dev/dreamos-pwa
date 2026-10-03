@@ -43,20 +43,22 @@ function run(root) {
   ok('the name is short enough for one line on a 374 row (<= 52 chars)', c.GATE_KEYS.every(k => c.gateName(k).length <= 52), c.GATE_KEYS.filter(k => c.gateName(k).length > 52).join(', '));
   ok('the spec is dotted, in the estate\'s idiom — never a clause chain', c.GATE_KEYS.every(k => c.gateSpec(k).includes(' · ') && !/;/.test(c.gateSpec(k))));
   ok('no gate reads as prose: the name carries no semicolon and no dash-clause', c.GATE_KEYS.every(k => !/;/.test(c.gateName(k))));
-  ok('gateSentence still joins both, for the palette and one-line surfaces', c.gateSentence('flag.review_ask_send') === 'Google review ask — to the couple · couple line · Marketing');
-  ok('every send gate names a line', c.GATE_KEYS.filter(k => /^(flag\.(?!wedding_reel)|template\.)/.test(k)).every(k => /(vendor line|couple line|marketing line)/.test(c.gateSpec(k))));
+  ok('gateSentence still joins both, for the palette and one-line surfaces', c.gateSentence('flag.review_ask_send') === 'Google review ask — to the client · Dreamer line · Marketing');
+  ok('every send gate names a line', c.GATE_KEYS.filter(k => /^(flag\.(?!wedding_reel)|template\.)/.test(k)).every(k => /(vendor line|Dreamer line|marketing line)/.test(c.gateSpec(k))));
   ok('every send gate names its Meta category', c.GATE_KEYS.filter(k => /^(flag\.(?!wedding_reel)|template\.)/.test(k)).every(k => /(Utility|Marketing|Authentication)/.test(c.gateSpec(k))));
   ok('no register grammar leaks into a sentence (no underscore, no dotted key)', c.GATE_KEYS.every(k => !/[_]|\b(flag|perm|scope|template)\./.test(c.gateSentence(k))));
   ok('no persona name on the glass', c.GATE_KEYS.every(k => !/victor|harvey|donna|eliza/i.test(c.gateSentence(k))));
   console.log('\n§3 · the two outside rows are unmistakable (F-41.52)');
   const a = c.gateSentence('template.tdw_assist_lead_outside'), b = c.gateSentence('template.tdw_assist_found_outside');
   ok('lead_outside speaks to the OUTSIDE vendor on the marketing line (assistance.js:78, R-41.13, c-41.22)', /to the outside vendor/.test(a) && /marketing line/.test(a) && /Marketing/.test(a));
-  ok('found_outside speaks to the COUPLE on the couple line', /to the couple/.test(b) && /couple line/.test(b) && /Utility/.test(b));
+  // LABELED AMENDMENTS (ADM-1, CE-47 change 2, 1 Oct 2026): no "couple" in any word the founder
+  // reads. The lane is the Dreamer line; a vendor's client is "the client". Promises unchanged.
+  ok('found_outside speaks to the COUPLE on the couple line', /to the Dreamer/.test(b) && /Dreamer line/.test(b) && /Utility/.test(b));
   ok('their NAMES alone tell them apart on the row', c.gateName('template.tdw_assist_lead_outside') !== c.gateName('template.tdw_assist_found_outside') && /Outsider/.test(c.gateName('template.tdw_assist_lead_outside')) && /outside The Dream Wedding/.test(c.gateName('template.tdw_assist_found_outside')));
-  ok('the two sentences share no recipient and are not the same string', a !== b && !/to the couple/.test(a) && !/outside vendor,/.test(b));
+  ok('the two sentences share no recipient and are not the same string', a !== b && !/to the Dreamer/.test(a) && !/outside vendor,/.test(b));
   ok('found_vendor and found_outside differ by the vendor\'s origin, in words', /vendor from The Dream Wedding/.test(c.gateSentence('template.tdw_assist_found_vendor')) && /outside The Dream Wedding/.test(b));
   ok('each dark gate names who wakes it', c.GATE_KEYS.filter(k => /dark until|not sent before/.test(c.gateSpec(k))).every(k => /(A10|seat [A-Z]|R9)/.test(c.gateSpec(k))));
-  ok('the lane words are the three ruled ones, never possessive, never a number, never a persona', c.GATE_KEYS.every(k => !/couple's line|TDW's own number|Mira|own number/.test(c.gateSentence(k))));
+  ok('the lane words are the three ruled ones, never possessive, never a number, never a persona', c.GATE_KEYS.every(k => !/couple's line|Dreamer's line|TDW's own number|Mira|own number/.test(c.gateSentence(k))));
   ok('the platform is written in full on the glass', c.GATE_KEYS.every(k => !/(^|[^e] )Dream Wedding/.test(c.gateSentence(k))));
   console.log('\n§4 · the palette matches any word, the key, the Meta name — and jumps to the row (F-41.53)');
   ok('a word of the sentence matches', c.gateMatches('flag.payment_reminder_send', 'client') && c.gateMatches('flag.contract_sign_send', 'sign'));
@@ -107,8 +109,8 @@ function mutate() {
     ['M1 the outside pair collapse to one name', HOME, "name: 'Found her a vendor from outside The Dream Wedding'", "name: 'Outsider join alert'", 'NAMES alone tell them apart'],
     ['M2 the meta name stops matching', HOME, "if (c?.meta && c.meta.toLowerCase().includes(n)) return true;", "", 'Meta template name matches on a flag'],
     ['M3 the key stops matching', HOME, "if (key.toLowerCase().includes(n)) return true;", "", 'the register key matches'],
-    ['M4 a spec loses its line', HOME, "name: 'Payment reminder', spec: 'to the client · couple line · Utility'", "name: 'Payment reminder', spec: 'to the client · Utility'", 'every send gate names a line'],
-    ['M8 a possessive lane word returns', HOME, "name: 'Google review ask', spec: 'to the couple · couple line · Marketing'", "name: 'Google review ask', spec: 'to the couple · couple\\'s line · Marketing'", 'never possessive'],
+    ['M4 a spec loses its line', HOME, "name: 'Payment reminder', spec: 'to the client · Dreamer line · Utility'", "name: 'Payment reminder', spec: 'to the client · Utility'", 'every send gate names a line'],
+    ['M8 a possessive lane word returns', HOME, "name: 'Google review ask', spec: 'to the client · Dreamer line · Marketing'", "name: 'Google review ask', spec: 'to the client · Dreamer\\'s line · Marketing'", 'never possessive'],
     ['M9 the prose returns: the spec becomes a clause chain', HOME, "spec: 'to the peer vendor · vendor line · Utility', meta: 'tdw_referral_alert' },\n  'flag.wedding_credit_send'", "spec: 'to the peer vendor, vendor line; Utility', meta: 'tdw_referral_alert' },\n  'flag.wedding_credit_send'", 'dotted, in the estate'],
     ['M10 the same-path branch is dropped (F-41.56 returns)', PAL, "if (hash && typeof window !== 'undefined' && window.location.pathname === pathname) {", "if (false) {", 'driven: a same-path hash jump'],
     ['M11 the same-hash re-jump stops firing', PAL, "if (window.location.hash === `#${hash}`) window.dispatchEvent(new HashChangeEvent('hashchange'));\n      else window.location.hash = hash;", "window.location.hash = hash;", 'still fires hashchange'],

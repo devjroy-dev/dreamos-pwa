@@ -21,6 +21,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader, T, GoldBtn, GhostBtn, Toast } from '../_components/AdminUI';
+import { fullDate, clock } from '../_components/Kit';
 import {
   getCapabilities, flipCapability, setCapabilityAutoOn, checkCapability, sweepCapabilities, getWabaTemplates,
   type CapabilityRow, type CapabilityStatus, type WabaTemplate,
@@ -70,7 +71,7 @@ function when(iso: string | null) {
   if (!iso) return 'never checked';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' }) + ' IST';
+  return `${fullDate(iso, false)} at ${clock(iso)}`;
 }
 
 export default function SwitchboardPage() {
@@ -186,8 +187,8 @@ export default function SwitchboardPage() {
   return (
     <div>
       <PageHeader
-        title="Switchboard"
-        sub="Every gate in Business Solutions. Meta and Google are checked nightly at 03:50; a status change reaches here within seconds when Meta tells us."
+        title="Switches"
+        sub="Every gate in Business Solutions. Meta and Google are checked every night at 3:50 am; a change shows here within seconds when Meta tells us."
         action={<GoldBtn small label={busy === '*' ? 'Checking…' : 'Check everything now'} onClick={sweepAll} disabled={busy !== null} />}
       />
 

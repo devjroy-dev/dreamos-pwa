@@ -267,7 +267,10 @@ section('§A7 · THE WALK\'S PWA RIDER — F-41.25 / .27 / .28 / .29 · Open: N'
   ok('F-41.29: S2 names TDW vendors found (#25/#27) with a /v/ link and shows outsiders as an unnamed row (#28/#29); no count of who was asked (#30/#31 struck)', /\/v\/\$\{f\.routing_handle\}/.test(sheet2) && sheet2.includes("foundSoFar: 'Found so far'") && sheet2.includes("notOnTdw:   'Not on TDW yet'") && !/Two more|'Asked'/.test(sheet2));
   // Open: N
   const lay = strip(read('app/admin/layout.tsx'));
-  ok('Open: N — the Assistance nav entry carries counts.open from the queue door, rendered only when > 0', /useOpenAssistanceCount/.test(lay) && /\/api\/v2\/admin\/assistance\?limit=200/.test(lay) && /count=\{s\.path === '\/admin\/assistance' \? openAssist : null\}/.test(lay) && /typeof count === 'number' && count > 0/.test(lay));
+  // LABELED AMENDMENT (ADM-1, CE-47 redesign, 1 Oct 2026): Asked for help is now a tab of the
+  // Dreamers place, so the open count rides the Dreamers entry, on both the bottom bar and the
+  // rail; the same door, the same counts.open, still drawn only when it is above zero.
+  ok('Open: N — the Assistance nav entry carries counts.open from the queue door, rendered only when > 0', /useOpenAssistanceCount/.test(lay) && /\/api\/v2\/admin\/assistance\?limit=200/.test(lay) && (lay.match(/\{p\.key === 'dreamers' && <Badge n=\{openAssist\} \/>\}/g) || []).length === 2 && /if \(typeof n !== 'number' \|\| n <= 0\) return null;/.test(lay));
 }
 
 section('§A9 · F-41.38 / .39 / .40 / .41');

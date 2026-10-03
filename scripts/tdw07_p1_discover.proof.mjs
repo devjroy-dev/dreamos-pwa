@@ -186,8 +186,11 @@ ok('§3.5 the token-cap groups are undisturbed — the two vendor groups are now
   ADMIN.includes(`label: 'Vendor AI`)
   && !ADMIN.includes(`label: 'Vendor WhatsApp'`)
   && !ADMIN.includes(`label: 'Vendor PWA'`));
+// LABELED AMENDMENT (ADM-1, CE-47 change 2, 1 Oct 2026): a ruling now names them. The two
+// groups survive with their keys untouched; only the words the founder reads changed.
 ok('§3.5b the two COUPLE groups survive UNTOUCHED — no ruling named them, none was assumed',
-  ['Couple WhatsApp', 'Couple PWA'].filter(l => ADMIN.includes(`label: '${l}'`)).length === 2);
+  ['Dreamers on WhatsApp', 'Dreamers in the app'].filter(l => ADMIN.includes(`label: '${l}'`)).length === 2
+  && ADMIN.includes("'couple_wa_daily_basic'") && ADMIN.includes("'couple_pwa_daily_basic'"));
 ok('§3.6 the group carries the note that a weight takes effect on the next fetch',
   /next fetch/.test(ADMIN));
 

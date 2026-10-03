@@ -192,11 +192,16 @@ ok('§3.7 with the same absent-on-stale-deploy guard `states` already carried',
   /if \(Array\.isArray\(vRes\.invite_states\)\) setInviteStates\(vRes\.invite_states\);/.test(code(PAGE)));
 ok('§3.8 an empty subset arms NOTHING — the safe direction to fail',
   /useState<string\[\]>\(\[\]\)/.test(code(PAGE)));
+// LABELED AMENDMENT (ADM-1, CE-47 redesign, 1 Oct 2026): the board's columns became one list
+// with state chips, so there is no column header. Its promise moves with it: the one batch
+// control is fed ONLY by rows that pass the same predicate, and is drawn only when there are any.
 ok('§3.9 the column header gate reads the same source',
-  /const canInvite = inviteStates\.includes\(state\);/.test(code(PAGE)));
+  /const invitableRows = rows\.filter\(canSend\);/.test(code(PAGE)) && /\{invitableRows\.length > 0 && \(/.test(code(PAGE)));
 // The badge and the border are UNCHANGED. The cure removes an armed control; it
 // does not remove the explanation of why the control is absent.
-ok('§3.10 the red border survives', /v\.linkage_held_by \? T\.danger : T\.border/.test(code(PAGE)));
+// LABELED AMENDMENT (ADM-1, CE-47 redesign): the card border became the row's state tag in the
+// new look; a held linkage still paints the danger colour first, before any state colour.
+ok('§3.10 the red border survives', /tagTone=\{v\.linkage_held_by \? C\.bad :/.test(code(PAGE)));
 ok('§3.11 the `linked to @X` badge survives', /linked to @\{v\.linkage_held_by\}/.test(code(PAGE)));
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -210,8 +215,9 @@ ok('§4.2 and it renders in FieldInput\'s geometry, not a second one',
 ok('§4.3 exactly FOUR fields carry the mark — the four the pre-flight refuses on',
   (code(PAGE).match(/hint="Required"/g) || []).length === 4);
 for (const [label, sym] of [
-  ['IG Handle (becomes URL)', 'igHandle'], ['Display Name', 'dispName'],
-  ['Category', 'category'], ['City', 'city'],
+  // LABELED AMENDMENT (ADM-1, CE-47 ruling 7, plain words): the same four fields, renamed.
+  ['Instagram handle (becomes the link)', 'igHandle'], ['Name', 'dispName'],
+  ['Trade', 'category'], ['City', 'city'],
 ]) {
   ok(`§4.4 ${label} is marked`,
     new RegExp(`label="${label.replace(/[()]/g, '\\$&')}"[^\\n]*hint="Required"`).test(code(PAGE)));
@@ -222,7 +228,7 @@ ok('§4.5 the bytes are `Required` — frozen at the BYTE, not the shape',
 ok('§4.6 V4 — the pre-flight line is BYTE-UNTOUCHED beside the new mark',
   code(PAGE).includes("showToast('Handle, name, category and city required.', true)"));
 ok('§4.7 the Rate Display and About fields are NOT marked — they are not required',
-  !/label="Rate Display"[^\n]*hint="Required"/.test(code(PAGE)));
+  !/label="(Rate Display|Price shown)"[^\n]*hint="Required"/.test(code(PAGE)));
 
 // ═════════════════════════════════════════════════════════════════════════════
 H('§5 · F-08.44 — THE SURFACE RENDERS THE SERVER\'S SENTENCE, NOT ITS KEY');
@@ -299,8 +305,9 @@ okMutate('§M.7 §3.6 reds if the subset is re-typed on the surface', PAGE,
     && !/'built'\s*,\s*'legacy'/.test(code(PAGE))), '§3.6');
 
 okMutate('§M.8 §4.3 reds if a required field loses its mark', PAGE,
-  '<FieldSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES} hint="Required" />',
-  '<FieldSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES} />',
+  // LABELED AMENDMENT (ADM-1): the field is "Trade" now; the same mark is removed.
+  '<FieldSelect label="Trade" value={category} onChange={setCategory} options={CATEGORIES} hint="Required" />',
+  '<FieldSelect label="Trade" value={category} onChange={setCategory} options={CATEGORIES} />',
   () => assert.strictEqual((code(PAGE).match(/hint="Required"/g) || []).length, 4), '§4.3');
 
 okMutate('§M.9 §5.1 reds if the surface goes back to rendering the machine key', PAGE,

@@ -250,8 +250,8 @@ export default function DiscoverApprovalsPage() {
   return (
     <div>
       <PageHeader
-        title="Approvals"
-        sub={`${pendingList.length} awaiting review`}
+        title="Discover requests"
+        sub={`${pendingList.length} waiting for you`}
         action={
           <GhostBtn
             label={mode === 'deck' ? 'Bulk' : 'Deck'}
@@ -362,7 +362,7 @@ export default function DiscoverApprovalsPage() {
                 label={`photos · floor ${card.photo_floor}`}
                 warn={!card.meets_floor}
               />
-              <Metric value={`${card.photos_approved}`} label="visible to couples" />
+              <Metric value={`${card.photos_approved}`} label="shown on Discover" />
             </div>
 
             {!card.meets_floor && (

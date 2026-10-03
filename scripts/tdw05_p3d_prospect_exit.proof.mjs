@@ -98,37 +98,42 @@ cell(has("kind === 'delete'") && has('`/${p.id}`') && has('`/${p.id}/${kind}`'),
 
 // ═══ 2 · THE OPT-OUT REGISTER RENDERS NO CONTROL AT ALL ════════════════════
 section('2 · R-30.19/.20 — `none` means nothing renders, not something greyed');
-cell(has("{p.exit_kind && p.exit_kind !== 'none' && ("),
+// LABELED AMENDMENT (ADM-1, CE-47 change 1, 1 Oct 2026): the exit control left the row for the
+// person's card, last item, asked again. Promises and cell count unchanged; anchors moved.
+cell(has("{(open.exit_kind === 'delete' || open.exit_kind === 'discard') && (") && has("{open.exit_kind === 'restore' && (") && has("{open.exit_kind === 'none' && <SheetNote>{REFUSAL.opted_out_locked}</SheetNote>}"),
   'the control is gated on a kind that is present AND not `none`');
 cell(has("if (!kind || kind === 'none') return;"),
   'and the handler refuses `none` a second time — a screen ahead of an older API cannot fire a verb the server never offered');
 
 // ═══ 3 · THE TWO-PRESS PATTERN ══════════════════════════════════════════════
 section('3 · a destructive act costs the same second press as a real template');
-cell(has('confirmExit === p.id'), 'the control arms per row before it fires');
-cell(has('{EXIT_CONFIRM[p.exit_kind]}'), 'and the armed state renders the confirm SENTENCE, which is what the second press is reading');
-cell(has('setConfirmSend(null); setConfirmExit(p.id)') && has('setConfirmExit(null); setConfirmSend(p.id)'),
+// The card's destructive exit is a DangerLast (asks before it acts, Kit.tsx); restore arms per card.
+cell(has('<DangerLast label={EXIT_LABEL[open.exit_kind]}') && has('confirmExit === open.id'), 'the control arms per row before it fires');
+cell(has('lost={EXIT_CONFIRM[open.exit_kind]}') && has('sub={EXIT_CONFIRM.restore}'), 'and the armed state renders the confirm SENTENCE, which is what the second press is reading');
+cell(has('setConfirmSend(null); setOpenId(p.id)') && has('setConfirmExit(null); setConfirmSend(p.id)'),
   'arming either control disarms the other — two armed confirms on one row is two different second presses');
 
 // ═══ 4 · EVERY RENDERED BYTE IS THE VETOED BYTE ════════════════════════════
 // Byte-exact. `approve all`, founder, 2026-08-11 — both rounds.
 section('4 · the copy book, byte for byte (founder-vetoed 「 approve all 」 2026-08-11)');
+// RE-PINNED BY LABEL (CE-47 note 1, ruled 2 Oct 2026, the founder delegated and confirmed): the
+// approved design's plain words supersede the August copy book. Same fifteen cells, new bytes.
 const BYTES = [
   ["delete:  'Delete',", 'button — Delete'],
-  ["discard: 'Discard',", 'button — Discard'],
-  ["restore: 'Restore',", 'button — Restore'],
-  ['Delete this prospect? This number has never been messaged — the row will be removed permanently.', 'confirm₁'],
-  ["Discard this prospect? They've already been messaged. The record stays, but the lane will never touch them again.", 'confirm₂'],
-  ["Restore this prospect? They'll return to the lane as cold — the next morning sweep can message them again.", 'restore confirm — names its consequence'],
-  ["delete:  'Prospect deleted.',", 'toast — deleted'],
-  ["discard: 'Prospect discarded.',", 'toast — discarded'],
-  ["restore: 'Prospect restored.',", 'toast — restored'],
-  ['Already messaged — discard instead of deleting.', 'refusal — already_contacted'],
-  ['This prospect has a conversation on file — discard instead of deleting.', 'refusal — has_conversation'],
-  ['A demo was built for this prospect — discard instead of deleting.', 'refusal — has_demo'],
-  ['This number was discarded. Restore it from the Discarded list to re-add.', 'refusal — already_discarded'],
-  ['This prospect is discarded — restore first if you want to message them.', 'refusal — discarded (send-opener)'],
-  ['They opted out — this row stays as the record of that.', 'refusal — opted_out_locked (F-05.68)'],
+  ["discard: 'Remove from the list',", 'button — Discard'],
+  ["restore: 'Put back on the list',", 'button — Restore'],
+  ['This number has never been messaged. The row is removed for good.', 'confirm₁'],
+  ['They have already been messaged. The record stays, but the morning send never messages them again.', 'confirm₂'],
+  ['They go back to waiting for the morning send, and it can message them again.', 'restore confirm — names its consequence'],
+  ["delete:  'Deleted.',", 'toast — deleted'],
+  ["discard: 'Removed from the list.',", 'toast — discarded'],
+  ["restore: 'Put back on the list.',", 'toast — restored'],
+  ['Already messaged. Remove them from the list instead of deleting.', 'refusal — already_contacted'],
+  ['There is a chat with this number. Remove them from the list instead of deleting.', 'refusal — has_conversation'],
+  ['A demo was made for this number. Remove them from the list instead of deleting.', 'refusal — has_demo'],
+  ['This number was removed. Put it back from the Removed list to add it again.', 'refusal — already_discarded'],
+  ['This number was removed. Put it back on the list first to message them.', 'refusal — discarded (send-opener)'],
+  ['They opted out. This row stays as the record of that.', 'refusal — opted_out_locked (F-05.68)'],
 ];
 for (const [b, label] of BYTES) cell(has(b), `${label} — verbatim`);
 cell(BYTES.length === 15, 'fifteen vendor-facing bytes, the closed copy book for this delivery');
@@ -147,9 +152,12 @@ section('6 · path 3 of six, at the screen');
 // SUBSTRING of the Converted button's longer condition one line below — so it
 // went green over a Send-opener button whose guard had been removed. It greened
 // on the wrong control. Both are now anchored to their own label.
-cell(has(`label="Send opener"`) && has("setConfirmSend(p.id); }} small disabled={p.state === 'opted_out' || p.state === 'discarded'}"),
+// LABELED AMENDMENT (ADM-1): the row actions are a strip; a control a row may not use is ABSENT
+// from it (stronger than disabled), through one named gate per control.
+cell(has("label: 'Send opener'") && has("const canSend = p.state !== 'opted_out' && p.state !== 'discarded';") && has('canSend && (confirmSend === p.id'),
   'SEND OPENER is disabled on a discarded row — the server typed-refuses it too, and the screen does not offer it first');
-cell(has(`label="Converted" onClick={() => markConverted(p)} small disabled={p.state === 'converted' || p.state === 'opted_out' || p.state === 'discarded'}`),
+// RE-PINNED BY LABEL (CE-47 note 1): the act reads "Mark signed up".
+cell(has("canMark && { label: 'Mark signed up', onClick: () => markConverted(p) }") && has("const canMark = p.state !== 'converted' && p.state !== 'opted_out' && p.state !== 'discarded';"),
   'and CONVERTED is disabled on one too — a discarded row is not a row you mark anything on');
 
 // ═══ SUMMARY ════════════════════════════════════════════════════════════════

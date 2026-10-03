@@ -134,7 +134,7 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
     }
   }
 
-  const title = kind === 'vendor' ? 'New vendor' : 'New couple';
+  const title = kind === 'vendor' ? 'New vendor' : 'New Dreamer';
 
   return (
     <BottomSheet visible={visible} title={title} onClose={() => { reset(); onClose(); }}>
@@ -213,7 +213,7 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
                 color: busy ? 'var(--atelier-ink-mute)' : 'var(--role-ink-on-metal)',
                 cursor: busy ? 'not-allowed' : 'pointer',
               }}
-            >{busy ? 'Working…' : (kind === 'vendor' ? 'Create vendor' : 'Create couple')}</button>
+            >{busy ? 'Working…' : (kind === 'vendor' ? 'Create vendor' : 'Make Dreamer account')}</button>
           </div>
         </div>
       ) : (
@@ -236,7 +236,7 @@ export default function MintSheet({ visible, kind, onClose, onMinted }: {
               marginBottom: 8,
             }}>
               {result.outcome === 'created'
-                ? (result.kind === 'vendor' ? 'Vendor created' : 'Couple created')
+                ? (result.kind === 'vendor' ? 'Vendor created' : 'Dreamer account made')
                 : 'Already on TDW'}
             </div>
             <div style={{

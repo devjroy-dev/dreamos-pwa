@@ -114,8 +114,16 @@ ok('1.2 it is the ONLY home — neither People page builds a wa.me literal',
   !/wa\.me/.test(MAKERS) && !/wa\.me/.test(DREAMERS),
   'a page is constructing its own link; two copies is FORK C refused');
 
+// LABELED AMENDMENTS §1.3, §4, §5 (ADM-1, CE-47 redesign, 1 Oct 2026): the People rows are now
+// drawn by the shared Kit (app/admin/_components/Kit.tsx): every person row carries WhatsApp and
+// Call through ONE Reach, and Reach reads waDialHref. The promises and cell counts are kept; the
+// anchors follow the affordance into its one home, and each lane is checked for passing the
+// row's own phone. The new "bare" path (prospects, claims, demo numbers) never runs for these two
+// lanes: a users.phone row without "+" still renders nothing (2.7 above).
+const KIT = stripComments(R('app/admin/_components/Kit.tsx'));
 ok('1.3 both People pages read that one home',
-  /import \{ waDialHref \}/.test(MAKERS) && /import \{ waDialHref \}/.test(DREAMERS));
+  /import \{ waDialHref \} from '@\/lib\/admin\/waDial'/.test(KIT)
+  && /import \{[^}]*PersonRow[^}]*\} from '\.\.\/_components\/Kit'/.test(MAKERS) && /import \{[^}]*PersonRow[^}]*\} from '\.\.\/_components\/Kit'/.test(DREAMERS));
 
 // The census CASE was `phone like '+%' AND digit_count > 10`. These two cells
 // pin each half of it in the source, so a widening cannot happen silently.
@@ -216,30 +224,26 @@ ok('3.4 it presents ActionChip\'s box — 44px tap target, same radius, centred'
 // ═══════════════════════════════════════════════════════════════════════════
 H('§4 · THE SEATING — both lanes, absent never dead');
 
-for (const [lane, SRC] of [['makers', MAKERS], ['dreamers', DREAMERS]]) {
+for (const [lane, SRC, row] of [['makers', MAKERS, 'v'], ['dreamers', DREAMERS, 'c']]) {
   ok(`4.1 ${lane} — the affordance is seated`,
-    /<ActionLink/.test(SRC));
+    /<PersonRow[^]*?phone=\{\w\.phone\}/.test(SRC) && /\{phone !== undefined && <Reach phone=\{phone\} bare=\{bare\} \/>\}/.test(KIT));
 
   ok(`4.2 ${lane} — through the primitive, never a raw anchor`,
     !/<a\s/.test(SRC),
     'an inline <a> is FORK C\'s refused arm — rel drifts when it has two homes');
 
-  // The absent-never-dead law. The link renders only inside a truthiness gate
-  // on the href, and carries no `disabled` state to fall back to.
   ok(`4.3 ${lane} — null href renders NOTHING, not a dead button`,
-    /href && \(/.test(SRC) && !/<ActionLink[^>]*disabled/.test(SRC),
+    /if \(!wa \|\| !tel\) return <span[^>]*>No number<\/span>;/.test(KIT) && !/bare/.test(SRC.match(/<PersonRow[\s\S]*?\/>/)?.[0] || ''),
     'an ungated ActionLink would render an href of "null" on a silent row');
 
   ok(`4.4 ${lane} — the founder byte is 'WhatsApp'`,
-    /label="WhatsApp"/.test(SRC));
+    /cell\(wa, 'wa', 'WhatsApp', C\.ok, true\)/.test(KIT));
 
   ok(`4.5 ${lane} — it reads the row's own phone, not a constant`,
-    /waDialHref\((v|c)\.phone\)/.test(SRC),
+    new RegExp(`phone=\\{${row}\\.phone\\}`).test(SRC) && /const direct = waDialHref\(phone\);/.test(KIT),
     'a hardcoded number here is F-05.24 reproduced on the admin plane');
 }
 
-// Persona names never appear in product chrome — the copy law, and this chip is
-// chrome the founder sees every day.
 ok('4.6 no persona name rides the new chrome',
   !/(Victor|Donna|Harvey|Mira|Eliza)/.test(MAKERS) && !/(Victor|Donna|Harvey|Mira|Eliza)/.test(DREAMERS));
 
@@ -250,35 +254,36 @@ H('§5 · CONTROL INVENTORY — this adds one and removes none (CE-115)');
 // read-first inventoried on both row components is named here BY ITS OWN BYTES,
 // so a future edit that quietly drops one reds this bench instead of shipping.
 const MAKER_CONTROLS = [
-  ['row header tap-to-expand', /onClick=\{\(\) => toggleOpen\(v\.id\)\}/],
+  ['row header tap-to-expand', /onOpen=\{\(\) => openCard\(v\.id\)\}/],
   ['tier buttons', /TIERS\.map\(t => \(/],
   ['Hide\\/Add to Discover', /label=\{v\.discover_eligible \? 'Hide from Discover' : 'Add to Discover'\}/],
-  ['Send welcome', /label="Send welcome"/],
-  ['Send welcome tap-to-confirm', /label=\{welcomeBusy === v\.id \? 'Sending…' : 'Tap again to send on WhatsApp'\}/],
-  ['Delete', /label="Delete"/],
-  ['Delete tap-to-confirm', /label="Tap again to delete permanently"/],
-  ['search field', /<FieldInput label="Search"/],
-  ['tier filter pills', /\['all', \.\.\.TIERS\]\.map/],
-  ['\\+ New mint door', /label="\+ New"/],
+  ['Send welcome', /label="Send welcome message"/],   // RE-PINNED BY LABEL (CE-47 note 1)
+  ['Send welcome tap-to-confirm', /'Tap again to send on WhatsApp'/],
+  ['Delete', /<DangerLast label="Delete vendor"/],
+  ['Delete tap-to-confirm', /confirmWord="Yes, delete"/],
+  ['search field', /<SearchField value=\{search\}/],
+  ['tier filter pills', /\.\.\.TIERS\.map\(t => \(\{ key: t, label: PLAN\[t\] \}\)\)/],
+  ['\\+ New mint door', />\+ New vendor</],
 ];
 let mi = 0;
 for (const [name, re] of MAKER_CONTROLS) ok(`5.${++mi} makers KEPT — ${name}`, re.test(MAKERS));
 
 const DREAMER_CONTROLS = [
-  ['row header tap-to-expand', /onClick=\{\(\) => toggleOpen\(c\.id\)\}/],
+  ['row header tap-to-expand', /onOpen=\{\(\) => openCard\(c\.id\)\}/],
   ['tier buttons', /TIERS\.map\(t => \(/],
-  ['Delete', /label="Delete"/],
-  ['Delete tap-to-confirm', /label="Tap again to delete permanently"/],
-  ['search field', /<FieldInput label="Search"/],
-  ['\\+ New mint door', /label="\+ New"/],
+  ['Delete', /<DangerLast label="Delete Dreamer"/],
+  ['Delete tap-to-confirm', /confirmWord="Yes, delete"/],
+  ['search field', /<SearchField value=\{search\}/],
+  ['\\+ New mint door', />\+ New Dreamer</],
 ];
 let di = 0;
 for (const [name, re] of DREAMER_CONTROLS) ok(`5.${mi + ++di} dreamers KEPT — ${name}`, re.test(DREAMERS));
 
-// The other half of "adds one": exactly one, not two.
+// The other half of "adds one": exactly one, not two (now: one PersonRow per list, one Reach in it).
 ok('5.x exactly one ActionLink per row component',
-  (MAKERS.match(/<ActionLink/g) || []).length === 1
-  && (DREAMERS.match(/<ActionLink/g) || []).length === 1);
+  (MAKERS.match(/<PersonRow/g) || []).length === 1
+  && (DREAMERS.match(/<PersonRow/g) || []).length === 1
+  && (KIT.match(/<Reach /g) || []).length === 1);
 
 // ── control: the cells above CAN fail ──────────────────────────────────────
 ok('5.y control — a control that never existed is not found',

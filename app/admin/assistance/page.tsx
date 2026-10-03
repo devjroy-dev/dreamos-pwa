@@ -15,6 +15,7 @@ import { formatRs } from '@/lib/vendor/format';
 import {
   PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, FilterPills, SectionDivider, BottomSheet, LoadingGrid, StatCard,
 } from '../_components/AdminUI';
+import { PageHead, Pill, RouteTabs, fullDate, clock } from '../_components/Kit';
 import {
   listAssistance, getAssistance, searchAssistVendors, forwardToVendor, forwardToProspect, closeAssistance, createAssistanceTyped,
   type AssistRequestRow, type AssistDetail, type AssistStatus, type AssistVendorTarget,
@@ -25,8 +26,8 @@ const CATEGORY_WORD: Record<string, string> = Object.fromEntries(ASSIST_ROWS.map
 const word = (c: string) => CATEGORY_WORD[c] || c;
 // formatRs already carries the `Rs ` prefix (lib/vendor/format.ts CURRENCY_PREFIX) — F-41.28.
 const rs = (n: number | null | undefined) => (n === null || n === undefined ? 'Rs —' : formatRs(n));
-const when = (iso: string) => { const d = new Date(iso); return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }); };
-const dateWord = (iso: string | null) => { if (!iso) return 'date TBD'; const d = new Date(iso + 'T00:00:00'); return isNaN(d.getTime()) ? iso : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); };
+const when = (iso: string) => `${fullDate(iso, false)} · ${clock(iso)}`;
+const dateWord = (iso: string | null) => { if (!iso) return 'date not set'; const d = new Date(iso + 'T00:00:00'); return isNaN(d.getTime()) ? iso : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }); };
 
 // F-41.27: the door's named refusals in the founder's words; anything else is the server's sentence.
 const REFUSAL_WORDS: Record<string, string> = {
@@ -146,7 +147,8 @@ export default function AssistancePage() {
 
   return (
     <div style={{ padding: '0 0 80px' }}>
-      <PageHeader title="Assistance requests" sub="Couples who asked The Dream Wedding to find and book their vendors." action={<GoldBtn label="+ Type a request" onClick={() => setTyped(true)} small />} />
+      <PageHead title="Dreamers" sub="Dreamers who asked The Dream Wedding to find and book their vendors" action={<Pill onClick={() => setTyped(true)}>+ Type a request</Pill>} />
+      <RouteTabs active="/admin/assistance" items={[{ href: '/admin/dreamers', label: 'All' }, { href: '/admin/assistance', label: 'Asked for help', n: rows ? rows.length : null }]} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 8 }}>
         <StatCard label="Open" value={counts.open ?? 0} sub="not yet forwarded" accent />
@@ -162,7 +164,7 @@ export default function AssistancePage() {
       ) : rows.map(r => (
         <div key={r.id} onClick={() => open(r.id)} style={{ padding: '14px 16px', marginTop: 10, borderRadius: 10, background: T.card, border: `0.5px solid ${T.border}`, cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 500, color: T.ink }}>{r.name || (r.origin === 'admin' ? 'Typed by admin' : 'A couple')} · {r.phone}</div>
+            <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 500, color: T.ink }}>{r.name || (r.origin === 'admin' ? 'Typed by admin' : 'A Dreamer')} · {r.phone}</div>
             <div style={{ fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: statusInk[r.status], alignSelf: 'center' }}>{r.status}</div>
           </div>
           <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginTop: 3 }}>{dateWord(r.wedding_date)} · {r.city || 'city not given'}{r.area ? ` · ${r.area}` : ''} · asked {when(r.created_at)}</div>
@@ -170,7 +172,7 @@ export default function AssistancePage() {
         </div>
       ))}
 
-      <BottomSheet visible={!!sel} onClose={() => setSel(null)} title={sel ? `${sel.request.name || 'A couple'} · ${sel.request.phone}` : ''}>
+      <BottomSheet visible={!!sel} onClose={() => setSel(null)} title={sel ? `${sel.request.name || 'A Dreamer'} · ${sel.request.phone}` : ''}>
         {sel && <Detail detail={sel} fanout={fanout} onChanged={refreshSel} onToast={setToast} onClose={() => setSel(null)} />}
       </BottomSheet>
 

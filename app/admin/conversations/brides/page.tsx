@@ -74,7 +74,7 @@ export default function BrideConversationsPage() {
 
   return (
     <div>
-      <PageHeader title="Bride Chats" sub="Bride conversations with DreamAi" />
+      <PageHeader title="Dreamer chats" sub="Dreamers talking to the assistant" />
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
@@ -99,7 +99,7 @@ export default function BrideConversationsPage() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.bride_name}</div>
-                    <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.soft, letterSpacing: '0.1em' }}>{t.wedding_city || 'City TBD'}{t.wedding_date ? ` · ${new Date(t.wedding_date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}` : ''}</div>
+                    <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.soft, letterSpacing: '0.1em' }}>{t.wedding_city || 'City not set'}{t.wedding_date ? ` · ${new Date(t.wedding_date).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}` : ''}</div>
                   </div>
                   <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.muted, flexShrink: 0 }}>{timeAgo(t.last_message_at)}</div>
                   <span style={{ color: T.soft, fontSize: 13, transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 180ms', flexShrink: 0 }}>›</span>

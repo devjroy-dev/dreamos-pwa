@@ -167,7 +167,7 @@ function VendorPortfolioInner() {
 
   return (
     <div>
-      <PageHeader title="Vendor Portfolio" sub="Upload photos on behalf of any vendor — auto-approved, feeds the discover grid" />
+      <PageHeader title="Upload photos for a vendor" sub="Upload photos on behalf of any vendor — auto-approved, feeds the discover grid" />
 
       {/* Vendor picker */}
       <div style={{ marginBottom: 24 }}>

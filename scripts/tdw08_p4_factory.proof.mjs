@@ -131,16 +131,17 @@ okMutate('§M.4 §2.4 reds if the funnel starts reading the current state', PAGE
 // ═════════════════════════════════════════════════════════════════════════════
 H('§3 · C5 — THE MONEY REGISTER ON THE OPERATOR\'S OWN SCREEN');
 
+// RE-PINNED BY LABEL (CE-47 note 1, 2 Oct 2026): the plain-word design writes the range with "to".
 ok('§3.1 the frozen byte is on the rate field',
-  /placeholder="Rs 50,000 – Rs 2,00,000"/.test(code(PAGE)));
+  /placeholder="Rs 50,000 to Rs 2,00,000"/.test(code(PAGE)));
 ok('§3.2 no k/L/Cr form survives in the executable text',
   !/Rs ?\d+ ?[KLkl]\b/.test(code(PAGE)) && !/\d ?Cr\b/.test(code(PAGE)));
 ok('§3.3 and the rupee glyph never enters this surface',
   !/₹/.test(code(PAGE)));
 
 okMutate('§M.5 §3.1 reds if the register slips back', PAGE,
-  'placeholder="Rs 50,000 – Rs 2,00,000"', 'placeholder="Rs 50K – Rs 2L"',
-  () => assert.ok(/placeholder="Rs 50,000 – Rs 2,00,000"/.test(code(PAGE))), '§3.1');
+  'placeholder="Rs 50,000 to Rs 2,00,000"', 'placeholder="Rs 50K to Rs 2L"',
+  () => assert.ok(/placeholder="Rs 50,000 to Rs 2,00,000"/.test(code(PAGE))), '§3.1');
 
 // ═════════════════════════════════════════════════════════════════════════════
 H('§4 · F-08.36 — THE RULED INVITE PATH FINALLY HAS A DOOR');
@@ -153,11 +154,12 @@ ok('§4.3 the batch door exists and calls the bounded route',
   /\/api\/v2\/admin\/demo\/invite-batch/.test(code(PAGE)));
 ok('§4.4 the invite is confirmed before a real template is spent',
   /window\.confirm\(`Send the demo invite/.test(code(PAGE)));
+// RE-PINNED BY LABEL (CE-47 note 1): no long dash; the detail follows a colon.
 ok('§4.5 the route\'s OWN error is shown, never flattened to "Failed."',
-  /showToast\(`\$\{d\.error\}\$\{d\.detail \? ` — \$\{d\.detail\}` : ''\}`, true\)/.test(code(PAGE)));
+  /showToast\(`\$\{d\.error\}\$\{d\.detail \? `: \$\{d\.detail\}` : ''\}`, true\)/.test(code(PAGE)));
 
 okMutate('§M.6 §4.5 reds if a refusal is flattened into a generic failure', PAGE,
-  "        showToast(`${d.error}${d.detail ? ` — ${d.detail}` : ''}`, true);",
+  "        showToast(`${d.error}${d.detail ? `: ${d.detail}` : ''}`, true);",
   "        showToast('Failed.', true);",
   () => assert.ok(/showToast\(`\$\{d\.error\}/.test(code(PAGE))), '§4.5');
 

@@ -111,8 +111,12 @@ sec('§2 · F-07.84 — the devtools bypass is dead at BOTH gates');
   // gate satisfies on its own — it would have stayed green with every sign-out
   // control deleted. That is the vacuity this amendment closes: the cell now
   // demands the handler hang on a control that carries the accessible name.
+  // LABELED AMENDMENT (ADM-1, CE-47 redesign, 1 Oct 2026): sign-out moved from the shell's two
+  // power glyphs to one plain "Sign out" row in More (the approved structure). The property is
+  // unchanged and still asserted at the CONTROL, so the auth gate alone cannot satisfy it.
+  const more = stripComments(read('app/admin/more/page.tsx'));
   ok('§2.3 sign-out clears the real session — asserted at the CONTROL, both seats',
-     (layout.match(/clearAdminSession\(\); router\.replace\('\/admin\/login'\)[\s\S]{0,400}?aria-label="Sign out"/g) || []).length === 2);
+     (more.match(/onClick=\{\(\) => \{ clearAdminSession\(\); router\.replace\('\/admin\/login'\); \}\}[\s\S]{0,500}?Sign out/g) || []).length === 1);
 
   const dh = stripComments(read('app/admin/discover-heroes/page.tsx'));
   ok('§2.4 THE SECOND READER: discover-heroes no longer reads the boolean',

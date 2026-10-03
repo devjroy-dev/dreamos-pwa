@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, GoldBtn, GhostBtn, Toast, FieldInput, SectionDivider } from '../_components/AdminUI';
+import { Sheet, DangerLast } from '../_components/Kit';
 import { getHotDates, addHotDate, deleteHotDate, type HotDate } from '../../../lib/admin-api/index';
 
 function fmtDate(d: string) {
@@ -44,16 +45,18 @@ export default function HotDatesPage() {
     catch { showToast('Failed.', true); }
   };
 
+  // ADM-1 (CE-47 change 1): the row opens the date's card; Delete is its last item and asks again.
   const DelBtn = ({ id }: { id: string }) => (
-    <button onClick={() => confirmId === id ? remove(id) : setConfirmId(id)} style={{ background: confirmId === id ? T.dangerSoft : 'transparent', border: confirmId === id ? `0.5px solid ${T.danger}` : 'none', borderRadius: 8, color: T.danger, fontFamily: T.ff.label, fontWeight: 600, fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase' as const, padding: '8px 12px', minHeight: 44, cursor: 'pointer' }}>{confirmId === id ? 'Confirm?' : 'Del'}</button>
+    <button onClick={() => setConfirmId(id)} style={{ background: 'transparent', border: 'none', borderRadius: 8, color: T.soft, fontFamily: T.ff.body, fontSize: 13, padding: '0 12px', minHeight: 44, minWidth: 44, cursor: 'pointer' }}>More</button>
   );
+  const picked = dates.find(d => d.id === confirmId) || null;
 
   const upcoming = dates.filter(d => new Date(d.date) >= new Date());
   const past     = dates.filter(d => new Date(d.date) < new Date());
 
   return (
     <div>
-      <PageHeader title="Hot Dates" sub="Vivah Muhurat & auspicious wedding dates" action={<GoldBtn label={showAdd ? 'Close' : 'Add Date'} onClick={() => setShowAdd(s => !s)} />} />
+      <PageHeader title="Auspicious dates" sub="Vivah muhurat dates shown in the app" action={<GoldBtn label={showAdd ? 'Close' : 'Add Date'} onClick={() => setShowAdd(s => !s)} />} />
 
       {/* Add form — inline, no sheet */}
       {showAdd && (
@@ -109,6 +112,11 @@ export default function HotDatesPage() {
       )}
 
       {toast && <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />}
+      {picked && (
+        <Sheet title={fmtDate(picked.date)} sub={[picked.label, picked.region].filter(Boolean).join(' · ')} onClose={() => setConfirmId(null)}>
+          <DangerLast label="Delete this date" lost="It stops showing in the app. Cannot be undone; you can add it again." confirmWord="Yes, delete" onConfirm={() => remove(picked.id)} />
+        </Sheet>
+      )}
     </div>
   );
 }

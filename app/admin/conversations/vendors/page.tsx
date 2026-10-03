@@ -82,7 +82,7 @@ export default function VendorConversationsPage() {
 
   return (
     <div>
-      <PageHeader title="Vendor Chats" sub="WhatsApp + PWA conversations with the agent" />
+      <PageHeader title="Vendor chats" sub="WhatsApp + PWA conversations with the agent" />
 
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>

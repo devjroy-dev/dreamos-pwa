@@ -12,12 +12,16 @@ export type AdminVendor = {
   city: string | null; tier: string; status: string;
   founding_cohort: boolean; discover_eligible: boolean;
   discover_request_state: string; created_at: string;
+  // WEB-4 cut 8 (dream-os 573e5fa): the users row's id. Optional so the screen is right
+  // before and after that door carries it; ADM-1's "also a Dreamer" line reads it.
+  user_id?: string | null;
 };
 
 export type AdminCouple = {
   id: string; name: string; phone: string; wedding_date: string | null;
   wedding_city: string | null; tier: string; planning_state: string;
   muse_saves: number; circle_members: number; created_at: string;
+  user_id?: string | null; // WEB-4 cut 8, as on AdminVendor
 };
 
 export type ConfigRow = {

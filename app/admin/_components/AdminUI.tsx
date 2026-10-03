@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactNode, DragEvent as ReactDragEvent } from 'react';
 import { TYPE_ROLE } from '@/lib/worklist/theme';
+import { Sheet, SheetRow, DangerLast } from './Kit';
 
 const EASE = 'cubic-bezier(0.22,1,0.36,1)';
 
@@ -669,18 +670,19 @@ export function ImageGrid({ items, onToggle, onDelete }: {
 
   return (
     <>
-      {confirmId && (
-        <div onClick={() => setConfirmId(null)} style={{ position:'fixed', inset:0, background:'var(--atelier-overlay)', zIndex:400, display:'flex', alignItems:'center', justifyContent:'center', padding:24, backdropFilter:'blur(8px)' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background:'var(--atelier-sheet-bg)', border:`0.5px solid ${T.border}`, borderRadius:18, padding:28, maxWidth:320, width:'100%' }}>
-            <div style={{ fontFamily:T.ff.display, fontStyle:'italic', fontSize:22, color:T.ink, marginBottom:8 }}>Delete image?</div>
-            <div style={{ fontFamily:T.ff.body, fontSize:13, color:T.soft, marginBottom:24, lineHeight:1.6 }}>This also removes it from Cloudinary. Cannot be undone.</div>
-            <div style={{ display:'flex', gap:10 }}>
-              <GhostBtn label="Cancel" onClick={() => setConfirmId(null)} />
-              <GhostBtn label="Delete" onClick={() => { onDelete(confirmId); setConfirmId(null); }} danger />
-            </div>
-          </div>
-        </div>
-      )}
+      {confirmId && (() => {
+        // ADM-1 (CE-47 change 1): the picture's own card. Delete is its last item and asks again;
+        // the tile itself carries no destructive action.
+        const it = items.find(x => x.id === confirmId);
+        if (!it) return null;
+        return (
+          <Sheet title="Picture" sub={it.caption || (it.active ? 'Shown in the app' : 'Hidden from the app')} onClose={() => setConfirmId(null)}>
+            <SheetRow label={it.active ? 'Hide from the app' : 'Show in the app'} onClick={() => { onToggle(it.id, it.active); setConfirmId(null); }} />
+            <DangerLast label="Delete picture" lost="Removes it from the app and from the picture store (Cloudinary). Cannot be undone." confirmWord="Yes, delete"
+              onConfirm={() => { onDelete(it.id); setConfirmId(null); }} />
+          </Sheet>
+        );
+      })()}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:12 }}>
         {items.map(item => (
           <div key={item.id} style={{ background:T.card, border:`0.5px solid ${item.active ? T.borderStrong : T.border}`, borderRadius:13, overflow:'hidden', opacity:item.active ? 1 : 0.45, transition:`all 200ms ${EASE}` }}>
@@ -696,11 +698,11 @@ export function ImageGrid({ items, onToggle, onDelete }: {
             {item.caption && <div style={{ padding:'8px 10px 4px', fontFamily:T.ff.body, fontSize:11, color:T.soft }}>{item.caption}</div>}
             {item.extra && <div style={{ padding:'4px 10px' }}>{item.extra}</div>}
             <div style={{ display:'flex', borderTop:`0.5px solid ${T.border}` }}>
-              <button onClick={() => onToggle(item.id, item.active)} style={{ flex:1, padding:'11px 0', background:'transparent', border:'none', borderRight:`0.5px solid ${T.border}`, fontFamily:T.ff.label, fontSize:8, letterSpacing:'0.18em', textTransform:'uppercase', color:item.active ? T.gold : T.soft, minHeight:42, cursor:'pointer', transition:`color 150ms ${EASE}` }}>
-                {item.active ? 'Deactivate' : 'Activate'}
+              <button onClick={() => onToggle(item.id, item.active)} style={{ flex:1, padding:'11px 0', background:'transparent', border:'none', borderRight:`0.5px solid ${T.border}`, fontFamily:T.ff.label, fontSize:8, letterSpacing:'0.18em', textTransform:'uppercase', color:item.active ? T.gold : T.soft, minHeight:44, cursor:'pointer', transition:`color 150ms ${EASE}` }}>
+                {item.active ? 'Hide' : 'Show'}
               </button>
-              <button onClick={() => setConfirmId(item.id)} style={{ flex:1, padding:'11px 0', background:'transparent', border:'none', fontFamily:T.ff.label, fontSize:8, letterSpacing:'0.18em', textTransform:'uppercase', color:T.danger, minHeight:42, cursor:'pointer' }}>
-                Delete
+              <button onClick={() => setConfirmId(item.id)} style={{ flex:1, padding:'11px 0', background:'transparent', border:'none', fontFamily:T.ff.body, fontSize:13, color:T.soft, minHeight:44, cursor:'pointer' }}>
+                More
               </button>
             </div>
           </div>

@@ -1,4 +1,7 @@
 'use client';
+// ADM-1 · DEMO PROFILES, redrawn. Every door and handler is unchanged. Tabs: Profiles, Claimed,
+// Enquiries, Progress. Rows carry Send invite, Show or Hide on Discover, More, WhatsApp and Call;
+// the card holds the link, sample enquiries and, last, Switch off (asks again, CE-47 change 1).
 // app/admin/demo/page.tsx
 // Admin: the demo factory — build, board, bulk, invite, funnel.
 //
@@ -26,10 +29,8 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { adminHeaders } from '@/lib/admin-api/_base';
 import { photoFloor } from '@/lib/vendor/discoverFloor';
-import {
-  PageHeader, T, GoldBtn, GhostBtn, Toast,
-  FieldInput, FieldSelect,
-} from '../_components/AdminUI';
+import { T, Toast, FieldInput, FieldSelect } from '../_components/AdminUI';
+import { C, F, PageHead, Pill, Tabs, Chips, CountLine, List, Empty, Group, PersonRow, ActionStrip, Sheet, SheetRow, SheetNote, DangerLast, when, fullDate, cap } from '../_components/Kit';
 
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://dream-os-production.up.railway.app';
 
@@ -109,7 +110,7 @@ async function uploadToCloudinary(file: File): Promise<{ url: string; cloudinary
 }
 
 function fmt(d: string) {
-  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
+  return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 // AGE IN DAYS, from the stamp that belongs to the row's OWN state where one
@@ -148,6 +149,8 @@ const MOCK_LEADS = [
 // funnel deliberately does not, because a row that was never invited is not a
 // conversion failure.
 const FUNNEL = ['built', 'invited', 'opened', 'engaged', 'claimed'];
+const FUNNEL_WORD: Record<string, string> = { built: 'Made', invited: 'Invited', opened: 'Opened the link', engaged: 'Talking', claimed: 'Claimed' };
+const DEMO_STATE_WORD: Record<string, string> = { created: 'Not invited yet', invited: 'Invited', opened: 'Opened the link', engaged: 'Talking', claimed: 'Claimed', expired: 'Expired', legacy: 'Made before invites' };
 const FUNNEL_STAMP: Record<string, keyof DemoVendor | null> = {
   built: null, invited: 'invited_at', opened: 'opened_at', engaged: 'engaged_at', claimed: 'claimed_at',
 };
@@ -292,14 +295,14 @@ export default function DemoAdminPage() {
 
   async function handleBulk() {
     const demos = parseBulk(bulkText);
-    if (demos.length === 0) { showToast('Nothing to build — check the paste.', true); return; }
+    if (demos.length === 0) { showToast('Nothing to build. Check the paste.', true); return; }
     setBulkBusy(true); setBulkResult([]);
     try {
       const d = await adminFetch('/api/v2/admin/demo/bulk', { method: 'POST', body: JSON.stringify({ demos }) });
       if (!d.ok) { showToast(d.error || 'Bulk failed.', true); setBulkBusy(false); return; }
       const lines: string[] = [`Built ${d.insertedCount} · already on file ${d.skippedCount} · refused ${d.failedCount}`];
-      for (const f of (d.failed || [])) lines.push(`refused — ${f.ig_handle || 'row'}: ${f.error}${f.detail ? ` (${f.detail})` : ''}`);
-      for (const s of (d.skipped || [])) lines.push(`already on file — ${s}`);
+      for (const f of (d.failed || [])) lines.push(`Refused, ${f.ig_handle || 'row'}: ${f.error}${f.detail ? ` (${f.detail})` : ''}`);
+      for (const s of (d.skipped || [])) lines.push(`Already on file: ${s}`);
       setBulkResult(lines);
       showToast(`Built ${d.insertedCount}.`);
       load();
@@ -312,7 +315,7 @@ export default function DemoAdminPage() {
       const d = await adminFetch(`/api/v2/admin/demo/vendors/${id}`, { method: 'DELETE' });
       if (!d.ok) { showToast('Failed.', true); return; }
       setVendors(v => v.map(x => x.id === id ? { ...x, active: false } : x));
-      showToast('Deactivated.');
+      showToast('Switched off.');
     } catch { showToast('Failed.', true); }
   }
 
@@ -338,9 +341,9 @@ export default function DemoAdminPage() {
         // The route's own error names the cause; it is shown rather than
         // flattened, because "Failed." would hide a shared-handset refusal that
         // the founder can act on.
-        showToast(`${d.error}${d.detail ? ` — ${d.detail}` : ''}`, true);
+        showToast(`${d.error}${d.detail ? `: ${d.detail}` : ''}`, true);
       } else {
-        showToast(`Invite sent to ${v.display_name}.${d.prospect_linked ? '' : ' Linkage did not land — check the log.'}`);
+        showToast(`Invite sent to ${v.display_name}.${d.prospect_linked ? '' : ' The number did not link to a prospect; check the log.'}`);
         load();
       }
     } catch { showToast('Invite failed.', true); }
@@ -379,7 +382,7 @@ export default function DemoAdminPage() {
         count++;
       } catch { /* skip individual failures */ }
     }
-    showToast(`Seeded ${count} leads for ${vendor.display_name}.`);
+    showToast(`Added ${count} sample enquiries to ${vendor.display_name}.`);
     setBusy(''); load();
   }
 
@@ -426,396 +429,221 @@ export default function DemoAdminPage() {
   }, [vendors]);
 
   const label = { fontFamily: T.ff.label, fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase' as const };
-
-  return (
-    <div style={{ padding: '0 0 60px' }}>
-      {/* FORK 2(D): mounted UNCONDITIONALLY. Visibility is the message prop
-          now, so the component's own timer is keyed on message identity rather
-          than on this arrow's identity. The conditional mount is what let an
-          unrelated re-render tear the timer down and re-arm it. */}
-      <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />
-
-      <PageHeader
-        title="Demo Profiles"
-        sub="Vendor demo links for outreach. No auth — handle is identity."
-        action={<GoldBtn label={showCreate ? 'Close' : '+ Create Demo'} onClick={() => { if (showCreate) { setShowCreate(false); resetCreateForm(); } else { setShowCreate(true); setShowBulk(false); } }} />}
-      />
-
-      {/* Create Demo form — inline, no sheet */}
-      {showCreate && (
-        <div style={{ margin: '0 24px 24px', background: T.card, border: `0.5px solid ${T.borderStrong}`, borderRadius: 14, padding: 20 }}>
-          <p style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, color: T.gold, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 16 }}>Create Demo Profile</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {/* V1, founder-vetoed and frozen at the BYTE: `Required`. These are
-                THE FOUR the pre-flight refuses on, and nothing in this form said
-                so — the only signal was the failure itself, delivered by a toast
-                the two F-08.42 limbs had broken. The mark and the message are
-                the same rule stated twice, before and after the press.
-                `FieldSelect` gained its hint slot for the third of them. */}
-            <FieldInput label="IG Handle (becomes URL)" value={igHandle} onChange={setIgHandle} placeholder="makeupbyswatiroy" hint="Required" />
-            <FieldInput label="Display Name" value={dispName} onChange={setDispName} placeholder="Swati Tomar" hint="Required" />
-            <FieldSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES} hint="Required" />
-            <FieldInput label="City" value={city} onChange={setCity} placeholder="Delhi" hint="Required" />
-            <FieldInput label="WhatsApp Number" value={waPhone} onChange={setWaPhone} placeholder="+919888294440" />
-            {/* C5 — the register. "Rs", grouped Indian, never the glyph and never
-                a k/L/Cr form (lib/vendor/format.ts, Rule V7). The old hint read
-                "Rs 50K – Rs 2L" and it came from 0057_demo_system.sql's DDL
-                comment, which also carries the ₹ glyph and cannot be edited now
-                the migration has run — the code is the only place it can be fixed. */}
-            <FieldInput label="Rate Display" value={rateDisplay} onChange={setRateDisplay} placeholder="Rs 50,000 – Rs 2,00,000" />
-            <div>
-              <div style={{ ...label, letterSpacing: '0.18em', color: T.soft, marginBottom: 8 }}>About</div>
-              <textarea value={about} onChange={e => setAbout(e.target.value)} placeholder="Short bio…" rows={3}
-                style={{ width: '100%', background: 'var(--atelier-row-hover)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: T.ff.body, fontSize: 13, color: T.ink, resize: 'vertical' as const, outline: 'none' }} />
-            </div>
-            <div>
-              {/* C3 — the floor is the server's number. */}
-              <div style={{ ...label, letterSpacing: '0.18em', color: T.soft, marginBottom: 8 }}>
-                Photos ({photos.length} · min {floor} · tap to set hero)
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const, marginBottom: 10 }}>
-                {photos.map((p, i) => (
-                  <div key={i} style={{ position: 'relative', width: 72, height: 72 }}>
-                    <img src={p.url} alt="" onClick={() => setHero(i)} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: p.is_hero ? `2px solid ${T.gold}` : `0.5px solid ${T.border}`, cursor: 'pointer' }} />
-                    {p.is_hero && <div style={{ position: 'absolute', top: 3, left: 3, background: T.gold, borderRadius: 4, padding: '1px 5px', fontFamily: T.ff.label, fontSize: 7, color: T.onAccent }}>HERO</div>}
-                    <button onClick={() => removePhoto(i)} style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: 9, background: T.danger, border: 'none', color: 'var(--atelier-card-bg)', fontSize: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-                  </div>
-                ))}
-              </div>
-              {/* The `photos.length < 10` hide is DELETED, not raised. The ceiling
-                  is the server's and this screen holds no opinion about it. */}
-              <label style={{ display: 'inline-block', background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '8px 16px', ...label, color: uploading ? T.muted : T.soft, cursor: uploading ? 'not-allowed' : 'pointer' }}>
-                {uploading ? 'Uploading…' : '+ Add Photo'}
-                <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={uploading} style={{ display: 'none' }} />
-              </label>
-            </div>
-            <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
-              <GhostBtn label="Cancel" onClick={() => { setShowCreate(false); resetCreateForm(); }} />
-              <GoldBtn label={creating ? 'Creating…' : 'Create Demo'} onClick={handleCreate} disabled={creating || uploading} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bulk build */}
-      <div style={{ padding: '0 24px 16px' }}>
-        <GhostBtn label={showBulk ? 'Close bulk build' : 'Bulk build from a sheet'} small onClick={() => { setShowBulk(!showBulk); setShowCreate(false); }} />
-      </div>
-      {showBulk && (
-        <div style={{ margin: '0 24px 24px', background: T.card, border: `0.5px solid ${T.borderStrong}`, borderRadius: 14, padding: 20 }}>
-          <p style={{ fontFamily: T.ff.label, fontWeight: 600, fontSize: 10, color: T.gold, letterSpacing: '0.16em', textTransform: 'uppercase' as const, marginBottom: 10 }}>Bulk Build</p>
-          <p style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, marginBottom: 12, lineHeight: 1.6 }}>
-            One demo per line, tab-separated:<br />
-            <code style={{ fontFamily: 'monospace', fontSize: 11, color: T.gold }}>handle · name · category · city · phone · rate · about · photo URLs (space-separated)</code><br />
-            Paste photo URLs yourself — there is no Instagram fetch. Rows already on file are skipped, so a corrected sheet can be re-uploaded whole.
-          </p>
-          <textarea value={bulkText} onChange={e => setBulkText(e.target.value)} rows={6}
-            placeholder={'swatimakeup\tSwati Tomar\tmakeup\tDelhi\t+919888294440\tRs 50,000 – Rs 2,00,000\tBridal specialist\thttps://… https://…'}
-            style={{ width: '100%', background: 'var(--atelier-row-hover)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '10px 14px', fontFamily: 'monospace', fontSize: 12, color: T.ink, resize: 'vertical' as const, outline: 'none' }} />
-          <div style={{ display: 'flex', gap: 10, paddingTop: 12, alignItems: 'center' }}>
-            <GoldBtn label={bulkBusy ? 'Building…' : `Build ${parseBulk(bulkText).length} demos`} onClick={handleBulk} disabled={bulkBusy} />
-          </div>
-          {bulkResult.length > 0 && (
-            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {bulkResult.map((l, i) => (
-                <div key={i} style={{ fontFamily: T.ff.body, fontSize: 12, color: i === 0 ? T.ink : T.soft }}>{l}</div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 8, padding: '0 24px 20px', flexWrap: 'wrap' as const }}>
-        {(['board', 'funnel', 'leads', 'claims'] as Tab[]).map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? T.gold : T.card, border: `0.5px solid ${tab === t ? T.gold : T.border}`, borderRadius: 10, padding: '7px 16px', fontFamily: T.ff.label, fontWeight: 600, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: tab === t ? T.onAccent : T.soft, cursor: 'pointer' }}>
-            {t === 'board' ? `Board (${vendors.length})` : t === 'funnel' ? 'Funnel' : t === 'leads' ? `Leads (${leads.length})` : `Claims (${claims.length})`}
-          </button>
-        ))}
-      </div>
-
-      {/* THE LIFECYCLE BOARD */}
-      {tab === 'board' && (
-        <div style={{ padding: '0 24px' }}>
-          {loading
-            ? <div style={{ ...label, color: T.soft, fontSize: 10, padding: 20 }}>Loading…</div>
-            : vendors.length === 0
-            ? <div style={{ color: T.soft, fontFamily: T.ff.body, fontSize: 14, padding: 20 }}>No demo profiles yet. Create one above.</div>
-            : (
-            <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 12 }}>
-              {columns.map(([state, rows]) => {
-                // ── F-08.39, PRESENTATION LIMB (CE-ruled (c), both limbs) ──
-                // `active` joins the filter. The route refuses an inactive demo
-                // because its public landing does not render (the MECHANISM
-                // limb, at _inviteOne); this filter is why the founder never
-                // meets that refusal at a control that looked armed.
-                // NEITHER LIMB STANDS ALONE — the same two-layer shape the photo
-                // floor was ruled into this sitting: the server owns the rule,
-                // the surface renders it and holds no opinion of its own.
-                //
-                // ── F-08.45 (CE-ruled 3-ii) ─ ONE PREDICATE, TWO CALL SITES ────
-                // THIS FILTER AND THE PER-CARD BUTTON USED TO BE TWO HAND-WRITTEN
-                // EXPRESSIONS AND THEY DRIFTED. `!linkage_held_by` was here and
-                // absent there, so a row whose linkage is held elsewhere drew a
-                // red border and a `linked to @X` badge beside an ARMED Send
-                // invite that the route answers 409 `shared_handset`. The
-                // archaeology: the concept entered this file at four sites in one
-                // commit and did not reach the fifth; the later commit that
-                // edited BOTH limbs added `active` to each and closed nothing.
-                // `canSend` is now the only place either question is asked.
-                //
-                // THE STATE TERM IS THE SERVER'S (FORK 3(c)). `built`/`legacy`
-                // was typed here twice; it is `demoLifecycle.INVITE_STATES`,
-                // shipped on the list payload beside `states` and the photo
-                // floor. This surface holds no opinion it could contradict.
-                // ── TDW_08 P5 · Phase 1 · FORK C(i) — THE SPENT TERM ────────
-                // A row whose `invite_sent_at` is set has already had a REAL
-                // template despatched to its handset, and the route refuses a
-                // second one (`invite_already_sent`). Without this term the
-                // board would keep offering a button whose only possible answer
-                // is a 409 — the presentation half of the two-layer shape the
-                // route's own header names (F-06.85), and the exact asymmetry
-                // F-08.45 was filed over.
-                //
-                // IT IS THE ONE OPINION THIS SURFACE HOLDS ABOUT THE COLUMN.
-                // The predicate is here; the ENFORCEMENT is the route's, and it
-                // is the route's `if (row.invite_sent_at)` pre-check that makes
-                // the guarantee structural. If that pre-check moves, this term
-                // is decoration and both must be re-read together.
-                //
-                // SITED ABOVE THE `active` CLAUSE, AND THE REASON IS MEASURED,
-                // NOT GUESSED. The sealed cells at
-                // scripts/tdw08_p4_factory.proof.mjs read a 240-character window
-                // from `const canSend` (§5.4, §7.1, §M.10) and §M.8's mutation
-                // anchor is the LAST clause including its semicolon. Appending
-                // here would have destroyed that anchor and forced a labeled
-                // amendment to a sealed bench. Placed here instead, the anchor
-                // survives byte-identical and the window still reaches
-                // `v.active !== false` at 190 of 240 characters — derived by
-                // command at authoring, never estimated. Moving a sealed cell
-                // for a cure that did not need it moved is a cost with no buyer.
-                const canSend = (v: DemoVendor) =>
+  const [filter, setFilter] = useState('all');
+  const [openId, setOpenId] = useState<string | null>(null);
+  const open = vendors.find(v => v.id === openId) || null;
+  // The one invite predicate (sealed by tdw08_console, tdw08_p4_factory, tdw08_p5_invite_spent):
+  // its clauses keep their sealed indentation so the benches' mutation anchors still bite.
+  const canSend = (v: DemoVendor) =>
                   inviteStates.includes(v.state)
                   && !!v.whatsapp_phone
                   && !v.linkage_held_by
                   && !v.invite_sent_at
                   && v.active !== false;
+  const rows = vendors.filter(v => filter === 'all' || (v.state || 'legacy') === filter);
                 const invitableRows = rows.filter(canSend);
-                const invitable = invitableRows.map(v => v.id);
-                // ── F-08.40 — THE LABEL COUNTS HANDSETS, THE BATCH SENDS ROWS ─
-                // Two rows on one phone send ONE template: the per-row guard
-                // links the first and refuses the second. Sending both ids is
-                // CORRECT and ruled — refusing the group would send zero where
-                // this sends one. Only the promise on the button was wrong.
-                // The key is the SERVER's; this file never normalizes a phone.
-                const handsets = new Set(invitableRows.map(v => v.handset_key || v.id)).size;
-                const canInvite = inviteStates.includes(state);
+  const invitable = invitableRows.map(v => v.id);
+  const handsets = new Set(invitableRows.map(v => v.handset_key || v.id)).size;
+  const state = filter === 'all' ? 'all profiles' : DEMO_STATE_WORD[filter] || filter;
+  const notCalled = claims.filter(c => !c.contacted).length;
+  const stateWord = (st: string) => DEMO_STATE_WORD[st] || cap(st);
+  const markContacted = async (cl: ClaimRequest) => {
+    try {
+      await fetch(`${API_BASE}/api/v2/admin/demo/claims/${cl.id}/contacted`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ contacted: !cl.contacted }) });
+      setClaims(prev => prev.map(x => x.id === cl.id ? { ...x, contacted: !cl.contacted } : x));
+    } catch { showToast('Could not update.', true); }
+  };
+
+  return (
+    <div>
+      <Toast msg={toast} onDone={() => setToast('')} error={toastErr} />
+      <PageHead title="Demo profiles" sub={`${vendors.length} profiles · ${notCalled} ${notCalled === 1 ? 'claim' : 'claims'} to call`} action={<Pill onClick={() => { setShowCreate(true); setShowBulk(false); }}>+ New demo</Pill>} />
+      <Tabs value={tab} onChange={k => setTab(k as Tab)} items={[
+        { key: 'board', label: 'Profiles', n: vendors.length },
+        { key: 'claims', label: 'Claimed', n: claims.length },
+        { key: 'leads', label: 'Enquiries', n: leads.length },
+        { key: 'funnel', label: 'Progress' },
+      ]} />
+
+      {tab === 'board' && (
+        <>
+          <Chips value={filter} onChange={setFilter} items={[{ key: 'all', label: 'All', n: vendors.length }].concat(columns.map(([st, rows]) => ({ key: st, label: stateWord(st), n: rows.length })))} />
+          {invitableRows.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '10px 14px', borderRadius: 14, border: `1px solid ${C.warn}`, marginBottom: 12 }}>
+              <span style={{ flex: 1, minWidth: 160, font: F.t4, color: C.ink }}>{invitableRows.length} {invitableRows.length === 1 ? 'profile is' : 'profiles are'} ready and not invited yet</span>
+              <Pill disabled={busy !== ''} onClick={() => handleInviteBatch(invitable, handsets, state)}>{busy.startsWith('batch:') ? 'Sending…' : `Send ${handsets} invite${handsets === 1 ? '' : 's'}`}</Pill>
+            </div>
+          )}
+          {loading ? (
+            <List>{[1, 2, 3].map(i => <div key={i} className="shimmer" style={{ height: 96, borderBottom: `0.5px solid ${C.line}` }} />)}</List>
+          ) : (
+            <>
+              <CountLine n={rows.length} one="profile" many="profiles" />
+              <List>
+                {rows.length === 0 ? <Empty>No demo profiles here. Make one with + New demo.</Empty> : rows.map((v, i) => {
+                  const age = ageDays(v);
+                  const facts = [cap(v.category), v.city, `${v.photos.length} ${v.photos.length === 1 ? 'photo' : 'photos'}`, age === null ? null : age === 0 ? 'in this step since today' : `${age} ${age === 1 ? 'day' : 'days'} in this step`, v.active === false ? 'Switched off' : null].filter(Boolean).join(' · ');
+                  return (
+                    <PersonRow key={v.id} last={i === rows.length - 1} onOpen={() => setOpenId(v.id)} name={v.display_name}
+                      tag={stateWord(v.state || 'legacy')} tagTone={v.linkage_held_by ? C.bad : v.state === 'claimed' ? C.ok : v.state === 'created' ? C.warn : v.state === 'expired' ? C.mute : C.accent}
+                      line={facts} phone={v.whatsapp_phone} bare>
+                      {v.shared_handset && <div style={{ font: F.t4, color: C.warn, padding: '0 14px 8px' }}>On a shared handset with another profile</div>}
+                      {v.linkage_held_by && <div style={{ font: F.t4, color: C.bad, padding: '0 14px 8px' }}>Cannot invite: this number is linked to @{v.linkage_held_by}</div>}
+                      <ActionStrip items={[
+                        canSend(v) && { label: busy === v.id ? 'Sending' : 'Send invite', primary: true, busy: busy === v.id, onClick: () => handleInvite(v) },
+                        v.discover_eligible ? { label: 'Hide from Discover', onClick: () => handleDiscoverToggle(v.id, false) }
+                          : v.active !== false && { label: 'Show on Discover', onClick: () => handleDiscoverToggle(v.id, true) },
+                        { label: 'More', onClick: () => setOpenId(v.id) },
+                      ]} />
+                    </PersonRow>
+                  );
+                })}
+              </List>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <button type="button" onClick={() => { setShowBulk(true); setShowCreate(false); }} style={{ minHeight: 44, margin: '10px 0', background: 'none', border: 'none', color: C.accent, font: F.t4 }}>Build many from a sheet</button>
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {tab === 'claims' && (
+        <>
+          <CountLine n={claims.length} one="claim" many="claims" />
+          <List>
+            {loading ? <Empty>Loading…</Empty> : claims.length === 0 ? <Empty>No claims yet.</Empty> : claims.map((cl, i) => (
+              <PersonRow key={cl.id} last={i === claims.length - 1} name={cl.vendor_name || '@' + cl.ig_handle}
+                tag={cl.contacted ? 'Called' : 'Not called yet'} tagTone={cl.contacted ? C.mute : C.warn}
+                line={`@${cl.ig_handle} · claimed their demo ${when(cl.claimed_at)}`} phone={cl.phone} bare>
+                <ActionStrip items={[{ label: cl.contacted ? 'Mark as not called' : 'Mark as called', primary: !cl.contacted, onClick: () => markContacted(cl) }]} />
+              </PersonRow>
+            ))}
+          </List>
+        </>
+      )}
+
+      {tab === 'leads' && (
+        <>
+          <CountLine n={leads.length} one="enquiry" many="enquiries" />
+          <List>
+            {loading ? <Empty>Loading…</Empty> : leads.length === 0 ? <Empty>No enquiries on demo profiles yet.</Empty> : leads.map((l, i) => (
+              <PersonRow key={l.id} last={i === leads.length - 1} name={l.bride_name}
+                tag={l.otp_verified ? 'Number checked' : 'Number not checked'} tagTone={l.otp_verified ? C.ok : C.mute}
+                line={[`Asked @${l.demo_vendor_handle}`, l.bride_wedding_city, l.bride_wedding_date ? `wedding ${fullDate(l.bride_wedding_date)}` : null, `on ${fullDate(l.created_at)}`].filter(Boolean).join(' · ')}
+                phone={l.bride_phone} />
+            ))}
+          </List>
+        </>
+      )}
+
+      {tab === 'funnel' && (
+        <div style={{ display: 'grid', gap: 18 }}>
+          <List>
+            <div style={{ padding: '14px 16px' }}>
+              <div style={{ font: F.t3, color: C.ink, marginBottom: 12 }}>How far demo profiles get</div>
+              {funnel.map((f, i) => {
+                const prev = i === 0 ? null : funnel[i - 1].n;
+                const pct = prev && prev > 0 ? Math.round((f.n / prev) * 100) : null;
+                const top = funnel[0].n || 1;
                 return (
-                  <div key={state} style={{ minWidth: 288, flex: '0 0 288px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, paddingBottom: 6, borderBottom: `0.5px solid ${T.border}` }}>
-                      <span style={{ ...label, color: rows.length ? T.gold : T.dim, fontSize: 10, fontWeight: 600 }}>{state}</span>
-                      <span style={{ fontFamily: T.ff.body, fontSize: 12, color: T.muted }}>{rows.length}</span>
+                  <div key={f.stage} style={{ marginBottom: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+                      <span style={{ font: F.t4, color: C.soft }}>{FUNNEL_WORD[f.stage] || cap(f.stage)}</span>
+                      <span style={{ font: F.t4, color: C.ink }}>{f.n}{pct === null ? '' : <span style={{ color: C.mute }}> · {pct}% of the step before</span>}</span>
                     </div>
-                    {canInvite && invitable.length > 0 && (
-                      <GhostBtn
-                        label={busy === 'batch:' + state ? 'Sending…' : `Send ${handsets} invite${handsets === 1 ? '' : 's'}`}
-                        small
-                        disabled={busy !== ''}
-                        onClick={() => handleInviteBatch(invitable, handsets, state)}
-                      />
-                    )}
-                    {rows.length === 0 && (
-                      <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.dim, padding: '10px 2px' }}>Empty.</div>
-                    )}
-                    {rows.map(v => {
-                      const age = ageDays(v);
-                      return (
-                        <div key={v.id} style={{ background: T.card, border: `0.5px solid ${v.linkage_held_by ? T.danger : T.border}`, borderRadius: 12, padding: '14px 16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 4 }}>{v.display_name}</div>
-                              <div style={{ ...label, fontSize: 9, letterSpacing: '0.14em', color: T.gold, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                @{v.ig_handle} · {v.category} · {v.city}
-                              </div>
-                              <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft }}>
-                                {v.photos.length} photos · {age === null ? fmt(v.created_at) : `${age}d`}{v.rate_display ? ` · ${v.rate_display}` : ''}
-                              </div>
-                            </div>
-                            {v.photos[0] && (
-                              <div style={{ width: 48, height: 48, borderRadius: 8, overflow: 'hidden', flexShrink: 0 }}>
-                                <img src={(v.photos.find(p => p.is_hero) || v.photos[0]).url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              </div>
-                            )}
-                          </div>
-
-                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const, marginTop: 8 }}>
-                            <span style={{ ...label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color: v.active ? T.success : T.muted, background: v.active ? T.successSoft : 'var(--atelier-row-hover)', borderRadius: 8, padding: '2px 7px' }}>
-                              {v.active ? 'active' : 'inactive'}
-                            </span>
-                            {v.discover_eligible && (
-                              <span style={{ ...label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color: T.gold, background: T.goldSoft, borderRadius: 8, padding: '2px 7px' }}>in discover</span>
-                            )}
-                            {v.shared_handset && (
-                              <span style={{ ...label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color: T.warning, background: 'var(--atelier-row-hover)', borderRadius: 8, padding: '2px 7px' }}>shared handset</span>
-                            )}
-                            {v.linkage_held_by && (
-                              <span style={{ ...label, fontSize: 8, fontWeight: 600, letterSpacing: '0.12em', color: T.danger, background: T.dangerSoft, borderRadius: 8, padding: '2px 7px' }}>
-                                linked to @{v.linkage_held_by}
-                              </span>
-                            )}
-                          </div>
-
-                          <div style={{ display: 'flex', gap: 8, marginTop: 10, alignItems: 'center', flexWrap: 'wrap' as const }}>
-                            <button onClick={() => copyUrl(v.ig_handle, v.id)} style={{ background: copied === v.id ? T.successSoft : T.card, border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '5px 12px', ...label, fontSize: 8, letterSpacing: '0.15em', color: copied === v.id ? T.success : T.soft, cursor: 'pointer' }}>
-                              {copied === v.id ? 'Copied ✓' : 'Copy URL'}
-                            </button>
-                            <a href={`https://demo.thedreamwedding.in/vendor/${v.ig_handle}`} target="_blank" rel="noopener noreferrer"
-                              style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '5px 12px', ...label, fontSize: 8, letterSpacing: '0.15em', color: T.soft, textDecoration: 'none' }}>
-                              Open landing →
-                            </a>
-                          </div>
-
-                          <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' as const }}>
-                            {canSend(v) && (
-                              <GhostBtn label={busy === v.id ? 'Sending…' : 'Send invite'} small disabled={busy !== ''} onClick={() => handleInvite(v)} />
-                            )}
-                            <GhostBtn label="Seed Leads" small disabled={busy !== ''} onClick={() => { if (window.confirm(`Seed 10 mock leads for ${v.display_name}?`)) handleSeedLeads(v); }} />
-                            {v.discover_eligible
-                              ? <GhostBtn label="Remove from Discover" onClick={() => handleDiscoverToggle(v.id, false)} danger small />
-                              : v.active && <GhostBtn label="Add to Discover" onClick={() => handleDiscoverToggle(v.id, true)} small />}
-                            {v.active && <GhostBtn label="Deactivate" onClick={() => handleDeactivate(v.id)} danger small />}
-                          </div>
-                        </div>
-                      );
-                    })}
+                    <div style={{ height: 6, background: C.hover, borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.round((f.n / top) * 100)}%`, height: '100%', background: C.primary }} />
+                    </div>
                   </div>
                 );
               })}
+              <div style={{ font: F.t5, color: C.mute, marginTop: 8 }}>Counted from when each step happened, so a claimed profile counts at every step it passed. Profiles that were never invited sit outside this count.</div>
             </div>
+          </List>
+          <Group title={`By trade and city · ${byCategoryCity.length}`}>
+            {byCategoryCity.length === 0 ? <Empty>Nothing made yet.</Empty> : byCategoryCity.map(([k, c], i) => (
+              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '12px 14px', borderBottom: i === byCategoryCity.length - 1 ? 'none' : `0.5px solid ${C.line}` }}>
+                <span style={{ font: F.t3, color: C.ink }}>{k}</span>
+                <span style={{ font: F.t4, color: C.soft }}>{c.built} made · {c.invited} invited · {c.claimed} claimed</span>
+              </div>
+            ))}
+          </Group>
+        </div>
+      )}
+
+      {open && (() => { const v = open; return (
+        <Sheet title={open.display_name} sub={[`@${open.ig_handle}`, cap(open.category), open.city, stateWord(open.state || 'legacy')].filter(Boolean).join(' · ')} onClose={() => setOpenId(null)}>
+          {open.rate_display && <SheetNote>{open.rate_display}</SheetNote>}
+          <SheetRow label={copied === open.id ? 'Link copied' : 'Copy the demo link'} sub={`demo.thedreamwedding.in/vendor/${open.ig_handle}`} onClick={() => copyUrl(open.ig_handle, open.id)} />
+          <SheetRow label="Open the demo page" href={`https://demo.thedreamwedding.in/vendor/${open.ig_handle}`} />
+          {canSend(v) && (
+            <SheetRow label={busy === v.id ? 'Sending…' : 'Send invite'} sub="On WhatsApp, asks you first" onClick={() => handleInvite(v)} />
           )}
-        </div>
-      )}
+          <SheetRow label="Add 10 sample enquiries" sub="Fills the demo with practice enquiries, asks you first" busy={busy === open.id} onClick={() => { if (window.confirm(`Add 10 sample enquiries to ${open.display_name}?`)) handleSeedLeads(open); }} />
+          {open.discover_eligible
+            ? <SheetRow label="Hide from Discover" onClick={() => handleDiscoverToggle(open.id, false)} />
+            : open.active !== false && <SheetRow label="Show on Discover" onClick={() => handleDiscoverToggle(open.id, true)} />}
+          {open.active !== false
+            ? <DangerLast label="Switch off this demo profile" lost="The demo page stops opening and it leaves Discover. Its enquiries and claims stay on file." confirmWord="Yes, switch off" onConfirm={async () => { await handleDeactivate(open.id); setOpenId(null); }} />
+            : <SheetNote>Switched off</SheetNote>}
+        </Sheet>
+      ); })()}
 
-      {/* THE FUNNEL */}
-      {tab === 'funnel' && (
-        <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12, padding: '16px 20px' }}>
-            <div style={{ ...label, color: T.gold, fontWeight: 600, marginBottom: 14 }}>Conversion</div>
-            {funnel.map((f, i) => {
-              const prev = i === 0 ? null : funnel[i - 1].n;
-              const pct = prev && prev > 0 ? Math.round((f.n / prev) * 100) : null;
-              const top = funnel[0].n || 1;
-              return (
-                <div key={f.stage} style={{ marginBottom: 12 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-                    <span style={{ ...label, color: T.soft }}>{f.stage}</span>
-                    <span style={{ fontFamily: T.ff.body, fontSize: 13, color: T.ink }}>
-                      {f.n}{pct === null ? '' : <span style={{ color: T.muted }}> · {pct}% of {funnel[i - 1].stage}</span>}
-                    </span>
+      {showCreate && (
+        <Sheet title="New demo profile" sub={`Needs a handle, a name, a trade, a city and at least ${floor} photos`} onClose={() => { setShowCreate(false); resetCreateForm(); }}>
+          <div style={{ borderTop: `0.5px solid ${C.line}`, padding: '12px 18px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <FieldInput label="Instagram handle (becomes the link)" value={igHandle} onChange={setIgHandle} placeholder="makeupbyswatiroy" hint="Required" />
+            <FieldInput label="Name" value={dispName} onChange={setDispName} placeholder="Swati Tomar" hint="Required" />
+            <FieldSelect label="Trade" value={category} onChange={setCategory} options={CATEGORIES} hint="Required" />
+            <FieldInput label="City" value={city} onChange={setCity} placeholder="Delhi" hint="Required" />
+            <FieldInput label="WhatsApp number" value={waPhone} onChange={setWaPhone} placeholder="+919888294440" />
+            <FieldInput label="Price shown" value={rateDisplay} onChange={setRateDisplay} placeholder="Rs 50,000 to Rs 2,00,000" />
+            <div>
+              <div style={{ font: F.t4, color: C.mute, marginBottom: 6 }}>About</div>
+              <textarea value={about} onChange={e => setAbout(e.target.value)} placeholder="Short bio" rows={3}
+                style={{ width: '100%', background: C.input, border: `1px solid ${C.inputLine}`, borderRadius: 12, padding: '10px 14px', font: F.t3, color: C.ink, resize: 'vertical', outline: 'none' }} />
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <div style={{ font: F.t4, color: C.mute, marginBottom: 8 }}>Photos · {photos.length} · min {floor} · tap one to make it the cover</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+                {photos.map((p, i) => (
+                  <div key={i} style={{ position: 'relative', width: 72, height: 72 }}>
+                    <img src={p.url} alt="" onClick={() => setHero(i)} style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: p.is_hero ? `2px solid ${C.accent}` : `0.5px solid ${C.line}`, cursor: 'pointer' }} />
+                    {p.is_hero && <div style={{ position: 'absolute', bottom: 3, left: 3, background: C.primary, borderRadius: 4, padding: '1px 5px', font: F.t5, fontSize: 10, color: C.onPrimary }}>Cover</div>}
+                    <button type="button" aria-label="Remove photo" onClick={() => removePhoto(i)} style={{ position: 'absolute', top: -10, right: -10, width: 44, height: 44, background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ width: 20, height: 20, borderRadius: 10, background: C.bad, color: C.onPrimary, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</span>
+                    </button>
                   </div>
-                  <div style={{ height: 6, background: 'var(--atelier-row-hover)', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.round((f.n / top) * 100)}%`, height: '100%', background: T.gold }} />
-                  </div>
-                </div>
-              );
-            })}
-            <div style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted, marginTop: 10, lineHeight: 1.6 }}>
-              Counted from the timestamps, not the current state — a claimed demo is counted at every stage it passed through.
-              Rows that were never invited (legacy) sit outside this funnel and are on the board instead.
+                ))}
+              </div>
+              <label style={{ display: 'inline-flex', alignItems: 'center', minHeight: 44, border: `1px solid ${C.line}`, borderRadius: 12, padding: '0 16px', font: F.t4, color: uploading ? C.mute : C.soft, cursor: uploading ? 'not-allowed' : 'pointer' }}>
+                {uploading ? 'Uploading…' : '+ Add photo'}
+                <input type="file" accept="image/*" onChange={handlePhotoUpload} disabled={uploading} style={{ display: 'none' }} />
+              </label>
+              {/* The photo floor is the server's (photoFloor(srvFloor)); this sheet only shows it. */}
+            </div>
+            <div style={{ display: 'flex', gap: 10, paddingTop: 12, flexWrap: 'wrap' }}>
+              <Pill onClick={handleCreate} disabled={creating || uploading}>{creating ? 'Making…' : 'Make demo profile'}</Pill>
             </div>
           </div>
+        </Sheet>
+      )}
 
-          <div style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 12, padding: '16px 20px' }}>
-            <div style={{ ...label, color: T.gold, fontWeight: 600, marginBottom: 12 }}>By category and city</div>
-            {byCategoryCity.length === 0
-              ? <div style={{ fontFamily: T.ff.body, fontSize: 13, color: T.soft }}>Nothing built yet.</div>
-              : byCategoryCity.map(([k, c]) => (
-                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '7px 0', borderBottom: `0.5px solid ${T.border}` }}>
-                  <span style={{ fontFamily: T.ff.body, fontSize: 13, color: T.ink }}>{k}</span>
-                  <span style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft, whiteSpace: 'nowrap' as const }}>
-                    {c.built} built · {c.invited} invited · {c.claimed} claimed
-                  </span>
-                </div>
-              ))}
+      {showBulk && (
+        <Sheet title="Build many from a sheet" sub="One demo per line, separated by tabs" onClose={() => setShowBulk(false)}>
+          <div style={{ borderTop: `0.5px solid ${C.line}`, padding: '12px 18px' }}>
+            <p style={{ font: F.t4, color: C.soft, margin: '0 0 10px' }}>handle, name, trade, city, phone, price, about, photo links (space-separated). Paste photo links yourself: nothing is fetched from Instagram. Rows already on file are skipped, so a corrected sheet can be pasted again whole.</p>
+            <textarea value={bulkText} onChange={e => setBulkText(e.target.value)} rows={6}
+              placeholder={'swatimakeup\tSwati Tomar\tmakeup\tDelhi\t+919888294440\tRs 50,000 to Rs 2,00,000\tBridal specialist\thttps://… https://…'}
+              style={{ width: '100%', background: C.input, border: `1px solid ${C.inputLine}`, borderRadius: 12, padding: '10px 14px', fontFamily: 'monospace', fontSize: 12, color: C.ink, resize: 'vertical', outline: 'none' }} />
+            <div style={{ paddingTop: 12 }}><Pill onClick={handleBulk} disabled={bulkBusy}>{bulkBusy ? 'Building…' : `Build ${parseBulk(bulkText).length} demos`}</Pill></div>
+            {bulkResult.length > 0 && (
+              <div style={{ marginTop: 12, display: 'grid', gap: 4 }}>
+                {bulkResult.map((l, i) => <div key={i} style={{ font: F.t4, color: i === 0 ? C.ink : C.soft }}>{l}</div>)}
+              </div>
+            )}
           </div>
-        </div>
-      )}
-
-      {/* Leads list */}
-      {tab === 'leads' && (
-        <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {loading
-            ? <div style={{ ...label, color: T.soft, fontSize: 10, padding: 20 }}>Loading…</div>
-            : leads.length === 0
-            ? <div style={{ color: T.soft, fontFamily: T.ff.body, fontSize: 14, padding: 20 }}>No demo leads yet.</div>
-            : leads.map(l => (
-              <div key={l.id} style={{ background: T.card, border: `0.5px solid ${T.border}`, borderRadius: 10, padding: '12px 16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ fontFamily: T.ff.body, fontSize: 14, fontWeight: 600, color: T.ink, marginBottom: 3 }}>{l.bride_name}</div>
-                    <div style={{ ...label, fontSize: 9, letterSpacing: '0.12em', color: T.gold, marginBottom: 3 }}>@{l.demo_vendor_handle}</div>
-                    <div style={{ fontFamily: T.ff.body, fontSize: 12, color: T.soft }}>{[l.bride_wedding_city, l.bride_wedding_date].filter(Boolean).join(' · ')}</div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                    <span style={{ ...label, fontSize: 8, letterSpacing: '0.1em', color: l.otp_verified ? T.success : T.muted }}>
-                      {l.otp_verified ? 'OTP ✓' : 'unverified'}
-                    </span>
-                    <span style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted }}>{fmt(l.created_at)}</span>
-                  </div>
-                </div>
-              </div>
-            ))
-          }
-        </div>
-      )}
-
-      {/* Claims list */}
-      {tab === 'claims' && (
-        <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {loading
-            ? <div style={{ ...label, color: T.soft, fontSize: 10, padding: 20 }}>Loading…</div>
-            : claims.length === 0
-            ? <div style={{ color: T.soft, fontFamily: T.ff.body, fontSize: 14, padding: 20 }}>No claims yet.</div>
-            : claims.map(cl => (
-              <div key={cl.id} style={{ background: T.card, border: `0.5px solid ${cl.contacted ? T.border : T.gold}`, borderRadius: 10, padding: '14px 16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontFamily: T.ff.body, fontSize: 15, fontWeight: 600, color: T.ink }}>{cl.vendor_name || cl.ig_handle}</span>
-                      {!cl.contacted && <span style={{ ...label, fontSize: 7, fontWeight: 600, letterSpacing: '0.14em', color: T.gold, background: T.goldSoft, borderRadius: 6, padding: '2px 7px' }}>New</span>}
-                    </div>
-                    <div style={{ ...label, fontSize: 9, letterSpacing: '0.14em', color: T.gold, marginBottom: 4 }}>@{cl.ig_handle}</div>
-                    <div style={{ fontFamily: T.ff.body, fontSize: 14, color: T.ink, marginBottom: 6 }}>
-                      <a href={`tel:${cl.phone}`} style={{ color: T.success, textDecoration: 'none' }}>{cl.phone}</a>
-                    </div>
-                    <div style={{ fontFamily: T.ff.body, fontSize: 11, color: T.soft }}>{fmt(cl.claimed_at)}</div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                    <button
-                      onClick={async () => {
-                        try {
-                          await fetch(`${API_BASE}/api/v2/admin/demo/claims/${cl.id}/contacted`, {
-                            method: 'PATCH',
-                            headers: adminHeaders(),
-                            body: JSON.stringify({ contacted: !cl.contacted }),
-                          });
-                          setClaims(prev => prev.map(x => x.id === cl.id ? { ...x, contacted: !cl.contacted } : x));
-                        } catch { showToast('Failed to update.', true); }
-                      }}
-                      style={{ background: cl.contacted ? 'var(--atelier-row-hover)' : T.card, border: `0.5px solid ${cl.contacted ? T.success : T.border}`, borderRadius: 8, padding: '6px 12px', ...label, fontSize: 8, letterSpacing: '0.14em', color: cl.contacted ? T.success : T.soft, cursor: 'pointer' }}
-                    >
-                      {cl.contacted ? 'Contacted ✓' : 'Mark Contacted'}
-                    </button>
-                    <a href={`https://wa.me/${cl.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer"
-                      style={{ background: 'var(--atelier-row-hover)', border: '0.5px solid var(--atelier-row-hover)', borderRadius: 8, padding: '6px 12px', ...label, fontSize: 8, letterSpacing: '0.14em', color: 'var(--role-positive)', textDecoration: 'none', display: 'block', textAlign: 'center' as const }}>
-                      WhatsApp →
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ))
-          }
-        </div>
+        </Sheet>
       )}
     </div>
   );
