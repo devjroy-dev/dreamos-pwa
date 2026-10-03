@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/vendor/useToast';
 import { WlToast } from '@/v2/components/worklist/WlToast';
 import { BookingSheet } from '@/v2/components/vendor/packages/BookingSheet';
 import { AttachSheet } from '@/v2/components/vendor/packages/LeadPackageCard';
+import { AddSheet } from '@/v2/components/vendor/AddSheet';   // CE-47 FE-8: the enquiry's own form, in edit mode
 import { planSentence, waLink } from '@/v2/lib/worklist/book';
 import { RECORD, enquiryNext, historyOf, dayOf, clientHref, linkedLeadFor } from '@/v2/lib/worklist/record';
 import { roomHref } from '@/v2/lib/worklist/rooms';
@@ -26,7 +27,7 @@ export function EnquiryPage({ vendorId, id }: { vendorId: string; id: string }) 
   const lead = useMemo(() => (leads.data ?? []).find((l) => l.id === id) ?? null, [leads.data, id]);
   const [detail, setDetail] = useState<LeadDetailResponse | null>(null);
   const [lp, setLp] = useState<LeadPackage | null | undefined>(undefined);
-  const [sheet, setSheet] = useState<'book' | 'attach' | null>(null);
+  const [sheet, setSheet] = useState<'book' | 'attach' | 'edit' | null>(null);
   const [lostAsk, setLostAsk] = useState(false);
   const { toast, show } = useToast();
 
@@ -76,6 +77,9 @@ export function EnquiryPage({ vendorId, id }: { vendorId: string; id: string }) 
 
       <Section head={RECORD.datesHead} id="dates">
         <Facts rows={[[RECORD.weddingDate, dayOf(l.wedding_date)], [RECORD.received, dayOf(l.created_at)]]} />
+        {/* CE-47 FE-8 (the founder's walk, 1 Oct 2026: "where is the option to add wedding date etc or other details"):
+            an enquiry with no wedding date offers it here, and Edit details below opens the whole form. */}
+        {!l.wedding_date && l.state !== 'booked' && <button type="button" className="rp-job" data-enq-date="" onClick={() => setSheet('edit')}>{RECORD.addWeddingDate}</button>}
       </Section>
       <Section head={RECORD.moneyHead} id="money">
         {lp ? (
@@ -94,6 +98,7 @@ export function EnquiryPage({ vendorId, id }: { vendorId: string; id: string }) 
       <Jobs>
         {l.phone && <a className="rp-job" href={waLink(l.phone, '')} target="_blank" rel="noopener noreferrer">{RECORD.whatsapp}</a>}
         {l.phone && <a className="rp-job" href={`tel:${l.phone}`}>{RECORD.call}</a>}
+        <button type="button" className="rp-job" data-enq-edit="" onClick={() => setSheet('edit')}>{RECORD.editDetails}</button>
         {l.state !== 'booked' && <button type="button" className="rp-job" onClick={() => setSheet('attach')}>{lp ? RECORD.change : RECORD.attach}</button>}
         {l.state !== 'booked' && l.state !== 'lost' && (lostAsk
           ? <button type="button" className="rp-job warn" onClick={() => { void markLost(); }}>{RECORD.markLostSure}</button>
@@ -104,13 +109,16 @@ export function EnquiryPage({ vendorId, id }: { vendorId: string; id: string }) 
 
       <BookingSheet open={sheet === 'book'} leadId={id} initialKind="booking_confirmed" onClose={() => { setSheet(null); refresh(); }}
         onBooked={() => { /* the sheet stays on its Booked step until Done */ }} onToast={show}
-        onNeedWeddingDate={() => show('Add the wedding date on the enquiry first.', 'error')}
+        onNeedWeddingDate={() => { show('Add the wedding date on the enquiry first.', 'error'); setSheet('edit'); }}
         leadFacts={{ wedding_date: l.wedding_date, wedding_date_precision: l.wedding_date_precision ?? null }}
         leadName={l.name || ''} leadPhone={l.phone} />
       <AttachSheet open={sheet === 'attach'} leadId={id} current={lp || null} onClose={() => setSheet(null)}
         onAttached={(row) => { setLp(row); setSheet(null); }} onToast={show}
-        onNeedWeddingDate={() => show('Add the wedding date on the enquiry first.', 'error')}
+        onNeedWeddingDate={() => { show('Add the wedding date on the enquiry first.', 'error'); setSheet('edit'); }}
         leadFacts={{ wedding_date: l.wedding_date, wedding_date_precision: l.wedding_date_precision ?? null }} />
+      <AddSheet open={sheet === 'edit'} slice="leads" existing={l as unknown as Record<string, unknown>} existingId={id}
+        onClose={() => { setSheet(null); refresh(); void fetchLeadDetail(id).then((r) => { if (r && 'ok' in r && r.ok) setDetail(r as LeadDetailResponse); }).catch(() => {}); }}
+        onToast={show} />
       <WlToast toast={toast} />
     </WorklistShell>
   );

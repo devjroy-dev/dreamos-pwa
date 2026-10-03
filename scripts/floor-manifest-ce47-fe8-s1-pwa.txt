@@ -1,0 +1,18 @@
+# CE-47 · FE-8 · small package S1 (the founder's walk: Today's Reply to, the enquiry's Edit details, two icons; b125 and b143 tidies) · base 29c784ec · F-19.16: a dirty path outside this list is a STOP.
+scripts/b122_ce45_home_shelves_bench_v2.js
+scripts/b125_g61_enquiry_row_bench.js
+scripts/b125_g61_enquiry_row_bench_v2.js
+scripts/b143_ads1_ads_page_bench.js
+scripts/b143_ads1_ads_page_bench_v2.js
+scripts/b202_fe8_enquiry_edit_bench.js
+scripts/b40_worklist_shell_bench_v2.js
+scripts/d1_home_bench_v2.js
+scripts/d1_records_bench_v2.mjs
+scripts/floor-manifest-ce47-fe8-s1-pwa.txt
+v2/app/vendor/(shell)/referrals/page.tsx
+v2/app/vendor/(shell)/support/page.tsx
+v2/components/vendor/records/EnquiryPage.tsx
+v2/components/worklist/TodayHome.tsx
+v2/lib/worklist/home.ts
+v2/lib/worklist/icons.ts
+v2/lib/worklist/record.ts

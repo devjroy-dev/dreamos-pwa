@@ -5,6 +5,9 @@
 // "open items" numeral, the kind line and the Done today table retired (each repeated what a list already
 // showed). Plain words, sentence case, no dashes (REPORT.md §5 and W1).
 
+/** How many enquiries Today's "Reply to" draws before the link to all of them (CE-47 FE-8, the founder's walk of 1 Oct 2026). */
+export const REPLY_SHOWN = 3;
+
 export const HOME = {
   checkHead:     'Check a date',
   checkLabel:    'Date',
@@ -23,7 +26,8 @@ export const HOME = {
   replyHead:     'Reply to',
   replyNone:     'No new enquiries.',
   replyNoMessage: 'No message yet',
-  replyAll:      'See every new enquiry',
+  // CE-47 FE-8 (the chair's ruling of 2 Oct 2026): after the first three, one last row, "See all N", N the real count
+  replyAll:      (n: string) => `See all ${n}`,
 
   todayHead:     'Today',
   todayNone:     'Nothing booked today.',

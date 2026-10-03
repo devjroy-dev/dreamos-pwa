@@ -55,6 +55,8 @@ export const RECORD = {
   whatsapp: 'WhatsApp',
   call: 'Call',
   attach: 'Attach package',
+  editDetails: 'Edit details',                 // CE-47 FE-8: the enquiry's own form (name, number, wedding date, city, budget, notes)
+  addWeddingDate: 'Add the wedding date',
   change: 'Change package',
   markLost: 'Mark lost',
   markLostSure: 'Mark lost: sure?',

@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useTodayFeed } from '@/v2/lib/worklist/feed';
 import { roomHref } from '@/v2/lib/worklist/rooms';
-import { HOME, shortDate, longDate, dayHeading, agoWords, sentence, OPEN_ENQUIRY, clockWords } from '@/v2/lib/worklist/home';
+import { HOME, REPLY_SHOWN, shortDate, longDate, dayHeading, agoWords, sentence, OPEN_ENQUIRY, clockWords } from '@/v2/lib/worklist/home';
 import { useCrew, crewWords, CREW_WORDS, type CrewFunction } from '@/v2/lib/worklist/crew';
 import { fetchDay, fetchLeadsWhole, fetchLeadDetail, fetchEvents, fetchInvoices } from '@/v2/lib/vendor/api/vendor';
 import type { LeadsResponse, VendorDayResponse, VendorEvent, InvoicesResponse } from '@/lib/vendor/types/vendor';
@@ -133,6 +133,11 @@ export function TodayHome() {
   // The wire's own order (D-4's ranking), re-sorted by nothing; a capped list says so with the register's tell.
   const unanswered = useMemo(() => feed.today?.needs_attention?.lead_unanswered ?? [], [feed.today]);
   const capped = feed.today?.truncated?.lead_unanswered === true;
+  // CE-47 FE-8 (the founder's walk, 1 Oct 2026: "today is basically a never ending list of all enquiries and nothing else").
+  // Today shows the first REPLY_SHOWN of them, in the order the server gave (nothing re-ordered); the count beside the head
+  // stays the whole count, and one last row, "See all N" (N the real count), opens Enquiries whenever there are more than three.
+  const shown = unanswered.slice(0, REPLY_SHOWN);
+  const more = capped || unanswered.length > shown.length;
   // The last message of each new enquiry: the conversation's last line, else the enquiry's own first words.
   useEffect(() => {
     let live = true;
@@ -175,11 +180,11 @@ export function TodayHome() {
         <h2 id="wl-home-reply" className="wl-home-h">{HOME.replyHead}{unanswered.length ? <span className="wl-home-count">{unanswered.length}{capped ? COPY.todayTruncatedSuffix : ''}</span> : null}</h2>
         {feed.responded && unanswered.length === 0 && <p className="wl-home-empty">{HOME.replyNone}</p>}
 
-        {unanswered.map((l) => {
+        {shown.map((l) => {
           const m = last[l.id];
           const words = m?.body || leadById.get(l.id)?.raw_message || HOME.replyNoMessage;
           return (
-            <Link key={l.id} className="wl-home-row" href={`${roomHref('leads')}?lead=${encodeURIComponent(l.id)}`}>
+            <Link key={l.id} className="wl-home-row" data-reply-row="" href={`${roomHref('leads')}?lead=${encodeURIComponent(l.id)}`}>
               <span className="wl-home-main">
                 <span className="wl-home-name">{l.name || HOME.answerEnquiry}</span>
                 <span className="wl-home-facts wl-home-msg">{words}</span>
@@ -188,7 +193,12 @@ export function TodayHome() {
             </Link>
           );
         })}
-        {capped && <Link className="wl-home-link" href={roomHref('leads')}>{HOME.replyAll}</Link>}
+        {more && (
+          <Link className="wl-home-row" data-reply-all="" href={roomHref('leads')}>
+            <span className="wl-home-main"><span className="wl-home-name">{HOME.replyAll(`${unanswered.length}${capped ? COPY.todayTruncatedSuffix : ''}`)}</span></span>
+            <span className="wl-home-right" aria-hidden="true">{'\u203A'}</span>
+          </Link>
+        )}
       </section>
 
       <section className="wl-home-sec" aria-labelledby="wl-home-today">
@@ -255,6 +265,7 @@ const HOME_CSS = `
 .wl-home-line{font:var(--wl-t3);color:var(--atelier-ink)}
 .wl-home-link{align-self:flex-start;display:inline-flex;align-items:center;margin-top:8px;font:var(--wl-tb);color:var(--atelier-accent-text);text-decoration:none}
 .wl-home-row{display:flex;align-items:center;gap:12px;min-height:64px;padding:12px 16px;margin-bottom:8px;background:var(--atelier-card-bg);border:1px solid var(--atelier-card-border);border-radius:12px;text-decoration:none;color:inherit}
+.wl a.wl-home-row[data-reply-all]{min-height:64px !important}   /* CE-47 FE-8: the last row, "See all N", keeps the row's 64 over the shell's tap floor */
 .wl-home-row:active{background:var(--atelier-row-hover)}
 .wl-home-row:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .wl-home-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}

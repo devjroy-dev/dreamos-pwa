@@ -98,7 +98,9 @@ function leftovers() {
   for (const row of rows) {
     const pid = Number(row.split(/\s+/)[0]); const args = row.slice(String(pid).length).trim();
     if (!pid || pid === process.pid) continue;
-    if (/node_modules\/\.bin\/next dev|next-server|\.next\/dev\/build\/postcss\.js/.test(args)) {
+    // CE-47 FE-8 (the chair's ruling of 2 Oct 2026, in line with b125): only the process ITSELF counts, the words being the program
+    // or its first argument. A shell whose command line merely names "next-server" (a floor block, a grep) is not a leftover.
+    if (/^(\S*node\S*\s+)?\S*(node_modules\/\.bin\/next dev|next-server|\.next\/dev\/build\/postcss\.js)/.test(args)) {
       let cwd = '?'; try { cwd = fs.readlinkSync(`/proc/${pid}/cwd`); } catch (_e) { /* no /proc */ }
       if (cwd === ROOT_REAL || args.includes(ROOT_REAL) || args.includes(ROOT)) out.push(`${pid} ${args.slice(0, 70)}`);
     }
@@ -114,6 +116,15 @@ async function finish() {
     try { stopTree(SERVER.dev.pid); } catch (_e) { /* gone */ } SERVER.treeStopped = true;
     const st = await SERVER.stop();
     ok(st.portFree, '7.1 the dev server stopped, the port free');
+  }
+  // 7.3 (CE-47 FE-8): a shell in this root that only NAMES next-server is started, read, and stopped; the reader must not count it.
+  {
+    const decoy = require('child_process').spawn('sh', ['-c', 'sleep 20 # next-server ' + ROOT], { cwd: ROOT, stdio: 'ignore' });
+    await new Promise((r) => setTimeout(r, 400));
+    const seen = leftovers().filter((l) => l.startsWith(String(decoy.pid) + ' '));
+    try { decoy.kill('SIGKILL'); } catch (_e) { /* gone */ }
+    await new Promise((r) => setTimeout(r, 200));
+    ok(decoy.pid > 0 && seen.length === 0, '7.3 a shell that merely names "next-server" in this root is not counted as a leftover', JSON.stringify(seen));
   }
   const left = leftovers();
   ok(left.length === 0, '7.2 nothing of this run is left: no next dev, next-server or postcss in this root, no chromium of this run', JSON.stringify(left));

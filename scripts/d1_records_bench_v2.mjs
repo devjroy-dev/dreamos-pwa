@@ -77,7 +77,9 @@ function orderOf(src) {
 function sheetCells(enq, cli, book) {
   const e = strip(enq), c = strip(cli), b = strip(book);
   return {
-    onePage: /const \[sheet, setSheet\] = useState<'book' \| 'attach' \| null>\(null\);/.test(e) && /open=\{sheet === 'book'\}/.test(e) && /open=\{sheet === 'attach'\}/.test(e)
+    // AMENDED BY LABEL (CE-47 FE-8, the founder's walk of 1 Oct 2026): the enquiry's page gains a third sheet, Edit details, on the SAME
+    // one state, so still one sheet at a time.
+    onePage: /const \[sheet, setSheet\] = useState<'book' \| 'attach' \| 'edit' \| null>\(null\);/.test(e) && /open=\{sheet === 'book'\}/.test(e) && /open=\{sheet === 'attach'\}/.test(e) && /open=\{sheet === 'edit'\}/.test(e)
       && /const \[sheet, setSheet\] = useState<'edit' \| 'cancel' \| null>\(null\);/.test(c) && /\{sheet === 'edit' && \(/.test(c) && /\{sheet === 'cancel' && \(/.test(c),
     bookAside: /<Sheet open=\{open && !attach\} testId="booking-sheet" title=\{BOOK\.title\}/.test(b),
   };

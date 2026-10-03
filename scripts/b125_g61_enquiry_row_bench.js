@@ -21,6 +21,23 @@ const ts = require('typescript');
 
 const ROOT = path.join(__dirname, '..');
 const P = (r) => path.join(ROOT, r);
+const { stopTree } = require(path.join(ROOT, 'scripts/lib/stop_tree.js'));
+const ROOT_REAL = (() => { try { return fs.realpathSync(ROOT); } catch (_e) { return ROOT; } })();
+/** What of this bench's server is still alive in this root (b143 7.2's reader). */
+function leftovers() {
+  const rows = String(spawnSync('ps', ['-eo', 'pid=,args='], { encoding: 'utf8' }).stdout || '').split('\n').map((l) => l.trim()).filter(Boolean);
+  const out = [];
+  for (const row of rows) {
+    const pid = Number(row.split(/\s+/)[0]); const args = row.slice(String(pid).length).trim();
+    if (!pid || pid === process.pid) continue;
+    // the process itself, not a shell whose command line merely names one: the words must be the program or its first argument
+    if (/^(\S*node\S*\s+)?\S*(node_modules\/\.bin\/next dev|next-server|\.next\/dev\/build\/postcss\.js)/.test(args)) {
+      let cwd = '?'; try { cwd = fs.readlinkSync(`/proc/${pid}/cwd`); } catch (_e) { /* no /proc */ }
+      if (cwd === ROOT_REAL || args.includes(ROOT_REAL) || args.includes(ROOT)) out.push(`${pid} ${args.slice(0, 70)}`);
+    }
+  }
+  return out;
+}
 const read = (r) => fs.readFileSync(P(r), 'utf8');
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 let pass = 0; let fail = 0; const failed = [];
@@ -187,7 +204,9 @@ function loadTs(rel, src) {
     ok(false, `2.x the room run: ${String(e && e.message).split('\n')[0]}`);
   } finally {
     for (const [rel, src] of restores) fs.writeFileSync(P(rel), src);
-    try { process.kill(-dev.pid); } catch (_e) { /* gone */ }
+    // THE STOP (CE-47, FE-8, the chair's tidy of 2 Oct 2026; b143's cure, F-44.163): process.kill(-pid) signalled npx's group and
+    // returned at once, and on ADS-2's floor a next dev outlived this bench in the root. One stop of the WHOLE tree, waited.
+    try { stopTree(dev.pid); } catch (_e) { /* gone */ }
     try { process.kill(-meServer.pid, 'SIGKILL'); } catch (_e) { try { meServer.kill('SIGKILL'); } catch (_e2) { /* gone */ } }
     // No server may outlive this bench: whatever still listens on its ports is found from /proc and killed (a leftover
     // next-server on the dev port would otherwise serve the NEXT run stale code).
@@ -199,6 +218,8 @@ function loadTs(rel, src) {
     } catch (_e) { /* no /proc: nothing more to do */ }
     // and it waits until both ports are quiet (a killed server takes a moment to let go), so none outlives this bench.
     for (let i = 0; i < 20 && (listening(PORT) || listening(ME_PORT)); i += 1) await new Promise((r) => setTimeout(r, 250));
+    const left = leftovers();
+    ok(left.length === 0, '5.1 nothing of this run is left: no next dev, next-server or postcss in this root (b143 7.2\'s shape)', JSON.stringify(left));
   }
   console.log(`\nb125 · ${pass} pass · ${fail} fail`);
   if (fail) { console.log('FAILED: ' + failed.join(' | ')); process.exit(1); }

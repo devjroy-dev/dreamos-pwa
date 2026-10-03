@@ -90,7 +90,7 @@ function SolutionsIndexScreen() {
           </div>
         ))}
         <Head text={WL.supportHead} />
-        <Group><div data-support-action=""><Row title={COPY.footerLine} facts={WL.supportAction} chevron
+        <Group><div data-support-action=""><Row title={COPY.footerLine} facts={WL.supportAction} icon={<RoomIcon k="help" className="fr-ic" />} chevron
           onClick={() => window.open(`https://wa.me/${supportWaNumber()}?text=${encodeURIComponent('Hi')}`, '_blank', 'noopener')} /></div></Group>
       </Body>
       <style>{FR_CSS}</style>

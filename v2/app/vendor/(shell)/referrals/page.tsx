@@ -40,6 +40,7 @@ import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { getJson } from '@/lib/vendor/api/_base';
 import { Body, Group, Row, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
+import { RoomIcon } from '@/v2/components/worklist/RoomIcon';   // CE-47 FE-8: Influencer exchange's drawing, the registry's
 import { RECORD_CSS, Facts } from '@/v2/components/worklist/RecordPage';
 import { API } from '@/v2/lib/solutions/routes';
 import { ROOM_ROWS } from '@/v2/lib/solutions/copy';
@@ -124,7 +125,7 @@ function ReferralsScreen() {
           </>) : (<><Head text={RF.sectionPeers} /><p className="fr-empty">{RF.emptyBody}</p></>)}
           <div className="fe7-shoots"><ShootsBlock /></div>
           <Head text={RF.sectionMore} />
-          <Group><Row title={EXCHANGE.rowLabel} facts={RF.exchangeLine} chevron onClick={() => { window.location.href = EXCHANGE_HREF; }} /></Group>
+          <Group><Row title={EXCHANGE.rowLabel} facts={RF.exchangeLine} icon={<RoomIcon k="exchange" className="fr-ic" />} chevron onClick={() => { window.location.href = EXCHANGE_HREF; }} /></Group>
         </Body>
       ) : null}
       <style>{FR_CSS + RECORD_CSS + '.fe7-shoots{margin-top:24px}'}</style>

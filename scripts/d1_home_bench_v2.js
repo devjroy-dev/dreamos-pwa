@@ -66,6 +66,12 @@ const FEED = {
   counts: Object.fromEntries(KINDS.map((k) => [k, k === 'lead_unanswered' ? 2 : 0])),
   truncated: Object.fromEntries(KINDS.map((k) => [k, false])),
 };
+// CE-47 FE-8 (the founder's walk, 1 Oct 2026: "today is basically a never ending list of all enquiries"): two more feeds,
+// one with five new enquiries and one the server capped, to read that Today draws the first three and links to the rest.
+const LN = (n) => ({ id: 'b146-m' + n, name: 'Enquiry ' + n, wedding_date: null, wedding_city: null, budget_min: null, budget_max: null, state: 'new', created_at: ago(3000 + n), redacted: false, raw_message: 'Message ' + n });
+const MANY = [L1, L2, LN(3), LN(4), LN(5)];
+const feedOf = (rows, capped) => ({ ...FEED, needs_attention: { ...FEED.needs_attention, lead_unanswered: rows }, counts: { ...FEED.counts, lead_unanswered: rows.length }, truncated: { ...FEED.truncated, lead_unanswered: capped } });
+let FEED_NOW = FEED;
 const DETAIL = {
   [L1.id]: { ok: true, lead: L1, vendor_summary: null, conversation: [{ id: 'm1', body: 'Is 14 Feb free for a haldi?', created_at: ago(180), direction: 'inbound' }], invoices: [], events: [] },
   [L2.id]: { ok: true, lead: L2, vendor_summary: null, conversation: [], invoices: [], events: [] },
@@ -102,6 +108,7 @@ async function main() {
   ok(!/PinnedRooms/.test(today), '7.2 the pinned rooms MOVED: Home no longer mounts them');
   ok(fs.existsSync(path.join(ROOT, 'v2/components/worklist/PinnedRooms.tsx')), '7.3 the pinned rooms are not deleted (v2/components/worklist/PinnedRooms.tsx stands)');
   ok(/<TodayHome\s*\/>/.test(today), '7.4 Home mounts TodayHome');
+  ok(/export const REPLY_SHOWN = 3;/.test(code('v2/lib/worklist/home.ts')) && /const shown = unanswered\.slice\(0, REPLY_SHOWN\);/.test(code('v2/components/worklist/TodayHome.tsx')) && /\{shown\.map\(/.test(code('v2/components/worklist/TodayHome.tsx')), '7.8 Reply to draws the first REPLY_SHOWN (three) of the wire, re-ordering nothing (CE-47 FE-8)');
   ok(/useCrew\(/.test(code('v2/app/vendor/(shell)/events/body.tsx')), '7.5 the Events rows read the crew');
   ok(/useCrew\(/.test(code('v2/app/vendor/(shell)/calendar/screen.tsx')) && /useCrew\(/.test(code('v2/components/vendor/CalendarDaySheet.tsx')), '7.6 the Calendar (Coming up and the day sheet) reads the crew');
   const home = code('v2/components/worklist/TodayHome.tsx');
@@ -128,10 +135,10 @@ async function main() {
       const route = u.split('/__api')[1].split('?')[0];
       const J = (o) => r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(o) });
       seen.push(route);
-      if (route === '/api/v2/vendor/worklist/today') return J(FEED);
+      if (route === '/api/v2/vendor/worklist/today') return J(FEED_NOW);
       let m;
       if ((m = /^\/api\/v2\/vendor\/leads\/([^/]+)\/detail$/.exec(route))) return J(DETAIL[m[1]] || { ok: false, error: 'not found' });
-      if (/^\/api\/v2\/vendor\/leads\/[^/]+$/.test(route)) return J({ ok: true, leads: [L1, L2, L3], total: 3 });
+      if (/^\/api\/v2\/vendor\/leads\/[^/]+$/.test(route)) return J({ ok: true, leads: FEED_NOW === FEED ? [L1, L2, L3] : [...MANY, L3], total: FEED_NOW === FEED ? 3 : 6 });
       if ((m = /^\/api\/v2\/vendor\/day\/[^/]+\/(\d{4}-\d{2}-\d{2})$/.exec(route))) return J(dayOf(m[1]));
       if (/^\/api\/v2\/vendor\/bands\//.test(route)) return J(BANDS);
       if (/^\/api\/v2\/vendor\/events\//.test(route)) return J(EVENTS);
@@ -240,6 +247,32 @@ async function main() {
       const cut = await q.evaluate(() => Array.from(document.querySelectorAll('.wl-home *')).filter((e) => e.children.length === 0 && e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflow !== 'visible').map((e) => e.className || e.tagName));
       ok(over2 <= 0 && cut.length === 0, `6.4 [${mode} 360x800] no sideways scroll and nothing cut off`, JSON.stringify({ over2, cut }));
       await q.close();
+    }
+    sec('8 Reply to stops at three (CE-47 FE-8, the founder\'s walk)');
+    const replyOf = (pg) => pg.evaluate(() => { const s = document.querySelector('section[aria-labelledby="wl-home-reply"]'); const a = s.querySelector('a[data-reply-all]');
+      return { names: Array.from(s.querySelectorAll('.wl-home-row:not([data-reply-all]) .wl-home-name')).map((e) => e.innerText.trim()), last: (() => { const r = Array.from(s.querySelectorAll('.wl-home-row')); return r.length ? r[r.length - 1].hasAttribute('data-reply-all') : false; })(), allH: a ? Math.round(a.getBoundingClientRect().height) : 0, count: (s.querySelector('.wl-home-count') || { innerText: '' }).innerText.trim(), link: a ? [a.querySelector('.wl-home-name').innerText.trim(), a.getAttribute('href')] : null,
+        heads: Array.from(document.querySelectorAll('.wl-home .wl-home-h')).map((e) => e.innerText.replace(/\s+/g, ' ').trim()) }; });
+    {
+      const two = await open('dark', [374, 812]); const r2 = await replyOf(two); await two.close();
+      ok(r2.names.length === 2 && r2.count === '2' && r2.link === null, '8.1 two new enquiries: both drawn, the count says 2, no "See all" row (N is 3 or fewer)', JSON.stringify(r2));
+      FEED_NOW = feedOf(MANY, false);
+      for (const vp of [[374, 812], [360, 800]]) {
+        const m = await open('dark', vp); const r5 = await replyOf(m);
+        const over = await m.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth); await m.close();
+        ok(r5.names.join('|') === 'Meera Shah|Ritu Kapoor|Enquiry 3' && r5.count === '5' && JSON.stringify(r5.link) === JSON.stringify(['See all 5', '/vendor/leads']) && r5.last && r5.allH >= 64 && over <= 0,
+          `8.2 [${vp[0]}] five new enquiries: the first three in the wire's order, the count still says 5, and a last row "See all 5" (64 tall) opens Enquiries`, JSON.stringify(r5));
+        ok(r5.heads.slice(0, 4).join('|').startsWith('Check a date|Reply to') && r5.heads.includes('Today') && r5.heads.includes('Money due'), `8.3 [${vp[0]}] Today and Money due still follow`, r5.heads.join('|'));
+      }
+      FEED_NOW = feedOf(MANY.slice(0, 3), true);
+      const c = await open('dark', [374, 812]); const rc = await replyOf(c); await c.close();
+      ok(rc.names.length === 3 && rc.count === '3+' && rc.link && rc.link[0] === 'See all 3+', '8.4 a list the server capped: three drawn, the count wears its "+", the last row says "See all 3+"', JSON.stringify(rc));
+      FEED_NOW = feedOf(MANY.slice(0, 3), false);
+      const t3 = await open('dark', [374, 812]); const r3 = await replyOf(t3); await t3.close();
+      ok(r3.names.length === 3 && r3.count === '3' && r3.link === null, '8.5 exactly three: all three drawn and no "See all" row', JSON.stringify(r3));
+      FEED_NOW = feedOf([...MANY.slice(0, 3), LN(4)], false);
+      const t4 = await open('dark', [374, 812]); const r4 = await replyOf(t4); await t4.close();
+      ok(r4.names.length === 3 && r4.link && r4.link[0] === 'See all 4', '8.6 four: three drawn and "See all 4"', JSON.stringify(r4));
+      FEED_NOW = FEED;
     }
     ok(seen.some((r) => r === '/api/v2/vendor/worklist/today') && seen.some((r) => /\/bands\//.test(r)), '6.5 the fixtures were read (the page asked the doors this bench answers)', [...new Set(seen)].slice(0, 12).join(' '));
   } finally {

@@ -27,7 +27,10 @@ export type ShelfRoomIconKey =
   | 'support' | 'storefront' | 'leads' | 'clients' | 'packages' | 'calendar' | 'events' | 'notes'
   | 'invoices' | 'expenses' | 'books' | 'tds' | 'portfolio' | 'team' | 'couture' | 'advisor'
   | 'billing' | 'settings';
-export type IconKey = ShelfRoomIconKey | RoomKey;
+/** CE-47 FE-8 (the founder's walk of 1 Oct 2026; the chair's ruling): two rows inside rooms that stood without a drawing,
+ *  Influencer exchange (Referrals & partners) and "Something broken?" (Business Solutions). Same set, same stroke. */
+export type InRoomRowIconKey = 'exchange' | 'help';
+export type IconKey = ShelfRoomIconKey | RoomKey | InRoomRowIconKey;
 
 export const ROOM_ICONS: Readonly<Record<IconKey, string>> = {
   support:       '<rect x="2.5" y="7" width="19" height="13.5" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M2.5 13h19"/>', // sha256 95e1197a1f2dca1f
@@ -62,6 +65,9 @@ export const ROOM_ICONS: Readonly<Record<IconKey, string>> = {
   contracts:     '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 17c1.4-2.2 2.4-2.2 3 0s1.6 2.2 3 0"/>', // sha256 e4b2ab227c6fc8fb
   reminders:     '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>', // sha256 980c5f803af7a016
   collabs:       '<path d="M11 17l2 2a1 1 0 1 0 3-3"/><path d="M14 14l2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="M21 3l1 11h-2"/><path d="M3 3L2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/>', // sha256 aa200749cd30e7a8
+  // CE-47 FE-8: an at sign (a handle) for Influencer exchange; a lifebuoy for "Something broken?". Lucide's, ISC, as the rest.
+  exchange:      '<circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>', // sha256 ff60fda9611fde6a
+  help:          '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.93 4.93l4.24 4.24"/><path d="M14.83 14.83l4.24 4.24"/><path d="M14.83 9.17l4.24-4.24"/><path d="M4.93 19.07l4.24-4.24"/>', // sha256 e5cd3cf4fbea4b34
 };
 
 /** The drawing for a room id or a row key; null for a key with none (never drawn as a blank box). */

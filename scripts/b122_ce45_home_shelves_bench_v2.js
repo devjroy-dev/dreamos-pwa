@@ -113,6 +113,8 @@ const RULED_GROUPS = [
 // stands in TDW_CE45_FE1_MOCK_PINS_TOP_AND_ICONS.html (sha256 a0f8de82298867fef84daf370f4ec9f06f57baec48573735fc0db92d9e81ac63).
 // A later edit to any drawing is a fresh veto: it reddens 5.2.
 const MOCK_SHA = 'a0f8de82298867fef84daf370f4ec9f06f57baec48573735fc0db92d9e81ac63';
+// CE-47 FE-8: the two in-room drawings (sha256 of each inner markup), carried so a later edit is a fresh veto.
+const IN_ROOM = { exchange: 'ff60fda9611fde6a27aae017cd8ec14f423f3f018bbfb38258e14ec0439a644a', help: 'e5cd3cf4fbea4b34393ada94e80e5a104877fcc373d68b39f6605c078cc171ff' };
 const H_ICON = {
   support: '95e1197a1f2dca1f7fb031249d762260970815e62ec6c68c11a82fb29da0b9e2',
   storefront: 'e5ea1b923a5558b98a2a677a5771b5662bee513d0dc906ee06fb8a3748ea5a02',
@@ -329,9 +331,14 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   const SHOWN_KEYS = [...new Set(SHOWN)];
   // DESIGN-1 · STAGE 3 (by label): the 29 are the approved mock's drawings (5.2 carries their bytes); the shelves that showed
   // some of them retired, and the keys are now drawn by the pins, More's rows and Business Solutions. The set is unchanged.
-  cell('5.1 the registry holds exactly the 29 approved keys, no more (DESIGN-1 stage 3: drawn by the pins, More and Business Solutions)', () => {
+  cell('5.1 the registry holds exactly the 29 approved keys and the two in-room drawings, no more (DESIGN-1 stage 3; CE-47 FE-8)', () => {
     if (!IC || !IC.ROOM_ICONS) return 'v2/lib/worklist/icons.ts does not load';
-    const got = Object.keys(IC.ROOM_ICONS).sort(); const want = SHOWN_KEYS.slice().sort();
+    // AMENDED BY LABEL (CE-47 FE-8, the founder's walk of 1 Oct 2026 and the chair's ruling): two rows inside rooms gain a drawing,
+    // Influencer exchange ('exchange') and "Something broken?" ('help'). The 29 of the mock stand; the registry holds 31.
+    const got = Object.keys(IC.ROOM_ICONS).filter((k) => !IN_ROOM[k]).sort(); const want = SHOWN_KEYS.slice().sort();
+    if (JSON.stringify(Object.keys(IC.ROOM_ICONS).filter((k) => IN_ROOM[k]).sort()) !== JSON.stringify(Object.keys(IN_ROOM).sort())) return 'the two in-room drawings are not both there';
+    const drift = Object.keys(IN_ROOM).filter((k) => crypto.createHash('sha256').update(String(IC.ROOM_ICONS[k])).digest('hex') !== IN_ROOM[k]);
+    if (drift.length) return 'in-room drawing drifted: ' + drift.join(',');
     return (want.length === 29 && JSON.stringify(got) === JSON.stringify(want)) || JSON.stringify({ got: got.length, want: want.length, missing: want.filter((k) => !got.includes(k)), extra: got.filter((k) => !want.includes(k)) });
   });
   cell('5.2 every drawing is the approved mock\u2019s, byte for byte (29 sha256 carried; mock ' + MOCK_SHA.slice(0, 12) + ')', () => {
