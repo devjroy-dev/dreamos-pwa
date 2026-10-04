@@ -629,7 +629,13 @@ async function drivePair(deps) {
       if (inKey) take();
       return [...new Set(keys)].sort().join(',');
     };
-    return keysOf(planSrc) === keysOf(strip(read('app/(landing)/page.tsx')));
+    // CE-47 FE-9, F-44.271, AMENDED BY LABEL: the landing now hands ONE more key, `askName` (its way to the "Your name"
+    // screen for a verified number with no name). /plan hands none, by design: its sheet collects the name before the
+    // code, and the hook says a missing name in words when no askName is given. So: the landing's keys are /plan's
+    // keys and `askName`, exactly; any other key on either side still reds this cell.
+    const landing = keysOf(strip(read('app/(landing)/page.tsx'))).split(',');
+    return landing.includes('askName') && !keysOf(planSrc).split(',').includes('askName') &&
+      keysOf(planSrc) === landing.filter((k) => k !== 'askName').join(',');
   })());
 }
 

@@ -1,0 +1,9 @@
+# CE-47 · FE-9 · F-44.271, the app half: no account without a name (sign-in unknown goes to sign-up; the Your name screen; one new bench; FIVE bench paths in all, four amended by label: b20_a4, b20_a5, b72, tdw09_landing) · base 53737979 · F-19.16: a dirty path outside this list is a STOP.
+app/(landing)/page.tsx
+lib/auth/otpSignup.ts
+scripts/b20_a4_otpsignup_pwa.proof.mjs
+scripts/b20_a5_plan_pwa.proof.mjs
+scripts/b72_r4210_plan_entry_bench.js
+scripts/fe9_f44271_signup_name_bench.js
+scripts/floor-manifest-ce47-fe9-f44271-pwa.txt
+scripts/tdw09_landing.proof.mjs

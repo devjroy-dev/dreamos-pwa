@@ -162,11 +162,13 @@ sec('C5 \u00b7 30 -> 31, and method A untouched');
   const backs = count(/<BackBtn/g), golds = count(/<GoldBtn/g);
   ok('the button pair is 17/17, unmoved', opens === 17 && closes === 17, `${opens}/${closes}`);
   ok('anchors moved 2 -> 3', anchors === 3, String(anchors));
-  ok('the census totals 31', opens + inputs + anchors + backs + golds === 31,
+  // CE-47 FE-9, F-44.271, AMENDED BY LABEL: 31 -> 34. The "Your name" screen adds one BackBtn, one input and one GoldBtn (no button, no anchor),
+  // so the 17/17 pair and the three anchors above stand untouched.
+  ok('the census totals 34 (31 and the Your name screen: one Back, one input, one Continue)', opens + inputs + anchors + backs + golds === 34,
     `button ${opens} \u00b7 input ${inputs} \u00b7 a ${anchors} \u00b7 BackBtn ${backs} \u00b7 GoldBtn ${golds}`);
   // b20_a4 is the census's own home and it was amended by label in this packet.
   const a4 = read('scripts/b20_a4_otpsignup_pwa.proof.mjs');
-  ok('b20_a4 was amended by label, not loosened', /=== 31/.test(a4) && !/>= 30/.test(a4));
+  ok('b20_a4 was amended by label, not loosened', /=== 34/.test(a4) && !/>= 30/.test(a4) && !/>= 3[1-4]/.test(a4));
   ok('and it pins the delta to anchors alone', /anchors === 3 && opens === 17/.test(a4));
 }
 
@@ -208,7 +210,7 @@ if (process.argv.includes('--mutate')) {
       'Tell us what you need</a>'],
 
     ['scripts/b20_a4_otpsignup_pwa.proof.mjs', 'the census is LOOSENED instead of named',
-      'opens + inputs + anchors + backs + golds === 31',
+      'opens + inputs + anchors + backs + golds === 34',
       'opens + inputs + anchors + backs + golds >= 30'],
   ];
   for (const [rel, name, from, to] of MUT) {

@@ -9,7 +9,7 @@ import { rowBaseline, rowGlyphSlot } from '@/lib/vendor/controls';
 // FORK B (D3 sitting 1): `sendOtp` / `verifyOtp` and the two storage helpers left this
 // file for `lib/auth/otpSignup.ts` so `/plan` (R-41.94) mints through the same path.
 // BOTH ROLES moved; the vendor lane is touched by the extraction and by nothing else.
-import { useOtpSignup, persistSession } from '@/lib/auth/otpSignup';
+import { useOtpSignup, persistSession, NAME_WORDS } from '@/lib/auth/otpSignup';
 // F-05.9: signup + returning-no-PIN moved off the dead Supabase Phone-OTP (Twilio) onto
 // the backend Meta OTP endpoints (send-otp / verify-otp / provision). No browser Supabase
 // client is needed on this screen anymore.
@@ -113,7 +113,8 @@ type Screen =
   | 'join_phone'     // Enter name + phone (was `invite_phone`)
   | 'join_otp'       // Enter OTP (was `invite_otp`)
   | 'signin_phone'   // Returning member phone
-  | 'signin_otp';    // Returning member OTP
+  | 'signin_otp'     // Returning member OTP
+  | 'your_name';     // F-44.271: a verified number with no name on file gives one before anything opens
 
 type Role = 'Dreamer' | 'Maker';
 
@@ -311,6 +312,7 @@ export default function Home() {
   // `inviteCode`/`inviteError` died with the screen that was their only reader).
   const [joinName, setJoinName]         = useState('');
   const [joinCategory, setJoinCategory] = useState('');
+  const [yourName, setYourName]         = useState('');   // F-44.271: the "Your name" screen's own field, never joinName
   const [phone, setPhone]               = useState('');
   const [otp, setOtp]                   = useState(['', '', '', '', '', '']);
 
@@ -503,9 +505,10 @@ export default function Home() {
   // NOTHING ON THE GLASS MOVED. The four call sites below still call `sendOtp`
   // and `verifyOtp` by those names with those arguments; the thirty controls on
   // this page are unchanged, every one of them KEPT.
-  const { sendOtp, verifyOtp } = useOtpSignup({
+  const { sendOtp, verifyOtp, submitName } = useOtpSignup({
     role, country, phone, otp, screen, joinName, joinCategory,
     showToast, setScreen, router, apiBase: API_BASE,
+    askName: () => { setYourName(''); setScreen('your_name'); },
   });
 
   // ── Sign in (returning member) ────────────────────────────────────────────
@@ -531,7 +534,13 @@ export default function Home() {
       // directly below), and a name left in state from an abandoned join
       // attempt would found a stranger's row under someone else's name. This
       // door never collected a name; it does not get to spend one.
-      if (!d.ok || !d.exists) { sendOtp(phone); return; }
+      if (!d.ok) { sendOtp(phone); return; }
+      // F-44.271 (the founder, 3 Oct 2026: "We need phone, name and OTP"). A number this estate has never seen is not
+      // signed up silently from the sign-in door any more: it goes to the SIGN-UP screen with the phone already filled
+      // (the same `phone` state), where the name is required and, for a vendor, the craft. The name and craft fields
+      // start empty, so nothing typed at an abandoned join for another number rides along. No new words: the sign-up
+      // screen says what it always said.
+      if (!d.exists) { setJoinName(''); setJoinCategory(''); setScreen('join_phone'); return; }
 
       if (d.pin_set) {
         // B-3, chair-ruled: the three lines that stood here were identical to the
@@ -1010,6 +1019,26 @@ export default function Home() {
                     the replacement is upstream: no entry to this screen leaves `role` null, so
                     the guard had nothing to catch. The phone-length half stands. */}
                 <GoldBtn label="Continue →" onClick={handleSignIn} disabled={phone.length < country.maxDigits} />
+              </>
+            )}
+
+            {/* ── F-44.271 · YOUR NAME ──────────────────────────────────────────
+                A number that is verified but has no name on file (either role) gives one here, and only then is the
+                account finished and anything opened. The two lines are NAME_WORDS (lib/auth/otpSignup.ts), the
+                founder's to veto; the button is the sign-in screen's own `Continue →`. */}
+            {screen === 'your_name' && (
+              <>
+                <BackBtn onClick={() => setScreen('entry')} />
+                <p data-your-name="" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>{NAME_WORDS.head}</p>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 20px' }}>{NAME_WORDS.ask}</p>
+                <input
+                  value={yourName}
+                  onChange={e => setYourName(e.target.value)}
+                  aria-label={NAME_WORDS.head}
+                  autoComplete="name"
+                  style={{ ...INPUT }}
+                />
+                <GoldBtn label="Continue →" onClick={() => submitName(yourName)} disabled={!yourName.trim()} />
               </>
             )}
 

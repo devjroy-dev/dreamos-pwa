@@ -97,7 +97,10 @@ const deps = (w, over = {}) => ({
   ...over,
 });
 
-const VERIFY_OK = { ok: true, access_token: 'AT', refresh_token: 'RT', name: null };
+// CE-47 FE-9, F-44.271, AMENDED BY LABEL: the fake verify now carries a NAME. These drives stand for an account that is let in; with
+// `name: null` and no name typed, the hook now (rightly) asks for the name instead of writing a session, and that path
+// has its own bench on the real page (scripts/fe9_f44271_signup_name_bench.js).
+const VERIFY_OK = { ok: true, access_token: 'AT', refresh_token: 'RT', name: 'Asha' };
 
 // ── The drives. Each returns the recorded world, so a cell reads facts, never
 //    re-implements the subject. §8 calls these same drives with a mutated module.
@@ -152,7 +155,8 @@ section('§2 · THE WIRING — the page\'s pair comes FROM the hook');
   // A cell that drives a function in isolation proves nothing about whether it is
   // CALLED. The subject of the page's destructuring is lifted from the page's own
   // source and required to be the hook — the name is not retyped beside it.
-  const m = landSrc.match(/const\s*\{\s*sendOtp\s*,\s*verifyOtp\s*\}\s*=\s*([A-Za-z_$][\w$]*)\(/);
+  // CE-47 FE-9, F-44.271, AMENDED BY LABEL: the hook now returns a third act, submitName (the Your name screen's), so the page takes three.
+  const m = landSrc.match(/const\s*\{\s*sendOtp\s*,\s*verifyOtp\s*,\s*submitName\s*\}\s*=\s*([A-Za-z_$][\w$]*)\(/);
   ok('the page destructures `{ sendOtp, verifyOtp }` from a call, not a local definition', !!m);
   ok('and the thing it calls is `useOtpSignup`', !!m && m[1] === 'useOtpSignup');
   ok('which it imports from lib/auth/otpSignup', /import\s*\{[^}]*useOtpSignup[^}]*\}\s*from\s*'@\/lib\/auth\/otpSignup'/.test(landSrc));
@@ -290,7 +294,7 @@ section('§6 · THE THIRTY CONTROLS, ALL KEPT — CE-115');
   // and the both-roles cell never had to be opened. Had this been a third button
   // element the two methods would have had to move together, which is the whole
   // reason the ruling says text link and not third door.
-  ok('method B — the element census still totals 31 (R-42.10)', opens + inputs + anchors + backs + golds === 31,
+  ok('method B — the element census totals 34: 31 and the Back, input and Continue of the Your name screen; F-44.271 (R-42.10)', opens + inputs + anchors + backs + golds === 34,
     `button ${opens} · input ${inputs} · a ${anchors} · BackBtn ${backs} · GoldBtn ${golds}`);
   ok('and the delta is on ANCHORS alone — method A is untouched', anchors === 3 && opens === 17,
     `a ${anchors} · button ${opens}`);

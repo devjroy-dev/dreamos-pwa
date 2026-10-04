@@ -89,8 +89,9 @@ H('§1 · L-B · TWO DOORS, AND THE CEREMONY IS GONE (R-O3 · R-X10 arm (a))');
 
 const SCREEN_UNION = L.slice(L.indexOf('type Screen ='), L.indexOf('type Role'));
 
-ok('§1.1 the screen union declares EXACTLY SEVEN screens (L-1 AMENDMENT: + chooser)',
-  (SCREEN_UNION.match(/\|\s*'[a-z_]+'/g) || []).length === 7 && /\|\s*'chooser'/.test(SCREEN_UNION),
+// CE-47 FE-9, F-44.271, AMENDED BY LABEL: seven -> eight, + your_name (a verified number with no name gives one before anything opens).
+ok('§1.1 the screen union declares EXACTLY EIGHT screens (L-1: + chooser; F-44.271: + your_name)',
+  (SCREEN_UNION.match(/\|\s*'[a-z_]+'/g) || []).length === 8 && /\|\s*'chooser'/.test(SCREEN_UNION) && /\|\s*'your_name'/.test(SCREEN_UNION),
   `union declares ${(SCREEN_UNION.match(/\|\s*'[a-z_]+'/g) || []).length}: ${SCREEN_UNION.match(/'[a-z_]+'/g)}`);
 
 for (const dead of ['request_who', 'request_dreamer', 'request_maker', 'request_done', 'invite_code']) {
@@ -134,9 +135,13 @@ ok('§2.1 the verify-otp path no longer diverts an unknown number into a request
   !/No account found\. Request an invite to join\./.test(read(LANDING)),
   'the divert toast survived — the ceremony still catches people the open path would admit');
 
-ok('§2.2 the sign-in path no longer diverts either, and PROCEEDS instead',
+// CE-47 FE-9, F-44.271, AMENDED BY LABEL (the founder, 3 Oct 2026: "We need phone, name and OTP"): an unknown number on the sign-in path is still
+// never turned away, but it is no longer signed up silently: it is taken to the SIGN-UP screen (join_phone), where the
+// name is required. A lookup that failed still proceeds to the code.
+ok('§2.2 the sign-in path still turns nobody away: an unknown number goes to the sign-up screen, a failed lookup proceeds',
   !/No account found — request an invite to join\./.test(read(LANDING)) &&
-  /if \(!d\.ok \|\| !d\.exists\) \{ sendOtp\(phone\); return; \}/.test(L),
+  /if \(!d\.ok\) \{ sendOtp\(phone\); return; \}/.test(L) &&
+  /if \(!d\.exists\) \{ setJoinName\(''\); setJoinCategory\(''\); setScreen\('join_phone'\); return; \}/.test(L),
   'the returning path still turns an unrecognised number away');
 
 ok('§2.3 a genuine provisioning failure is still reported AS a failure, not as exclusivity',
@@ -539,9 +544,9 @@ okMutate('§M.2 §1.4 reds if the gold moves off the vendor door',
   () => assert.ok((read(LANDING).match(/background: '#C9A84C', border: 'none',[\s\S]{0,400}I&apos;m a wedding vendor/g) || []).length === 2), '§1.4');
 
 okMutate('§M.3 §2.2 reds if the returning path turns an unknown number away again',
-  LANDING, "if (!d.ok || !d.exists) { sendOtp(phone); return; }",
-  "if (!d.ok || !d.exists) { return; }",
-  () => assert.ok(/if \(!d\.ok \|\| !d\.exists\) \{ sendOtp\(phone\); return; \}/.test(code(LANDING))), '§2.2');
+  LANDING, "if (!d.exists) { setJoinName(''); setJoinCategory(''); setScreen('join_phone'); return; }",
+  "if (!d.exists) { return; }",
+  () => assert.ok(/if \(!d\.exists\) \{ setJoinName\(''\); setJoinCategory\(''\); setScreen\('join_phone'\); return; \}/.test(code(LANDING))), '§2.2');
 
 // §M.4 RETIRED-WITH-THE-READER at L-1. Assertion quoted: '§M.4 §4.2 reds if the null-role
 //     sign-in guard is dropped'. R-O3's warning was "do not remove either half without

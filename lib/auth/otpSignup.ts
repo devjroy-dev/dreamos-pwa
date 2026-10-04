@@ -90,17 +90,35 @@ export interface OtpSignupDeps {
   setScreen: (s: 'signin_otp' | 'join_otp') => void;
   router: { push: (href: string) => void };
   apiBase: string;
+  // F-44.271: the caller's way to its "Your name" screen. A caller without one (/plan, whose sheet always collects the
+  // name before the code) leaves it out, and a missing name is then said in words and nothing is entered.
+  askName?: () => void;
 }
 
 export interface OtpSignup {
   sendOtp: (phoneNum: string, nameArg?: string) => Promise<void>;
   verifyOtp: () => Promise<void>;
+  // F-44.271: the "Your name" screen's one act. Provisions again with the typed name, then finishes the sign-in.
+  submitName: (name: string) => Promise<void>;
 }
+
+// ── F-44.271 · NO ACCOUNT WITHOUT A NAME (the founder, 3 Oct 2026: "We need phone, name and OTP") ──────────────────
+// The words of the "Your name" screen, in one home (the founder's veto reads these two lines).
+export const NAME_WORDS = { head: 'Your name', ask: 'Please add your name.' } as const;
+// A verified code that is waiting for a name. The code is spent once the server accepts it, so the tokens are held here
+// until the name arrives; they are written to no storage and no session exists before the name does. Module scope, not
+// state: the two closures below are rebuilt on every render (see the header), and one tab verifies one number at a time.
+type Verified = { e164: string; isVendor: boolean; accessToken: string; refreshToken?: string; v: Record<string, unknown> };
+let pendingName: Verified | null = null;
+// One reading of "the server wants a name", for either door's answer: WEB-4's refusal names it as reason
+// 'name_required' or as needs_name.
+const wantsName = (o: Record<string, unknown> | null | undefined): boolean => !!o && (o.reason === 'name_required' || o.needs_name === true);
+const present = (x: unknown): boolean => typeof x === 'string' && x.trim().length > 0;
 
 export function useOtpSignup(deps: OtpSignupDeps): OtpSignup {
   const {
     role, country, phone, otp, screen, joinName, joinCategory,
-    showToast, setScreen, router, apiBase: API_BASE,
+    showToast, setScreen, router, apiBase: API_BASE, askName,
   } = deps;
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -173,6 +191,18 @@ export function useOtpSignup(deps: OtpSignupDeps): OtpSignup {
       const accessToken  = v.access_token;
       const refreshToken = v.refresh_token;
 
+      // F-44.271: the name and the craft are spent ONLY by the door that collected them. A name left in state by an
+      // abandoned join is never sent from the sign-in path (it used to be, on every sign-in).
+      const signingIn = screen === 'signin_otp';
+      const typed = signingIn ? '' : joinName.trim();
+      await finish({ e164, isVendor, accessToken, refreshToken, v }, typed, signingIn ? '' : joinCategory);
+    } catch { showToast('Verification failed.'); }
+  };
+
+  // The second half of the sign-in, run once after the code is verified and again from the "Your name" screen.
+  const finish = async (ver: Verified, name: string, category: string) => {
+      const { e164, isVendor, accessToken, refreshToken, v } = ver;
+      const ask = () => { pendingName = ver; if (askName) askName(); else showToast(NAME_WORDS.ask); };
       // 2 — Provision the vendor|couple row for this Supabase identity (idempotent;
       //     phone-fallback re-binds a legacy account). Returns ids + pin_set, no tokens.
       const provEndpoint = isVendor
@@ -181,10 +211,15 @@ export function useOtpSignup(deps: OtpSignupDeps): OtpSignup {
       const pRes = await fetch(provEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({ phone: e164, name: joinName.trim() || undefined, category: isVendor ? (joinCategory || undefined) : undefined }),
+        body: JSON.stringify({ phone: e164, name: name || undefined, category: isVendor ? (category || undefined) : undefined }),
       });
       const d = await pRes.json();
+      // F-44.271: the server refusing for a name (WEB-4's half) and the app seeing no name anywhere (today's server,
+      // which still answers ok) end at the same screen. Nothing is stored and nobody is let in until a name exists.
+      if (wantsName(d) || (!present(name) && wantsName(v))) { ask(); return; }
       if (!d.ok) { showToast(d.error || 'Could not complete sign-in.'); return; }
+      if (!present(name) && !present(v.name) && !present(d.name)) { ask(); return; }
+      pendingName = null;
 
       const roleId = isVendor ? d.vendor_id : d.couple_id;
       const userId = d.user_id;
@@ -205,8 +240,8 @@ export function useOtpSignup(deps: OtpSignupDeps): OtpSignup {
         id: roleId, userId, vendorId: roleId,
         phone: e164,
         pin_set: pinSet,
-        name: v.name || d.name || null,
-        vendorName: v.name || d.name || null,
+        name: v.name || d.name || name || null,
+        vendorName: v.name || d.name || name || null,
         category: v.category || d.category || null,
         tier: v.tier || d.tier || null,
         dreamer_type: d.dreamer_type || 'basic',
@@ -254,8 +289,15 @@ export function useOtpSignup(deps: OtpSignupDeps): OtpSignup {
       } else {
         router.push(pinSet ? '/couple/pin-login' : '/couple/pin');
       }
-    } catch { showToast('Verification failed.'); }
   };
 
-  return { sendOtp, verifyOtp };
+  // F-44.271: the "Your name" screen's Continue. An empty name asks again; a lost wait (a reload) starts over.
+  const submitName = async (name: string) => {
+    const ver = pendingName;
+    if (!present(name)) { showToast(NAME_WORDS.ask); return; }
+    if (!ver) { showToast('Could not complete sign-in.'); return; }
+    try { await finish(ver, name.trim().slice(0, 80), ''); } catch { showToast('Verification failed.'); }
+  };
+
+  return { sendOtp, verifyOtp, submitName };
 }
