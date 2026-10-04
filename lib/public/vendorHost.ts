@@ -58,6 +58,10 @@ export function decide(host: string | null | undefined, pathname: string, siteBa
   if (p === '/') return { kind: 'rewrite', pathname: `/v/${handle}`, handle };
   if (p === '/date') return { kind: 'rewrite', pathname: `/v/${handle}/date`, handle };
   if (/^\/w\/[^/]+\/?$/.test(p)) return { kind: 'rewrite', pathname: `/v/${handle}${p.replace(/\/$/, '')}`, handle };
+  // WEB-5 · the styles site on her own address: its look and collection pages rewrite like /w/<slug>, and its own
+  // faces, script and beacon (root-relative in the document) pass through untouched.
+  if (/^\/(looks|work|acts|events|collections)\/[a-z0-9][a-z0-9-]{0,79}\/?$/.test(p)) return { kind: 'rewrite', pathname: `/v/${handle}${p.replace(/\/$/, '')}`, handle };
+  if (p.startsWith('/site-fonts/') || p.startsWith('/site-rt/') || p === '/site-beacon') return null;
   const scheme = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(root) ? 'http' : 'https';
   return { kind: 'redirect', url: `${scheme}://${root}${p}${search || ''}`, handle };
 }

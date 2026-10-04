@@ -228,11 +228,10 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
              ['reply', 'Once connected, enquiries on WhatsApp and Instagram are answered for you.']),
     connects: 'Enquiries answered here land in Enquiries. Dates are checked against Calendar.' }),
   [WEBSITE_HREF]: entry(ROW_DESC.website, {
-    can: how(['list', 'Work down the list: add a cover photo, two lines about your work, a starting price.'],
-             ['add', 'To show a whole wedding: tap Publish a wedding page.'],
-             ['read', 'To check the page: tap See the whole page.'],
-             ['share', 'Put your link in your Instagram bio.']),
-    connects: 'Built from Storefront and Portfolio. Found on Google shows whether Google lists it.' }),
+    can: how(['list', 'To change how the website looks: tap Style. Colours and type has its own row under it.'],
+             ['add', 'To add work: tap Looks, then + New look.'],
+             ['share', 'When the preview is right: tap Publish.']),
+    connects: 'Prices on the website follow Show prices on the website.' }),
   [WEDDING_PAGES_HREF]: entry(ROW_DESC.wedding_pages, {
     can: how(['add', 'Tap + New wedding page, choose the event, give it a title, tap Save.'],
              ['edit', 'To add photographs and credits: tap a wedding.'],

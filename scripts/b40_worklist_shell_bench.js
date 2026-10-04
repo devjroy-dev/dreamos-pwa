@@ -4526,7 +4526,8 @@ cell('C115 the Your website page writes the primary register once (Primary), ope
   if (/\bdisabled\b/.test(sf)) bad.push('a disabled control appears (R-40.78: absent, never greyed)');
   if (!/title=\{COPY\.websiteTitle\}/.test(pg)) bad.push('the page does not wear COPY.websiteTitle');
   if (!/websiteTitle: 'Your website',/.test(copy)) bad.push("COPY.websiteTitle is not the vetoed byte 'Your website'");
-  if (!/'SEO \\u2014 found on Google'/.test(sf)) bad.push('the Google section is not headed SEO \u2014 found on Google (R-40.122)');
+  // CE-47 W6-c (the chair's ruling, 30 Sept 2026): the long dash leaves this byte as it left the v2 twin's; the word stays
+  if (!/'SEO: found on Google'/.test(sf)) bad.push('the Google section is not headed SEO: found on Google (R-40.122; W6-c took the dash out)');
   if (!/\/api\/revalidate\/storefront/.test(sf)) bad.push('the page never rebuilds her public page after a write');
   return bad.length === 0 ? null : bad.join('; ');
 });

@@ -1,0 +1,17 @@
+public/site-fonts · WEB-5 · the styles site's faces, copied from @fontsource (exact versions below) by tools/site_port/gen_faces.cjs.
+Each family's licence sits beside its files as <package>.LICENSE.txt.
+
+Bodoni Moda	@fontsource/bodoni-moda@5.3.0	OFL-1.1
+Inter Tight	@fontsource/inter-tight@5.3.0	OFL-1.1
+Cormorant Garamond	@fontsource/cormorant-garamond@5.3.0	OFL-1.1
+Manrope	@fontsource/manrope@5.3.0	OFL-1.1
+Italiana	@fontsource/italiana@5.3.0	OFL-1.1
+Jost	@fontsource/jost@5.3.0	OFL-1.1
+Marcellus	@fontsource/marcellus@5.3.0	OFL-1.1
+Mulish	@fontsource/mulish@5.3.0	OFL-1.1
+Fraunces	@fontsource/fraunces@5.3.0	OFL-1.1
+Plus Jakarta Sans	@fontsource/plus-jakarta-sans@5.3.0	OFL-1.1
+Instrument Serif	@fontsource/instrument-serif@5.3.0	OFL-1.1
+Instrument Sans	@fontsource/instrument-sans@5.3.0	OFL-1.1
+Gilda Display	@fontsource/gilda-display@5.3.0	OFL-1.1
+Figtree	@fontsource/figtree@5.3.0	OFL-1.1

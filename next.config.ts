@@ -43,7 +43,14 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/(.*)',
+        // WEB-5: the styles site's faces are content-addressed (public/site-fonts, names carry their hash): a year.
+        source: '/site-fonts/:file*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        // WEB-5 (CE-46 Q2): the styles site's document, script and faces set their own caching (five minutes at the
+        // edge for a page, a year for the content-addressed files); every other path keeps no-store, as before.
+        source: '/((?!site/|site-rt/|site-fonts/).*)',
         headers: [
           { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
           { key: 'Pragma', value: 'no-cache' },

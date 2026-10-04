@@ -57,11 +57,11 @@ const C = {
   openPage:    'Open',
   back:        'Your website',
   fixHead:     'What to fix',
-  fixSub:      'A couple reads your page in about a second. These are the gaps she sees.',
+  fixSub:      'These are the gaps on the website today.',
   fixNone:     'Nothing to fix. Your page is complete.',
-  fixCover:    'Add a cover photo',              fixCoverD:   'The first thing a couple sees',
+  fixCover:    'Add a cover photo',              fixCoverD:   'The first thing a visitor sees',
   fixAbout:    'Write two lines about your work', fixAboutD:  'In your own words',
-  fixCity:     'Add your city',                  fixCityD:    'Couples search by place',
+  fixCity:     'Add your city',                  fixCityD:    'People search by place',
   fixRate:     'Add your starting price',        fixRateD:    'Shown as \u201cStarting at\u201d',
   fixWedding:  'Publish a wedding page',         fixWeddingD: 'A whole wedding, not just photos',
   fixVenue:    'A wedding page has no venue',
@@ -74,9 +74,9 @@ const C = {
   copy:        'Copy', copied: 'Copied', share: 'Share', qrDl: 'Download QR',
   qrLine:      'Scan opens your page.',
   wedHead:     COPY.storefrontWeddingsLabel,
-  wedSub:      'Only pages you published and the couple agreed to.',
+  wedSub:      'Only pages you published and the clients agreed to.',
   wedNone:     'None yet. Publish one from Wedding pages.',
-  gHead:       'SEO \u2014 found on Google',
+  gHead:       'SEO: found on Google',
   gSub:        'What Google shows for you, and what people typed to get there.',
   gRow:        'Found on Google',
   gRowD:       'Not connected yet', gRowDon: 'Connected',
@@ -87,7 +87,7 @@ const C = {
   gConnectP:   'One tap, the same Google account as your reviews. Then this page shows how often you appear, what people typed, and three things to do.',
   gOff:        'Google connection is being set up. Come back in a few days.',
   gConnected:  'Connected to Google',
-  gEmpty:      'Connected to Google. Google reports in a few days \u2014 come back after the weekend.',
+  gEmpty:      'Connected to Google. Google reports in a few days. Come back after the weekend.',
   gLast:       'The last 28 days',
   gSeen:       'Times you appeared on Google', gOpened: 'Times someone opened your page',
   gPrev:       (n: number) => `the 28 before: ${n}`,
@@ -99,8 +99,8 @@ const C = {
   gSaveToast:  'Saved. Google picks it up within a few days.',
   aboutH:      'About your work', aboutP: 'Two lines is plenty. What you do, and where.',
   cityH:       'Your city',       cityP:  'The one place you work from.',
-  rateH:       'Starting price',  rateP:  'Your lowest package. Shown only while your price switch is on.',
-  coverH:      'Cover photo',     coverP: 'Pick one in Portfolio. It becomes the first thing a couple sees.',
+  rateH:       'Starting price',  rateP:  'Your lowest package. Shown on the website only while Show prices on the website is on.',
+  coverH:      'Cover photo',     coverP: 'Pick one in Portfolio. It becomes the first thing a visitor sees.',
   openPortfolio: 'Open Portfolio', openWeddings: 'Open Wedding pages', stay: 'Stay here',
   shareToast:  'Opens WhatsApp with your address',
   qrToast:     'Saved to your phone',
@@ -234,7 +234,7 @@ export function threeThings(card: Card | null, fixes: Fix[], queries: GReport['q
   const noVenue = weds.find((w) => !w.venue);
   if (noVenue) out.push({ k: 'venue', t: `\u201c${noVenue.title}\u201d has no venue`, d: 'People type the venue. Google finds pages that name it.' });
   if (weds.length === 0) out.push({ k: 'wedding', t: 'Publish your first wedding page', d: 'Searches with a place in them find pages, not profiles.' });
-  if (!city.trim()) out.push({ k: 'city', t: 'Add your city', d: queries.length ? 'Every search above has a place in it.' : 'Couples search by place.' });
+  if (!city.trim()) out.push({ k: 'city', t: 'Add your city', d: queries.length ? 'Every search above has a place in it.' : 'People search by place.' });
   if (card && card.photos.length < 12) out.push({ k: 'photos', t: 'Add photos with a line under each', d: 'Google reads the line, not the picture.' });
   if (fixes.some((f) => f.k === 'cover' && !f.ok)) out.push({ k: 'cover', t: 'Pick a cover photo', d: 'It is the picture Google shows beside your name.' });
   const typed = queries.map((q) => q.query.toLowerCase());
@@ -243,7 +243,9 @@ export function threeThings(card: Card | null, fixes: Fix[], queries: GReport['q
 }
 
 // ═══ THE ROOM ═════════════════════════════════════════════════════════════════
-export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
+// CE-47 · WEB-6 · b172: the customiser (components/website/WebsiteRoom.tsx) opens the address and Google screens here
+// with `start`; their back then returns to the customiser through `onBack`. Without them the room is today's, unchanged.
+export function YourWebsiteScreen({ vendorId, start, onBack }: { vendorId: string; start?: 'address' | 'google' | 'switches'; onBack?: () => void }) {
   void vendorId; // every door below resolves her from the session token
   const { current, loading } = useSettings();
   // F-40.276: the stored handle is whatever case it was typed in (DEV440); the
@@ -255,7 +257,7 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
   const pageUrl = handle ? publicUrlFor(handle, SITE_BASE) : '';
   const address = pageUrl.replace(/^https?:\/\//, '');
 
-  const [screen, setScreen] = useState<Screen>('page');
+  const [screen, setScreen] = useState<Screen>(start && start !== 'switches' ? start : 'page');
   const [sheet, setSheet] = useState<Sheet>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [card, setCard] = useState<Card | null>(null);
@@ -350,7 +352,7 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
 
   const rechead = (title: string) => (
     <div className="yw-sec">
-      <button type="button" className="yw-rechead" onClick={() => setScreen('page')} aria-label={`${C.back}: back`}>
+      <button type="button" className="yw-rechead" onClick={() => (start && onBack ? onBack() : setScreen('page'))} aria-label={`${C.back}: back`}>
         <div className="yw-eyebrow">{C.back}</div>
         <div className="yw-rectitle">{title}</div>
       </button>
@@ -392,6 +394,8 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
 
   // ── W1 · HER PAGE ───────────────────────────────────────────────────────────
   const cap = current.capacity_reason;
+  // WEB-8 (MERGED): the customiser's home keeps her two enquiry switches; start='switches' draws them alone, the same two components.
+  if (start === 'switches') return (<><style>{CSS}</style><div className="yw-sec" data-website-switches=""><DateSwitch cap={cap} revalidate={revalidate} /><PriceSwitch /></div></>);
   return (
     <>
       <style>{CSS}</style>
@@ -736,7 +740,7 @@ function FixSheet({ kind, close, say, card, values, onSaved }: {
     : kind === 'cover' ? [C.coverH, C.coverP]
     : kind === 'venue' ? [C.fixVenue, C.venueSheet]
     : kind === 'photos' ? ['Portfolio', 'Opens your Portfolio room.']
-    : [C.fixWedding, 'Opens the Wedding pages room. Make a new page there \u2014 with its venue and city.'];
+    : [C.fixWedding, 'Opens the Wedding pages room. Make a new page there, with its venue and city.'];
   const editable = kind === 'about' || kind === 'city' || kind === 'rate';
 
   return (

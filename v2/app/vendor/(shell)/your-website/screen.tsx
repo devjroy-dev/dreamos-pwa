@@ -100,7 +100,7 @@ const C = {
   gSaveToast:  'Saved. Google picks it up within a few days.',
   aboutH:      'About your work', aboutP: 'Two lines is plenty. What you do, and where.',
   cityH:       'Your city',       cityP:  'The one place you work from.',
-  rateH:       'Starting price',  rateP:  'Your lowest package. Shown only while your price switch is on.',
+  rateH:       'Starting price',  rateP:  'Your lowest package. Shown on the website only while Show prices on the website is on.',
   coverH:      'Cover photo',     coverP: 'Pick one in Portfolio. It becomes the first thing people see.',
   openPortfolio: 'Open Portfolio', openWeddings: 'Open Wedding pages', stay: 'Stay here',
   shareToast:  'Opens WhatsApp with your address',
@@ -244,7 +244,9 @@ export function threeThings(card: Card | null, fixes: Fix[], queries: GReport['q
 }
 
 // ═══ THE ROOM ═════════════════════════════════════════════════════════════════
-export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
+// CE-47 · WEB-6 · b172: the customiser (components/website/WebsiteRoom.tsx) opens the address and Google screens here
+// with `start`; their back then returns to the customiser through `onBack`. Without them the room is today's, unchanged.
+export function YourWebsiteScreen({ vendorId, start, onBack }: { vendorId: string; start?: 'address' | 'google' | 'switches'; onBack?: () => void }) {
   void vendorId; // every door below resolves her from the session token
   const { current, loading } = useSettings();
   // F-40.276: the stored handle is whatever case it was typed in (DEV440); the
@@ -256,7 +258,7 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
   const pageUrl = handle ? publicUrlFor(handle, SITE_BASE) : '';
   const address = pageUrl.replace(/^https?:\/\//, '');
 
-  const [screen, setScreen] = useState<Screen>('page');
+  const [screen, setScreen] = useState<Screen>(start && start !== 'switches' ? start : 'page');
   const [sheet, setSheet] = useState<Sheet>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [card, setCard] = useState<Card | null>(null);
@@ -351,7 +353,7 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
 
   const rechead = (title: string) => (
     <div className="yw-sec">
-      <button type="button" className="yw-rechead" onClick={() => setScreen('page')} aria-label={`${C.back}: back`}>
+      <button type="button" className="yw-rechead" onClick={() => (start && onBack ? onBack() : setScreen('page'))} aria-label={`${C.back}: back`}>
         <div className="yw-eyebrow">{C.back}</div>
         <div className="yw-rectitle">{title}</div>
       </button>
@@ -393,6 +395,8 @@ export function YourWebsiteScreen({ vendorId }: { vendorId: string }) {
 
   // ── W1 · HER PAGE ───────────────────────────────────────────────────────────
   const cap = current.capacity_reason;
+  // WEB-8 (MERGED): the customiser's home keeps her two enquiry switches; start='switches' draws them alone, the same two components.
+  if (start === 'switches') return (<><style>{CSS}</style><div className="yw-sec" data-website-switches=""><DateSwitch cap={cap} revalidate={revalidate} /><PriceSwitch /></div></>);
   return (
     <>
       <style>{CSS}</style>

@@ -17,7 +17,7 @@ import { LAYOUT_COOKIE, layoutForRequest, serverDefaultFor } from '@/lib/worklis
 
 const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.in';
 
-export function middleware(request: NextRequest) {
+export function middleware(request: NextRequest): NextResponse | Promise<NextResponse> {
   const host = request.headers.get('host') || '';
   const url  = request.nextUrl.clone();
   const path = url.pathname;
@@ -62,6 +62,27 @@ export function middleware(request: NextRequest) {
   // `/v/…` passes; anything else on her address goes to the same path on the
   // apex (302), so no signed-in surface ever renders under her name.
   const d = decide(host, path, SITE_BASE, url.search);
+  // The styles switch, on the path a vendor's home resolves to (her own address rewritten, or /v/<code> itself).
+  // ?_tdw=classic keeps a request on the classic page (the route's answer in the five-minute edge after a plan change).
+  // WEB-5 · the styles site's switch (CE-47 ruling B). Only a vendor-site path (/v/<code>, a look, a collection, or her
+  // own address rewritten to one) waits for the answer; every other request stays synchronous, exactly as before. The
+  // switch's module is loaded only on that branch.
+  const target = d && d.kind === 'rewrite' ? d.pathname : path;
+  if (/^\/v\/[^/]+(\/(looks|work|acts|events|collections)\/[^/]+)?\/?$/.test(target) && url.searchParams.get('_tdw') !== 'classic') {
+    return (async () => {
+      const { siteKind, sitePath } = await import('@/lib/site/kind');
+      const sp = sitePath(target);
+      // Her preview (?preview=<token>) goes to the site's route whatever the kind door says (an unpublished draft is
+      // still 'classic' there); the route asks the card door with her token and sends a classic answer back.
+      const pv = url.searchParams.has('preview');
+      if (sp && (pv || (await siteKind(sp.code, false)) === 'styles')) {
+        const [pn, q] = sp.to.split('?'); url.pathname = pn; if (q) for (const [k, v] of new URLSearchParams(q)) url.searchParams.set(k, v);
+        return NextResponse.rewrite(url);
+      }
+      if (d && d.kind === 'rewrite') { url.pathname = d.pathname; return NextResponse.rewrite(url); }
+      return NextResponse.next();
+    })();
+  }
   if (d && d.kind === 'rewrite') { url.pathname = d.pathname; return NextResponse.rewrite(url); }
   if (d && d.kind === 'redirect') return NextResponse.redirect(d.url, 302);
 

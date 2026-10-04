@@ -1,0 +1,66 @@
+/* WEB-7 · the site's enquiry panel · the site's own type and colour roles only (--bg --ink --mute --line --soft --serif --sans --br --pad).
+   Stacking (fork 5, ruled): decorative layers at most 80, the panel at 85. The prototype panel (.ez) is retired in this mock. */
+.w7{position:fixed;z-index:85;left:0;right:0;bottom:0;height:min(88svh,720px);background:var(--bg);color:var(--ink);
+  transform:translateY(102%);transition:transform .7s var(--wipe,cubic-bezier(.7,0,.2,1));display:flex;flex-direction:column;
+  border-top:1px solid var(--line);box-shadow:0 -18px 60px rgba(0,0,0,.18);isolation:isolate}
+.w7.on{transform:none}
+.w7 *{box-sizing:border-box}
+.w7h{display:flex;align-items:center;gap:12px;padding:16px var(--pad);border-bottom:1px solid var(--line);flex:none}
+.w7mono{display:inline-flex;width:38px;height:38px;border:1px solid currentColor;border-radius:50%;align-items:center;justify-content:center;
+  font:400 13px/1 var(--serif);letter-spacing:.04em;flex:none}
+.w7t{flex:1;min-width:0}
+.w7t b{display:block;font:400 19px/1.15 var(--serif);overflow-wrap:anywhere}
+.w7t span{display:block;margin-top:3px;color:var(--mute);font:500 10.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase}
+.w7x{width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink)}
+.w7x svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4}
+.w7m{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:22px var(--pad) 28px;display:flex;flex-direction:column;gap:16px}
+.w7s{font:400 clamp(18px,5vw,21px)/1.36 var(--serif);max-width:34em;overflow-wrap:anywhere}
+.w7u{align-self:flex-end;max-width:85%;background:var(--soft);color:var(--ink);padding:10px 14px;font:400 14px/1.4 var(--sans);
+  border-radius:var(--br,0);overflow-wrap:anywhere}
+.w7agent{color:var(--mute);font:400 13px/1.4 var(--sans)}
+.w7row{display:flex;flex-wrap:wrap;gap:8px}
+.w7chip{border:1px solid var(--ink);color:var(--ink);background:transparent;border-radius:var(--br,0);padding:0 14px;min-height:42px;
+  display:inline-flex;align-items:center;font:500 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;
+  transition:background .25s,color .25s}
+.w7chip:hover,.w7chip.on{background:var(--ink);color:var(--bg)}
+.w7chip[disabled]{cursor:default;opacity:1;border-style:dashed;color:var(--mute);border-color:var(--mute);background:transparent}
+.w7btn{border:0;background:var(--ink);color:var(--bg);border-radius:var(--br,0);min-height:48px;padding:0 20px;display:inline-flex;
+  align-items:center;justify-content:center;gap:10px;font:500 11.5px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;
+  cursor:pointer;text-decoration:none;flex:none}
+.w7btn.alt{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+.w7f{display:flex;flex-direction:column;gap:10px;max-width:420px}
+.w7f label{display:flex;flex-direction:column;gap:6px;font:500 10.5px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.w7in{min-height:48px;width:100%;min-width:0;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:var(--br,0);
+  font:400 16px var(--sans);letter-spacing:normal;text-transform:none;padding:0 12px;color-scheme:inherit}
+.w7ph{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:var(--br,0)}
+.w7ph span{display:flex;align-items:center;padding:0 10px 0 12px;font:400 16px var(--sans);color:var(--ink);letter-spacing:normal;text-transform:none;border-right:1px solid var(--line)}
+.w7ph .w7in{border:0}
+.w7dt{display:flex;gap:8px;max-width:420px}
+.w7err{color:var(--ink);font:400 13px/1.35 var(--sans);text-transform:none;letter-spacing:normal}
+.w7foot{flex:none;display:flex;gap:8px;padding:10px var(--pad) calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.w7foot .w7in{flex:1}
+.w7foot[hidden]{display:none}
+.w7dots{display:inline-flex;gap:6px;align-items:center;color:var(--mute);font:400 13px var(--sans)}
+.w7dots i{width:5px;height:5px;border-radius:50%;background:currentColor;animation:w7dot 1s infinite}
+.w7dots i:nth-child(2){animation-delay:.15s}.w7dots i:nth-child(3){animation-delay:.3s}
+@keyframes w7dot{50%{opacity:.2}}
+.w7in:focus-visible,.w7chip:focus-visible,.w7btn:focus-visible,.w7x:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@media (min-width:1024px){.w7{left:auto;top:0;height:auto;width:440px;transform:translateX(102%);border-top:0;border-left:1px solid var(--line)}.w7.on{transform:none}}
+@media (prefers-reduced-motion:reduce){.w7{transition:none}.w7dots i{animation:none}}
+/* CE-47: the country picker (inside the panel) and the consent line */
+.w7cc{display:flex;align-items:center;gap:6px;padding:0 10px 0 12px;border:0;border-right:1px solid var(--line);background:transparent;color:var(--ink);
+  font:400 16px var(--sans);letter-spacing:normal;text-transform:none;cursor:pointer;flex:none;min-height:46px}
+.w7cc svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.6}
+.w7pk{position:absolute;inset:0;z-index:2;background:var(--bg);color:var(--ink);display:flex;flex-direction:column}
+.w7pk[hidden]{display:none}
+.w7pkh{display:flex;gap:8px;align-items:center;padding:14px var(--pad);border-bottom:1px solid var(--line);flex:none}
+.w7pkh .w7in{flex:1}
+.w7pkl{flex:1;overflow-y:auto;overscroll-behavior:contain;list-style:none;margin:0;padding:0 0 calc(12px + env(safe-area-inset-bottom,0px))}
+.w7pkl button{width:100%;display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:48px;padding:0 var(--pad);border:0;
+  border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font:400 15px/1.3 var(--sans);text-align:left;cursor:pointer}
+.w7pkl button span:first-child{min-width:0;overflow-wrap:anywhere}
+.w7pkl button span:last-child{color:var(--mute);flex:none}
+.w7pkl button.on{background:var(--soft)}
+.w7pke{padding:18px var(--pad);color:var(--mute);font:400 14px var(--sans)}
+.w7cons{color:var(--mute);font:400 12.5px/1.45 var(--sans);letter-spacing:normal;text-transform:none;max-width:420px}
+.w7cons a{color:var(--ink);text-decoration:underline;text-underline-offset:3px}

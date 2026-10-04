@@ -14,6 +14,7 @@ import { WorklistShell } from '@/v2/components/worklist/WorklistShell';
 import { RoomBody } from '@/components/worklist/RoomBody';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
+import WebsiteRoom from '@/components/website/WebsiteRoom';
 import { YourWebsiteScreen } from './screen';
 
 export default function YourWebsitePage() {
@@ -24,7 +25,7 @@ export default function YourWebsitePage() {
 
   return (
     <WorklistShell title={COPY.websiteTitle}>
-      <RoomBody><YourWebsiteScreen vendorId={session.id} /></RoomBody>
+      <RoomBody><WebsiteRoom vendorId={session.id} Today={YourWebsiteScreen} /></RoomBody>
     </WorklistShell>
   );
 }

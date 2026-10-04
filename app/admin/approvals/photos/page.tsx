@@ -1,7 +1,11 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { PageHeader, T, Toast, FieldSelect, SectionDivider, ActionChip } from '../../_components/AdminUI';
-import { getPhotoQueue, approvePhoto, rejectPhoto, type PhotoQueueItem } from '../../../../lib/admin-api/index';
+import { getPhotoQueue, approvePhoto, rejectPhoto, type PhotoQueueItem, type PhotoKind } from '../../../../lib/admin-api/index';
+
+// CE-47 · WEB-6 · b172: two tabs over one queue. Portfolio is today's queue unchanged; Looks is vendors' look photos
+// (the website's catalogue). A look photo's reason reaches the vendor's room, so it is asked for plainly.
+const KINDS: Array<{ value: PhotoKind; label: string }> = [{ value: 'portfolio', label: 'Portfolio' }, { value: 'look', label: 'Looks' }];
 
 const CATEGORIES = [
   { value: '', label: 'All categories' },
@@ -20,6 +24,7 @@ const STATES = [
 ];
 
 export default function PhotosPage() {
+  const [kind, setKind]       = useState<PhotoKind>('portfolio');
   const [photos, setPhotos]   = useState<PhotoQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('');
@@ -33,29 +38,39 @@ export default function PhotosPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    getPhotoQueue({ state, ...(category ? { category } : {}) })
+    getPhotoQueue({ state, kind, ...(category && kind === 'portfolio' ? { category } : {}) })
       .then(d => { setPhotos(d.photos); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [state, category]);
+  }, [state, category, kind]);
   useEffect(() => { load(); }, [load]);
 
   const approve = async (id: string) => {
-    try { await approvePhoto(id); setPhotos(p => p.filter(x => x.id !== id)); showToast('Approved.'); }
+    try { await approvePhoto(id, kind); setPhotos(p => p.filter(x => x.id !== id)); showToast('Approved.'); }
     catch { showToast('Failed.', true); }
   };
 
   const reject = async (id: string) => {
-    try { await rejectPhoto(id, rejectReason || undefined); setPhotos(p => p.filter(x => x.id !== id)); showToast('Rejected.'); setRejectingId(null); setRejectReason(''); }
+    try { await rejectPhoto(id, rejectReason.trim().slice(0, 200) || undefined, kind); setPhotos(p => p.filter(x => x.id !== id)); showToast('Rejected.'); setRejectingId(null); setRejectReason(''); }
     catch { showToast('Failed.', true); }
   };
 
   return (
     <div>
-      <PageHeader title="Photos to check" sub="Vendor portfolio photo queue" />
+      {/* WEB-8 (MERGED): ADM-1's title stands; WEB-6's Looks tab and its sub line lie on top */}
+      <PageHeader title="Photos to check" sub={kind === 'look' ? 'Photos vendors added to looks on their websites' : 'Vendor portfolio photo queue'} />
+
+      <div role="tablist" style={{ display: 'flex', gap: 6, marginBottom: 14 }} data-photo-kinds="">
+        {KINDS.map(k => (
+          <button key={k.value} role="tab" aria-selected={kind === k.value} onClick={() => { setKind(k.value); setRejectingId(null); }}
+            style={{ flex: 1, minHeight: 40, borderRadius: 8, fontFamily: T.ff.body, fontSize: 13, border: `0.5px solid ${kind === k.value ? 'var(--role-metal)' : T.border}`, background: kind === k.value ? 'var(--atelier-row-hover)' : 'transparent', color: kind === k.value ? T.ink : T.muted }}>
+            {k.label}
+          </button>
+        ))}
+      </div>
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
         <div style={{ flex: 1 }}><FieldSelect label="State" value={state} onChange={setState} options={STATES} /></div>
-        <div style={{ flex: 1 }}><FieldSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES} /></div>
+        {kind === 'portfolio' && <div style={{ flex: 1 }}><FieldSelect label="Category" value={category} onChange={setCategory} options={CATEGORIES} /></div>}
       </div>
 
       <SectionDivider label={`${photos.length} photo${photos.length !== 1 ? 's' : ''}`} />
@@ -78,7 +93,8 @@ export default function PhotosPage() {
                 </div>
                 <div style={{ padding: '10px 10px 12px' }}>
                   <div style={{ fontFamily: T.ff.body, fontSize: 12, fontWeight: 600, color: T.ink, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.vendor?.business_name || 'Unknown'}</div>
-                  <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.soft, letterSpacing: '0.1em', marginBottom: 10 }}>{p.vendor?.category}</div>
+                  <div style={{ fontFamily: T.ff.label, fontSize: 8, color: T.soft, letterSpacing: '0.1em', marginBottom: 10 }}>{kind === 'look' ? `Look photo · ${p.vendor?.category || ''}` : p.vendor?.category}</div>
+                  {kind === 'look' && p.approval_state === 'rejected' && p.rejection_reason && <div style={{ fontFamily: T.ff.body, fontSize: 11, color: T.muted, marginBottom: 8 }}>{p.rejection_reason}</div>}
 
                   {!rejecting ? (
                     <div style={{ display: 'flex', gap: 6 }}>
@@ -87,7 +103,7 @@ export default function PhotosPage() {
                     </div>
                   ) : (
                     <div>
-                      <input value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="Reason (optional)…" autoFocus style={{ width: '100%', background: 'var(--atelier-input-bg)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '9px 11px', fontFamily: T.ff.body, fontSize: 12, color: T.ink, outline: 'none', minHeight: 40, marginBottom: 6 }} />
+                      <input value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder={kind === 'look' ? 'Reason the vendor will see (up to 200 letters)' : 'Reason (optional)…'} maxLength={200} autoFocus style={{ width: '100%', background: 'var(--atelier-input-bg)', border: `0.5px solid ${T.border}`, borderRadius: 8, padding: '9px 11px', fontFamily: T.ff.body, fontSize: 12, color: T.ink, outline: 'none', minHeight: 40, marginBottom: 6 }} />
                       <div style={{ display: 'flex', gap: 6 }}>
                         <ActionChip label="Cancel" tone="neutral" onClick={() => { setRejectingId(null); setRejectReason(''); }} />
                         <ActionChip label="Confirm" tone="no" onClick={() => reject(p.id)} />

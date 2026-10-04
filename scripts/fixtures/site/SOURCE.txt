@@ -1,0 +1,13 @@
+scripts/fixtures/site/SOURCE.txt · CE-46 · WEB-5 · the provenance of the site renderer's fixture photographs.
+
+SOURCE        Pexels (https://www.pexels.com), sixteen photographs the founder downloaded and sent as
+              TDW_sixteen_photographs.zip (sha256 b4e5409c2b783e59f852d15550032aa87a285014f17d58638b3b5d90f1cdb292),
+              the same set WEB-3's prototypes draw. Each derivative's key maps to its Pexels file name in
+              make_fixtures.py (KEYS); the file names carry the contributor handle and photo id.
+LICENCE       https://www.pexels.com/license/ (free to use, modification allowed, attribution not required;
+              identifiable people not to be shown endorsing anyone; not to be resold as stock)
+USE           fixtures and mocks only (R-46.16): the renderer's mock mode and benches b162 to b169. Never on a
+              live public page; the mock loader refuses them in a production build.
+DERIVATIVES   480 and 960 wide in AVIF and WebP for all sixteen; 1600 AVIF for the six style covers;
+              a 24 px blurred placeholder per photograph in fixtures.json. Regenerate with
+              python3 scripts/fixtures/site/make_fixtures.py --src <folder of the sixteen jpgs>.

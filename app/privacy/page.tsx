@@ -225,6 +225,11 @@ export default function PrivacyPolicyPage() {
               delivery status and timestamps.
             </li>
           </ul>
+          {/* WEB-8 (CE-47): the founder's paragraph for the website enquiry box, word for word; CE-47 ruling 5: the contact address is in section 14, so the paragraph says where it is. */}
+          <p id="website-enquiries">
+            <strong>{"Enquiries sent from a vendor's website."}</strong>{" "}
+            {"When you send an enquiry through the enquiry box on a vendor's website made with The Dream Wedding, we collect your name, your mobile number with its country code, the occasion, the date if you give one, the page you were on, and any messages you write in the box. We pass them to that vendor only, so the vendor, and the assistant answering on the vendor's behalf, can reply to your enquiry; we do not use them for anything else and we do not sell them. We keep them for as long as the vendor keeps the enquiry in their records with us, and for no more than 90 days after the vendor closes their account. To have them removed, write to us at the contact address in the Grievance officer and contact section of this page, or follow the steps under Deleting your data, and we will remove them from our records and ask the vendor to do the same."}
+          </p>
         </section>
 
         <section>

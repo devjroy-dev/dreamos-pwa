@@ -19,6 +19,8 @@ const WORDS = 'Share approximate prices in chat';
 
 async function run(layouts) {
   const H = await import(path.join(ROOT, 'docs/design/tools/harness.mjs'));
+  // WEB-8 (MERGED): Your website now opens on WEB-6's customiser; its site doors are answered from b172's fixtures (a Signature vendor), so the switches are read where she now finds them.
+  const { siteAnswer } = await import(path.join(ROOT, 'scripts/lib/b172_fixtures.mjs'));
   let server = null, b = null, bpid = null; const out = {};
   try {
     server = await dev.start(ROOT, +process.env.PORT, { NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${process.env.PORT}/__api` });
@@ -41,6 +43,7 @@ async function run(layouts) {
           if (rt === '/api/v2/vendor/me' && q.method() === 'PATCH') { let bd = null; try { bd = JSON.parse(q.postData() || 'null'); } catch (_e) {} sent.push(bd);
             if (scen === 'refuse') return J({ ok: false, error: 'invalid' }, 400);
             return J({ ok: true, vendor: { price_share_enabled: bd && bd.price_share_enabled === true } }); }
+          if (rt.startsWith('/api/v2/vendor/solutions/site')) { const a = siteAnswer('signature', u.split('/__api')[1], q.method(), {}); if (a) return J(a); }
           return J(q.method() === 'GET' ? H.answer(rt) : { ok: true });
         });
         await p.goto(`http://localhost:${process.env.PORT}/vendor/your-website`, { waitUntil: 'domcontentloaded', timeout: 240000 });

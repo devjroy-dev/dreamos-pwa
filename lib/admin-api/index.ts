@@ -95,7 +95,8 @@ export type DiscoverPreview = {
 
 export type PhotoQueueItem = {
   id: string; vendor_id: string; image_url: string; caption: string | null;
-  aesthetic_tags: string[]; approval_state: string; created_at: string;
+  aesthetic_tags?: string[]; approval_state: string; created_at: string;
+  look_id?: string; rejection_reason?: string | null;   // look photos (kind 'look')
   vendor: { id: string; business_name: string; category: string; routing_handle: string };
 };
 
@@ -179,12 +180,16 @@ export const spotlightApi   = {
 
 // ── Approvals ─────────────────────────────────────────────────────────────────
 
-export const getPhotoQueue = (params?: { state?: string; category?: string }) => {
-  const qs = new URLSearchParams(params as Record<string,string> ?? {}).toString();
+// CE-47 · WEB-6 · b172: `kind: 'look'` runs the same queue and doors over vendors' LOOK photos (dream-os
+// src/api/admin/photos.js, WEB-4 cut 3); a look photo's rejection keeps its reason (up to 200), which her room shows.
+export type PhotoKind = 'portfolio' | 'look';
+export const getPhotoQueue = (params?: { state?: string; category?: string; kind?: PhotoKind }) => {
+  const p = { ...(params ?? {}) } as Record<string, string>; if (p.kind !== 'look') delete p.kind;
+  const qs = new URLSearchParams(p).toString();
   return adminGet<{ photos: PhotoQueueItem[] }>(`/api/v2/admin/photos/queue${qs ? '?' + qs : ''}`);
 };
-export const approvePhoto  = (id: string)                          => adminPost(`/api/v2/admin/photos/${id}/approve`, {});
-export const rejectPhoto   = (id: string, reason?: string)        => adminPost(`/api/v2/admin/photos/${id}/reject`, { reason });
+export const approvePhoto  = (id: string, kind?: PhotoKind)                  => adminPost(`/api/v2/admin/photos/${id}/approve`, kind === 'look' ? { kind } : {});
+export const rejectPhoto   = (id: string, reason?: string, kind?: PhotoKind) => adminPost(`/api/v2/admin/photos/${id}/reject`, kind === 'look' ? { reason, kind } : { reason });
 export const getDiscoverQueue = ()                                 => adminGet<{ requests: DiscoverRequest[] }>('/api/v2/admin/discover/requests');
 export const grantDiscover    = (vendorId: string)                => adminPost(`/api/v2/admin/discover/grant/${vendorId}`, {});
 // THE REASON IS THE POINT. This call posted `{}` — so the deny route's `reason`
