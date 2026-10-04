@@ -56,7 +56,7 @@ export default function HomePage() {
     ...(pros || []).filter(p => p.state === 'replied').map(p => {
       const at = p.session_opened_at || p.last_template_at || '';
       const where = [cap(p.category), p.city].filter(Boolean).join(', ');
-      return { key: 'p' + p.id, at, name: p.name || p.phone, tag: 'Replied', tone: C.ok, line: `Replied to the opener ${when(at)}${where ? ' · ' + where : ''}`, phone: p.phone };
+      return { key: 'p' + p.id, at, name: p.name || 'No name yet', tag: 'Replied', tone: C.ok, line: `Replied to the opener ${when(at)}${where ? ' · ' + where : ''}`, phone: p.phone };
     }),
   ].sort((a, z) => z.at.localeCompare(a.at));
   const t = b?.today;

@@ -88,7 +88,7 @@ H('§5 · what is lost, and the paid-plan block');
 // the four team tables to what the migrations show; the card must name them.
 ok('5.1 the vendor words name the cascade, as the LIVE database runs it', ['leads', 'clients', 'invoices', 'payment schedules', 'TDS records', 'contracts sent and signed', 'team members with their tasks, messages and payments', 'portfolio', 'website', 'chats with the assistant', 'Payments TDW received stay'].every(w => WORDS.includes(w)));
 ok('5.2 the Dreamer words name the cascade', ['saves and mood board', 'circle', 'budget and receipts', 'enquiries to vendors', 'Help requests they made stay'].every(w => WORDS.includes(w)));
-ok('5.3 a paid plan shows "Has a paid plan" in place of Delete, on both cards', /PAID_BLOCK = 'Has a paid plan · cannot be deleted from here'/.test(WORDS) && /blockedBy=\{open\.tier !== 'basic' \? PAID_BLOCK : null\}/.test(MAKERS) && /blockedBy=\{open\.tier !== 'basic' \? PAID_BLOCK : null\}/.test(DREAMERS));
+ok('5.3 a paid plan shows "Has a paid plan" in place of Delete, on both cards', /PAID_BLOCK = 'Has a paid plan · cannot be deleted from here'/.test(WORDS) && /blockedBy=\{open\.tier !== 'basic' \? PAID_BLOCK : null\}/.test(MAKERS) && /blockedBy=\{isPaidDreamer\(open\) \? PAID_BLOCK : null\}/.test(DREAMERS));
 
 H('§6 · the also line, EXECUTED');
 const ALSO_RAW = R('app/admin/_components/alsoLine.ts');
@@ -150,6 +150,39 @@ ok('8.3 taps at least 44 in the new building blocks and pages', /const TAP = 44;
 ok('8.4 WhatsApp goes through the estate\'s one dial rule; no page builds a wa.me link', /import \{ waDialHref \} from '@\/lib\/admin\/waDial'/.test(KIT) && [MAKERS, DREAMERS, PROS, DEMO, HOME].every(s => !/wa\.me/.test(s)));
 ok('8.5 nothing scrolls sideways: chips wrap, the board is a list', /flexWrap: 'wrap', paddingBottom: 12/.test(KIT) && !/overflowX: 'auto'/.test(DEMO));
 ok('8.6 unbuilt says "Coming soon"', /soon/.test(S('app/admin/more/page.tsx')) && /Coming soon/.test(KIT));
+
+H('§9 · the number is always on the row (CE-47, the founder\'s walk, 3 Oct 2026)');
+const ptSrc = (KIT.match(/export function phoneText\([\s\S]*?\n\}/) || [''])[0];
+const jsP = ts.transpileModule(ptSrc, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
+const tmpP = P('scripts/.tmp_adm1_phone.mjs'); fs.writeFileSync(tmpP, jsP);
+const { phoneText } = await import(pathToFileURL(tmpP).href + '?t=' + Date.now()); fs.unlinkSync(tmpP);
+ok('9.1 "+919811012345" reads "+91 98110 12345"', phoneText('+919811012345') === '+91 98110 12345');
+ok('9.2 a +91 number already spaced reads the same, grouped 5-5', phoneText('+91 98110 12345') === '+91 98110 12345');
+ok('9.3 a number WITHOUT its "+" is SHOWN as stored, never hidden (the defect, both ways)', phoneText('919811012345') === '919811012345' && phoneText('09811012345') === '09811012345' && phoneText('9811012345') === '9811012345');
+ok('9.4 only an empty phone has no text', phoneText('') === null && phoneText('   ') === null && phoneText(null) === null);
+ok('9.5 every person row prints the number, or "No number" only when empty', /\{phone !== undefined && \(\s*<div[^>]*>\{phoneText\(phone\) \?\? 'No number'\}<\/div>/.test(KIT));
+ok('9.6 the buttons stay for a dialable number only; their absence is silent, not "No number"', /if \(!wa \|\| !tel\) return null;/.test(KIT) && (KIT.match(/No number/g) || []).length === 1);
+ok('9.7 the vendor and Dreamer cards carry the number too', /phoneText\(open\.phone\) \?\? 'No number'/.test(MAKERS) && /phoneText\(open\.phone\) \?\? 'No number'/.test(DREAMERS));
+// Both ways: the cells above red on the shipped defect, re-created in memory from the live source.
+const DEFECT = KIT.replace(/\{phone !== undefined && \(\s*<div[^>]*>\{phoneText\(phone\) \?\? 'No number'\}<\/div>\s*\)\}/, '')
+  .replace("if (!wa || !tel) return null;", "if (!wa || !tel) return <span>No number</span>;");
+ok('9.9 MUTATION: the number taken off the row and "No number" put back in the button slot ⇒ 9.5 and 9.6 RED',
+  DEFECT !== KIT && !/\{phone !== undefined && \(\s*<div[^>]*>\{phoneText\(phone\) \?\? 'No number'\}<\/div>/.test(DEFECT) && !/if \(!wa \|\| !tel\) return null;/.test(DEFECT));
+ok('9.8 a nameless prospect is not titled by its number twice', /name=\{p\.name \|\| 'No name yet'\}/.test(PROS) && !/name=\{p\.name \|\| p\.phone\}/.test(PROS));
+
+H('§10 · K4: a Dreamer is paid only when a paid plan is stored (CE-47, the founder\'s walk, 3 Oct 2026)');
+const ipSrc = (WORDS.match(/export function isPaidDreamer\([\s\S]*?\n\}/) || [''])[0];
+const jsI = ts.transpileModule(ipSrc, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
+const tmpI = P('scripts/.tmp_adm1_paid.mjs'); fs.writeFileSync(tmpI, jsI);
+const { isPaidDreamer } = await import(pathToFileURL(tmpI).href + '?t=' + Date.now()); fs.unlinkSync(tmpI);
+ok('10.1 an undefined tier (what the couples door sends today) is NOT paid: delete is offered', isPaidDreamer({}) === false && isPaidDreamer({ tier: undefined }) === false && isPaidDreamer({ tier: null }) === false);
+ok('10.2 basic and an empty tier are not paid', isPaidDreamer({ tier: 'basic' }) === false && isPaidDreamer({ tier: '' }) === false);
+ok('10.3 a stored gold or platinum IS paid: delete is blocked', isPaidDreamer({ tier: 'gold' }) === true && isPaidDreamer({ tier: 'platinum' }) === true);
+ok('10.4 no Plan button posts: the placeholder door is never called and "Plan changed." is gone', !/patchCoupleTier/.test(DREAMERS) && !/Plan changed/.test(DREAMERS) && /<SheetRow label="Plan" right=\{<span[^>]*>Coming soon<\/span>\} \/>/.test(DREAMERS));
+ok('10.5 the Dreamer rows carry no plan tag and no plan or Paid chips', !/PLAN\[c\.tier\]/.test(DREAMERS) && !/<Chips/.test(DREAMERS) && !/'Paid'/.test(DREAMERS));
+ok('10.6 vendors keep their real plans (tier buttons, Paid chip, the tier !== basic block)', /TIERS\.map\(t => \(/.test(MAKERS) && /blockedBy=\{open\.tier !== 'basic' \? PAID_BLOCK : null\}/.test(MAKERS));
+const K4DEFECT = (t) => t !== 'basic';
+ok('10.7 MUTATION: the shipped predicate (tier !== basic) blocks an undefined tier, the defect, while isPaidDreamer does not', K4DEFECT(undefined) === true && isPaidDreamer({}) === false);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) { console.log('FAILED: ' + fails.join(' · ')); process.exit(1); }

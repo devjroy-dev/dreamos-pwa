@@ -35,7 +35,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { adminHeaders, API_BASE } from '@/lib/admin-api/_base';
 import { getVendors } from '@/lib/admin-api/index';
 import { T, Toast, FieldInput, BottomSheet } from '../_components/AdminUI';
-import { C, F, PageHead, Pill, RouteTabs, Stat, Chips, CountLine, List, Empty, PersonRow, ActionStrip, Sheet, SheetRow, SheetNote, DangerLast, when as whenWords, cap as capWord } from '../_components/Kit';
+import { C, F, PageHead, Pill, RouteTabs, Stat, Chips, CountLine, List, Empty, PersonRow, ActionStrip, Sheet, SheetRow, SheetNote, DangerLast, when as whenWords, cap as capWord, phoneText } from '../_components/Kit';
 
 const BASE = `${API_BASE}/api/v2/admin/prospects`;
 
@@ -339,7 +339,7 @@ export default function ProspectsPage() {
               const canMark = p.state !== 'converted' && p.state !== 'opted_out' && p.state !== 'discarded';
               return (
                 <PersonRow key={p.id} last={i === rows.length - 1} onOpen={() => { setConfirmSend(null); setOpenId(p.id); }}
-                  name={p.name || p.phone} tag={tileLabel(p.state)} tagTone={tone(p.state)} line={lineFor(p)} phone={p.phone} bare>
+                  name={p.name || 'No name yet'} tag={tileLabel(p.state)} tagTone={tone(p.state)} line={lineFor(p)} phone={p.phone} bare>
                   <ActionStrip items={[
                     canSend && (confirmSend === p.id
                       ? { label: 'Tap again to send', primary: true, onClick: () => sendOpener(p) }
@@ -357,8 +357,8 @@ export default function ProspectsPage() {
       )}
 
       {open && (
-        <Sheet title={open.name || open.phone} sub={[tileLabel(open.state), open.source || 'added by hand', `added ${whenWords(open.created_at)}`].join(' · ')} onClose={() => setOpenId(null)}>
-          <SheetNote>{[open.phone, open.ig_handle ? '@' + open.ig_handle.replace(/^@/, '') : null, capWord(open.category), open.city].filter(Boolean).join(' · ') || open.phone}</SheetNote>
+        <Sheet title={open.name || phoneText(open.phone) || 'No name yet'} sub={[tileLabel(open.state), open.source || 'added by hand', `added ${whenWords(open.created_at)}`].join(' · ')} onClose={() => setOpenId(null)}>
+          <SheetNote>{[phoneText(open.phone) ?? 'No number', open.ig_handle ? '@' + open.ig_handle.replace(/^@/, '') : null, capWord(open.category), open.city].filter(Boolean).join(' · ') || open.phone}</SheetNote>
           <SheetRow label="See chat" onClick={() => openThread(open)} />
           {open.exit_kind === 'restore' && (
             <SheetRow label={confirmExit === open.id ? 'Tap again to put back' : EXIT_LABEL.restore} sub={EXIT_CONFIRM.restore}

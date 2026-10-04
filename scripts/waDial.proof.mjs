@@ -232,8 +232,10 @@ for (const [lane, SRC, row] of [['makers', MAKERS, 'v'], ['dreamers', DREAMERS, 
     !/<a\s/.test(SRC),
     'an inline <a> is FORK C\'s refused arm — rel drifts when it has two homes');
 
+  // RE-PINNED (CE-47, the founder's walk, 3 Oct 2026): with no dialable number the buttons render
+  // NOTHING again (this cell's own original promise); the number itself is printed on the row.
   ok(`4.3 ${lane} — null href renders NOTHING, not a dead button`,
-    /if \(!wa \|\| !tel\) return <span[^>]*>No number<\/span>;/.test(KIT) && !/bare/.test(SRC.match(/<PersonRow[\s\S]*?\/>/)?.[0] || ''),
+    /if \(!wa \|\| !tel\) return null;/.test(KIT) && !/bare/.test(SRC.match(/<PersonRow[\s\S]*?\/>/)?.[0] || ''),
     'an ungated ActionLink would render an href of "null" on a silent row');
 
   ok(`4.4 ${lane} — the founder byte is 'WhatsApp'`,
@@ -270,7 +272,8 @@ for (const [name, re] of MAKER_CONTROLS) ok(`5.${++mi} makers KEPT — ${name}`,
 
 const DREAMER_CONTROLS = [
   ['row header tap-to-expand', /onOpen=\{\(\) => openCard\(c\.id\)\}/],
-  ['tier buttons', /TIERS\.map\(t => \(/],
+  // RE-PINNED (K4, CE-47 3 Oct 2026): Dreamers have no stored plan; the Plan control reads Coming soon.
+  ['tier buttons', /<SheetRow label="Plan" right=\{<span[^>]*>Coming soon<\/span>\} \/>/],
   ['Delete', /<DangerLast label="Delete Dreamer"/],
   ['Delete tap-to-confirm', /confirmWord="Yes, delete"/],
   ['search field', /<SearchField value=\{search\}/],

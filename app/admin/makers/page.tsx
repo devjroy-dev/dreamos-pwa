@@ -27,7 +27,7 @@ function standingChip(v: AdminVendor): [string, string] | null {
   : null;   // not_requested — never applied is an honest blank
   return chip;
 }
-import { C, F, PageHead, Pill, RouteTabs, Chips, SearchField, CountLine, List, Empty, PersonRow, Sheet, SheetRow, SheetNote, DangerLast, cap, fullDate } from '../_components/Kit';
+import { C, F, PageHead, Pill, RouteTabs, Chips, SearchField, CountLine, List, Empty, PersonRow, Sheet, SheetRow, SheetNote, DangerLast, cap, fullDate, phoneText } from '../_components/Kit';
 
 const TIERS = ['basic', 'essential', 'signature', 'prestige'];
 const PLAN: Record<string, string> = { basic: 'Basic', essential: 'Essential', signature: 'Signature', prestige: 'Prestige' };
@@ -125,7 +125,7 @@ export default function VendorsJoinedPage() {
       )}
 
       {open && (() => { const v = open; return (
-        <Sheet title={open.name} sub={[cap(open.category), open.city, `joined ${fullDate(open.created_at)}`].filter(Boolean).join(' · ')} onClose={() => { setOpenId(null); setConfirmWelcome(null); }}>
+        <Sheet title={open.name} sub={[phoneText(open.phone) ?? 'No number', cap(open.category), open.city, `joined ${fullDate(open.created_at)}`].filter(Boolean).join(' · ')} onClose={() => { setOpenId(null); setConfirmWelcome(null); }}>
           <div style={{ borderTop: `0.5px solid ${C.line}`, padding: '12px 18px' }}>
             <div style={{ font: F.t4, color: C.mute, marginBottom: 8 }}>Plan</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

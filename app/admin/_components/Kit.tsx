@@ -60,6 +60,20 @@ export function waLink(phone: string | null | undefined, bare = false): string |
   const t = phone.trim();
   return /^\d{11,15}$/.test(t) ? waDialHref('+' + t) : null;
 }
+/**
+ * The stored phone, for READING (CE-47, 3 Oct 2026, the founder's walk: the number itself was never
+ * on the rows). Always shown when stored: "+91 98110 12345" when it carries +91 and ten digits,
+ * otherwise exactly as stored. Only an empty phone has no text (the row then says "No number").
+ * Reading is not dialling: the buttons still follow waLink, so a number without its country code
+ * shows, but gets no WhatsApp or Call (note 3, buttons only).
+ */
+export function phoneText(phone: string | null | undefined): string | null {
+  if (!phone || !phone.trim()) return null;
+  const t = phone.trim();
+  const d = t.replace(/\D/g, '');
+  if (t.startsWith('+') && d.length === 12 && d.startsWith('91')) return `+91 ${d.slice(2, 7)} ${d.slice(7)}`;
+  return t;
+}
 /** The call link, only where the WhatsApp link is safe: the same digits, with a "+". */
 export function telLink(phone: string | null | undefined, bare = false): string | null {
   const wa = waLink(phone, bare);
@@ -170,7 +184,7 @@ export function Empty({ children }: { children: React.ReactNode }) {
 /** WhatsApp and Call, on every person row. Real links; nothing on the server. */
 export function Reach({ phone, bare = false }: { phone: string | null | undefined; bare?: boolean }) {
   const wa = waLink(phone, bare), tel = telLink(phone, bare);
-  if (!wa || !tel) return <span style={{ font: F.t5, color: C.mute, flexShrink: 0 }}>No number</span>;
+  if (!wa || !tel) return null; // absent, never dead (waDial): the number itself is on the row
   const cell = (href: string, icon: string, word: string, tone: string, blank: boolean) => (
     <a href={href} {...(blank ? { target: '_blank', rel: 'noopener noreferrer' } : {})} aria-label={word}
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, textDecoration: 'none', width: 58, minHeight: TAP }}>
@@ -189,6 +203,9 @@ export function PersonRow({ name, line, tag, tagTone, phone, bare, onOpen, child
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 12px 12px 14px' }}>
         <button type="button" onClick={onOpen} disabled={!onOpen} style={{ flex: 1, minWidth: 0, minHeight: TAP, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: onOpen ? 'pointer' : 'default', color: 'inherit' }}>
           <div style={{ font: F.tb, color: C.ink, overflowWrap: 'anywhere' }}>{name}</div>
+          {phone !== undefined && (
+            <div style={{ font: F.t4, color: phoneText(phone) ? C.soft : C.mute, marginTop: 2, fontVariantNumeric: 'tabular-nums', overflowWrap: 'anywhere' }}>{phoneText(phone) ?? 'No number'}</div>
+          )}
           {(tag || line) && (
             <div style={{ font: F.t4, color: C.mute, marginTop: 3, display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
               {tag && <span style={{ font: F.t5, color: tagTone || C.accent, border: `1px solid ${tagTone || C.accent}`, borderRadius: 999, padding: '1px 8px', whiteSpace: 'nowrap' }}>{tag}</span>}

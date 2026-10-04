@@ -1,0 +1,10 @@
+# CE-47 · ADM-1 · K3b (K3 the phone always on the row + K4 Dreamers with no stored plan) · base 537379795aca · F-19.16: a dirty path outside this list is a STOP.
+app/admin/_components/Kit.tsx
+app/admin/_components/peopleWords.ts
+app/admin/dreamers/page.tsx
+app/admin/makers/page.tsx
+app/admin/page.tsx
+app/admin/prospects/page.tsx
+scripts/adm1_admin.proof.mjs
+scripts/floor-manifest-ce47-adm1-k3b-pwa.txt
+scripts/waDial.proof.mjs
