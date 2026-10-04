@@ -1,0 +1,4 @@
+# CE-47 · FE-9 · T1, Today's refetch cure (one remembered ask per drawn row; d1_home_bench_v2 cell 8.7) · base 53737979 · F-19.16: a dirty path outside this list is a STOP.
+scripts/d1_home_bench_v2.js
+scripts/floor-manifest-ce47-fe9-t1-pwa.txt
+v2/components/worklist/TodayHome.tsx

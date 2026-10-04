@@ -8,7 +8,7 @@
 //   4. Money due: one line.
 // Every read is an existing door (the worklist feed, leads, lead detail, the day, the bands, events, invoices);
 // nothing here writes. The rows are the one row (name, one line of facts, one thing on the right, 64 high).
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { useTodayFeed } from '@/v2/lib/worklist/feed';
@@ -139,19 +139,26 @@ export function TodayHome() {
   const shown = unanswered.slice(0, REPLY_SHOWN);
   const more = capped || unanswered.length > shown.length;
   // The last message of each new enquiry: the conversation's last line, else the enquiry's own first words.
+  // CE-47 FE-9 (T1, the founder's Network tab on Today, 3 Oct 2026: 530 requests, 22.6 s). The effect used to depend on its
+  // own results and to drop every reply still on its way when one arrived, so each answer re-asked for every pending row:
+  // n(n+1)/2 requests. Now each DRAWN row is asked for once, remembered by id, and a reply is kept whenever it arrives.
+  const shownKey = shown.map((l) => l.id).join(',');
+  const asked = useRef<Set<string>>(new Set());
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useEffect(() => {
-    let live = true;
-    for (const l of unanswered) {
-      if (l.id in last) continue;
+    for (const l of shown) {
+      if (asked.current.has(l.id)) continue;
+      asked.current.add(l.id);
       fetchLeadDetail(l.id).then((r) => {
-        if (!live) return;
+        if (!mounted.current) return;
         const conv = r && 'conversation' in r && Array.isArray(r.conversation) ? r.conversation : [];
         const m = conv.length ? conv[conv.length - 1] : null;
         setLast((p) => ({ ...p, [l.id]: m ? { body: m.body, at: m.created_at } : null }));
-      }).catch(() => { if (live) setLast((p) => ({ ...p, [l.id]: null })); });
+      }).catch(() => { if (mounted.current) setLast((p) => ({ ...p, [l.id]: null })); });
     }
-    return () => { live = false; };
-  }, [unanswered, last]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownKey]);
 
   const leadById = useMemo(() => new Map((leads ?? []).map((l) => [l.id, l])), [leads]);
   const leadCity = useMemo(() => new Map((leads ?? []).filter((l) => l.wedding_city).map((l) => [l.id, l.wedding_city as string])), [leads]);

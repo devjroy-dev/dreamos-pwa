@@ -20,6 +20,8 @@ process.env.TDW_LAYOUT_DEFAULT = 'v2';   // DESIGN-1 · THE LAYOUT SWITCH: this 
 //   · in TodayHome.tsx answerFor, drop the OPEN_ENQUIRY filter                   -> §2 "a lost enquiry"
 //   · in TodayHome.tsx, render `[...unanswered].reverse().map(`                  -> §3 order
 //   · in v2/app/vendor/(shell)/rooms/page.tsx, remove <PinnedRooms />               -> §7 pinned kept
+//   · in TodayHome.tsx, put the old last-message effect back (deps [unanswered, last], `for (const l of unanswered)`,
+//     `if (l.id in last) continue`, a cleanup that drops replies on their way)       -> 8.7 (55 detail requests for ten)
 const fs = require('fs');
 const path = require('path');
 
@@ -72,6 +74,11 @@ const LN = (n) => ({ id: 'b146-m' + n, name: 'Enquiry ' + n, wedding_date: null,
 const MANY = [L1, L2, LN(3), LN(4), LN(5)];
 const feedOf = (rows, capped) => ({ ...FEED, needs_attention: { ...FEED.needs_attention, lead_unanswered: rows }, counts: { ...FEED.counts, lead_unanswered: rows.length }, truncated: { ...FEED.truncated, lead_unanswered: capped } });
 let FEED_NOW = FEED;
+// CE-47 FE-9 (T1): fixtures that answer at once hid Today's refetch (live: 530 requests, 22.6 s). With SLOW_DETAIL on, each
+// enquiry's detail answers 150 to 650 ms late, as a real server does, and every detail request is counted by its id.
+let SLOW_DETAIL = false;
+const detailAsked = [];
+const TEN = [L1, L2, ...[3, 4, 5, 6, 7, 8, 9, 10].map(LN)];
 const DETAIL = {
   [L1.id]: { ok: true, lead: L1, vendor_summary: null, conversation: [{ id: 'm1', body: 'Is 14 Feb free for a haldi?', created_at: ago(180), direction: 'inbound' }], invoices: [], events: [] },
   [L2.id]: { ok: true, lead: L2, vendor_summary: null, conversation: [], invoices: [], events: [] },
@@ -137,7 +144,12 @@ async function main() {
       seen.push(route);
       if (route === '/api/v2/vendor/worklist/today') return J(FEED_NOW);
       let m;
-      if ((m = /^\/api\/v2\/vendor\/leads\/([^/]+)\/detail$/.exec(route))) return J(DETAIL[m[1]] || { ok: false, error: 'not found' });
+      if ((m = /^\/api\/v2\/vendor\/leads\/([^/]+)\/detail$/.exec(route))) {
+        const id = m[1]; detailAsked.push(id);
+        const answer = () => J(DETAIL[id] || { ok: false, error: 'not found' });
+        if (!SLOW_DETAIL) return answer();
+        return void setTimeout(() => { Promise.resolve().then(answer).catch(() => {}); }, 150 + Math.floor(Math.random() * 500));
+      }
       if (/^\/api\/v2\/vendor\/leads\/[^/]+$/.test(route)) return J({ ok: true, leads: FEED_NOW === FEED ? [L1, L2, L3] : [...MANY, L3], total: FEED_NOW === FEED ? 3 : 6 });
       if ((m = /^\/api\/v2\/vendor\/day\/[^/]+\/(\d{4}-\d{2}-\d{2})$/.exec(route))) return J(dayOf(m[1]));
       if (/^\/api\/v2\/vendor\/bands\//.test(route)) return J(BANDS);
@@ -272,6 +284,17 @@ async function main() {
       FEED_NOW = feedOf([...MANY.slice(0, 3), LN(4)], false);
       const t4 = await open('dark', [374, 812]); const r4 = await replyOf(t4); await t4.close();
       ok(r4.names.length === 3 && r4.link && r4.link[0] === 'See all 4', '8.6 four: three drawn and "See all 4"', JSON.stringify(r4));
+      // 8.7 (CE-47 FE-9, T1): ten waiting, replies staggered. Today asks once for each row it DRAWS (three) and never again.
+      FEED_NOW = feedOf(TEN, false); SLOW_DETAIL = true; detailAsked.length = 0;
+      const t10 = await open('dark', [374, 812]);
+      await new Promise((r) => setTimeout(r, 6000));
+      const r10 = await replyOf(t10); const msg10 = await texts(t10, 'section[aria-labelledby="wl-home-reply"] .wl-home-row:not([data-reply-all]) .wl-home-msg');
+      await t10.close();
+      const asked10 = detailAsked.slice(); const drawn10 = TEN.slice(0, 3).map((l) => l.id);
+      ok(asked10.length === 3 && new Set(asked10).size === 3 && drawn10.every((id) => asked10.includes(id)) && r10.names.length === 3 && r10.count === '10' && msg10[0] === 'Is 14 Feb free for a haldi?',
+        '8.7 ten waiting, replies 150 to 650 ms late: exactly three detail requests, one for each drawn row, none repeated, and the late reply is still drawn',
+        JSON.stringify({ requests: asked10.length, distinct: new Set(asked10).size, drawn: r10.names.length, count: r10.count, first: msg10[0] }));
+      SLOW_DETAIL = false;
       FEED_NOW = FEED;
     }
     ok(seen.some((r) => r === '/api/v2/vendor/worklist/today') && seen.some((r) => /\/bands\//.test(r)), '6.5 the fixtures were read (the page asked the doors this bench answers)', [...new Set(seen)].slice(0, 12).join(' '));
