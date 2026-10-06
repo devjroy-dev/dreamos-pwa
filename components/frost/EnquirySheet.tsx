@@ -28,7 +28,7 @@
 // RN-PORTABLE (spec §6): presentational over a typed client, no <form>, no
 // browser-only API in the logic. Pointer/press handlers only.
 import React from 'react';
-import { API_BASE, getCoupleSession } from '@/lib/frost-api/_base';
+import { API_BASE, getCoupleSession, getAccessToken } from '@/lib/frost-api/_base';
 import { fetchCoupleMe } from '@/lib/frost-api/couple';
 import { BUDGET_BANDS, bandForAmount } from '@/lib/frost/budgetBands';
 
@@ -74,6 +74,9 @@ const LABEL_DATE      = 'Wedding date';
 const LABEL_CITY      = 'City';
 const LABEL_BUDGET    = 'Budget';
 const SUBMIT_WORD     = 'Send enquiry';
+// F-44.401 (CE-47, 6 Oct 2026): with no couple-lane token nothing is posted; she is asked to sign in instead.
+const SIGN_IN_LINE    = 'Please sign in to send your enquiry.';
+const SIGN_IN_WORD    = 'Sign in';
 // ── FORK B (CE-ruled) · THE FROZEN CONFIRMATION, RE-HOMED ────────────────────
 // These two are the V6 vetoed toasts, BYTE-IDENTICAL to sanctuary:1806's
 // success arms. They are not new copy: the founder's word moved WHERE they
@@ -121,6 +124,7 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
   // precondition. Fields render at once and fill in if the profile arrives.
   const [entered, setEntered]   = React.useState(false);
   const [sending, setSending]   = React.useState(false);
+  const [needsSignIn, setNeedsSignIn] = React.useState(false);
   const [functions, setFunctions] = React.useState<string>('');
   const [weddingDate, setWeddingDate] = React.useState<string>('');
   const [city, setCity]         = React.useState<string>('');
@@ -185,16 +189,23 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
 
   async function submit() {
     if (sending) return;
+    // ── F-44.401 · THE APP HALF (CE-47, 6 Oct 2026; WEB-4's cut 18 is the server half) ──────────────
+    // The enquiry is posted ONLY with her couple-lane session: the door reads this Bearer first
+    // (src/lib/resolveCoupleIfPresent.js), and who she is comes from it, never from the body. So the
+    // body carries no couple_id, no name and no phone any more. getAccessToken() refuses a vendor
+    // token by construction. With no token nothing is posted and nothing says "sent": she is asked
+    // to sign in, in the sheet, and onDone is not called (the hosts' failure toast would be untrue too).
+    const token = getAccessToken();
+    if (!token) { setNeedsSignIn(true); return; }
+    setNeedsSignIn(false);
     setSending(true);
     let result: EnquiryResult = { ok: false };
     try {
       const res = await fetch(`${API_BASE}/api/v2/discover/enquire`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           vendor_id:  vendor.id,
-          couple_id:  coupleId,
-          bride_name: session?.name || undefined,
           // THE FOUR. Sent only where the door can honestly land them.
           //
           // ── TDW_08 P3 · THIS PARAGRAPH WAS HALF-TRUE AND IS NOW AMENDED (F-06.85) ──
@@ -444,6 +455,12 @@ export default function EnquirySheet({ vendor, enquireLink, onClose, onDone }: P
             >
               {SUBMIT_WORD}
             </button>
+            {needsSignIn && (
+              <p data-enquiry-signin="" style={{ margin: '12px 0 0', fontFamily: FF.body, fontWeight: 300, fontSize: 16, color: 'rgba(248,247,245,0.75)', textAlign: 'center' }}>
+                {SIGN_IN_LINE}{' '}
+                <a href="/" style={{ color: GOLD }}>{SIGN_IN_WORD}</a>
+              </p>
+            )}
           </>
         )}
       </div>

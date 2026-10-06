@@ -1,0 +1,4 @@
+# CE-47 · FE-9 · F-44.401 app half: the Dreamer enquiry goes with her session (Bearer), never with who she is in the body; no token, no post, a sign-in line · base 0bebae2f · F-19.16: a dirty path outside this list is a STOP.
+components/frost/EnquirySheet.tsx
+scripts/fe9_f44401_enquiry_session_bench.js
+scripts/floor-manifest-ce47-fe9-f44401-pwa.txt
