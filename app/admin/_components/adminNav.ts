@@ -92,6 +92,7 @@ export const MORE_GROUPS: MoreGroup[] = [
   { title: 'Approvals', sections: [
     { label: 'Discover requests', path: '/admin/approvals/discover', icon: 'star',  sub: 'Vendors asking to be shown on Discover', hints: ['deck', 'eligible', 'review'] },
     { label: 'Photos to check',   path: '/admin/approvals/photos',   icon: 'photo', sub: 'Portfolio photos waiting for a yes or no', hints: ['portfolio', 'queue', 'looks'] },
+    { label: 'Collab calls',      path: '/admin/collab',             icon: 'star',  sub: 'Calls waiting to go on TDW\'s Instagram and Threads, and prospects', hints: ['collab', 'instagram', 'threads', 'prospects', 'share'] },
   ] },
   { title: 'Chats', sections: [
     { label: 'Vendor chats',  path: '/admin/conversations/vendors', icon: 'chat', sub: 'Vendors talking to the assistant', hints: ['conversations', 'threads'] },
@@ -136,6 +137,7 @@ export const ROUTE_MAP: MappedRoute[] = [
   { path: '/admin/numbers',                  domain: 'bridge',      disposition: 'LIVE' }, // ADM-1: the old Bridge, "All numbers"
   { path: '/admin/more',                     domain: 'bridge',      disposition: 'LIVE' }, // ADM-1: More
   { path: '/admin/prospects',                domain: 'growth',      disposition: 'LIVE' },
+  { path: '/admin/collab',                   domain: 'growth',      disposition: 'LIVE' }, // CE-47 CLB-1: F-44.300 cured; src/api/admin/collab.js serves it
   { path: '/admin/demo',                     domain: 'growth',      disposition: 'LIVE' },
   { path: '/admin/approvals/discover',       domain: 'marketplace', disposition: 'LIVE' },
   { path: '/admin/approvals/photos',         domain: 'marketplace', disposition: 'LIVE' },
@@ -171,7 +173,6 @@ export const ROUTE_MAP: MappedRoute[] = [
   { path: '/admin/vendors',                  domain: 'people',      disposition: 'PHANTOM', note: 'Older sibling of /admin/makers.' },
   { path: '/admin/couples',                  domain: 'people',      disposition: 'PHANTOM', note: 'Older sibling of /admin/dreamers.' },
   { path: '/admin/messages',                 domain: 'people',      disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend.' },
-  { path: '/admin/collab',                   domain: 'people',      disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend. 04.5\'s Collab Hub has no admin twin.' },
   // ── TOMBSTONES · F-10.76, RETIRED at the tier & money sitting (2026-08-07) ──
   // Founder ruling, verbatim: 「 retire. 」 · Fork F ruled RETIRE ALONGSIDE.
   //

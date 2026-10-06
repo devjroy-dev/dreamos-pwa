@@ -30,7 +30,10 @@
 //
 // ⚠ F-42.190, FILED, NOT CURED HERE: the first-look line says 12 hours; the window
 // is admin_config `collab.first_look_hours`, and no collab door returns it.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+// CE-47 · CLB-1 · COLLAB HUB v2: pay as one plain choice, reference pictures, and TDW's own Instagram and Threads
+// (the tick shows only when /share-gate opens for her: Rule 1). The "add a picture" line is itself the tap (R-43.16).
+import { CS, PAY_KINDS, MAX_REFERENCES, tickLabel, fetchHouseGate, uploadReference, type PayKind, type HouseGate } from '@/v2/lib/vendor/collabShare';
 import { getJson, postJson } from '@/lib/vendor/api/_base';
 import { API } from '@/v2/lib/solutions/routes';
 import { Sheet, SHEET_CSS } from '@/v2/components/worklist/StudioSheets';
@@ -64,6 +67,22 @@ export function CollabPostForm({ kind, prefill, onClose, onSuccess }: {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [payKind, setPayKind] = useState<PayKind | ''>('');
+  const [refs, setRefs] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [house, setHouse] = useState<HouseGate>({ instagram: false, threads: false });
+  const [shareTdw, setShareTdw] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [gateLoaded, setGateLoaded] = useState(false);
+  useEffect(() => { fetchHouseGate().then((g) => { setHouse(g); setGateLoaded(true); }); }, []);
+  const tick = tickLabel(house);
+  async function addPicture(file: File | undefined) {
+    if (!file || refs.length >= MAX_REFERENCES) return;
+    setUploading(true); setError('');
+    try { const url = await uploadReference(file); setRefs(prev => (prev.length >= MAX_REFERENCES ? prev : [...prev, url])); }
+    catch { setError(CS.uploadFailed); }
+    finally { setUploading(false); if (fileRef.current) fileRef.current.value = ''; }
+  }
 
   useEffect(() => {
     getJson<{ ok: boolean } & Types>(API.collabRequirementTypes())
@@ -95,6 +114,7 @@ export function CollabPostForm({ kind, prefill, onClose, onSuccess }: {
       setError('This date has passed. Collab posts need a future date.'); return;
     }
     if (!form.city.trim()) { setError('Add a city to your profile before posting.'); return; }
+    if (tick && shareTdw && refs.length === 0) { setError(''); fileRef.current?.click(); return; }
     setSubmitting(true); setError('');
     try {
       const payload: Record<string, unknown> = {
@@ -106,7 +126,10 @@ export function CollabPostForm({ kind, prefill, onClose, onSuccess }: {
         event_type:           form.event_type     || undefined,
         details:              form.details        || undefined,
       };
-      if (form.budget_inr) payload.budget_inr = parseInt(form.budget_inr);
+      if (form.budget_inr && payKind !== 'unpaid' && payKind !== 'credit_only') payload.budget_inr = parseInt(form.budget_inr);
+      if (payKind) payload.pay_kind = payKind;
+      if (refs.length) payload.reference_urls = refs;
+      if (tick && shareTdw) payload.share_tdw = true;
       const data = await postJson<{ ok: boolean; error?: string; message?: string }>(API.collabCreate(), payload);
       if (data.ok) onSuccess();
       // F-04.110's second half: the refusal sentence travels in `error`, not `message`.
@@ -185,6 +208,17 @@ export function CollabPostForm({ kind, prefill, onClose, onSuccess }: {
           <span>Also open to vendors who travel</span>
         </label>
 
+        <div className="wl-fld" data-clb-pay="" data-clb-gate={gateLoaded ? 'loaded' : 'waiting'}>   {/* e-275: the gate answer is observable, so a bench waits on it, not on a pause */}
+          <span className="wl-fl">{CS.pay}</span>
+          <div className="cp-chips">
+            {PAY_KINDS.map(k => (
+              <button key={k.v} type="button" className={'cp-chip' + (payKind === k.v ? ' on' : '')} aria-pressed={payKind === k.v}
+                      onClick={() => setPayKind(payKind === k.v ? '' : k.v)}>{k.l}</button>
+            ))}
+          </div>
+        </div>
+
+        {payKind !== 'unpaid' && payKind !== 'credit_only' && (
         <div className="wl-fld">
           <span className="wl-fl">Budget offered (optional)</span>
           <div className="wl-brow">
@@ -193,6 +227,21 @@ export function CollabPostForm({ kind, prefill, onClose, onSuccess }: {
               {PAYMENT_PERIODS.map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
             </select>
           </div>
+        </div>
+        )}
+
+        <div className="wl-fld" data-clb-pictures="">
+          <span className="wl-fl">{CS.pictures}</span>
+          <div className="cp-pics">
+            {refs.map((u, i) => (
+              <button key={u} type="button" className="cp-pic" aria-label={CS.removePicture} onClick={() => setRefs(prev => prev.filter((_, n) => n !== i))}
+                      style={{ backgroundImage: `url(${u})` }} />
+            ))}
+            {refs.length < MAX_REFERENCES && (
+              <button type="button" className="cp-pic cp-picadd" disabled={uploading} onClick={() => fileRef.current?.click()}>{uploading ? CS.uploading : CS.addPicture}</button>
+            )}
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={e => addPicture(e.target.files?.[0])} />
         </div>
 
         {kind === 'collab' && (
@@ -213,6 +262,16 @@ export function CollabPostForm({ kind, prefill, onClose, onSuccess }: {
             placeholder={'Describe what you\u2019re looking for\u2026'}
             onChange={e => set('details', e.target.value.slice(0, 200))} />
         </label>
+
+        {tick && (
+          <label className="cp-tick" data-clb-tdw="">
+            <input type="checkbox" checked={shareTdw} onChange={e => setShareTdw(e.target.checked)} />
+            <span>{tick}</span>
+          </label>
+        )}
+        {tick && shareTdw && refs.length === 0 && (
+          <button type="button" className="cp-fix" data-clb-need-picture="" onClick={() => fileRef.current?.click()}>{CS.needPicture}</button>
+        )}
 
         {error && <p className="wl-shnote wl-shbad">{error}</p>}
         <div className="wl-brow">
@@ -243,5 +302,9 @@ const FORM_CSS = `
 .cp-tick{display:flex;align-items:center;gap:8px;font:var(--wl-t3);color:var(--atelier-ink-soft);cursor:pointer}
 .cp-tick input{width:16px;height:16px;accent-color:var(--atelier-accent-text)}
 .cp-budget{flex:2}.cp-period{flex:1}
+.cp-pics{display:flex;gap:8px;flex-wrap:wrap}
+.cp-pic{width:64px;height:64px;border-radius:10px;border:1px solid var(--atelier-card-border);background:var(--atelier-section-bg) center/cover no-repeat;padding:0}
+.cp-picadd{font:var(--wl-t4);color:var(--atelier-ink-mute);min-width:64px}
+.cp-fix{display:block;width:100%;text-align:left;min-height:44px;padding:10px 0;background:none;border:0;font:var(--wl-t4);color:var(--role-caution);text-decoration:underline;text-underline-offset:3px}
 .cp-area{resize:none}
 `;

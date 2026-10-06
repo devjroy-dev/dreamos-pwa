@@ -1,143 +1,159 @@
 'use client';
+// app/admin/collab/page.tsx · CE-47 · CLB-1 · THE ADMIN'S COLLAB CALLS (cures F-44.300: this page called a door
+// nothing served, and read columns no table holds). Three tabs, ADM-1's kit, plain words:
+//   Waiting   — calls going to TDW's own Instagram and Threads; Post or Do not post, one at a time.
+//   Done      — the last 30 decided, with what happened ("Posted", "Not posted", Meta's reason).
+//   Prospects — people not on TDW (name, craft, city, Instagram, Threads, where found, date added, opted out).
+//               RULE 2: this list is never used to tag anyone; it decides which crafts and cities TDW posts for,
+//               and the admin sends a call to a person herself with "Copy the call".
 import { useEffect, useState } from 'react';
-import { API_BASE } from '../../../lib/api';
-import { adminHeaders, API_BASE as _AB } from '@/lib/admin-api/_base';
-import { formatRs } from '@/lib/vendor/format'; // TDW_09 R-U25: the one money home
+import { adminGet, adminPost, adminPatch } from '@/lib/admin-api/_base';
+import { C, F, PageHead, Tabs, List, Empty, PersonRow, ActionStrip, Sheet, SheetRow, SheetNote, fullDate, when } from '../_components/Kit';
 
+type Post = { id: string; requirement_type: string; event_date: string; city: string; event_type: string | null; details: string | null } | null;
+type Share = { id: string; post_id: string; platform: 'instagram' | 'threads'; state: string; caption: string; hashtags: string[]; image_url: string | null; permalink: string | null; error: string | null; created_at: string; decided_at: string | null; post: Post; vendor_name: string | null };
+type Prospect = { id: string; name: string; craft: string | null; city: string | null; instagram_handle: string | null; threads_handle: string | null; source: string | null; opted_out: boolean; created_at: string };
 
-const fonts = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&family=Jost:wght@200;300;400&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`;
+const W = {
+  title: 'Collab calls',
+  sub: 'Calls going to TDW\u2019s Instagram and Threads, and people to send them to',
+  waiting: 'Waiting', done: 'Done', prospects: 'Prospects',
+  where: (p: string) => (p === 'instagram' ? 'TDW Instagram' : 'TDW Threads'),
+  post: 'Post', dont: 'Do not post', copy: 'Copy the call', copied: 'Copied',
+  state: { approved: 'Posting now', published: 'Posted', rejected: 'Not posted', failed: 'Not posted yet' } as Record<string, string>,
+  none: 'Nothing is waiting.', noneDone: 'Nothing decided yet.', noneP: 'No prospects yet.',
+  add: 'Add a prospect', name: 'Name', craft: 'Craft', city: 'City', ig: 'Instagram', th: 'Threads', source: 'Where found', save: 'Save',
+  optOut: 'Opted out', optIn: 'Not opted out', rule: 'This list is never used to tag anyone. Send a call to a person yourself.',
+  open: 'Open the post', failed: 'Something went wrong. Try again.',
+};
 
-type Post = { id: string; vendor_id: string; post_type: string; title: string; description: string; budget: number; city: string; status: string; is_flagged: boolean; created_at: string; vendors: { name: string } | null; };
-type Filter = 'all' | 'open' | 'flagged' | 'closed';
+// THE FOUNDER'S RULE (CE-47, 6 October 2026): every Instagram or Threads handle is a link that opens the profile, never
+// plain text. Handles are normalised to letters, digits, dot and underscore; the address is always https.
+const handleOf = (h: string | null) => { const v = String(h || '').trim().replace(/^@+/, '').toLowerCase(); return /^[a-z0-9._]{1,30}$/.test(v) ? v : null; };
+function ProfileLinks({ ig, th }: { ig: string | null; th: string | null }) {
+  const i = handleOf(ig); const t = handleOf(th);
+  if (!i && !t) return null;
+  const st = { font: F.t4, color: C.accent, textDecoration: 'underline', textUnderlineOffset: 3, minHeight: 44, display: 'inline-flex', alignItems: 'center' } as const;
+  return (
+    <div style={{ display: 'flex', gap: 16, padding: '0 14px 4px', flexWrap: 'wrap' }} data-clb-profile-links="">
+      {i && <a href={`https://www.instagram.com/${i}/`} target="_blank" rel="noopener noreferrer" style={st}>Instagram {i}</a>}
+      {t && <a href={`https://www.threads.com/@${t}`} target="_blank" rel="noopener noreferrer" style={st}>Threads {t}</a>}
+    </div>
+  );
+}
 
 export default function AdminCollabPage() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<Filter>('all');
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [toast, setToast] = useState('');
+  const [tab, setTab] = useState<'waiting' | 'done' | 'prospects'>('waiting');
+  const [queue, setQueue] = useState<Share[] | null>(null);
+  const [decided, setDecided] = useState<Share[]>([]);
+  const [prospects, setProspects] = useState<Prospect[] | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [note, setNote] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState({ name: '', craft: '', city: '', instagram_handle: '', threads_handle: '', source: '' });
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+  const load = () => adminGet<{ queue: Share[]; decided: Share[] }>('/api/v2/admin/collab')
+    .then(d => { setQueue(d.queue || []); setDecided(d.decided || []); }).catch(() => { setQueue([]); setNote(W.failed); });
+  const loadP = () => adminGet<{ prospects: Prospect[] }>('/api/v2/admin/collab/prospects')
+    .then(d => setProspects(d.prospects || [])).catch(() => { setProspects([]); setNote(W.failed); });
+  useEffect(() => { load(); loadP(); }, []);
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const r = await fetch(`${API_BASE}/api/v2/admin/collab`, { headers: adminHeaders() });
-      const d = await r.json();
-      setPosts(d.posts || []);
-    } finally { setLoading(false); }
-  };
+  async function decide(s: Share, how: 'approve' | 'reject') {
+    setBusy(s.id + how); setNote('');
+    try { await adminPost(`/api/v2/admin/collab/shares/${s.id}/${how}`, {}); await load(); } catch { setNote(W.failed); } finally { setBusy(null); }
+  }
+  async function copyCall(postId: string) {
+    setBusy('copy' + postId);
+    try { const d = await adminGet<{ text: string }>(`/api/v2/admin/collab/posts/${postId}/share-text`); await navigator.clipboard.writeText(d.text); setNote(W.copied); }
+    catch { setNote(W.failed); } finally { setBusy(null); }
+  }
+  async function saveProspect() {
+    if (!draft.name.trim()) return;
+    setBusy('add');
+    try { await adminPost('/api/v2/admin/collab/prospects', draft); setAdding(false); setDraft({ name: '', craft: '', city: '', instagram_handle: '', threads_handle: '', source: '' }); await loadP(); }
+    catch { setNote(W.failed); } finally { setBusy(null); }
+  }
+  async function toggleOpt(p: Prospect) {
+    setBusy(p.id);
+    try { await adminPatch(`/api/v2/admin/collab/prospects/${p.id}`, { opted_out: !p.opted_out }); await loadP(); } catch { setNote(W.failed); } finally { setBusy(null); }
+  }
 
-  useEffect(() => { load(); }, []);
-
-  const toggleFlag = async (id: string) => {
-    await fetch(`${API_BASE}/api/v2/admin/collab/${id}/flag`, { method: 'PATCH', headers: adminHeaders() });
-    setPosts(ps => ps.map(p => p.id === id ? { ...p, is_flagged: !p.is_flagged } : p));
-    showToast('Flag updated.');
-  };
-
-  const close = async (id: string) => {
-    if (!confirm('Close this collab post?')) return;
-    await fetch(`${API_BASE}/api/v2/admin/collab/${id}/close`, { method: 'PATCH', headers: adminHeaders() });
-    setPosts(ps => ps.map(p => p.id === id ? { ...p, status: 'closed' } : p));
-    showToast('Post closed.');
-  };
-
-  const filtered = posts.filter(p => {
-    if (filter === 'all') return true;
-    if (filter === 'flagged') return p.is_flagged;
-    return p.status === filter;
-  });
-
-  const statusPill = (s: string) => {
-    // ⊘-2, R-40.129 ① — the tinted ground dies. This was [ink, GROUND] pairs: a green
-    // ink on a mint fill, a metal ink on a cream fill. A role is an ink and an edge and
-    // never a fill, so the pill is transparent with the role on its edge and its label.
-    //
-    // A TUPLE IS WHY THIS ONE NEEDED A HAND. The rider's re-token reads the CSS property
-    // before each literal to decide ground from ink; inside an array literal there is no
-    // property to read, so it mapped the second slot as if it were an ink and produced
-    // ink-on-ink. Caught by the survivors sweep, not by the pass — recorded because the
-    // same shape (a colour pair in a data structure) exists in other rooms this seat has
-    // not opened yet, and (iv) and (v) must look for it rather than trust the property
-    // reader.
-    const map: Record<string, string> = {
-      open: 'var(--role-positive)',
-      closed: 'var(--atelier-ink-mute)',
-      filled: 'var(--role-metal)',
-    };
-    const color = map[s] || 'var(--atelier-ink-mute)';
-    const bg = 'transparent';
-    return <span style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color, background: bg, border: `0.5px solid ${color}`, padding: '3px 8px', borderRadius: 20 }}>{s}</span>;
-  };
+  const callLine = (s: Share) => (s.post ? `${fullDate(s.post.event_date)} \u00B7 ${s.post.city}` : '');
+  const input = (k: keyof typeof draft, label: string) => (
+    <label key={k} style={{ display: 'block', padding: '8px 18px' }}>
+      <span style={{ display: 'block', font: F.t5, color: C.mute, marginBottom: 4 }}>{label}</span>
+      <input value={draft[k]} onChange={e => setDraft(d => ({ ...d, [k]: e.target.value }))}
+             style={{ width: '100%', minHeight: 44, background: C.input, border: `0.5px solid ${C.inputLine}`, borderRadius: 10, padding: '0 12px', color: C.ink, font: F.t3 }} />
+    </label>
+  );
 
   return (
-    <>
-      <style>{fonts}</style>
-      {toast && <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--atelier-sheet-bg)', color: 'var(--atelier-page-bg)', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, padding: '10px 20px', borderRadius: 4, zIndex: 9999 }}>{toast}</div>}
+    <div data-clb-admin="">
+      <PageHead title={W.title} sub={W.sub} action={tab === 'prospects' ? <button type="button" onClick={() => setAdding(true)} style={{ minHeight: 44, padding: '0 14px', borderRadius: 12, border: 'none', background: C.primary, color: C.onPrimary, font: F.t5, fontWeight: 600 }}>+ {W.add}</button> : undefined} />
+      <Tabs value={tab} onChange={k => setTab(k as typeof tab)} items={[
+        { key: 'waiting', label: W.waiting, n: queue ? queue.length : null },
+        { key: 'done', label: W.done },
+        { key: 'prospects', label: W.prospects, n: prospects ? prospects.length : null },
+      ]} />
+      {note && <p style={{ font: F.t4, color: C.soft, padding: '8px 2px' }}>{note}</p>}
 
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 9, color: 'var(--atelier-ink-soft)', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 6 }}>Collab Hub</div>
-        <div style={{ fontFamily: '"Cormorant Garamond", serif', fontWeight: 300, fontSize: 28, color: 'var(--atelier-ink)' }}>Moderation</div>
-      </div>
+      {tab === 'waiting' && (queue && queue.length === 0 ? <Empty>{W.none}</Empty> : (
+        <List>
+          {(queue || []).map((s, i) => (
+            <PersonRow key={s.id} name={`${W.where(s.platform)} \u00B7 ${s.vendor_name || ''}`} line={callLine(s)} last={i === (queue || []).length - 1}>
+              {s.image_url && <img src={s.image_url} alt="" style={{ display: 'block', width: 120, borderRadius: 10, margin: '0 14px 8px' }} />}
+              <pre style={{ whiteSpace: 'pre-wrap', font: F.t4, color: C.soft, padding: '0 14px 10px', margin: 0 }}>{s.caption}</pre>
+              <ActionStrip items={[
+                { label: W.post, primary: true, busy: busy === s.id + 'approve', onClick: () => decide(s, 'approve') },
+                { label: W.dont, busy: busy === s.id + 'reject', onClick: () => decide(s, 'reject') },
+                { label: W.copy, busy: busy === 'copy' + s.post_id, onClick: () => copyCall(s.post_id) },
+              ]} />
+            </PersonRow>
+          ))}
+        </List>
+      ))}
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        {(['all', 'open', 'flagged', 'closed'] as Filter[]).map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{ border: `0.5px solid ${filter === f ? 'var(--role-metal)' : 'var(--atelier-card-border)'}`, background: filter === f ? 'var(--atelier-row-hover)' : 'transparent', color: filter === f ? 'var(--role-metal)' : 'var(--atelier-ink-soft)', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', padding: '5px 14px', borderRadius: 20, cursor: 'pointer' }}>{f}</button>
-        ))}
-      </div>
+      {tab === 'done' && (decided.length === 0 ? <Empty>{W.noneDone}</Empty> : (
+        <List>
+          {decided.map((s, i) => (
+            <PersonRow key={s.id} name={`${W.where(s.platform)} \u00B7 ${s.vendor_name || ''}`} tag={W.state[s.state] || s.state}
+                       tagTone={s.state === 'published' ? C.ok : s.state === 'failed' ? C.warn : C.mute}
+                       line={[callLine(s), s.error, s.decided_at ? when(s.decided_at) : ''].filter(Boolean).join(' \u00B7 ')} last={i === decided.length - 1}>
+              <ActionStrip items={[
+                s.permalink ? { label: W.open, href: s.permalink } : null,
+                s.state === 'failed' ? { label: W.post, primary: true, busy: busy === s.id + 'approve', onClick: () => decide(s, 'approve') } : null,
+                { label: W.copy, busy: busy === 'copy' + s.post_id, onClick: () => copyCall(s.post_id) },
+              ]} />
+            </PersonRow>
+          ))}
+        </List>
+      ))}
 
-      {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[1,2,3].map(i => <div key={i} style={{ height: 52, background: 'var(--atelier-card-bg)', borderRadius: 4, border: '1px solid transparent', backgroundImage: 'linear-gradient(90deg, var(--atelier-page-bg) 25%, var(--atelier-section-bg) 50%, var(--atelier-page-bg) 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }} />)}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div style={{ padding: '60px 0', textAlign: 'center', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 13, color: 'var(--atelier-ink-soft)' }}>When Makers start collaborating, it will appear here.</div>
-      ) : (
-        <div style={{ background: 'var(--atelier-card-bg)', border: '1px solid transparent', borderRadius: 6, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
-            <thead>
-              <tr style={{ background: 'var(--atelier-page-bg)' }}>
-                {['Maker', 'Type', 'Title', 'Budget', 'City', 'Status', 'Posted', 'Actions'].map(col => (
-                  <th key={col} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, color: 'var(--atelier-ink-soft)', letterSpacing: '0.22em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{col}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(p => (
-                <>
-                  <tr key={p.id} style={{ borderTop: '1px solid var(--atelier-card-border)', background: p.is_flagged ? 'var(--atelier-row-hover)' : 'transparent', borderLeft: p.is_flagged ? '2px solid var(--role-critical)' : '2px solid transparent' }}>
-                    <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 400, fontSize: 13, color: 'var(--atelier-ink)' }}>{p.vendors?.name || '—'}</td>
-                    <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink-soft)', textTransform: 'capitalize' }}>{p.post_type || '—'}</td>
-                    <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink)', maxWidth: 160 }}>
-                      <button onClick={() => setExpanded(expanded === p.id ? null : p.id)} style={{ background: 'none', border: 'none', textAlign: 'left', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink)', cursor: 'pointer', textDecoration: 'underline dotted', textUnderlineOffset: 3 }}>{p.title || '—'}</button>
-                    </td>
-                    <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink-soft)' }}>{p.budget ? formatRs(p.budget) : '—'}</td>
-                    <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink-soft)' }}>{p.city || '—'}</td>
-                    <td style={{ padding: '11px 14px' }}>{statusPill(p.status)}</td>
-                    <td style={{ padding: '11px 14px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 11, color: 'var(--atelier-ink-soft)', whiteSpace: 'nowrap' }}>{new Date(p.created_at).toLocaleDateString('en-IN')}</td>
-                    <td style={{ padding: '11px 14px' }}>
-                      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                        <button onClick={() => toggleFlag(p.id)} style={{ background: 'none', border: 'none', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: p.is_flagged ? 'var(--role-critical)' : 'var(--atelier-ink-soft)', cursor: 'pointer' }}>{p.is_flagged ? 'Unflag' : 'Flag'}</button>
-                        {p.status !== 'closed' && (
-                          <button onClick={() => close(p.id)} style={{ background: 'none', border: 'none', fontFamily: '"Jost", sans-serif', fontWeight: 200, fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--atelier-ink-soft)', cursor: 'pointer' }}>Close</button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                  {expanded === p.id && (
-                    <tr style={{ borderTop: '1px solid var(--atelier-card-border)', background: 'var(--atelier-card-bg)' }}>
-                      <td colSpan={8} style={{ padding: '12px 14px 16px', fontFamily: '"DM Sans", sans-serif', fontWeight: 300, fontSize: 12, color: 'var(--atelier-ink-soft)', lineHeight: 1.6 }}>
-                        {p.description || 'No description provided.'}
-                      </td>
-                    </tr>
-                  )}
-                </>
+      {tab === 'prospects' && (
+        <>
+          <p style={{ font: F.t4, color: C.mute, padding: '4px 2px 10px' }}>{W.rule}</p>
+          {prospects && prospects.length === 0 ? <Empty>{W.noneP}</Empty> : (
+            <List>
+              {(prospects || []).map((p, i) => (
+                <PersonRow key={p.id} name={p.name} tag={p.opted_out ? W.optOut : null} tagTone={C.warn}
+                           line={[p.craft, p.city, p.source, fullDate(p.created_at)].filter(Boolean).join(' \u00B7 ')}
+                           last={i === (prospects || []).length - 1}>
+                  <ProfileLinks ig={p.instagram_handle} th={p.threads_handle} />
+                  <ActionStrip items={[{ label: p.opted_out ? W.optIn : W.optOut, busy: busy === p.id, onClick: () => toggleOpt(p) }]} />
+                </PersonRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </List>
+          )}
+        </>
       )}
-    </>
+
+      {adding && (
+        <Sheet title={W.add} onClose={() => setAdding(false)}>
+          {input('name', W.name)}{input('craft', W.craft)}{input('city', W.city)}{input('instagram_handle', W.ig)}{input('threads_handle', W.th)}{input('source', W.source)}
+          <SheetNote>{W.rule}</SheetNote>
+          <SheetRow label={W.save} busy={busy === 'add'} onClick={saveProspect} />
+        </Sheet>
+      )}
+    </div>
   );
 }

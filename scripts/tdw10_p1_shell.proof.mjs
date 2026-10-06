@@ -235,11 +235,13 @@ const corpseCount  = (NAV.match(/disposition:\s*'CORPSE'/g)  || []).length;
 // and a fourth disposition joins the sum. The TOTAL is unchanged at 37 — which is
 // the point of a tombstone, and the reason this cell is amended rather than
 // deleted: the ledger must still balance.
+// LABELED AMENDMENT (CE-47 CLB-1): /admin/collab moved PHANTOM -> LIVE when its door was mounted (F-44.300's cure).
+// The total stays 41 rows; LIVE 22 -> 23, PHANTOM 15 -> 14. Same shape, the ledger still balances.
 ok('20 LIVE + 1 RETIRES + 15 PHANTOM + 3 RETIRED = 39',
-   liveCount + retireCount + phantomCount + retiredCount === 41 && liveCount === 22,
+   liveCount + retireCount + phantomCount + retiredCount === 41 && liveCount === 23,
    `LIVE=${liveCount} RETIRES=${retireCount} PHANTOM=${phantomCount} RETIRED=${retiredCount}`);
 ok('F-10.76 reduced the phantom ledger by exactly three (acceptance ②)',
-   phantomCount === 15 && retiredCount === 3, `PHANTOM=${phantomCount} RETIRED=${retiredCount}`);
+   phantomCount === 14 && retiredCount === 3, `PHANTOM=${phantomCount} RETIRED=${retiredCount}`);   // 15 -> 14: CLB-1, above
 ok('the dead [data-theme="dark"] block is tabled as a CORPSE, not revived and not deleted (R-A1 rider i)',
    corpseCount === 1 && /P6-SWEEP/.test(NAV) && /data-theme="dark"/.test(NAV));
 // The question is whether anything SETS the attribute — the corpse's own row

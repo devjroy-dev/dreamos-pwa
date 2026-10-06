@@ -24,6 +24,7 @@ import { RoomBody } from '@/components/worklist/RoomBody';
 import { COPY } from '@/v2/lib/worklist/copy';
 import { useVendorSession } from '@/hooks/vendor/useVendorSession';
 import { ResponsesScreen } from './screen';
+import { CollabWherePosted } from '@/v2/components/vendor/CollabWherePosted';   // CE-47 CLB-1
 
 export default function ShellCollabResponsesPage() {
   const params  = useParams<{ post_id: string }>();
@@ -35,7 +36,7 @@ export default function ShellCollabResponsesPage() {
 
   return (
     <WorklistShell title={COPY.collabTitle}>
-      <RoomBody><ResponsesScreen post_id={post_id} /></RoomBody>
+      <RoomBody><ResponsesScreen post_id={post_id} /><CollabWherePosted postId={post_id} /></RoomBody>
     </WorklistShell>
   );
 }
