@@ -102,13 +102,20 @@ const RULED_MORE = [
 ];
 // HOME_2 · RE-PINNED BY LABEL, R-45.21 (the founder, walking HOME_1: "work together should be at the
 // top. then get fonud get booked etc."): Work together leads; names and rows unchanged.
+// AMENDED BY LABEL · CE-47 THE HUB CUT (INS, app train 2): nine rows ruled for OFF, PRO and INS join, and the ONE new group the
+// chair allowed, "Run the business" (6 October 2026). Each is Coming (PREVIEW_KEYS) and opens its shell screen. Twenty rows.
 const RULED_GROUPS = [
-  ['Work together', ['collabs']],
+  ['Work together', ['collabs', 'brands']],
   ['Get found', ['website', 'wedding_pages', 'google', 'posts']],
   // AMENDED BY LABEL · CE-45 IGD-1 cut 1b · R-45.28: the founder moved "WhatsApp and Instagram" to the head of Get booked.
-  ['Get booked', ['number', 'dates', 'introductions', 'referrals']],
-  ['Get paid', ['contracts', 'reminders']],
+  ['Get booked', ['number', 'dates', 'introductions', 'referrals', 'rebooking', 'quotes']],
+  ['Get paid', ['contracts', 'reminders', 'payment_links', 'shop']],
+  ['Run the business', ['supplies', 'trends', 'papers', 'insurance']],
 ];
+// CE-47 hub cut: the nine Coming rows share ONE neutral drawing until each seat's room brings its own (the chair's word);
+// Lucide's square-dashed from the estate's node_modules/lucide-react v1.8.0, its sha256 carried so an edit is a fresh veto.
+const COMING_KEYS = ['rebooking', 'quotes', 'payment_links', 'shop', 'brands', 'supplies', 'trends', 'papers', 'insurance'];
+const COMING_NEUTRAL = 'ff44388c00b16196250a1e7f799ed802f3ec8e8d2ddae188503fe871e337746d';
 // HOME_2 · R-45.21: THE 29 DRAWINGS OF THE APPROVED MOCK, sha256 of each <symbol>'s inner markup as it
 // stands in TDW_CE45_FE1_MOCK_PINS_TOP_AND_ICONS.html (sha256 a0f8de82298867fef84daf370f4ec9f06f57baec48573735fc0db92d9e81ac63).
 // A later edit to any drawing is a fresh veto: it reddens 5.2.
@@ -174,7 +181,9 @@ const H_COPY = { navToday: '2b065c7c9ce466e5', shelfBusiness: '76f68a75f01ed76f'
 // RE-AIMED BY LABEL (CE-47, FE-8, the chair's ruling B): storefront reads "The public page people see" and clients "Booked
 // clients and their records" (the founder's no-"couple" rule; FE-5 and FE-6 L5). The other sixteen stand.
 const H_ROOM = { support: '81e50b18d2c0ea43', storefront: 'cdb65d0a084724d5', leads: '6ed99453447975d5', clients: '7ed27aa8ab2e484f', packages: '5ac4004541fc2013', calendar: 'ace4802cba166d27', events: '44ab8773647cf1af', notes: 'b4de30be81cf9f1a', invoices: '5520f77a5ac7e0ec', expenses: 'd52a337c2f297d01', books: 'c2bebc4c8b046867', tds: 'cfc775545be4eda7', portfolio: 'c770d4b25db5b741', team: '8fdce67cbb74c589', couture: '5ec5b4c55960ce39', advisor: '3263e80df03c3bf4', billing: 'ac9b262fbde97683', settings: '28421eb441a5d5da' };
-const H_ROW = { website: 'b1291bdf51d0a58e', wedding_pages: '5802fa27fb15736d', google: '3829cc50cbae2d22', posts: 'f70c5ccaa24633ad', dates: 'a1c133e9b13913fd', introductions: '8709ae8942f3aed0', referrals: '5e8933c42ebd55f6', number: 'b4153dd868095658' /* AMENDED BY LABEL · IGD-1 cut 1 · R-45.27 A3; was 9c6c97a21614e055 (D28) */, contracts: 'b2be845480024cae', reminders: '24716217a180687d', collabs: '4ba555d36b7a7487' };
+const H_ROW = { website: 'b1291bdf51d0a58e', wedding_pages: '5802fa27fb15736d', google: '3829cc50cbae2d22', posts: 'f70c5ccaa24633ad', dates: 'a1c133e9b13913fd', introductions: '8709ae8942f3aed0', referrals: '5e8933c42ebd55f6', number: 'b4153dd868095658' /* AMENDED BY LABEL · IGD-1 cut 1 · R-45.27 A3; was 9c6c97a21614e055 (D28) */, contracts: 'b2be845480024cae', reminders: '24716217a180687d', collabs: '4ba555d36b7a7487',
+  // AMENDED BY LABEL · CE-47 hub cut: the nine ruled lines (OFF, PRO through the chair; INS's two accepted 6 October 2026).
+  rebooking: 'aa1313b122ac1326', quotes: 'f73949d4a8f7fde6', payment_links: '2643f74e2229ea0e', shop: '639141b970b83e2d', brands: '8b15a041e89ea228', supplies: '81f917c1df3cc035', trends: '16ff5ec838286abd', papers: 'd953bea2bedc7d62', insurance: '4fd31d7f33d94534' /* AMENDED BY LABEL · hub cut r3: the ruled line for 360 (b177) under R-45.20; was c74dbafbd218568a (r2), cd893e75103b0f4f (r1) */ };
 
 const tag = (i) => ('room' in i ? 'room:' + i.room : 'row:' + i.row);
 const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.slice(4) });
@@ -206,7 +215,7 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
     const left = ['shelfBusiness', 'shelfMoney', 'shelfStudio'].filter((k) => k in C);
     return (bad.length === 0 && left.length === 0) || 'moved: ' + bad.join(',') + ' left: ' + left.join(',');
   });
-  cell('1.3 the four group names and their rows, in the ruled order (N4 to N7; q3)', () => {
+  cell('1.3 the five group names and their rows, in the ruled order (N4 to N7; q3; CE-47 hub cut: Run the business)', () => {
     const got = (SC.HUB_GROUPS || []).map((g) => [g.name, [...g.keys]]);
     return JSON.stringify(got) === JSON.stringify(RULED_GROUPS) || JSON.stringify(got);
   });
@@ -226,7 +235,7 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   // "your" exception retires with it and the cell TIGHTENS: no line may say "your" now.
   cell('1.6 R-45.20 register: no her, his, you or your; no persona name', () => {
     const all = [...Object.entries(WC.ROOM_DESC || {}), ...Object.entries(SC.ROW_DESC || {})];
-    if (all.length !== 29) return 'lines ' + all.length;
+    if (all.length !== 38) return 'lines ' + all.length;   // AMENDED BY LABEL · CE-47 hub cut: 29 + the nine
     const bad = all.filter(([k, v]) => /\b(her|his|you)\b/i.test(v) || /\byour\b/i.test(v) || /\b(Victor|Donna|Harvey)\b/.test(v));
     return bad.length === 0 || bad.map(([k]) => k).join(',');
   });
@@ -285,7 +294,9 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   // Instagram, by the founder's grouping), and the live 4.2e holds that it wears Coming where it stands.
   cell('2.7 Coming stays Coming: Open dates & rates and WhatsApp and Instagram; More\u2019s one Coming row is WhatsApp and Instagram (DESIGN-1 stage 3)', () => {
     const coming = (TB.MORE_GROUPS || []).flatMap((g) => g.rows.filter((r) => r.row && RT.itemComing({ row: r.row })).map((r) => r.label));
-    return (JSON.stringify([...RT.PREVIEW_KEYS].sort()) === '["dates","number"]' && JSON.stringify(coming) === '["WhatsApp and Instagram"]') || JSON.stringify({ preview: [...RT.PREVIEW_KEYS], coming });
+    // AMENDED BY LABEL · CE-47 hub cut: the nine join PREVIEW_KEYS; More's one Coming row is unchanged (none of the nine is on More).
+    const WANT_PREVIEW = JSON.stringify(['dates', 'number', ...COMING_KEYS].sort());
+    return (JSON.stringify([...RT.PREVIEW_KEYS].sort()) === WANT_PREVIEW && JSON.stringify(coming) === '["WhatsApp and Instagram"]') || JSON.stringify({ preview: [...RT.PREVIEW_KEYS], coming });
   });
   cell('2.8 the move: ROOM_HREFS and PREVIEW_KEYS live in v2/lib/solutions/routes.ts, and the hub page declares neither', () => {
     const page = read('v2/app/vendor/(shell)/support/page.tsx');
@@ -339,7 +350,11 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
     if (JSON.stringify(Object.keys(IC.ROOM_ICONS).filter((k) => IN_ROOM[k]).sort()) !== JSON.stringify(Object.keys(IN_ROOM).sort())) return 'the two in-room drawings are not both there';
     const drift = Object.keys(IN_ROOM).filter((k) => crypto.createHash('sha256').update(String(IC.ROOM_ICONS[k])).digest('hex') !== IN_ROOM[k]);
     if (drift.length) return 'in-room drawing drifted: ' + drift.join(',');
-    return (want.length === 29 && JSON.stringify(got) === JSON.stringify(want)) || JSON.stringify({ got: got.length, want: want.length, missing: want.filter((k) => !got.includes(k)), extra: got.filter((k) => !want.includes(k)) });
+    // AMENDED BY LABEL · CE-47 hub cut: the 29 approved drawings stand (5.2); the nine Coming rows add their keys, each the ONE
+    // neutral drawing, sha carried. 38 keys shown, plus the two in-room drawings.
+    const neutralBad = COMING_KEYS.filter((k) => crypto.createHash('sha256').update(String(IC.ROOM_ICONS[k])).digest('hex') !== COMING_NEUTRAL);
+    if (neutralBad.length) return 'a Coming row is not the neutral drawing: ' + neutralBad.join(',');
+    return (want.length === 38 && JSON.stringify(got) === JSON.stringify(want)) || JSON.stringify({ got: got.length, want: want.length, missing: want.filter((k) => !got.includes(k)), extra: got.filter((k) => !want.includes(k)) });
   });
   cell('5.2 every drawing is the approved mock\u2019s, byte for byte (29 sha256 carried; mock ' + MOCK_SHA.slice(0, 12) + ')', () => {
     if (!IC || !IC.ROOM_ICONS) return 'no registry';
@@ -583,16 +598,16 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
         const g = (hb.hub || {}).groups || [];
         // CE-47 L4 (FE-7), BY LABEL (C1): the hub's chips are retired (each room carries its own Coming soon), so every row's
         // chip reads null; the route is the row's own link, and it must be the room's.
-        chk(`4.3a ${mode}: the page draws four groups, every row with its line, its route and no chip (P3; C1)`, () => {
+        chk(`4.3a ${mode}: the page draws five groups (CE-47 hub cut), every row with its line, its route and no chip (P3; C1)`, () => {
           const want = RULED_GROUPS.map(([n, ks]) => [n, ks.map((k) => [SC.roomLabel(k), H_ROW[k], null, SC.roomLabel(k) ? true : true])]);
           const got = g.map((x) => [x.name, x.rows.map((r) => [r.label, h16(r.desc), r.chip, !!r.href])]);
-          return (got.length === 4 && JSON.stringify(got) === JSON.stringify(want)) || JSON.stringify(got).slice(0, 280);
+          return (got.length === 5 && JSON.stringify(got) === JSON.stringify(want)) || JSON.stringify(got).slice(0, 280);   // AMENDED BY LABEL · CE-47 hub cut: five groups
         });
         chk(`4.3d ${mode}: every Business Solutions row carries exactly one icon, its own, the registry\u2019s bytes (R-45.21)`, () => {
           const rows = g.flatMap((x) => x.rows.map((r) => [x, r]));
           const keyOf = (label) => RULED_GROUPS.flatMap(([, ks]) => ks).find((k) => SC.roomLabel(k) === label);
           const bad = rows.filter(([, r]) => !oneIcon(hb, keyOf(r.label), r.icons)).map(([, r]) => r.label);
-          return (rows.length === 11 && bad.length === 0) || JSON.stringify({ n: rows.length, bad });
+          return (rows.length === 20 && bad.length === 0) || JSON.stringify({ n: rows.length, bad });   // AMENDED BY LABEL · CE-47 hub cut: 20
         });
         ok(hb.hub && hb.hub.footer === true, `4.3b ${mode}: the footer\u2019s human control is still there (a control: green at the base)`);
         console.log(`  RETIRED 4.3c ${mode} (DESIGN-1 stage 3: the Money shelf retired; Contracts is the Clients tab\u2019s and Payment reminders the Money tab\u2019s, each at its one route, 2.5)`);

@@ -359,6 +359,19 @@ export const ADS_HREF = `${POSTS_HREF}/ads`;
 export const DATES_HREF  = '/vendor/dates';
 export const NUMBER_HREF = '/vendor/number';
 
+// ── CE-47 · THE HUB CUT (INS, app train 2) · NINE ADDRESSES, ONE CONSTANT EACH ─────────────────────────────────────────
+// The not-a-registry-room precedent above. Each address is the one its seat ruled (OFF, PRO, INS; relayed by the chair,
+// 6 October 2026) and the one its room lands at, so nothing moves on the day: the seat replaces the shell page there.
+export const REBOOKING_HREF     = '/vendor/rebooking';
+export const QUOTES_HREF        = '/vendor/quotes';
+export const PAYMENT_LINKS_HREF = '/vendor/payment-links';
+export const SHOP_HREF          = '/vendor/off-season-shop';
+export const BRANDS_HREF        = '/vendor/brands';
+export const SUPPLIES_HREF      = '/vendor/supplies';
+export const TRENDS_HREF        = '/vendor/trends';
+export const PAPERS_HREF        = '/vendor/papers';
+export const INSURANCE_HREF     = '/vendor/insurance';
+
 // ── CE-42 · 4c-3a · THE TENTH CONSTANT — the influencer exchange SHELL (R-42.14) ──
 // Not a registry room and not a hub row: it opens from ONE row under Shoots inside
 // Referrals & partners (ruling F1(b)). Same not-a-room precedent as the nine above,
@@ -456,6 +469,16 @@ export const ROOM_HREFS: Record<RoomKey, string> = {
   // five above give. Their chips stay `Coming` through `PREVIEW_KEYS` below.
   dates:         DATES_HREF,
   number:        NUMBER_HREF,
+  // CE-47 hub cut: the nine, each Coming through PREVIEW_KEYS below until its seat's room lands.
+  rebooking:     REBOOKING_HREF,
+  quotes:        QUOTES_HREF,
+  payment_links: PAYMENT_LINKS_HREF,
+  shop:          SHOP_HREF,
+  brands:        BRANDS_HREF,
+  supplies:      SUPPLIES_HREF,
+  trends:        TRENDS_HREF,
+  papers:        PAPERS_HREF,
+  insurance:     INSURANCE_HREF,
 };
 
 /**
@@ -466,7 +489,10 @@ export const ROOM_HREFS: Record<RoomKey, string> = {
  * An entry LEAVES this set in the same edit that lands the real room — R8 for
  * `dates`, R9 for `number` — and the chip flips with it. No ninth chip.
  */
-export const PREVIEW_KEYS: ReadonlySet<RoomKey> = new Set<RoomKey>(['dates', 'number']);
+// CE-47 hub cut (INS): the nine join, Option A as the chair ruled it (6 October 2026). Each seat removes ONLY its own key,
+// in the same edit that replaces its shell page. "No ninth chip" stands: the chip is still CHIPS.coming, one word.
+export const PREVIEW_KEYS: ReadonlySet<RoomKey> = new Set<RoomKey>(['dates', 'number',
+  'rebooking', 'quotes', 'payment_links', 'shop', 'brands', 'supplies', 'trends', 'papers', 'insurance']);
 
 /**
  * CE-45 FE-1 · THE ONE RESOLVER FROM A SHELF ITEM TO ITS ROUTE (q2: the pin key space is the

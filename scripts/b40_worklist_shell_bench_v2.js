@@ -1358,6 +1358,14 @@ cell('C31 no /w literal and no door onto the deleted tree is reachable from any 
     if (!xm) return 'EXCHANGE_HREF is not declared: the exchange shell has no address home (R-42.14)';
     declared.add(xm[1]);
   }
+  // ── AMENDED BY LABEL — CE-47 THE HUB CUT (INS, app train 2). NINE CONSTANTS, ONE PER ROW RULED FOR OFF, PRO AND INS;
+  // each opens its shell screen (Option A) at the address its room lands at. Same not-a-room precedent as DATES_HREF:
+  // the set grows by exactly nine NAMED members, each read from its declaration; a stray is still a stray.
+  for (const name of ['REBOOKING_HREF', 'QUOTES_HREF', 'PAYMENT_LINKS_HREF', 'SHOP_HREF', 'BRANDS_HREF', 'SUPPLIES_HREF', 'TRENDS_HREF', 'PAPERS_HREF', 'INSURANCE_HREF']) {
+    const hm = solRoutes.match(new RegExp('export const ' + name + "\\s*=\\s*'([^']+)'"));
+    if (!hm) return name + ' is not declared: a hub-cut shell screen has no address home (CE-47)';
+    declared.add(hm[1]);
+  }
   const isPrefixOfDeclared = (h) => h.endsWith('/') && (declared.has(h.slice(0, -1)) || [...declared].some((d) => d.startsWith(h) && d !== h));
   if (/INTERIM_|FALLBACK_TREE_BASES/.test(reg)) return 'an INTERIM_*/FALLBACK census is declared again: retired at P7.2';
   // ⚠ AN EARLY RETURN HERE WOULD HAVE MADE THIS CELL VACUOUS IN THE ONE DIRECTION THAT

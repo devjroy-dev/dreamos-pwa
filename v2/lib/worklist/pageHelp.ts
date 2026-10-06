@@ -31,7 +31,8 @@ import { ROW_DESC } from '@/v2/lib/solutions/copy';
 // the replies page's route PATTERN, which is a key, not an address anyone links to.
 import { roomHref } from '@/v2/lib/worklist/rooms';
 import { DATES_HREF, NUMBER_HREF, WEDDING_PAGES_HREF, WEBSITE_HREF, GOOGLE_REVIEWS_HREF, REFERRALS_HREF,
-  PAYMENT_REMINDERS_HREF, INTRODUCTIONS_HREF, POSTS_HREF, ADS_HREF, EXCHANGE_HREF, SOLUTIONS_INDEX_HREF } from '@/v2/lib/solutions/routes';
+  PAYMENT_REMINDERS_HREF, INTRODUCTIONS_HREF, POSTS_HREF, ADS_HREF, EXCHANGE_HREF, SOLUTIONS_INDEX_HREF,
+  REBOOKING_HREF, QUOTES_HREF, PAYMENT_LINKS_HREF, SHOP_HREF, BRANDS_HREF, SUPPLIES_HREF, TRENDS_HREF, PAPERS_HREF, INSURANCE_HREF } from '@/v2/lib/solutions/routes';
 
 export interface PageHelp {
   /** (The card's heading is the shell's own `title` byte, passed at the mount; it is not typed here.) */
@@ -90,6 +91,9 @@ export const PORTFOLIO_HELP = {
 export const RESPONSES_HELP = {
   identity: 'Their identity is revealed to you because you posted the requirement. Tap Connect to share contact details with both of you.',
 } as const;
+
+// CE-47 hub cut r2: the one connects line for a room not yet open (b140_v2 1.8). True and plain; one home.
+const COMING_CONNECTS = 'Nothing connects here yet. It will when this room opens.';
 
 const entry = (what: string, extra: Partial<PageHelp> = {}): PageHelp =>
   ({ what, can: HELD, connects: '', ...extra });
@@ -260,6 +264,18 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
              ['read', 'To see it as people will: the post at the top is shown the way people see it.'],
              ['edit', 'To stop an ad: tap the ad under Your ads, then Pause this ad or End it now.']),
     connects: ADS_HELP.leads }),
+  // CE-47 · THE HUB CUT (INS): the nine Coming rooms' cards. `what` is the row's ruled line (one home); the one step says
+  // what the screen draws. Each seat writes its room's own card when its room lands, in the same edit as its page.
+  // r2 (b140_v2 1.8, the product's own rule: every surface says what it connects to): one true line for all nine, one home.
+  [REBOOKING_HREF]: entry(ROW_DESC.rebooking, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [QUOTES_HREF]: entry(ROW_DESC.quotes, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [PAYMENT_LINKS_HREF]: entry(ROW_DESC.payment_links, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [SHOP_HREF]: entry(ROW_DESC.shop, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [BRANDS_HREF]: entry(ROW_DESC.brands, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [SUPPLIES_HREF]: entry(ROW_DESC.supplies, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [TRENDS_HREF]: entry(ROW_DESC.trends, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [PAPERS_HREF]: entry(ROW_DESC.papers, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [INSURANCE_HREF]: entry(ROW_DESC.insurance, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
   [DATES_HREF]: entry(ROW_DESC.dates, {
     can: how(['calendar', 'How often each date was checked is in Storefront: tap the first row.'],
              ['read', 'Offer your open dates and Suggested rates read Coming soon until they open.']),

@@ -1,0 +1,33 @@
+# scripts/floor-manifest-ce47-ins-hub-cut-pwa.txt
+# CE-47 · INS · the hub cut r3 (nine Coming rows, Run the business) · base 0bebae2fd327 · rung b222 · b122_v2, b42_v2, b40_v2 amended by label · F-19.16: a dirty path outside this list stops the floor.
+# No server change. No file deleted. New directories: the nine room folders under v2/app/vendor/(shell) and app/v2/vendor/(shell); each file is listed (A-45.3).
+app/v2/vendor/(shell)/brands/page.tsx
+app/v2/vendor/(shell)/insurance/page.tsx
+app/v2/vendor/(shell)/off-season-shop/page.tsx
+app/v2/vendor/(shell)/papers/page.tsx
+app/v2/vendor/(shell)/payment-links/page.tsx
+app/v2/vendor/(shell)/quotes/page.tsx
+app/v2/vendor/(shell)/rebooking/page.tsx
+app/v2/vendor/(shell)/supplies/page.tsx
+app/v2/vendor/(shell)/trends/page.tsx
+docs/handovers/TDW_CE47_INS_HUB_CUT_HANDOVER.md
+scripts/b122_ce45_home_shelves_bench_v2.js
+scripts/b126_igd1_meta_room_bench_v2.js
+scripts/b222_ce47_hub_cut_bench.js
+scripts/b40_worklist_shell_bench_v2.js
+scripts/b42_g11_wedding_pages_bench_v2.js
+scripts/floor-manifest-ce47-ins-hub-cut-pwa.txt
+v2/app/vendor/(shell)/brands/page.tsx
+v2/app/vendor/(shell)/insurance/page.tsx
+v2/app/vendor/(shell)/off-season-shop/page.tsx
+v2/app/vendor/(shell)/papers/page.tsx
+v2/app/vendor/(shell)/payment-links/page.tsx
+v2/app/vendor/(shell)/quotes/page.tsx
+v2/app/vendor/(shell)/rebooking/page.tsx
+v2/app/vendor/(shell)/supplies/page.tsx
+v2/app/vendor/(shell)/trends/page.tsx
+v2/components/solutions/ComingRoom.tsx
+v2/lib/solutions/copy.ts
+v2/lib/solutions/routes.ts
+v2/lib/worklist/icons.ts
+v2/lib/worklist/pageHelp.ts

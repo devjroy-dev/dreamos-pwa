@@ -236,8 +236,10 @@ sec('C3 \u00b7 the hub (R-40.23)');
   // this pair move in the SAME edit, to eleven, with the label in position —
   // NOT loosened to `>= 10`. That this cell fired at all is the guarantee
   // working: an eleventh row could not be added quietly, which is what it is for.
-  ok('eleven rows', labels.length === 11, String(labels.length));
-  ok('the eleven are R-40.1\'s, R-42.8\'s and R-42.16\'s, in order',
+  // AMENDED BY LABEL · CE-47 THE HUB CUT (INS, app train 2): nine rows ruled for OFF, PRO and INS join, each Coming until its
+  // room lands (the chair, 6 October 2026). The count is still the guarantee: twenty, exactly, never `>=`.
+  ok('twenty rows (eleven, then the hub cut\'s nine)', labels.length === 20, String(labels.length));
+  ok('the eleven are R-40.1\'s, R-42.8\'s and R-42.16\'s, in order, then the hub cut\'s nine (CE-47)',
     // AMENDED, LABELLED — R-40.26 (founder, 2026-09-05): R3 alone becomes
     // `Your website & SEO`; the other eight stand. Both homes move in one edit,
     // exactly as C2 does for the registry's three numbers — a list retyped here
@@ -247,7 +249,7 @@ sec('C3 \u00b7 the hub (R-40.23)');
     // `Hire, collab & barter` (the room takes requirement posts — hiring). The join
     // fired on the new byte, which is the pin working; the count stays eleven and
     // every other label and position is unchanged. R-41.121: amended, not loosened.
-    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Hire, collab & barter|Open dates & rates|WhatsApp and Instagram|Introductions", // AMENDED BY LABEL · CE-45 IGD-1 cut 1 · R-45.27: "Your own number" became "WhatsApp and Instagram"; count and order unchanged
+    labels.join('|') === "Wedding pages|Google reviews|Your website & SEO|Contracts & deposits|Payment reminders|Posts & ads|Referrals & partners|Hire, collab & barter|Open dates & rates|WhatsApp and Instagram|Introductions|Rebooking and follow-ups|Quotes|Payment links|Off-season shop|Brand collaborations|Supplies|Trend room|Business papers|Insurance", // AMENDED BY LABEL · CE-47 hub cut: the nine appended in ROOM_ROWS' order · CE-45 IGD-1 cut 1 · R-45.27: "Your own number" became "WhatsApp and Instagram"; count and order unchanged
     labels.join('|'));
   ok('ROWS is gone', !/export const ROWS\b/.test(copy));
   ok('ROW_EYEBROWS is gone', !/export const ROW_EYEBROWS\b/.test(copy));

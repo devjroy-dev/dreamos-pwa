@@ -160,6 +160,20 @@ export const ROOM_ROWS = [
   // writer 6 NAMED). Relaxing it to `>= 9` would have retired the
   // exhaustiveness permanently, for this row and every row after it.
   { key: 'introductions', label: 'Introductions' },
+  // ── CE-47 · THE HUB CUT (INS, app train 2): NINE ROWS RULED FOR FOUR SEATS, EACH "Coming" UNTIL ITS ROOM LANDS ──────────
+  // Labels as the chair relayed them (6 October 2026): OFF's three, PRO's four, INS's two. Each is in PREVIEW_KEYS
+  // (routes.ts) and opens its shell screen (v2/components/solutions/ComingRoom.tsx). A seat landing its room replaces that
+  // page at the same address and removes its own key from PREVIEW_KEYS in one edit. b42 C3, b69, b73 and b122 amended by
+  // label: twenty rows.
+  { key: 'rebooking',     label: 'Rebooking and follow-ups' },
+  { key: 'quotes',        label: 'Quotes' },
+  { key: 'payment_links', label: 'Payment links' },
+  { key: 'shop',          label: 'Off-season shop' },
+  { key: 'brands',        label: 'Brand collaborations' },
+  { key: 'supplies',      label: 'Supplies' },
+  { key: 'trends',        label: 'Trend room' },
+  { key: 'papers',        label: 'Business papers' },
+  { key: 'insurance',     label: 'Insurance' },
 ] as const;
 
 /**
@@ -174,12 +188,14 @@ export const ROOM_ROWS = [
 // 2026: "work together should be at the top. then get fonud get booked etc." Work together now leads;
 // names and member rows are unchanged. b122 1.3 pins this order.
 export const HUB_GROUPS: readonly { name: string; keys: readonly RoomKey[] }[] = [
-  { name: 'Work together', keys: ['collabs'] },
+  { name: 'Work together', keys: ['collabs', 'brands'] },   // CE-47 hub cut: Brand collaborations after Collab Hub (PRO)
   { name: 'Get found',     keys: ['website', 'wedding_pages', 'google', 'posts'] },
   // CE-45 IGD-1 cut 1b · R-45.28 (the founder, after cut 1's walk, 25 Sept 2026): "whatsapp and instagram should be the First one
   // in GET BOOKED-above open dates and rates". A2's "last" amended by his word; ROOM_ROWS' own order is untouched.
-  { name: 'Get booked',    keys: ['number', 'dates', 'introductions', 'referrals'] },
-  { name: 'Get paid',      keys: ['contracts', 'reminders'] },
+  { name: 'Get booked',    keys: ['number', 'dates', 'introductions', 'referrals', 'rebooking', 'quotes'] },   // CE-47 hub cut: OFF's two
+  { name: 'Get paid',      keys: ['contracts', 'reminders', 'payment_links', 'shop'] },                      // CE-47 hub cut: INS, OFF
+  // CE-47 hub cut: the ONE new group the chair allowed (6 October), PRO's three in its order, then INS's Insurance.
+  { name: 'Run the business', keys: ['supplies', 'trends', 'papers', 'insurance'] },
 ] as const;
 
 /**
@@ -202,6 +218,16 @@ export const ROW_DESC: Readonly<Record<RoomKey, string>> = {
   contracts:     'Agreements signed on WhatsApp; the date held on deposit',
   reminders:     'Payment reminders sent on invoices',
   collabs:       'Crew, models and partners to hire or trade with',
+  // CE-47 hub cut: the nine lines as ruled (OFF and PRO through the chair; INS's two accepted 6 October). R-45.20, no "your".
+  rebooking:     'Cancelled dates offered to earlier enquiries, and follow-up messages',
+  quotes:        'Quote links sent to enquiries, and when each was opened',
+  payment_links: 'Payment links on invoices, marked paid when the money arrives',
+  shop:          'Gift vouchers, workshops, classes and other bookings, sold from the website',
+  brands:        'Media kit, pitches to brands, and their replies',
+  supplies:      'Where to buy at professional prices, bills with GST, and gear',
+  trends:        'A weekly brief on what clients ask for and what is new in the trade',
+  papers:        'Certificate, ID, business statement and a pack for the CA',
+  insurance:     'Kinds of cover, quotes from insurers, and saved policies',   // r3, ruled (the chair, 6 October): fits 360 (b177) and obeys R-45.20
 };
 
 // ── ROW_EYEBROWS · RETIRED WITH ITS READERS (R-40.23) ──────────────────────
