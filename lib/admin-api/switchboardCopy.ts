@@ -130,14 +130,14 @@ export const GATE_COPY: Readonly<Record<string, GateCopy>> = Object.freeze({
   'perm.ads_read':                         { name: "Read a vendor's ad results", spec: 'Meta app TDW ADS · in review' },
   'perm.business_management':              { name: "Manage a vendor's ads account", spec: 'Meta app TDW ADS · in review' },
   // CE-47 ADS-2 cut 2 (the chair's ruling, 1 Oct 2026): the ads gates 0177 and 0192 added, named.
-  'flag.ads':                               { name: 'Let vendors run their own Meta ads', spec: 'Meta app TDW ADS · needs all seven ads permissions below' },
+  'flag.ads':                               { name: 'Let vendors run their own Meta ads', spec: 'Meta app TDW ADS · needs all six ads permissions below' },
   'perm.ads_management':                   { name: "Create and run a vendor's ads", spec: 'Meta app TDW ADS · in review' },
   'perm.pages_read_engagement':            { name: "Read a vendor's Facebook Page posts", spec: 'Meta app TDW ADS · in review' },
   'perm.pages_show_list':                  { name: "List a vendor's Facebook Pages", spec: 'Meta app TDW ADS · in review' },
   'perm.pages_manage_ads':                 { name: "Run ads from a vendor's Facebook Page", spec: 'Meta app TDW ADS · in review' },
   'perm.instagram_basic':                  { name: "Read a vendor's Instagram for ads", spec: 'Meta app TDW ADS · in review' },
   'perm.instagram_manage_insights':        { name: "Read a vendor's Instagram post results", spec: 'Meta app TDW ADS · in review' },
-  'flag.ig_photo_import':                   { name: "Import a vendor's Instagram photos", spec: 'Meta app App-LIVE · needs Instagram basic and messages' },
+  'flag.ig_photo_import':                   { name: "Import a vendor's Instagram photos", spec: 'Meta app App-LIVE · needs Instagram basic' },
 
   // ── Google access (scope.*) ───────────────────────────────────────────────
   'scope.google.siteverification':         { name: "Verify a vendor's website", spec: 'house grant · every vendor\'s website · granted' },

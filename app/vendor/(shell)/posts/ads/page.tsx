@@ -13,6 +13,7 @@
 //   · the confirm sheet echoes every setting; /run is sent the settings /prepare returned and the echo, nothing rebuilt.
 //   · Your ads: every ad, its state in a sentence, and its sheet (pause, start again, amount, end date, end now, run
 //     again as new, results by day), each change confirmed in words before it goes to Meta.
+import { FeatureSwitch } from '@/components/solutions/FeatureSwitch';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { WorklistShell } from '@/components/worklist/WorklistShell';
@@ -79,6 +80,7 @@ function AdsScreen() {
         <button type="button" className="ads-back" onClick={() => router.push(POSTS_HREF)}>
           <span aria-hidden="true">‹</span> {ROOM_TITLE}
         </button>
+        <FeatureSwitch only="flag.ads" />
         {body}
       </div>
       <style>{ADS_CSS}</style>
@@ -662,6 +664,7 @@ const ADS_CSS = `
 .ads-prevfoot{border-top:0;border-radius:0 0 3px 3px;color:var(--atelier-accent-text)}
 .ads-row,.ads-srow,.ads-adrow,.ads-opt{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:40px;padding:8px 0;background:transparent;border:0;border-top:.5px solid var(--atelier-card-border);font:var(--wl-t5);color:var(--atelier-ink);text-align:left;cursor:pointer}
 .ads-srow,.ads-opt{font:var(--wl-t4);min-height:48px}
+.ads-opt[aria-disabled="true"]{opacity:.55}
 .ads-adrow{flex-direction:column;align-items:flex-start;gap:3px}
 .ads-rowk{color:var(--atelier-ink-soft);white-space:nowrap}
 .ads-rowv{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}

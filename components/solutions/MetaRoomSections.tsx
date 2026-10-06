@@ -14,6 +14,8 @@
 //   quiet time                 four buttons, one pressed (CE-46 G6-4, the shell's own style, no browser <select>):
 //                              a tap on an unpressed length -> POST quiet {minutes}; the pressed one is inert
 // No text node is typed here: every word is read from lib/worklist/metaRoom.ts. No persona name. No brand mark.
+import { FEATURE_WORDS } from '@/lib/worklist/features';
+import { FeatureSwitch } from '@/components/solutions/FeatureSwitch';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getJson, postJson } from '@/lib/vendor/api/_base';
 import { API } from '@/lib/solutions/routes';
@@ -150,6 +152,7 @@ const QT_CSS = `
 export function MetaRoomSections() {
   return (
     <>
+      <section data-meta-features><h2 className="sol-heading">{FEATURE_WORDS.heading}</h2><FeatureSwitch /></section>
       <IgMessagesSection />
       <QuietTimeRow />
     </>

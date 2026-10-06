@@ -1,0 +1,18 @@
+# scripts/floor-manifest-ce47-ads2-switches.txt
+# CE-47 · ADS-2 · A VENDOR'S META FEATURE SWITCHES (app half of "every Meta feature per-vendor, live by itself on approval").
+# BASE: f4f227a (the server half landed in dream-os a29a45b). No new folder; seven added files.
+# The words (On / Off / the waiting line / Live / "Meta features"); FeatureSwitch; the list in the WhatsApp and Instagram
+# room; the ads switch in the ads room; the switchboard words (six; Instagram basic); the locked chooser row dimmed.
+# Rung b256. F-19.16: a dirty path outside this list is a STOP.
+lib/worklist/features.ts
+v2/lib/worklist/features.ts
+components/solutions/FeatureSwitch.tsx
+v2/components/solutions/FeatureSwitch.tsx
+components/solutions/MetaRoomSections.tsx
+v2/components/solutions/MetaRoomSections.tsx
+app/vendor/(shell)/posts/ads/page.tsx
+v2/app/vendor/(shell)/posts/ads/page.tsx
+lib/admin-api/switchboardCopy.ts
+scripts/b256_ce47_feature_switches_bench.js
+docs/handovers/TDW_CE47_ADS2_SWITCHES_HANDOVER.md
+scripts/floor-manifest-ce47-ads2-switches.txt
