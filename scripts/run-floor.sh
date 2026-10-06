@@ -73,6 +73,7 @@ cd "$(dirname "$0")/.." || exit 1
 CHECK=""
 MANIFEST=""
 RESUME=""
+AFFECTED=""   # CE-47 ADS-2: --affected <manifest> [<manifest> ...], the affected-only check
 while [ $# -gt 0 ]; do
   case "$1" in
     --check)    CHECK="yes"; shift ;;
@@ -86,6 +87,8 @@ while [ $# -gt 0 ]; do
     # so a seat whose turn cannot hold a whole floor runs it in gated slices and the runner,
     # not a hand, decides what a slice owes. A slice on a tree that moved is refused (below).
     --resume)   RESUME="${2:-}"; shift 2 || { echo "STOP — --resume needs a floor log directory."; exit 1; } ;;
+    --affected) shift; while [ $# -gt 0 ] && [ "${1#--}" = "$1" ]; do AFFECTED="${AFFECTED} $1"; shift; done
+                [ -n "$AFFECTED" ] || { echo "STOP — --affected needs one or more delivery manifests."; exit 1; } ;;
     *)          echo "STOP — unknown argument: $1"; exit 1 ;;
   esac
 done
@@ -121,6 +124,15 @@ dirt_paths() {
   done | sed 's/^"//; s/"$//' | sort -u
 }
 
+# THE AFFECTED-ONLY CHECK (CE-47, the chair's ruling of 3 Oct 2026): the union of a train's manifests becomes the one
+# delivery manifest, so the dirt, F-19.16 and slice rules below hold unchanged for one package or a train of them.
+if [ -n "$AFFECTED" ]; then
+  [ -z "$MANIFEST" ] || { echo "STOP — use --affected <manifests> or --delivery <manifest>, not both."; exit 1; }
+  for m in $AFFECTED; do [ -f "$m" ] || { echo "STOP — manifest not found: ${m}. Nothing was run."; exit 1; }; done
+  mkdir -p "${TMPDIR:-/tmp}"; MANIFEST="${TMPDIR:-/tmp}/tdw-affected-union.txt"
+  cat $AFFECTED | sed 's/#.*//' | sed 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' | sort -u > "$MANIFEST"
+  echo "AFFECTED: $(echo $AFFECTED | wc -w) manifest(s), $(grep -c . "$MANIFEST") delivered path(s) in the union" >&2
+fi
 DIRT=$(dirt_paths)
 
 if [ -n "$MANIFEST" ]; then
@@ -359,10 +371,23 @@ else
   printf '%s\n%s\n' "$FLOOR_ID" "$FLOOR_TREE" > "$LOG_DIR/floor.id"
 fi
 echo "FLOOR LOGS: ${LOG_DIR}  (floor ${FLOOR_ID}; one log per member; the tail of every red is printed after the set)"
+: > "$LOG_DIR/ran.txt.new"; [ -f "$LOG_DIR/ran.txt" ] && [ -n "$RESUME" ] && cat "$LOG_DIR/ran.txt" > "$LOG_DIR/ran.txt.new"; mv "$LOG_DIR/ran.txt.new" "$LOG_DIR/ran.txt"
+if [ -n "$AFFECTED" ]; then
+  if [ ! -f "$LOG_DIR/next-build.ok" ]; then
+    echo "AFFECTED: next build --webpack (as Vercel runs it) ..."
+    if npx next build --webpack > "$LOG_DIR/next-build.log" 2>&1; then touch "$LOG_DIR/next-build.ok"; tail -n 3 "$LOG_DIR/next-build.log" | sed 's/^/  /'
+    else echo "STOP — next build failed; its last lines (full log ${LOG_DIR}/next-build.log):"; tail -n 20 "$LOG_DIR/next-build.log" | sed 's/^/  /'; exit 1; fi
+  fi
+  node scripts/lib/floor_affected.mjs $AFFECTED > "$LOG_DIR/affected.txt" || { echo "STOP — the selector failed. Nothing was run."; exit 1; }
+  echo "AFFECTED: $(grep -c '^RUN' "$LOG_DIR/affected.txt") member(s) run, $(grep -c '^SKIP' "$LOG_DIR/affected.txt") skipped. Each, and why:"
+  sed 's/^/  /' "$LOG_DIR/affected.txt"
+fi
 SKIPPED=0
 for b in $NEEDS_CLEAN $REST $WRAPPERS; do
   [ -f "$b" ] || continue
   n=$(basename "$b" | sed 's/\.proof\.mjs$//; s/\.mjs$//; s/\.js$//; s/\.sh$//')
+  if [ -n "$AFFECTED" ] && ! grep -qF "RUN  ${b} " "$LOG_DIR/affected.txt"; then continue; fi   # outside the radius: not run, no ledger line
+  grep -qxF "$n" "$LOG_DIR/ran.txt" || echo "$n" >> "$LOG_DIR/ran.txt"
   LOG="$LOG_DIR/$n.log"
   # A kept GREEN for THIS floor stands; anything else runs again (A-46.2).
   if [ -n "$RESUME" ] && [ -f "$LOG" ] && [ "$(tail -n 1 "$LOG")" = "KEPT GREEN floor=${FLOOR_ID}" ]; then
@@ -702,6 +727,11 @@ if [ "$CHECK" = "yes" ]; then
   # mock's room strings, as b42). NAMED DEBTS, owner Claude Code: b123_ce45_fe2_type_bench_v2 (F-44.263, never reconciled
   # with DESIGN-1; retires after L2) and b82_lc2_p3_booking_bench_v2 (F-44.264, 12.3 undiagnosed). Nothing else moves.
   printf 'RED: b05_f0589_pwa_name_wire_bench\nRED: b40_worklist_shell_bench\nRED: b42_g11_wedding_pages_bench\nRED: b61_f2_model_routes_panel\nRED: ce41_e2ivb_switchboard_shape\nRED: f04_96_three_rail_session\nRED: run-assign-words-proof\nRED: run-mode-bridge-proof\nRED: tdw07_p1_discover\nRED: tdw07_p2_profile\nRED: tdw07_p3_portfolio\nRED: tdw07_p4b_body\nRED: tdw08_p3_landing\nRED: tdw08_p5_prospects_console\nRED: tdw09_hotfix\nRED: tdw09_landing\nRED: tdw09_p1_canon\nRED: tdw09_p2_doors\nRED: tdw09_p2c\nRED: tdw09_palette\nRED: tdw09_roles\nRED: tdw09_surface\nRED: tdw09_theme_retire\nRED: tdw09_type\nRED: tdw10_billing_tab\nRED: tdw10_p1_shell\nRED: tdw10_p2_bridge\nRED: tdw10_p3_deck\nRED: tdw10_tier\nRED: tdw13_d4_extraction\nRED: tdw37_leadgate_b_slot\nRED: tdw41_c3_switchboard_copy\nRED: tdw_auth_crossover\nRED: tdw_f0770_authority\nRED: tdw_f0774_readers\nRED: tdw_f0774_stripper\nRED: tdw_f3942_census_guard\nRED: tdw_m_bridename_gate\nRED: waDial\nRED: b40_worklist_shell_bench_v2\nRED: b42_g11_wedding_pages_bench_v2\nRED: b123_ce45_fe2_type_bench_v2\nRED: b82_lc2_p3_booking_bench_v2\n' | sort > /tmp/base.txt
+  if [ -n "$AFFECTED" ]; then   # the named base CUT to the members that ran: a skipped base red is neither red nor cured
+    awk 'NR==FNR { ran[$0]=1; next } { m=$0; sub(/^[A-Z]+: /, "", m); if (m in ran) print }' "$LOG_DIR/ran.txt" /tmp/base.txt > /tmp/base_cut.txt
+    echo "AFFECTED: the named base cut to the members that ran: $(grep -c . /tmp/base_cut.txt) of $(grep -c . /tmp/base.txt) base red(s) apply"
+    mv /tmp/base_cut.txt /tmp/base.txt
+  fi
   grep -v '^REFUSED: ' /tmp/floor.txt > /tmp/floor_fail.txt
   if grep -q '^REFUSED: ' /tmp/base.txt; then
     echo "STOP — the named base carries a REFUSED line. Bases hold failures only (c-39.57)."

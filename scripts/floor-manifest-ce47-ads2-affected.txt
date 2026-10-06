@@ -1,0 +1,13 @@
+# scripts/floor-manifest-ce47-ads2-affected.txt
+# CE-47 · ADS-2 · THE AFFECTED-ONLY CHECK (dreamos-pwa scripts only, no app code). BASE: 0bebae2 (app train 1).271, ADM-1 K3b).
+# run-floor.sh --affected <manifest> [<manifest> ...] (next build --webpack; no-browser, walking (e-269) and wrapper
+# members always; a browser member when it names a delivered path, its route, or a one-level importer; the named base
+# cut to the members that ran); scripts/lib/floor_affected.mjs (the selector); scripts/train.sh (the train: apply, one
+# check, one commit per package, one push); rung b206. No new folder.
+# F-19.16: a dirty path outside this list is a STOP.
+scripts/run-floor.sh
+scripts/lib/floor_affected.mjs
+scripts/b206_ce47_floor_affected_bench.mjs
+scripts/train.sh
+docs/handovers/TDW_CE47_ADS2_AFFECTED_HANDOVER.md
+scripts/floor-manifest-ce47-ads2-affected.txt
