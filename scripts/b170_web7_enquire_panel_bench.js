@@ -88,7 +88,7 @@ function host(card) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>host</title><style>:root{--bg:#fbf8f3;--ink:#1a1714;--mute:#5d5750;--line:#ddd5c8;--soft:#efe9df;--serif:Georgia,serif;--sans:system-ui,sans-serif;--pad:20px;--br:0px}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px var(--sans)}.cover{height:100vh;background:url("data:image/svg+xml,${encodeURIComponent(cover)}") center/cover}</style></head>
-<body><header><button data-enquire id="enq">Enquire</button></header><div class="cover"><img src="/cover.png" alt="" width="10" height="10"></div><p>Studio Ivara</p>
+<body><header><button data-enquire id="enq">Enquire</button><a class="v ask-q" id="quote" href="https://wa.me/917982159047?text=x" data-enquire data-package="Bridal makeup and hair">Ask for a quote</a></header><div class="cover"><img src="/cover.png" alt="" width="10" height="10"></div><p>Studio Ivara</p>
 <script type="application/json" id="tdw-site-card">${JSON.stringify(card).replace(/</g, '\\u003c')}</script>
 <script>${bootString()}</script></body></html>`;
 }
@@ -150,8 +150,8 @@ async function kindWordsHtml() {
     return pg;
   };
   const texts = (pg) => pg.evaluate(() => [...document.querySelectorAll('#w7M .w7s')].map((e) => e.textContent));
-  const walkTo = async (pg, until) => {
-    await pg.click('#enq'); await pg.waitForFunction(() => document.querySelectorAll('#w7M .w7chip').length > 0, { timeout: 8000, polling: 50 });
+  const walkTo = async (pg, until, from) => {
+    await pg.click(from || '#enq'); await pg.waitForFunction(() => document.querySelectorAll('#w7M .w7chip').length > 0, { timeout: 8000, polling: 50 });
     await pg.evaluate(() => [...document.querySelectorAll('#w7M .w7chip')].find((x) => x.textContent === 'Wedding').click());
     if (until === 'occasion') return;
     await pg.waitForFunction(() => !!document.querySelector('#w7M input[type=date]') || !!document.querySelector('#w7M .w7f'), { timeout: 8000, polling: 50 });
@@ -241,6 +241,20 @@ async function kindWordsHtml() {
       const o = await pg.evaluate(() => { const a = document.querySelector('#w7M a.w7btn'); const e = document.querySelector('#w7M .w7err'); return { href: a ? a.href : '', label: a ? a.textContent : '', err: e ? e.textContent : '', text: document.querySelector('#w7M').innerText, foot: document.querySelector('#w7Foot').hidden }; });
       STATE.doorOff = false;
       cell('2.5b the doors OFF (404 on send): no error line; "Continue on WhatsApp" on her enquire_link; no chat box', o.href.startsWith('https://wa.me/917982159047?') && o.label === 'Continue on WhatsApp' && o.err === '' && !/could not be sent/.test(o.text) && /Please continue on WhatsApp to reach Studio Ivara\./.test(o.text) && o.foot === true ? null : JSON.stringify(o).slice(0, 400));
+      await pg.close();
+    }
+    // 2.5c WEB-8 C2 (CE-47): a pricing row's "Ask for a quote" opens the panel with the package; doors ON the door hears it,
+    // doors OFF the WhatsApp hand-off names it
+    for (const off of [false, true]) {
+      STATE.doorOff = off; const n0 = STATE.enquiry.length; const pg = await open(); await walkTo(pg, 'form', '#quote');
+      const said = await texts(pg);
+      await pg.evaluate(() => { const f = document.querySelector('#w7M .w7f'); const [a, p] = f.querySelectorAll('input'); a.value = 'Ira'; p.value = '9625759924'; p.dispatchEvent(new Event('input')); f.requestSubmit(); });
+      await new Promise((r) => setTimeout(r, 1500));
+      const o = await pg.evaluate(() => { const a = document.querySelector('#w7M a.w7btn'); return { href: a ? a.href : '', err: (document.querySelector('#w7M .w7err') || {}).textContent || '' }; });
+      const sent = STATE.enquiry[STATE.enquiry.length - 1] || {}; STATE.doorOff = false; void n0;
+      const wa = o.href ? new URL(o.href).searchParams.get('text') || '' : '';
+      cell(`2.5c the quote control, doors ${off ? 'OFF' : 'ON'}: the panel says the package; the door's page is "Pricing: <package>"${off ? '; WhatsApp names the quote' : ''}`,
+        said.includes('You are asking about Bridal makeup and hair.') && sent.page && sent.page.title === 'Pricing: Bridal makeup and hair' && o.err === '' && (!off || /a quote for Bridal makeup and hair/.test(wa)) ? null : JSON.stringify({ said: said.slice(0, 3), page: sent.page, wa, err: o.err }).slice(0, 400));
       await pg.close();
     }
     // 2.6 the client's page

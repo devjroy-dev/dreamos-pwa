@@ -1,7 +1,7 @@
 // lib/site/styles/riviera.ts · WEB-5 · Riviera on the server: the approved rendition's markup
 // (tools/site_port/riviera.html, body :91-113, STYLE.render :118-131), filled from the card.
 import { html, raw, href, esc, type Raw } from '../html';
-import { pic, lq, heartBtn, quotes, rs, lines, PLAY_SVG, HEART_SVG } from '../parts';
+import { pic, lq, heartBtn, quotes, rs, lines, PLAY_SVG, HEART_SVG, quoteLink } from '../parts';
 import type { SiteCard, Section, Photo } from '../card';
 import type { StyleCtx } from './index';
 
@@ -40,9 +40,10 @@ function reviews(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   const q = quotes(c.testimonials || []); if (!q.s) return raw(''); const n = (c.testimonials || []).filter((t) => t.words && t.words.trim()).length;
   return html`<section id="reviews"><div class="sh rv"><span class="caps">${sec.eyebrow || 'Client reviews'}</span></div><div class="note-card rv"><div id="qwrap">${q}</div>${n > 1 ? html`<div class="qnav"><button id="qPrev">Previous</button><button id="qNext">Next</button><span id="qCt" style="opacity:.6">1 / ${n}</span></div>` : ''}</div></section>`;
 }
+// WEB-8 C2 (MERGED): "Ask for a quote" is a real control (parts.ts quoteLink): her WhatsApp with the package named, opened in the enquiry panel when it runs.
 function pricing(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   const P = (c.packages || []).filter((p) => p.name); if (!P.length) return raw(''); const note = s(c.site.copy?.pricing_note);
-  return html`<section id="pricing"><div class="sh rv"><span class="caps">${sec.eyebrow || 'Rates'}</span><h2>${sec.heading || 'Starting from'}</h2></div><div class="rates" id="price">${raw(P.map((p, i) => `<div class="row rv" style="--d:${(i * 0.08).toFixed(2)}s"><span class="n">${esc(p.name)}</span><span class="v">${typeof p.total === 'number' ? 'From ' + rs(p.total) : 'Ask for a quote'}</span></div>`).join(''))}${note ? html`<p class="note rv">${note}</p>` : ''}</div></section>`;
+  return html`<section id="pricing"><div class="sh rv"><span class="caps">${sec.eyebrow || 'Rates'}</span><h2>${sec.heading || 'Starting from'}</h2></div><div class="rates" id="price">${raw(P.map((p, i) => `<div class="row rv" style="--d:${(i * 0.08).toFixed(2)}s"><span class="n">${esc(p.name)}</span>${typeof p.total === 'number' ? `<span class="v">${'From ' + rs(p.total)}</span>` : quoteLink(c, p.name, 'Ask for a quote')}</div>`).join(''))}${note ? html`<p class="note rv">${note}</p>` : ''}</div></section>`;
 }
 function studio(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   const copy = c.site.copy || {}; const p = (copy.studio_photo || null) as Photo | null; const lead = s(copy.studio_heading), body = s(copy.studio_body); if (!lead && !body) return raw('');

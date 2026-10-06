@@ -46,7 +46,7 @@ function frame(card: SiteCard, o: DocOpts, x: StyleCtx, pg: Page): string {
   if (cls) attrs.class = cls;
   attrs.style = Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(';');
   const ground = card.site.palette?.roles?.ground || '';
-  const css = (entry.ownBase ? '' : ENGINE + '\n') + entry.css + '\n' + entry.firstScreen + '\n' + LINK_AS_BUTTON;
+  const css = (entry.ownBase ? '' : ENGINE + '\n') + entry.css + '\n' + entry.firstScreen + '\n' + LINK_AS_BUTTON + DISPLAY_TEXT;
   const head: Raw = html`<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${pg.title}</title>${pg.desc ? html`<meta name="description" content="${pg.desc}">` : ''}<link rel="canonical" href="${href(pg.canonical)}">
 ${o.preview ? raw('<meta name="robots" content="noindex">') : ''}<meta property="og:type" content="website"><meta property="og:title" content="${pg.title}">${pg.desc ? html`<meta property="og:description" content="${pg.desc}">` : ''}<meta property="og:url" content="${href(pg.canonical)}">${pg.image ? html`<meta property="og:image" content="${pg.image}">` : ''}
@@ -66,6 +66,11 @@ ${pg.hero && at(pg.hero.url, 480) ? html`<link rel="preload" as="image" href="${
 // The prototypes' Enquire and "Ask" controls are <button>s that opened Eliza's panel in-page; on the live site they are
 // links to her date page (Eliza's panel is WEB-7's), so they keep a button's centring (a <button> centres its content).
 const LINK_AS_BUTTON = `a.enq{display:inline-flex;align-items:center;justify-content:center}a.pill[data-eliza]{display:inline-flex;align-items:center}:where(a[data-eliza]){text-align:center}`;   // WEB-8 (MERGED): a button centres its words only by default; :where keeps that default from beating a style's own alignment (Gallery's closing line is left-aligned)
+
+// WEB-8 C2 (CE-47, the founder's walk): display text (her name, titles, eyebrows, menus, controls, prices) cannot be selected,
+// so a tap on it does not raise the phone's search sheet; body copy (her about, look and review words, answers) stays
+// selectable. A pricing row's quote link keeps its row's look. Nothing here moves a pixel.
+const DISPLAY_TEXT = `h1,h2,h3,header,nav,.drawer,.caps,.lbl,.pill,.kick,.wm,.wmt,.ttl,.mono,.btn,.cats,.price .row,.cat .row,.rates .row,#price .row,.stampc,.pm,.ticker,a,button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}:where(a.ask-q,a.ticker){color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}`;   // :where adds no weight, so each style's own colour and layout for these keep winning
 
 function ctx(card: SiteCard, o: DocOpts, coverLq: string): StyleCtx {
   return { name: card.site.site_name || card.business_name || '', mono: card.site.monogram || '', trade: tradeKey(card), instagram: igUrl(card.instagram_handle), coverLq,

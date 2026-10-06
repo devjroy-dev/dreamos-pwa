@@ -38,6 +38,9 @@ export default function WebsiteRoom({ vendorId, Today, addInline }: { vendorId: 
   const [lookId, setLookId] = useState<string | null>(null);
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [justPublished, setJustPublished] = useState<string | null>(null);
+  // WEB-8 C2 (MERGED, CE-47): for ten minutes after a Publish the line says visitors will see it within about 10 minutes
+  const [fresh, setFresh] = useState(false);
+  useEffect(() => { if (!justPublished) { setFresh(false); return; } setFresh(true); const t = setTimeout(() => setFresh(false), 10 * 60 * 1000); return () => clearTimeout(t); }, [justPublished]);
   const [showPrices, setShowPrices] = useState<boolean | null>(null);
 
   const load = useCallback(async () => {
@@ -102,7 +105,7 @@ export default function WebsiteRoom({ vendorId, Today, addInline }: { vendorId: 
       case 'visitors': return <VisitorsPage {...ctx} />;
       case 'prices': return <PricesPage {...ctx} />;
       case 'fix': return <FixPage {...ctx} />;
-      default: return <RoomPage {...ctx} justPublished={justPublished} />;
+      default: return <RoomPage {...ctx} justPublished={justPublished} fresh={fresh} />;
     }
   })();
   const c = room.changes?.count || 0; const live = room.is_live !== false;
@@ -166,14 +169,17 @@ function Seg({ value, options, onChange, wide }: { value: string; options: Array
 function Preview({ url, mode, height }: { url: string; mode: 'phone' | 'desktop'; height: number }) {
   const box = useRef<HTMLDivElement>(null); const [w, setW] = useState(334);
   useEffect(() => { const el = box.current; if (!el) return; const ro = new ResizeObserver(() => setW(el.clientWidth)); ro.observe(el); return () => ro.disconnect(); }, []);
-  const iw = mode === 'phone' ? 374 : 1280; const k = w / iw;
-  return <div ref={box} className="wb-win" style={{ height }} data-preview={mode}>{url && <iframe src={url} title={WEB.back} tabIndex={-1} style={{ width: iw, height: height / k, transform: `scale(${k})` }} />}</div>;
+  // WEB-8 C2 (MERGED, CE-47 cure A): the phone preview draws a whole phone screen (374 x 760) shrunk to the window's height
+  // and centred, so the window shows the first screen as a visitor sees it, her name included, photographs or not.
+  const iw = mode === 'phone' ? 374 : 1280; const ih = mode === 'phone' ? 760 : 0;
+  const k = ih ? Math.min(height / ih, w / iw) : w / iw; const left = ih ? Math.max(0, (w - iw * k) / 2) : 0;
+  return <div ref={box} className="wb-win" style={{ height }} data-preview={mode}>{url && <iframe src={url} title={WEB.back} tabIndex={-1} style={{ width: iw, height: ih || height / k, left, transform: `scale(${k})` }} />}</div>;
 }
 const withParam = (u: string, k: string, v: string) => `${u}${u.includes('?') ? '&' : '?'}${k}=${encodeURIComponent(v)}`;
 const styleName = (room: Room, id?: string) => room.styles.find((s) => s.id === id)?.label || '';
 
 // ── the room ─────────────────────────────────────────────────────────────────────────────────────
-function RoomPage({ room, res, looks, words, visits, address, preview, go, setSheet, showPrices, justPublished }: Ctx & { justPublished: string | null }) {
+function RoomPage({ room, res, looks, words, visits, address, preview, go, setSheet, showPrices, justPublished, fresh }: Ctx & { justPublished: string | null; fresh?: boolean }) {
   const [mode, setMode] = useState<'phone' | 'desktop'>('phone');
   const c = room.changes?.count || 0; const live = room.is_live !== false;
   const secs = (res.sections || []).filter((x) => x.allowed);
@@ -194,7 +200,7 @@ function RoomPage({ room, res, looks, words, visits, address, preview, go, setSh
       ) : c > 0 ? (
         <div className="wb-pend"><button type="button" className="wb-pendline" onClick={() => setSheet('changes')}>{WEB.pending(c)} ›</button><button className="wl-btn pri wb-plain" onClick={() => setSheet('publish')}>{WEB.publish}</button></div>
       ) : justPublished ? (
-        <div className="wb-done" role="status"><i />{WEB.publishedAt(justPublished)}</div>
+        <div className="wb-done" role="status"><i />{fresh ? WEB.publishedFresh : WEB.publishedAt(justPublished)}</div>
       ) : null)}
       <div className="wb-sect">{WEB.gDesign}</div>
       <Row l={WEB.style} d={WEB.styleD(styleName(room, res.style), (res.styles_open || []).length, res.can.styles)} onClick={() => go('style')} />
@@ -576,6 +582,8 @@ const CSS = `
 .wb-seg.wide{display:flex;width:100%}.wb-seg.wide button{flex:1}
 .wb-pend{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:12px 14px;border:.5px solid var(--atelier-card-border);border-radius:3px;background:var(--atelier-card-bg)}
 .wb-pend>span,.wb-pendline{font:var(--wl-t4);color:var(--atelier-ink-soft);background:none;border:0;text-align:left;padding:0;min-height:40px}
+.wb-pend>span,.wb-pendline{flex:1 1 auto;min-width:0}.wb-pend>.wl-btn{flex:none;white-space:nowrap}
+.wb button,.wb-sheet button{flex-shrink:0}.wb-two>button,.wb-pend>.wb-pendline{flex-shrink:1;min-width:0}
 .wb-plain{text-transform:none!important;letter-spacing:0!important;padding:10px 20px;min-width:100px}
 .wb-done{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border:.5px solid var(--atelier-card-border);border-radius:3px;font:var(--wl-t4);color:var(--atelier-ink-soft)}
 .wb-done i{width:8px;height:8px;border-radius:50%;background:var(--role-positive,#6FC98C);flex:none}

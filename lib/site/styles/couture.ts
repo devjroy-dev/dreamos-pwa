@@ -3,7 +3,7 @@
 // Couture carries its own base (it is not on engine.css); its drawer, heart count and wordmark are its own markup.
 // The style's own words (default titles per trade, "Scroll", "Client reviews") are WEB-3's, cited; her words are the card's.
 import { html, raw, href, esc, type Raw } from '../html';
-import { heartBtn, quotes, rs, HEART_SVG, PLAY_SVG, lq } from '../parts';
+import { heartBtn, quotes, rs, HEART_SVG, PLAY_SVG, lq, quoteLink } from '../parts';
 import { at, srcset, pos } from '../img';
 import type { SiteCard, Section, Photo } from '../card';
 import type { StyleCtx } from './index';
@@ -17,6 +17,9 @@ const arr = (x: unknown): string[] => (Array.isArray(x) ? x.filter((v) => typeof
 const lines = (t: string): Raw => { const w = t.split(' '); const h = Math.ceil(w.length / 2); const L = w.length > 3 ? [w.slice(0, h).join(' '), w.slice(h).join(' ')] : [t];
   return raw(L.map((l, i) => `<span class="ln"><span style="transition-delay:${(0.08 + i * 0.09).toFixed(2)}s">${esc(l)}</span></span>`).join('')); };
 /** couture.html:488 pic() and :489 ph(): class a/b, the hero first, the rest deferred until the first is on screen. */
+// WEB-8 C2 (MERGED, CE-47): the studio-notes ticker reads as an invitation ("Request any look on WhatsApp"), so it is a real control:
+// her WhatsApp, and the enquiry panel when it runs.
+function tickerHref(c: SiteCard): string { try { return c.enquire_link && /^https:\/\//.test(c.enquire_link) ? new URL(c.enquire_link).toString() : '#enquire'; } catch { return '#enquire'; } }
 function img(p: Photo | null | undefined, cls: string, mode: 'hero' | 'defer' | 'lazy', sizes = '100vw', extra = ''): Raw {
   if (!p || !at(p.url, 480)) return raw('');
   if (mode === 'hero') return html`<img class="${cls}" alt="" decoding="async" fetchpriority="high" src="${at(p.url, 480)}" data-upgrade="${srcset(p.url)}" data-sizes="${sizes}"${raw(extra)} style="object-position:${pos(p)}">`;
@@ -87,11 +90,12 @@ function reviews(c: SiteCard, x: StyleCtx, sec: Section): Raw {
     </div>
   </section>`;
 }
+// WEB-8 C2 (MERGED): "Ask for a quote" is a real control (parts.ts quoteLink): her WhatsApp with the package named, opened in the enquiry panel when it runs.
 function pricing(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   const P = (c.packages || []).filter((p) => p.name); if (!P.length) return raw(''); const note = s(c.site.copy?.pricing_note);
   return html`<section id="pricing">
     <div class="shead rv"><div><span class="caps">${sec.eyebrow || 'Pricing'}</span><h2>${sec.heading || 'Starting from'}</h2></div></div>
-    <div class="price" id="price">${raw(P.map((p, i) => `<div class="row rv" style="--d:${(i * 0.08).toFixed(2)}s"><span class="n">${esc(p.name)}</span><span class="dots"></span><span class="v">${typeof p.total === 'number' ? 'From ' + rs(p.total) : 'Ask for a quote'}</span></div>`).join(''))}${note ? html`<p class="note rv">${note}</p>` : ''}</div>
+    <div class="price" id="price">${raw(P.map((p, i) => `<div class="row rv" style="--d:${(i * 0.08).toFixed(2)}s"><span class="n">${esc(p.name)}</span><span class="dots"></span>${typeof p.total === 'number' ? `<span class="v">${'From ' + rs(p.total)}</span>` : quoteLink(c, p.name, 'Ask for a quote')}</div>`).join(''))}${note ? html`<p class="note rv">${note}</p>` : ''}</div>
   </section>`;
 }
 function studio(c: SiteCard, x: StyleCtx, sec: Section): Raw {
@@ -130,7 +134,7 @@ export const couture = {
   id: 'couture',
   header(c: SiteCard, x: StyleCtx): Raw {
     const tk = arr(c.site.copy?.announcements).slice(0, 4);
-    return html`${tk.length ? html`<div class="ticker" aria-label="Studio notes"><div class="tk-track" id="tk">${raw([...tk, ...tk].map((t) => `<span>${esc(t)}</span>`).join(''))}</div></div>` : ''}
+    return html`${tk.length ? html`<a class="ticker" aria-label="Studio notes" href="${tickerHref(c)}" target="_blank" rel="noopener" data-enquire><div class="tk-track" id="tk">${raw([...tk, ...tk].map((t) => `<span>${esc(t)}</span>`).join(''))}</div></a>` : ''}
 <header class="hd" id="hd">
   <div class="l">
     <button class="ib" id="menuBtn" data-menu aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg><span class="menu-lbl" id="menuLbl">Menu</span></button>

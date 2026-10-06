@@ -140,6 +140,10 @@ const JOBS = [
   { name: 'c_dark_30_today_main', plan: 'signature', opt: { today: true }, h: 1500 },
   { name: 'c_dark_31_new_nodraft', plan: 'new', opt: { nodraft: true }, h: 900 },
   { name: 'c_light_01_room', plan: 'signature', mode: 'light', h: 1640 },
+  // WEB-8 C2 (CE-47): the first-Publish bar (the founder saw "ublis"), both themes, both layouts; each also at 360 below
+  { name: 'c_light_27_new', plan: 'new', mode: 'light', h: 1640 },
+  { name: 'v2_dark_27_new', plan: 'new', layout: 'v2', h: 1640 },
+  { name: 'v2_light_27_new', plan: 'new', layout: 'v2', mode: 'light', h: 1640 },
   { name: 'v2_dark_01_room', plan: 'signature', layout: 'v2', h: 1720 },
   { name: 'v2_dark_11_looks', plan: 'signature', layout: 'v2', h: 1600, steps: [{ click: 'Looks', prefix: true }] },
   { name: 'v2_dark_19_help', plan: 'signature', layout: 'v2', help: true },
@@ -172,12 +176,16 @@ function render() {
     for (const x of res) ok(x.up && x.errs.length === 0 && x.read.overflow.length === 0 && x.steps.every(([, h]) => h), `2.1 ${x.name}: mounted, 0 page errors, nothing past 374, every tap found its control`, JSON.stringify({ e: x.errs, o: x.read.overflow, s: x.steps.filter(([, h]) => !h) }));
     for (const n of ['c_dark_11_looks_360', 'v2_dark_11_looks_360']) { const pill = res.find((x) => x.name === n);
       ok(pill && pill.read.pill && pill.read.pill.right <= 360 && pill.read.pill.overlaps === 0, `2.29 ${n}: at 360 the "+ New look" pill overlaps nothing and stays inside the screen`, JSON.stringify(pill && pill.read.pill)); }
+    // WEB-8 C2 (CE-47): no button in the room clips its label, on any frame, at 374 and 360, both themes and layouts
+    for (const x of res) ok(x.read.clipped.length === 0, `2.30 ${x.name}: no button clips its label`, JSON.stringify(x.read.clipped));
+    for (const n of ['c_dark_27_new', 'c_light_27_new', 'v2_dark_27_new', 'v2_light_27_new']) for (const w of ['', '_360']) { const f = by[n + w]; const pb = f && f.read.publishBtn;
+      ok(pb && pb.label === 'Publish' && pb.sw <= pb.cw + 1 && pb.right <= (w ? 360 : 374), `2.31 ${n}${w}: beside "Visitors still see today's page..." the Publish button shows its whole label`, JSON.stringify(pb)); }
     for (const x of res) ok(x.read.headQs === 1, `2.2 ${x.name}: one "?" on the room head (item 8)`, x.read.headQs);
     for (const n of ['c_dark_19_help', 'v2_dark_19_help']) ok(by[n] && by[n].read.helpScroll !== null && by[n].read.helpScroll <= 1, `2.3 ${n}: the "?" card is whole at 374 by 812, nothing scrolls (item 1)`, by[n] && by[n].read.helpScroll);
     const c2 = by.c_dark_02_changes.read; ok(c2.sheet === 'Changes not on the website yet' && c2.sheetButtons[c2.sheetButtons.length - 1] === 'Discard these changes' && /Colours changed/.test(c2.text) && !/\bsettings\b/.test(c2.text), '2.4 the pending line opens the list, Discard these changes last (item 3)', JSON.stringify(c2.sheetButtons));
     const c3 = by.c_dark_03_discard.read; ok(c3.sheet === 'Discard 3 changes?' && c3.sheetButtons.join('|') === 'Discard|Keep them', '2.5 discard asks first', JSON.stringify(c3.sheetButtons));
-    const c4 = by.c_dark_04_publish.read; ok(c4.sheet === 'Publish 3 changes?' && /changes for every visitor within a minute/.test(c4.text), '2.6 Publish says what happens (item 3)');
-    const c5 = by.c_dark_05_published; ok(/Published at \d{1,2}:\d{2} (am|pm)\. The website is up to date\./.test(c5.read.text) && c5.calls.some((c) => /^POST .*\/site\/publish$/.test(c)), '2.7 after Publish the line reads "Published at 7:00 pm..." and the publish door was called', c5.calls.join(' '));
+    const c4 = by.c_dark_04_publish.read; ok(c4.sheet === 'Publish 3 changes?' && /changes for every visitor within about 10 minutes\./.test(c4.text) && !/within a minute/.test(c4.text), '2.6 Publish says what happens: within about 10 minutes, as the line after it (item 3; WEB-8 C2 r2)', c4.text.slice(0, 300));
+    const c5 = by.c_dark_05_published; ok(/Published\. Visitors will see your new website within about 10 minutes\./.test(c5.read.text) && !/Published at \d/.test(c5.read.text) && c5.calls.some((c) => /^POST .*\/site\/publish$/.test(c)), '2.7 after Publish the line reads "Published. Visitors will see your new website within about 10 minutes." and the publish door was called (WEB-8 C2)', c5.calls.join(' '));
     const c7 = by.c_dark_07_swap.read; ok(c7.sheet === 'Which style should Noir replace?' && !c7.sheetButtons.includes('Aurora') && /are kept/.test(c7.text), '2.8 Choose on a full plan: which style it replaces, the one in use not offered, settings kept (item 2)', JSON.stringify(c7.sheetButtons));
     const c8 = by.c_dark_08_stamp.read.text; ok(/Glow/.test(c8) && /Glass/.test(c8) && /Aurora has no texture/.test(c8) && !/\bSoft\b|\bRound\b|Rounded/.test(c8), '2.9 only the ids GET /room offers for Aurora are drawn (Glow, Solid, Glass; one corner and one texture draw no control)');
     ok(/One colour was adjusted/.test(by.c_dark_09_stamp_adjusted.read.text) && /made darker/.test(by.c_dark_09_stamp_adjusted.read.text) && /3\.1 to 1, now 4\.6 to 1/.test(by.c_dark_09_stamp_adjusted.read.text), '2.10 an own accent the gate moved says so, with its direction and both ratios');

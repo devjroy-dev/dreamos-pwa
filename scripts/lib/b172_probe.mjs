@@ -90,6 +90,9 @@ try { for (const j of JOBS) {
         const hit = [...document.querySelectorAll('.wb-sub, .wl-helpq, .wb-back')].filter((e) => { const q = e.getBoundingClientRect(); return !(q.right <= r.left || q.left >= r.right || q.bottom <= r.top || q.top >= r.bottom); }).length;
         return { right: Math.round(r.right), top: Math.round(r.top), overlaps: hit }; })(),
       previews: [...document.querySelectorAll('.wb-win iframe')].map((f) => f.getAttribute('src')).slice(0, 8),
+      // WEB-8 C2 (CE-47): a button whose label is wider than the button, or whose label runs past the screen, is clipped
+      clipped: [...document.querySelectorAll('.wb button, .wb-sheet button, .wb a.wl-btn, .wb a.wb-sbtn')].filter(vis).filter((x) => { const r = x.getBoundingClientRect(); return x.scrollWidth > x.clientWidth + 1 || r.right > innerWidth + 1 || r.left < -1; }).map((x) => (x.textContent || '').trim().slice(0, 30) + ' (' + x.scrollWidth + '>' + x.clientWidth + ')'),
+      publishBtn: (() => { const b = [...document.querySelectorAll('.wb-pend .wl-btn')].find(vis); if (!b) return null; const r = b.getBoundingClientRect(); return { label: b.textContent.trim(), sw: b.scrollWidth, cw: b.clientWidth, right: Math.round(r.right) }; })(),
       small: [...document.querySelectorAll('.wb button, .wb-sheet button')].filter(vis).filter((x) => x.getBoundingClientRect().height < 36).map((x) => x.textContent.trim() || x.getAttribute('aria-label')).slice(0, 8),
     };
   });

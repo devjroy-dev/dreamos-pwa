@@ -1,7 +1,7 @@
 // lib/site/styles/heritage.ts · WEB-5 · Heritage on the server: the approved rendition's markup
 // (tools/site_port/heritage.html, body :91-113, STYLE.render :118-129, jaaliTile :131, rosette :134), from the card.
 import { html, raw, href, esc, type Raw } from '../html';
-import { pic, lq, heartBtn, quotes, rs, lines, PLAY_SVG, HEART_SVG } from '../parts';
+import { pic, lq, heartBtn, quotes, rs, lines, PLAY_SVG, HEART_SVG, quoteLink } from '../parts';
 import type { SiteCard, Section, Photo } from '../card';
 import type { StyleCtx } from './index';
 
@@ -50,9 +50,10 @@ function reviews(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   const q = quotes(c.testimonials || []); if (!q.s) return raw(''); const n = (c.testimonials || []).filter((t) => t.words && t.words.trim()).length;
   return html`<section id="reviews"><span class="caps rv">${sec.eyebrow || 'Client reviews'}</span><div id="qwrap">${q}</div>${n > 1 ? html`<div class="qnav"><button id="qPrev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><span id="qCt">1 / ${n}</span><button id="qNext" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>` : ''}</section>`;
 }
+// WEB-8 C2 (MERGED): "Ask for a quote" is a real control (parts.ts quoteLink): her WhatsApp with the package named, opened in the enquiry panel when it runs.
 function pricing(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   const P = (c.packages || []).filter((p) => p.name); if (!P.length) return raw(''); const note = s(c.site.copy?.pricing_note);
-  return html`<section id="pricing"><div class="sh rv"><span class="caps">${sec.eyebrow || 'Pricing'}</span><h2>${sec.heading || 'Starting from'}</h2></div><div class="card-frame rv">${raw(['tl', 'tr', 'bl', 'br'].map(CORNER).join(''))}<div id="price">${raw(P.map((p, i) => `<div class="row rv" style="--d:${(i * 0.1).toFixed(1)}s"><span class="n">${esc(p.name)}</span><span class="dots"></span><span class="v">${typeof p.total === 'number' ? rs(p.total) : 'Ask for a quote'}</span></div>`).join(''))}${note ? html`<p class="note">${note}</p>` : ''}</div></div></section>`;
+  return html`<section id="pricing"><div class="sh rv"><span class="caps">${sec.eyebrow || 'Pricing'}</span><h2>${sec.heading || 'Starting from'}</h2></div><div class="card-frame rv">${raw(['tl', 'tr', 'bl', 'br'].map(CORNER).join(''))}<div id="price">${raw(P.map((p, i) => `<div class="row rv" style="--d:${(i * 0.1).toFixed(1)}s"><span class="n">${esc(p.name)}</span><span class="dots"></span>${typeof p.total === 'number' ? `<span class="v">${rs(p.total)}</span>` : quoteLink(c, p.name, 'Ask for a quote')}</div>`).join(''))}${note ? html`<p class="note">${note}</p>` : ''}</div></div></section>`;
 }
 function studio(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   const copy = c.site.copy || {}; const p = (copy.studio_photo || null) as Photo | null; const lead = s(copy.studio_heading), body = s(copy.studio_body); if (!lead && !body) return raw('');

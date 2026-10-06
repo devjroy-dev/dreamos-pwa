@@ -59,3 +59,14 @@ export function drawer(nav: NavItem[], foot: { instagram?: string | null; whatsa
 export const igUrl = (h: string | null | undefined): string | null => { const s = String(h || '').replace(/^@/, '').trim(); return /^[A-Za-z0-9._]{1,30}$/.test(s) ? `https://www.instagram.com/${s}/` : null; };
 /** The trade row the engine keys video-first on (html[data-trade=performer]); from the card's item word. */
 export const tradeKey = (c: SiteCard): string => ({ look: 'makeup', story: 'photo', act: 'performer', event: 'planner' } as Record<string, string>)[c.site.trade.item] || 'makeup';
+/**
+ * WEB-8 C2 (CE-47, the founder's walk): "Ask for a quote" on a pricing row is a real control (class ask-q: the styles already use .q for review quotes). It is a link to her
+ * WhatsApp with the package named (so it works with no script and while the enquiry doors are OFF), and it carries
+ * data-enquire and data-package, so the enquiry panel, when it runs, opens instead with that package chosen.
+ */
+export function quoteLink(c: { enquire_link?: string | null }, pkg: string, label: string, cls = 'v ask-q'): string {
+  const name = String(pkg || '').trim(); let href = '#enquire';
+  try { if (c.enquire_link && /^https:\/\//.test(c.enquire_link)) { const u = new URL(c.enquire_link); u.searchParams.set('text', `Hello, I would like a quote for ${name}.`); href = u.toString(); } } catch { href = '#enquire'; }
+  return `<a class="${esc(cls)}" href="${esc(href)}" target="_blank" rel="noopener" data-enquire data-package="${esc(name)}">${esc(label)}</a>`;
+}
+

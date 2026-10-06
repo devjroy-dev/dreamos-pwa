@@ -16,6 +16,8 @@ export const WEB = {
   pending: (c: number) => (c === 1 ? '1 change is not on the website yet.' : `${n(c)} changes are not on the website yet.`),
   publish: 'Publish',
   publishedAt: (t: string) => `Published at ${t}. The website is up to date.`,
+  // WEB-8 C2 (CE-47): the site's pages are kept up to about ten minutes after a Publish; for that time the room says so
+  publishedFresh: 'Published. Visitors will see your new website within about 10 minutes.',
   notOnline: 'Visitors still see today’s page. The new website goes up at the first Publish.',
   gDesign: 'Design', gContent: 'Content', gResults: 'Results', gAddr: 'Address and Google',
   style: 'Style',
@@ -41,7 +43,7 @@ export const WEB = {
   discardT: (c: number) => (c === 1 ? 'Discard 1 change?' : `Discard ${n(c)} changes?`),
   discardD: 'The website stays as it is now.', discardGo: 'Discard', keep: 'Keep them',
   pubT: (c: number) => (c === 1 ? 'Publish 1 change?' : `Publish ${n(c)} changes?`),
-  pubD: (addr: string) => `The website at ${addr} changes for every visitor within a minute.`,
+  pubD: (addr: string) => `The website at ${addr} changes for every visitor within about 10 minutes.`,   // WEB-8 C2 r2 (CE-47): matches the line after Publish
   newPubT: 'Put the new website up?',
   newPubD: (addr: string) => `Publish puts the new website at ${addr} in place of today’s page. Example pictures are never published.`,
   cancel: 'Cancel',

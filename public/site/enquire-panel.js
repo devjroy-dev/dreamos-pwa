@@ -47,12 +47,14 @@ async function door(method,path,body,ms){
 const pageFact=()=>{const lookTitle=(document.querySelector('[data-look-title]')||{}).dataset;
   return lookTitle&&lookTitle.lookTitle?{kind:'look',title:lookTitle.lookTitle}:(CARD.page||{kind:'home'})};
 
-function open(){
-  st={occasion:null,date:null,name:null,e164:null,token:null,page:pageFact()};
+/* WEB-8 C2 (MERGED, CE-47): a pricing row's "Ask for a quote" opens the panel with that package chosen; the door records it as the page ("Pricing: <package>"), the WhatsApp hand-off names it */
+function open(pkg){
+  pkg=typeof pkg==='string'?pkg.trim().slice(0,60):'';
+  st={occasion:null,date:null,name:null,e164:null,token:null,pkg:pkg||null,page:pkg?{kind:'other',title:`Pricing: ${pkg}`}:pageFact()};
   $('#w7Name').textContent=studio();$('#w7Mono').textContent=CARD.monogram||'';
   MS.textContent='';$('#w7Foot').hidden=true;const pk=$('#w7Pk');if(pk)pk.hidden=true;
   P.classList.add('on');P.setAttribute('aria-hidden','false');document.documentElement.classList.add('w7-open');
-  say(`Hello, you've reached ${studio()}.`);askOccasion(400);setTimeout(()=>$('#w7X').focus(),RM?0:450)}
+  say(`Hello, you've reached ${studio()}.`);if(st.pkg)say(`You are asking about ${st.pkg}.`,200);askOccasion(st.pkg?600:400);setTimeout(()=>$('#w7X').focus(),RM?0:450)}
 function close(){P.classList.remove('on');P.setAttribute('aria-hidden','true');document.documentElement.classList.remove('w7-open')}
 
 async function askOccasion(d){await say('What is the occasion?',d);const row=push(el('div','w7row'));
@@ -117,7 +119,7 @@ function openPicker(cur,done){
 /* the hand-off: built on the card's enquire_link, never by hand (W7-d) */
 function withText(link,words){if(!link)return null;try{const u=new URL(link);const t=u.searchParams.get('text');
   u.searchParams.set('text',t?`${t} ${words}`:words);return u.toString()}catch(_){return null}}
-function handoffHref(){const about=(st.page&&st.page.title)||st.occasion||'an enquiry';
+function handoffHref(){const about=st.pkg?`a quote for ${st.pkg}`:(st.page&&st.page.title)||st.occasion||'an enquiry';
   return withText(CARD.enquire_link,`Hello ${studio()}, I enquired on your website about ${about}${st.date?` on ${longDate(st.date)}`:''}.`)}
 async function doorOff(){
   await say(`Thank you, ${st.name}. Please continue on WhatsApp to reach ${studio()}.`,300);
@@ -137,7 +139,7 @@ $('#w7Foot').onsubmit=async e=>{e.preventDefault();if(inFlight)return;const i=$(
     for(const t of rs)if(typeof t==='string'&&t.trim())await say(t,250);return}
   push(el('div','w7err',(r.body&&typeof r.body.error==='string'&&r.status!==404)?r.body.error:'Your message could not be sent. Please try again in a moment.'))};
 /* entry points: WEB-5's [data-enquire] (and the prototype's [data-eliza]) */
-document.addEventListener('click',e=>{const t=e.target.closest('[data-enquire],[data-eliza]');if(!t)return;e.preventDefault();e.stopImmediatePropagation();open()},true);
+document.addEventListener('click',e=>{const t=e.target.closest('[data-enquire],[data-eliza]');if(!t)return;e.preventDefault();e.stopImmediatePropagation();open(t.dataset.package||'')},true);
 /* line 15: a look's WhatsApp request, the look named */
 document.addEventListener('click',e=>{const a=e.target.closest('a[data-look-request]');if(!a)return;
   const h=withText(CARD.enquire_link,`Hello ${studio()}, I would like to ask about ${a.dataset.lookRequest||'this look'}.`);if(h)a.href=h},true);

@@ -3,7 +3,7 @@
 // The words that belong to the STYLE (its default section titles, "Scroll to enter") are WEB-3's, cited; every word
 // that belongs to HER comes from the card. A section she hides is not drawn; her order is the card's order.
 import { html, raw, href, type Raw } from '../html';
-import { pic, lq, heartBtn, quotes, rs, PLAY_SVG, HEART_SVG, lines } from '../parts';
+import { pic, lq, heartBtn, quotes, rs, PLAY_SVG, HEART_SVG, lines, quoteLink } from '../parts';
 import type { SiteCard, Section } from '../card';
 import type { StyleCtx } from './index';
 
@@ -38,10 +38,11 @@ function reviews(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   const n = (c.testimonials || []).filter((t) => t.words && t.words.trim()).length;
   return html`<section id="reviews"><div class="rev"><span class="lbl rv">${sec.eyebrow || 'Wall text · Client reviews'}</span><div id="qwrap" style="margin-top:14px">${q}</div>${n > 1 ? html`<div class="qnav"><button id="qPrev">Previous</button><button id="qNext">Next</button><span id="qCt" class="lbl">1 / ${n}</span></div>` : ''}</div></section>`;
 }
+// WEB-8 C2 (MERGED): "Ask for a quote" is a real control (parts.ts quoteLink): her WhatsApp with the package named, opened in the enquiry panel when it runs.
 function pricing(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   const P = (c.packages || []).filter((p) => p.name); if (!P.length) return raw('');
   const note = s(c.site.copy?.pricing_note);
-  return html`<section id="pricing"><div class="sh rv"><div><span class="lbl">${sec.eyebrow || 'Catalogue'}</span><h2>${sec.heading || 'Starting from'}</h2></div></div><div class="cat" id="price">${raw(P.map((p, i) => `<div class="row rv" style="--d:${(i * 0.08).toFixed(2)}s"><span class="no">${String(i + 1).padStart(2, '0')}</span><span class="n">${html`${p.name}`.s}</span><span class="v">${typeof p.total === 'number' ? 'From ' + rs(p.total) : 'Ask for a quote'}</span></div>`).join(''))}${note ? html`<p class="note rv">${note}</p>` : ''}</div></section>`;
+  return html`<section id="pricing"><div class="sh rv"><div><span class="lbl">${sec.eyebrow || 'Catalogue'}</span><h2>${sec.heading || 'Starting from'}</h2></div></div><div class="cat" id="price">${raw(P.map((p, i) => `<div class="row rv" style="--d:${(i * 0.08).toFixed(2)}s"><span class="no">${String(i + 1).padStart(2, '0')}</span><span class="n">${html`${p.name}`.s}</span>${typeof p.total === 'number' ? `<span class="v">${'From ' + rs(p.total)}</span>` : quoteLink(c, p.name, 'Ask for a quote')}</div>`).join(''))}${note ? html`<p class="note rv">${note}</p>` : ''}</div></section>`;
 }
 function studio(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   const copy = c.site.copy || {}; const ph = (copy.studio_photo || null) as never; const lead = s(copy.studio_heading), body = s(copy.studio_body);
