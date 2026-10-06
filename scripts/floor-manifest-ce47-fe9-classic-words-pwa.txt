@@ -1,0 +1,9 @@
+# CE-47 · FE-9 · c2 · the classic WhatsApp and Instagram room, the solutions copy and the portfolio's H2 in plain words: v2's lines byte for byte, no couple, no em dash; b122, b126 and b151 amended by label; one words bench · base f4f227a5 · F-19.16: a dirty path outside this list is a STOP.
+app/vendor/(shell)/portfolio/screen.tsx
+lib/solutions/copy.ts
+lib/worklist/metaRoom.ts
+scripts/b122_ce45_home_shelves_bench.js
+scripts/b126_igd1_meta_room_bench.js
+scripts/b151_g64_room_finished_bench.js
+scripts/fe9_classic_meta_words_bench.js
+scripts/floor-manifest-ce47-fe9-classic-words-pwa.txt

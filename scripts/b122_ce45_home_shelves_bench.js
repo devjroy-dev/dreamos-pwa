@@ -149,7 +149,9 @@ const RULED_TRADE = {
 // shipped-byte law (R-40.57, b40 C102); the founder's words are unchanged, only the glyph is the estate's.
 const H_COPY = { navToday: '3a78695388b38b5c', shelfBusiness: '76f68a75f01ed76f', shelfMoney: '5ccc2e8715d7a17c', shelfStudio: '0aa91af2ec4c1fd7', pinnedHead: '57c2c20d41e6bf16', pinnedChange: 'c564d6151af0b34b' };
 const H_ROOM = { support: '81e50b18d2c0ea43', storefront: 'c9529003140a13d9', leads: '6ed99453447975d5', clients: '147ff67b902f0f8b', packages: '5ac4004541fc2013', calendar: 'ace4802cba166d27', events: '44ab8773647cf1af', notes: 'db19c49f8f6a2603', invoices: '5520f77a5ac7e0ec', expenses: 'd52a337c2f297d01', books: 'c2bebc4c8b046867', tds: 'cfc775545be4eda7', portfolio: 'c770d4b25db5b741', team: '8fdce67cbb74c589', couture: '5ec5b4c55960ce39', advisor: '3263e80df03c3bf4', billing: 'ac9b262fbde97683', settings: '28421eb441a5d5da' };
-const H_ROW = { website: 'b1291bdf51d0a58e', wedding_pages: '5802fa27fb15736d', google: '3829cc50cbae2d22', posts: 'f70c5ccaa24633ad', dates: 'becc2a75a6f041a1', introductions: '03b8eb501bbce215', referrals: '5e8933c42ebd55f6', number: 'b4153dd868095658' /* AMENDED BY LABEL · IGD-1 cut 1 · R-45.27 A3; was 9c6c97a21614e055 (D28) */, contracts: 'b2be845480024cae', reminders: '24716217a180687d', collabs: '4ba555d36b7a7487' };
+// AMENDED BY LABEL · CE-47 FE-9 c2 (4 Oct 2026, the chair's ruling, the founder's no-"couple" rule): ROW_DESC.introductions
+// is v2's line, "Pages sent once to people met in person", re-hashed as b122_v2 pins it. Every other line stands.
+const H_ROW = { website: 'b1291bdf51d0a58e', wedding_pages: '5802fa27fb15736d', google: '3829cc50cbae2d22', posts: 'f70c5ccaa24633ad', dates: 'becc2a75a6f041a1', introductions: '8709ae8942f3aed0', referrals: '5e8933c42ebd55f6', number: 'b4153dd868095658' /* AMENDED BY LABEL · IGD-1 cut 1 · R-45.27 A3; was 9c6c97a21614e055 (D28) */, contracts: 'b2be845480024cae', reminders: '24716217a180687d', collabs: '4ba555d36b7a7487' };
 
 const tag = (i) => ('room' in i ? 'room:' + i.room : 'row:' + i.row);
 const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.slice(4) });

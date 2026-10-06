@@ -28,6 +28,10 @@ const P = (rel) => path.join(ROOT, rel);
 const read = (rel) => fs.readFileSync(P(rel), 'utf8');
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const h16 = (s) => sha(String(s)).slice(0, 16);
+// AMENDED BY LABEL · CE-47 FE-9 (4 Oct 2026, the chair's ruling): IG.lede, IG.consent, IG.on and QUIET.line are v2's
+// words now (people, someone, the question, the details, enquiries); their four pins below are re-hashed, nothing else.
+// c2: IG.professional (C4) and the portfolio's H2 lose their em dash together, "(business or creator)"; its pin is re-hashed
+// and 1.2 still holds the two byte for byte.
 let pass = 0; let fail = 0; const failed = [];
 function ok(cond, name, info) { if (cond) { pass += 1; console.log(`  PASS  ${name}`); } else { fail += 1; failed.push(name); console.log(`  FAIL  ${name}${info ? '  [' + String(info).slice(0, 260) + ']' : ''}`); } }
 const sec = (t) => console.log(`\n§${t}`);
@@ -55,11 +59,11 @@ function loadTs(rel, src) {
 // THE FOUNDER'S BYTES (his table, 25 Sept 2026, "ok"), pinned by the first 16 hex of sha256.
 const VETOED = {
   'SECTIONS.number': 'a625fc8d7c9d0554', 'SECTIONS.instagram': '47b83aeaab4df5cd',
-  'IG.lede': '94a11debf3564f16', 'IG.connect': '59641f41ef18e824', 'IG.professional': '551602b858cce1f7',
-  'IG.consent': '60f754a4cd5c1967', 'IG.turnOn': '5a1f096a0d8d7674', 'IG.notNow': 'a0e63d7c7125d29a',
-  'IG.on': '6f265681872973a4', 'IG.paused': '8d99ae133c50edd5', 'IG.waiting': '7f17bd6b067cc030', 'IG.turnOff': '06f0e210b27d4d62',
+  'IG.lede': '56751648de1052ec', 'IG.connect': '59641f41ef18e824', 'IG.professional': 'a38fda05ebe7a3c1',
+  'IG.consent': '63ab1891973792e6', 'IG.turnOn': '5a1f096a0d8d7674', 'IG.notNow': 'a0e63d7c7125d29a',
+  'IG.on': '6a2049cab8df37e5', 'IG.paused': '8d99ae133c50edd5', 'IG.waiting': '7f17bd6b067cc030', 'IG.turnOff': '06f0e210b27d4d62',
   // RE-PINNED BY LABEL · CE-46 G6-4 (b151): QT1 is F-g's line ("...TDW stays quiet in that chat for", ruled 28 Sept 2026); was db24a8f488684f78.
-  'QUIET.line': 'c07c9cbc16bb2145', 'QUIET.labels': '89222666feeac835',
+  'QUIET.line': '16878044e62d6a57', 'QUIET.labels': '89222666feeac835',
 };
 const ROW_LABEL = 'WhatsApp and Instagram';
 const ROW_LINE = 'Enquiries on WhatsApp and Instagram, answered in the studio\u2019s name';

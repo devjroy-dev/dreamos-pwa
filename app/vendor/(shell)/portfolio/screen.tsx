@@ -128,7 +128,7 @@ const COPY = {
   // They are kept here so the action sitting inherits an executed veto instead of
   // re-running the founder's copy card. H4-H11 were never drafted into code.
   H1: 'Import from Instagram',
-  H2: "Instagram only allows this for professional accounts — business or creator. If yours is personal, switching is free and takes a minute in Instagram’s own settings.",
+  H2: "Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is free and takes a minute in Instagram’s own settings.",
   // H3 — THE LOAD-BEARING ONE. The addendum's law is "MANUAL UPLOAD IS THE
   // PERMANENT FALLBACK, NEVER A WALL". These are the founder's own bytes,
   // chosen over the drafted alternative, and they sit ABOVE the connect action

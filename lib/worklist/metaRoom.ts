@@ -7,6 +7,9 @@
 // HASH-CARRIED REUSE. C3 and C4 are the portfolio's H4 and H2 (app/vendor/(shell)/portfolio/screen.tsx :137, :131),
 // carried here byte for byte because a copy home must not import a page module; b126 pins each against its source.
 // NOTE FOR THE FOUNDER'S TABLE: C4 (H2 as it stands) carries an em dash; it is carried as ruled, and named in the handover.
+// CE-47 FE-9 (4 Oct 2026, the chair's ruling): C2 lede, C5 consent, C7 on and QT1 line are v2's words byte for byte
+// (v2/lib/worklist/metaRoom.ts): no couple, her or leads on vendor glass. c2: C4 is v2's too (no em dash), and the
+// portfolio's H2, which it is hash-carried from, says the same bytes.
 //
 // NO PERSONA NAME (R-37.70; b40 C32): the chrome says what happens, never who does it. No brand mark is drawn in this cut
 // (the founder, 25 Sept 2026: the official marks ride a later cut).
@@ -20,18 +23,18 @@ export const SECTIONS = {
 
 export const IG = {
   /** C2 · the line when she has not connected, or has connected and not turned it on. */
-  lede: 'Let us answer couples who message your Instagram, in your studio\u2019s name, the same way we do on WhatsApp.',
+  lede: 'Let us answer people who message your Instagram, in your studio\u2019s name, the same way we do on WhatsApp.',
   /** C3 · REUSE H4. */
   connect: 'Connect Instagram',
   /** C4 · REUSE H2 (carried as ruled; see the note above). */
-  professional: 'Instagram only allows this for professional accounts \u2014 business or creator. If yours is personal, switching is free and takes a minute in Instagram\u2019s own settings.',
+  professional: 'Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is free and takes a minute in Instagram\u2019s own settings.',
   /** C5 · the consent statement. */
-  consent: 'When a couple messages your Instagram, we reply in your studio\u2019s name within minutes: we answer her question, check your date the way your date check does, take her details, and add her to your leads. We never confirm a booking or quote a price you have not set. You can switch this off at any time.',
+  consent: 'When someone messages your Instagram, we reply in your studio\u2019s name within minutes: we answer the question, check your date the way your date check does, take the details, and add them to your enquiries. We never confirm a booking or quote a price you have not set. You can switch this off at any time.',
   /** C6 · the consent's two controls. */
   turnOn: 'Turn on',
   notNow: 'Not now',
   /** C7 · answering. */
-  on: 'On. Couples who message your Instagram get a reply in your studio\u2019s name.',
+  on: 'On. People who message your Instagram get a reply in your studio\u2019s name.',
   /** C8 · paused; the line IS the tap (R-43.16), so no second word is needed. */
   paused: 'Paused. Your Instagram connection needs renewing.',
   /** C9 · switched on, waiting on Meta. */
@@ -43,7 +46,7 @@ export const IG = {
 export const QUIET = {
   /** QT1 · the line; the chosen length follows it. */
   // CE-46 G6-4 F-g (ruled 28 Sept 2026): no her or his on vendor glass.
-  line: 'After you reply to a couple yourself, TDW stays quiet in that chat for',
+  line: 'After you reply to someone yourself, TDW stays quiet in that chat for',
   /** QT2 · the four lengths, 2 hours preselected (the server's default, 120). */
   options: [
     { minutes: 60, label: '1 hour' },

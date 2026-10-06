@@ -78,7 +78,8 @@ function probe(mode, list) {
     && FLOW.finishInApp === 'Finish removing {number} in WhatsApp Business: Settings, Account, Business Platform, Disconnect.', '1.2 F-b\u2019s two sheet lines and F-c\u2019s finish line, her number as data ({number})');
   const all = [FLOW, QUIET.line, NUMBER].map((x) => JSON.stringify(x)).join(' ');
   ok(!/\b(her|his|Her|His)\b/.test(all) && !/\u2014|\u2013/.test(all) && !/\b(Victor|Donna|Harvey|Mira|Eliza|Sarah)\b/.test(all), '1.3 no her or his, no dash, no persona name in any byte of the room (R-45.30)');
-  ok(QUIET.line === 'After you reply to a couple yourself, TDW stays quiet in that chat for', '1.4 the quiet line is F-g\u2019s');
+  // AMENDED BY LABEL · CE-47 FE-9 (4 Oct 2026, the chair's ruling): QT1 is v2's words, "someone" in place of "a couple".
+  ok(QUIET.line === 'After you reply to someone yourself, TDW stays quiet in that chat for', '1.4 the quiet line is F-g\u2019s, in v2\u2019s words');
   ok(NUMBER.can.length === 2 && !NUMBER.can.some((c) => /missed call/i.test(c)), '1.5 N4 struck: no missed-call line in the can-do list (Q-a)');
   const D = loadTs(DOOR);
   const good = { ok: true, open: false, reason: null, reason_text: null, launch: null, number: null };
