@@ -92,6 +92,11 @@ try { for (const j of JOBS) {
       previews: [...document.querySelectorAll('.wb-win iframe')].map((f) => f.getAttribute('src')).slice(0, 8),
       // WEB-8 C2 (CE-47): a button whose label is wider than the button, or whose label runs past the screen, is clipped
       clipped: [...document.querySelectorAll('.wb button, .wb-sheet button, .wb a.wl-btn, .wb a.wb-sbtn')].filter(vis).filter((x) => { const r = x.getBoundingClientRect(); return x.scrollWidth > x.clientWidth + 1 || r.right > innerWidth + 1 || r.left < -1; }).map((x) => (x.textContent || '').trim().slice(0, 30) + ' (' + x.scrollWidth + '>' + x.clientWidth + ')'),
+      // WEB-8 (Basic): the style page's controls and lines, the locked rows, and every disabled control on the screen
+      basic: { use: [...document.querySelectorAll('[data-use-instead]')].filter(vis).length, clock: [...document.querySelectorAll('[data-clock-line]')].filter(vis).map((x) => x.textContent.trim()),
+        locked: [...document.querySelectorAll('[data-locked]')].filter(vis).map((x) => x.getAttribute('data-locked') + ': ' + (x.querySelector('.wb-rd') || {}).textContent),
+        seePlans: [...document.querySelectorAll('a[data-see-plans]')].filter(vis).filter((a) => /\/vendor\/billing$/.test(a.getAttribute('href') || '')).length,
+        disabled: [...document.querySelectorAll('.wb button:disabled, .wb [aria-disabled="true"], .wb input:disabled')].filter(vis).filter((x) => !x.closest('.wb-arw'))   /* a reorder arrow at the end of the list is not a locked item */.map((x) => (x.getAttribute('aria-label') || x.textContent || '').trim().slice(0, 40)) },
       publishBtn: (() => { const b = [...document.querySelectorAll('.wb-pend .wl-btn')].find(vis); if (!b) return null; const r = b.getBoundingClientRect(); return { label: b.textContent.trim(), sw: b.scrollWidth, cw: b.clientWidth, right: Math.round(r.right) }; })(),
       small: [...document.querySelectorAll('.wb button, .wb-sheet button')].filter(vis).filter((x) => x.getBoundingClientRect().height < 36).map((x) => x.textContent.trim() || x.getAttribute('aria-label')).slice(0, 8),
     };

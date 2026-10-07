@@ -16,8 +16,10 @@ export type Can = {
   custom_sections: boolean; custom_pages: boolean; full_order: boolean; credit_removable: boolean;
   written_testimonials: boolean; video_testimonials: boolean; visitor_counts: boolean; visitor_sources: boolean;
   visitor_saves: boolean; own_domain: boolean; built_from_instagram: boolean;
+  // WEB-4 cut 16: Basic holds one style; colour sets and font pairings are flags; each locked item names the plan that opens it
+  palettes?: boolean; font_pairs?: boolean; opens?: Record<string, string>;
 };
-export type Section = { key: string; custom: boolean; allowed: boolean; shown: boolean; variant: string; eyebrow: string | null; heading: string | null; body: Record<string, unknown> };
+export type Section = { key: string; custom: boolean; allowed: boolean; shown: boolean; opens?: string | null; variant: string; eyebrow: string | null; heading: string | null; body: Record<string, unknown> };
 export type Moved = { role: string; from: string; to: string; against: string; target: number; before: number; after: number };
 export type Resolved = {
   v: 'classic' | 'styles'; can: Can; credit: boolean; site_name: string | null; monogram: string;
@@ -37,6 +39,8 @@ export type Room = {
   // WEB-4 cut 5: the draft
   changes?: { count: number; list: Array<{ area: 'settings' | 'sections' | 'pages' | string; line: string }>; published_at: string | null };   // each line drawn as sent; `area` is not drawn
   is_live?: boolean;
+  // WEB-4 cut 16: her style clock (Basic enforces it): ISO days, the next day in words, and whether a change is refused now
+  style_clock?: { last_changed_on: string | null; next_change_on: string | null; next_change_words: string | null; locked: boolean };
   preview?: { token: string; expires_at: string } | string | null;   // cut 5: previewLib.issue() gives { token, expires_at }
 };
 export type Photo = { id: string; url: string; review: 'waiting' | 'approved' | 'not_approved'; reason: string | null; caption: string | null; alt: string | null; position: number; focal_portrait: { x: number; y: number }; focal_landscape: { x: number; y: number } };

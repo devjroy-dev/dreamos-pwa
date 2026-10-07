@@ -134,6 +134,15 @@ const JOBS = [
   { name: 'c_dark_24_pre_sections', plan: 'prestige', h: 1100, steps: [{ click: 'Sections', prefix: true }] },
   { name: 'c_dark_25_pre_visitors', plan: 'prestige', h: 1000, steps: [{ click: 'Visitors', prefix: true, wait: 1500 }] },
   { name: 'c_dark_26_basic', plan: 'basic', h: 2000, wait: 5000 },
+  // WEB-8 (Basic's one free style, CE-47 rulings a, b, c): the style page free and with the clock running, colours and type, sections
+  { name: 'c_dark_28_basic_style', plan: 'basic', h: 1560, wait: 6000, steps: [{ click: 'Style', prefix: true }] },
+  { name: 'c_dark_29_basic_clock', plan: 'basic_locked', h: 1560, wait: 6000, steps: [{ click: 'Style', prefix: true }] },
+  { name: 'c_dark_30_basic_stamp', plan: 'basic', h: 1900, steps: [{ click: 'Colours and type', prefix: true }] },
+  { name: 'c_dark_31_basic_sections', plan: 'basic', h: 1640, steps: [{ click: 'Sections', prefix: true }] },
+  { name: 'c_dark_32_basic_use', plan: 'basic', wait: 6000, steps: [{ click: 'Style', prefix: true }, { sel: '[data-use-instead]', wait: 1500 }] },
+  { name: 'c_light_28_basic_style', plan: 'basic', mode: 'light', h: 1560, wait: 6000, steps: [{ click: 'Style', prefix: true }] },
+  { name: 'v2_dark_28_basic_style', plan: 'basic', layout: 'v2', h: 1560, wait: 6000, steps: [{ click: 'Style', prefix: true }] },
+  { name: 'v2_light_29_basic_clock', plan: 'basic_locked', layout: 'v2', mode: 'light', h: 1560, wait: 6000, steps: [{ click: 'Style', prefix: true }] },
   { name: 'c_dark_27_new', plan: 'new', h: 1640 },
   { name: 'c_dark_28_new_publish', plan: 'new', steps: [{ click: 'Publish' }] },
   { name: 'c_dark_29_new_looks', plan: 'new', h: 1300, steps: [{ click: 'Add the first look', prefix: true }] },
@@ -150,29 +159,46 @@ const JOBS = [
   { name: 'v2_light_26_basic', plan: 'basic', layout: 'v2', mode: 'light', h: 2000, wait: 5000 },
 ];
 
+// WEB-8 (e-275): the port must be free before the server starts and after it stops, each within a bound; if the server
+// exits before it answers, the run says so with its last lines, instead of waiting out the full bound on a dead server.
+function portFree(boundS) { for (let i = 0; i < boundS; i += 1) { const r = spawnSync('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '2', `http://localhost:${PORT}/`], { encoding: 'utf8' }); if (r.stdout === '000') return true; spawnSync('sleep', ['1']); } return false; }
 function devUp() {
-  const log = fs.openSync(path.join(require('os').tmpdir(), 'b172-dev.log'), 'w');
+  const LOG = path.join(require('os').tmpdir(), 'b172-dev.log');
+  const freeBefore = portFree(60);
+  const log = fs.openSync(LOG, 'w');
   const dev = spawn('node', ['node_modules/.bin/next', 'dev', '-p', String(PORT)], { cwd: ROOT, detached: true, stdio: ['ignore', log, log],
     env: { ...process.env, NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${PORT}/__api` } });
-  let up = false;
-  for (let i = 0; i < 150 && !up; i += 1) { const r = spawnSync('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '200', `http://localhost:${PORT}/vendor/your-website`], { encoding: 'utf8' }); up = /^[23]/.test(r.stdout); if (!up) spawnSync('sleep', ['2']); }
-  return { dev, up };
+  let up = false; let exited = null; dev.on('exit', (c, s) => { exited = `exit ${c === null ? s : c}`; });
+  for (let i = 0; i < 150 && !up; i += 1) {
+    const r = spawnSync('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '200', `http://localhost:${PORT}/vendor/your-website`], { encoding: 'utf8' }); up = /^[23]/.test(r.stdout);
+    if (!up) { const ch = spawnSync('kill', ['-0', String(dev.pid)]); if (ch.status !== 0) { exited = exited || 'gone'; break; } spawnSync('sleep', ['2']); }
+  }
+  let why = '';
+  if (!up) { let tail = ''; try { tail = fs.readFileSync(LOG, 'utf8').split('\n').filter(Boolean).slice(-6).join(' | '); } catch (_e) { tail = 'no log'; } why = `port free before: ${freeBefore}; server: ${exited || 'still running'}; log: ${tail}`.slice(0, 600); }
+  return { dev, up, why };
 }
-function devDown(dev) { try { process.kill(-dev.pid, 'SIGKILL'); } catch (_e) { /* already gone */ } }
+function devDown(dev) { try { process.kill(-dev.pid, 'SIGKILL'); } catch (_e) { /* already gone */ } portFree(30); }
 
 function render() {
   sec('2 · the real room (mock mode, C-43.18)');
-  const { dev, up } = devUp();
+  const { dev, up, why } = devUp();
   try {
-    ok(up, '2.0 next dev answers');
+    ok(up, '2.0 next dev answers', why);
     if (!up) return;
-    const base = JOBS.map((j) => ({ layout: 'classic', mode: 'dark', ...j }));
+    // WEB-8 (e-275 amended): --jobs <regex> runs only the frames whose names match, with the cells that read them
+    const JOBRX = args.includes('--jobs') ? new RegExp(args[args.indexOf('--jobs') + 1]) : null;
+    const base = JOBS.filter((j) => !JOBRX || JOBRX.test(j.name)).map((j) => ({ layout: 'classic', mode: 'dark', ...j }));
     // every frame at 374, and again at 360 (the founder: at 360 the add drops under the title, right-aligned)
     const jobs = base.concat(base.map((j) => ({ ...j, name: `${j.name}_360`, w: 360 })));
     const r = spawnSync('node', ['scripts/lib/b172_probe.mjs', String(PORT), JSON.stringify(jobs), SHOTS || ''], { cwd: ROOT, encoding: 'utf8', timeout: 1800000, maxBuffer: 64 * 1024 * 1024, env: process.env });
     let res = [];
     try { res = JSON.parse((r.stdout || '').trim().split('\n').pop()); } catch (_e) { ok(false, '2.1 the probe answered', (r.stderr || '').slice(-400)); return; }
     const by = Object.fromEntries(res.map((x) => [x.name, x]));
+    if (JOBRX) {   // only the matched frames: the per-frame cells and the Basic cells
+      for (const x of res) ok(x.up && x.errs.length === 0 && x.read.overflow.length === 0 && x.steps.every(([, h]) => h), `2.1 ${x.name}: mounted, 0 page errors, nothing past 374, every tap found its control`, JSON.stringify({ e: x.errs, o: x.read.overflow }));
+      for (const x of res) ok(x.read.clipped.length === 0, `2.30 ${x.name}: no button clips its label`, JSON.stringify(x.read.clipped));
+      basicCells(res, by); return;
+    }
     for (const x of res) ok(x.up && x.errs.length === 0 && x.read.overflow.length === 0 && x.steps.every(([, h]) => h), `2.1 ${x.name}: mounted, 0 page errors, nothing past 374, every tap found its control`, JSON.stringify({ e: x.errs, o: x.read.overflow, s: x.steps.filter(([, h]) => !h) }));
     for (const n of ['c_dark_11_looks_360', 'v2_dark_11_looks_360']) { const pill = res.find((x) => x.name === n);
       ok(pill && pill.read.pill && pill.read.pill.right <= 360 && pill.read.pill.overlaps === 0, `2.29 ${n}: at 360 the "+ New look" pill overlaps nothing and stays inside the screen`, JSON.stringify(pill && pill.read.pill)); }
@@ -198,7 +224,7 @@ function render() {
     ok(/Visitors saved looks 23 times/.test(by.c_dark_25_pre_visitors.read.text), '2.16 Prestige: saved looks shown');
     ok(/Which style should/.test(by.c_dark_21_ess_swap.read.sheet || ''), '2.17 Essential holds two; a third asks which to replace (item 7)', by.c_dark_21_ess_swap.read.sheet);
     const pre = by.c_dark_24_pre_sections.read.text; ok(!/Always first/.test(pre) && /Switch off to remove it/.test(pre), '2.18 Prestige: full order, the credit switch live (item 7)');
-    ok(/What Essential adds/.test(by.c_dark_26_basic.read.text) && /See plans/.test(by.c_dark_26_basic.read.text), '2.19 Basic: today\'s one-page site and the plain offer (item 7)');
+    basicCells(res, by);
     ok(/Visitors still see today’s page\. The new website goes up at the first Publish\./.test(by.c_dark_27_new.read.text) && /Add the first look/.test(by.c_dark_27_new.read.text) && by.c_dark_28_new_publish.read.sheet === 'Put the new website up?' && /Pictures marked TDW are examples/.test(by.c_dark_29_new_looks.read.text), '2.20 before the first Publish: the room says visitors still see today\'s page; the example pictures; what Publish does then (item 7, cut 5)');
     ok(by.c_dark_01_room.read.previews.some((u) => /[?&]preview=tok-aurora$/.test(u || '')) && by.c_dark_06_style.read.previews.some((u) => /[?&]preview=tok-aurora&style=noir$/.test(u || '')), '2.27 the preview frame loads her site with ?preview=<token>, a style card adds &style=<id> (cut 5)', JSON.stringify(by.c_dark_06_style.read.previews.slice(0, 2)));
     ok(by.c_dark_30_today_main.read.previews.every((u) => !/preview=/.test(u || '')), '2.28 with no token the frame shows today\'s live page, never a guessed parameter');
@@ -210,6 +236,30 @@ function render() {
     const t = by.c_dark_30_today_main.read.text; ok(!/not on the website yet/.test(t) && !/\bPublish\b/.test(t) && /Colours and type/.test(t), '2.25 main as it stands (no draft fields yet): no pending line and no Publish drawn');
     for (const x of res) ok(!/\b\d{1,2}:\d{2}\b(?! ?(am|pm))/.test(x.read.text), `2.26 ${x.name}: no 24-hour time drawn`);
   } finally { devDown(dev); }
+}
+
+// WEB-8 (Basic's one free style): the Basic cells, run in the whole bench and alone under --jobs (e-275 amended)
+function basicCells(res, by) {
+    // WEB-8 (cut 16): Basic now has the room with one free style; the old offer screen is gone
+    { const t = by.c_dark_26_basic.read.text, b = by.c_dark_26_basic.read.basic;
+      ok(!/What Essential adds/.test(t) && /Aurora is in use\./.test(t) && /Your website is at [a-z0-9-]+\.thedreamwedding\.in\. Your own domain is available on Signature\./.test(t) && (t.match(/Available on Essential/g) || []).length >= 2 && b.seePlans >= 2,
+        '2.19 Basic: the room with her one style; client reviews and visitor counts "Available on Essential" with See plans; the address line names Signature (WEB-8, cut 16)', JSON.stringify(b)); }
+    for (const n of ['c_dark_28_basic_style', 'c_light_28_basic_style', 'v2_dark_28_basic_style']) { const f = by[n]; const t = f && f.read.text; const b = f && f.read.basic;
+      ok(f && /Basic has one style at a time\. Having more than one is available on Essential\./.test(t) && /You can change your style once every 30 days\./.test(t) && b.use === 5 && b.clock.length === 0 && b.seePlans >= 1 && !/\bChoose\b/.test(t),
+        `2.40 ${n}: one style at a time, with See plans; five working "Use this style instead"; the 30-day line (ruling a, c)`, JSON.stringify(b)); }
+    for (const n of ['c_dark_29_basic_clock', 'v2_light_29_basic_clock']) { const f = by[n]; const t = f && f.read.text; const b = f && f.read.basic;
+      ok(f && /You changed your style on 6 October\. You can change it again on 5 November\./.test(t) && b.use === 0 && b.clock.length === 5 && b.clock.every((x) => x === 'You can change your style again on 5 November.'),
+        `2.41 ${n}: while her clock runs, the five cards show only the server's date and no control (ruling b)`, JSON.stringify(b)); }
+    { const b = by.c_dark_30_basic_stamp.read.basic;
+      ok(b.locked.filter((x) => x === 'palette: Available on Essential').length === 2 && b.locked.filter((x) => x === 'font: Available on Essential').length === 1,
+        '2.42 Basic colours and type: her style\'s own in use; the other two colour sets and the other pairing say "Available on Essential", no control', JSON.stringify(b.locked)); }
+    { const t = by.c_dark_31_basic_sections.read.text; const b = by.c_dark_31_basic_sections.read.basic;
+      ok(/Client reviews[\s\S]{0,40}Available on Essential/.test(t) && (t.match(/Available on Signature/g) || []).length === 2 && /Available on Prestige/.test(t) && b.disabled.length === 0 && b.seePlans >= 1,
+        '2.43 Basic sections: each locked section names its plan (the server\'s); the footer credit says "Available on Prestige" with See plans and no switch', JSON.stringify(b)); }
+    { const u = by.c_dark_32_basic_use; ok(u && u.calls.some((c) => /^PATCH .*\/site\/settings$/.test(c)), '2.44 Basic: "Use this style instead" writes her draft through the settings door', u && u.calls.join(' ')); }
+    for (const x of res.filter((r) => /basic/.test(r.name))) ok(x.read.basic.disabled.every((d) => /Coming soon/.test(d)), `2.45 ${x.name}: no locked item is a dead control (the only disabled control is the Instagram row's "Coming soon", as on every plan)`, JSON.stringify(x.read.basic.disabled));
+    { let sm = null; try { sm = require(require('path').join(__dirname, '..', '..', 'dream-os', 'src', 'lib', 'site', 'siteModel.js')); } catch (_e) { sm = null; }
+      ok(!!sm && sm.capabilitiesFor('basic').styles === 1 && typeof sm.styleClock === 'function', '2.46 Basic\'s flags, sections and clock in these frames are the server\'s own (../dream-os at cut 16 or later), not written out by hand'); }
 }
 
 function mutate() {

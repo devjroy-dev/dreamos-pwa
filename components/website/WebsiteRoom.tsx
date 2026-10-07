@@ -11,7 +11,7 @@
 // visitors answer is the plan's line, never a zero; no toast carries a result alone.
 import { useCallback, useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { WEB, KIND, SOURCE_NAME, FINISH_NAME, PAIR_NAME, clock, monthYear } from '@/lib/website/copy';
-import { site, direction, previewToken, type Room, type Look, type Testimonial, type Visitors as Vis, type Section } from './client';
+import { site, direction, previewToken, type Room, type Look, type Testimonial, type Visitors as Vis, type Section, type Resolved } from './client';
 // WEB-8 (r2, MERGED): the real pill, FE-5's RoomHeadAdd (the new layout's head draws it); the classic shell has no provider, so it draws addInline.
 import { RoomHeadAdd } from '@/v2/components/worklist/PageHelp';
 import { useSettings } from '@/hooks/vendor/useSettings';
@@ -177,6 +177,10 @@ function Preview({ url, mode, height }: { url: string; mode: 'phone' | 'desktop'
 }
 const withParam = (u: string, k: string, v: string) => `${u}${u.includes('?') ? '&' : '?'}${k}=${encodeURIComponent(v)}`;
 const styleName = (room: Room, id?: string) => room.styles.find((s) => s.id === id)?.label || '';
+// WEB-8 (Basic's one free style): the plan that opens a locked item, as the server names it (cut 16), and a day in words
+const opensOf = (res: Resolved, key: string, fallback: string) => res.can.opens?.[key] || fallback;
+const dayWords = (iso: string | null | undefined) => (iso ? new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' }) : '');
+const SeePlans = () => <a className="wb-sbtn" href="/vendor/billing" data-see-plans="">{WEB.seePlans}</a>;
 
 // ── the room ─────────────────────────────────────────────────────────────────────────────────────
 function RoomPage({ room, res, looks, words, visits, address, preview, go, setSheet, showPrices, justPublished, fresh }: Ctx & { justPublished: string | null; fresh?: boolean }) {
@@ -209,14 +213,18 @@ function RoomPage({ room, res, looks, words, visits, address, preview, go, setSh
       <div className="wb-sect">{WEB.gContent}</div>
       {looks.length === 0 ? <Row l={WEB.firstLook(res.trade?.item || 'look')} d={WEB.firstLookD} onClick={() => go('looks')} />
         : <Row l={WEB.looks(res.trade?.items || 'Looks')} d={WEB.looksD(liveN, draftN)} onClick={() => go('looks')} />}
-      <Row l={KIND} d={waiting || onSite ? WEB.kindWaiting(waiting) : WEB.kindNone} onClick={() => go('kind')} />
+      {res.can.written_testimonials === false
+        ? <Row l={KIND} d={WEB.availableOn(opensOf(res, 'written_testimonials', 'Essential'))} right={<SeePlans />} />
+        : <Row l={KIND} d={waiting || onSite ? WEB.kindWaiting(waiting) : WEB.kindNone} onClick={() => go('kind')} />}
       <Row l={WEB.ig} d={WEB.igD} right={<button type="button" className="wb-soon" disabled>{WEB.soon}</button>} />
       <div className="wb-sect">{WEB.gResults}</div>
-      <Row l={WEB.visitors} d={!live ? WEB.visitorsNew : visits === null ? WEB.vLocked : visits ? WEB.visitorsD(visits.visitors) : undefined} onClick={() => go('visitors')} />
+      {res.can.visitor_counts === false
+        ? <Row l={WEB.visitors} d={WEB.availableOn(opensOf(res, 'visitor_counts', 'Essential'))} right={<SeePlans />} />
+        : <Row l={WEB.visitors} d={!live ? WEB.visitorsNew : visits === null ? WEB.vLocked : visits ? WEB.visitorsD(visits.visitors) : undefined} onClick={() => go('visitors')} />}
       <Row l={WEB.prices} d={showPrices ? WEB.pricesOn : WEB.pricesOff} onClick={() => go('prices')} />
       <div className="wb-sect">{WEB.gAddr}</div>
       <Row l={WEB.fix} d={WEB.fixD(fixN)} onClick={() => go('fix')} />
-      <Row l={WEB.addr} d={address} onClick={() => go('address')} />
+      <Row l={WEB.addr} d={res.can.own_domain === false && address ? WEB.addrBasic(address, opensOf(res, 'own_domain', 'Signature')) : address} onClick={() => go('address')} />
       <Row l={WEB.seo} onClick={() => go('google')} />
     </>
   );
@@ -230,6 +238,30 @@ function StylePage({ room, res, preview, write, back, sheet, setSheet }: Ctx) {
   const [pick, setPick] = useState('');
   const [picks, setPicks] = useState<string[]>(open);
   const swap = typeof sheet === 'object' && sheet && 'swap' in sheet ? sheet.swap : null;
+  // WEB-8 (CE-47 ruling a, b, c): Basic holds one style; any other replaces it in her draft, once every 30 days once published
+  if (of === 1) {
+    const clock = room.style_clock; const locked = !!clock?.locked; const next = clock?.next_change_words || dayWords(clock?.next_change_on);
+    return (
+      <>
+        <Head t={WEB.style} back={back} />
+        <div className="wb-row" data-basic-one-style=""><span className="wb-rt"><span className="wb-rd">{WEB.basicOneAtATime(opensOf(res, 'more_styles', 'Essential'))}</span></span><SeePlans /></div>
+        <p className="wb-note" data-style-clock="">{locked && clock?.last_changed_on ? WEB.clockChanged(dayWords(clock.last_changed_on), next) : WEB.clockEvery}</p>
+        <div className="wb-grid">
+          {ids.map((k) => { const inUse = k === use;
+            return (
+              <div key={k} className={'wb-card' + (inUse ? ' inuse' : '')} data-style={k}>
+                <Preview url={preview ? withParam(preview, 'style', k) : ''} mode="phone" height={250} />
+                <div className="wb-cb"><span className="wb-cn">{styleName(room, k)}</span>
+                  {inUse ? <span className="wb-tag acc">{WEB.inUse}</span>
+                    : locked ? <span className="wb-tag" data-clock-line="">{WEB.clockAgain(next)}</span>
+                      : <button className="wb-sbtn" data-use-instead="" onClick={() => void write(() => site.settings({ style: k }))}>{WEB.useInstead}</button>}
+                </div>
+              </div>);
+          })}
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <Head t={WEB.style} back={back} />
@@ -285,6 +317,8 @@ function StampPage({ room, res, preview, write, back }: Ctx) {
       <p className="wb-note">{WEB.palD(name)}</p>
       <div className="wb-pals" role="radiogroup">
         {(st?.palettes || []).map((p) => { const on = res.palette?.id === p.id && !res.palette?.custom;
+          // WEB-8 (Basic): her style's own colours are in use; the others name the plan that opens them, with no control
+          if (res.can.palettes === false && !on) return <div key={p.id} className="wb-pal locked" data-locked="palette">{p.swatch && <span className="wb-sw">{p.swatch.map((x, i) => <i key={i} style={{ background: x }} />)}</span>}<span>{p.label}</span><span className="wb-rd">{WEB.availableOn(opensOf(res, 'palettes', 'Essential'))}</span></div>;
           return <button key={p.id} type="button" role="radio" aria-checked={on} className={'wb-pal' + (on ? ' on' : '')} onClick={() => set({ palette_id: p.id, palette_custom: {} })}>
             {p.swatch && <span className="wb-sw">{p.swatch.map((x, i) => <i key={i} style={{ background: x }} />)}</span>}<span>{p.label}</span></button>; })}
       </div>
@@ -296,6 +330,7 @@ function StampPage({ room, res, preview, write, back }: Ctx) {
       <div className="wb-sect">{WEB.type}</div>
       <p className="wb-note">{WEB.typeD(name)}</p>
       <div role="radiogroup">{(st?.pairs || []).map((id) => { const [d, t] = PAIR_NAME[id] || [id, '']; const on = res.font_pair?.id === id;
+        if (res.can.font_pairs === false && !on) return <div key={id} className="wb-pair locked" data-locked="font"><span><span className="s1" style={{ fontFamily: `"${d}", serif` }}>{res.site_name || name}</span><span className="s2">{d} · {t}</span></span><span className="wb-rd">{WEB.availableOn(opensOf(res, 'font_pairs', 'Essential'))}</span></div>;
         return (<button key={id} type="button" role="radio" aria-checked={on} className="wb-pair" onClick={() => set({ font_pair: id })}>
           <span><span className="s1" style={{ fontFamily: `"${d}", serif` }}>{res.site_name || name}</span><span className="s2">{d} · {t}</span></span><span className={'wb-radio' + (on ? ' on' : '')} /></button>); })}</div>
       <div className="wb-sect">{WEB.motion}</div>
@@ -348,15 +383,17 @@ function SectionsPage({ res, write, back }: Ctx) {
           return (
             <div key={x.key} className="wb-srow" data-reorder-row="" data-section={x.key}>
               <span className="wb-grip" onPointerDown={movable(x) ? r.onGrip(i) : undefined} aria-hidden="true">{movable(x) ? '⋮⋮' : ''}</span>
-              <span className="wb-rt"><span className={'wb-rl' + (!x.allowed || !x.shown ? ' mute' : '')}>{nm}</span>{!x.allowed && <span className="wb-rd">{WEB.onSignature}</span>}</span>
+              <span className="wb-rt"><span className={'wb-rl' + (!x.allowed || !x.shown ? ' mute' : '')}>{nm}</span>{!x.allowed && <span className="wb-rd">{WEB.availableOn(x.opens || 'Signature')}</span>}</span>
               {pinned ? <span className="wb-fixed">{pinned === 'first' ? WEB.alwaysFirst : WEB.alwaysLast}</span>
                 : x.allowed ? <><span className="wb-arw"><button type="button" aria-label={`${WEB.up}: ${nm}`} disabled={i === 0 || !movable(r.list[i - 1])} onClick={() => r.move(i, -1)}>▲</button><button type="button" aria-label={`${WEB.down}: ${nm}`} disabled={i === r.list.length - 1 || !movable(r.list[i + 1])} onClick={() => r.move(i, 1)}>▼</button></span>
                   <Toggle on={x.shown} label={`${WEB.show}: ${nm}`} disabled={x.key === 'enquire'} onChange={(v) => void write(() => put(r.list, { [x.key]: v }))} /></> : <span />}
             </div>);
         })}
       </div>
-      <Row l={WEB.credit} d={res.can.credit_removable ? WEB.creditOpen : WEB.creditLocked}
-        right={<Toggle on={res.credit} label={WEB.credit} disabled={!res.can.credit_removable} onChange={(v) => void write(() => site.settings({ credit_shown: v }))} />} />
+      {/* WEB-8 (Basic): a locked item is never a control; it names the plan that opens it */}
+      {res.can.credit_removable
+        ? <Row l={WEB.credit} d={WEB.creditOpen} right={<Toggle on={res.credit} label={WEB.credit} onChange={(v) => void write(() => site.settings({ credit_shown: v }))} />} />
+        : <Row l={WEB.credit} d={WEB.availableOn(opensOf(res, 'credit_removable', 'Prestige'))} right={<SeePlans />} />}
     </>
   );
 }
@@ -600,6 +637,7 @@ const CSS = `
 .wb-sbtn[disabled]{color:var(--atelier-ink-fade);border-style:dashed;border-color:var(--atelier-card-border)}
 .wb-pals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
 .wb-pal{border:.5px solid var(--atelier-card-border);border-radius:3px;padding:8px;background:transparent;text-align:left;display:flex;flex-direction:column;gap:6px;color:inherit}
+.wb-pal.locked .wb-sw,.wb-pair.locked .s1{opacity:.55}.wb-pal.locked,.wb-pair.locked{cursor:default}
 .wb-pal.on{border-color:var(--atelier-accent-text);box-shadow:0 0 0 1px var(--atelier-accent-text) inset}
 .wb-sw{display:flex;height:34px;border-radius:2px;overflow:hidden}.wb-sw i{flex:1}
 .wb-pal span{font:var(--wl-t5);color:var(--atelier-ink-soft)}

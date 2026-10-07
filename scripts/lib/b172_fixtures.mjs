@@ -20,11 +20,35 @@ const FIN = { couture: [['square'], ['solid_ink', 'outline'], ['clean']], noir: 
 const finish = () => Object.fromEntries(Object.entries(FIN).map(([s, [c, b, t]]) => [s, { corners: c, buttons: b, textures: t }]));
 const KEYS = ['cover', 'looks', 'collections', 'band', 'reviews', 'pricing', 'studio', 'journal', 'faq', 'enquire'];
 const sections = (plan) => KEYS.map((key) => ({ key, custom: false, allowed: plan === 'essential' ? !['collections', 'journal'].includes(key) : true, shown: key !== 'journal', variant: 'default', eyebrow: null, heading: null, body: {} }));
+// WEB-8 (Basic's one free style, WEB-4 cut 16): Basic's flags, sections and clock are read from the server's own rules
+// (../dream-os, beside this checkout, as the app's benches already read it); without it, the same answers written out.
+import { createRequire } from 'module'; import fs from 'fs'; import path from 'path'; import { fileURLToPath } from 'url';
+const SERVER = (() => { try { const p = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../../dream-os/src/lib/site/siteModel.js'); return fs.existsSync(p) ? createRequire(import.meta.url)(p) : null; } catch { return null; } })();
+const BASIC_CAN = SERVER ? SERVER.capabilitiesFor('basic') : { styles: 1, palettes: false, font_pairs: false, custom_palette: false, gradients: false, collections: false, journal: false, custom_sections: false, custom_pages: false, full_order: false, credit_removable: false, written_testimonials: false, video_testimonials: false, live_booking: false, own_voice: false, visitor_counts: false, visitor_sources: false, visitor_saves: false, own_domain: false, built_from_instagram: true,
+  opens: { palettes: 'Essential', font_pairs: 'Essential', custom_palette: 'Signature', gradients: 'Prestige', collections: 'Signature', journal: 'Signature', custom_sections: 'Signature', custom_pages: 'Prestige', full_order: 'Prestige', credit_removable: 'Prestige', written_testimonials: 'Essential', video_testimonials: 'Signature', live_booking: 'Signature', own_voice: 'Prestige', visitor_counts: 'Essential', visitor_sources: 'Signature', visitor_saves: 'Prestige', own_domain: 'Signature', more_styles: 'Essential' } };
+const BASIC_OPENS = { reviews: 'Essential', collections: 'Signature', journal: 'Signature' };
+const basicSections = () => (SERVER ? SERVER.sectionsFor('basic', []) : KEYS.map((key) => ({ key, custom: false, allowed: !(key in BASIC_OPENS), shown: !(key in BASIC_OPENS), opens: BASIC_OPENS[key] || null })))
+  .filter((s) => !s.custom).map((s) => ({ key: s.key, custom: false, allowed: s.allowed, shown: s.shown, opens: s.opens || null, variant: 'default', eyebrow: null, heading: null, body: {} }));
+// her clock: 'free' (published, never changed), 'locked' (changed on 6 October 2026, next on 5 November)
+const CHANGED = Date.parse('2026-10-06T05:00:00Z');
+const basicClock = (state) => (SERVER ? SERVER.styleClock('basic', state === 'locked' ? { style_changed_at: new Date(CHANGED).toISOString() } : {}, CHANGED + 86400000)
+  : state === 'locked' ? { last_changed_on: '2026-10-06', next_change_on: '2026-11-05', next_change_words: '5 November', locked: true } : { last_changed_on: null, next_change_on: null, next_change_words: null, locked: false });
+export const BASIC_FROM_SERVER = !!SERVER;
+
 // cut 5's changesOf: area is 'settings' | 'sections' | 'pages'; the lines are the server's words (SETTING_LINES, SECTION_LABELS)
 const CHANGES = [{ area: 'settings', line: 'Colours changed' }, { area: 'settings', line: 'Styles you picked changed' }, { area: 'sections', line: 'Client reviews section changed' }];
 
 export function room(plan, opt = {}) {
-  if (plan === 'basic') return { ok: true, room: { stored: {}, resolved: { v: 'classic', credit: true, can: { ...CAN.essential, styles: 0 }, site_name: 'Studio Ivara', monogram: 'SI', look: 'quiet', pages: ['home', 'contact'] }, styles: STYLES, finish: finish(), to_fix: { packages_below_starting_price: [] } } };
+  if (plan === 'basic_classic') return { ok: true, room: { stored: {}, resolved: { v: 'classic', credit: true, can: { ...CAN.essential, styles: 0 }, site_name: 'Studio Ivara', monogram: 'SI', look: 'quiet', pages: ['home', 'contact'] }, styles: STYLES, finish: finish(), to_fix: { packages_below_starting_price: [] } } };
+  // WEB-8 (cut 16): Basic has the room with one style, published; 'basic_locked' changed her style on 6 October
+  if (plan === 'basic' || plan === 'basic_locked') return { ok: true, room: { stored: { style: 'aurora' },
+    resolved: { v: 'styles', credit: true, can: BASIC_CAN, site_name: 'Studio Ivara', monogram: 'SI', style: 'aurora', styles_open: [],
+      palette: { id: 'aurora.blush', custom: false, roles: { accent: '#f0a07c' }, extras: {}, moved: [] },
+      font_pair: { id: 'fraunces_jakarta', display: 'Fraunces', text: 'Plus Jakarta Sans', offered: ['fraunces_jakarta'] },
+      motion: 'lively', corners: 'rounded', buttons: 'glow_pill', texture: 'none', cover_mode: 'slideshow', sections: basicSections(), trade: { items: 'Looks', item: 'look', request: 'Request this look' } },
+    styles: STYLES, finish: finish(), to_fix: { packages_below_starting_price: [] },
+    changes: { count: 0, list: [], published_at: '2026-10-06T05:00:00Z' }, is_live: true, preview: { token: 'p'.repeat(32), expires_at: '2026-10-06T06:00:00Z' },
+    style_clock: basicClock(plan === 'basic_locked' ? 'locked' : 'free') } };
   const fresh = plan === 'new'; const p = fresh ? 'signature' : plan;
   const open = p === 'prestige' ? ['couture', 'noir', 'heritage', 'aurora', 'gallery', 'riviera'] : p === 'signature' ? ['aurora', 'couture', 'gallery', 'riviera'] : ['aurora', 'couture'];
   const r = {
