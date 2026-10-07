@@ -79,11 +79,15 @@ async function main() {
   await glass(g);
   if (!process.argv.includes('--no-mutate')) {
     sec('3 MUTATIONS');
+    { const bad = K.anchorsClean([{ name: 'M1', rel: ROWS, from: '-webkit-line-clamp:2', to: '-webkit-line-clamp:3' }, { name: 'M2', rel: 'v2/lib/worklist/referrals.ts', from: "exchangeLine: 'Influencers, and the requests you send them',", to: "exchangeLine: 'Influencers, and the requests you send them, with their cities" }]);   // e-277
+      if (bad.length) { console.log('STOP e-277: a mutation anchor is not clean:\n  ' + bad.join('\n  ')); process.exit(1); } }
     await K.mutate(ok, 'M1 the clamp raised to three', ROWS, '-webkit-line-clamp:2', '-webkit-line-clamp:3', async () => source((c) => !!c, () => {}));
     const long = "exchangeLine: 'Influencers, and the requests you send them, with their cities, their ages, their audiences and every date you asked for',";
     const quiet = { ok: (c) => c, sec: () => {} };
+    const roomM2 = ROOMS.find((r) => r.name === 'Referrals & partners');
+    const watch = await K.watchReload(g, roomM2.url);   // e-275: the reload heard, not guessed
     await K.mutate(ok, 'M2 a fact that needs a third line, in Referrals', 'v2/lib/worklist/referrals.ts', "exchangeLine: 'Influencers, and the requests you send them',", long, async () => {
-      await new Promise((r) => setTimeout(r, 2500));   // the dev server's reload
+      const rl = await watch.done(); await watch.close(); if (rl.timedOut) console.log('  note  M2: no refresh heard within 30 s');
       const m = await capOn(g, ROOMS.find((r) => r.name === 'Referrals & partners'), 360);
       void quiet; return Array.isArray(m) && m.every((x) => x.lines <= 2 && !x.clipped);
     });
@@ -94,7 +98,7 @@ async function main() {
 async function end() {
   sec('4 NOTHING LEFT');
   const portFree = await K.stopGlass();
-  await new Promise((r) => setTimeout(r, 800));
+  for (const t0 = Date.now(); K.leftovers().length && Date.now() - t0 < 15000;) await new Promise((r) => setTimeout(r, 200));   // e-275: until nothing is left, bounded
   const left = K.leftovers();
   ok(portFree, `4.1 port ${PORT} is free`);
   ok(left.length === 0, '4.2 nothing this run started is still running', left.join(' | '));

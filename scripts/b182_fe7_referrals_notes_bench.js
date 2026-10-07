@@ -22,7 +22,7 @@ async function referrals(g, follow) {
   const r = { rows: await rowsOf(p), ws: await K.words(p), heads: await p.evaluate(() => [...document.querySelectorAll('.fr-h')].map((h) => h.textContent.trim())),
     facts: await p.evaluate(() => [...document.querySelectorAll('.wl-main .rp-facts .rp-row, .wl-main .rp-fact')].map((e) => e.textContent.replace(/\s+/g, ' ').trim())),
     broken: await p.evaluate(() => /couldn.t load/.test(document.body.innerText)) };
-  if (follow) { await K.tap(p, 'Influencer exchange'); await new Promise((q) => setTimeout(q, 1500)); r.went = p.url(); }
+  if (follow) { await K.tap(p, 'Influencer exchange'); { const from = p.url(); await K.waitUrl(p, (u) => u !== from); } r.went = p.url(); }   // e-275: the navigation itself
   await p.close(); return r;
 }
 async function notes(g) {
@@ -30,14 +30,14 @@ async function notes(g) {
   const r = { rows: await rowsOf(p),
     clamp: await p.evaluate(() => [...document.querySelectorAll('.fr-row .fr-t')].map((el) => { const lh = parseFloat(getComputedStyle(el).lineHeight) || 20; return Math.round(el.getBoundingClientRect().height / lh); })),
     pill: await p.evaluate(() => { const b = document.querySelector('[data-add-key="note"]'); if (!b) return null; return { text: b.textContent.trim(), h: Math.round(b.getBoundingClientRect().height), tap44: b.hasAttribute('data-tap44') }; }) };
-  await K.tap(p, 'Aanya wants'); await new Promise((q) => setTimeout(q, 700));
+  await K.tap(p, 'Aanya wants');   // e-275: tap settles
   const before = p.posted.length;
   r.lastBtn = await p.evaluate(() => { const bs = [...document.querySelectorAll('button')].filter((b) => b.offsetParent && /Send to chat|Delete/.test(b.textContent)); return bs.map((b) => b.textContent.trim()).join('|'); });
   await K.tap(p, 'Delete'); r.asked = await K.words(p, 'body'); r.afterOne = p.posted.length - before;
-  await K.tap(p, '@.rp-job.warn'); await new Promise((q) => setTimeout(q, 800)); r.afterTwo = p.posted.length - before;
+  await K.tap(p, '@.rp-job.warn'); r.afterTwo = p.posted.length - before;   // e-275: tap settles
   await p.close();
   const q = await K.open(g, '/vendor/notes', { wait: '.fr-row .fr-f' });
-  await K.tap(q, '@[data-add-key="note"]'); await new Promise((s) => setTimeout(s, 600));
+  await K.tap(q, '@[data-add-key="note"]');   // e-275: tap settles
   r.placeholder = await q.evaluate(() => { const t = document.querySelector('textarea'); return t ? t.getAttribute('placeholder') : null; });
   await q.close(); return r;
 }

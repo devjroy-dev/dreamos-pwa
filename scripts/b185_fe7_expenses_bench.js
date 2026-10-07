@@ -19,8 +19,8 @@ async function room(g) {
   r.head = await p.evaluate(() => (document.querySelector('.fr-h') || {}).textContent || '');
   r.words = await K.words(p);
   r.rows = await p.evaluate(() => [...document.querySelectorAll('.fr-row')].map((e) => ({ t: (e.querySelector('.fr-t') || {}).textContent, f: (e.querySelector('.fr-f') || {}).textContent, v: (e.querySelector('.fr-v') || {}).textContent })));
-  await K.tap(p, '@[data-add-key="expense"]'); await new Promise((q) => setTimeout(q, 800));
-  await K.tap(p, 'All details'); await new Promise((q) => setTimeout(q, 500));   // AddSheet keeps its Date under "All details"
+  await K.tap(p, '@[data-add-key="expense"]');   // e-275: tap settles
+  await K.tap(p, 'All details');   // e-275: tap settles;   // AddSheet keeps its Date under "All details"
   r.dateWords = await p.evaluate(() => [...document.querySelectorAll('[data-date-words]')].map((e) => e.textContent.trim()));
   await p.close();
   const q = await K.open(g, '/vendor/expenses', { wait: '.fr-row .fr-f' });
@@ -29,7 +29,7 @@ async function room(g) {
   r.last = await q.evaluate(() => { const bs = [...document.querySelectorAll('.fr-room button')].filter((b) => b.offsetParent); return bs.map((b) => b.textContent.trim()).slice(-2).join('|'); });
   const before = q.posted.length;
   await K.tap(q, '@.fr-quiet'); r.asked = await K.words(q, '.fr-room'); r.afterOne = q.posted.length - before;
-  await K.tap(q, '@.ex-ask .rp-job.warn'); await new Promise((z) => setTimeout(z, 800)); r.afterTwo = q.posted.length - before;
+  await K.tap(q, '@.ex-ask .rp-job.warn'); r.afterTwo = q.posted.length - before;   // e-275: tap settles
   await q.close(); return r;
 }
 K.runBench({

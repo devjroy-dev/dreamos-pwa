@@ -1,0 +1,21 @@
+# scripts/floor-manifest-ce47-ads2-kit.txt
+# CE-47 · ADS-2 · e-275: THE FE-7 KIT WAITS ON THE THING ITSELF, BOUNDED (scripts only). BASE: a32fbf4e (app train 2).
+# scripts/lib/fe7_l4_kit.js (settle, waitFor, waitUrl, watchReload; the end bounded); the eleven FE-7 benches' 20 fixed
+# pauses removed or made waits (no assertion changed, no threshold moved); b257 (the kit's self-test); b206 section 10
+# (--affected then --resume end to end on a fixture). No new folder. F-19.16: a dirty path outside this list is a STOP.
+scripts/lib/fe7_l4_kit.js
+scripts/b257_ce47_kit_waits_bench.js
+scripts/b206_ce47_floor_affected_bench.mjs
+scripts/b177_fe7_room_rows_bench.js
+scripts/b178_fe7_dates_introductions_bench.js
+scripts/b179_fe7_exchange_bench.js
+scripts/b180_fe7_wedding_pages_bench.js
+scripts/b181_fe7_reviews_advisor_solutions_bench.js
+scripts/b182_fe7_referrals_notes_bench.js
+scripts/b183_fe7_onboarding_bench.js
+scripts/b184_fe7_help_cards_bench.js
+scripts/b185_fe7_expenses_bench.js
+scripts/b186_fe7_tds_bench.js
+scripts/b189_fe7_settings_bench.js
+docs/handovers/TDW_CE47_ADS2_KIT_HANDOVER.md
+scripts/floor-manifest-ce47-ads2-kit.txt

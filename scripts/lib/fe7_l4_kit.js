@@ -60,11 +60,32 @@ async function startGlass(port) {
   RUN.browser = browser; RUN.bpid = browser.process() ? browser.process().pid : null; if (RUN.bpid) RUN.pids.add(RUN.bpid);
   return { server, browser, port };
 }
+/** Every descendant of these pids, read from /proc by parent (e-275: teardown waits for the whole tree, not one group). */
+function descendants(roots) {
+  const kids = new Map();
+  for (const d of (() => { try { return fs.readdirSync('/proc'); } catch (_e) { return []; } })()) {
+    if (!/^\d+$/.test(d)) continue;
+    try { const st = fs.readFileSync(`/proc/${d}/stat`, 'utf8'); const ppid = Number(st.slice(st.lastIndexOf(')') + 2).split(' ')[1]); if (!kids.has(ppid)) kids.set(ppid, []); kids.get(ppid).push(Number(d)); } catch (_e) { /* gone */ }
+  }
+  const out = new Set(); const stack = roots.filter(Boolean).map(Number);
+  while (stack.length) { const p = stack.pop(); if (out.has(p)) continue; out.add(p); for (const k of kids.get(p) || []) stack.push(k); }
+  return [...out];
+}
+const alive = (pid) => { try { process.kill(pid, 0); const st = fs.readFileSync(`/proc/${pid}/stat`, 'utf8'); return !/^\S+ \(.*\) Z /.test(st); } catch (_e) { return false; } };
 async function stopGlass() {
+  const tree = descendants([RUN.bpid, RUN.server && RUN.server.dev && RUN.server.dev.pid]);   // e-275: taken BEFORE stopping
   if (RUN.browser) { try { await RUN.browser.close(); } catch (_e) { /* closed */ } }
+  // e-275: let chromium collect its own children before its tree is stopped; a child killed first is left a zombie
+  // that a container's PID 1 may never collect. Bounded at 5 s; gone means no /proc entry at all, zombie or not.
+  { const kids = tree.filter((pid) => pid !== RUN.bpid && pid !== (RUN.server && RUN.server.dev && RUN.server.dev.pid));
+    const exists = (pid) => fs.existsSync(`/proc/${pid}`);
+    for (const t0 = Date.now(); RUN.bpid && kids.some((pid) => exists(pid) && descendants([RUN.bpid]).includes(pid)) && Date.now() - t0 < 5000;) await tick(100); }
   if (RUN.bpid) { try { stopTree(RUN.bpid); } catch (_e) { /* gone */ } RUN.bpid = null; }
   let portFree = true;
   if (RUN.server) { const r = await RUN.server.stop(); portFree = r.portFree; try { stopTree(RUN.server.dev.pid); } catch (_e) { /* gone */ } RUN.server.treeStopped = true; }
+  // e-275, bounded teardown: wait until the whole tree is gone, at most 15 s; past it, kill what is left.
+  for (const t0 = Date.now(); tree.some(alive) && Date.now() - t0 < 15000;) await tick(100);
+  for (const pid of tree.filter(alive)) { try { process.kill(pid, 'SIGKILL'); } catch (_e) { /* gone */ } }
   return portFree;
 }
 /** Every process this run started that is still alive: its dev server's group and chromium's tree. */
@@ -90,6 +111,97 @@ function faceCss() {
 }
 
 /** Open a route at a width, in a theme, with a scenario's answers. Returns the page, with .found and .waited. */
+// ── e-275 (CE-47 ADS-2): WAIT ON THE THING ITSELF, BOUNDED. No fixed pause decides a cell any more. Each wait returns
+// { ms, timedOut } and never throws; a timeout is a fact the cell may report, not a pass.
+const tick = (ms) => new Promise((r) => setTimeout(r, ms));
+/** Count every request a page makes, and stamp DOM changes, so settle() can see quiet. Called by open(); exported for b257. */
+async function instrument(p) {
+  p.inflight = 0; p.lastNet = Date.now();
+  p.on('request', () => { p.inflight++; p.lastNet = Date.now(); });
+  const done = () => { p.inflight = Math.max(0, p.inflight - 1); p.lastNet = Date.now(); };
+  p.on('requestfinished', done); p.on('requestfailed', done);
+  await p.evaluateOnNewDocument(() => {
+    window.__tdwLastMut = Date.now();
+    const arm = () => new MutationObserver(() => { window.__tdwLastMut = Date.now(); }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, characterData: true });
+    if (document.documentElement) arm(); else document.addEventListener('DOMContentLoaded', arm);
+  });
+}
+/** The page is quiet: no request in flight and no DOM change for `quiet` ms. Capped at `max`. */
+async function settle(p, { quiet = 300, max = 8000 } = {}) {
+  const t0 = Date.now();
+  for (;;) {
+    const lastMut = await p.evaluate(() => window.__tdwLastMut || 0).catch(() => 0);
+    const now = Date.now();
+    if ((p.inflight || 0) === 0 && now - (p.lastNet || 0) >= quiet && now - lastMut >= quiet) return { ms: now - t0, timedOut: false };
+    if (now - t0 >= max) return { ms: now - t0, timedOut: true };
+    await tick(50);
+  }
+}
+/** An element matching `sel` is on the page. Capped at `max`. */
+async function waitFor(p, sel, max = 8000) {
+  const t0 = Date.now();
+  for (;;) {
+    if (await p.evaluate((x) => !!document.querySelector(x), sel).catch(() => false)) return { ms: Date.now() - t0, timedOut: false };
+    if (Date.now() - t0 >= max) return { ms: Date.now() - t0, timedOut: true };
+    await tick(50);
+  }
+}
+/** The page's URL satisfies `pred(url)`. Capped at `max`. */
+async function waitUrl(p, pred, max = 8000) {
+  const t0 = Date.now();
+  for (;;) {
+    if (pred(p.url())) return { ms: Date.now() - t0, timedOut: false };
+    if (Date.now() - t0 >= max) return { ms: Date.now() - t0, timedOut: true };
+    await tick(50);
+  }
+}
+/** The dev server's log: its length now (a mark), and its quiet. */
+function logMark(log = dev.LOG) { try { return fs.statSync(log).size; } catch (_e) { return 0; } }
+async function logQuiet(log = dev.LOG, { quiet = 500, max = 15000 } = {}) {
+  const t0 = Date.now(); let size = logMark(log); let since = Date.now();
+  for (;;) {
+    await tick(100); const now = logMark(log);
+    if (now !== size) { size = now; since = Date.now(); }
+    if (Date.now() - since >= quiet) return { ms: Date.now() - t0, timedOut: false };
+    if (Date.now() - t0 >= max) return { ms: Date.now() - t0, timedOut: true };
+  }
+}
+/**
+ * THE RELOAD ITSELF (this dev server logs nothing on a file change; Next's own client does): a watcher page open on the
+ * room BEFORE the write hears "[Fast Refresh] done" (or a full reload) after it. watchReload(g, url) -> { done(max), close() }.
+ */
+async function watchReload(g, url) {
+  const w = await g.browser.newPage(); let heard = 0; let armed = false;
+  w.on('console', (m) => { if (armed && /\[Fast Refresh\] done|\[HMR\] connected|full reload/i.test(m.text())) heard++; });
+  w.on('load', () => { if (armed) heard++; });
+  await w.goto(`http://localhost:${g.port}${url}`, { waitUntil: 'domcontentloaded', timeout: 180000 }).catch(() => {});
+  await tick(300); armed = true;
+  return {
+    async done(max = 30000) { const t0 = Date.now(); while (!heard && Date.now() - t0 < max) await tick(100); return { ms: Date.now() - t0, timedOut: !heard }; },
+    async close() { await w.close().catch(() => {}); },
+  };
+}
+/** After a mutation's write: the dev server's next "Compiled" line past `mark` (for servers that log one). Capped at `max`. */
+async function reloaded(mark, log = dev.LOG, max = 30000) {
+  const t0 = Date.now();
+  for (;;) {
+    let tail = ''; try { const fd = fs.openSync(log, 'r'); const size = fs.fstatSync(fd).size; if (size > mark) { const b = Buffer.alloc(size - mark); fs.readSync(fd, b, 0, b.length, mark); tail = b.toString('utf8'); } fs.closeSync(fd); } catch (_e) { tail = ''; }
+    if (/\bCompiled\b/.test(tail)) return { ms: Date.now() - t0, timedOut: false };
+    if (Date.now() - t0 >= max) return { ms: Date.now() - t0, timedOut: true };
+    await tick(100);
+  }
+}
+/** e-277: before the first cell, every mutation's anchor is in its file exactly once and its planted text is absent;
+ *  a planted text already present means a mutation was left applied: STOP, naming the file. Pure over a reader. */
+function anchorsClean(muts, readFile = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8')) {
+  const bad = [];
+  for (const m of muts || []) {
+    let src = ''; try { src = readFile(m.rel); } catch (e) { bad.push(`${m.rel}: unreadable`); continue; }
+    if (src.split(m.from).length - 1 !== 1) bad.push(`${m.rel}: the anchor of "${m.name}" is not there exactly once`);
+    if (m.to && !m.from.includes(m.to) && src.includes(m.to)) bad.push(`${m.rel}: "${m.name}" is already planted`);
+  }
+  return bad;
+}
 async function open(g, url, o = {}) {
   const p = await g.browser.newPage();
   await p.setViewport({ width: o.width || 374, height: o.height || 812, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
@@ -100,6 +212,7 @@ async function open(g, url, o = {}) {
   const css = faceCss(); if (css) await p.evaluateOnNewDocument((c) => { document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = c; document.head.appendChild(s); }); }, css);
   const posted = []; p.posted = posted; const asked = []; p.asked = asked;
   // As the harness does: bypass the PWA's service worker, or it answers the room's reads before interception sees them.
+  await instrument(p);
   const cdp = await p.createCDPSession(); await cdp.send('Network.enable'); await cdp.send('Network.setBypassServiceWorker', { bypass: true });
   await p.setRequestInterception(true);
   p.on('request', (r) => {
@@ -116,7 +229,7 @@ async function open(g, url, o = {}) {
   const seen = () => p.evaluate((s) => !!document.querySelector(s), want).catch(() => false);
   while (Date.now() < until && !(await seen())) await new Promise((r) => setTimeout(r, 400));
   p.found = await seen(); p.waited = Date.now() - t0;
-  await new Promise((r) => setTimeout(r, o.settle || 900));
+  p.settled = await settle(p, { max: Math.max(8000, o.settle || 0) });   // e-275: quiet, not a fixed pause
   return p;
 }
 /** Click the first button or link whose text starts with `t` (or matches a CSS selector when `t` starts with '@'). */
@@ -125,7 +238,7 @@ async function tap(p, t) {
     const el = s[0] === '@' ? document.querySelector(s.slice(1)) : [...document.querySelectorAll('button,a,[role=button]')].find((x) => x.textContent.trim().startsWith(s));
     if (!el) return false; el.click(); return true;
   }, t).catch(() => false);
-  await new Promise((r) => setTimeout(r, 700));
+  p.settled = await settle(p);   // e-275: quiet, not 700 ms
   return done;
 }
 /**
@@ -189,11 +302,13 @@ async function warm(g, urls) {
  * spec: { tag, port, urls, source(ok, sec), glass(g, ok, sec), mutations: [{ name, rel, from, to, cell: async (g) => bool }] }
  */
 async function runBench(spec) {
+  { const bad = anchorsClean(spec.mutations); if (bad.length) { console.log('STOP e-277: a mutation anchor is not clean before the first cell:\n  ' + bad.join('\n  ')); process.exit(1); } }
   const T = tally(spec.tag); const { ok, sec } = T;
   const quiet = (c) => !!c; const nosec = () => {};
   const end = async () => {
     sec('9 NOTHING LEFT');
-    const portFree = await stopGlass(); await new Promise((r) => setTimeout(r, 800));
+    const portFree = await stopGlass();
+    for (const t0 = Date.now(); leftovers().length && Date.now() - t0 < 15000;) await tick(200);   // e-275: until nothing is left, bounded
     const left = leftovers();
     ok(portFree, `9.1 port ${spec.port} is free`);
     ok(left.length === 0, '9.2 nothing this run started is still running', left.join(' | '));
@@ -210,8 +325,9 @@ async function runBench(spec) {
     if (!process.argv.includes('--no-mutate') && spec.mutations && spec.mutations.length) {
       sec('8 MUTATIONS');
       for (const m of spec.mutations) {
+        const watch = m.glass ? await watchReload(g, (spec.urls || ['/'])[0]) : null;   // e-275: heard, not guessed
         await mutate(ok, m.name, m.rel, m.from, m.to, async () => {
-          if (m.glass) await new Promise((r) => setTimeout(r, 2500));   // the dev server's reload
+          if (watch) { const r = await watch.done(); await watch.close(); if (r.timedOut) console.log(`  note  ${m.name}: no refresh heard within 30 s`); }   // e-275: the reload itself
           return m.cell(g, quiet, nosec);
         });
       }
@@ -238,7 +354,7 @@ async function roomChecks(g, url, width, o = {}) {
     .map((e) => `${(e.innerText || e.getAttribute('aria-label') || e.tagName).trim().slice(0, 30)} (${Math.round(e.getBoundingClientRect().height)})`)).catch(() => ['?']);
   r.q = await p.evaluate(() => document.querySelectorAll('.wl-roomhead .wl-helpq').length).catch(() => 0);
   r.screen = await p.evaluate(() => [...document.querySelectorAll('.wl-main button, .wl-main a, .wl-main .fr-t, .wl-main [role=switch]')].map((e) => (e.innerText || e.getAttribute('aria-label') || '').trim())).catch(() => []);
-  await tap(p, '@.wl-roomhead .wl-helpq'); await new Promise((q) => setTimeout(q, 600));
+  await tap(p, '@.wl-roomhead .wl-helpq'); await waitFor(p, '.wl-helpcard', 5000);   // e-275: the card itself
   r.card = await p.evaluate(() => { const c = document.querySelector('.wl-helpcard'); if (!c) return null; return { lines: c.querySelectorAll('.wl-helpdo li').length, fits: c.scrollHeight <= c.clientHeight + 1, text: c.innerText }; }).catch(() => null);
   await p.close();
   return r;
@@ -273,4 +389,4 @@ async function standing(g, ok, room, url, o = {}) {
 }
 /** The words on a page must not say "couple" (the standing rule), in any case or plural. */
 const noCouple = (ws) => Array.isArray(ws) && !ws.some((w) => /\bcouples?\b/i.test(w));
-module.exports = { roomChecks, tappedNames, standing, runBench, noCouple, recovered, warm, ROOT, read, code, sha, tally, startGlass, stopGlass, leftovers, open, tap, measureFacts, words, mutate, FIX, stopTree };
+module.exports = { descendants, anchorsClean, watchReload, settle, waitFor, waitUrl, reloaded, logMark, logQuiet, instrument, roomChecks, tappedNames, standing, runBench, noCouple, recovered, warm, ROOT, read, code, sha, tally, startGlass, stopGlass, leftovers, open, tap, measureFacts, words, mutate, FIX, stopTree };

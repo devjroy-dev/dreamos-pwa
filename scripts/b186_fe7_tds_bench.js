@@ -19,7 +19,7 @@ async function room(g, scen) {
   r.lastBtn = await p.evaluate(() => { const bs = [...document.querySelectorAll('.fr-room button')]; return bs.length ? bs[bs.length - 1].textContent.trim() : null; });
   r.crash = await p.evaluate(() => /couldn.t load|Runtime TypeError/.test(document.body.innerText));
   if (!scen) {
-    await K.tap(p, '@[data-add-key="tds"]'); await new Promise((q) => setTimeout(q, 700));
+    await K.tap(p, '@[data-add-key="tds"]');   // e-275: tap settles
     r.dateWords = await p.evaluate(() => [...document.querySelectorAll('[data-date-words]')].map((e) => e.textContent.trim()));
     await p.close();
     const q = await K.open(g, '/vendor/tds', { wait: '.fr-row .fr-f' });

@@ -105,6 +105,18 @@ if (!CHILD) console.log('\n── 9  scripts/train.sh on a throwaway repo (apply
   fs.rmSync(T0, { recursive: true, force: true });
 }
 
+if (!CHILD) console.log('\n── 10  --affected then --resume, end to end on a fixture repo (a floor cut after its first member) ──');
+{
+  const FX = "set -u\nSRC=\"$B206_ROOT\"; T=$(mktemp -d \"${TMPDIR:-/tmp}/b206-fx.XXXX\"); cd $T\ngit init -q -b main r && cd r && git config user.email t@l && git config user.name t\nmkdir -p scripts/lib lib bin && cp $SRC/scripts/run-floor.sh scripts/ && cp $SRC/scripts/lib/floor_reap.sh $SRC/scripts/lib/floor_slice.sh $SRC/scripts/lib/floor_affected.mjs scripts/lib/\nln -s $SRC/node_modules node_modules; echo node_modules > .gitignore; echo \"{\\\"name\\\": \\\"web\\\"}\" > package.json; echo 'export const a = 1;' > lib/a.ts\nfor m in a_green b_named c_other; do :; done\ncat > scripts/m_a_green.js <<'X'\nrequire('fs').appendFileSync(process.env.FX_RUNS, 'm_a_green\\n'); console.log('m_a_green 1 pass 0 fail');\nX\ncat > scripts/m_b_named.js <<'X'\n// puppeteer (a browser member in name); it reads lib/a.ts\nrequire('fs').appendFileSync(process.env.FX_RUNS, 'm_b_named\\n'); setTimeout(() => console.log('m_b_named 1 pass 0 fail'), 3000);\nX\ncat > scripts/m_c_other.js <<'X'\n// puppeteer (a browser member in name); it reads nothing delivered\nrequire('fs').appendFileSync(process.env.FX_RUNS, 'm_c_other\\n'); console.log('ok');\nX\nprintf '#!/bin/sh\\necho build >> \"$FX_RUNS.build\"; echo \"fake next build\"; exit 0\\n' > bin/npx; chmod +x bin/npx\ngit add -A && git commit -q -m base\necho 'export const a = 2;' > lib/a.ts; printf '# m\\nlib/a.ts\\n' > ../m.txt\nexport FX_RUNS=$T/runs.log PATH=$T/r/bin:$PATH TMPDIR=$T/tmp; mkdir -p $TMPDIR\nsetsid bash scripts/run-floor.sh --affected ../m.txt --check > $T/run1.log 2>&1 &\nRP=$!; for i in $(seq 1 100); do grep -q \"KEPT\" $TMPDIR/tdw-floor-pwa/m_a_green.log 2>/dev/null && break; sleep 0.1; done; sleep 0.3; kill -9 -$RP 2>/dev/null; sleep 1\ngrep -q \"AFFECTED: 2 member(s) run, 1 skipped\" $T/run1.log && echo \"R1SEL yes\"; echo \"RUNS1: $(tr '\\n' ' ' < $FX_RUNS)\"; echo \"BUILDS: $(wc -l < $FX_RUNS.build)\"\nbash scripts/run-floor.sh --affected ../m.txt --check --resume $TMPDIR/tdw-floor-pwa > $T/run2.log 2>&1; echo \"RC2 $?\"\ngrep -q \"kept GREEN from floor\" $T/run2.log && echo \"R2KEPT yes\"; grep -q \"^FLOOR = NAMED BASE, no delta\" $T/run2.log && echo \"R2VERDICT yes\"; echo \"RUNS2: $(tr '\\n' ' ' < $FX_RUNS)\"; echo \"BUILDS2: $(wc -l < $FX_RUNS.build)\"; echo \"RAN: $(tr '\\n' ' ' < $TMPDIR/tdw-floor-pwa/ran.txt)\"\ncd /; rm -rf $T\n";
+  const r = cp.spawnSync('bash', ['-c', FX], { env: { ...process.env, B206_ROOT: ROOT }, encoding: 'utf8', timeout: 240000 });
+  const o = r.stdout || ''; const get = (k) => ((o.match(new RegExp('^' + k + ':? ?(.*)$', 'm')) || [])[1] || '').trim();
+  ok(/R1SEL yes/.test(o), '10.1 run 1: next build once, then the selection printed (2 run, 1 skipped)', o.slice(-300));
+  ok(get('BUILDS2') === '1', '10.2 the resume does not build again (next-build.ok kept)', 'builds ' + get('BUILDS2'));
+  ok(/R2KEPT yes/.test(o) && (get('RUNS2').match(/m_a_green/g) || []).length === 1, '10.3 the member kept GREEN before the cut is not run again', get('RUNS2'));
+  ok(!/m_c_other/.test(get('RUNS2')), '10.4 the skipped member never runs, in either run', get('RUNS2'));
+  ok(get('RC2') === '0' && /R2VERDICT yes/.test(o) && /m_a_green/.test(get('RAN')) && /m_b_named/.test(get('RAN')), '10.5 the resumed floor ends FLOOR = NAMED BASE, no delta, with both selected members in ran.txt', get('RAN') + ' rc ' + get('RC2'));
+}
+
 const MUTS = [
   ['scripts/lib/floor_affected.mjs', '  const r = routeOf(p); if (r) out.add(r);\n', '', 'M1 the route rule lost', '6.2'],
   ['scripts/lib/floor_affected.mjs', "for (const [imp, d] of importers) if (!T.has(imp)) T.set(imp, `imports ${d}`);", '', 'M2 the importer rule lost', '6.3'],
@@ -113,6 +125,7 @@ const MUTS = [
   ['scripts/lib/floor_affected.mjs', "if (!browser) { out.push({ member: m, run: true, why: 'no-browser (always run)' }); continue; }", '', 'M5 no-browser members selected like browser ones', '6.8'],
   ['scripts/run-floor.sh', 'if (m in ran) print', 'print', 'M6 the base not cut', '7.1'],
   ['scripts/train.sh', 'dup=$(sort "$W/m$i" | comm -12 - <(sort "$W/all")); [ -z "$dup" ] || stop "a path in two packages: $(echo $dup)"', 'true', 'M7 a path in two packages let through', '9.3'],
+  ['scripts/run-floor.sh', '  if [ ! -f "$LOG_DIR/next-build.ok" ]; then', '  if true; then', 'M8 the resume builds again', '10.2'],
 ];
 if (CHILD) { console.log(`b206 child · ${pass} pass · ${fail} fail`); process.exit(fail ? 1 : 0); }
 console.log('\n── 8  mutations (each in a fresh child, restored by sha) ──');

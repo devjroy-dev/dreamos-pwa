@@ -24,7 +24,7 @@ async function datesRoom(g) {
   const rows = await p.evaluate(() => [...document.querySelectorAll('.fr-group .fr-row')].map((r) => ({ t: (r.querySelector('.fr-t') || {}).textContent, pill: (r.querySelector('.fr-pill') || {}).textContent || null, tap: r.tagName === 'BUTTON' })));
   const ws = await K.words(p);
   await K.tap(p, 'Date checks on your page');
-  await new Promise((r) => setTimeout(r, 1500));
+  await K.waitUrl(p, (u) => !u.endsWith('/vendor/dates'));   // e-275: the navigation itself
   const went = p.url();
   await p.close();
   return { rows, ws, went };
@@ -39,7 +39,7 @@ async function introRoom(g) {
   const fields = await p.evaluate(() => ['#itr-phone', '#itr-name', '#itr-where'].every((s) => !!document.querySelector(s)));
   if (fields) { await p.type('#itr-phone', '+91 98111 04417'); await p.type('#itr-name', 'Anita Verma'); await p.type('#itr-where', 'the Verma wedding'); }
   const sentBefore = p.posted.length;
-  await K.tap(p, 'Review the message'); await new Promise((r) => setTimeout(r, 1200));
+  await K.tap(p, 'Review the message');   // e-275: tap settles
   const preview = await K.words(p, 'body');
   const staged = p.posted.find((x) => x.route === '/api/v2/vendor/introductions');
   await p.close();

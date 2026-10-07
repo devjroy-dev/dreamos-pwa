@@ -24,7 +24,7 @@ async function form(g) {
 async function done(g) {
   const p = await K.open(g, '/vendor/onboarding', { wait: '.ob-in', scen: { ob: true, obDone: true } });
   await p.evaluate(() => { const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; const f = document.querySelectorAll('.ob-f'); set.call(f[0], 'Kavya Rao'); f[0].dispatchEvent(new Event('input', { bubbles: true })); });
-  await K.tap(p, '@.ob-go'); await new Promise((q) => setTimeout(q, 1500));
+  await K.tap(p, '@.ob-go');   // e-275: tap settles
   const r = { ws: await K.words(p, '.ob-in'), copy: await p.evaluate(() => !!document.querySelector('.ob-in [data-copybox], .ob-in .cb-box, .ob-in button')) };
   await p.close(); return r;
 }

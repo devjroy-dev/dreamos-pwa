@@ -11,7 +11,7 @@ const K = require('./lib/fe7_l4_kit.js');
 const F = 'v2/app/vendor/(shell)/settings/page.tsx';
 async function sheet(g, rowTitle) {
   const p = await K.open(g, '/vendor/settings', { wait: '.fr-row .fr-f' });
-  await K.tap(p, rowTitle); await new Promise((q) => setTimeout(q, 1200));
+  await K.tap(p, rowTitle); await K.waitFor(p, '.wl-sheet, [role=dialog]', 8000);   // e-275: the sheet itself
   const t = await p.evaluate(() => { const s = document.querySelector('.wl-sheet, [role=dialog]'); return s ? s.innerText : ''; });
   await p.close(); return t;
 }

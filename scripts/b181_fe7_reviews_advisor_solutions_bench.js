@@ -25,7 +25,7 @@ async function reviews(g, scen) { const p = await K.open(g, '/vendor/google-revi
 async function hub(g, follow) {
   const p = await K.open(g, '/vendor/support', { wait: '.fr-row .fr-f' });
   const r = { rows: await rowsOf(p), heads: await heads(p), ws: await K.words(p) };
-  if (follow) { await K.tap(p, 'Wedding pages'); await new Promise((q) => setTimeout(q, 1500)); r.went = p.url(); }
+  if (follow) { await K.tap(p, 'Wedding pages'); await K.waitUrl(p, (u) => !u.endsWith('/vendor/support')); r.went = p.url(); }   // e-275: the navigation itself
   await p.close(); return r;
 }
 

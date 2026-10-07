@@ -30,7 +30,7 @@ async function list(g) {
 }
 async function wedding(g, title, ask) {
   const p = await K.open(g, '/vendor/wedding-pages', { wait: '.fr-row .fr-f' });
-  await K.tap(p, title); await new Promise((r) => setTimeout(r, 1200));
+  await K.tap(p, title);   // e-275: tap settles
   const r = { ws: await K.words(p), rows: await rowsOf(p),
     next: await p.evaluate(() => { const b = document.querySelector('.wl-main .rp-next'); return b ? b.textContent.trim() : null; }),
     reel: await p.evaluate(() => { const b = [...document.querySelectorAll('.wl-main button')].find((x) => x.textContent.trim() === 'Coming soon'); return b ? { disabled: b.disabled } : null; }) };
@@ -38,7 +38,7 @@ async function wedding(g, title, ask) {
     const before = p.posted.length;
     await K.tap(p, '@.wp-upx'); r.asked = await K.words(p); r.afterOne = p.posted.length;
     await K.tap(p, 'Keep it'); r.kept = await p.evaluate(() => !document.querySelector('.wp-ask'));
-    await K.tap(p, '@.wp-upx'); await K.tap(p, '@.wp-ask .rp-job.warn'); await new Promise((q) => setTimeout(q, 800));
+    await K.tap(p, '@.wp-upx'); await K.tap(p, '@.wp-ask .rp-job.warn');   // e-275: tap settles
     r.afterRemove = p.posted.length - before; r.before = before;
   }
   await p.close(); return r;

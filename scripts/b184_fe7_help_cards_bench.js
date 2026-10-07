@@ -31,7 +31,7 @@ async function card(g, room, width) {
   const r = {};
   r.q = await p.evaluate(() => document.querySelectorAll('.wl-roomhead .wl-helpq').length);
   r.screen = await p.evaluate(() => { const out = []; for (const e of document.querySelectorAll('.wl-main button, .wl-main a, .wl-main .fr-t, .wl-main .fr-h, .wl-main h2, .wl-main input, .wl-main textarea, .wl input, .wl textarea')) { if (e.offsetParent === null && getComputedStyle(e).position !== 'fixed') continue; out.push((e.textContent || '').trim(), e.getAttribute('placeholder') || '', e.getAttribute('aria-label') || ''); } return out.filter(Boolean); });
-  await K.tap(p, '@.wl-roomhead .wl-helpq'); await new Promise((q) => setTimeout(q, 700));
+  await K.tap(p, '@.wl-roomhead .wl-helpq'); await K.waitFor(p, '.wl-helpcard', 5000);   // e-275: the card itself
   r.card = await p.evaluate(() => { const c = document.querySelector('.wl-helpcard'); if (!c) return null; return { lines: c.querySelectorAll('.wl-helpdo li').length, fits: c.scrollHeight <= c.clientHeight + 1, text: c.innerText }; });
   await p.close(); return r;
 }

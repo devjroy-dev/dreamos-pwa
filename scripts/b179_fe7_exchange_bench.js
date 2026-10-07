@@ -24,7 +24,7 @@ async function setDate(p, idx, v) {
     const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; set.call(el, val);
     el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
   }, idx, v);
-  await new Promise((r) => setTimeout(r, 300));
+  await K.settle(p);   // e-275: quiet, not 300 ms
 }
 async function sender(g) {
   const p = await K.open(g, '/vendor/exchange', { wait: '.fr-row .fr-f', scen: { xc: 'sender' } });
@@ -38,7 +38,7 @@ async function sender(g) {
   await p.close();
   const q = await K.open(g, '/vendor/exchange', { wait: '.fr-row .fr-f', scen: { xc: 'sender' } });
   await q.evaluate(() => { const rs = [...document.querySelectorAll('button.fr-row')].filter((r) => r.textContent.startsWith('Aanya Mehra')); rs[rs.length - 1].click(); });
-  await new Promise((r) => setTimeout(r, 800));
+  await K.settle(q);   // e-275: quiet, not 800 ms
   const req = await K.words(q);
   const lastIsWithdraw = await q.evaluate(() => { const bs = [...document.querySelectorAll('.wl-main button')].filter((b) => b.offsetParent); return bs.length ? bs[bs.length - 1].textContent.trim() : null; });
   const before = q.posted.length;
