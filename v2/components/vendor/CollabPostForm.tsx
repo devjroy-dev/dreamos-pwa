@@ -288,7 +288,8 @@ const FORM_CSS = `
 .cp-chips{display:flex;flex-wrap:wrap;gap:8px}
 .cp-chip{font:var(--wl-t5);color:var(--atelier-ink-soft);background:transparent;border:.5px solid var(--atelier-card-border);
          border-radius:12px;padding:8px 12px;min-height:36px;cursor:pointer}
-.cp-chip.on{color:var(--atelier-accent-text);border-color:var(--atelier-input-border)}
+/* HUB-2 · F-44.367, veto 54: the chosen chip is filled with the primary, as .ob-chip.on */
+.cp-chip.on{background:var(--role-primary);border-color:var(--role-primary);color:var(--role-on-primary)}
 .cp-chip:focus-visible,.cp-add:focus-visible,.cp-x:focus-visible,.cp-rlabel:focus-visible{outline:2px solid var(--atelier-accent-text);outline-offset:2px}
 .cp-item{margin-bottom:8px}
 .cp-count{display:flex;justify-content:space-between;align-items:center;font:var(--wl-t5);color:var(--atelier-ink-mute);margin-bottom:8px}

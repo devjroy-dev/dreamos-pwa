@@ -1,0 +1,36 @@
+# scripts/floor-manifest-ce47-hub2-app.txt
+# CE-47 · HUB-2 APP · COLLAB HUB IN THE APP: Work | People | Mine behind the Rule 1 gate (today's room for every closed vendor), the public page /c/<handle>, the call form's chosen chip filled. BASE: 239fffb (app train 3). Server: HUB2_SRV_2 (a1c44e9), live.
+# Amended by label: b40_v2 C40 (both rooms), b190 (both rooms, the gate, a thin answer). CollabRoomBefore.tsx is the base's screen.tsx byte for byte (block 1 proves it by cmp).
+# Against the base: sha256 · ADDED / CHANGED / DELETED · path
+# e109c14a709dd5b6cd0885c63af7136985ade1a657e6de1e169dbacf48eac4d8 · ADDED · app/c/[handle]/page.tsx
+# 0f72df93850997b6a4ea7240919b37f10c8f2ee1f25f2bbbc72b652209547dcc · ADDED · docs/handovers/TDW_CE47_HUB2_APP_HANDOVER.md
+# abe52fa27db3dc0eaae06fb5afce70117803fec0410dedd33dedc5d788966255 · ADDED · docs/handovers/b285_ledger_HUB2APP.txt
+# 31f4544953383de4cef8d2e71a030c0842e82fc6acd7295c07b3fa2ef2984501 · CHANGED · scripts/b190_fe6_collab_room_bench.js
+# f3ca581c4183c84c2f6a646439e2c166126e9e578e09569e9da103c7f34d59ed · ADDED · scripts/b285_hub2_app_bench.js
+# 57bb1afd9d29f190556f9091f3bca7177a89695188da506c62501eaa9882c5be · CHANGED · scripts/b40_worklist_shell_bench_v2.js
+# 24872ec41daa79c5ba60acdc345542ce561e123ca2f8087cbd0288f6175f24b3 · CHANGED · v2/app/vendor/(shell)/collab/screen.tsx
+# 0f1caba6a4db48896cf28eccd6cde4ea3b23da4d876c412782978e6f9d49dcaf · CHANGED · v2/components/vendor/CollabPostForm.tsx
+# 7259b8afdff06e055b834aa771473a01a5628b7f34c97f1dd347d44ec3d3bbc5 · ADDED · v2/components/vendor/hub/CollabRoomBefore.tsx
+# 7267728b7ae779e84b37b6abdeaed5551c2f25c81a941e7174fbc7553b83f9f5 · ADDED · v2/components/vendor/hub/HubMine.tsx
+# 46873da7a49c1c64a5941d4b3f05761955631bd2e54b2cbe22621624ee4b8b96 · ADDED · v2/components/vendor/hub/HubPeople.tsx
+# f77c6c97327c2e3a0d311341686ab2683ee3a8dcde7bcb08b588e3292773dcba · ADDED · v2/components/vendor/hub/HubWork.tsx
+# 2cdc80bd3a4ae5c172d98db07cc0b906cedf20b33779c997838cc0a57dc1393b · ADDED · v2/components/vendor/hub/ShootTogetherSheet.tsx
+# 35153e67209181f816f762a501c724fe251f2c8f6bce449e5609cbd0538de018 · ADDED · v2/lib/vendor/hub.ts
+# e95bc6e03078fc0f996516dbdfa144986cbb47811a4d32622d24edb3d035b84f · CHANGED · v2/lib/worklist/collabRoom.ts
+# (this file) · ADDED · scripts/floor-manifest-ce47-hub2-app.txt
+app/c/[handle]/page.tsx
+docs/handovers/TDW_CE47_HUB2_APP_HANDOVER.md
+docs/handovers/b285_ledger_HUB2APP.txt
+scripts/b190_fe6_collab_room_bench.js
+scripts/b285_hub2_app_bench.js
+scripts/b40_worklist_shell_bench_v2.js
+v2/app/vendor/(shell)/collab/screen.tsx
+v2/components/vendor/CollabPostForm.tsx
+v2/components/vendor/hub/CollabRoomBefore.tsx
+v2/components/vendor/hub/HubMine.tsx
+v2/components/vendor/hub/HubPeople.tsx
+v2/components/vendor/hub/HubWork.tsx
+v2/components/vendor/hub/ShootTogetherSheet.tsx
+v2/lib/vendor/hub.ts
+v2/lib/worklist/collabRoom.ts
+scripts/floor-manifest-ce47-hub2-app.txt

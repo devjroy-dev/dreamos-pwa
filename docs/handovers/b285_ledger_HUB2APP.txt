@@ -1,0 +1,21 @@
+run 1 · b285 · 38 pass · 0 fail · 15:46:19
+run 2 · b285 · 38 pass · 0 fail · 15:46:23
+run 3 · b285 · 38 pass · 0 fail · 15:46:27
+run 4 · b285 · 38 pass · 0 fail · 15:46:32
+run 5 · b285 · 38 pass · 0 fail · 15:46:37
+run 6 · b285 · 38 pass · 0 fail · 15:46:41
+run 7 · b285 · 38 pass · 0 fail · 15:46:44
+run 8 · b285 · 38 pass · 0 fail · 15:46:49
+run 9 · b285 · 38 pass · 0 fail · 15:46:52
+run 10 · b285 · 38 pass · 0 fail · 15:46:57
+run 11 · b285 · 38 pass · 0 fail · 15:47:02
+run 12 · b285 · 38 pass · 0 fail · 15:47:06
+run 13 · b285 · 38 pass · 0 fail · 15:47:10
+run 14 · b285 · 38 pass · 0 fail · 15:47:14
+run 15 · b285 · 38 pass · 0 fail · 15:47:18
+run 16 · b285 · 38 pass · 0 fail · 15:47:23
+run 17 · b285 · 38 pass · 0 fail · 15:47:27
+run 18 · b285 · 38 pass · 0 fail · 15:47:32
+run 19 · b285 · 38 pass · 0 fail · 15:47:36
+run 20 · b285 · 38 pass · 0 fail · 15:47:40
+SERIES END 15:47:40 · not green: 0

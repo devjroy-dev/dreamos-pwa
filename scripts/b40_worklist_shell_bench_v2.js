@@ -2100,20 +2100,28 @@ cell('C51 a primer door dismisses its own sheet when it hands over to the chat (
 //    landing tab disagreeing. A cell that checked for the string 'my_posts' would have passed
 //    on a screen that hardcoded it beside a reordered array — asserting the LINK is what
 //    makes a reorder safe, and asserting the ORDER is what makes it the founder's.
-cell('C40 collab opens on the first pill, and the pills are in the ruled order (F-38.62)', () => {
-  const src = strip(read('v2/app/vendor/(shell)/collab/screen.tsx'));
-  const m = src.match(/TAB_ORDER:\s*readonly Tab\[\]\s*=\s*\[([^\]]*)\]/);
-  if (!m) return 'TAB_ORDER is not declared — the render order has no home';
-  const order = (m[1].match(/'([a-z_]+)'/g) || []).map((x) => x.slice(1, -1));
-  const RULED = ['my_posts', 'opportunities', 'roster'];
-  if (order.join(',') !== RULED.join(','))
-    return 'the pills read ' + order.join(' · ') + ', the founder ruled ' + RULED.join(' · ');
-  if (!/TAB_DEFAULT:\s*Tab\s*=\s*TAB_ORDER\[0\]/.test(src))
-    return 'the landing tab is not derived from the order — a reorder could leave them disagreeing';
-  if (!/useState<Tab>\(TAB_DEFAULT\)/.test(src))
-    return 'the screen does not open on TAB_DEFAULT';
-  // THE ORDER MUST REACH THE SCREEN. A constant nothing renders is a ruling nobody sees.
-  if (!/TAB_ORDER\.map\(/.test(src)) return 'the render does not walk TAB_ORDER — the constant is decorative';
+// CE-47 HUB-2, AMENDED BY LABEL (the chair's rulings, 7 Oct 2026): two rooms at one address (Rule 1, ruling (a)). The Hub's
+// room (screen.tsx, for a vendor the server calls open) is Work | People | Mine, opening on Work; today's room
+// (CollabRoomBefore.tsx, a32fbf4e's screen byte for byte, for every other vendor) keeps F-38.62's my_posts |
+// opportunities | roster. The cell keeps its shape for EACH room: one declared order, the landing tab derived from it,
+// the render walking it.
+cell('C40 collab opens on the first pill, and the pills are in the ruled order, in both rooms (CE-47 HUB-2; F-38.62 for today\'s room)', () => {
+  const rooms = [['v2/app/vendor/(shell)/collab/screen.tsx', ['work', 'people', 'mine']],
+    ['v2/components/vendor/hub/CollabRoomBefore.tsx', ['my_posts', 'opportunities', 'roster']]];
+  for (const [file, RULED] of rooms) {
+    const src = strip(read(file));
+    const m = src.match(/TAB_ORDER:\s*readonly Tab\[\]\s*=\s*\[([^\]]*)\]/);
+    if (!m) return file + ': TAB_ORDER is not declared — the render order has no home';
+    const order = (m[1].match(/'([a-z_]+)'/g) || []).map((x) => x.slice(1, -1));
+    if (order.join(',') !== RULED.join(','))
+      return file + ': the pills read ' + order.join(' · ') + ', the ruling is ' + RULED.join(' · ');
+    if (!/TAB_DEFAULT:\s*Tab\s*=\s*TAB_ORDER\[0\]/.test(src))
+      return file + ': the landing tab is not derived from the order — a reorder could leave them disagreeing';
+    if (!/useState<Tab>\(TAB_DEFAULT\)/.test(src))
+      return file + ': the screen does not open on TAB_DEFAULT';
+    // THE ORDER MUST REACH THE SCREEN. A constant nothing renders is a ruling nobody sees.
+    if (!/TAB_ORDER\.map\(/.test(src)) return file + ': the render does not walk TAB_ORDER — the constant is decorative';
+  }
   return null;
 });
 

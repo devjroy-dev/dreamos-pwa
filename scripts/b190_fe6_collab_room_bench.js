@@ -29,15 +29,16 @@ const MUTATE = process.argv.includes('--mutate');
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const dev = require(path.join(ROOT, 'scripts/lib/b126_dev_server.js'));
 const PAGE = 'v2/app/vendor/(shell)/collab/screen.tsx';
+const BEFORE = 'v2/components/vendor/hub/CollabRoomBefore.tsx';   // today's room, a32fbf4e's screen byte for byte (Rule 1)
 const CLOCK = 'v2/lib/worklist/clockStandIn.ts';
 const guard = require(path.join(ROOT, 'scripts/lib/mutation_guard.js'));
 
-let pass = 0; let fail = 0; let quiet = false; let evidence = 0; let underMut = '';
+let pass = 0; let fail = 0; let quiet = false; let evidence = 0; let underMut = ''; let redNames = [];
 const failed = [];
 const fmt = (info) => (info === undefined ? '' : '  [' + String(info).slice(0, 240) + ']');
 function ok(c, name, info) {
   if (c) { pass += 1; if (!quiet) console.log(`  PASS  ${name}`); return true; }
-  if (quiet) { evidence += 1; console.log(`  red under ${underMut}  ${name}${fmt(info)}`); return false; }
+  if (quiet) { evidence += 1; redNames.push(name); console.log(`  red under ${underMut}  ${name}${fmt(info)}`); return false; }
   fail += 1; failed.push(name); console.log(`  FAIL  ${name}${fmt(info)}`); return false;
 }
 const sec = (t) => { if (!quiet) console.log(`\n── ${t}`); };
@@ -57,10 +58,24 @@ const sec = (t) => { if (!quiet) console.log(`\n── ${t}`); };
 // WHAT IT HOLDS (the founder's verdict on mock 5, V1 and V2; the add-pill ruling): the pill on the room head by tab ("+ New
 // post" on My posts and Opportunities, "+ Add someone" on Roster, each opening what its old control opened); the tab's
 // one line; one sentence-case switch, 44 px, nothing in capitals; no second add on Roster; no "couple"; the card fits.
+// CE-47 HUB-2, AMENDED BY LABEL (the chair's ruling, 7 Oct 2026): the tabs are Work | People | Mine, opening on Work; the
+// Roster tab and "+ Add someone" leave; "+ New post" is the pill on every tab; Mine carries a count when something waits
+// for her answer. Cells 1.0, 1.1, 1.2, 1.4, 1.5, 1.6, 1.7 and mutations M1 to M3 move to the new room; 1.3, 1.8, 2.1 and
+// the stop keep their checks. The moved cells wait on conditions, never fixed pauses (e-275).
+// RULE 1 (the chair's ruling (a), 7 Oct 2026), amended by label again, BOTH ROOMS: the Hub shows only when GET /hub/me
+// says hub_open. §1 is an open vendor (the Hub). §1b is a closed vendor: today's room, CollabRoomBefore.tsx (a32fbf4e's
+// screen byte for byte), held by a32fbf4e's own cells 1.0 to 1.8 verbatim as 1b.0 to 1b.8, plus 1b.9 (she never sees
+// Work | People | Mine). §1c: an unreadable hub_open draws today's room. Mutations: N1-N3 the Hub, B1-B3 today's room
+// (a32fbf4e's M1-M3, now aimed at CollabRoomBefore.tsx), G1-G2 the gate. §1d (lesson 2): a thin answer, N4.
 const POSTS = [{ id: 'c1', state: 'open', requirement_type: 'second_shooter', city: 'Delhi', event_date: '2026-12-12', budget_inr: 15000, interested_count: 3, items: [] },
   { id: 'c2', state: 'filled', requirement_type: 'hair_stylist', city: 'Jaipur', event_date: '2027-02-14', budget_inr: 8000, interested_count: 1, items: [] }];
 const FEED = [{ id: 'f1', state: 'open', requirement_type: 'second_shooter', city: 'Noida', event_date: '2026-11-08', budget_inr: 12000, items: [], vendor: { name: 'Rohit Films' } }];
 const ROSTER = [{ id: 'r1', name: 'Rhea Sharma', phone: '+919811100010', crafts: ['photographer'] }, { id: 'r2', name: 'Kabir Anand', phone: '+919811100011', crafts: ['cinematographer'] }];
+// HUB-2's doors (shapes as dream-os src/api/vendor/hub.js returns them)
+const CARD = (id, kind, name, handle, extra = {}) => ({ id, kind, name, handle, roles: ['photographer'], city: 'Delhi', open_to_words: [], instagram: { handle, url: `https://www.instagram.com/${handle}/` }, website: null, page_url: `https://thedreamwedding.in/c/${handle}`, work: [], worked_with: 1, worked_with_words: 'Worked with 1 person', in_my_people: false, why: null, why_words: null, can_add: kind === 'vendor', can_take_off: false, ...extra });
+const HUB_PEOPLE = [CARD('pv', 'vendor', 'Aman Frames', 'amanframes'), CARD('pp', 'person', 'Tara Sen', 'tarasen.clicks', { worked_with: 0, worked_with_words: 'New on Collab Hub' }), CARD('po', 'org', 'Starlight Talent', 'starlight.talent')];
+const HUB_WORK = { ok: true, city: 'Delhi', roles: ['photographer'], all_cities: false, items: [{ kind: 'call', id: 'w1', from: 'Kabir Lens', roles: [{ role: 'photographer', needed: 1 }], event_date: '2026-11-08', city: 'Delhi', pay_kind: 'credit_only', budget_inr: null, details: 'Studio portrait shoot', instagram: null, website: null, page_url: 'https://thedreamwedding.in/c/kabirlens' }], not_yet: ['briefs from brands', 'paid jobs from planners', 'From Threads'] };
+const HUB_MINE = { ok: true, my_calls: [{ id: 'c1', event_date: '2026-12-12', city: 'Delhi', details: 'Rooftop editorial', state: 'open', interested: 3, picked: 0, sent_by_tdw: false, line: null }], applied: [], waiting_for_your_yes: [{ id: 'k1', from: { name: 'Aman Frames', page_url: 'https://thedreamwedding.in/c/amanframes' }, shoot_words: 'Summer colour shoot \u00b7 Noida \u00b7 July 2026' }], worked_with: [], shoot_requests_left: 20, waiting_count: 2 };
 
 let SERVER = null; let BROWSER = null;
 async function stopAll() {
@@ -80,7 +95,8 @@ async function main() {
   if (!ok(await SERVER.up(), '0.1 the dev server came up')) return;
   BROWSER = await puppeteer.launch({ executablePath: process.env.B190_CHROME || await chromium.executablePath(), headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  async function open(width = 374) {
+  const HUB_ME = { open: { ok: true, hub_open: true, page: { city: 'Delhi' } }, closed: { ok: true, hub_open: false, line: 'Collab Hub is not open for your account yet.' }, thin: { ok: true, hub_open: true } };
+  async function open(width = 374, mode = 'open') {
     const p = await BROWSER.newPage();
     await p.setViewport({ width, height: 812, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
     for (const [n, v] of [['tdw_wl_mode', 'dark'], ['tdw_layout', 'v2']]) await p.setCookie({ name: n, value: v, domain: 'localhost', path: '/' });
@@ -94,39 +110,92 @@ async function main() {
       if (route === '/api/v2/vendor/collab/feed') return J({ ok: true, feed: FEED, posts: FEED });
       if (route === '/api/v2/vendor/collab/my-posts') return J({ ok: true, posts: POSTS });
       if (route === '/api/v2/vendor/roster') return J({ ok: true, roster: ROSTER, entries: ROSTER });
+      // thin: the chair's lesson 2 (7 Oct 2026): every Hub door answers { ok: true } with no lists
+      if (mode === 'thin' && /^\/api\/v2\/vendor\/hub\//.test(route) && route !== '/api/v2/vendor/hub/me') return J({ ok: true });
+      if (route === '/api/v2/vendor/hub/work') return J(HUB_WORK);
+      if (route === '/api/v2/vendor/hub/people') return J({ ok: true, people: HUB_PEOPLE, line: 'No messages inside TDW.' });
+      if (route === '/api/v2/vendor/hub/mine') return J(HUB_MINE);
+      if (route === '/api/v2/vendor/hub/me') return mode === 'unreadable' ? r.respond({ status: 500, contentType: 'text/plain', body: 'not json' }) : J(HUB_ME[mode]);
       if (/requirement-types|requirement_types/.test(route)) return J({ ok: true, requirement_types: ['second_shooter', 'hair_stylist', 'photographer'] });
       return J({ ok: true });
     });
     await p.goto(`http://localhost:${PORT}/vendor/collab`, { waitUntil: 'domcontentloaded', timeout: 180000 });
     const until = Date.now() + 180000; let found = false;
+    if (mode === 'thin') {
+      while (Date.now() < until && !(found = await p.evaluate(() => !!document.querySelector('[data-collab-gate="open"]') && !!document.querySelector('[data-hub-work]') && document.querySelectorAll('[data-collab-tabs] button').length === 3).catch(() => false))) await wait(400);
+      p.found = found; return p;
+    }
+    if (mode === 'open') {
+      while (Date.now() < until && !(found = await p.evaluate(() => !!document.querySelector('[data-collab-gate="open"]') && !!document.querySelector('[data-collab-tabs]') && !!document.querySelector('[data-hub-call]') && document.querySelectorAll('[data-collab-tabs] button').length === 3).catch(() => false))) await wait(400);
+      p.found = found; return p;
+    }
+    // today's room: a32fbf4e's own wait, verbatim (its line reads "My posts ...")
     while (Date.now() < until && !(found = await p.evaluate(() => !!document.querySelector('[data-collab-line]') && /My posts/.test(document.querySelector('[data-collab-line]').innerText)).catch(() => false))) await wait(400);
     p.found = found; await wait(900); return p;
   }
+  // e-275: wait on the condition itself, bounded; never a fixed pause.
+  async function untilTrue(p, fn, ms = 20000, arg) { const end = Date.now() + ms; while (Date.now() < end) { if (await p.evaluate(fn, arg).catch(() => false)) return true; await wait(150); } return false; }
   const q = (p, fn, ...a) => p.evaluate(fn, ...a).catch(() => null);
-  const tab = (p, t) => p.evaluate((t) => { const b = [...document.querySelectorAll('[data-collab-tabs] button')].find((x) => x.innerText.trim() === t); if (b) b.click(); }, t).catch(() => null);
+  const tab = (p, t) => p.evaluate((t) => { const b = [...document.querySelectorAll('[data-collab-tabs] button')].find((x) => x.innerText.trim() === t || x.getAttribute('data-collab-tab') === t.toLowerCase().split(' ')[0]); if (b) b.click(); }, t).catch(() => null);
   const line = (p) => q(p, () => (document.querySelector('[data-collab-line]') || {}).innerText);
   const pill = (p) => q(p, () => { const e = document.querySelector('.wl-roomhead [data-room-add="collab"]'); return e ? e.innerText : null; });
 
   async function runAll() {
-    sec('§1 the three tabs');
+    sec('§1 the three tabs (HUB-2: Work | People | Mine)');
     let p = await open(374);
-    if (!ok(p.found, '1.0 the room is on glass within 180 s')) { await p.close(); return; }
-    ok((await line(p)) === 'My posts \u00b7 1 open' && (await pill(p)) === '+ New post', '1.1 My posts: "My posts · 1 open" (filled left out) and "+ New post" (V1, V2)', `${await line(p)} | ${await pill(p)}`);
+    if (!ok(p.found, '1.0 the room is on glass within 180 s, opening on Work with its call')) { await p.close(); return; }
+    const on = (p) => q(p, () => { const b = document.querySelector('[data-collab-tabs] button[aria-pressed="true"]'); return b ? b.innerText.trim() : null; });
+    ok((await on(p)) === 'Work' && !!(await q(p, () => !!document.querySelector('[data-hub-work-line]'))) && (await pill(p)) === '+ New post', '1.1 the room opens on Work, with its line, and the pill is "+ New post"', `${await on(p)} | ${await pill(p)}`);
+    await untilTrue(p, () => /Mine \u00b7 2/.test(document.querySelector('[data-collab-tabs]').innerText), 8000);
     const seg = await q(p, () => [...document.querySelectorAll('[data-collab-tabs] button')].map((b) => [b.innerText.trim(), b.getBoundingClientRect().height, getComputedStyle(b).textTransform]));
-    ok(seg && seg.map((x) => x[0]).join('|') === 'My posts|Opportunities|Roster' && seg.every((x) => x[1] >= 44 && x[2] !== 'uppercase'), '1.2 one switch in sentence case, 44 px', JSON.stringify(seg));
-    await p.evaluate(() => document.querySelector('[data-room-add="collab"]').click()).catch(() => null); await wait(800);
-    ok(await q(p, () => document.querySelectorAll('[role=dialog], form, [data-collab-form]').length > 0 || /Post/.test(document.body.innerText.slice(0, 4000))), '1.3 "+ New post" opens the post form, as "+ Post" did');
+    ok(seg && seg.map((x) => x[0]).join('|') === 'Work|People|Mine \u00b7 2' && seg.every((x) => x[1] >= 44 && x[2] !== 'uppercase' && x[0] !== x[0].toUpperCase()), '1.2 one switch in sentence case, 44 px: Work | People | Mine · 2', JSON.stringify(seg));
+    await p.evaluate(() => document.querySelector('[data-room-add="collab"]').click()).catch(() => null);
+    ok(await untilTrue(p, () => document.querySelectorAll('[role=dialog], form, [data-collab-form]').length > 0), '1.3 "+ New post" opens the post form, as "+ Post" did');
     await p.close(); p = await open(374);
-    await tab(p, 'Opportunities'); await wait(600);
-    ok((await line(p)) === 'Opportunities \u00b7 1 new' && (await pill(p)) === '+ New post', '1.4 Opportunities: its line; the same pill');
-    await tab(p, 'Roster'); await wait(600);
-    ok((await line(p)) === 'Roster \u00b7 2 people' && (await pill(p)) === '+ Add someone', '1.5 Roster: "Roster · 2 people" and "+ Add someone"', `${await line(p)} | ${await pill(p)}`);
-    ok(await q(p, () => ![...document.querySelectorAll('.wl-main button')].some((b) => b.innerText.trim() === 'Add someone' && !b.closest('.wl-roomhead'))), '1.6 no second add in the Roster body');
-    await p.evaluate(() => document.querySelector('[data-room-add="collab"]').click()).catch(() => null); await wait(700);
-    if (process.env.B190_DEBUG) console.log('DEBUG', await q(p, () => document.body.innerText.slice(0, 300)), await q(p, () => [...document.querySelectorAll('body *')].filter((e) => /Add someone/.test(e.textContent) && e.children.length < 3).map((e) => e.tagName + ':' + e.className + ':' + e.textContent.slice(0, 40)).slice(0, 8)));
-    ok(await q(p, () => [...document.querySelectorAll('body *')].some((e) => e.children.length === 0 && e.textContent.trim() === 'Add someone' && !e.closest('.wl-roomhead'))), '1.7 "+ Add someone" opens Roster\u2019s add sheet (its heading drawn)');
+    await tab(p, 'People');
+    const peopleUp = await untilTrue(p, () => document.querySelectorAll('[data-hub-card]').length === 3);
+    const adds = await q(p, () => [...document.querySelectorAll('[data-hub-card]')].map((c) => [c.getAttribute('data-hub-card'), !!c.querySelector('[data-hub-add]')]));
+    ok(peopleUp && JSON.stringify(adds) === JSON.stringify([['vendor', true], ['person', false], ['org', false]]) && (await pill(p)) === '+ New post', '1.4 People: "Add to my people" on the vendor only, never on a person or an organisation; the same pill', JSON.stringify(adds));
+    await tab(p, 'Mine');
+    ok(await untilTrue(p, () => !!document.querySelector('[data-hub-mine]') && !!document.querySelector('[data-hub-your-yes]') && /Mine \u00b7 2/.test(document.querySelector('[data-collab-tabs]').innerText), 8000) && (await on(p)) === 'Mine \u00b7 2' && (await pill(p)) === '+ New post', '1.5 Mine: the count of what waits for her ("Mine · 2"), her request to confirm drawn, the same pill', `${await on(p)} | ${await pill(p)}`);
+    ok(await q(p, () => !/\bRoster\b/.test(document.body.innerText) && ![...document.querySelectorAll('button, a')].some((b) => /Add someone/.test(b.innerText))), '1.6 no Roster tab and no "Add someone" anywhere in the room');
+    await p.evaluate(() => { const b = document.querySelector('[data-hub-shoot-open]'); if (b) b.click(); }).catch(() => null);
+    ok(await untilTrue(p, () => !!document.querySelector('[data-hub-shoot-sheet]') && /A shoot we did together/.test(document.querySelector('[data-hub-shoot-sheet]').innerText)), '1.7 "+ A shoot we did together" in Mine opens its sheet (its heading drawn)');
     const L = await q(p, () => { const root = document.querySelector('.wl-main') || document.body; const out = []; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { if (n.parentElement && /^(SCRIPT|STYLE)$/.test(n.parentElement.tagName)) continue; const t = n.textContent.trim(); if (t) out.push(t); } return out; });
     ok(L && !L.some((t) => /couple/i.test(t)) && !L.includes('+ Post'), '1.8 no "couple"; "+ Post" gone', L && L.filter((t) => /couple|\+ Post/i.test(t)).join(' | '));
+    await p.close();
+    sec('§1b a closed vendor: today\u2019s room, a32fbf4e\u2019s cells verbatim');
+    p = await open(374, 'closed');
+    if (!ok(p.found, '1b.0 the room is on glass within 180 s')) { await p.close(); }
+    else {
+    ok((await line(p)) === 'My posts \u00b7 1 open' && (await pill(p)) === '+ New post', '1b.1 My posts: "My posts · 1 open" (filled left out) and "+ New post" (V1, V2)', `${await line(p)} | ${await pill(p)}`);
+    const seg = await q(p, () => [...document.querySelectorAll('[data-collab-tabs] button')].map((b) => [b.innerText.trim(), b.getBoundingClientRect().height, getComputedStyle(b).textTransform]));
+    ok(seg && seg.map((x) => x[0]).join('|') === 'My posts|Opportunities|Roster' && seg.every((x) => x[1] >= 44 && x[2] !== 'uppercase'), '1b.2 one switch in sentence case, 44 px', JSON.stringify(seg));
+    await p.evaluate(() => document.querySelector('[data-room-add="collab"]').click()).catch(() => null); await wait(800);
+    ok(await q(p, () => document.querySelectorAll('[role=dialog], form, [data-collab-form]').length > 0 || /Post/.test(document.body.innerText.slice(0, 4000))), '1b.3 "+ New post" opens the post form, as "+ Post" did');
+    await p.close(); p = await open(374, 'closed');
+    await tab(p, 'Opportunities'); await wait(600);
+    ok((await line(p)) === 'Opportunities \u00b7 1 new' && (await pill(p)) === '+ New post', '1b.4 Opportunities: its line; the same pill');
+    await tab(p, 'Roster'); await wait(600);
+    ok((await line(p)) === 'Roster \u00b7 2 people' && (await pill(p)) === '+ Add someone', '1b.5 Roster: "Roster · 2 people" and "+ Add someone"', `${await line(p)} | ${await pill(p)}`);
+    ok(await q(p, () => ![...document.querySelectorAll('.wl-main button')].some((b) => b.innerText.trim() === 'Add someone' && !b.closest('.wl-roomhead'))), '1b.6 no second add in the Roster body');
+    await p.evaluate(() => document.querySelector('[data-room-add="collab"]').click()).catch(() => null); await wait(700);
+    if (process.env.B190_DEBUG) console.log('DEBUG', await q(p, () => document.body.innerText.slice(0, 300)), await q(p, () => [...document.querySelectorAll('body *')].filter((e) => /Add someone/.test(e.textContent) && e.children.length < 3).map((e) => e.tagName + ':' + e.className + ':' + e.textContent.slice(0, 40)).slice(0, 8)));
+    ok(await q(p, () => [...document.querySelectorAll('body *')].some((e) => e.children.length === 0 && e.textContent.trim() === 'Add someone' && !e.closest('.wl-roomhead'))), '1b.7 "+ Add someone" opens Roster\u2019s add sheet (its heading drawn)');
+    const L = await q(p, () => { const root = document.querySelector('.wl-main') || document.body; const out = []; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { if (n.parentElement && /^(SCRIPT|STYLE)$/.test(n.parentElement.tagName)) continue; const t = n.textContent.trim(); if (t) out.push(t); } return out; });
+    ok(L && !L.some((t) => /couple/i.test(t)) && !L.includes('+ Post'), '1b.8 no "couple"; "+ Post" gone', L && L.filter((t) => /couple|\+ Post/i.test(t)).join(' | '));
+    ok(await q(p, () => !document.querySelector('[data-hub-work],[data-hub-people],[data-hub-mine],[data-collab-gate="open"]') && ![...document.querySelectorAll('[data-collab-tabs] button')].some((b) => /^(Work|People|Mine)/.test(b.innerText.trim()))), '1b.9 a closed vendor never sees Work | People | Mine');
+    await p.close();
+    }
+    sec('§1d a thin answer (the chair\u2019s lesson 2): every Hub door says { ok: true } with no lists');
+    p = await open(374, 'thin');
+    let thinOk = p.found;
+    for (const t of ['People', 'Mine']) { if (!thinOk) break; await tab(p, t); thinOk = await untilTrue(p, (tt) => !!document.querySelector(tt === 'People' ? '[data-hub-people]' : '[data-hub-mine]'), 8000, t); }
+    ok(thinOk && await q(p, () => !/Application error|Unhandled Runtime Error/i.test(document.body.innerText) && document.querySelectorAll('[data-collab-tabs] button').length === 3), '1d.1 the Hub survives a thin answer: Work, People and Mine each draw, nothing crashes');
+    await p.close();
+    sec('§1c hub_open unreadable');
+    p = await open(374, 'unreadable');
+    ok(p.found && await q(p, () => !!document.querySelector('[data-collab-gate="closed"]') && /My posts\|Opportunities\|Roster/.test([...document.querySelectorAll('[data-collab-tabs] button')].map((b) => b.innerText.trim()).join('|'))), '1c.1 an unreadable hub_open (a 500, not JSON) draws today\u2019s room');
     await p.close();
     sec('§2 at 360');
     p = await open(360);
@@ -141,21 +210,33 @@ async function main() {
   if (MUTATE) {
     sec('§7 mutations through the guard');
     const MUTS = [
-      ['M1 filled posts counted open', PAGE, "myPosts.filter((x) => x.state === 'open').length", "myPosts.length", '1.1'],
+      // HUB-2 (amended by label): the count, the capitals, and "Add" on a person
+      ['N1 Mine loses its count', PAGE, ": COL.mineWaiting(waiting));", ": COL.mine);", '1.5'],
       // (the shell's own button rule wins over a class's text-transform, so the capitals are planted in the words themselves)
-      ['M2 the switch back in capitals', PAGE, "{t === 'opportunities' ? 'Opportunities' : t === 'my_posts' ? 'My posts' : 'Roster'}\n          </button>", "{t === 'opportunities' ? 'OPPORTUNITIES' : t === 'my_posts' ? 'MY POSTS' : 'ROSTER'}\n          </button>", '1.2'],
-      ['M3 Roster\u2019s pill posts instead', PAGE, "onAdd={() => (tab === 'roster' ? setRosterAdding(true) : setShowForm(true))}", "onAdd={() => setShowForm(true)}", '1.7'],
+      ['N2 the switch back in capitals', PAGE, "            {label(t)}\n          </button>", "            {label(t).toUpperCase()}\n          </button>", '1.2'],
+      ['N3 "Add to my people" drawn on a person', 'v2/components/vendor/hub/HubPeople.tsx', "              {p.can_add && (", "              {(p.can_add || p.kind !== 'vendor') && (", '1.4'],
+      ['N4 Work trusts a thin answer', 'v2/components/vendor/hub/HubWork.tsx', "      setItems(arr(d.items));", "      setItems(d.items);", '1d.1'],
+      // today's room: a32fbf4e's own M1 to M3, aimed at the file the code moved to (byte for byte)
+      ['B1 filled posts counted open', BEFORE, "myPosts.filter((x) => x.state === 'open').length", "myPosts.length", '1b.1'],
+      ['B2 the old switch back in capitals', BEFORE, "{t === 'opportunities' ? 'Opportunities' : t === 'my_posts' ? 'My posts' : 'Roster'}\n          </button>", "{t === 'opportunities' ? 'OPPORTUNITIES' : t === 'my_posts' ? 'MY POSTS' : 'ROSTER'}\n          </button>", '1b.2'],
+      ['B3 Roster\u2019s pill posts instead', BEFORE, "onAdd={() => (tab === 'roster' ? setRosterAdding(true) : setShowForm(true))}", "onAdd={() => setShowForm(true)}", '1b.7'],
+      // the gate
+      // (a closed vendor shown the Hub never reaches today's room, so its load cell is the one that reds)
+      ['G1 the Hub shown without hub_open', PAGE, "const open = !!d && d.ok === true && d.hub_open === true;", "const open = !!d && d.ok === true;", '1b.0'],
+      // (getJson answers a 500 or non-JSON with ok:false rather than throwing, so the gate's own test is mutated)
+      ['G2 an unreadable answer opens the Hub', PAGE, "        setGate(open ? 'open' : 'closed');", "        setGate(open || !d || d.ok !== true ? 'open' : 'closed');", '1c.1'],
     ];
     for (const [name, file, from, to, cell] of MUTS) {
       let h = null;
       try { h = guard.apply(ROOT, file, from, to, 'b190'); } catch (e) { ok(false, `${name}: ${e.message}`); continue; }
       await wait(6000);   // a CSS-only change can take longer to reach the browser
-      const before = evidence; quiet = true; underMut = name.split(' ')[0]; const passBefore = pass; let crashed = null;
+      const before = evidence; redNames = []; quiet = true; underMut = name.split(' ')[0]; const passBefore = pass; let crashed = null;
       try { await runAll(); } catch (e) { crashed = e; }
       quiet = false; pass = passBefore;
       const back = h.restore();
       if (crashed) ok(false, `${name} crashed: ${String(crashed.message || crashed).slice(0, 160)}`);
-      else ok(evidence > before && back, `${name} \u2192 ${cell} RED; restored by sha`);
+      // HUB-2 amendment: the NAMED cell must be among the reds (a red elsewhere, e.g. the load cell, does not count)
+      else ok(evidence > before && redNames.some((n) => n.startsWith(cell + ' ')) && back, `${name} \u2192 ${cell} RED; restored by sha`, redNames.join(' / '));
       await wait(1500);
     }
     ok(!fs.existsSync(path.join(ROOT, 'scripts/.mutation-pending')), '7.9 nothing pending after the mutations');
