@@ -295,7 +295,12 @@ const untag = (t) => (t.startsWith('room:') ? { room: t.slice(5) } : { row: t.sl
   cell('2.7 Coming stays Coming: Open dates & rates and WhatsApp and Instagram; More\u2019s one Coming row is WhatsApp and Instagram (DESIGN-1 stage 3)', () => {
     const coming = (TB.MORE_GROUPS || []).flatMap((g) => g.rows.filter((r) => r.row && RT.itemComing({ row: r.row })).map((r) => r.label));
     // AMENDED BY LABEL · CE-47 hub cut: the nine join PREVIEW_KEYS; More's one Coming row is unchanged (none of the nine is on More).
-    const WANT_PREVIEW = JSON.stringify(['dates', 'number', ...COMING_KEYS].sort());
+    // AMENDED BY LABEL · CE-47 INS-A room: a room that has LANDED leaves PREVIEW_KEYS. The landed list has ONE home,
+    // b222's `const LANDED = [...]` (each landing adds its key there, in its own edit); read here, never retyped.
+    const landedSrc = (read('scripts/b222_ce47_hub_cut_bench.js').match(/const LANDED = \[([^\]]*)\];/) || [])[1];
+    if (landedSrc === undefined) return 'b222 declares no LANDED list';
+    const LANDED = (landedSrc.match(/'([a-z_]+)'/g) || []).map((x) => x.replace(/'/g, ''));
+    const WANT_PREVIEW = JSON.stringify(['dates', 'number', ...COMING_KEYS.filter((k) => !LANDED.includes(k))].sort());
     return (JSON.stringify([...RT.PREVIEW_KEYS].sort()) === WANT_PREVIEW && JSON.stringify(coming) === '["WhatsApp and Instagram"]') || JSON.stringify({ preview: [...RT.PREVIEW_KEYS], coming });
   });
   cell('2.8 the move: ROOM_HREFS and PREVIEW_KEYS live in v2/lib/solutions/routes.ts, and the hub page declares neither', () => {

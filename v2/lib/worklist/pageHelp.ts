@@ -272,9 +272,19 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   [PAYMENT_LINKS_HREF]: entry(ROW_DESC.payment_links, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
   [SHOP_HREF]: entry(ROW_DESC.shop, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
   [BRANDS_HREF]: entry(ROW_DESC.brands, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
-  [SUPPLIES_HREF]: entry(ROW_DESC.supplies, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  // CE-47 · PRO P1 · Supplies is open: its own card replaces the shell card (one entry, same key).
+  [SUPPLIES_HREF]: entry(ROW_DESC.supplies, { can: how(
+    ['list', 'Each card is a place to buy, checked by TDW, with what it costs to join. Open goes to its own site.'],
+    ['share', 'Join with your TDW certificate makes your certificate, saves it as a PDF, and shows the steps to join.'],
+    ['edit', 'Write my requirement writes your request for IndiaMART. Copy it, then paste it there.']),
+    connects: 'Bills you send to TDW will go to Expenses with their GST. That part is coming soon.' }),
   [TRENDS_HREF]: entry(ROW_DESC.trends, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
-  [PAPERS_HREF]: entry(ROW_DESC.papers, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  // CE-47 · PRO P1 · Business papers is open: its own card replaces the shell card (one entry, same key).
+  [PAPERS_HREF]: entry(ROW_DESC.papers, { can: how(
+    ['add', 'New paper makes a certificate, an ID, a business statement or a pack for your CA.'],
+    ['share', 'Each paper has a check link anyone can open to see that it is real.'],
+    ['switch', 'Withdraw a paper and its check page says it no longer stands.']),
+    connects: 'The figures come from your invoices, expenses and TDS in TDW.' }),
   [INSURANCE_HREF]: entry(ROW_DESC.insurance, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
   [DATES_HREF]: entry(ROW_DESC.dates, {
     can: how(['calendar', 'How often each date was checked is in Storefront: tap the first row.'],

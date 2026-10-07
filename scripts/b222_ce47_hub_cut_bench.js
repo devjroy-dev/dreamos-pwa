@@ -27,6 +27,13 @@ const NINE = [
   ['insurance', 'Insurance', 'Kinds of cover, quotes from insurers, and saved policies', '/vendor/insurance', 'INSURANCE_HREF'],
 ];
 const slug = (href) => href.replace('/vendor/', '');
+// AMENDED BY LABEL · CE-47 THE LANDED MECHANISM (cut by INS for app train 3, carried first by OFF-A2): a seat's room
+// LANDS by replacing its shell page and leaving PREVIEW_KEYS in one edit. The rows stay nine (1.1 to 1.4, 1.6, 1.10 hold
+// for all nine); the Coming cells (1.5, 1.9, 1.11 and the glass) read only the rooms not yet landed. Each landing adds its
+// own key here, in its own edit (train 3: OFF 'shop', then PRO 'supplies' and 'papers', then INS 'insurance').
+// b122_v2 2.7 reads this line; it is the one home of the landed list.
+const LANDED = ['supplies', 'papers'];
+const COMING = NINE.filter(([k]) => !LANDED.includes(k));
 
 sec('1  the four homes, the shell, the pages and the doors');
 const COPY = read('v2/lib/solutions/copy.ts'); const RT = read('v2/lib/solutions/routes.ts');
@@ -41,15 +48,15 @@ ok(() => /\{ name: 'Work together', keys: \['collabs', 'brands'\] \}/.test(COPY)
   && (COPY.match(/\{ name: '/g) || []).length === 5, '1.3 the groups as ruled: five, "Run the business" the one new, rows in the chair\'s order');
 ok(() => NINE.every(([k, , , href, C]) => RT.includes(`export const ${C}`) && new RegExp(`export const ${C}\\s*=\\s*'${href}';`).test(RT) && new RegExp(`\\n  ${k}:\\s+${C},`).test(RT)), '1.4 each address is one declared constant, and ROOM_HREFS reads it');
 const pk = (RT.match(/export const PREVIEW_KEYS[^\n]*\n?[^\n]*\]\);/) || [''])[0];
-ok(() => NINE.every(([k]) => pk.includes(`'${k}'`)) && pk.includes("'dates'") && pk.includes("'number'") && (pk.match(/'[a-z_]+'/g) || []).length === 11, '1.5 PREVIEW_KEYS holds the nine and the two it held, eleven exactly', pk);
+ok(() => COMING.every(([k]) => pk.includes(`'${k}'`)) && LANDED.every((k) => !pk.includes(`'${k}'`)) && pk.includes("'dates'") && pk.includes("'number'") && (pk.match(/'[a-z_]+'/g) || []).length === 2 + COMING.length, '1.5 PREVIEW_KEYS holds every row not yet landed and the two it held, and no landed room', pk);
 const NEUTRAL = '<path d="M5 3a2 2 0 0 0-2 2"/><path d="M19 3a2 2 0 0 1 2 2"/><path d="M21 19a2 2 0 0 1-2 2"/><path d="M5 21a2 2 0 0 1-2-2"/><path d="M9 3h1"/><path d="M9 21h1"/><path d="M14 3h1"/><path d="M14 21h1"/><path d="M3 9v1"/><path d="M21 9v1"/><path d="M3 14v1"/><path d="M21 14v1"/>';
 const lucide = (() => { try { const src = fs.readFileSync(path.join(ROOT, 'node_modules/lucide-react/dist/esm/icons/square-dashed.js'), 'utf8'); return [...src.matchAll(/d: "([^"]+)"/g)].map((m) => `<path d="${m[1]}"/>`).join(''); } catch { return null; } })();
 ok(() => (lucide === null || lucide === NEUTRAL) && NINE.every(([k]) => new RegExp(`\\n  ${k}:\\s+'${NEUTRAL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}',`).test(IC)), '1.6 each of the nine draws the ONE neutral drawing, byte-equal to the estate\'s Lucide square-dashed');
 ok(() => /<Row title=\{COPY\.launchingSoon\} pill=\{\{ text: CHIPS\.coming, tone: 'soon' \}\} \/>/.test(CR) && !/onClick|href=/.test(CR.replace(/^\s*\/\/.*$/gm, '')), '1.7 the shell\'s one row is a statement: Launching soon. under Coming, no onClick, no href');
 ok(() => /title=\{roomLabel\(k\)\}/.test(CR) && /\{ROW_DESC\[k\]\}/.test(CR) && !/['"`][A-Z][a-z]+ [a-z]+/.test(CR.replace(/^\s*\/\/.*$/gm, '').replace(/import[^\n]*\n/g, '').replace(/className="[^"]*"|aria-busy="true"|data-coming-room=\{k\}|router\.replace\('\/'\)/g, '')), '1.8 every word on the shell is read from its home: name, line, statement, chip');
-ok(() => NINE.every(([k, , , href]) => { const pg = read(`v2/app/vendor/(shell)/${slug(href)}/page.tsx`); return pg.includes(`<ComingRoom k="${k}" />`); }), '1.9 each of the nine pages draws the shell for its own key');
+ok(() => COMING.every(([k, , , href]) => { const pg = read(`v2/app/vendor/(shell)/${slug(href)}/page.tsx`); return pg.includes(`<ComingRoom k="${k}" />`); }) && LANDED.every((k) => { const h = NINE.find(([x]) => x === k)[3]; return !read(`v2/app/vendor/(shell)/${slug(h)}/page.tsx`).includes('<ComingRoom'); }), '1.9 each room not yet landed draws the shell for its own key; a landed room draws its own page');
 ok(() => NINE.every(([, , , href]) => read(`app/v2/vendor/(shell)/${slug(href)}/page.tsx`).includes(`export { default } from '@/v2/app/vendor/(shell)/${slug(href)}/page';`)), '1.10 each has its door in the v2 route tree (a missing door is a 404)');
-ok(() => NINE.every(([k, , , , C]) => new RegExp(`\\[${C}\\]: entry\\(ROW_DESC\\.${k}, \\{ can: how\\(\\['read', 'This room is not open yet\\. It reads Coming in Business Solutions until it opens\\.'\\]\\), connects: COMING_CONNECTS \\}\\),`).test(PH)) && /const COMING_CONNECTS = 'Nothing connects here yet\. It will when this room opens\.';/.test(PH), '1.11 each has its "?" card: its line, the accepted one step, and the one connects line (r2, b140_v2 1.8)');   // AMENDED BY LABEL · hub cut r2
+ok(() => COMING.every(([k, , , , C]) => new RegExp(`\\[${C}\\]: entry\\(ROW_DESC\\.${k}, \\{ can: how\\(\\['read', 'This room is not open yet\\. It reads Coming in Business Solutions until it opens\\.'\\]\\), connects: COMING_CONNECTS \\}\\),`).test(PH)) && LANDED.every((k) => new RegExp(`\\[${NINE.find(([x]) => x === k)[4]}\\]: entry\\(ROW_DESC\\.${k},`).test(PH)) && /const COMING_CONNECTS = 'Nothing connects here yet\. It will when this room opens\.';/.test(PH), '1.11 each room not yet landed has its Coming card (its line, the one step, the connects line); a landed room keeps a card of its own');   // AMENDED BY LABEL · hub cut r2
 ok(() => !/HUB_COMING_CHIP/.test(read('v2/app/vendor/(shell)/support/page.tsx')), '1.12 P3 holds: the hub page carries no Coming chip and no flag for one (the founder, 6 October 2026)');
 ok(() => ['app/vendor/(shell)', 'lib/solutions'].every((d) => NINE.every(([, , , href]) => !fs.existsSync(path.join(ROOT, d, slug(href))))), '1.13 the legacy layout is untouched: no page of the nine under app/vendor or lib');
 
@@ -64,7 +71,7 @@ async function glass() {
     const puppeteer = (await import(path.join(ROOT, 'node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js'))).default;
     const chromium = (await import(path.join(ROOT, 'node_modules/@sparticuz/chromium/build/index.js'))).default;
     browser = await puppeteer.launch({ executablePath: await chromium.executablePath(), headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
-    for (const mode of ['dark', 'light']) for (const [k, label, line, href] of NINE) {
+    for (const mode of ['dark', 'light']) for (const [k, label, line, href] of COMING) {
       const p = await browser.newPage();
       await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
       await p.setCookie({ name: 'tdw_wl_mode', value: mode, domain: 'localhost', path: '/' });
