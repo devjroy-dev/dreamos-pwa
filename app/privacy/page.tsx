@@ -283,7 +283,13 @@ export default function PrivacyPolicyPage() {
               message records are stored.
             </li>
             <li>
-              <strong>Cloudinary</strong>: where portfolio photos are stored.
+              <strong>Cloudinary</strong>: where portfolio photos and the pictures you save in TDW are stored.
+            </li>
+            <li>
+              <strong>Google Cloud Vision</strong>: when you send TDW a picture on WhatsApp or add one in the app,
+              Google reads it from the address where TDW stores it, to find its text, what it shows and its colours,
+              so TDW can file it as inspiration, a receipt or a moment. Google does not keep the picture. TDW keeps
+              what Google found with your saved picture.
             </li>
             <li>
               <strong>Railway</strong>: which hosts our servers.
