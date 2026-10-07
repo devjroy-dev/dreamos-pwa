@@ -13,6 +13,16 @@ const fs = require('fs'); const path = require('path'); const crypto = require('
 const ROOT = path.join(__dirname, '..');
 const PORT = 3281;
 const CHILD = !!process.env.B281_CHILD;
+// e-275 and the floor's reds (CE-47, 7 October 2026). A mutation child compiles its own cold next dev, so it gets a long
+// allowance for its FIRST page only; every later page in a child, and every page in the parent, gets the usual bound.
+// A child also keeps its own whole-run limit, inside spawnSync's, so it stops its own server and says so before anyone
+// has to SIGKILL it. A child whose room never came up, or that ran past its own limit, is NOT a mutation result.
+const CHILD_FIRST_MS = 480000; const CHILD_LATER_MS = 120000; const PARENT_PAGE_MS = 240000;
+const CHILD_MAX_MS = Number(process.env.B281_CHILD_MAX_MS) || 900000;   // the child's own limit
+const SPAWN_MS = Number(process.env.B281_SPAWN_MS) || 1080000;         // spawnSync's limit, always above the child's
+const ROOM_UP = 'B281-CHILD-ROOM-UP'; const ROOM_DOWN = 'B281-CHILD-ROOM-DOWN'; const OVER_LIMIT = 'B281-CHILD-OVER-LIMIT';
+let pagesOpened = 0;
+const pageMs = () => (CHILD ? (pagesOpened === 0 ? CHILD_FIRST_MS : CHILD_LATER_MS) : PARENT_PAGE_MS);
 const dev = require(path.join(ROOT, 'scripts/lib/b126_dev_server.js'));
 let pass = 0; let fail = 0; const failed = [];
 function ok(c, name, info) { if (c) { pass += 1; if (!CHILD) console.log(`  PASS  ${name}`); return true; } else { fail += 1; failed.push(name); console.log(`  FAIL  ${name}${info === undefined ? '' : '  [' + String(info).slice(0, 240) + ']'}`); } }
@@ -55,8 +65,9 @@ async function page(url, answers, { admin = false, width = 374, until } = {}) {
     if (route === '/api/v2/vendor/me') return J({ ok: true, vendor: { id: 'v1', name: 'DEV440 Studio', city: 'Delhi', layout: 'v2' } });
     return J({ ok: true });
   });
-  await p.goto(`http://localhost:${PORT}${url}`, { waitUntil: 'domcontentloaded', timeout: 240000 });
-  const end = Date.now() + 240000; let found = false;
+  const ms = pageMs(); pagesOpened += 1;
+  await p.goto(`http://localhost:${PORT}${url}`, { waitUntil: 'domcontentloaded', timeout: ms });
+  const end = Date.now() + ms; let found = false;
   while (Date.now() < end && !(found = await p.evaluate((s) => !!document.querySelector(s), until).catch(() => false))) await wait(400);
   p.found = found; return p;
 }
@@ -85,6 +96,8 @@ async function openSheet(gate) {
 async function cells() {
   sec('§1 the new call sheet (Hire, collab & barter)');
   let p = await openSheet({ instagram: true, threads: true });
+  if (CHILD && !p.found) { console.log(`${ROOM_DOWN} (the room was not on glass within ${CHILD_FIRST_MS / 1000} s)`); await p.close(); return 'down'; }
+  if (CHILD) console.log(ROOM_UP);
   if (!ok(p.found, '1.0 the room is on glass')) { await p.close(); return; }
   let r = await q(p, () => ({
     pay: [...document.querySelectorAll('[data-clb-pay] .cp-chip')].map((b) => [b.innerText.trim(), Math.round(b.getBoundingClientRect().height)]),
@@ -173,14 +186,60 @@ const MUTS = [
   ['v2/components/vendor/CollabPostForm.tsx', '<button type="button" className="cp-fix" data-clb-need-picture="" onClick={() => fileRef.current?.click()}>{CS.needPicture}</button>', '<p className="cp-fix" data-clb-need-picture="">{CS.needPicture}</p>', 'M4 the needed-picture line is not a control', '1.6'],
 ];
 const sha = (f) => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+// e-277 (STANDING): no mutation may already be in a production file. A run killed by SIGKILL cannot restore (no handler
+// catches it), so a later run refuses mutated bytes rather than test them. Checked before the first cell AND before each
+// mutation. A mutation is "present" if its replacement text is in the file, or its original is not there exactly once.
+function mutationLeftovers(read) {
+  const bad = [];
+  for (const [file, from, to, name] of MUTS) {
+    const src = read(file);
+    if (src == null) { bad.push({ file, name, why: 'the file is missing' }); continue; }
+    if (src.split(from).length !== 2) bad.push({ file, name, why: 'its original text is not there exactly once' });
+    else if (to && src.includes(to)) bad.push({ file, name, why: 'its mutated text is in the file' });
+  }
+  return bad;
+}
+const readReal = (f) => { try { return fs.readFileSync(path.join(ROOT, f), 'utf8'); } catch (_e) { return null; } };
+function stopOnLeftovers(left) {
+  for (const x of left) console.log(`STOP — ${x.file} looks mutated (${x.name}: ${x.why}). Restore it from your package or git, then run again.`);
+  console.log(`\nb281 · ${pass} pass · ${fail} fail`); process.exit(2);
+}
+// The child's next dev runs in its OWN process group (scripts/lib/b126_dev_server.js) and is stopped on a normal exit,
+// but nothing catches a SIGKILL. So the child writes its server's group id to a file, and after every child, whatever
+// became of it, the parent kills that group and waits for the port to be free.
+const PIDFILE = path.join(require('os').tmpdir(), `b281_child_server_${process.pid}.pid`);
+async function reapChildServer() {
+  let pid = null; try { pid = Number(fs.readFileSync(PIDFILE, 'utf8')); } catch (_e) { pid = null; }
+  if (pid) { try { process.kill(-pid, 'SIGKILL'); } catch (_e) { /* already gone */ } }
+  try { fs.unlinkSync(PIDFILE); } catch (_e) { /* none */ }
+  const end = Date.now() + 30000;
+  while (Date.now() < end && await dev.portOpen(PORT)) await wait(250);
+  return !(await dev.portOpen(PORT));
+}
 (async () => {
+  if (CHILD) {
+    if (process.env.B281_FORCE_DOWN === '1') { console.log(`${ROOM_DOWN} (forced, to prove the parent)`); process.exit(3); }
+    setTimeout(async () => { console.log(`${OVER_LIMIT} (the child passed its own ${CHILD_MAX_MS / 1000} s limit)`); await stopAll(); process.exit(4); }, CHILD_MAX_MS);
+  } else {
+    sec('§0 e-277: no mutation already present (checked before any cell)');
+    const [pf, pfrom, pto] = MUTS.find((m) => m[2]);
+    const caught = mutationLeftovers((f) => (f === pf ? readReal(f).replace(pfrom, pto) : readReal(f)));
+    ok(caught.length === 1 && caught[0].file === pf, '0.2 a planted mutation is caught and named', JSON.stringify(caught));
+    const left = mutationLeftovers(readReal);
+    if (!ok(left.length === 0, '0.3 every production file the bench mutates is clean before the first cell', JSON.stringify(left))) stopOnLeftovers(left);
+  }
   try {
     const puppeteer = (await import(path.join(ROOT, 'node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js'))).default;
     const chromium = (await import(path.join(ROOT, 'node_modules/@sparticuz/chromium/build/index.js'))).default;
     SERVER = await dev.start(ROOT, PORT, { NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${PORT}/__api` });
-    if (ok(await SERVER.up(), '0.1 the dev server came up')) {
+    if (CHILD && process.env.B281_PIDFILE) fs.writeFileSync(process.env.B281_PIDFILE, String(SERVER.dev.pid));
+    const up = await SERVER.up();
+    if (CHILD && !up) { console.log(`${ROOM_DOWN} (the dev server did not come up)`); await stopAll(); process.exit(3); }
+    if (ok(up, '0.1 the dev server came up')) {
       BROWSER = await puppeteer.launch({ executablePath: process.env.B281_CHROME || await chromium.executablePath(), headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
-      await cells();
+      const res = await cells();
+      if (CHILD && res === 'down') { await stopAll(); process.exit(3); }
+      if (CHILD && process.env.B281_FORCE_HANG === '1') await new Promise(() => {});   // proof switch only: a child that never ends
     }
   } catch (e) { ok(false, `b281 crashed: ${e && e.message}`); }
   const free = await stopAll();
@@ -189,13 +248,29 @@ const sha = (f) => crypto.createHash('sha256').update(fs.readFileSync(f)).digest
   const saved = new Map(); const restore = () => { for (const [f, b] of saved) fs.writeFileSync(f, b); };
   process.on('exit', restore); for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(s, () => process.exit(130));
   if (!process.argv.includes('--no-mutate')) for (const [file, from, to, name, cell] of MUTS.filter((m) => !process.env.B281_ONLY || m[3].startsWith(process.env.B281_ONLY))) {
+    const left = mutationLeftovers(readReal); if (left.length) stopOnLeftovers(left);   // e-277, before EACH mutation
+    if (await dev.portOpen(PORT)) { ok(false, `${name}: port ${PORT} is held by another server before the child starts; stopping`); console.log(`STOP — port ${PORT} is in use. Stop that server, then run again.`); break; }
     const f = path.join(ROOT, file); const before = sha(f); const src = fs.readFileSync(f, 'utf8');
     if (src.split(from).length !== 2) { ok(false, `${name}: anchor found exactly once`, file); continue; }
-    saved.set(f, src); fs.writeFileSync(f, src.replace(from, to));
-    const r = cp.spawnSync(process.execPath, [__filename], { env: { ...process.env, B281_CHILD: '1' }, encoding: 'utf8', timeout: 900000, killSignal: 'SIGKILL' });
-    fs.writeFileSync(f, src); saved.delete(f);
-    const red = r.status === 1 && new RegExp(`FAIL  ${cell.replace('.', '\\.')} `).test(r.stdout || '');
-    ok(red && sha(f) === before, `${name}: reddens ${cell}, restored by sha`, (r.stdout || '').split('\n').filter((l) => l.includes('FAIL')).join(' / '));
+    const child = async () => {
+      const r = cp.spawnSync(process.execPath, [__filename], { env: { ...process.env, B281_CHILD: '1', B281_PIDFILE: PIDFILE }, encoding: 'utf8', timeout: SPAWN_MS, killSignal: 'SIGKILL' });
+      r.portFree = await reapChildServer();
+      return r;
+    };
+    let r; let tries = 1;
+    saved.set(f, src);
+    try {
+      fs.writeFileSync(f, src.replace(from, to));
+      r = await child();
+      if (r.status === 3) { r = await child(); tries = 2; }   // the START is retried once, never a cell
+    } finally { fs.writeFileSync(f, src); saved.delete(f); }   // restored whatever became of the child
+    const out = r.stdout || '';
+    const why = out.split('\n').filter((l) => /FAIL|ROOM|OVER-LIMIT/.test(l)).join(' / ');
+    if (!r.portFree) { ok(false, `${name}: the child's server was still on port ${PORT} after the reap`, why); continue; }
+    if (r.status === 3) { ok(false, `${name}: the child's room did not come up (${tries} starts); not a mutation result`, why); continue; }
+    if (r.status === 4 || r.status === null) { ok(false, `${name}: the child ran past its limit (${r.status === 4 ? 'its own' : 'spawnSync\'s'}); not a mutation result`, why); continue; }
+    const red = r.status === 1 && out.includes(ROOM_UP) && new RegExp(`FAIL  ${cell.replace('.', '\\.')} `).test(out) && !/FAIL  1\.0 /.test(out);
+    ok(red && sha(f) === before, `${name}: reddens ${cell} with the room on glass, restored by sha${tries > 1 ? ' (child start retried once)' : ''}`, why);
   }
   sec('§5 the stop'); ok(free !== false, '5.1 the dev server and its port are released');
   console.log(`\nb281 · ${pass} pass · ${fail} fail`);

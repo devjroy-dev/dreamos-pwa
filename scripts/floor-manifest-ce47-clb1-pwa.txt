@@ -1,12 +1,12 @@
 # scripts/floor-manifest-ce47-clb1-pwa.txt
-# CE-47 · CLB-1 · COLLAB HUB v2, THE APP HALF (dreamos-pwa): the call sheet, Where it is posted, the admin Collab calls page; b281. BASE: 0bebae2fd327.
+# CE-47 · CLB-1 · COLLAB HUB v2, THE APP HALF (dreamos-pwa): the call sheet, Where it is posted, the admin Collab calls page; b281. BASE: 0bebae2fd327; re-cut as CLB1_APP_4 on a32fbf4e (b281 and this manifest only; the other nine paths are main's bytes).
 # Needs dream-os 9baece6 (CLB-1 server). No new folder. Paths with ( ) [ ] are quoted in every block.
 # Against the base: sha256 · ADDED / CHANGED / DELETED · path
 # f546f3c2fd45852b3e778368d04787b2437de215d4345563c8ce580eeb4da4c4 · CHANGED · app/admin/_components/adminNav.ts
 # b0660f76c9cdb7bd7dc0ba59fd0f15bf9041dae2903751ecc865c5cca5444f9d · CHANGED · app/admin/collab/page.tsx
 # 1e083d0b1e4cf4d73036f3dc56b226c6d195f664e1665ddb28ddbecb099e3d7d · ADDED · docs/handovers/TDW_CE47_CLB1_APP_HANDOVER.md
 # 9e21ee14bf3cb2010d57e7ed998f5699c33ef5bb8578f8818dffe944fba3fa20 · CHANGED · scripts/adm1_admin.proof.mjs
-# b13052ffad155fb60a7ec4b166b8bae91936dc246de1c7fcbaa7148c0f5da731 · ADDED · scripts/b281_clb1_collab_v2_room_bench.js
+# 2009c1438601e7970efd7a978928def83d186e062edc2d7d47c27e89e9488cb4 · ADDED · scripts/b281_clb1_collab_v2_room_bench.js
 # 1bbc0c2512a32dd0545790e83fa5557a3b00aece2309dfc3cac2fdc4aeb8abc8 · CHANGED · scripts/tdw10_p1_shell.proof.mjs
 # 43e60b543282a82deaf2cc2319f2c617c278425830f5d36f25944b4409105849 · CHANGED · v2/app/vendor/(shell)/collab/[post_id]/responses/page.tsx
 # 73d81c27c3512861836ac18ec17dc96c90aa1ccc9b3a22c9f292aa8e295b5ae7 · ADDED · v2/components/vendor/CollabWherePosted.tsx
