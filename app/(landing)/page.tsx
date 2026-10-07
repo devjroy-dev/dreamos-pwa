@@ -804,6 +804,13 @@ export default function Home() {
                   Not ready to sign up?{' '}
                   <a href="/plan" style={ENTRY_LINE_VERB}>Tell us what you need &#8594;</a>
                 </p>
+                {/* CE-47 PTN-A1 (the founder: "Partner with The Dream Wedding" on the main page itself; ruled as a link under
+                    the entry). A text link, an ANCHOR like the /plan line above, never a third door: b20_a4's census moves
+                    by one anchor, amended by label in the same delivery. */}
+                <p style={ENTRY_LINE}>
+                  An agency, brand or planner?{' '}
+                  <a href="/partner/join" style={ENTRY_LINE_VERB} data-partner-entry="">Partner with The Dream Wedding &#8594;</a>
+                </p>
                 </div>
 
                 {/* A4 · R-41.50 (chair-ruled placement, founder-delegated): the privacy link

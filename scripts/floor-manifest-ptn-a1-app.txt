@@ -1,0 +1,31 @@
+# scripts/floor-manifest-ptn-a1-app.txt
+# TDW CE-47 · PTN-A1 app half (dreamos-pwa, base 0bebae2fd327) · the delivery's own file table [F-14.16].
+# Every path this ZIP writes, and nothing else. New directories declared as lines and file by file (A-45.3, e-265).
+app/(landing)/page.tsx
+app/admin/_components/ContactRow.tsx
+app/admin/_components/PartnerLinks.tsx
+app/admin/_components/adminNav.ts
+app/admin/partners/
+app/admin/partners/contacts/page.tsx
+app/admin/partners/forward/page.tsx
+app/admin/partners/page.tsx
+app/partner/
+app/partner/join/page.tsx
+app/partner/p/[handle]/page.tsx
+app/partner/page.tsx
+app/request/
+app/request/[token]/page.tsx
+components/partner/
+components/partner/ExtLink.tsx
+components/partner/OrgForm.tsx
+components/partner/PartnerShell.tsx
+docs/handovers/TDW_CE47_PTN_A1_APP.md
+lib/partner/
+lib/partner/api.ts
+lib/partner/words.ts
+scripts/b20_a4_otpsignup_pwa.proof.mjs
+scripts/b291_ptn_a1_app_bench.js
+scripts/b72_r4210_plan_entry_bench.js
+scripts/floor-manifest-ptn-a1-app.txt
+scripts/ptn_a1_app.sha256
+scripts/tdw10_p1_shell.proof.mjs

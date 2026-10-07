@@ -111,6 +111,12 @@ export const MORE_GROUPS: MoreGroup[] = [
     { label: 'Taste quiz pictures',   path: '/admin/content/surprise-me', icon: 'image', sub: 'Surprise me', hints: ['surprise', 'random'] },
     { label: 'Discover top pictures', path: '/admin/content/heroes',      icon: 'image', sub: 'Being replaced by Vendors of the week', retiresAt: 'SPOTLIGHT-CONSOLIDATION' },
   ] },
+  // CE-47 PTN-A1: organisations that get collab calls or post work, the admin's contacts, and Forward a request (by hand).
+  { title: 'Partners', sections: [
+    { label: 'Partners',          path: '/admin/partners',         icon: 'star',  sub: 'Agencies, fashion houses, brands, planners and studios', hints: ['agencies', 'brands', 'planners', 'check', 'block'] },
+    { label: 'Contacts',          path: '/admin/partners/contacts', icon: 'chat', sub: 'People and organisations TDW knows', hints: ['contacts', 'stopped'] },
+    { label: 'Forward a request', path: '/admin/partners/forward', icon: 'chat',  sub: 'Send a vendor\'s request to people TDW knows', hints: ['forward', 'request', 'matchmaking'] },
+  ] },
   { title: 'Settings', sections: [
     { label: 'Switches',          path: '/admin/switchboard', icon: 'sliders', sub: 'Turn features on or off, AI models, vendor layout', hints: ['switchboard', 'gates', 'flags', 'templates', 'meta'] },
     { label: 'AI message limits', path: '/admin/config',      icon: 'gear',    sub: 'Daily and monthly limits per plan', hints: ['caps', 'model', 'spend'] },
@@ -137,6 +143,9 @@ export const ROUTE_MAP: MappedRoute[] = [
   { path: '/admin/numbers',                  domain: 'bridge',      disposition: 'LIVE' }, // ADM-1: the old Bridge, "All numbers"
   { path: '/admin/more',                     domain: 'bridge',      disposition: 'LIVE' }, // ADM-1: More
   { path: '/admin/prospects',                domain: 'growth',      disposition: 'LIVE' },
+  { path: '/admin/partners',                 domain: 'growth',      disposition: 'LIVE' }, // CE-47 PTN-A1
+  { path: '/admin/partners/contacts',        domain: 'growth',      disposition: 'LIVE' }, // CE-47 PTN-A1
+  { path: '/admin/partners/forward',         domain: 'growth',      disposition: 'LIVE' }, // CE-47 PTN-A1
   { path: '/admin/collab',                   domain: 'growth',      disposition: 'LIVE' }, // CE-47 CLB-1: F-44.300 cured; src/api/admin/collab.js serves it
   { path: '/admin/demo',                     domain: 'growth',      disposition: 'LIVE' },
   { path: '/admin/approvals/discover',       domain: 'marketplace', disposition: 'LIVE' },
