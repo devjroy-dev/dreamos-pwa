@@ -40,12 +40,14 @@ Already on: PARTNER_SESSION_SECRET in Railway; 0216 and 0217 run. Your own Insta
 7. Settings, handle "walk test": refused with "Write the Instagram handle only, for example modelconnect.in". Put it back.
 8. Settings: handle and website as links, the partner page address, Calls choice, you as owner.
 9. Tap the handle: Instagram opens in a new tab. Failed if plain text or same tab.
-10. The partner page: name, "NOT YET CHECKED BY TDW", kind and city, links, the fee line. Failed if any phone or email shows.
+10. The partner page: name, kind and city, links, the fee line, and NO mark while partners.check_label is off (r4: the founder's
+    words are "Verified" / "Unverified"; no empty tag). Failed if any phone or email shows.
 11. Sign out; sign in with the same number: the area opens; the name is not asked.
-12. Admin, More > Partners: Walk Test Agency under "Not yet checked", links under the row.
-13. Its sheet: owner with WhatsApp and Call, "Connections: 0 of 3 free used. Plan: none yet. After the 3rd, Rs 2,999 a month.", Mark as checked, Exempt from the plan, Block with a reason.
+12. Admin, More > Partners: Walk Test Agency under "Unverified", links under the row.
+13. Its sheet: owner with WhatsApp and Call, "Connections: 0 of 3 free used. Plan: none yet. After the 3rd, Rs 2,999 a month.", Mark as verified, Exempt from the plan, Block with a reason.
 14. Exempt: "Connections: 0. Exempt from the plan." Then "Remove the exemption".
-15. Mark as checked: moves to Checked; the partner page now says "CHECKED BY TDW".
+15. Mark as verified: moves to Verified. With partners.check_label on, the partner page says "VERIFIED", and a tap on it
+    opens what it means and what it does not; off, no mark at all.
 16. Contacts, + Add contact: Walk contact, Other, _devroy__, no phone, "Walk test": saved with the handle as a link. With "How we know them" empty: "Write how we know them."
 17. Forward a request: her handle walk.vendor.test, phone +919888294440, model, Delhi NCR, a date ahead, 3000 to 5000, Paid, Walk contact ticked, "She asked for this" NOT ticked: "Tick "She asked for this" first."
 18. Tick it, make the messages, open Walk contact: the message ending "See the request and answer here: https://thedreamwedding.in/request/<code>", Copy message, Open on Instagram, Open on Threads, "I sent it".

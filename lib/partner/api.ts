@@ -28,6 +28,6 @@ export const partnerApi = {
   createOrg: (b: Record<string, unknown>) => call<{ partner: Org }>('/api/v2/partner/org', { method: 'POST', body: json(b) }),
   patchOrg: (b: Record<string, unknown>) => call<{ partner: Org }>('/api/v2/partner/org', { method: 'PATCH', body: json(b) }),
   addPerson: (phone: string, name: string) => call<object>('/api/v2/partner/people', { method: 'POST', body: json({ phone, name }) }),
-  publicPage: (handle: string) => call<{ partner: { name: string; kind_words: string; cities: string[]; instagram_handle: string; instagram_url: string | null; website_url: string | null; check_words: string; fee_line: string } }>(`/api/v2/public/partner/p/${encodeURIComponent(handle)}`, {}, false),
+  publicPage: (handle: string) => call<{ partner: { name: string; kind_words: string; cities: string[]; instagram_handle: string; instagram_url: string | null; website_url: string | null; check_words: string | null; fee_line: string } }>(`/api/v2/public/partner/p/${encodeURIComponent(handle)}`, {}, false),
   request: (token: string) => call<{ ended: boolean; line?: string; request?: { vendor: { name: string; trade: string; instagram_url: string | null; instagram_handle: string | null }; need: string; city: string; date_words: string; budget_words: string; pay_words: string; note: string | null; phone_line: string } }>(`/api/v2/public/partner/request/${encodeURIComponent(token)}`, {}, false),
 };

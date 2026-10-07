@@ -1,6 +1,7 @@
 // lib/partner/words.ts · CE-47 · PTN-A1 app · every word a partner, a vendor or the admin reads on these pages, ONE HOME.
 // The founder's one rule: simple and descriptive. The ruled lines are verbatim (fee line, "Who is signing up?", "Just me ·",
-// "Not yet checked by TDW", "Checked by TDW", "Report", "Calls for you", "Tick "She asked for this" first.").
+// "Report", "Calls for you", "Tick "She asked for this" first."). r4: the partner mark is the founder's "Verified" /
+// "Unverified" (7 Oct 2026); its words come from the server (check_words), and when it sends null no mark is drawn.
 export const FEE_LINE = 'This partner may charge its own fees. TDW takes no fee and has no part in it.';
 export const W = {
   brand: 'The Dream Wedding',
@@ -25,7 +26,15 @@ export const W = {
   verify: 'Continue',
   newCode: 'Send a new code',
   orgTitle: 'Your organisation',
-  orgLede: 'This shows on your partner page. TDW checks partners later. Until then your page says "Not yet checked by TDW".',
+  orgLede: 'This shows on your partner page.',
+  // A tap on the mark: what it means and what it does not (the rule's lines 1 and 2, with the founder for approval; the
+  // mark itself shows only once he rules and the switch is on).
+  markMeans: 'Verified means TDW has seen that the organisation is real: its own website or Instagram, and a call with a named person there.',
+  markNot: 'It does not mean TDW vouches for its work, its fees or its people.',
+  pageLink: 'Your partner page',
+  pageOpen: 'Open your partner page',
+  copy: 'Copy',
+  copied: 'Copied',
   orgName: 'Name of your organisation',
   kind: 'What kind of organisation?',
   insta: 'Instagram handle',

@@ -3,17 +3,24 @@
 // the API answered by this bench at /__api), at 374 x 812, light then dark (C-43.18: the surface inside its real room).
 //   §1 sign-up: "Who is signing up?", the ruled words; "Just me" opens "Launching soon", never a dead link.
 //   §2 the request page: the vendor's Instagram is a link (https, new tab, noopener noreferrer); NO phone and no email.
-//   §3 the partner page: every handle and website an anchor with the right address; the checked label; the fee line,
-//      verbatim; a partner the server does not return reads "This page does not exist."
+//   §3 the partner page: every handle and website an anchor with the right address; the fee line, verbatim; a partner
+//      the server does not return reads "This page does not exist." r4 (the founder's words, 7 Oct 2026): with check_words
+//      null (the switch off, as A2-1's server sends) NO mark and no empty tag is drawn; with "Verified" the mark is drawn,
+//      a 44px target, and a tap opens what it means and what it does not.
 //   §4 Contacts: a Stopped row draws NO WhatsApp and NO Call (no wa.me, no tel: inside it) and keeps its Instagram link;
 //      a row not stopped draws both (the control).
 //   §5 Partners: each row's handle and website are anchors; the sheet's people carry WhatsApp and Call; the connections line.
-//   §6 Forward a request: Send is refused without "She asked for this" in the ruled words; each person's sheet has Copy
-//      message, Open on Instagram and Open on Threads (outside links in a new tab) and "I sent it".
+//   §6 Forward a request: Send is refused without "She asked for this" in the ruled words; each person's sheet has the
+//      message in its own CopyBox (R-46.17: the box holds the text and its one control, nothing else), Open on Instagram
+//      and Open on Threads (outside links in a new tab) and "I sent it".
 //   §7 the main page: "Partner with The Dream Wedding" is an anchor to /partner/join, read from the source (mock mode redirects '/').
-//   §8 the partner area: the checked label, Settings' links, the calls footnote verbatim.
+//   §8 the partner area: no mark when check_words is null; Settings' links; the partner page link in its own CopyBox with
+//      Open beside it (R-46.17); the calls footnote verbatim. §5 also: the admin's tabs and tags read Unverified / Verified.
+//   §10 THIN ANSWERS (the chair's lesson 2): every PTN page drawn against { ok: true } with no lists draws its own empty
+//      or first state and throws no page error.
 //   §9 everywhere above: no visible text outside an anchor reads as a handle or a website (the founder's rule).
-// --mutate: ContactRow made to pass the phone on a Stopped row -> §4 reddens; the file restored byte for byte.
+// --mutate: M1 ContactRow made to pass the phone on a Stopped row -> §4 reddens; M2 the mark's null guard dropped -> §3.2
+// reddens (an empty tag drawn); each file restored byte for byte.
 // e-277: the run STOPS before its first cell if the mutation anchor is already in ContactRow.tsx.
 // One BOUNDED stop for the server and the browser on every exit path (e-275); every wait is on the thing itself, bounded. Runs bare (no key, no live call). THE EXIT CODE IS THE VERDICT.
 process.env.PORT = process.env.PORT || '4310';
@@ -27,14 +34,17 @@ let pass = 0, fail = 0; const failed = [];
 const ok = (c, name, info) => { if (c) { pass++; console.log('  PASS  ' + name); } else { fail++; failed.push(name); console.log('  FAIL  ' + name + (info === undefined ? '' : '  [' + String(info).slice(0, 260) + ']')); } };
 const FEE = 'This partner may charge its own fees. TDW takes no fee and has no part in it.';
 
-const ORG = { id: 'o1', name: 'Model Connect', kind: 'model_agency', kind_words: 'Model agency', instagram_handle: 'modelconnect.in', instagram_url: 'https://www.instagram.com/modelconnect.in/', website: 'https://modelconnect.in/', website_url: 'https://modelconnect.in/', cities: ['Delhi NCR'], wants: ['calls'], calls_email: 'bookings@modelconnect.in', send_state: 'active', check_state: 'unchecked', check_words: 'Not yet checked by TDW', plan_state: 'free' };
+const ORG = { id: 'o1', name: 'Model Connect', kind: 'model_agency', kind_words: 'Model agency', instagram_handle: 'modelconnect.in', instagram_url: 'https://www.instagram.com/modelconnect.in/', website: 'https://modelconnect.in/', website_url: 'https://modelconnect.in/', cities: ['Delhi NCR'], wants: ['calls'], calls_email: 'bookings@modelconnect.in', send_state: 'active', check_state: 'unchecked', check_words: null, plan_state: 'free' };
 const CONTACTS = [
   { id: 'c1', name: 'Model Connect', kind: 'agency', how_we_know: 'Met at a show', phone: '+919811100021', knows_tdw: true, stopped: false, instagram_handle: 'modelconnect.in', instagram_url: 'https://www.instagram.com/modelconnect.in/', website_url: 'https://modelconnect.in/' },
   { id: 'c2', name: 'Neha Kapoor', kind: 'stylist', how_we_know: 'Sent by a vendor we know', phone: '+919811100032', knows_tdw: false, stopped: true, instagram_handle: 'neha.styles', instagram_url: 'https://www.instagram.com/neha.styles/', website_url: null },
 ];
 const ROW = { ...ORG, hidden_by_reports: false, reports_open: 0, connections_line: 'Connections: 2 of 3 free used. Plan: none yet. After the 3rd, Rs 2,999 a month.', blocked_reason: null, created_at: '2026-10-06T00:00:00Z' };
 const RECIP = { id: 'r1', contact: CONTACTS[0], sent_at: null, link: 'https://thedreamwedding.in/request/TOKEN', message: 'Hello Model Connect. Aanya Makeup Studio, a makeup artist on The Dream Wedding, needs a model in Delhi NCR on 18 October 2026. Budget Rs 3,000 to Rs 5,000. Paid. See the request and answer here: https://thedreamwedding.in/request/TOKEN', instagram_url: 'https://www.instagram.com/modelconnect.in/', threads_url: 'https://www.threads.com/@modelconnect.in' };
+let THIN = false;   // §10: every door answers { ok: true } and nothing else
 function answer(method, route) {
+  if (THIN) return [200, { ok: true }];
+  if (route === '/api/v2/public/partner/p/marked.in') return [200, { ok: true, partner: { name: 'Kaveri House', kind_words: 'Fashion house', cities: ['Jaipur'], instagram_handle: 'marked.in', instagram_url: 'https://www.instagram.com/marked.in/', website_url: null, check_words: 'Verified', fee_line: FEE } }];
   if (route === '/api/v2/public/partner/request/TOKEN') return [200, { ok: true, ended: false, request: { vendor: { name: 'Aanya Makeup Studio', trade: 'makeup artist', instagram_url: 'https://www.instagram.com/aanya.mua/', instagram_handle: 'aanya.mua' }, need: 'model', city: 'Delhi NCR', date_words: '18 October 2026', budget_words: 'Rs 3,000 to Rs 5,000', pay_words: 'Paid', note: 'Half a day.', phone_line: "The vendor's phone number is shared only when the vendor chooses to contact you." } }];
   if (route === '/api/v2/public/partner/p/modelconnect.in') return [200, { ok: true, partner: { name: ORG.name, kind_words: ORG.kind_words, cities: ORG.cities, instagram_handle: ORG.instagram_handle, instagram_url: ORG.instagram_url, website_url: ORG.website_url, check_words: ORG.check_words, fee_line: FEE } }];
   if (route.startsWith('/api/v2/public/partner/p/')) return [404, { ok: false, error: 'This partner page does not exist.' }];
@@ -65,6 +75,7 @@ const hasText = (t) => document.body && document.body.innerText.includes(t);
 const bounded = (pr, ms) => Promise.race([pr, new Promise((r) => setTimeout(() => r('TIMEOUT'), ms))]);
 async function open(b, route, mode, wait, { admin = false, partner = false } = {}) {
   const ctx = await b.createBrowserContext(); const p = await ctx.newPage(); p.__ctx = ctx;
+  p.__errs = []; p.on('pageerror', (e) => p.__errs.push(String(e && e.message || e).slice(0, 160)));
   await p.setViewport({ width: 374, height: 812, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
   await p.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: mode }]);
   for (const name of ['tdw_wl_mode', 'tdw_adm_mode']) await p.setCookie({ name, value: mode, domain: 'localhost', path: '/' });
@@ -96,6 +107,12 @@ const goodAnchor = (a) => /^https:\/\//.test(a.h) && a.tg === '_blank' && a.rel 
     process.exit(1);
   }
 }
+const MARK_FILE = path.join(ROOT, 'components/partner/Mark.tsx');
+const MARK_GUARD = "  if (typeof words !== 'string' || !words.trim()) return null;\n";
+if (process.env.B291_MUT_CHILD !== '1' && !(fs.existsSync(MARK_FILE) && fs.readFileSync(MARK_FILE, 'utf8').includes(MARK_GUARD))) {
+  console.log('STOP — the mark\'s null guard is missing from components/partner/Mark.tsx (a run killed mid-mutation?); restore it with git checkout before running b291.');
+  process.exit(1);
+}
 if (MUT) {
   const file = path.join(ROOT, 'app/admin/_components/ContactRow.tsx');
   const orig = fs.readFileSync(file, 'utf8');
@@ -107,6 +124,14 @@ if (MUT) {
   finally { fs.writeFileSync(file, orig); }
   ok(red, 'M1 ContactRow passing the phone on a Stopped row reddens §4.1');
   ok(crypto.createHash('sha256').update(fs.readFileSync(file, 'utf8')).digest('hex') === crypto.createHash('sha256').update(orig).digest('hex'), 'M1 ContactRow restored byte for byte');
+  {
+    const orig2 = fs.readFileSync(MARK_FILE, 'utf8'); let red2 = false;
+    fs.writeFileSync(MARK_FILE, orig2.replace(MARK_GUARD, ''));
+    try { const r = require('child_process').spawnSync(process.execPath, [__filename, '--only=mark'], { encoding: 'utf8', env: { ...process.env, PORT: String(PORT + 2), B291_MUT_CHILD: '1' } }); red2 = r.status !== 0 && /FAIL  §3\.2/.test(r.stdout); if (!red2) console.log(r.stdout.slice(-1500)); }
+    finally { fs.writeFileSync(MARK_FILE, orig2); }
+    ok(red2, 'M2 the mark\'s null guard dropped reddens §3.2 (an empty tag drawn)');
+    ok(crypto.createHash('sha256').update(fs.readFileSync(MARK_FILE, 'utf8')).digest('hex') === crypto.createHash('sha256').update(orig2).digest('hex'), 'M2 Mark.tsx restored byte for byte');
+  }
   console.log(`\nb291 --mutate: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
 }
 const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
@@ -117,6 +142,13 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
     server = await dev.start(ROOT, PORT, { NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${PORT}/__api` });
     if (!(await server.up())) { ok(false, 'the dev server came up'); return; }
     b = await launch(); bpid = b.process() && b.process().pid;
+    if (ONLY === 'mark') {
+      const p = await open(b, '/partner/p/modelconnect.in', 'light', '[data-partner-public]');
+      const pt = await p.evaluate(() => document.querySelector('[data-partner-public]').textContent);
+      const tags3 = await p.evaluate(() => ({ mark: !!document.querySelector('[data-partner-mark]'), empty: [...document.querySelectorAll('[data-partner-public] .px-tag')].filter((e) => !e.textContent.trim()).length }));
+      ok(pt.includes(FEE) && !tags3.mark && tags3.empty === 0, '§3.2 the fee line verbatim; check_words null: NO mark, no empty tag (light)', JSON.stringify(tags3));
+      await close(p); return;
+    }
     for (const mode of (ONLY ? ['light'] : ['light', 'dark'])) {
       console.log(`\n── ${mode} ──`);
       if (ONLY && ONLY !== 'contacts') continue;
@@ -139,8 +171,16 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
         const pa = await anchorsOf(p, '[data-partner-public]');
         ok(pa.some((a) => a.h === 'https://www.instagram.com/modelconnect.in/' && a.t === '@modelconnect.in') && pa.some((a) => a.h === 'https://modelconnect.in/') && pa.every(goodAnchor), `§3.1 the partner page's handle and website are links (${mode})`, JSON.stringify(pa));
         const pt = await p.evaluate(() => document.querySelector('[data-partner-public]').textContent);   // textContent: the label is uppercased by CSS
-        ok(pt.includes(FEE) && pt.includes('Not yet checked by TDW'), `§3.2 the fee line verbatim and the checked label (${mode})`);
+        const tags3 = await p.evaluate(() => ({ mark: !!document.querySelector('[data-partner-mark]'), empty: [...document.querySelectorAll('[data-partner-public] .px-tag')].filter((e) => !e.textContent.trim()).length }));
+        ok(pt.includes(FEE) && !tags3.mark && tags3.empty === 0 && !/checked by TDW|Verified|Unverified/i.test(pt), `§3.2 the fee line verbatim; check_words null: NO mark, no empty tag (${mode})`, JSON.stringify(tags3));
         ok((await plainLinks(p, '[data-partner-public]')).length === 0, `§9.2 no plain handle or site on the partner page (${mode})`, JSON.stringify(await plainLinks(p, '[data-partner-public]')));
+        await close(p);
+        p = await open(b, '/partner/p/marked.in', mode, '[data-partner-mark]');
+        const m3 = await p.evaluate(() => { const t = document.querySelector('[data-mark-tap]'); const r = t.getBoundingClientRect(); return { words: t.textContent.trim(), h: r.height, open: !!document.querySelector('[data-mark-means]') }; });
+        await p.click('[data-mark-tap]'); await until(p, hasSel, '[data-mark-means]', 10000);
+        const means = await p.evaluate(() => { const d = document.querySelector('[data-mark-means]'); return d ? d.textContent : ''; });
+        ok(m3.words === 'Verified' && m3.h >= 44 && !m3.open && means.includes('Verified means TDW has seen that the organisation is real: its own website or Instagram, and a call with a named person there.')
+          && means.includes('It does not mean TDW vouches for its work, its fees or its people.'), `§3.4 "Verified": the mark, a 44px target; a tap opens what it means and what it does not (${mode})`, JSON.stringify({ m3, means }));
         await close(p);
         p = await open(b, '/partner/p/nobody.here', mode, 'section');
         await until(p, hasText, 'This page does not exist.', 30000);
@@ -158,10 +198,12 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
       p = await open(b, '/admin/partners', mode, '[data-partner-links]', { admin: true });
       const la = await anchorsOf(p, '[data-partner-links]');
       ok(la.some((a) => a.t === '@modelconnect.in' && a.h === 'https://www.instagram.com/modelconnect.in/') && la.some((a) => a.h === 'https://modelconnect.in/') && la.every(goodAnchor), `§5.1 each partner row's handle and website are links (${mode})`, JSON.stringify(la));
+      const adm5 = await p.evaluate(() => document.body.innerText);
+      ok(/Unverified/.test(adm5) && /Verified/.test(adm5.replace(/Unverified/g, '')) && !/checked by TDW|Not yet checked/i.test(adm5), `§5.3 the admin's tabs and the row's tag read Unverified / Verified; no old words (${mode})`);
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => /Model Connect/.test(x.innerText)); if (b) b.click(); });
       await until(p, hasSel, '[role=dialog]', 15000);
       const sheet = await p.evaluate(() => { const d = document.querySelector('[role=dialog]'); return d ? { text: d.innerText, wa: !!d.querySelector('a[href*="wa.me"]'), tel: !!d.querySelector('a[href^="tel:"]') } : null; });
-      ok(!!sheet && sheet.wa && sheet.tel && /Connections: 2 of 3 free used\./.test(sheet.text) && /Mark as checked/.test(sheet.text) && /Exempt from the plan/.test(sheet.text) && /Block/.test(sheet.text), `§5.2 the sheet: people with WhatsApp and Call, the connections line, the actions (${mode})`, sheet && sheet.text.slice(0, 200));
+      ok(!!sheet && sheet.wa && sheet.tel && /Connections: 2 of 3 free used\./.test(sheet.text) && /Mark as verified/.test(sheet.text) && !/Mark as checked/.test(sheet.text) && /Exempt from the plan/.test(sheet.text) && /Block/.test(sheet.text), `§5.2 the sheet: people with WhatsApp and Call, the connections line, the actions (${mode})`, sheet && sheet.text.slice(0, 200));
       await close(p);
       p = await open(b, '/admin/partners/forward', mode, '[data-asked]', { admin: true });
       await p.evaluate(() => { const c = document.querySelector('input[aria-label="Send to Model Connect"]'); if (c) c.click(); });
@@ -176,6 +218,8 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
       await p.evaluate(() => { const d = [...document.querySelectorAll('div')].find((x) => /Not sent yet\. Tap to open\./.test(x.innerText) && x.style.cursor === 'pointer'); if (d) d.click(); });
       await until(p, hasSel, '[role=dialog]', 15000);
       const fs6 = await p.evaluate(() => { const d = document.querySelector('[role=dialog]'); if (!d) return null; return { text: d.innerText, out: [...d.querySelectorAll('[data-ext-link]')].map((a) => ({ t: a.textContent.trim(), h: a.getAttribute('href'), tg: a.getAttribute('target'), rel: a.getAttribute('rel') })) }; });
+      const box6 = await p.evaluate(() => { const bx = document.querySelector('[role=dialog] [data-copybox]'); if (!bx) return null; return { kids: bx.children.length, text: (bx.querySelector('[data-copytext]') || {}).textContent, ctl: (bx.querySelector('[data-copyctl]') || {}).textContent }; });
+      ok(!!box6 && box6.kids === 2 && /^Hello Model Connect\./.test(box6.text || '') && box6.ctl === 'Copy message', `§6.4 R-46.17: the message sits in its own CopyBox, the text and its one control, nothing else (${mode})`, JSON.stringify(box6));
       ok(!!fs6 && /Copy message/.test(fs6.text) && /I sent it/.test(fs6.text) && /See the request and answer here: https:\/\/thedreamwedding\.in\/request\/TOKEN/.test(fs6.text), `§6.2 the sheet: the message, Copy message and "I sent it" (${mode})`, fs6 && fs6.text.slice(0, 200));
       ok(!!fs6 && fs6.out.some((a) => a.t === 'Open on Instagram' && a.h === 'https://www.instagram.com/modelconnect.in/') && fs6.out.some((a) => a.t === 'Open on Threads' && a.h === 'https://www.threads.com/@modelconnect.in') && fs6.out.every(goodAnchor), `§6.3 Open on Instagram and Open on Threads open in a new tab (${mode})`, fs6 && JSON.stringify(fs6.out));
       await close(p);
@@ -189,12 +233,31 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
       }
       p = await open(b, '/partner', mode, '[data-partner-area]', { partner: true });
       const area = await p.evaluate(() => document.querySelector('[data-partner-area]').textContent);
-      ok(/Not yet checked by TDW/.test(area) && /Calls for you/.test(area) && area.includes('Calls come to you, not to your people. For each person you suggest, TDW keeps only their name, role and profile link. TDW never contacts them.'), `§8.1 the area: checked label, Calls for you, the footnote verbatim (${mode})`);
+      const tags8 = await p.evaluate(() => ({ mark: !!document.querySelector('[data-partner-mark]'), empty: [...document.querySelectorAll('[data-partner-area] .px-tag')].filter((e) => !e.textContent.trim()).length }));
+      ok(!tags8.mark && tags8.empty === 0 && !/checked by TDW|Verified|Unverified/i.test(area) && /Calls for you/.test(area) && area.includes('Calls come to you, not to your people. For each person you suggest, TDW keeps only their name, role and profile link. TDW never contacts them.'), `§8.1 the area: no mark while check_words is null, no empty tag; Calls for you, the footnote verbatim (${mode})`);
       await p.evaluate(() => { const b = [...document.querySelectorAll('[data-partner-area] button')].find((x) => x.innerText.trim() === 'Settings'); if (b) b.click(); });
       await until(p, hasSel, '[data-settings] [data-ext-link]', 15000);
       const sa = await anchorsOf(p, '[data-settings]');
       ok(sa.some((a) => a.h === 'https://www.instagram.com/modelconnect.in/') && sa.some((a) => a.h === 'https://modelconnect.in/') && sa.every(goodAnchor), `§8.2 Settings: the handle and website are links (${mode})`, JSON.stringify(sa));
+      const box8 = await p.evaluate(() => { const bx = document.querySelector('[data-settings] [data-copybox]'); if (!bx) return null; const open = [...document.querySelectorAll('[data-settings] a')].find((a) => a.textContent.trim() === 'Open your partner page');
+        return { kids: bx.children.length, text: (bx.querySelector('[data-copytext]') || {}).textContent, ctl: (bx.querySelector('[data-copyctl]') || {}).textContent, open: open ? open.getAttribute('href') : null, openInside: !!(open && bx.contains(open)) }; });
+      ok(!!box8 && box8.kids === 2 && box8.text === 'thedreamwedding.in/partner/p/modelconnect.in' && box8.ctl === 'Copy' && box8.open === '/partner/p/modelconnect.in' && !box8.openInside,
+        `§8.3 R-46.17: the partner page link in its own CopyBox; "Open your partner page" beside it, outside the box (${mode})`, JSON.stringify(box8));
       await close(p);
+    }
+    if (!ONLY) {
+      console.log('\n── §10 thin answers ──');
+      THIN = true;
+      const THINS = [['/partner/p/modelconnect.in', 'section', {}, 'This page does not exist.'], ['/request/TOKEN', 'section', {}, null], ['/partner', '[data-step="org"]', { partner: true }, null],
+        ['/admin/partners', 'h1', { admin: true }, 'No partners here.'], ['/admin/partners/contacts', 'h1', { admin: true }, null], ['/admin/partners/forward', '[data-asked]', { admin: true }, null]];
+      for (const [route, sel, who, text] of THINS) {
+        let res = null;
+        try { const p = await open(b, route, 'light', sel, who); if (text) await until(p, hasText, text, 30000);
+          res = { drew: await p.evaluate((s) => !!document.querySelector(s), sel), text: text ? await p.evaluate((t) => document.body.innerText.includes(t), text) : true, errs: p.__errs.slice() }; await close(p); }
+        catch (e) { res = { drew: false, error: String(e && e.message).slice(0, 160) }; }
+        ok(res.drew && res.text && (!res.errs || res.errs.length === 0), `§10 ${route} against { ok: true }: draws its own state, no page error`, JSON.stringify(res));
+      }
+      THIN = false;
     }
   } catch (e) { ok(false, 'the bench ran to its end', e && e.stack); }
   finally {

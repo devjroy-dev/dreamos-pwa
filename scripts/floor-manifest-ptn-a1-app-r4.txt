@@ -1,0 +1,16 @@
+# scripts/floor-manifest-ptn-a1-app-r4.txt
+# TDW CE-47 · PTN-A1 app r4 (dreamos-pwa, base 239fffb) · the delivery's own file table [F-14.16].
+# Every path this ZIP writes, and nothing else. No new directory (components/partner exists on main).
+app/admin/partners/contacts/page.tsx
+app/admin/partners/forward/page.tsx
+app/admin/partners/page.tsx
+app/partner/p/[handle]/page.tsx
+app/partner/page.tsx
+components/partner/Mark.tsx
+docs/handovers/TDW_CE47_PTN_A1_APP.md
+docs/handovers/TDW_CE47_PTN_A1_APP_R4.md
+lib/partner/api.ts
+lib/partner/words.ts
+scripts/b291_ptn_a1_app_bench.js
+scripts/floor-manifest-ptn-a1-app-r4.txt
+scripts/ptn_a1_app_r4.sha256

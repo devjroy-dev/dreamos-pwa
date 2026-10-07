@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { adminGet, adminPost } from '@/lib/admin-api/_base';
 import { PageHead, Group, List, Sheet, SheetNote, ActionStrip, Chips, C, F } from '../../_components/Kit';
 import { ContactRow, type Contact } from '../../_components/ContactRow';
+import { CopyBox } from '@/v2/components/worklist/CopyBox'; // R-46.17: the message the admin sends sits in its own box
 
 const OUT_BTN: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 14px', borderRadius: 12, font: F.t5, fontWeight: 600, border: `1px solid ${C.line}`, color: C.soft, textDecoration: 'none' };
 type Recip = { id: string; contact: Contact; sent_at: string | null; link: string | null; message: string | null; instagram_url: string | null; threads_url: string | null };
@@ -22,8 +23,7 @@ export default function ForwardAdmin() {
   const [out, setOut] = useState<Recip[] | null>(null);
   const [open, setOpen] = useState<Recip | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  useEffect(() => { void adminGet<{ contacts: Contact[] }>('/api/v2/admin/partners/contacts').then((d) => setContacts(d.contacts)).catch(() => setContacts([])); }, []);
+  useEffect(() => { void adminGet<{ contacts: Contact[] }>('/api/v2/admin/partners/contacts').then((d) => setContacts(Array.isArray(d && d.contacts) ? d.contacts : [])).catch(() => setContacts([])); }, []);
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v });
   const send = async () => {
     setErr(null);
@@ -31,7 +31,7 @@ export default function ForwardAdmin() {
     try {
       const d = await adminPost<{ recipients: Recip[] }>('/api/v2/admin/partners/forward', { ...f, vendor_id: f.vendor_id || undefined, asked: true,
         budget_from: Number(f.budget_from.replace(/\D/g, '')), budget_to: Number(f.budget_to.replace(/\D/g, '')), contact_ids: pick });
-      setOut(d.recipients);
+      setOut(Array.isArray(d && d.recipients) ? d.recipients : []);
     } catch (e) { setErr(e instanceof Error ? e.message : 'Could not save the request.'); }
   };
   const markSent = useCallback(async (r: Recip, sent: boolean) => {
@@ -70,7 +70,7 @@ export default function ForwardAdmin() {
       ) : (
         <Group title="Send each one yourself">
           <List>{out.map((r, i) => (
-            <div key={r.id} onClick={() => { setCopied(false); setOpen(r); }} style={{ cursor: 'pointer' }}>
+            <div key={r.id} onClick={() => { setOpen(r); }} style={{ cursor: 'pointer' }}>
               <ContactRow c={{ ...r.contact }} last={i === out.length - 1} />
               <p style={{ font: F.t5, color: r.sent_at ? C.ok : C.mute, padding: '0 14px 12px' }}>{r.sent_at ? 'Sent' : 'Not sent yet. Tap to open.'}</p>
             </div>))}</List>
@@ -78,8 +78,7 @@ export default function ForwardAdmin() {
       )}
       {open ? (
         <Sheet title={open.contact.name} sub="Send it yourself from TDW's accounts" onClose={() => setOpen(null)}>
-          <SheetNote>{open.message}</SheetNote>
-          <ActionStrip items={[{ label: copied ? 'Copied' : 'Copy message', primary: true, onClick: () => { if (open.message) void navigator.clipboard.writeText(open.message).then(() => setCopied(true)); } }]} />
+          {open.message ? <div style={{ padding: '0 14px' }}><CopyBox text={open.message} label="Copy message" copied="Copied" /></div> : null}
           {open.instagram_url ? (
             <div style={{ display: 'flex', gap: 8, padding: '0 14px 12px', flexWrap: 'wrap' }}>
               <a href={open.instagram_url} target="_blank" rel="noopener noreferrer" data-ext-link="" style={OUT_BTN}>Open on Instagram</a>

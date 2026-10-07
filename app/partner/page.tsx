@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { PartnerShell } from '@/components/partner/PartnerShell';
 import { OrgForm } from '@/components/partner/OrgForm';
 import { ExtLink } from '@/components/partner/ExtLink';
+import { Mark } from '@/components/partner/Mark';
+import { CopyBox } from '@/v2/components/worklist/CopyBox'; // R-46.17: the link she shares sits in its own box
 import { partnerApi, partnerToken, setPartnerToken, type Org } from '@/lib/partner/api';
 import { W } from '@/lib/partner/words';
 
@@ -33,14 +35,15 @@ export default function PartnerArea() {
       <OrgForm submitLabel={W.saveOrg} onSubmit={async (b) => { const r = await partnerApi.createOrg(b); if (!r.ok) return r.error; await load(); return null; }} /></section></PartnerShell>);
 
   const o = me.partner;
-  const tabs = [...(o.wants.includes('calls') ? [['calls', W.callsTab]] : []), ...(o.wants.includes('briefs') ? [['briefs', W.briefsTab]] : []),
-    ...(o.wants.includes('requirements') ? [['requirements', W.reqTab]] : []), ['settings', W.settingsTab]] as [string, string][];
+  const wants = o.wants || [];
+  const tabs = [...(wants.includes('calls') ? [['calls', W.callsTab]] : []), ...(wants.includes('briefs') ? [['briefs', W.briefsTab]] : []),
+    ...(wants.includes('requirements') ? [['requirements', W.reqTab]] : []), ['settings', W.settingsTab]] as [string, string][];
   return (
     <PartnerShell>
       <section className="sol-surface" data-partner-area="">
         <p className="sol-eyebrow">{o.name} · {o.kind_words}</p>
         <h1 className="sol-heading">{(tabs.find((t) => t[0] === tab) || tabs[0])[1]}</h1>
-        <p className="px-tag" data-check-words="">{o.check_words}</p>
+        <Mark words={o.check_words} />
         <div className="px-seg" role="group">{tabs.map(([k, l]) => <button key={k} type="button" aria-pressed={tab === k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>
         {tab === 'calls' ? <><p className="sol-empty">{W.callsSoon}</p><p className="sol-note">{W.footCalls}</p></>
           : tab === 'briefs' ? <p className="sol-empty">{W.briefsSoon}</p>
@@ -60,7 +63,9 @@ function Settings({ me, reload, onSignOut }: { me: Me; reload: () => Promise<voi
   return (
     <div data-settings="">
       <p className="sol-rowdesc"><ExtLink href={o.instagram_url}>@{o.instagram_handle}</ExtLink>{o.website_url ? <> · <ExtLink href={o.website_url}>{o.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</ExtLink></> : null}</p>
-      <p className="sol-rowdesc">Your partner page: <a href={`/partner/p/${o.instagram_handle}`} className="px-link">thedreamwedding.in/partner/p/{o.instagram_handle}</a></p>
+      {o.instagram_handle ? <><p className="sol-rowdesc">{W.pageLink}</p>
+        <CopyBox text={`thedreamwedding.in/partner/p/${o.instagram_handle}`} copyValue={`https://thedreamwedding.in/partner/p/${o.instagram_handle}`} label={W.copy} copied={W.copied} />
+        <p className="sol-rowdesc"><a href={`/partner/p/${o.instagram_handle}`} className="px-link">{W.pageOpen}</a></p></> : null}
       <h2 className="sol-heading" style={{ marginTop: 24 }}>{W.receive}</h2>
       <div className="px-chips">
         <button type="button" className={o.send_state === 'active' ? 'px-chip on' : 'px-chip'} aria-pressed={o.send_state === 'active'} onClick={() => { void setCalls('active'); }}>{W.getCalls}</button>
@@ -70,7 +75,7 @@ function Settings({ me, reload, onSignOut }: { me: Me; reload: () => Promise<voi
       <h2 className="sol-heading" style={{ marginTop: 24 }}>{W.orgTitle}</h2>
       <OrgForm initial={o} submitLabel="Save" onSubmit={async (b) => { const r = await partnerApi.patchOrg(b); if (!r.ok) return r.error; setMsg(W.saved); await reload(); return null; }} />
       <h2 className="sol-heading" style={{ marginTop: 24 }}>{W.people}</h2>
-      {me.people.map((p, i) => <div key={i} className="px-card"><span className="sol-rowlabel">{p.name || 'No name yet'}{p.role === 'owner' ? ' (owner)' : ''}</span><span className="sol-rowdesc">{p.phone}</span></div>)}
+      {(me.people || []).map((p, i) => <div key={i} className="px-card"><span className="sol-rowlabel">{p.name || 'No name yet'}{p.role === 'owner' ? ' (owner)' : ''}</span><span className="sol-rowdesc">{p.phone}</span></div>)}
       {me.role === 'owner' ? (
         <div className="px-card">
           <label className="px-field"><span className="px-label">{W.yourName.replace('Your', 'Their')}</span><input className="px-input" value={pName} onChange={(e) => setPName(e.target.value)} /></label>

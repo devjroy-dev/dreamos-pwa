@@ -18,7 +18,7 @@ export default function ContactsAdmin() {
   const [list, setList] = useState<Contact[] | null>(null);
   const [edit, setEdit] = useState<Partial<Contact> & { website?: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const load = useCallback(async () => { try { setList((await adminGet<{ contacts: Contact[] }>('/api/v2/admin/partners/contacts')).contacts); } catch (e) { setErr(e instanceof Error ? e.message : 'Could not read contacts.'); setList([]); } }, []);
+  const load = useCallback(async () => { try { { const d = await adminGet<{ contacts: Contact[] }>('/api/v2/admin/partners/contacts'); setList(Array.isArray(d && d.contacts) ? d.contacts : []); } } catch (e) { setErr(e instanceof Error ? e.message : 'Could not read contacts.'); setList([]); } }, []);
   useEffect(() => { void load(); }, [load]);
   const save = async () => {
     if (!edit) return; setErr(null);
