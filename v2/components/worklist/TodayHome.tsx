@@ -20,6 +20,7 @@ import type { LeadsResponse, VendorDayResponse, VendorEvent, InvoicesResponse } 
 import { istTodayISO, istPlusDaysISO } from '@/lib/vendor/istDay';
 import { formatRs } from '@/lib/vendor/format';
 import { COPY } from '@/v2/lib/worklist/copy';
+import FirstBuildCard from '@/v2/components/start/FirstBuildCard';   // CE-47 FE-9: S11, the two-minute start's Home card
 
 type LeadRow = LeadsResponse['leads'][number];
 type Answer = { kind: 'free' | 'booked' | 'enquiry'; lines: string[]; hot: boolean };
@@ -181,6 +182,7 @@ export function TodayHome() {
   return (
     <div className="wl-home">
       <style>{HOME_CSS}</style>
+      <FirstBuildCard />
       <CheckDate vendorId={vendorId} leads={leads} today={today} />
 
       <section className="wl-home-sec" aria-labelledby="wl-home-reply">

@@ -1,0 +1,14 @@
+# CE-47 · FE-9 · the two-minute start, package 1: the first-build client, S4 (four states), S5 as ruled (A), S6 to S10, S11's Home card · base 239fffb1 (app train 3's tip) · F-19.16: a dirty path outside this list is a STOP.
+# b183 base = ADS-2 aa1b96df3778682466a20df8fbacf92755773e6f02d482646cece14e0fef95e8 (landed in app train 3); FE-9 made six labelled amendments on it (the sixth: ADS-2's defect, four unguarded reads, cured by FE-9). scripts/lib/fe7_l4_kit.js is ADS-2's (e7e575fe…), on the tip, not carried.
+scripts/b183_fe7_onboarding_bench.js
+scripts/fe9_first_build_poll_bench.js
+scripts/fe9_two_minute_start_bench.js
+scripts/floor-manifest-ce47-fe9-twominute-p1-pwa.txt
+scripts/obp_vendor_form_v2.proof.mjs
+v2/app/vendor/(legacy)/onboarding/page.tsx
+v2/components/start/DetailsForm.tsx
+v2/components/start/FirstBuildCard.tsx
+v2/components/start/StartFlow.tsx
+v2/components/worklist/TodayHome.tsx
+v2/lib/vendor/api/firstBuild.ts
+v2/lib/vendor/startCopy.ts

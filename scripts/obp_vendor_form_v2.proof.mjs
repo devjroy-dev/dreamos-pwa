@@ -37,7 +37,10 @@ function strip(raw) {
 }
 const read = (p) => strip(fs.readFileSync(p, 'utf8'));
 
-const FORM   = read('v2/app/vendor/(legacy)/onboarding/page.tsx');
+// AMENDED BY LABEL · CE-47 FE-9 (6 Oct 2026, G3 and ruling A): the form MOVED, code and all, to
+// v2/components/start/DetailsForm.tsx, which the two-minute start renders as S5 at the same address (the page at
+// v2/app/vendor/(legacy)/onboarding/page.tsx now renders the flow). Every cell below reads the form where it now lives.
+const FORM   = read('v2/components/start/DetailsForm.tsx');
 /* ── ADDED, LABELLED — TDW_15 · P2 (R-34.52, CE-35, 2026-08-18) ─────────────
    `CAT_LABEL` and `labelFor` MOVED to `lib/frost/categoryLabels.ts` (R-34.33) so
    the bride's envelope picker could read the same founder-signed eleven without
@@ -84,12 +87,17 @@ ok((/CAT_LABEL\[token\]\s*\|\|/.test(LABELS)
    '1.5 an UNLABELLED server token still renders — declared at categoryLabels.ts, imported by the page, rendered through labelFor (R-34.52)');
 
 console.log('\n── 2 · the six boxes, keyed on VENDOR_FIELDS ──');
+// AMENDED BY LABEL · CE-47 FE-9 (6 Oct 2026, RULING A: S5 shows ONLY the fields the server lists in missing[]). The
+// six controls still exist, each keyed on its interface field, but each is now SHOWN by the server's missing[] itself,
+// so the old per-box "Still needed" marker (2.2, 5.2) has nothing left to say and is gone. Strength kept: every box
+// is still keyed on the server's own field name, and nothing local decides which boxes appear.
 for (const f of ['name', 'business_name', 'category', 'city', 'starting_price', 'service_area']) {
-  ok(FORM.includes(`field="${f}"`) || `no control keyed on ${f}`,
-     `2.1 a control exists for the interface key ${f}`);
+  ok(FORM.includes(`missing.includes('${f}')`) || `no control keyed on ${f}`,
+     `2.1 a control exists for the interface key ${f}, shown by the server's missing[] (ruling A)`);
 }
-ok(/missing\.includes\(field\)/.test(FORM) || 'the marker is not driven by missing[]',
-   '2.2 the Still-needed marker renders from the SERVER\'s missing[], not a local emptiness rule');
+ok((!/missing\.includes\(field\)/.test(FORM) && !/\.length === 0|\.trim\(\) === ''\s*\?/.test((FORM.match(/missing\.includes\('[a-z_]+'\) && \(/g) || []).join('')))
+   || 'a box is shown by a local rule',
+   '2.2 which boxes appear is the SERVER\'s missing[], never a local emptiness rule (ruling A)');
 ok(/rate_min:/.test(FORM) || 'starting price is not sent as rate_min',
    '2.3 starting price travels as rate_min (the number), not as stated_rate prose');
 
@@ -139,7 +147,8 @@ ok(/import \{[^}]*\blabelFor\b[^}]*\} from '@\/lib\/frost\/categoryLabels'/.test
 ok(!/const CAT_LABEL: Record<string, string> = \{/.test(FORM)
    || 'a second copy of the label map is still declared in the form',
    '5.1b the map is GONE from the form — a move, not a fork');
-ok(FORM.includes('Still needed'), '5.2 「 Still needed 」 at the byte');
+// AMENDED BY LABEL · RULING A: every box on S5 is a missing one, so "Still needed" is retired from the screen.
+ok(!FORM.includes('Still needed'), '5.2 「 Still needed 」 is retired: every box shown is a missing one (ruling A)');
 ok(FORM.includes('Your starting price') && !FORM.includes('or leave blank'),
    '5.3 「 Your starting price 」 in, 「 or leave blank 」 dead');
 ok(FORM.includes('Studio or business name') && !/placeholder="optional"/.test(FORM),
@@ -147,8 +156,10 @@ ok(FORM.includes('Studio or business name') && !/placeholder="optional"/.test(FO
 ok(!/Your clients tap this to reach your PA/.test(FORM)
    || 'the false helper line still renders',
    '5.6 the Instagram helper line is REMOVED — it named the wrong object and promised a link that only moves on a first run');
-ok(FORM.includes('Instagram handle'),
-   '5.7 the label survives — the field stays, only its false explanation went');
+// AMENDED BY LABEL · RULING A: S5 asks only what the server's check needs; the Instagram handle is not in it (her
+// Instagram comes from the connect in package 2), so the optional box went with the other non-missing fields.
+ok(!FORM.includes('Instagram handle'),
+   '5.7 the optional Instagram box is not on S5: it is not in the server\'s missing[] (ruling A)');
 ok(FORM.includes('Based in') && !FORM.includes('Based in *'),
    '5.5 the asterisk is dropped — a marker on one of six teaches that five are optional');
 
