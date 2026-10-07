@@ -285,7 +285,13 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
     ['share', 'Each paper has a check link anyone can open to see that it is real.'],
     ['switch', 'Withdraw a paper and its check page says it no longer stands.']),
     connects: 'The figures come from your invoices, expenses and TDS in TDW.' }),
-  [INSURANCE_HREF]: entry(ROW_DESC.insurance, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  // CE-47 INS-A: the Insurance room landed; its own card names its buttons, replacing the hub cut's Coming card in place.
+  [INSURANCE_HREF]: entry(ROW_DESC.insurance, {
+    can: how(['read', 'What cover do I need asks five questions and shows the kinds of cover that fit, each with a wedding example.'],
+             ['list', 'Get a quote lists insurers and comparison sites, A to Z. Pick one: TDW puts together a cover enquiry for you to send them.'],
+             ['add', 'Tap + to add a policy: upload the PDF or a photo, then check the insurer, the cover and the end date before saving.'],
+             ['switch', 'Show Insured on my website puts a small Insured mark on the website while a policy is in date.']),
+    connects: 'A WhatsApp reminder comes 30 days and 7 days before a policy ends.' }),
   [DATES_HREF]: entry(ROW_DESC.dates, {
     can: how(['calendar', 'How often each date was checked is in Storefront: tap the first row.'],
              ['read', 'Offer your open dates and Suggested rates read Coming soon until they open.']),

@@ -1,0 +1,13 @@
+# scripts/floor-manifest-ce47-ins-a-room-pwa.txt
+# CE-47 · INS-A · the Insurance room (app train 3, layered on PRO_P1_APP) · base a32fbf4e2c23 + PRO's bytes · rung b223 · b222 LANDED gains 'insurance'
+# SHARED, layered (base = PRO's sha): v2/lib/solutions/routes.ts d4906953… · v2/lib/worklist/pageHelp.ts 0a8b8026… · scripts/b222_ce47_hub_cut_bench.js 19af4e04… · scripts/b122_ce45_home_shelves_bench_v2.js d3619bbf… (byte-equal, carried)
+# PRO's own nine paths are PRO's and are not listed here. No file deleted.
+docs/handovers/TDW_CE47_INS_A_ROOM_HANDOVER.md
+scripts/b122_ce45_home_shelves_bench_v2.js
+scripts/b222_ce47_hub_cut_bench.js
+scripts/b223_ce47_insurance_room_bench.js
+scripts/floor-manifest-ce47-ins-a-room-pwa.txt
+v2/app/vendor/(shell)/insurance/page.tsx
+v2/lib/solutions/insurance.ts
+v2/lib/solutions/routes.ts
+v2/lib/worklist/pageHelp.ts
