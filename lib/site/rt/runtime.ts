@@ -75,10 +75,11 @@ export function start(style: string): () => void {
     const dx = $('#drawerX'); if (dx) on(dx, 'click', closeMenu); const sc = $('#scrim'); if (sc) on(sc, 'click', closeMenu);
     $$('#dnav a').forEach((a) => on(a, 'click', closeMenu));
 
-    // the scroll loop (engine.js onScroll): the header goes solid, then the style's own hook.
+    // the scroll loop (engine.js onScroll): the header goes solid, then the style's own hook. F-44.343: a shop item page
+    // (data-page="shop") has its header solid from the start, at every scroll, in every style.
     let tick = false;
     const onScroll = () => { if (tick) return; tick = true; requestAnimationFrame(() => { tick = false; const y = scrollY; const hd = $('#hd');
-      if (hd) hd.classList.toggle('solid', y > (hook.solidAt ? hook.solidAt() : innerHeight * 0.8)); hook.scroll?.(y, { RM }); }); };
+      if (hd) hd.classList.toggle('solid', H.dataset.page === 'shop' || y > (hook.solidAt ? hook.solidAt() : innerHeight * 0.8)); hook.scroll?.(y, { RM }); }); };
     on(window, 'scroll', onScroll, { passive: true }); on(window, 'resize', () => { fitAll(); onScroll(); });
     fitAll(); const undoAfter = hook.after?.({ RM }); onScroll(); requestAnimationFrame(() => requestAnimationFrame(fitAll)); const t350 = setTimeout(fitAll, 350);
     if (document.fonts?.ready) document.fonts.ready.then(fitAll);

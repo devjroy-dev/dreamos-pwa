@@ -10,6 +10,9 @@ module.exports = {
   // WEB-8 (MERGED): ADM-1's admin layout asks for Inter with 700 as well; without this a rig build on today's main stops at the font loader
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=block': css('Inter', 'inter', [[400, 'normal'], [500, 'normal'], [600, 'normal'], [700, 'normal']]).replace(/swap/g, 'block'),
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&display=swap': css('Cormorant Garamond', 'cormorant-garamond', [[400, 'normal'], [500, 'normal']]),
+  // WEB-8 (CE-47, P5 r2): PTN's components/partner/PartnerShell.tsx asks for these two; without them a rig build of main stops at the font loader
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap': css('Inter', 'inter', [[400, 'normal'], [500, 'normal'], [600, 'normal']]),
+  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&display=swap': css('Cormorant Garamond', 'cormorant-garamond', [[500, 'normal']]),
   'https://fonts.googleapis.com/css2?family=Italiana:wght@400&display=swap': css('Italiana', 'italiana', [[400, 'normal']]),
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap':
     css('Cormorant Garamond', 'cormorant-garamond', [[300, 'normal'], [400, 'normal'], [500, 'normal'], [300, 'italic'], [400, 'italic'], [500, 'italic']]),

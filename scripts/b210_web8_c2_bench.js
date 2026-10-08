@@ -14,6 +14,12 @@ const { makeLoader } = require('./lib/site_load');
 let pass = 0, fail = 0; const ok = (c, name, why) => { if (c) { pass++; console.log('  PASS  ' + name); } else { fail++; console.log('  FAIL  ' + name + (why ? '  [' + String(why).slice(0, 200) + ']' : '')); } };
 const STYLES = ['couture', 'gallery', 'noir', 'heritage', 'aurora', 'riviera'];
 const opts = { code: 'studio-ivara', base: 'https://studio-ivara.thedreamwedding.in', api: 'https://x', display: 'swap', preview: false };
+// WEB-8 (F-44.419): each fault is planted through scripts/lib/mutation_guard.js (kept copy and marker first, restored
+// by sha, a killed run's fault put back at the next start) and only on a disk with room; the fixture cards read
+// ../dream-os, so the bench refuses (exit 3) when it is missing or older than the commit it needs (lesson 4).
+const guard = require('./lib/mutation_guard.js'); const gates = require('./lib/web8_gates.js');
+guard.recoverOrRefuse(ROOT, 'b210');
+gates.siblingOrRefuse(gates.siblingDir(ROOT), gates.SITE_NEEDS, gates.SITE_NEEDS_WHY, 'b210');
 const cards = require(P('tools/site_rig/fixture_cards.cjs'))('https://img.example');
 const quoteCard = (st) => { const c = JSON.parse(JSON.stringify(cards[`fixture-${st}`])); c.enquire_link = 'https://wa.me/917982159047';
   c.packages = [{ name: 'Bridal makeup and hair', total: null, inclusions: [] }, { name: 'Engagement', total: 25000, inclusions: [] }]; return c; };
@@ -86,12 +92,15 @@ async function drawn(tag) {
 (async () => {
   console.log('b210 · WEB-8 C2'); await cells(''); await drawn('');
   console.log('\n§6 mutations: each named fault reddens its cell; restored by sha');
+  gates.spaceOrRefuse(ROOT, 'b210');   // F-44.419: no fault is planted on a disk without room
   for (const [f, a, b, cell] of MUT) {
     const before = sha(f); const src = read(f); if (src.split(a).length !== 2) { ok(false, `M ${cell}: the mutation's anchor is found once in ${f}`); continue; }
-    fs.writeFileSync(P(f), src.replace(a, b)); const keep = { pass, fail }; let red = false; const log = console.log; const lines = [];
-    console.log = (x) => lines.push(String(x)); try { await cells(' (mutated)'); await drawn(' (mutated)'); } catch (e) { lines.push('  FAIL  threw ' + e.message); } finally { console.log = log; fs.writeFileSync(P(f), src); }
+    let h = null; try { h = guard.apply(ROOT, f, a, b, 'b210'); } catch (e) { ok(false, `M ${cell}: the fault was planted through the guard`, e.message); continue; }
+    const keep = { pass, fail }; let red = false; const log = console.log; const lines = []; let back = false;
+    console.log = (x) => lines.push(String(x)); try { await cells(' (mutated)'); await drawn(' (mutated)'); } catch (e) { lines.push('  FAIL  threw ' + e.message); } finally { console.log = log; back = h.restore(); }
     red = lines.some((l) => l.startsWith('  FAIL  ' + cell)); pass = keep.pass; fail = keep.fail;
-    ok(red && sha(f) === before, `M ${cell} in ${f}: reddens, restored by sha`, red ? 'not restored' : 'did not redden');
+    ok(red && back && sha(f) === before, `M ${cell} in ${f}: reddens, restored by sha`, red ? 'not restored' : 'did not redden');
   }
+  ok(!fs.existsSync(P('scripts/.mutation-pending')), 'M.9 nothing pending in the tree after the mutations (F-44.419)');
   console.log(`\nb210: ${pass} pass, ${fail} fail`); process.exit(fail ? 1 : 0);
 })();

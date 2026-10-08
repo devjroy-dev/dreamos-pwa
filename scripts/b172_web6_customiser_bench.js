@@ -7,6 +7,9 @@
 // §2 drives the REAL room in headless Chromium against next dev in mock mode (C-43.18), classic and v2, dark and light,
 // Essential, Signature, Prestige, Basic and a new vendor, every door answered by scripts/lib/b172_fixtures.mjs.
 // §3 mutates production code; each mutation must turn its cell red; files restored byte for byte by sha.
+// WEB-8 (F-44.419): every mutation goes through scripts/lib/mutation_guard.js (kept copy and marker first, restored by
+// sha, a killed run's mutation put back at the next start); no mutation is planted unless the disk has room; and the
+// bench refuses (exit 3) when ../dream-os is missing or older than the commit it needs (lesson 4, scripts/lib/web8_gates.js).
 // The dev server is stopped BY PID (e-222), never by pattern. F-44.258: the run ends with git status against the list.
 // usage: node scripts/b172_web6_customiser_bench.js [--source] [--no-mutate] [--shots DIR]      THE EXIT CODE IS THE VERDICT.
 const fs = require('fs');
@@ -28,6 +31,10 @@ const SHOTS = args.includes('--shots') ? args[args.indexOf('--shots') + 1] : nul
 
 const ROOM = 'components/website/WebsiteRoom.tsx';
 const COPYF = 'lib/website/copy.ts';
+const guard = require(path.join(ROOT, 'scripts/lib/mutation_guard.js'));
+const gates = require(path.join(ROOT, 'scripts/lib/web8_gates.js'));
+guard.recoverOrRefuse(ROOT, 'b172');   // F-44.258/F-44.419: a killed run's mutation is put back by sha before anything is read
+if (!args.includes('--source')) gates.siblingOrRefuse(path.join(ROOT, '..', 'dream-os'), gates.SITE_NEEDS, gates.SITE_NEEDS_WHY, 'b172');
 const CLIENT = 'components/website/client.ts';
 const ADD = 'components/website/headAdd.tsx';
 const PAGES = ['app/vendor/(shell)/your-website/page.tsx', 'v2/app/vendor/(shell)/your-website/page.tsx'];
@@ -270,16 +277,18 @@ function mutate() {
     [ROOM, '{look && <button type="button" className="wb-dlink" onClick={() => setSheet({ del: look.id })}>{WEB.deleteLook}</button>}', '', '1.13'],
     [ROOM, "{ id: 'x' }", "{ id: 'x' }", 'skip'],
   ];
+  const start = { [COPYF]: sha(read(COPYF)), [ROOM]: sha(read(ROOM)) };
+  gates.spaceOrRefuse(ROOT, 'b172');   // F-44.419: no mutation is planted on a disk without room
   for (const [f, a, b, cell] of cases) {
     if (cell === 'skip') continue;
     const before = read(f); if (!before.includes(a)) { ok(false, `3 mutation for ${cell} found its text`); continue; }
-    fs.writeFileSync(P(f), before.replace(a, b));
-    const saved = [pass, fail]; const logs = console.log; const lines = []; console.log = (x) => lines.push(String(x));
-    try { source(); } catch (_e) { /* a thrown source read counts as red */ }
-    console.log = logs; pass = saved[0]; fail = saved[1];
-    fs.writeFileSync(P(f), before);
-    ok(sha(read(f)) === sha(before) && lines.some((l) => l.includes('FAIL') && l.includes(` ${cell} `) ), `3 ${cell} goes red when its rule is broken, file restored by sha`);
+    let h = null; try { h = guard.apply(ROOT, f, a, b, 'b172'); } catch (e) { ok(false, `3 ${cell} the mutation was planted through the guard`, e.message); continue; }
+    const saved = [pass, fail]; const logs = console.log; const lines = []; let back = false;
+    try { console.log = (x) => lines.push(String(x)); try { source(); } catch (_e) { /* a thrown source read counts as red */ } }
+    finally { console.log = logs; pass = saved[0]; fail = saved[1]; back = h.restore(); }
+    ok(back && sha(read(f)) === sha(before) && lines.some((l) => l.includes('FAIL') && l.includes(` ${cell} `) ), `3 ${cell} goes red when its rule is broken, file restored by sha`);
   }
+  ok(sha(read(COPYF)) === start[COPYF] && sha(read(ROOM)) === start[ROOM] && !fs.existsSync(P('scripts/.mutation-pending')), '3.9 after the mutations both product files are their starting bytes and nothing is pending (F-44.419)');
 }
 
 source();
