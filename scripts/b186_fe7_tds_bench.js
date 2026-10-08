@@ -41,17 +41,17 @@ K.runBench({
     sec('2 THE STANDING CHECKS'); await K.standing(g, ok, 'TDS', '/vendor/tds');
     sec('3 THE ROOM'); const r = await room(g);
     ok(r.pill && r.pill.t === '+ New TDS entry' && r.pill.h === 36 && r.pill.tap, '3.1 "+ New TDS entry", 36 high, data-tap44', JSON.stringify(r.pill));
-    ok(r.words.includes(`TDS · ${fyNow()}`) && r.seg.length === 3 && r.seg[0] === fyNow(), '3.2 "TDS · FY yyyy-yy" and the switch of three years', `${r.seg.join('|')}`);
-    ok(['Gross', 'TDS deducted', 'Net received', 'Rs 1,50,000', 'Rs 15,000', 'Rs 1,35,000'].every((w) => r.words.includes(w)), '3.3 Gross, TDS deducted, Net received');
+    ok(Array.isArray(r.words) && r.words.includes(`TDS · ${fyNow()}`) && r.seg.length === 3 && r.seg[0] === fyNow(), '3.2 "TDS · FY yyyy-yy" and the switch of three years', `${r.seg.join('|')}`);   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
+    ok(Array.isArray(r.words) && ['Gross', 'TDS deducted', 'Net received', 'Rs 1,50,000', 'Rs 15,000', 'Rs 1,35,000'].every((w) => r.words.includes(w)), '3.3 Gross, TDS deducted, Net received');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     ok(r.rows[0] && r.rows[0].t === 'Hotel Leela, Gurugram' && r.rows[0].f === 'Section 194J · 14 September 2026' && r.rows[0].v === 'Rs 10,000', '3.4 Entries rows: payer, section and full date, the amount at the right', JSON.stringify(r.rows[0]));
     ok(r.lastBtn === 'Export CSV', '3.5 Export CSV at the foot', r.lastBtn);
     ok(Array.isArray(r.dateWords) && r.dateWords.length === 1 && /^\d{1,2} [A-Z][a-z]+ \d{4}$/.test(r.dateWords[0]), '3.6 the add sheet writes its Deduction date in words', (r.dateWords || []).join('|'));
-    ok(r.page.includes('TDS deducted') && r.asked.includes('Delete this entry?') && r.asked.includes('Keep it') && r.afterOne === 0, '3.7 an entry opens as a page; Delete is last and asks first; nothing sent on the first tap', r.afterOne);
+    ok(Array.isArray(r.page) && r.page.includes('TDS deducted') && Array.isArray(r.asked) && r.asked.includes('Delete this entry?') && r.asked.includes('Keep it') && r.afterOne === 0, '3.7 an entry opens as a page; Delete is last and asks first; nothing sent on the first tap', r.afterOne);   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     const E = await room(g, { tdsEmpty: true });
-    ok(E.found && !E.crash && E.words.some((w) => /^No TDS entries for FY/.test(w)), '3.8 an empty year draws, and says so');
+    ok(E.found && !E.crash && Array.isArray(E.words) && E.words.some((w) => /^No TDS entries for FY/.test(w)), '3.8 an empty year draws, and says so');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
   },
   mutations: [
-    { name: 'M1 "TDS deducted" back to "TDS"', rel: F, from: "deducted: 'TDS deducted',", to: "deducted: 'TDS',", glass: true, cell: async (g) => (await room(g)).words.includes('TDS deducted') },
+    { name: 'M1 "TDS deducted" back to "TDS"', rel: F, from: "deducted: 'TDS deducted',", to: "deducted: 'TDS',", glass: true, cell: async (g) => { const r = await room(g); return Array.isArray(r.words) && r.words.includes('TDS deducted'); } },   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     { name: 'M2 the sheet\'s date in words removed', rel: F, from: '{dedDate ? <p data-date-words="" className="tds-dw">{dayInWords(dedDate)}</p> : null}', to: '{null}', glass: true,
       cell: async (g) => { const r = await room(g); return Array.isArray(r.dateWords) && r.dateWords.length === 1; } },
   ],

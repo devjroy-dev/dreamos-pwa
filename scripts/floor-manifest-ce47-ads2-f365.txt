@@ -1,0 +1,21 @@
+# scripts/floor-manifest-ce47-ads2-f365.txt
+# CE-47 · ADS-2 · THE F-44.365 FOLLOW-UP (scripts and one handover only). BASE: 4572df0a09db (app train 4) WITH FE-9's
+# package 1 under it (b183 = cfe94b37…; the APPLY stops otherwise). b179:40 waits on Aanya's row; the 24 K.words uses
+# guarded (b180 b181 b182 b185 b186 b187 b188); b257 §5 (four bare forms), §6 (F-44.418), §9 on mutation_guard
+# (F-44.419); the kit's standing() measures only a room that drew (F-44.418); floor_reap.sh's FLOOR_REAP_ONLY_PIDS and
+# cells 1.7/1.10/M10 in both b140s (F-44.365). No new folder. F-19.16: a dirty path outside this list is a STOP.
+docs/handovers/TDW_CE47_ADS2_KIT_HANDOVER.md
+scripts/b140_ce46_fe4_page_help_bench.js
+scripts/b140_ce46_fe4_page_help_bench_v2.js
+scripts/b179_fe7_exchange_bench.js
+scripts/b180_fe7_wedding_pages_bench.js
+scripts/b181_fe7_reviews_advisor_solutions_bench.js
+scripts/b182_fe7_referrals_notes_bench.js
+scripts/b185_fe7_expenses_bench.js
+scripts/b186_fe7_tds_bench.js
+scripts/b187_fe7_books_bench.js
+scripts/b188_fe7_reminders_bench.js
+scripts/b257_ce47_kit_waits_bench.js
+scripts/lib/fe7_l4_kit.js
+scripts/lib/floor_reap.sh
+scripts/floor-manifest-ce47-ads2-f365.txt

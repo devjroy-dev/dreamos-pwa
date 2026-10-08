@@ -62,18 +62,18 @@ K.runBench({
     ok(L.rows.map((r) => r.pill).join('|') === 'Published|Waiting|Not published', '2.3 each row states Published, Waiting or Not published', L.rows.map((r) => r.pill).join('|'));
     sec('3 A DRAFT');
     const D = await wedding(g, 'Riya and Dev', true);
-    ok(D.ws.includes('‹ Back to Wedding pages') || D.ws.includes('Back to Wedding pages'), '3.1 "Back to Wedding pages"');
-    ok(D.ws.includes('Not published') && D.next === 'Publish this page', '3.2 "Not published", and "Publish this page" on top', D.next);
-    ok(D.ws.includes('Photographs') && D.ws.includes('Who worked this wedding') && D.rows.map((r) => r.pill).join('|') === 'Claimed|Claimed', '3.3 Photographs, and the credits as rows with their states', D.rows.map((r) => r.pill).join('|'));
-    ok(['Permission', 'The client’s number', 'Ask for permission'].every((w) => D.ws.includes(w)), '3.4 Permission, "The client\'s number", "Ask for permission"');
+    ok(Array.isArray(D.ws) && (D.ws.includes('‹ Back to Wedding pages') || D.ws.includes('Back to Wedding pages')), '3.1 "Back to Wedding pages"');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
+    ok(Array.isArray(D.ws) && D.ws.includes('Not published') && D.next === 'Publish this page', '3.2 "Not published", and "Publish this page" on top', D.next);   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
+    ok(Array.isArray(D.ws) && D.ws.includes('Photographs') && D.ws.includes('Who worked this wedding') && D.rows.map((r) => r.pill).join('|') === 'Claimed|Claimed', '3.3 Photographs, and the credits as rows with their states', D.rows.map((r) => r.pill).join('|'));   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
+    ok(Array.isArray(D.ws) && ['Permission', 'The client’s number', 'Ask for permission'].every((w) => D.ws.includes(w)), '3.4 Permission, "The client\'s number", "Ask for permission"');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     sec('4 A LIVE PAGE');
     const V = await wedding(g, 'Meera and Kunal', false);
-    ok(V.ws.includes('This page is live.') && V.next === null, '4.1 "This page is live.", and no Publish', V.next);
+    ok(Array.isArray(V.ws) && V.ws.includes('This page is live.') && V.next === null, '4.1 "This page is live.", and no Publish', V.next);   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     ok(V.reel && V.reel.disabled, '4.2 the Reel reads "Coming soon" and is disabled (R-46.14)', JSON.stringify(V.reel));
-    ok(!V.ws.some((w) => /Video tools|Check again/.test(w)), '4.3 no probe line and no Check again');
+    ok(Array.isArray(V.ws) && !V.ws.some((w) => /Video tools|Check again/.test(w)), '4.3 no probe line and no Check again');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     ok(V.rows.some((r) => r.pill === 'Declined'), '4.4 a declined credit says so');
     sec('5 THE ASKED REMOVE');
-    ok(D.asked.includes('Remove this photograph?') && D.asked.includes('Keep it') && D.afterOne === D.before, '5.1 the × asks first and sends nothing', `${D.before} -> ${D.afterOne}`);
+    ok(Array.isArray(D.asked) && D.asked.includes('Remove this photograph?') && D.asked.includes('Keep it') && D.afterOne === D.before, '5.1 the × asks first and sends nothing', `${D.before} -> ${D.afterOne}`);   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     ok(D.kept, '5.2 Keep it closes the ask');
     ok(D.afterRemove === 1, '5.3 Remove sends one request', D.afterRemove);
     sec('6 THE WORDS');

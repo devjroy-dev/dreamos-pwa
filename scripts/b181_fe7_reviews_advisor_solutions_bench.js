@@ -43,17 +43,17 @@ K.runBench({
   async glass(g, ok, sec) {
     sec('2 GOOGLE REVIEWS');
     const R = await reviews(g);
-    ok(R.ws.includes('Google review requests sent after each published wedding page, and your seal.'), '2.1 the room\'s line');
+    ok(Array.isArray(R.ws) && R.ws.includes('Google review requests sent after each published wedding page, and your seal.'), '2.1 the room\'s line');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     ok(R.heads[0] === 'Asked · 2' && R.rows[0] && R.rows[0].f === 'Asked 3 September 2026', '2.2 Asked · 2, "Asked 3 September 2026"', `${R.heads[0]} / ${R.rows[0] && R.rows[0].f}`);
     const seal = R.rows.find((r) => r.t === 'TDW-verified'); const lst = R.rows.find((r) => r.t === 'Claim and sync your listing');
     ok(seal && seal.pill === 'On your page', '2.3 the seal as a row, "On your page"', JSON.stringify(seal));
     ok(lst && lst.f === 'From 27 October 2026' && lst.pill === 'Coming soon', '2.4 "Claim and sync your listing", "From 27 October 2026", "Coming soon"', JSON.stringify(lst));
     const E = await reviews(g, { grEmpty: true });
-    ok(E.ws.includes('When you publish a wedding page, we ask the client for a Google review. Once, and never again.') && K.noCouple(E.ws) && K.noCouple(R.ws), '2.5 nothing asked yet reads the client line; no "couple" in either state');
+    ok(Array.isArray(E.ws) && E.ws.includes('When you publish a wedding page, we ask the client for a Google review. Once, and never again.') && K.noCouple(E.ws) && K.noCouple(R.ws), '2.5 nothing asked yet reads the client line; no "couple" in either state');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     sec('3 ADVISOR');
     const p = await K.open(g, '/vendor/advisor', { wait: '.wl-advbody' });
     const adv = { chip: await p.evaluate(() => !!document.querySelector('.wl-advchip')), ws: await K.words(p) }; await p.close();
-    ok(!adv.chip && adv.ws.includes('Ask about pricing, positioning or a decision you are weighing.'), '3.1 no chip; the line is there');
+    ok(!adv.chip && Array.isArray(adv.ws) && adv.ws.includes('Ask about pricing, positioning or a decision you are weighing.'), '3.1 no chip; the line is there');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     sec('4 BUSINESS SOLUTIONS');
     const H = await hub(g, true);
     ok(H.heads[0] === 'Work together' && H.heads.includes('Help'), '4.1 Work together first; Help last', H.heads.join('|'));

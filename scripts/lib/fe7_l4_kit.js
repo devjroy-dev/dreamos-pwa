@@ -377,11 +377,14 @@ async function standing(g, ok, room, url, o = {}) {
   for (const w of [374, 360]) {
     const r = await roomChecks(g, url, w, o);
     const bad = (r.facts || []).filter((x) => x.lines > 2 || x.clipped);
-    ok(r.found && Array.isArray(r.facts) && (o.noRows || r.facts.length > 0), `${room} at ${w}: the room draws${o.noRows ? '' : ' its rows'}`, r.found ? `${(r.facts || []).length} rows` : 'did not draw');
-    ok(bad.length === 0, `${room} at ${w}: every row's facts in at most two lines, nothing clipped`, bad.map((b) => b.text).join(' | '));
-    ok(r.short.length === 0, `${room} at ${w}: full months only`, r.short.join(', '));
-    ok(!r.couple, `${room} at ${w}: no "couple"`);
-    ok(r.small.length === 0, `${room} at ${w}: every control 44 high or more`, r.small.join(' | '));
+    // F-44.418 (CE-47 ADS-2, 7 Oct 2026): the four measuring cells below need a room that drew. With nothing drawn they
+    // measured nothing and read green; now each is red and says so. A room that drew reads exactly as before.
+    const drew = !!(r.found && Array.isArray(r.facts) && (o.noRows || r.facts.length > 0)); const none = 'nothing drew to measure';
+    ok(drew, `${room} at ${w}: the room draws${o.noRows ? '' : ' its rows'}`, r.found ? `${(r.facts || []).length} rows` : 'did not draw');
+    ok(drew && bad.length === 0, `${room} at ${w}: every row's facts in at most two lines, nothing clipped`, drew ? bad.map((b) => b.text).join(' | ') : none);
+    ok(drew && r.short.length === 0, `${room} at ${w}: full months only`, drew ? r.short.join(', ') : none);
+    ok(drew && !r.couple, `${room} at ${w}: no "couple"`, drew ? undefined : none);
+    ok(drew && r.small.length === 0, `${room} at ${w}: every control 44 high or more`, drew ? r.small.join(' | ') : none);
     const names = tappedNames(r.card && r.card.text);
     const missing = names.filter((n) => !r.screen.some((s) => s.includes(n)));
     ok(r.q === 1 && r.card && r.card.lines <= 3 && r.card.fits && missing.length === 0, `${room} at ${w}: one "?", its card fits in three lines, every control it names drawn`, r.card ? `${r.card.lines} lines fits=${r.card.fits} missing=${missing.join(',')}` : `q=${r.q} no card`);

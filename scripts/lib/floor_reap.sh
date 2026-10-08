@@ -38,6 +38,15 @@ set -u
 member="${1:-unknown}"
 root="$(pwd -P)"
 scope=root; [ "$member" = "(before the floor)" ] && scope=any
+# ── F-44.365 (CE-47, design accepted 7 Oct 2026; built by ADS-2) · A NARROWING ONLY A BENCH SETS ─────────────────
+# b140's and b140_v2's cell 1.7 drives this reaper's "(before the floor)" pass, which stops a next dev in ANY root. Inside a floor
+# that is right; beside other benches (e-275's load, a seat's container, a second terminal) it stopped THEIR servers
+# and gave them a false red. FLOOR_REAP_ONLY_PIDS="<pid> <pid> …", when set, admits only those pids as candidates
+# (and their trees), in either pass; the scope rules above are unchanged inside it. The floor NEVER sets it
+# (no file the floor runs names it: cell 1.10 of b140 and b140_v2 reads that), so unset, every pass is exactly as
+# A-46.6 ruled.
+only=" ${FLOOR_REAP_ONLY_PIDS:-} "
+in_only() { [ -z "${FLOOR_REAP_ONLY_PIDS:-}" ] || case "$only" in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 
 cwd_of() {
   local c; c=$(readlink "/proc/$1/cwd" 2>/dev/null || true)
@@ -70,7 +79,7 @@ cands=""
 while read -r pid args; do
   [ -n "$pid" ] || continue
   [ "$pid" = "$$" ] && continue
-  if is_next "$args" && ok_pid "$pid" && in_scope "$pid"; then cands="$cands $pid"; fi
+  if is_next "$args" && in_only "$pid" && ok_pid "$pid" && in_scope "$pid"; then cands="$cands $pid"; fi
 done < <(ps -eo pid=,args= 2>/dev/null)
 # (2) by listening socket, tcp and tcp6 (ss prints both with -l -t; the owning pid is in users:(...pid=N...))
 ports=""
@@ -79,7 +88,7 @@ if command -v ss >/dev/null 2>&1; then
     pid=$(printf '%s' "$line" | sed -n 's/.*pid=\([0-9]*\).*/\1/p')
     port=$(printf '%s' "$line" | awk '{print $4}' | sed 's/.*://')
     [ -n "$pid" ] || continue
-    if ok_pid "$pid" && in_scope "$pid" && is_next "$(ps -o args= -p "$pid" 2>/dev/null)"; then cands="$cands $pid"; ports="$ports $port"; fi
+    if in_only "$pid" && ok_pid "$pid" && in_scope "$pid" && is_next "$(ps -o args= -p "$pid" 2>/dev/null)"; then cands="$cands $pid"; ports="$ports $port"; fi
   done < <(ss -ltnpH 2>/dev/null)
 fi
 cands=$(printf '%s\n' $cands | sort -un | tr '\n' ' ')

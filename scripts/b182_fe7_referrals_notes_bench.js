@@ -56,8 +56,8 @@ K.runBench({
     sec('2 REFERRALS');
     const R = await referrals(g, true);
     ok(!R.broken, '2.1 the room draws (not its error screen)');
-    ok(R.ws.includes('Enquiries passed to peers, and received from them.'), '2.2 the room\'s line');
-    ok(R.ws.includes('Sent') && R.ws.includes('5') && R.ws.includes('Received') && R.ws.includes('3'), '2.3 Sent 5 and Received 3');
+    ok(Array.isArray(R.ws) && R.ws.includes('Enquiries passed to peers, and received from them.'), '2.2 the room\'s line');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
+    ok(Array.isArray(R.ws) && R.ws.includes('Sent') && R.ws.includes('5') && R.ws.includes('Received') && R.ws.includes('3'), '2.3 Sent 5 and Received 3');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     ok(R.heads.includes('Your peers · 3') && R.rows.some((r) => r.t === 'Studio Lumen' && r.f === 'Photographer · 3 sent · 1 received'), '2.4 Your peers · 3, "Photographer · 3 sent · 1 received"');
     ok(R.heads.includes('More') && R.rows.some((r) => r.t === 'Influencer exchange' && r.f === 'Influencers, and the requests you send them') && /\/vendor\/exchange/.test(R.went || ''), '2.5 More → Influencer exchange opens that room', R.went);
     ok(K.noCouple(R.ws), '2.6 no "couple"');

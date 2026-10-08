@@ -29,6 +29,8 @@
 //    M4 the seen write removed (2.8); M5 a raw px on the card's name (3.1); M6 the carousel's import back in Header
 //    (1.4, source); M7 the pre-floor pass narrowed to this root again (1.7, A-46.6, driven); M8 a room's
 //    connects emptied (1.8); M9 a step naming a button no control draws, the dropped sheet's "Continue to Meta" (1.9).
+//    F-44.365 (CE-47 ADS-2, 7 Oct 2026): 1.7 narrows the reaper to what it planted (FLOOR_REAP_ONLY_PIDS); 1.10 reads that
+//    the narrowing is a no-op unless set and the floor never sets it; M10 the narrowing applied when unset (1.10, source).
 // THE EXIT CODE IS THE VERDICT (0 green, 1 red). --routes=/vendor/a,/vendor/b narrows §2; --modes=dark,light.
 const fs = require('fs');
 const path = require('path');
@@ -166,6 +168,15 @@ function sourceCells() {
   // directory that is NOT this root, and a bash whose command line merely contains "next dev" beside it.
   cell('1.7 A-46.6: before the first member the reaper stops a next dev from ANY root, by pid, and prints what it killed; after a member it leaves another root alone; a shell is never touched',
     reapCell(P('scripts/lib/floor_reap.sh')));
+  // 1.10 F-44.365 (CE-47, design accepted 7 Oct 2026; built by ADS-2): 1.7 now narrows the reaper to what it planted, so
+  // the any-root scope it proves must be the floor's own when the narrowing is absent. Read, and held both ways inline.
+  { const reaper = read('scripts/lib/floor_reap.sh'); const others = floorFiles();
+    const why = narrowRead(reaper, others);
+    const unsetNarrows = narrowRead(reaper.replace('in_only() { [ -z "${FLOOR_REAP_ONLY_PIDS:-}" ] ||', 'in_only() { false ||'), others);
+    const floorSets = narrowRead(reaper, [...others, ['scripts/run-floor.sh (planted)', read('scripts/run-floor.sh') + '\nexport FLOOR_REAP_ONLY_PIDS="$$"\n']]);
+    const oneUngated = narrowRead(reaper.replace('if is_next "$args" && in_only "$pid" && ', 'if is_next "$args" && '), others);
+    cell('1.10 F-44.365: the reaper narrows only when FLOOR_REAP_ONLY_PIDS is set, in both its searches, and nothing the floor runs sets it (so unset, the scope is any-root before the floor, as A-46.6 ruled)',
+      why || (!unsetNarrows ? 'held one way only: a narrowing that applies when unset stayed green' : !floorSets ? 'held one way only: run-floor.sh setting it stayed green' : !oneUngated ? 'held one way only: one search left ungated stayed green' : null)); }
   return { R, help };
 }
 // ── A-46.9 (ruled 29 Sept 2026, from e-219): a help step names a button only when a control DRAWS that label ──
@@ -224,12 +235,15 @@ function reapCell(reaper) {
   const wait = (ms) => { const t = Date.now() + ms; while (Date.now() < t) { /* spin */ } };
   let why = null;
   const a = plant(); const a24 = process.env.B140_NODE24 ? plantWith(process.env.B140_NODE24) : null; wait(400);
-  const member = spawnSync('bash', [reaper, 'b140-member'], { cwd: ROOT, encoding: 'utf8' });
+  // F-44.365: both passes narrowed to what this cell planted (the stand-ins AND the shell, so "a shell is never touched"
+  // still means something), so beside other benches it can stop nobody else's server. 1.10 holds that the floor never narrows.
+  const env = { ...process.env, FLOOR_REAP_ONLY_PIDS: [a.pid, a24 && a24.pid, shell.pid].filter(Boolean).join(' ') };
+  const member = spawnSync('bash', [reaper, 'b140-member'], { cwd: ROOT, encoding: 'utf8', env });
   if (!alive(a.pid)) why = 'after a member, a next dev in ANOTHER root was stopped (the after-member pass must stay this root)';
   else if (member.stdout.trim()) why = 'after a member, it printed "' + member.stdout.trim().slice(0, 120) + '"';
   let before = { stdout: '' };
   if (!why) {
-    before = spawnSync('bash', [reaper, '(before the floor)'], { cwd: ROOT, encoding: 'utf8' });
+    before = spawnSync('bash', [reaper, '(before the floor)'], { cwd: ROOT, encoding: 'utf8', env });
     wait(500);
     if (alive(a.pid)) why = 'before the floor, a next dev in another root survived';
     else if (a24 && alive(a24.pid)) why = 'before the floor, a Node 24 next dev (comm MainThread) in another root survived';
@@ -238,6 +252,21 @@ function reapCell(reaper) {
   }
   kill(a.pid); if (a24) kill(a24.pid); kill(shell.pid); fs.rmSync(elsewhere, { recursive: true, force: true });
   return why;
+}
+// F-44.365: the reaper's narrowing is a no-op unless set, gates BOTH candidate searches, and no file the floor runs
+// (anything under scripts/ but a bench and the reaper itself) names FLOOR_REAP_ONLY_PIDS outside a comment.
+function floorFiles() {
+  const out = []; const walk = (rel) => { for (const e of fs.readdirSync(P(rel), { withFileTypes: true })) { const r = rel + '/' + e.name;
+    if (e.isDirectory()) walk(r); else if (!/^b\d+_/.test(e.name) && r !== 'scripts/lib/floor_reap.sh' && /\.(sh|mjs|cjs|js)$/.test(e.name)) out.push([r, read(r)]); } };
+  walk('scripts'); return out;
+}
+function narrowRead(reaper, files) {
+  if (!/\nonly=" \$\{FLOOR_REAP_ONLY_PIDS:-\} "\nin_only\(\) \{ \[ -z "\$\{FLOOR_REAP_ONLY_PIDS:-\}" \] \|\| case "\$only" in \*" \$1 "\*\) return 0 ;; \*\) return 1 ;; esac; \}\n/.test(reaper)) return 'floor_reap.sh: in_only is not a no-op when FLOOR_REAP_ONLY_PIDS is unset';
+  const gated = (reaper.match(/^ *if [^\n]*in_only "\$pid"[^\n]*then cands="\$cands \$pid"/gm) || []).length;
+  const searches = (reaper.match(/^ *if [^\n]*then cands="\$cands \$pid"/gm) || []).length;
+  if (gated !== 2 || searches !== 2) return `floor_reap.sh: ${gated} of ${searches} candidate searches gated by in_only (want 2 of 2)`;
+  const naming = files.filter(([, src]) => src.split('\n').some((l) => { const c = l.replace(/(^|\s)(#|\/\/).*$/, ''); return c.includes('FLOOR_REAP_ONLY_PIDS'); })).map(([r]) => r);
+  return naming.length ? 'the floor would narrow: ' + naming.join(', ') + ' names FLOOR_REAP_ONLY_PIDS' : null;
 }
 
 // ── THE BROWSER ARM ──────────────────────────────────────────────────────────────────────────────────────
@@ -353,6 +382,7 @@ const done = () => { console.log(`b140: ${pass} pass, ${fail} fail`); process.ex
         // RE-AIMED BY LABEL (CE-47, FE-8, the chair's ruling B): the Ads card names Continue to Meta already (the line as it stands), which
         // its sheet draws; M9 plants a button no control draws, as b140_v2's M9 does
         { id: 'M9', file: 'lib/worklist/pageHelp.ts', from: "To start: tap Connect ad account, then Continue to Meta. Meta opens", to: "To start: tap Connect ad account, then Continue to Facebook. Meta opens", source: () => { let red = false; try { const h = loadPageHelp(); const L = drawnLabels(ROOT, stripComments); const n = (x) => x.toLowerCase().replace(/[^a-z0-9+ ]/g, '').trim(); red = !Object.values(h.PAGE_HELP).every((e) => (e.can || []).every((c) => tapped(c.line).every((w) => L.some((x) => n(x) === n(w))))); } catch (_e) { red = true; } return red; }, cell: '1.9' },
+        { id: 'M10', file: 'scripts/lib/floor_reap.sh', from: 'in_only() { [ -z "${FLOOR_REAP_ONLY_PIDS:-}" ] ||', to: 'in_only() { false ||', source: () => !!narrowRead(read('scripts/lib/floor_reap.sh'), floorFiles()), cell: '1.10' },
         { id: 'M7', file: 'scripts/lib/floor_reap.sh', from: 'scope=root; [ "$member" = "(before the floor)" ] && scope=any', to: 'scope=root', source: () => !!reapCell(P('scripts/lib/floor_reap.sh')), cell: '1.7' },
         { id: 'M6', file: 'components/vendor/Header.tsx', from: "import { useVendorMe } from '@/hooks/vendor/useVendorMe';", to: "import { useVendorMe } from '@/hooks/vendor/useVendorMe';\nimport { TipsCarousel } from '@/components/vendor/TipsCarousel';", source: () => { const refs = code(read('components/vendor/Header.tsx')); return /TipsCarousel/.test(refs); }, cell: '1.4' },
       ];

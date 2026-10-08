@@ -28,10 +28,10 @@ K.runBench({
     sec('2 THE STANDING CHECKS'); await K.standing(g, ok, 'Payment reminders', '/vendor/payment-reminders');
     sec('3 THE ROOM'); const r = await room(g);
     ok(r.first === 'Send the rest automatically' && r.sw && r.sw.checked === 'true' && !r.sw.disabled, '3.1 the switch row first, on, a real switch', JSON.stringify([r.first, r.sw]));
-    ok(r.words.some((w) => /^On\. After you send the first reminder/.test(w)), '3.2 its state sentence');
+    ok(Array.isArray(r.words) && r.words.some((w) => /^On\. After you send the first reminder/.test(w)), '3.2 its state sentence');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     ok(r.heads.join('|') === 'Due · 2|Asked · 1|Sent · 1', '3.3 Due, the unsent under Asked, Sent', r.heads.join('|'));
     ok(r.pills.join('|') === 'Scheduled|Scheduled|Asked|Sent', '3.4 Scheduled, Asked and Sent pills', r.pills.join('|'));
-    ok(r.words.includes('Sent means WhatsApp accepted it. We cannot tell you whether it was delivered or read.'), '3.5 the sent note stays');
+    ok(Array.isArray(r.words) && r.words.includes('Sent means WhatsApp accepted it. We cannot tell you whether it was delivered or read.'), '3.5 the sent note stays');   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     ok(r.chev === 0, '3.6 the rows open nothing (no chevron), as today', r.chev);
   },
   mutations: [

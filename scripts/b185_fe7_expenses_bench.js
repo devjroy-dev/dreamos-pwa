@@ -45,15 +45,15 @@ K.runBench({
     sec('3 THE ROOM'); const r = await room(g);
     const monthHead = ist() === '2026-09' ? 'This month · Rs 46,500' : 'September 2026 · Rs 46,500';
     ok(r.pill && r.pill.t === '+ New expense' && r.pill.h === 36 && r.pill.tap, '3.1 "+ New expense", 36 high, data-tap44', JSON.stringify(r.pill));
-    ok(r.head === monthHead && r.words.includes('2 filed in September 2026'), '3.2 the headline and "2 filed in September 2026"', `${r.head} / ${r.words.find((w) => /filed/.test(w))}`);
+    ok(r.head === monthHead && Array.isArray(r.words) && r.words.includes('2 filed in September 2026'), '3.2 the headline and "2 filed in September 2026"', `${r.head} / ${Array.isArray(r.words) ? r.words.find((w) => /filed/.test(w)) : r.words}`);   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     ok(r.rows.length === 2 && r.rows[0].t === 'Drone rental' && r.rows[0].f === 'Equipment · 12 September 2026' && r.rows[0].v === 'Rs 18,000', '3.3 rows: what for, category and full date, the amount at the right', JSON.stringify(r.rows[0]));
     ok(r.dateWords.length >= 1 && r.dateWords.every((w) => /^([A-Z][a-z]+ )?\d{1,2} [A-Z][a-z]+ \d{4}$/.test(w)), '3.4 the Add expense sheet writes its Date in words', r.dateWords.join('|'));
-    ok(r.page.includes('Edit') && /Delete$/.test(r.last) && r.asked.includes('Delete this expense?') && r.asked.includes('Keep it') && r.afterOne === 0, '3.5 an expense opens as a page; Delete is last and asks first; nothing sent on the first tap', `${r.last} / ${r.afterOne}`);
+    ok(Array.isArray(r.page) && r.page.includes('Edit') && /Delete$/.test(r.last) && Array.isArray(r.asked) && r.asked.includes('Delete this expense?') && r.asked.includes('Keep it') && r.afterOne === 0, '3.5 an expense opens as a page; Delete is last and asks first; nothing sent on the first tap', `${r.last} / ${r.afterOne}`);   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     ok(r.afterTwo === 1, '3.6 the second tap sends one request', r.afterTwo);
   },
   mutations: [
     { name: 'M1 Delete acts on one tap', rel: F, from: "<button type=\"button\" className=\"fr-quiet\" onClick={() => setAsking(true)}>{EXW.delete}</button>", to: "<button type=\"button\" className=\"fr-quiet\" onClick={() => void remove(open)}>{EXW.delete}</button>", glass: true,
-      cell: async (g) => { const r = await room(g); return r.asked.includes('Delete this expense?') && r.afterOne === 0; } },
+      cell: async (g) => { const r = await room(g); return Array.isArray(r.asked) && r.asked.includes('Delete this expense?') && r.afterOne === 0; } },   // CE-47 ADS-2: K.words may answer null; guarded, a red not a throw
     // AMENDED BY LABEL (CE-47, FE-8): FE-5's head pill draws the sign itself, so dropping the "+" from the words no longer
     // changes the glass; the mutation now changes the words ("+ New cost") and 3.1 goes red as before.
     { name: 'M2 the pill\'s words changed to "New cost"', rel: F, from: "addPill: '+ New expense',", to: "addPill: '+ New cost',", glass: true,

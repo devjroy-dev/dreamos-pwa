@@ -26,6 +26,13 @@ async function setDate(p, idx, v) {
   }, idx, v);
   await K.settle(p);   // e-275: quiet, not 300 ms
 }
+// e-275: Aanya Mehra's row (a button.fr-row whose text starts with her name) is on the page. Bounded at `max`,
+// returning { ms, timedOut } as the kit's waits do; puppeteer polls the page itself, no fixed pause.
+async function aanyaRow(p, max = 8000) {
+  const t0 = Date.now();
+  const timedOut = await p.waitForFunction(() => [...document.querySelectorAll('button.fr-row')].some((r) => r.textContent.startsWith('Aanya Mehra')), { timeout: max, polling: 50 }).then(() => false, () => true);
+  return { ms: Date.now() - t0, timedOut, clicked: false };
+}
 async function sender(g) {
   const p = await K.open(g, '/vendor/exchange', { wait: '.fr-row .fr-f', scen: { xc: 'sender' } });
   const list = await rowsOf(p); const ws = await K.words(p);
@@ -37,7 +44,10 @@ async function sender(g) {
   const dateWords = await p.evaluate(() => [...document.querySelectorAll('[data-date-words]')].map((e) => e.textContent.trim()));
   await p.close();
   const q = await K.open(g, '/vendor/exchange', { wait: '.fr-row .fr-f', scen: { xc: 'sender' } });
-  await q.evaluate(() => { const rs = [...document.querySelectorAll('button.fr-row')].filter((r) => r.textContent.startsWith('Aanya Mehra')); rs[rs.length - 1].click(); });
+  // CE-47 ADS-2 (F-44.365 follow-up): K.open waited on '.fr-row .fr-f', not on Aanya's row. Wait on her row
+  // itself, bounded; a row missing after the wait is a named red in 2.6, never a throw (the b183 shape, cured).
+  const aanya = await aanyaRow(q);
+  if (!aanya.timedOut) aanya.clicked = await q.evaluate(() => { const rs = [...document.querySelectorAll('button.fr-row')].filter((r) => r.textContent.startsWith('Aanya Mehra')); if (!rs.length) return false; rs[rs.length - 1].click(); return true; });
   await K.settle(q);   // e-275: quiet, not 800 ms
   const req = await K.words(q);
   const lastIsWithdraw = await q.evaluate(() => { const bs = [...document.querySelectorAll('.wl-main button')].filter((b) => b.offsetParent); return bs.length ? bs[bs.length - 1].textContent.trim() : null; });
@@ -45,7 +55,7 @@ async function sender(g) {
   await K.tap(q, 'Withdraw');
   const asked = await K.words(q); const afterOne = q.posted.length;
   await q.close();
-  return { list, ws, inf, dateFields, dateWords, req, lastIsWithdraw, asked, before, afterOne };
+  return { list, ws, inf, dateFields, dateWords, req, lastIsWithdraw, asked, before, afterOne, aanya };
 }
 async function influencer(g) {
   const p = await K.open(g, '/vendor/exchange', { wait: '.fr-row .fr-f', scen: { xc: 'creator' } });
@@ -80,7 +90,7 @@ K.runBench({
     ok(mine.length === 3 && mine[0].f === '2 reels · until 18 November 2026' && mine[2].f === '3 stories · until 20 September 2026', '2.3 Your requests: what was asked, "until" and a full date; "stories" in the plural', mine.map((r) => r.f).join(' | '));
     ok(Array.isArray(S.inf) && S.inf.includes('Send request') && ['By city', 'By age', 'By gender'].every((h) => S.inf.includes(h)) && S.inf.includes('Verified via Instagram · 4.1% engagement'), '2.4 an influencer opens as a page: status, Send request, the three tables');
     ok(S.dateFields === 2 && S.dateWords.join('|') === '18 October 2026|18 November 2026', '2.5 each date field shows the chosen date in words beneath it', `${S.dateFields} fields: ${S.dateWords.join('|')}`);
-    ok(Array.isArray(S.req) && S.req.includes('The request') && S.req.includes('Back to Influencer exchange') && S.lastIsWithdraw === 'Withdraw', '2.6 a request opens as a page, with Withdraw last', S.lastIsWithdraw);
+    ok(S.aanya.clicked && Array.isArray(S.req) && S.req.includes('The request') && S.req.includes('Back to Influencer exchange') && S.lastIsWithdraw === 'Withdraw', '2.6 a request opens as a page, with Withdraw last', S.aanya.clicked ? S.lastIsWithdraw : `no Aanya Mehra row to open: waited ${S.aanya.ms} ms${S.aanya.timedOut ? ', timed out' : ', seen, then gone before the tap'}`);
     ok(Array.isArray(S.asked) && S.asked.includes('Withdraw your request to Aanya Mehra?') && S.asked.includes('Keep it') && S.afterOne === S.before, '2.7 Withdraw asks first, and nothing is sent on the first tap', `${S.before} -> ${S.afterOne}`);
     ok(K.noCouple(S.ws) && K.noCouple(S.inf) && K.noCouple(S.req), '2.8 no "couple"');
     sec('3 THE INFLUENCER');
