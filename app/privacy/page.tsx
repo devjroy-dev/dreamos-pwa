@@ -274,7 +274,8 @@ export default function PrivacyPolicyPage() {
             </li>
             <li>
               <strong>Anthropic and DeepSeek</strong>: AI model providers. The content of
-              your messages is sent to these providers so the assistant can understand and
+              your messages, and any bill you choose to read in Supplies, is sent to these providers so the
+              assistant can understand and
               respond. They process this content to generate replies and do not use it to
               contact you directly.
             </li>

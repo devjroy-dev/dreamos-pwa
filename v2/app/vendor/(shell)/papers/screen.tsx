@@ -154,7 +154,7 @@ const PP_CSS = `
 .pp-dw{margin:6px 0 0;font:var(--wl-t5);color:var(--atelier-ink-mute)}
 .pp-chips{display:flex;flex-wrap:wrap;gap:8px}
 .pp-chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--atelier-card-border);background:transparent;color:var(--atelier-ink);font:var(--wl-t4);touch-action:manipulation}
-.pp-chip.on{border-color:var(--atelier-accent-text);color:var(--atelier-accent-text)}
+.pp-chip.on{background:var(--atelier-accent-text);border-color:var(--atelier-accent-text);color:var(--atelier-card-bg)} /* F-44.369: a chosen chip is filled */
 .pp-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .pp-btn{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--atelier-accent-text);background:transparent;color:var(--atelier-accent-text);font:var(--wl-tb);touch-action:manipulation}
 .pp-btn.solid{background:var(--atelier-accent-text);color:var(--atelier-card-bg)}

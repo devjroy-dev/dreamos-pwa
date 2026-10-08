@@ -277,7 +277,7 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
     ['list', 'Each card is a place to buy, checked by TDW, with what it costs to join. Open goes to its own site.'],
     ['share', 'Join with your TDW certificate makes your certificate, saves it as a PDF, and shows the steps to join.'],
     ['edit', 'Write my requirement writes your request for IndiaMART. Copy it, then paste it there.']),
-    connects: 'Bills you send to TDW will go to Expenses with their GST. That part is coming soon.' }),
+    connects: 'Bills you add here go to Expenses with their GST, once you check them.' }),
   [TRENDS_HREF]: entry(ROW_DESC.trends, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
   // CE-47 · PRO P1 · Business papers is open: its own card replaces the shell card (one entry, same key).
   [PAPERS_HREF]: entry(ROW_DESC.papers, { can: how(

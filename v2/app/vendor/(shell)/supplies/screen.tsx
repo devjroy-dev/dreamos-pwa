@@ -2,8 +2,9 @@
 // v2/app/vendor/(shell)/supplies/screen.tsx · CE-47 · PRO · P1 · Supplies as approved in pictures 3 (R2, ruled):
 // one card per source, each labelled "From <source>", "Checked by TDW on <date>" and its fee; the connection finishes the
 // job inside TDW (the founder's principle): "Join with your TDW certificate" makes or reuses her certificate and saves it
-// for her; the GSTIN card shows her own GSTIN; "Write my requirement" drafts IndiaMART's post. The bill loop reads
-// "Coming soon" until P2. "TDW takes nothing from these. No links here pay TDW."
+// for her; the GSTIN card shows her own GSTIN; "Write my requirement" drafts IndiaMART's post. P2: each card's bill loop
+// opens Bills (add the bill here; P2-F3 (a), no WhatsApp), and Bills and Gear open their own views (bills.tsx, gear.tsx).
+// "TDW takes nothing from these. No links here pay TDW."
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Body, Group, Row, Head, FR_CSS } from '@/v2/components/worklist/RoomRows';
 import { Toast } from '@/v2/components/vendor/Toast';
@@ -13,38 +14,47 @@ import { dayInWords } from '@/v2/lib/worklist/dayInWords';
 import { istPlusDaysISO } from '@/lib/vendor/istDay';
 import { fetchAbout, fetchPapers, issuePaper, downloadPaper, errOf, type About, type Paper } from '@/v2/lib/vendor/api/papers';
 import { sourcesFor, tradeOf, safeUrl, type Source } from '@/v2/lib/solutions/supplySources';
+import { SP_CSS } from './style';
+import { BillsView } from './bills';
+import { GearView } from './gear';
+import { fetchBills, type BillDraft } from '@/v2/lib/vendor/api/bills';
 
 const TRADE_WORD = { makeup: 'makeup artists', photo: 'photographers', other: 'wedding professionals' } as const;
 
 export function SuppliesScreen({ vendorId }: { vendorId: string }) {
   const { toast, show } = useToast();
   const [about, setAbout] = useState<About | null>(null);
-  const [view, setView] = useState<{ v: 'list' } | { v: 'join'; key: string } | { v: 'req' }>({ v: 'list' });
+  const [view, setView] = useState<{ v: 'list' } | { v: 'join'; key: string } | { v: 'req' } | { v: 'bills' } | { v: 'gear' }>({ v: 'list' });
+  const [waiting, setWaiting] = useState<number | null>(null);
   useEffect(() => { void fetchAbout(vendorId).then((a) => { if (a.ok && (a as { about?: About }).about) setAbout((a as { about: About }).about); }); }, [vendorId]);
+  useEffect(() => { if (view.v !== 'list') return; void fetchBills(vendorId).then((r) => setWaiting(r.ok ? ((r as { drafts: BillDraft[] }).drafts || []).length : null)); }, [vendorId, view.v]);
   const trade = tradeOf(about?.trade);
   const list = useMemo(() => sourcesFor(trade), [trade]);
   const src = view.v === 'join' ? list.find((s) => s.key === view.key) || null : null;
 
   if (src) return <Join vendorId={vendorId} src={src} about={about} onBack={() => setView({ v: 'list' })} show={show} toast={toast} />;
   if (view.v === 'req') return <Requirement city={about?.city || ''} onBack={() => setView({ v: 'list' })} toast={toast} />;
+  if (view.v === 'bills') return <BillsView vendorId={vendorId} onBack={() => setView({ v: 'list' })} />;
+  if (view.v === 'gear') return <GearView vendorId={vendorId} city={about?.city || ''} onBack={() => setView({ v: 'list' })} />;
   const prices = list.filter((s) => s.group === 'prices'), repairs = list.filter((s) => s.group === 'repairs');
   return (<Body>
     <p className="sp-lede">Where {TRADE_WORD[trade]} buy at professional prices, and how each purchase comes back into TDW.</p>
     <Head text="Where to buy" />
-    {prices.map((s) => <Card key={s.key} s={s} about={about} onJoin={() => setView({ v: 'join', key: s.key })} onReq={() => setView({ v: 'req' })} />)}
-    {repairs.length ? (<><Head text="Repairs and backup" />{repairs.map((s) => <Card key={s.key} s={s} about={about} onJoin={() => setView({ v: 'join', key: s.key })} onReq={() => setView({ v: 'req' })} />)}</>) : null}
+    {prices.map((s) => <Card key={s.key} s={s} about={about} onJoin={() => setView({ v: 'join', key: s.key })} onReq={() => setView({ v: 'req' })} onBills={() => setView({ v: 'bills' })} />)}
+    {repairs.length ? (<><Head text="Repairs and backup" />{repairs.map((s) => <Card key={s.key} s={s} about={about} onJoin={() => setView({ v: 'join', key: s.key })} onReq={() => setView({ v: 'req' })} onBills={() => setView({ v: 'bills' })} />)}</>) : null}
     <p className="sp-lede" data-sp-nothing="">TDW takes nothing from these. No links here pay TDW.</p>
     <Head text="Bills and gear" />
     <Group>
-      <Row title="Bills to check" facts="Purchase bills read and filed to Expenses with GST" pill={{ text: 'Coming soon', tone: 'soon' }} />
-      <Row title="Gear" facts={`Lend and borrow kit with vendors${about?.city ? ` in ${about.city}` : ''}`} pill={{ text: 'Coming soon', tone: 'soon' }} />
+      <div data-sp-bills=""><Row title="Bills" facts="Add a purchase bill; TDW reads it and files it to Expenses with its GST" chevron onClick={() => setView({ v: 'bills' })}
+        pill={waiting ? { text: `${waiting} to add`, tone: 'warn' } : undefined} /></div>
+      <div data-sp-gear=""><Row title="Gear" facts={`Lend and borrow kit with vendors${about?.city ? ` in ${about.city}` : ''}`} chevron onClick={() => setView({ v: 'gear' })} /></div>
     </Group>
     <Toast toast={toast} /><style>{FR_CSS + SP_CSS}</style>
   </Body>);
 }
 
 type ShowFn = (msg: string, kind?: 'success' | 'error') => void;
-function Card({ s, about, onJoin, onReq }: { s: Source; about: About | null; onJoin: () => void; onReq: () => void }) {
+function Card({ s, about, onJoin, onReq, onBills }: { s: Source; about: About | null; onJoin: () => void; onReq: () => void; onBills: () => void }) {
   return (<div className="sp-card" data-sp-src={s.key}>
     <div className="sp-tags"><span className="sp-tag">From {s.from}</span><span className="sp-tag">Checked by TDW on {s.checked}</span><span className="sp-tag">{s.fee}</span></div>
     <div className="sp-name">{s.name}</div>
@@ -61,7 +71,7 @@ function Card({ s, about, onJoin, onReq }: { s: Source; about: About | null; onJ
     {s.requirement ? (<><div className="sp-btns"><button type="button" className="sp-btn" data-sp-req="" onClick={onReq}>Write my requirement</button><a className="sp-btn" href={safeUrl(s.url)} target="_blank" rel="noopener noreferrer">Open {s.name}</a></div>
       <div className="sp-mute">Quotes come to your phone, not to TDW. Check the seller before you pay.</div></>) : null}
     {!s.gstinCard && !s.requirement ? <div className="sp-btns"><a className="sp-btn" href={safeUrl(s.url)} target="_blank" rel="noopener noreferrer">Open {s.name}</a></div> : null}
-    <div className="sp-loop"><span>After you buy: send the bill to TDW on WhatsApp or add it here, and it goes to Expenses with its GST.</span><span className="fr-pill soon">Coming soon</span></div>
+    <div className="sp-loop"><span>After you buy: add the bill here, and it goes to Expenses with its GST.</span><button type="button" className="sp-btn" data-sp-addbill={s.key} onClick={onBills}>Add a bill</button></div>
   </div>);
 }
 
@@ -114,27 +124,3 @@ function Requirement({ city, onBack, toast }: { city: string; onBack: () => void
   </Body>);
 }
 
-const SP_CSS = `
-.sp-lede{margin:4px 0 4px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
-.sp-card{border:1px solid var(--atelier-card-border);border-radius:12px;background:var(--atelier-card-bg);padding:16px;display:flex;flex-direction:column;gap:8px}
-.sp-card + .sp-card{margin-top:12px}
-.sp-tags{display:flex;flex-wrap:wrap;gap:6px}
-.sp-tag{font:var(--wl-t5);color:var(--atelier-ink-mute);border:1px solid var(--atelier-card-border);border-radius:999px;padding:3px 9px}
-.sp-name{font:var(--wl-t2);color:var(--atelier-ink)}
-.sp-txt{font:var(--wl-t4);color:var(--atelier-ink)}
-.sp-mute{font:var(--wl-t4);color:var(--atelier-ink-mute)}
-.sp-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-.sp-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--atelier-accent-text);background:transparent;color:var(--atelier-accent-text);font:var(--wl-tb);text-decoration:none;box-sizing:border-box;touch-action:manipulation}
-.sp-btn.solid{background:var(--atelier-accent-text);color:var(--atelier-card-bg)}
-.sp-btn:disabled{opacity:.6}
-.sp-field{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--atelier-card-border);font:var(--wl-t4);color:var(--atelier-ink)}
-.sp-field span:first-child{color:var(--atelier-ink-mute)}
-.sp-step{flex:1;text-align:left}
-.sp-loop{display:flex;gap:10px;align-items:center;justify-content:space-between;border-top:1px solid var(--atelier-card-border);padding-top:10px;margin-top:4px;font:var(--wl-t4);color:var(--atelier-ink-mute)}
-.sp-back{align-self:flex-start;min-height:44px;padding:0;background:transparent;border:0;font:var(--wl-t4);color:var(--atelier-accent-text);touch-action:manipulation}
-.sp-label{font:var(--wl-t5);color:var(--atelier-ink-mute);margin:4px 0 6px}
-.sp-in{width:100%;box-sizing:border-box;min-height:44px;padding:10px 14px;background:var(--atelier-input-bg);border:.5px solid var(--atelier-input-border);border-radius:12px;font:var(--wl-t4);color:var(--atelier-ink)}
-.sp-dw{margin:6px 0 0;font:var(--wl-t5);color:var(--atelier-ink-mute)}
-.sp-copy{font:var(--wl-t4);color:var(--atelier-ink);border:1px dashed var(--atelier-card-border);border-radius:10px;padding:12px}
-.sp-link{color:var(--atelier-accent-text);overflow-wrap:anywhere}
-`;

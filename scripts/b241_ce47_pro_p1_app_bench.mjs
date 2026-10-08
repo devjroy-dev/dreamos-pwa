@@ -77,12 +77,13 @@ async function openP(b, route, fake, { wait = '.wl-main' } = {}) {
   // through, by re-request, bounded at 60 s, and then judged; the dev log decides which 404 it is (judge404 below).
   // A 404 the server gave without compiling, or to a route that had already answered, stays a red at once.
   if (resp && resp.status() === 404) {
-    const t0 = Date.now(); let verdict = judge404(devLog(), route);
+    let t0 = Date.now(); let verdict = judge404(devLog(), route);
     while (verdict === 'compiling' && Date.now() - t0 < 60000) {
+      if (stuckRestarts < 2 && routeHasPage(route) && Date.now() - t0 > 20000) { stuckRestarts += 1; await restartServer(route); t0 = Date.now(); }
       await H.sleep(1000); resp = await p.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
       verdict = resp && resp.status() === 404 ? judge404(devLog(), route) : 'ok';
     }
-    if (verdict !== 'ok') throw new Error(`404 stands on ${route} (${verdict === 'compiling' ? 'still compiling after 60 s' : 'the route answered 404 without compiling'}): ${JSON.stringify(logRows(devLog(), route).slice(-3))}`);
+    if (verdict !== 'ok') throw new Error(`404 stands on ${route} (${verdict === 'compiling' ? (routeHasPage(route) ? `a page file serves it, yet it answered 404 for 60 s${stuckRestarts ? `, after ${stuckRestarts} fresh dev ${stuckRestarts === 1 ? 'server' : 'servers'} too` : ''}` : 'still compiling after 60 s') : 'the route answered 404 without compiling'}): ${JSON.stringify(logRows(devLog(), route))}${restarted ? ' :: the first server: ' + JSON.stringify(restarted.old) : ''}`);
     regraced.push(route);
   }
   let seen = false; for (let i = 0; i < 300; i += 1) { if (await p.evaluate((s) => !!document.querySelector(s), wait)) { seen = true; break; } await H.sleep(300); }
@@ -101,9 +102,26 @@ function logRows(lines, route) { const re = ROW(route); const out = []; for (con
 // 'ok' (the latest answer was not a 404), 'compiling' (a 404 while this path's route was being compiled: the path's FIRST
 // row, or a row whose next.js share shows a compile, at least COMPILE_MS), 'red' (a 404 answered without compiling).
 const COMPILE_MS = 250;
-function judge404(lines, route) {
+// CE-47 (7 October 2026, the double 404): a real route, /vendor/supplies, answered Next dev's 404 twice in one run, the
+// first while compiling (743 ms) and the second at once (15 ms) with no compile error in the log. The dev log alone could
+// not tell that from a route that does not exist, so the bench asks the tree it is walking: does a page file serve this
+// path? (the v2 layout serves /x from app/v2/x, then app/x; route groups are transparent; [segments] match anything).
+// A 404 on a path a page file serves is waited through, re-requested, bounded at 60 s, and only then red, with every row
+// as evidence. A path no page file serves keeps the r2 rule (first-visit compile grace, then red), so 8.2 is unchanged.
+function routeHasPage(route, root = ROOT) {
+  const segs = route.split('?')[0].split('/').filter(Boolean);
+  const hasPage = (dir) => ['page.tsx', 'page.ts', 'page.jsx', 'page.js'].some((f) => fs.existsSync(path.join(dir, f)));
+  const walk = (dir, i) => {
+    let ents; try { ents = fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()); } catch (_e) { return false; }
+    if (i === segs.length) { if (hasPage(dir)) return true; return ents.some((e) => /^\(.*\)$/.test(e.name) && walk(path.join(dir, e.name), i)); }
+    return ents.some((e) => (e.name === segs[i] && walk(path.join(dir, e.name), i + 1)) || (/^\[[^\]]+\]$/.test(e.name) && walk(path.join(dir, e.name), i + 1)) || (/^\(.*\)$/.test(e.name) && walk(path.join(dir, e.name), i)));
+  };
+  return walk(path.join(root, 'app', 'v2'), 0) || walk(path.join(root, 'app'), 0);
+}
+function judge404(lines, route, hasPage = routeHasPage(route)) {
   const rows = logRows(lines, route); if (!rows.length) return 'compiling'; const [st, ms] = rows[rows.length - 1];
   if (st !== 404) return 'ok';
+  if (hasPage) return 'compiling';   // a page file serves it: wait, bounded by the caller's 60 s
   return (rows.length === 1 || ms >= COMPILE_MS) ? 'compiling' : 'red';
 }
 const devLog = () => { try { return fs.readFileSync(server.log, 'utf8').split('\n'); } catch (_e) { return []; } };
@@ -130,7 +148,41 @@ const SHORT = /\b\d{1,2} (Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\b(?!
 
 for (let i = 0; i < 40 && await dev.portOpen(PORT); i += 1) await H.sleep(500);
 if (await dev.portOpen(PORT)) { console.log(`b241: port ${PORT} is held by another server; refusing to walk someone else's tree`); process.exit(2); }
-const server = await dev.start(ROOT, PORT, { NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${PORT}/__api` });
+// F-44.370's reads (the chair, 7 October 2026), taken on a stuck server BEFORE it is restarted, and a census of every
+// process working in this root, taken before each server start: if an earlier server's worker outlived its stop and
+// still writes into .next, the census shows it.
+const census = () => { try { const fs2 = require('fs'); return require('child_process').execSync('ps -eo pid,ppid,args', { encoding: 'utf8' }).split('\n').slice(1).map((l) => l.trim()).filter(Boolean)
+  .filter((l) => { const pid = l.split(/\s+/)[0]; if (+pid === process.pid) return false; let cwd = ''; try { cwd = fs2.readlinkSync(`/proc/${pid}/cwd`); } catch (_e) { return false; } return cwd === ROOT && /next|node/.test(l); })
+  .map((l) => l.replace(/\s+/g, ' ').slice(0, 120)); } catch (_e) { return ['ps failed']; } };
+const plain = async (u, ck = `tdw_layout=v2; tdw_wl_mode=${MODE}`) => { try { const r = await fetch(`http://localhost:${PORT}${u}`, { headers: { cookie: ck }, redirect: 'manual' }); return r.status + (r.headers.get('location') ? '>' + r.headers.get('location').replace(/^https?:\/\/[^/]+/, '') : ''); } catch (_e) { return 'refused'; } };
+console.log(`  NOTE  census before the first server: ${JSON.stringify(census())}`);
+const DEV_ENV = { NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${PORT}/__api` };
+let server = await dev.start(ROOT, PORT, DEV_ENV);
+// CE-47 (7 October 2026): the stuck 404. Seen 6 times in about 80 runs: on a path a page file serves, a fresh Next dev
+// answered 404 to every request for the server's whole life (b243 run 3 of 20: 16 rows over 60 s, the first compiling
+// 2.1 s, the rest at once; no compile error in the log). Then 3 of 21 fresh servers in series 2. Not reproduced by 30 fresh servers under load with plain
+// requests, so it is tied to a browser's first visit to a dev server, not to the app (next build lists the route).
+// The measure: ONCE per run, after 20 s of 404s on such a path, the dev server is stopped (whole tree, port proven free)
+// and started fresh, and the path is asked again; a NOTE line carries the old server's rows. Up to twice a run (b243
+// series 2, run 2: a server started fresh stuck too). If the last fresh server also answers 404 for 60 s, the path is
+// red, with the rows.
+let restarted = null; let stuckRestarts = 0; // at most 2 restarts for a stuck 404 per run; 8.5's own restart does not count
+async function restartServer(route, why = 'answered 404 for 20 s on a path a page file serves') {
+  const old = logRows(devLog(), route);
+  if (!/on purpose/.test(why)) {
+    const reads = { v2_address: await plain('/v2' + route), same_from_node: await plain(route), new_room_papers: await plain('/vendor/papers'), landed_room_packages: await plain('/vendor/packages'), never: await plain('/vendor/no-such-room-x'), no_cookie: await plain(route, ''),
+      classic_today: await plain('/vendor/today', 'tdw_layout=classic'), outside_vendor_privacy: await plain('/privacy'), outside_vendor_check: await plain('/check/TDW-AAAA-BBBB'), home: await plain('/') };
+    console.log(`  NOTE  F-44.370 reads on the stuck server: ${JSON.stringify(reads)} :: census ${JSON.stringify(census())} :: this server's tree ${JSON.stringify(require(path.join(ROOT, 'scripts/lib/stop_tree.js')).treeOf(server.dev.pid))}`);
+  }
+  try { stopTree(server.dev.pid); } catch (_e) { /* gone */ }
+  try { await server.stop(); } catch (_e) { /* stopped */ }
+  for (let i = 0; i < 40 && await dev.portOpen(PORT); i += 1) await H.sleep(500);
+  console.log(`  NOTE  census before the fresh server: ${JSON.stringify(census())}`);
+  server = await dev.start(ROOT, PORT, DEV_ENV);
+  if (!(await server.up())) throw new Error('the fresh dev server did not come up');
+  restarted = { route, old };
+  console.log(`  NOTE  dev server restarted once: ${route} ${why}; the old server's rows ${JSON.stringify(old)}`);
+}
 let b;
 try {
   if (!(await server.up())) throw new Error('the dev server did not come up');
@@ -170,7 +222,12 @@ try {
   await shot(p, 'statement_form');
   await tap(p, '[data-pp-make]'); t = await text(p);
   ok(t.includes('Pick who the statement is for.'), '4.2 without a purpose, the server\'s plain refusal is shown');
-  await tap(p, '[data-pp-purpose="bank"]'); await tap(p, '[data-pp-make]'); t = await text(p);
+  await tap(p, '[data-pp-purpose="bank"]');
+  // F-44.369 (P2 app package): the chosen chip is FILLED, the others are not (the standing rule; it was outlined only)
+  const ch = await p.$eval('[data-pp-purpose="bank"]', (e) => { const c = getComputedStyle(e); return { pressed: e.getAttribute('aria-pressed'), bg: c.backgroundColor }; });
+  const other = await p.$eval('[data-pp-purpose="visa"]', (e) => getComputedStyle(e).backgroundColor).catch(() => null);
+  ok(ch.pressed === 'true' && !/rgba\(0, 0, 0, 0\)|transparent/.test(ch.bg) && other && /rgba\(0, 0, 0, 0\)|transparent/.test(other), '4.2a (F-44.369) the chosen "Who is it for?" chip is filled; the others are not', JSON.stringify({ ch, other }));
+  await tap(p, '[data-pp-make]'); t = await text(p);
   const sp = f.S.log.filter(([m, rt]) => m === 'POST' && rt === `/api/v2/vendor/papers/${V}`).pop();
   ok(sp && sp[2].kind === 'statement' && sp[2].purpose === 'bank' && /^\d{4}-04-01$/.test(sp[2].period_from) && /^\d{4}-\d{2}-\d{2}$/.test(sp[2].period_to), '4.3 the statement is asked for with its period and purpose', JSON.stringify(sp && sp[2]));
   ok(t.includes('Received on these invoices') && t.includes('Rs 5,92,500') && t.includes('TDW has not audited or verified these figures.'), '4.4 the statement opens with its sums and the ruled words');
@@ -211,7 +268,8 @@ try {
   const keys = await s1.$$eval('[data-sp-src]', (els) => els.map((e) => e.getAttribute('data-sp-src')));
   ok(JSON.stringify(keys) === '["nykaa_pro","amazon_business","indiamart"]', '6.1 a makeup artist sees Nykaa PRO, Amazon Business and IndiaMART, in that order', JSON.stringify(keys));
   ok(['From Nykaa', 'Checked by TDW on 4 October 2026', 'Free to join', 'Free for buyers', 'TDW takes nothing from these. No links here pay TDW.', 'Join with your TDW certificate', 'Nykaa decides who joins.'].every((w) => t.includes(w)), '6.2 every card is labelled; the ruled words are on glass');
-  ok((t.match(/Coming soon/g) || []).length === 5 && t.includes('After you buy: send the bill to TDW on WhatsApp or add it here, and it goes to Expenses with its GST.'), '6.3 the bill loop on each card and Bills and Gear read "Coming soon" (P2)');
+  // P2 (by label): Bills and Gear landed, so nothing reads "Coming soon"; b243 walks Bills and Gear themselves.
+  ok(!t.includes('Coming soon') && (t.match(/After you buy: add the bill here, and it goes to Expenses with its GST\./g) || []).length === 3 && !/on WhatsApp/.test(t), '6.3 (P2) each card\u2019s bill loop says "add the bill here" (three cards), no WhatsApp, nothing "Coming soon"');
   const links = await s1.$$eval('a', (as) => as.filter((a) => /^https?:/.test(a.getAttribute('href') || '') && !a.closest('nav,header')).map((a) => [a.href, a.target, a.rel]));
   ok(links.length >= 3 && links.every(([h, tg, rl]) => /^https:\/\//.test(h) && tg === '_blank' && rl === 'noopener noreferrer'), '6.4 every outside link is https, a new tab, noopener noreferrer (standing)', JSON.stringify(links));
   ok(t.includes('Not added yet') && t.includes('Add yours in Settings') && !(await s1.$('[data-sp-gstinbox]')), '6.5 (r3) no GSTIN: says so, sends her to Settings, offers no copy box');
@@ -239,15 +297,27 @@ try {
 
   console.log('\n── 8  the opener\'s first-visit grace (CE-47 r2) ──');
   const L = (st, t) => ` GET /vendor/papers ${st} in ${t} (next.js: ${t}, proxy.ts: 9ms, application-code: 60ms)`;
-  ok(judge404([L(404, '1993ms')], '/vendor/papers') === 'compiling' && judge404([L(404, '2.1s')], '/vendor/papers') === 'compiling'
-    && judge404([L(404, '1993ms'), L(200, '5ms')], '/vendor/papers') === 'ok'
-    && judge404([L(200, '187ms'), L(404, '6ms')], '/vendor/papers') === 'red'
-    && judge404([L(404, '1993ms'), L(404, '7ms')], '/vendor/papers') === 'red'
-    && judge404([' GET /vendor/papers-x 404 in 9ms (next.js: 4ms, proxy.ts: 1ms, application-code: 4ms)'], '/vendor/papers') === 'compiling',
-  '8.1 the judge: a first-visit 404 while compiling is waited through; a 404 after the route answered, or one given without compiling, is red');
+  ok(judge404([L(404, '1993ms')], '/vendor/papers', false) === 'compiling' && judge404([L(404, '2.1s')], '/vendor/papers', false) === 'compiling'
+    && judge404([L(404, '1993ms'), L(200, '5ms')], '/vendor/papers', false) === 'ok'
+    && judge404([L(200, '187ms'), L(404, '6ms')], '/vendor/papers', false) === 'red'
+    && judge404([L(404, '1993ms'), L(404, '7ms')], '/vendor/papers', false) === 'red'
+    && judge404([' GET /vendor/papers-x 404 in 9ms (next.js: 4ms, proxy.ts: 1ms, application-code: 4ms)'], '/vendor/papers', false) === 'compiling',
+  '8.1 the judge, on a path no page file serves: a first-visit 404 while compiling is waited through; a 404 after the route answered, or one given without compiling, is red');
+  ok(routeHasPage('/vendor/supplies') && routeHasPage('/vendor/papers') && routeHasPage('/check/TDW-7Q4K-2M9P') && !routeHasPage('/vendor/no-such-room-b241') && !routeHasPage('/check'),
+    '8.3 the tree is asked: Supplies, Business papers and a check code have page files; a room that does not exist has none');
+  ok(judge404([L(404, '743ms'), L(404, '15ms')], '/vendor/papers', true) === 'compiling' && judge404([L(404, '743ms'), L(404, '15ms')], '/vendor/papers', false) === 'red',
+    '8.4 the double 404 seen on 7 October: on a path a page file serves it is waited through (to 60 s); on a path none serves it is red at once');
   let threw = null; const t8 = Date.now();
   try { const z = await openP(b, '/vendor/no-such-room-b241', fakePapers()); await z.close(); } catch (e) { threw = String(e && e.message || e); }
   ok(!!threw && /^404 stands on \/vendor\/no-such-room-b241/.test(threw) && Date.now() - t8 < 75000, '8.2 a route that never exists is still red, within the 60 s bound', `${threw} in ${Date.now() - t8} ms`);
+  // 8.5 the restart's own mechanics, driven on purpose at the end of the run (a stuck 404 cannot be planted): the old
+  // tree is stopped, the port proven free, a fresh server answers, and the room opens on it.
+  if (!stuckRestarts) {
+    const pid0 = server.dev.pid; await restartServer('/vendor/papers', 'restarted on purpose by cell 8.5');
+    let oldGone = false; try { process.kill(pid0, 0); } catch (_e) { oldGone = true; }
+    const z = await openP(b, '/vendor/papers', fakePapers(), { wait: '[data-pp-kind]' }); const zt = await text(z); await z.close();
+    ok(oldGone && server.dev.pid !== pid0 && zt.includes('Make a paper'), '8.5 the once-per-run restart: the old server stopped, a fresh one up, the room opens on it', JSON.stringify({ pid0, pid1: server.dev.pid }));
+  } else ok(true, '8.5 the once-per-run restart was used for real in this run (see its NOTE)');
   if (regraced.length) console.log(`  NOTE  first-visit 404 waited through on: ${regraced.join(', ')}`);
 } catch (e) { ok(false, 'the run', e && e.stack); }
 finally {
