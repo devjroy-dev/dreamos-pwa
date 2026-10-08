@@ -75,7 +75,7 @@ function Settings({ me, reload, onSignOut }: { me: Me; reload: () => Promise<voi
       <h2 className="sol-heading" style={{ marginTop: 24 }}>{W.orgTitle}</h2>
       <OrgForm initial={o} submitLabel="Save" onSubmit={async (b) => { const r = await partnerApi.patchOrg(b); if (!r.ok) return r.error; setMsg(W.saved); await reload(); return null; }} />
       <h2 className="sol-heading" style={{ marginTop: 24 }}>{W.people}</h2>
-      {(me.people || []).map((p, i) => <div key={i} className="px-card"><span className="sol-rowlabel">{p.name || 'No name yet'}{p.role === 'owner' ? ' (owner)' : ''}</span><span className="sol-rowdesc">{p.phone}</span></div>)}
+      {(me.people || []).map((p, i) => <div key={i} className="px-card"><span className="sol-rowlabel">{p.name || 'No name given'}{p.role === 'owner' ? ' (owner)' : ''}</span><span className="sol-rowdesc">{p.phone}</span></div>)}
       {me.role === 'owner' ? (
         <div className="px-card">
           <label className="px-field"><span className="px-label">{W.yourName.replace('Your', 'Their')}</span><input className="px-input" value={pName} onChange={(e) => setPName(e.target.value)} /></label>

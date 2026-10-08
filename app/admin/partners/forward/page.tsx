@@ -32,12 +32,12 @@ export default function ForwardAdmin() {
       const d = await adminPost<{ recipients: Recip[] }>('/api/v2/admin/partners/forward', { ...f, vendor_id: f.vendor_id || undefined, asked: true,
         budget_from: Number(f.budget_from.replace(/\D/g, '')), budget_to: Number(f.budget_to.replace(/\D/g, '')), contact_ids: pick });
       setOut(Array.isArray(d && d.recipients) ? d.recipients : []);
-    } catch (e) { setErr(e instanceof Error ? e.message : 'Could not save the request.'); }
+    } catch (e) { setErr(e instanceof Error ? e.message : 'TDW could not save the request. Please try again.'); }
   };
   const markSent = useCallback(async (r: Recip, sent: boolean) => {
     try { const d = await adminPost<{ sent_at: string | null }>(`/api/v2/admin/partners/forward/recipients/${r.id}/sent`, { sent });
       setOut((o) => (o || []).map((x) => (x.id === r.id ? { ...x, sent_at: d.sent_at } : x))); setOpen((o) => (o && o.id === r.id ? { ...o, sent_at: d.sent_at } : o)); }
-    catch (e) { setErr(e instanceof Error ? e.message : 'Could not save.'); }
+    catch (e) { setErr(e instanceof Error ? e.message : 'TDW could not save this. Please try again.'); }
   }, []);
   return (
     <div>
@@ -45,11 +45,11 @@ export default function ForwardAdmin() {
       {!out ? (
         <>
           <Group title="The vendor">
-            <Field label="Vendor on TDW (her vendor id from Vendors)" value={f.vendor_id} onChange={set('vendor_id')} note="Or, for a vendor not on TDW, her Instagram handle and her phone below." />
+            <Field label="Vendor on TDW (her vendor id from Vendors)" value={f.vendor_id} onChange={set('vendor_id')} note="If the vendor is not on TDW, write her Instagram handle and her phone number below instead." />
             <div style={{ display: 'flex' }}><Field label="Her Instagram handle" value={f.outside_handle} onChange={set('outside_handle')} /><Field label="Her phone" value={f.outside_phone} onChange={set('outside_phone')} /></div>
           </Group>
           <Group title="What she needs">
-            <Field label="What" value={f.role} onChange={set('role')} note="For example a model" />
+            <Field label="What" value={f.role} onChange={set('role')} note="For example, write: a model." />
             <div style={{ display: 'flex' }}><Field label="City" value={f.city} onChange={set('city')} /><Field label="Date" type="date" value={f.event_date} onChange={set('event_date')} /></div>
             <div style={{ display: 'flex' }}><Field label="Budget from Rs" value={f.budget_from} onChange={set('budget_from')} /><Field label="Budget to Rs" value={f.budget_to} onChange={set('budget_to')} /></div>
             <div style={{ padding: '8px 14px' }}><Chips items={[{ key: 'paid', label: 'Paid' }, { key: 'credit_only', label: 'Credit only' }]} value={f.pay_kind} onChange={set('pay_kind')} /></div>
@@ -72,12 +72,12 @@ export default function ForwardAdmin() {
           <List>{out.map((r, i) => (
             <div key={r.id} onClick={() => { setOpen(r); }} style={{ cursor: 'pointer' }}>
               <ContactRow c={{ ...r.contact }} last={i === out.length - 1} />
-              <p style={{ font: F.t5, color: r.sent_at ? C.ok : C.mute, padding: '0 14px 12px' }}>{r.sent_at ? 'Sent' : 'Not sent yet. Tap to open.'}</p>
+              <p style={{ font: F.t5, color: r.sent_at ? C.ok : C.mute, padding: '0 14px 12px' }}>{r.sent_at ? 'This message is sent.' : 'This message is not sent yet. Tap to open it.'}</p>
             </div>))}</List>
         </Group>
       )}
       {open ? (
-        <Sheet title={open.contact.name} sub="Send it yourself from TDW's accounts" onClose={() => setOpen(null)}>
+        <Sheet title={open.contact.name} sub="Send this message yourself from TDW's accounts." onClose={() => setOpen(null)}>
           {open.message ? <div style={{ padding: '0 14px' }}><CopyBox text={open.message} label="Copy message" copied="Copied" /></div> : null}
           {open.instagram_url ? (
             <div style={{ display: 'flex', gap: 8, padding: '0 14px 12px', flexWrap: 'wrap' }}>
@@ -87,7 +87,7 @@ export default function ForwardAdmin() {
           ) : null}
           <label style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '12px 18px', font: F.t3, color: C.ink }}>
             <input type="checkbox" checked={!!open.sent_at} onChange={(e) => { void markSent(open, e.target.checked); }} style={{ width: 22, height: 22 }} />I sent it</label>
-          {!open.instagram_url ? <SheetNote>This contact has no Instagram handle. Add it in Contacts to send from Instagram or Threads.</SheetNote> : null}
+          {!open.instagram_url ? <SheetNote>This contact has no Instagram handle. To send from Instagram or Threads, add the handle in Contacts.</SheetNote> : null}
         </Sheet>
       ) : null}
     </div>

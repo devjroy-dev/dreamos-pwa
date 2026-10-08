@@ -21,6 +21,9 @@
 //   §9 everywhere above: no visible text outside an anchor reads as a handle or a website (the founder's rule).
 // --mutate: M1 ContactRow made to pass the phone on a Stopped row -> §4 reddens; M2 the mark's null guard dropped -> §3.2
 // reddens (an empty tag drawn); each file restored byte for byte.
+// R-47.1 (the founder's rule, 8 Oct 2026), amended by label at PTN-A2-1 app part 1: the cells that pinned PTN's old app
+// words now pin the rewritten lines (old and new side by side in docs/handovers/TDW_CE47_PTN_A2_1_APP_P1.md). The fixture's
+// connections line is A2-3's server wording.
 // e-277: the run STOPS before its first cell if the mutation anchor is already in ContactRow.tsx.
 // One BOUNDED stop for the server and the browser on every exit path (e-275); every wait is on the thing itself, bounded. Runs bare (no key, no live call). THE EXIT CODE IS THE VERDICT.
 process.env.PORT = process.env.PORT || '4310';
@@ -39,7 +42,7 @@ const CONTACTS = [
   { id: 'c1', name: 'Model Connect', kind: 'agency', how_we_know: 'Met at a show', phone: '+919811100021', knows_tdw: true, stopped: false, instagram_handle: 'modelconnect.in', instagram_url: 'https://www.instagram.com/modelconnect.in/', website_url: 'https://modelconnect.in/' },
   { id: 'c2', name: 'Neha Kapoor', kind: 'stylist', how_we_know: 'Sent by a vendor we know', phone: '+919811100032', knows_tdw: false, stopped: true, instagram_handle: 'neha.styles', instagram_url: 'https://www.instagram.com/neha.styles/', website_url: null },
 ];
-const ROW = { ...ORG, hidden_by_reports: false, reports_open: 0, connections_line: 'Connections: 2 of 3 free used. Plan: none yet. After the 3rd, Rs 2,999 a month.', blocked_reason: null, created_at: '2026-10-06T00:00:00Z' };
+const ROW = { ...ORG, hidden_by_reports: false, reports_open: 0, connections_line: 'This partner has used 2 of its 3 free connections. This partner has no plan yet. After its 3rd connection, the plan costs Rs 2,999 a month.', blocked_reason: null, created_at: '2026-10-06T00:00:00Z' };
 const RECIP = { id: 'r1', contact: CONTACTS[0], sent_at: null, link: 'https://thedreamwedding.in/request/TOKEN', message: 'Hello Model Connect. Aanya Makeup Studio, a makeup artist on The Dream Wedding, needs a model in Delhi NCR on 18 October 2026. Budget Rs 3,000 to Rs 5,000. Paid. See the request and answer here: https://thedreamwedding.in/request/TOKEN', instagram_url: 'https://www.instagram.com/modelconnect.in/', threads_url: 'https://www.threads.com/@modelconnect.in' };
 let THIN = false;   // §10: every door answers { ok: true } and nothing else
 function answer(method, route) {
@@ -155,8 +158,8 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
       if (!ONLY) {
         let p = await open(b, '/partner/join', mode, '[data-step="who"]');
         const who = await p.evaluate(() => document.querySelector('[data-step="who"]').innerText);
-        ok(/Who is signing up\?/.test(who) && /Signing up is free\. Your first 3 connections are free\. After that it is Rs 2,999 a month\./.test(who), `§1.1 sign-up words (${mode})`);
-        ok(/Just me/.test(who) && /For a freelance stylist, model or photographer\. You will join Collab Hub\./.test(who), `§1.2 "Just me" line verbatim (${mode})`);
+        ok(/Who is signing up\?/.test(who) && /Signing up is free\. Your first 3 connections are free\. After that, the partner plan costs Rs 2,999 a month\./.test(who), `§1.1 sign-up words (${mode})`);
+        ok(/Just me/.test(who) && /This choice is for a freelance stylist, model or photographer\. You will join Collab Hub\./.test(who), `§1.2 "Just me" line verbatim (${mode})`);
         await p.click('[data-just-me]'); await until(p, hasSel, '[data-step="soon"]', 10000);
         ok(await p.evaluate(() => !!document.querySelector('[data-step="soon"]') && /Launching soon/.test(document.body.innerText)), `§1.3 "Just me" opens "Launching soon" (${mode})`);
         await close(p);
@@ -203,7 +206,7 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => /Model Connect/.test(x.innerText)); if (b) b.click(); });
       await until(p, hasSel, '[role=dialog]', 15000);
       const sheet = await p.evaluate(() => { const d = document.querySelector('[role=dialog]'); return d ? { text: d.innerText, wa: !!d.querySelector('a[href*="wa.me"]'), tel: !!d.querySelector('a[href^="tel:"]') } : null; });
-      ok(!!sheet && sheet.wa && sheet.tel && /Connections: 2 of 3 free used\./.test(sheet.text) && /Mark as verified/.test(sheet.text) && !/Mark as checked/.test(sheet.text) && /Exempt from the plan/.test(sheet.text) && /Block/.test(sheet.text), `§5.2 the sheet: people with WhatsApp and Call, the connections line, the actions (${mode})`, sheet && sheet.text.slice(0, 200));
+      ok(!!sheet && sheet.wa && sheet.tel && /This partner has used 2 of its 3 free connections\./.test(sheet.text) && /Mark as verified/.test(sheet.text) && !/Mark as checked/.test(sheet.text) && /Exempt from the plan/.test(sheet.text) && /Block/.test(sheet.text), `§5.2 the sheet: people with WhatsApp and Call, the connections line, the actions (${mode})`, sheet && sheet.text.slice(0, 200));
       await close(p);
       p = await open(b, '/admin/partners/forward', mode, '[data-asked]', { admin: true });
       await p.evaluate(() => { const c = document.querySelector('input[aria-label="Send to Model Connect"]'); if (c) c.click(); });
@@ -215,7 +218,7 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
       await until(p, () => { const c = document.querySelector('[data-asked] input'); return !!c && c.checked; }, null, 10000);
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => /Make the messages/.test(x.innerText)); if (b) b.click(); });
       await until(p, hasText, 'Send each one yourself', 15000);
-      await p.evaluate(() => { const d = [...document.querySelectorAll('div')].find((x) => /Not sent yet\. Tap to open\./.test(x.innerText) && x.style.cursor === 'pointer'); if (d) d.click(); });
+      await p.evaluate(() => { const d = [...document.querySelectorAll('div')].find((x) => /This message is not sent yet\. Tap to open it\./.test(x.innerText) && x.style.cursor === 'pointer'); if (d) d.click(); });
       await until(p, hasSel, '[role=dialog]', 15000);
       const fs6 = await p.evaluate(() => { const d = document.querySelector('[role=dialog]'); if (!d) return null; return { text: d.innerText, out: [...d.querySelectorAll('[data-ext-link]')].map((a) => ({ t: a.textContent.trim(), h: a.getAttribute('href'), tg: a.getAttribute('target'), rel: a.getAttribute('rel') })) }; });
       const box6 = await p.evaluate(() => { const bx = document.querySelector('[role=dialog] [data-copybox]'); if (!bx) return null; return { kids: bx.children.length, text: (bx.querySelector('[data-copytext]') || {}).textContent, ctl: (bx.querySelector('[data-copyctl]') || {}).textContent }; });
@@ -234,7 +237,7 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
       p = await open(b, '/partner', mode, '[data-partner-area]', { partner: true });
       const area = await p.evaluate(() => document.querySelector('[data-partner-area]').textContent);
       const tags8 = await p.evaluate(() => ({ mark: !!document.querySelector('[data-partner-mark]'), empty: [...document.querySelectorAll('[data-partner-area] .px-tag')].filter((e) => !e.textContent.trim()).length }));
-      ok(!tags8.mark && tags8.empty === 0 && !/checked by TDW|Verified|Unverified/i.test(area) && /Calls for you/.test(area) && area.includes('Calls come to you, not to your people. For each person you suggest, TDW keeps only their name, role and profile link. TDW never contacts them.'), `§8.1 the area: no mark while check_words is null, no empty tag; Calls for you, the footnote verbatim (${mode})`);
+      ok(!tags8.mark && tags8.empty === 0 && !/checked by TDW|Verified|Unverified/i.test(area) && /Calls for you/.test(area) && area.includes('TDW sends calls to your organisation, not to your people. For each person you suggest, TDW keeps only their name, role and profile link. TDW never contacts them.'), `§8.1 the area: no mark while check_words is null, no empty tag; Calls for you, the footnote verbatim (${mode})`);
       await p.evaluate(() => { const b = [...document.querySelectorAll('[data-partner-area] button')].find((x) => x.innerText.trim() === 'Settings'); if (b) b.click(); });
       await until(p, hasSel, '[data-settings] [data-ext-link]', 15000);
       const sa = await anchorsOf(p, '[data-settings]');
@@ -249,7 +252,7 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
       console.log('\n── §10 thin answers ──');
       THIN = true;
       const THINS = [['/partner/p/modelconnect.in', 'section', {}, 'This page does not exist.'], ['/request/TOKEN', 'section', {}, null], ['/partner', '[data-step="org"]', { partner: true }, null],
-        ['/admin/partners', 'h1', { admin: true }, 'No partners here.'], ['/admin/partners/contacts', 'h1', { admin: true }, null], ['/admin/partners/forward', '[data-asked]', { admin: true }, null]];
+        ['/admin/partners', 'h1', { admin: true }, 'No partner is on this list yet.'], ['/admin/partners/contacts', 'h1', { admin: true }, null], ['/admin/partners/forward', '[data-asked]', { admin: true }, null]];
       for (const [route, sel, who, text] of THINS) {
         let res = null;
         try { const p = await open(b, route, 'light', sel, who); if (text) await until(p, hasText, text, 30000);

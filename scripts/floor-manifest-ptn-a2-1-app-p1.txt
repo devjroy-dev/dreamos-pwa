@@ -1,0 +1,15 @@
+# scripts/floor-manifest-ptn-a2-1-app-p1.txt
+# TDW CE-47 · PTN-A2-1 app part 1, the call page (dreamos-pwa, base 19631372) · the delivery's own file table [F-14.16].
+# Every path this ZIP writes, and nothing else. One new directory: app/partner/call/[token]/.
+app/admin/partners/contacts/page.tsx
+app/admin/partners/forward/page.tsx
+app/admin/partners/page.tsx
+app/partner/call/[token]/page.tsx
+app/partner/page.tsx
+docs/handovers/TDW_CE47_PTN_A2_1_APP_P1.md
+lib/partner/api.ts
+lib/partner/words.ts
+scripts/b291_ptn_a1_app_bench.js
+scripts/b297_ptn_call_page_bench.js
+scripts/floor-manifest-ptn-a2-1-app-p1.txt
+scripts/ptn_a2_1_app_p1.sha256
