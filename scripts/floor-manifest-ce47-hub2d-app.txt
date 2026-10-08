@@ -1,0 +1,28 @@
+# scripts/floor-manifest-ce47-hub2d-app.txt
+# CE-47 · HUB-2d APP · the founder's walk (8 Oct 2026): Mine titles each call by the server's title ("Decor needed"), the chosen tab filled (F-44.367), every Hub line under R-47.1 (the founder's People line word for word), the Hub's "?" card (pageHelp.ts: the /vendor/collab entry ONLY; the file's base is 60b23931…); b285 and b190 on mutation_guard (lesson 5, F-44.419). BASE: 19631372 (app train 6). Server: HUB2D_SRV_1 (an older server still draws: details, then "A call you posted").
+# Amended by label: b285 (3.2, 6.2, 6.4; new §9, M10 to M12; lesson 5), b190 (stubs carry title and the not-yet words; new 1.9 to 1.11, H1 to H3; lesson 5; mutations read the room again until the named cell is red, three times at most).
+# Against the base: sha256 · ADDED / CHANGED / DELETED · path
+# 10414b0b9a8081e6966c1c1c1f70b84b7c708b4bd24ab2186bfbf2f3c19131b2 · ADDED · docs/handovers/TDW_CE47_HUB2D_APP_HANDOVER.md
+# 63f05f4027c89c80abd54a49b370d60ab5d8082584ed8b0c62f1b519f5167794 · ADDED · docs/handovers/b285_ledger_HUB2D.txt
+# e75a07dd7b679b1a410661d8540a1963e00896b0a4868d817c083b4593839574 · CHANGED · scripts/b190_fe6_collab_room_bench.js
+# 1efcc063f689615207e914000c6e2bbbaed0fa8ab1a26d70038cfd777a24d9d7 · CHANGED · scripts/b285_hub2_app_bench.js
+# 3496c95877b54511601599417b6088bd11578d1a3966c11c5fc0d77810a27899 · CHANGED · v2/app/vendor/(shell)/collab/screen.tsx
+# 0d1ee6a3cfc2509b155e72e89da4050e54b2b16f8c40e05d4e00aea9263e6096 · CHANGED · v2/components/vendor/hub/HubMine.tsx
+# 8c81837b3c10d6906d9346d5ecb95c714a37d2cc358c8761e1ec4282c07458d3 · CHANGED · v2/components/vendor/hub/HubPeople.tsx
+# d3303ccee9c4c70eaebd531cd698ed337fac654f604c596601e51dc27ac2fc07 · CHANGED · v2/components/vendor/hub/HubWork.tsx
+# 6b39a968e34af92850dc3fcd0c43baf2c5fc93cd9af65755b7497c0b2d042d86 · CHANGED · v2/components/vendor/hub/ShootTogetherSheet.tsx
+# ac51f75d4a164835acd2ae911448724fd0d11673afdd745e2f9c74e98265f820 · CHANGED · v2/lib/vendor/hub.ts
+# f929597a9078b761f569ca0f7596e7ecc45356ab2c2523bbf904407bba35a089 · CHANGED · v2/lib/worklist/pageHelp.ts
+# (this file) · ADDED · scripts/floor-manifest-ce47-hub2d-app.txt
+docs/handovers/TDW_CE47_HUB2D_APP_HANDOVER.md
+docs/handovers/b285_ledger_HUB2D.txt
+scripts/b190_fe6_collab_room_bench.js
+scripts/b285_hub2_app_bench.js
+v2/app/vendor/(shell)/collab/screen.tsx
+v2/components/vendor/hub/HubMine.tsx
+v2/components/vendor/hub/HubPeople.tsx
+v2/components/vendor/hub/HubWork.tsx
+v2/components/vendor/hub/ShootTogetherSheet.tsx
+v2/lib/vendor/hub.ts
+v2/lib/worklist/pageHelp.ts
+scripts/floor-manifest-ce47-hub2d-app.txt

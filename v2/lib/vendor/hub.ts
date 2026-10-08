@@ -43,8 +43,9 @@ export interface WorkItem {
   instagram: { handle: string; url: string } | null; website: HubLink | null; page_url: string | null;
 }
 export interface WorkReply { ok: boolean; city: string | null; roles: string[]; all_cities: boolean; items: WorkItem[]; not_yet: string[]; error?: string }
-export interface MyCall { id: string; event_date: string; city: string | null; details: string | null; state: string; interested: number; picked: number; sent_by_tdw: boolean; line: string | null }
-export interface Applied { id: string; post_id: string; state: string; words: string; call: string; event_date?: string; city?: string | null; from: NameLink | null }
+// HUB-2d: `title` is the server's (src/lib/hub/title.js): "Decor needed", as today's room titles a call.
+export interface MyCall { id: string; title?: string; event_date: string; city: string | null; details: string | null; state: string; interested: number; picked: number; sent_by_tdw: boolean; line: string | null }
+export interface Applied { id: string; post_id: string; state: string; words: string; call: string; details?: string | null; event_date?: string; city?: string | null; from: NameLink | null }
 export interface WaitingCredit { id: string; from: NameLink | null; shoot_words: string }
 export interface WorkedLine { key: string; from_call: boolean; shoot_name: string; city: string | null; month_words: string; with: NameLink[] }
 export interface MineReply { ok: boolean; my_calls: MyCall[]; applied: Applied[]; waiting_for_your_yes: WaitingCredit[]; worked_with: WorkedLine[]; shoot_requests_left: number; waiting_count: number; error?: string }
@@ -101,24 +102,25 @@ export const MONTHLY_SHOOT_REQUESTS = 20;
 
 export const HUB = {
   tabs: { work: 'Work', people: 'People', mine: 'Mine' },
-  peopleNote: 'Everyone on Collab Hub. Only shoots the other person said yes to show as “Worked with”.',
+  // HUB-2d: the founder's words, approved 8 October 2026, word for word (the old line had no subject).
+  peopleNote: 'Everyone on Collab Hub is listed here. “Worked with” appears only after the other person confirms a shoot you did together.',
   myPeopleChip: 'My people',
   myPeopleChipCount: (n: number) => `My people · ${n}`,
   vendorFact: 'on TDW as a vendor',
-  personFact: 'joined as a person',
+  personFact: 'joined as an individual',
   orgFact: 'an organisation',
   seePage: 'See their page',
   add: 'Add to my people',
   inMine: 'In my people',
   takeOff: 'Take off my people',
-  notAddable: 'Joins your people only after a shoot you did together, and only when they say yes.',
-  emptyAll: 'Nobody matches these choices yet.',
-  emptyMine: 'Nobody on your list yet. Add vendors here, or send a request for a shoot you did together.',
+  notAddable: 'You cannot add them yourself. They join your people when they confirm a shoot you did together.',
+  emptyAll: 'Nobody on Collab Hub matches the filters you chose.',
+  emptyMine: 'Your list is empty. You can add vendors from this page. People and organisations join when they confirm a shoot you did together.',
   instagram: (h: string) => `Instagram ${h}`,
   shoot: {
     open: '+ A shoot we did together',
     title: 'A shoot we did together',
-    note: 'For a shoot that was not a call on TDW. Each person you add gets a request. The shoot shows on your page and theirs only after they say yes.',
+    note: 'Use this for a shoot that did not start as a call on TDW. Each person you add gets a request to confirm. The shoot appears on your page and theirs only after they confirm.',
     name: 'Name of the shoot',
     city: 'City',
     month: 'Month',
@@ -126,7 +128,7 @@ export const HUB = {
     search: 'Search Collab Hub by name or Instagram',
     remove: 'Remove',
     // The server counts any 30 days, not a calendar month (HUB-1 credits.js), so the words say so.
-    left: (n: number) => `You can send ${MONTHLY_SHOOT_REQUESTS} of these requests in any 30 days. ${n} left now.`,
+    left: (n: number) => `You can send up to ${MONTHLY_SHOOT_REQUESTS} of these requests in any 30 days. You have ${n} left.`,
     // "They can join free at thedreamwedding.in/collab/join" waits for HUB-3: no link to a page that does not exist yet.
     send: (n: number) => (n === 1 ? 'Send 1 request' : `Send ${n} requests`),
     sending: 'Sending…',
@@ -134,14 +136,15 @@ export const HUB = {
   },
   work: {
     line: (roles: string, city: string | null, all: boolean) =>
-      `Calls for ${roles || 'your craft'}${all ? ' in every city' : city ? ` in ${city}` : ''}. Newest first.`,
+      `These are calls from vendors who need ${roles || 'your craft'}${all ? ' in any city' : city ? ` in ${city}` : ''}. The newest call is at the top.`,
     allCities: 'All cities',
     call: 'Call',
     needs: (from: string, roles: string) => `${from} needs ${roles}`,
     interested: 'I am interested',
-    sent: 'You said you are interested. If they pick you, you both get each other\u2019s number.',
-    notYet: (xs: string[]) => `Not here yet: ${xs.join(', ')}.`,
-    empty: 'No calls for your craft here right now.',
+    sent: 'The vendor who posted this call can see that you are interested. If they choose you, each of you gets the other\u2019s phone number.',
+    // HUB-2d (R-47.1): a whole sentence, "a, b or c" (the server sends each item lower case)
+    notYet: (xs: string[]) => `This list does not yet include ${xs.length > 1 ? `${xs.slice(0, -1).join(', ')} or ${xs[xs.length - 1]}` : xs.join('')}.`,
+    empty: 'There are no open calls for your craft right now.',
     pay: (k: string | null, budget: string | null) => (k === 'credit_only' ? 'Credit only' : k === 'unpaid' ? 'Unpaid' : k === 'paid' ? (budget ? `Paid ${budget}` : 'Paid') : null),
   },
   mine: {
@@ -153,14 +156,23 @@ export const HUB = {
     applied: (n: number) => `I applied \u00b7 ${n}`,
     yourYes: (n: number) => `Waiting for your yes \u00b7 ${n}`,
     asks: (from: string) => `${from} says you worked on this shoot:`,
-    yesNote: 'If you say yes, it shows on your page and theirs, and you join each other\u2019s people. If you say no, it shows nowhere.',
+    yesNote: 'If you say yes, the shoot appears on your page and theirs, and you are added to each other\u2019s people. If you say no, it does not appear anywhere.',
     yes: 'Yes, I worked on it',
     no: 'No',
     worked: (n: number) => `Worked with \u00b7 ${n}`,
     with: 'With',
     fromCall: 'a call on TDW',
-    noCalls: 'No calls yet. Tap New post to find a second shooter, a stylist, or anyone you need.',
-    noWorked: 'Nothing here yet. Shoots show here once the other person says yes.',
+    noCalls: 'You have not posted a call yet. Tap “+ New post” to ask for a second shooter, a stylist or anyone else you need.',
+    /** HUB-2d: a call the server sent no title for (an older server) */
+    untitled: 'A call you posted',
+    noWorked: 'You have no confirmed shoots yet. A shoot appears here after the other person confirms it.',
   },
   close: 'Close',
+  // R-47.1: what the app says when a request fails (each one says what did not happen, then what to do)
+  failed: {
+    send: 'Your request did not go through. Please try again.',
+    add: 'The app could not add them to your list. Please try again.',
+    takeOff: 'The app could not take them off your list. Please try again.',
+    save: 'Your answer was not saved. Please try again.',
+  },
 } as const;

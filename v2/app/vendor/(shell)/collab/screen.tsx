@@ -124,8 +124,10 @@ function HubRoom({ myCity }: { myCity: string | null }) {
 }
 
 // FE-6 L5's one switch (the list pattern's segmented control), kept: sentence case, 44 px.
+// HUB-2d (the founder's walk, 8 Oct 2026): the chosen tab is FILLED with the primary, like every chosen chip (F-44.367,
+// veto 54). It was a thin underline on the card colour. Today's room (CollabRoomBefore.tsx) keeps its own bytes.
 const COL_CSS = `
 .col-seg{display:flex;margin:8px 24px 8px;border:1px solid var(--atelier-card-border);border-radius:12px;overflow:hidden}
 .col-seg button{flex:1;min-height:44px;border:0;background:transparent;color:var(--atelier-ink-mute);font:var(--wl-tb);cursor:pointer}
-.col-seg button.on{background:var(--atelier-card-bg);color:var(--atelier-ink);box-shadow:inset 0 -2px 0 var(--atelier-accent-text)}
+.col-seg button.on{background:var(--role-primary);color:var(--role-on-primary)}
 `;

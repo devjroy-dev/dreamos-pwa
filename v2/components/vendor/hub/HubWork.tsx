@@ -31,9 +31,9 @@ export function HubWork() {
 
   async function interested(id: string) {
     if (busy) return; setBusy(id); setErr(null);
-    const r = await sayInterested(id).catch(() => ({ ok: false, error: 'Could not send. Try again.' } as { ok: boolean; error?: string }));
+    const r = await sayInterested(id).catch(() => ({ ok: false, error: HUB.failed.send } as { ok: boolean; error?: string }));
     setBusy(null);
-    if (r.ok) setSent((s) => new Set(s).add(id)); else setErr({ id, text: r.error || 'Could not send. Try again.' });
+    if (r.ok) setSent((s) => new Set(s).add(id)); else setErr({ id, text: r.error || HUB.failed.send });
   }
 
   const roleWords = roles.map((r) => labelFor(r).toLowerCase()).join(', ');

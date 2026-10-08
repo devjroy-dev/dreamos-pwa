@@ -74,8 +74,9 @@ const ROSTER = [{ id: 'r1', name: 'Rhea Sharma', phone: '+919811100010', crafts:
 // HUB-2's doors (shapes as dream-os src/api/vendor/hub.js returns them)
 const CARD = (id, kind, name, handle, extra = {}) => ({ id, kind, name, handle, roles: ['photographer'], city: 'Delhi', open_to_words: [], instagram: { handle, url: `https://www.instagram.com/${handle}/` }, website: null, page_url: `https://thedreamwedding.in/c/${handle}`, work: [], worked_with: 1, worked_with_words: 'Worked with 1 person', in_my_people: false, why: null, why_words: null, can_add: kind === 'vendor', can_take_off: false, ...extra });
 const HUB_PEOPLE = [CARD('pv', 'vendor', 'Aman Frames', 'amanframes'), CARD('pp', 'person', 'Tara Sen', 'tarasen.clicks', { worked_with: 0, worked_with_words: 'New on Collab Hub' }), CARD('po', 'org', 'Starlight Talent', 'starlight.talent')];
-const HUB_WORK = { ok: true, city: 'Delhi', roles: ['photographer'], all_cities: false, items: [{ kind: 'call', id: 'w1', from: 'Kabir Lens', roles: [{ role: 'photographer', needed: 1 }], event_date: '2026-11-08', city: 'Delhi', pay_kind: 'credit_only', budget_inr: null, details: 'Studio portrait shoot', instagram: null, website: null, page_url: 'https://thedreamwedding.in/c/kabirlens' }], not_yet: ['briefs from brands', 'paid jobs from planners', 'From Threads'] };
-const HUB_MINE = { ok: true, my_calls: [{ id: 'c1', event_date: '2026-12-12', city: 'Delhi', details: 'Rooftop editorial', state: 'open', interested: 3, picked: 0, sent_by_tdw: false, line: null }], applied: [], waiting_for_your_yes: [{ id: 'k1', from: { name: 'Aman Frames', page_url: 'https://thedreamwedding.in/c/amanframes' }, shoot_words: 'Summer colour shoot \u00b7 Noida \u00b7 July 2026' }], worked_with: [], shoot_requests_left: 20, waiting_count: 2 };
+const HUB_WORK = { ok: true, city: 'Delhi', roles: ['photographer'], all_cities: false, items: [{ kind: 'call', id: 'w1', from: 'Kabir Lens', roles: [{ role: 'photographer', needed: 1 }], event_date: '2026-11-08', city: 'Delhi', pay_kind: 'credit_only', budget_inr: null, details: 'Studio portrait shoot', instagram: null, website: null, page_url: 'https://thedreamwedding.in/c/kabirlens' }], not_yet: ['briefs from brands', 'paid jobs from planners', 'calls posted on Threads'] };   // HUB-2d: the server's words
+// HUB-2d: her calls carry the server's title (dream-os src/lib/hub/title.js), as the server sends them
+const HUB_MINE = { ok: true, my_calls: [{ id: 'c1', title: 'Photography needed', event_date: '2026-12-12', city: 'Delhi', details: 'Rooftop editorial', state: 'open', interested: 3, picked: 0, sent_by_tdw: false, line: null }, { id: 'c2', title: 'Decor needed', event_date: '2026-12-14', city: 'Delhi', details: null, state: 'open', interested: 0, picked: 0, sent_by_tdw: false, line: null }], applied: [], waiting_for_your_yes: [{ id: 'k1', from: { name: 'Aman Frames', page_url: 'https://thedreamwedding.in/c/amanframes' }, shoot_words: 'Summer colour shoot \u00b7 Noida \u00b7 July 2026' }], worked_with: [], shoot_requests_left: 20, waiting_count: 2 };
 
 let SERVER = null; let BROWSER = null;
 async function stopAll() {
@@ -158,6 +159,23 @@ async function main() {
     ok(peopleUp && JSON.stringify(adds) === JSON.stringify([['vendor', true], ['person', false], ['org', false]]) && (await pill(p)) === '+ New post', '1.4 People: "Add to my people" on the vendor only, never on a person or an organisation; the same pill', JSON.stringify(adds));
     await tab(p, 'Mine');
     ok(await untilTrue(p, () => !!document.querySelector('[data-hub-mine]') && !!document.querySelector('[data-hub-your-yes]') && /Mine \u00b7 2/.test(document.querySelector('[data-collab-tabs]').innerText), 8000) && (await on(p)) === 'Mine \u00b7 2' && (await pill(p)) === '+ New post', '1.5 Mine: the count of what waits for her ("Mine · 2"), her request to confirm drawn, the same pill', `${await on(p)} | ${await pill(p)}`);
+    // HUB-2d · the founder's walk (8 Oct 2026)
+    const mineRows = await q(p, () => [...document.querySelectorAll('[data-hub-mine] .hub-rowbtn .hub-name')].map((e) => e.innerText.trim()));
+    const mineText = await q(p, () => (document.querySelector('[data-hub-mine]') || {}).innerText || '');
+    ok(mineRows && mineRows.join('|') === 'Photography needed|Decor needed' && /Rooftop editorial/.test(mineText || '') && !/\bA call\b/.test(mineText || ''),
+      '1.9 Mine titles each call by its role ("Decor needed"), never "A call"; her details beside the title (HUB-2d)', JSON.stringify(mineRows));
+    const fill = await q(p, () => { const probe = document.createElement('i'); probe.style.background = 'var(--role-primary)'; probe.style.color = 'var(--role-on-primary)';
+      document.querySelector('[data-collab-tabs]').appendChild(probe); const want = [getComputedStyle(probe).backgroundColor, getComputedStyle(probe).color]; probe.remove();
+      return [...document.querySelectorAll('[data-collab-tabs] button')].map((b) => [b.getAttribute('aria-pressed'), getComputedStyle(b).backgroundColor, getComputedStyle(b).color, getComputedStyle(b).boxShadow]).concat([want]); });
+    const want = fill && fill[fill.length - 1]; const btns = fill ? fill.slice(0, -1) : [];
+    ok(want && btns.length === 3 && btns.filter((b) => b[0] === 'true').every((b) => b[1] === want[0] && b[2] === want[1] && (b[3] === 'none' || !b[3]))
+      && btns.filter((b) => b[0] === 'false').every((b) => b[1] !== want[0]),
+      '1.10 the chosen tab is filled with the primary, its words in the on-primary colour; the others are not (HUB-2d; F-44.367, veto 54)', JSON.stringify(fill));
+    await tab(p, 'Work');
+    const ny = await untilTrue(p, () => [...document.querySelectorAll('[data-hub-work] .hub-small')].some((e) => e.innerText.trim() === 'This list does not yet include briefs from brands, paid jobs from planners or calls posted on Threads.'), 8000);
+    ok(ny, '1.11 Work says in one sentence what the list does not yet include, all lower case, "a, b or c" (HUB-2d: "From Threads" was a slip; R-47.1)', await q(p, () => [...document.querySelectorAll('[data-hub-work] .hub-small')].map((e) => e.innerText.trim()).join(' | ')));
+    await tab(p, 'Mine');
+    await untilTrue(p, () => !!document.querySelector('[data-hub-shoot-open]') && !!document.querySelector('[data-hub-your-yes]'), 8000);   // Mine re-read before 1.6 and 1.7
     ok(await q(p, () => !/\bRoster\b/.test(document.body.innerText) && ![...document.querySelectorAll('button, a')].some((b) => /Add someone/.test(b.innerText))), '1.6 no Roster tab and no "Add someone" anywhere in the room');
     await p.evaluate(() => { const b = document.querySelector('[data-hub-shoot-open]'); if (b) b.click(); }).catch(() => null);
     ok(await untilTrue(p, () => !!document.querySelector('[data-hub-shoot-sheet]') && /A shoot we did together/.test(document.querySelector('[data-hub-shoot-sheet]').innerText)), '1.7 "+ A shoot we did together" in Mine opens its sheet (its heading drawn)');
@@ -209,12 +227,19 @@ async function main() {
 
   if (MUTATE) {
     sec('§7 mutations through the guard');
+    // F-44.419 (CE-47 lesson 5, 8 Oct 2026): the series refuses to start below 1 GB free (the dev server writes .next as it goes)
+    { const st = fs.statfsSync(ROOT); const free = st.bavail * st.bsize;
+      if (!ok(free >= 1024 * 1024 * 1024, `7.0 free space before the series: ${Math.floor(free / 1048576)} MB (at least 1024 MB)`)) { await finish(1); return; } }
     const MUTS = [
       // HUB-2 (amended by label): the count, the capitals, and "Add" on a person
       ['N1 Mine loses its count', PAGE, ": COL.mineWaiting(waiting));", ": COL.mine);", '1.5'],
       // (the shell's own button rule wins over a class's text-transform, so the capitals are planted in the words themselves)
       ['N2 the switch back in capitals', PAGE, "            {label(t)}\n          </button>", "            {label(t).toUpperCase()}\n          </button>", '1.2'],
       ['N3 "Add to my people" drawn on a person', 'v2/components/vendor/hub/HubPeople.tsx', "              {p.can_add && (", "              {(p.can_add || p.kind !== 'vendor') && (", '1.4'],
+      // HUB-2d: the founder's walk
+      ['H1 the chosen tab back to a thin underline', PAGE, ".col-seg button.on{background:var(--role-primary);color:var(--role-on-primary)}", ".col-seg button.on{background:var(--atelier-card-bg);color:var(--atelier-ink);box-shadow:inset 0 -2px 0 var(--atelier-accent-text)}", '1.10'],
+      ['H2 Mine titles a call by its details again', 'v2/components/vendor/hub/HubMine.tsx', "{c.title || c.details || HUB.mine.untitled}", "{c.details || 'A call'}", '1.9'],
+      ['H3 the list joined with commas only', 'v2/lib/vendor/hub.ts', "${xs.length > 1 ? `${xs.slice(0, -1).join(', ')} or ${xs[xs.length - 1]}` : xs.join('')}", "${xs.join(', ')}", '1.11'],
       ['N4 Work trusts a thin answer', 'v2/components/vendor/hub/HubWork.tsx', "      setItems(arr(d.items));", "      setItems(d.items);", '1d.1'],
       // today's room: a32fbf4e's own M1 to M3, aimed at the file the code moved to (byte for byte)
       ['B1 filled posts counted open', BEFORE, "myPosts.filter((x) => x.state === 'open').length", "myPosts.length", '1b.1'],
@@ -228,10 +253,24 @@ async function main() {
     ];
     for (const [name, file, from, to, cell] of MUTS) {
       let h = null;
-      try { h = guard.apply(ROOT, file, from, to, 'b190'); } catch (e) { ok(false, `${name}: ${e.message}`); continue; }
+      const orig = fs.readFileSync(path.join(ROOT, file), 'utf8');
+      try { h = guard.apply(ROOT, file, from, to, 'b190'); } catch (e) {
+        // F-44.419: a write that failed part way (a full disk) may have emptied the file: put the original back, by sha
+        const abs = path.join(ROOT, file); let put = fs.readFileSync(abs, 'utf8') === orig;
+        if (!put) { try { fs.writeFileSync(abs, orig); put = fs.readFileSync(abs, 'utf8') === orig; } catch (_e) { put = false; } }
+        ok(false, `${name}: ${e.message}${put ? '' : ' \u00b7 THE FILE IS NOT THE ORIGINAL: put it back from git'}`); continue;
+      }
       await wait(6000);   // a CSS-only change can take longer to reach the browser
-      const before = evidence; redNames = []; quiet = true; underMut = name.split(' ')[0]; const passBefore = pass; let crashed = null;
-      try { await runAll(); } catch (e) { crashed = e; }
+      const before = evidence; quiet = true; underMut = name.split(' ')[0]; const passBefore = pass; let crashed = null;
+      // HUB-2d (e-275): the dev server may still be compiling the previous restore (hub.ts, read by every Hub file, made N4
+      // miss once on 8 Oct: no cell red at all). So the series waits on the thing itself: it reads the room again, at most
+      // three times, until the named cell is red, asking the server for the page between reads so the compile is done first.
+      for (let round = 0; round < 3; round += 1) {
+        redNames = [];
+        if (round) { try { await fetch(`http://localhost:${PORT}/vendor/collab`, { signal: AbortSignal.timeout(180000) }); } catch (_e) { /* the next read says what it sees */ } }
+        try { await runAll(); } catch (e) { crashed = e; break; }
+        if (redNames.some((n) => n.startsWith(cell + ' '))) break;
+      }
       quiet = false; pass = passBefore;
       const back = h.restore();
       if (crashed) ok(false, `${name} crashed: ${String(crashed.message || crashed).slice(0, 160)}`);

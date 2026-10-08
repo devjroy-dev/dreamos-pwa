@@ -42,9 +42,9 @@ export function ShootTogetherSheet({ onClose, onSent }: { onClose: () => void; o
     if (!name.trim() || !city.trim() || !month || !picked.length) { setError(HUB.shoot.needAll); return; }
     setSending(true); setError('');
     const r = await sendShootRequests({ shoot_name: name.trim(), city: city.trim(), month, people: picked.map((p) => p.id) })
-      .catch(() => ({ ok: false, error: 'Could not send. Try again.' } as { ok: boolean; error?: string; line?: string }));
+      .catch(() => ({ ok: false, error: HUB.failed.send } as { ok: boolean; error?: string; line?: string }));
     setSending(false);
-    if (!r.ok) { setError(r.error || 'Could not send. Try again.'); return; }
+    if (!r.ok) { setError(r.error || HUB.failed.send); return; }
     onSent(r.line || '');
   }
 

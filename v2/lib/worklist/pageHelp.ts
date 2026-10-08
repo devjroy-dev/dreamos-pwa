@@ -311,11 +311,13 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
              ['read', 'Sent means WhatsApp accepted it; we cannot tell whether it was read.']),
     connects: 'Connects to Invoices.' }),
   [roomHref('collab')]: entry(ROW_DESC.collabs, {
-    // CE-47 FE-6 L5: the reworked room; the pill's words, each button drawn
-    can: how(['add', 'To ask for crew, models or partners: tap New post.'],
-             ['list', 'Opportunities are posts from others. My posts are yours.'],
-             ['read', 'To add someone you have worked with: open Roster, tap Add someone.']),
-    connects: 'Replies to your posts open in their own list.' }),
+    // CE-47 HUB-2d (CLB): Collab Hub's card, now that the Hub is on for every vendor (clb.hub, 8 Oct 2026). The old
+    // room's Opportunities, My posts and Roster are gone from what she sees. Every line under R-47.1. Only this entry changed.
+    can: how(['add', 'To ask for crew, models or partners, tap New post.'],
+             ['list', 'Work shows calls from other vendors who need your craft.'],
+             ['read', 'People lists everyone on Collab Hub. You can add another vendor to your people.'],
+             ['reply', 'Mine shows your calls, the calls you applied to and the requests that wait for your answer.']),
+    connects: 'To see who replied to one of your calls, tap the call in Mine.' }),
   // LANDING: main's rule (1.8), every card has a connects line
   '/vendor/collab/[post_id]/responses':     entry(TYPED_WHAT.responses, { can: [{ icon: 'share', line: RESPONSES_HELP.identity }], connects: 'These are the replies to your post in Collab.' }),
   [EXCHANGE_HREF]: entry(TYPED_WHAT.exchange, {

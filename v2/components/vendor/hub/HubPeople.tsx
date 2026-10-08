@@ -52,16 +52,16 @@ export function HubPeople({ myCity }: { myCity: string | null }) {
 
   async function add(p: HubPerson) {
     if (busy) return; setBusy(p.id); setSaid(null);
-    const r = await addToMyPeople(p.id).catch(() => ({ ok: false, error: 'Could not add. Try again.' } as { ok: boolean; error?: string; line?: string }));
+    const r = await addToMyPeople(p.id).catch(() => ({ ok: false, error: HUB.failed.add } as { ok: boolean; error?: string; line?: string }));
     setBusy(null);
-    setSaid({ id: p.id, text: r.ok ? (r.line || '') : (r.error || 'Could not add. Try again.'), bad: !r.ok });
+    setSaid({ id: p.id, text: r.ok ? (r.line || '') : (r.error || HUB.failed.add), bad: !r.ok });
     if (r.ok) load();
   }
   async function takeOff(p: HubPerson) {
     if (busy) return; setBusy(p.id); setSaid(null);
-    const r = await takeOffMyPeople(p.id).catch(() => ({ ok: false, error: 'Could not take them off. Try again.' } as { ok: boolean; error?: string; line?: string }));
+    const r = await takeOffMyPeople(p.id).catch(() => ({ ok: false, error: HUB.failed.takeOff } as { ok: boolean; error?: string; line?: string }));
     setBusy(null);
-    setSaid({ id: p.id, text: r.ok ? (r.line || '') : (r.error || 'Could not take them off. Try again.'), bad: !r.ok });
+    setSaid({ id: p.id, text: r.ok ? (r.line || '') : (r.error || HUB.failed.takeOff), bad: !r.ok });
     if (r.ok) load();
   }
 

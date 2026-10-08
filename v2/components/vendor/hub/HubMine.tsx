@@ -31,9 +31,9 @@ export function HubMine({ reloadKey = 0, onChanged }: { reloadKey?: number; onCh
 
   async function answer(id: string, yes: boolean) {
     if (busy) return; setBusy(id); setNote('');
-    const r = await answerCredit(id, yes).catch(() => ({ ok: false, error: 'Could not save. Try again.' } as { ok: boolean; error?: string }));
+    const r = await answerCredit(id, yes).catch(() => ({ ok: false, error: HUB.failed.save } as { ok: boolean; error?: string }));
     setBusy(null);
-    if (!r.ok) { setNote(r.error || 'Could not save. Try again.'); return; }
+    if (!r.ok) { setNote(r.error || HUB.failed.save); return; }
     load();
   }
   async function markFilled(id: string) {
@@ -54,8 +54,9 @@ export function HubMine({ reloadKey = 0, onChanged }: { reloadKey?: number; onCh
             return (
               <div key={c.id} className="hub-row">
                 <button type="button" className="hub-rowbtn" onClick={() => router.push('/vendor/collab/' + c.id + '/responses')}>
-                  <span className="hub-name">{c.details || 'A call'}</span>
-                  <span className="hub-facts">{[c.line, fmtDate(c.event_date), HUB.mine.interested(c.interested), c.picked ? HUB.mine.picked(c.picked) : null, open ? null : HUB.mine.closed].filter(Boolean).join(' · ')}</span>
+                  {/* HUB-2d (the founder's walk): titled by its role, "Decor needed", as today's room does; her details beside it */}
+                  <span className="hub-name">{c.title || c.details || HUB.mine.untitled}</span>
+                  <span className="hub-facts">{[c.title ? c.details : null, c.line, fmtDate(c.event_date), HUB.mine.interested(c.interested), c.picked ? HUB.mine.picked(c.picked) : null, open ? null : HUB.mine.closed].filter(Boolean).join(' · ')}</span>
                   <span className="hub-chev" aria-hidden="true">{'›'}</span>
                 </button>
                 {open && <button type="button" className="hub-btn q" disabled={busy === c.id} onClick={() => void markFilled(c.id)}>{HUB.mine.markFilled}</button>}
@@ -69,7 +70,7 @@ export function HubMine({ reloadKey = 0, onChanged }: { reloadKey?: number; onCh
           {d.applied.map((a) => (
             <div key={a.id} className="hub-row">
               <div className="hub-name">{a.call} <span className={'hub-pill' + (a.state === 'accepted' ? '' : ' grey')}>{a.words}</span></div>
-              <div className="hub-facts">{a.from && <><Name n={a.from} />{' · '}</>}{[a.event_date ? fmtDate(a.event_date) : null, a.city].filter(Boolean).join(' · ')}</div>
+              <div className="hub-facts">{a.from && <><Name n={a.from} />{' · '}</>}{[a.details, a.event_date ? fmtDate(a.event_date) : null, a.city].filter(Boolean).join(' · ')}</div>
             </div>))}
         </div></>)}
 
