@@ -292,6 +292,8 @@ export const API = {
   // CE-45 IGD-1 cut 1 · R-45.27: the room's two new doors, served by dream-os in cut 2a (404 until then: dark).
   instagram:           () => `${SOLUTIONS_API_PATH}/instagram`,
   instagramSwitch:     () => `${SOLUTIONS_API_PATH}/instagram/switch`,
+  // CE-47 CLB part C: her packages as cards in her Instagram messages (404 when the feature is not open to her: dark).
+  instagramPackageCards: () => `${SOLUTIONS_API_PATH}/instagram/package-cards`,
   quiet:               () => `${SOLUTIONS_API_PATH}/quiet`,
 } as const;
 

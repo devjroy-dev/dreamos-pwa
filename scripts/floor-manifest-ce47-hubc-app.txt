@@ -1,0 +1,32 @@
+# scripts/floor-manifest-ce47-hubc-app.txt
+# CE-47 · CLB PART C APP · her packages as cards in her Instagram messages: the section "Package cards in Instagram" in the room "WhatsApp and Instagram", both trees, after "Instagram messages"; the server's line word for word; a preview of at most 10 cards (picture, name, "From Rs" line, "See details"; no control in a card); one switch; Add a package; Try again; dark on 404. BASE: 0038eb41 (app train 7). Server: HUBC_SRV_1.
+# No bench amended. New: b289p.
+# Against the base: sha256 · ADDED / CHANGED / DELETED · path
+# a7cda379550fbc484a6c351573ef56c47da205dfe1b02de7614916674488ca08 · ADDED · components/solutions/IgPackageCards.tsx
+# faba449fafa0e34364a2ac0bd4b934c7c77caac149888258bb844bb35db91217 · ADDED · v2/components/solutions/IgPackageCards.tsx
+# 326d47fd8f5eb35f677a6bed2daddf71ea106569bdf6eb445bda2e0cf909856c · ADDED · lib/vendor/igPackageCardsDoor.ts
+# 9c02bd12771f4ef16963d54e72f3f49b5735c448754ec59db7172b2fb6e50381 · ADDED · scripts/b289p_clb_c_ig_package_cards_app_bench.js
+# ad342780055819542a922a7dc06097b266fe9bdc1d9fa170cf0aaa12423babe7 · ADDED · scripts/lib/b289p_cards_probe.mjs
+# eaae4bc0856732f3498c2ff6f64f6652159bb233915a1277d611e3fda3ee77b6 · ADDED · docs/handovers/TDW_CE47_HUBC_APP_HANDOVER.md
+# d4abdea361263afaf245df6cd6fc8c0cf0e0c665caa1cd107453de51413bce5f · ADDED · docs/handovers/b289p_ledger_HUBC.txt
+# c04c58f50492f95843518af1b6ccdefed282e1c4f544b4abe40cb9946868f977 · CHANGED · components/solutions/MetaRoomSections.tsx
+# f1d486dffe66eb0b640a9f2ee58442f2d1ef304580c622ee8264da19f4256c13 · CHANGED · v2/components/solutions/MetaRoomSections.tsx
+# 0c89d2e1aa60024278c51a9ae97da46d83be0149b10ba67ab8a1837852a486c4 · CHANGED · lib/worklist/metaRoom.ts
+# 635cd6f749fa106d995f202e7a565b9ecbe60e5daf508ec144200b641ca68e0d · CHANGED · v2/lib/worklist/metaRoom.ts
+# 2f3c98bf8a7caf48e2d307cadc7c4422bdf553414ea422e4d0230fbad7870e62 · CHANGED · lib/solutions/routes.ts
+# 39984b0a950a99a5dc312923f6654069cca2e4890eac016cf61ed04ab1239945 · CHANGED · v2/lib/solutions/routes.ts
+# (this file) · ADDED · scripts/floor-manifest-ce47-hubc-app.txt
+components/solutions/IgPackageCards.tsx
+v2/components/solutions/IgPackageCards.tsx
+lib/vendor/igPackageCardsDoor.ts
+scripts/b289p_clb_c_ig_package_cards_app_bench.js
+scripts/lib/b289p_cards_probe.mjs
+docs/handovers/TDW_CE47_HUBC_APP_HANDOVER.md
+docs/handovers/b289p_ledger_HUBC.txt
+components/solutions/MetaRoomSections.tsx
+v2/components/solutions/MetaRoomSections.tsx
+lib/worklist/metaRoom.ts
+v2/lib/worklist/metaRoom.ts
+lib/solutions/routes.ts
+v2/lib/solutions/routes.ts
+scripts/floor-manifest-ce47-hubc-app.txt

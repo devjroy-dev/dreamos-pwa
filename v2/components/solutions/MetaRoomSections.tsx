@@ -16,6 +16,7 @@
 // No text node is typed here: every word is read from lib/worklist/metaRoom.ts. No persona name. No brand mark.
 import { FEATURE_WORDS } from '@/v2/lib/worklist/features';
 import { FeatureSwitch } from '@/v2/components/solutions/FeatureSwitch';
+import { IgPackageCards } from '@/v2/components/solutions/IgPackageCards';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getJson, postJson } from '@/lib/vendor/api/_base';
 import { API } from '@/v2/lib/solutions/routes';
@@ -148,12 +149,14 @@ const QT_CSS = `
 .qt-opt:active{background:var(--atelier-row-hover)}
 `;
 
-/** The room's two added parts, in A5's order: Instagram, then the quiet time. */
+/** The room's added parts, in A5's order: Instagram, then the quiet time. CE-47 CLB part C: the package cards follow
+ *  Instagram messages, and are dark until the feature is open to her. */
 export function MetaRoomSections() {
   return (
     <>
       <section data-meta-features><h2 className="sol-heading">{FEATURE_WORDS.heading}</h2><FeatureSwitch /></section>
       <IgMessagesSection />
+      <IgPackageCards />
       <QuietTimeRow />
     </>
   );

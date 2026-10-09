@@ -53,3 +53,19 @@ export const QUIET = {
   ],
   defaultMinutes: 120,
 } as const;
+
+// CE-47 · CLB PART C (the chair's ruling, 8 Oct 2026): her packages as cards in her Instagram messages. Labels (R-47.1:
+// names and buttons held to SIMPLE and EASY) and one failure line; each state's sentence is the server's, word for word.
+// The switch reuses C6 and C13 (IG.turnOn, IG.turnOff).
+export const IG_CARDS = {
+  /** The section's heading. */
+  heading: 'Package cards in Instagram',
+  /** The cards' spoken name, for a screen reader. */
+  preview: 'Your package cards',
+  /** No packages yet: opens her packages. */
+  addPackage: 'Add a package',
+  /** Instagram did not accept the change: asks again. */
+  retry: 'Try again',
+  /** A switch or a Try again that did not go through (R-47.1: a whole sentence). */
+  notSaved: 'Your change was not saved. Please try again.',
+} as const;
