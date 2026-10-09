@@ -457,7 +457,7 @@ function LookEditor({ id, looks, go, write, sheet, setSheet, openLook }: Ctx & {
             <div key={p.id} className="wb-prow" data-reorder-row="" data-photo={p.id}>
               <span className="wb-grip" onPointerDown={r.onGrip(i)} aria-hidden="true">⋮⋮</span>
               <span className="t"><img src={p.url} alt={p.alt || ''} /></span>
-              <span className="wb-rt"><span className="wb-rd">{i === 0 ? WEB.photoCover : WEB.photoN(i + 1)}</span><span className={'wb-rd st-' + p.review}>{WEB.photoState[p.review]}{p.review === 'not_approved' && p.reason ? `: ${p.reason}` : ''}</span></span>
+              <span className="wb-rt"><span className="wb-rd">{i === 0 ? WEB.photoCover : WEB.photoN(i + 1)}</span>{p.review === 'held' || p.notice ? <span className={'wb-rd st-' + p.review} data-photo-notice="">{p.notice || WEB.photoHeld}</span> : null}</span>
               <span className="wb-arw"><button type="button" aria-label={WEB.up} disabled={i === 0} onClick={() => r.move(i, -1)}>▲</button><button type="button" aria-label={WEB.down} disabled={i === r.list.length - 1} onClick={() => r.move(i, 1)}>▼</button></span>
               <button type="button" className="wb-rm" onClick={() => void write(() => site.removePhoto(look.id, p.id))}>{WEB.removePhoto}</button>
             </div>))}

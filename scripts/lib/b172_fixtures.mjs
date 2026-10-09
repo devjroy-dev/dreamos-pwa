@@ -69,12 +69,13 @@ export function room(plan, opt = {}) {
 }
 const IMG = (k) => `/__img/${k}`;
 const LOOKS = [['l1', 'The Emerald Bride', ['green-necklace', 'kundan', 'tikka'], 'Rs 55,000', 'published', 'live'], ['l2', 'Rose Mehendi', ['veil-hands'], 'Rs 18,000', 'published', 'live'], ['l3', 'Maang Tikka Classic', ['tikka'], 'Rs 48,000', 'published', 'live'], ['l4', 'Golden Hour', ['pastel-saree'], 'Rs 35,000', 'published', 'live'], ['l5', 'Kaleere Morning', ['kaleere'], null, 'published', 'waiting_for_photos'], ['l6', 'Kundan Study', ['kundan'], 'Rs 40,000', 'draft', 'draft']];
-const REV = ['approved', 'waiting', 'not_approved'];
+const REV = ['shown', 'held', 'shown'];   // WEB-4 cut 30 (R-47.2): shown or held, with the server's notice
+const HELD = 'TDW is checking this picture. It is not shown yet.';
 export function looks(plan) {
   if (plan === 'new') return { ok: true, looks: [] };
   return { ok: true, looks: LOOKS.map(([id, title, ph, price, status, state]) => ({ id, slug: id, title, status, public_state: state, category: 'bridal', included: id === 'l1' ? ['Makeup and hair for the bride', 'Draping and jewellery setting'] : [], from_price: price, package_id: null,
     credits: id === 'l1' ? [{ role: 'Outfit', name: 'Label Noor' }, { role: 'Jewellery', name: 'Kundan House' }] : [], videos: [],
-    photos: ph.map((k, i) => ({ id: `${id}p${i}`, url: IMG(k), review: id === 'l1' ? REV[i] : state === 'waiting_for_photos' ? 'waiting' : 'approved', reason: id === 'l1' && i === 2 ? 'The photo is blurred' : null, caption: null, alt: null, position: i, focal_portrait: { x: 50, y: 26 }, focal_landscape: { x: 50, y: 40 } })) })) };
+    photos: ph.map((k, i) => ({ id: `${id}p${i}`, url: IMG(k), review: id === 'l1' ? REV[i] : state === 'waiting_for_photos' ? 'held' : 'shown', notice: (id === 'l1' ? REV[i] : state === 'waiting_for_photos' ? 'held' : 'shown') === 'held' ? HELD : null, caption: null, alt: null, position: i, focal_portrait: { x: 50, y: 26 }, focal_landscape: { x: 50, y: 40 } })) })) };
 }
 export const testimonials = () => ({ ok: true, testimonials: [
   { id: 't1', name: 'Ananya', occasion: 'Wedding', month: '2026-02', place: 'Udaipur', words: 'She understood my face in ten minutes. On the day I cried twice and nothing moved.', video_url: null, state: 'pending', from_client: true, to_delete: false },

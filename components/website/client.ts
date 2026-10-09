@@ -43,7 +43,7 @@ export type Room = {
   style_clock?: { last_changed_on: string | null; next_change_on: string | null; next_change_words: string | null; locked: boolean };
   preview?: { token: string; expires_at: string } | string | null;   // cut 5: previewLib.issue() gives { token, expires_at }
 };
-export type Photo = { id: string; url: string; review: 'waiting' | 'approved' | 'not_approved'; reason: string | null; caption: string | null; alt: string | null; position: number; focal_portrait: { x: number; y: number }; focal_landscape: { x: number; y: number } };
+export type Photo = { id: string; url: string; review: 'shown' | 'held'; notice: string | null;   /* WEB-4 cut 30 (R-47.2): shown or held, with the server's notice; no reason any more */ caption: string | null; alt: string | null; position: number; focal_portrait: { x: number; y: number }; focal_landscape: { x: number; y: number } };
 export type Look = { id: string; slug: string; title: string; status: 'draft' | 'published'; public_state: 'draft' | 'live' | 'waiting_for_photos'; category: string | null; included: string[] | null; from_price: string | null; package_id: string | null; credits: Array<{ role?: string; handle?: string; name?: string }> | null; photos: Photo[] };
 export type Testimonial = { id: string; name: string | null; occasion: string | null; month: string | null; place: string | null; words: string; state: 'pending' | 'approved' | 'hidden'; from_client: boolean; to_delete: boolean };
 export type Visitors = null | {
@@ -73,7 +73,7 @@ export const site = {
   deleteTestimonial: (id: string) => deleteJson<R<{ deleted: true }>>(`${BASE}/testimonials/${enc(id)}`),
   request: (person_name: string) => postJson<R<{ link: string; copy_text: string; send: string }>>(`${BASE}/testimonials/requests`, { person_name }),
   visitors: (days: 7 | 28) => getJson<R<{ visitors: Visitors }>>(`${BASE}/visitors?days=${days}`),
-  /** A fresh photo: the signed upload into her own look folder, then the add door (it joins the review queue). */
+  /** A fresh photo: the signed upload into her own look folder, then the add door (Google's safety check runs as it is added; R-47.2). */
   async upload(id: string, file: File) {
     const s = await postJson<R<{ upload_url: string; params: Record<string, string> }>>(`${BASE}/looks/${enc(id)}/photos/sign`, {});
     const fd = new FormData(); fd.append('file', file); for (const [k, v] of Object.entries(s.params || {})) fd.append(k, String(v));

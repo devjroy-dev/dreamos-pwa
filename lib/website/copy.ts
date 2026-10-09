@@ -101,7 +101,9 @@ export const WEB = {
   from: (p: string) => `From ${p}`,
   // the look editor
   photos: 'Photographs', addPhotos: '+ Add from phone', removePhoto: 'Remove',
-  photoState: { waiting: 'Waiting for approval', approved: 'Approved', not_approved: 'Not approved' } as Record<string, string>,
+  // R-47.2 (WEB-4 cut 30): a look photo is 'shown' or 'held'. A shown photo has no line; a held one has the founder's line
+  // (approved word for word, 8 October 2026), which the server also sends as the photo's notice.
+  photoHeld: 'TDW is checking this picture. It is not shown yet.',
   uploading: 'The photograph is being added…',
   photoCover: 'Cover of the look', photoN: (i: number) => `Photograph ${i}`,
   focal: 'Tap the photograph to set the point that always stays in view.',
