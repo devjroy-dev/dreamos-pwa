@@ -104,6 +104,12 @@ async function main() {
   const YOUR = 'input[autocomplete="name"]';
   const DOOR = { vendor: 'I\u2019m a wedding vendor', couple: 'I\u2019m getting married' };
   const doorOf = async (v, role) => (await v.tap(DOOR[role])) || v.tap(DOOR[role].replace('\u2019', "'"));
+  // AMENDED BY LABEL · CE-47 LAND-1 (the founder, 9 Oct 2026): the entry's "I'm a wedding vendor" now leaves for tdw.works,
+  // whose Sign in comes back to /?role=vendor-signin. So a vendor's SIGN-IN door is that address, a fresh visit; a Dreamer's
+  // is still the entry's own door. The sign-UP door (Sign up, then the chooser) is unchanged for both, so every
+  // "await v.tap('Sign up'); await doorOf(v, role)" stands. For a vendor the "name typed at an abandoned join in the same
+  // visit" ground cannot arise any more (the sign-in is a new page load); the cells stand and hold on the fresh visit.
+  const signInDoor = async (v, role) => { if (role !== 'vendor') return doorOf(v, role); await v.p.goto(`http://localhost:${PORT}/?role=vendor-signin`, { waitUntil: 'domcontentloaded', timeout: 240000 }); await v.p.waitForSelector(PHONE, { timeout: 60000 }).catch(() => {}); await sleep(600); return true; };
   // Back, as a visitor taps it, until the two doors are on the glass again (the page's state, a typed name included, survives).
   const goBack = async (v) => { for (let i = 0; i < 4; i += 1) { if (await v.p.evaluate(() => Array.from(document.querySelectorAll('button')).some((b) => b.innerText.trim().toLowerCase() === 'sign up'))) return; await v.p.evaluate(() => { const b = Array.from(document.querySelectorAll('button')).find((x) => { const t = x.innerText.trim(); return t.length > 0 && t.length <= 2 && !/[A-Za-z0-9]/.test(t); }); if (b) b.click(); }); await sleep(500); } };
   // A Dreamer with a name and no PIN is pushed to /couple/onboarding (the hook), and that page forwards a session that
@@ -156,7 +162,7 @@ async function main() {
       await v.p.waitForSelector(NAME, { timeout: SHORT ? 6000 : 30000 }).catch(() => {});
       await v.fill(NAME, 'Priya');
       await goBack(v);
-      await doorOf(v, role);
+      await signInDoor(v, role);
       await v.fill(PHONE, '9876500022');
       await v.tap('Continue \u2192');
       await v.p.waitForSelector(NAME, { timeout: SHORT ? 6000 : 30000 }).catch(() => {});
@@ -201,7 +207,7 @@ async function main() {
         await v.p.waitForSelector(NAME, { timeout: SHORT ? 6000 : 30000 }).catch(() => {});
         await v.fill(NAME, 'Priya');
         await goBack(v);
-        await doorOf(v, role);
+        await signInDoor(v, role);
         await v.fill(PHONE, '9876500033');
         await v.tap('Continue \u2192');
         await v.p.waitForSelector('input[autocomplete="one-time-code"]', { timeout: SHORT ? 6000 : 30000 }).catch(() => {});
@@ -233,7 +239,7 @@ async function main() {
     if (runs(4)) for (const role of ['vendor', 'couple']) {
       sec(`4 sign-in, known and named, ${role}`);
       const v = await visitor({ status: KNOWN, verify: VERIFY('Asha Studio'), provision: () => okProv(role, 'Asha Studio', true) });
-      await doorOf(v, role);
+      await signInDoor(v, role);
       await v.fill(PHONE, '9876500044');
       await v.tap('Continue \u2192');
       await v.p.waitForSelector('input[autocomplete="one-time-code"]', { timeout: SHORT ? 6000 : 30000 }).catch(() => {});
@@ -245,7 +251,7 @@ async function main() {
       await v.close();
 
       const q = await visitor({ status: { ...KNOWN, pin_set: true }, verify: VERIFY('Asha Studio'), provision: () => okProv(role, 'Asha Studio', true) });
-      await doorOf(q, role);
+      await signInDoor(q, role);
       await q.fill(PHONE, '9876500055');
       await q.tap('Continue \u2192');
       const at2 = await q.where(want);
@@ -255,7 +261,7 @@ async function main() {
     if (runs(5)) {
       sec('5 a refusal that stands: the number belongs to another kind of account (409)');
       const v = await visitor({ status: KNOWN, verify: { __status: 409, ok: false, reason: 'identity_bound_elsewhere', error: 'This number is already in use.' }, provision: () => okProv('vendor', null, false) });
-      await doorOf(v, 'vendor'); await v.fill(PHONE, '9876500066'); await v.tap('Continue \u2192');
+      await signInDoor(v, 'vendor'); await v.fill(PHONE, '9876500066'); await v.tap('Continue \u2192');
       await v.p.waitForSelector('input[autocomplete="one-time-code"]', { timeout: 30000 }).catch(() => {});
       await v.code(); await v.tap('Verify \u2192'); await sleep(400);
       const w = await v.words(); const st = await v.stored();

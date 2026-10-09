@@ -538,9 +538,11 @@ H('§M · MUTATIONS OVER PRODUCTION SOURCE — RED AT THE BROKEN TREE, BOTH WAYS
 // matches TWICE and okMutate refuses a non-unique anchor — that refusal is why this was
 // caught rather than silently weakened. Narrowed to the ENTRY panel's door by the sign-in
 // handler only it carries; the assertion is unchanged.
+// AMENDED BY LABEL (CE-47 LAND-1): the entry's vendor door now goes to tdw.works, so its handler names TDW_WORKS; the
+// anchor follows the handler only that door carries. The assertion is unchanged.
 okMutate('§M.2 §1.4 reds if the gold moves off the vendor door',
-  LANDING, "setScreen('signin_phone'); }}\n                  style={{\n                    width: '100%', height: 48, background: '#C9A84C', border: 'none',",
-  "setScreen('signin_phone'); }}\n                  style={{\n                    width: '100%', height: 48, background: 'transparent', border: 'none',",
+  LANDING, "window.location.assign(TDW_WORKS); }}\n                  style={{\n                    width: '100%', height: 48, background: '#C9A84C', border: 'none',",
+  "window.location.assign(TDW_WORKS); }}\n                  style={{\n                    width: '100%', height: 48, background: 'transparent', border: 'none',",
   () => assert.ok((read(LANDING).match(/background: '#C9A84C', border: 'none',[\s\S]{0,400}I&apos;m a wedding vendor/g) || []).length === 2), '§1.4');
 
 okMutate('§M.3 §2.2 reds if the returning path turns an unknown number away again',

@@ -46,7 +46,9 @@ function world(srcs) {
   const api = { getJson: (p) => { if (p !== '/api/v2/vendor/me') throw new Error('asked ' + p); const r = Promise.resolve(device.me); pending.push(r); return r; } };
   const sw = load(srcs.sw, { react, '@/lib/vendor/api/_base': api, '@/lib/worklist/layoutSwitch': lib }, 'LayoutSwitch.tsx');
   const next = require(path.join(ROOT, 'node_modules/next/server.js'));
-  const mw = load(srcs.mw, { 'next/server': next, '@/lib/public/vendorHost': hostStub(), '@/lib/worklist/layoutSwitch': lib }, 'middleware.ts');
+  // AMENDED BY LABEL · CE-47 LAND-1: middleware.ts asks lib/public/worksHost first (tdw.works). The real module, transpiled:
+  // it answers null for every host this bench sends (localhost), so every scenario below goes on exactly as before.
+  const mw = load(srcs.mw, { 'next/server': next, '@/lib/public/vendorHost': hostStub(), '@/lib/public/worksHost': load(read('lib/public/worksHost.ts'), {}, 'worksHost.ts'), '@/lib/worklist/layoutSwitch': lib }, 'middleware.ts');
   async function mount(tree, me) { device.me = me; sw.LayoutSwitch({ tree }); await Promise.all(pending.splice(0)); await new Promise((r) => setTimeout(r, 0)); }
   function serve(p) {
     const headers = new Headers({ host: 'localhost:3000' });

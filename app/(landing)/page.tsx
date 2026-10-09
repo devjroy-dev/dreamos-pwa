@@ -40,6 +40,9 @@ import { useOtpSignup, persistSession, NAME_WORDS } from '@/lib/auth/otpSignup';
 // full width. Photography full-bleed, controls at a readable measure.
 const COLUMN = 520;
 
+// CE-47 LAND-1: the vendors' front page. "I'm a wedding vendor" on the entry goes here.
+const TDW_WORKS = 'https://tdw.works';
+
 const FALLBACK_SLIDES: string[] = [
   'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
   'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',
@@ -348,6 +351,7 @@ export default function Home() {
     const q = new URLSearchParams(window.location.search).get('role');
     if (q === 'couple') { setRole('Dreamer'); setScreen('exploring'); }
     else if (q === 'vendor') { setRole('Maker'); setScreen('join_phone'); }
+    else if (q === 'vendor-signin') { setRole('Maker'); setScreen('signin_phone'); }   // CE-47 LAND-1: tdw.works's Sign in door
   }, []);
 
   // ── Vendor subdomain auto-routing ─────────────────────────────────────────
@@ -739,8 +743,11 @@ export default function Home() {
                   }}
                 >I&apos;m getting married</button>
 
+                {/* CE-47 LAND-1 (the founder, 9 Oct 2026): this door now goes to tdw.works, the vendors' own front page,
+                    which carries Sign in and Start free. Still a button (b20_a4's 17/17 pair stands); the chooser's
+                    vendor door below, the sign-UP one, is unchanged. */}
                 <button
-                  onClick={() => { setRole('Maker'); setScreen('signin_phone'); }}
+                  onClick={() => { window.location.assign(TDW_WORKS); }}
                   style={{
                     width: '100%', height: 48, background: '#C9A84C', border: 'none',
                     borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
@@ -804,13 +811,9 @@ export default function Home() {
                   Not ready to sign up?{' '}
                   <a href="/plan" style={ENTRY_LINE_VERB}>Tell us what you need &#8594;</a>
                 </p>
-                {/* CE-47 PTN-A1 (the founder: "Partner with The Dream Wedding" on the main page itself; ruled as a link under
-                    the entry). A text link, an ANCHOR like the /plan line above, never a third door: b20_a4's census moves
-                    by one anchor, amended by label in the same delivery. */}
-                <p style={ENTRY_LINE}>
-                  An agency, brand or planner?{' '}
-                  <a href="/partner/join" style={ENTRY_LINE_VERB} data-partner-entry="">Partner with The Dream Wedding &#8594;</a>
-                </p>
+                {/* CE-47 LAND-1 (the founder, 9 Oct 2026): the partner line that stood here (PTN-A1) comes off this page now
+                    that tdw.works carries it ("Agency or brand? Send your calls here."). b20_a4's census moves back by one
+                    anchor, amended by label in the same delivery. */}
                 </div>
 
                 {/* A4 · R-41.50 (chair-ruled placement, founder-delegated): the privacy link

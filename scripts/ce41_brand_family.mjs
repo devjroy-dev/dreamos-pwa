@@ -62,6 +62,20 @@ const readers = [
   'public/sw.js',
   'app/layout.tsx',
 ];
+// AMENDED BY LABEL · CE-47 LAND-1 (the founder, 9 Oct 2026): tdw.works has its own tab icon, a second family at
+// public/works/ (five files, the chair's TDW_CE47_tdw_works_icon_A). app/works/page.tsx is its one reader and names
+// /works/ paths only; every other reader stays on /brand/ exactly as before.
+const WORKS_FILES = new Set(['icon.svg', 'favicon-16.png', 'favicon-32.png', 'apple-icon-180.png', 'favicon.ico'].map((n) => `public/works/${n}`));
+{
+  const f = 'app/works/page.tsx';
+  const re = /['"`](\/[A-Za-z0-9._/-]*(?:icon|favicon|lockup|apple-touch)[A-Za-z0-9._/-]*\.(?:png|ico|svg))['"`]/gi;
+  const paths = existsSync(f) ? [...readFileSync(f, 'utf8').matchAll(re)].map((m) => m[1]) : [];
+  const strays = paths.filter((p) => !p.startsWith('/works/'));
+  const missing = paths.filter((p) => !existsSync(join('public', p)));
+  if (!paths.length) red(`${f} — names tdw.works's icons`, 'none found');
+  else if (strays.length || missing.length) red(`${f} — every icon it names is under /works/ and on disk`, `outside: ${strays.join(', ')} missing: ${missing.join(', ')}`);
+  else green(`${f} — ${new Set(paths).size} icon path(s), all under /works/ and all on disk (tdw.works's family)`);
+}
 
 // Any icon-ish path a reader names. A path that is not under /brand/ is the defect.
 const RE_ICON_PATH = /['"`](\/[A-Za-z0-9._/-]*(?:icon|favicon|lockup|apple-touch)[A-Za-z0-9._/-]*\.(?:png|ico|svg))['"`]/gi;
@@ -85,7 +99,7 @@ for (const f of readers) {
 const ALLOWED_OUTSIDE = new Set(['app/favicon.ico']);
 const stray = [...walk('public'), ...walk('app')]
   .filter((f) => /(icon|favicon|lockup|apple-touch)[^/]*\.(png|ico)$/i.test(f))
-  .filter((f) => !f.startsWith(BRAND + '/') && !ALLOWED_OUTSIDE.has(f));
+  .filter((f) => !f.startsWith(BRAND + '/') && !ALLOWED_OUTSIDE.has(f) && !WORKS_FILES.has(f));   // LAND-1: tdw.works's five, by name
 if (stray.length) red('no icon file outside public/brand/', stray.join('\n      '));
 else green('no icon file outside public/brand/ (app/favicon.ico allowed by name)');
 

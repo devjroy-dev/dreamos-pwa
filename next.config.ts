@@ -31,6 +31,25 @@ const nextConfig: NextConfig = {
     // THE LINE IS DELETED RATHER THAN LEFT UNUSED. A ready-made constant with exactly the
     // right name is how the next reader re-creates this in one line.
   },
+  // CE-47 · LAND-1 · point 2: next/image, used first by the tdw.works page for TDW's landing photographs in her two look
+  // tiles. Only TDW's own Cloudinary folder is allowed; `qualities` is required from Next 16 (60 for those tiles, 75 the
+  // default). No other page uses next/image today, so nothing else changes.
+  images: {
+    remotePatterns: [new URL('https://res.cloudinary.com/dccso5ljv/image/upload/**')],
+    qualities: [60, 75],
+  },
+  // CE-47 LAND-1: on the tdw.works host, /favicon.ico is tdw.works's own (public/works/favicon.ico). middleware.ts's
+  // matcher skips favicon.ico, so the host rule lives here. beforeFiles, so it wins over app/favicon.ico (the D), which
+  // every other host keeps.
+  async rewrites() {
+    return {
+      beforeFiles: [
+        { source: '/favicon.ico', has: [{ type: 'host', value: '(?:www\\.)?tdw\\.works' }], destination: '/works/favicon.ico' },
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
+  },
   async headers() {
     return [
       {
@@ -56,6 +75,13 @@ const nextConfig: NextConfig = {
           { key: 'Pragma', value: 'no-cache' },
           { key: 'Expires', value: '0' },
         ],
+      },
+      {
+        // CE-47 LAND-1 (ruled 9 Oct 2026): the app's own built files carry their hash in their names, so a new build never
+        // reads an old one; a year's cache. Listed after the no-store rule above, so it wins on these paths (the last rule
+        // setting a header wins). Without it every preloaded face was downloaded twice.
+        source: '/_next/static/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
     ];
   },

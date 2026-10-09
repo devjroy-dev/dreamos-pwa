@@ -92,11 +92,12 @@ sec('C3 \u00b7 the two lines share one style object');
   ok('ENTRY_LINE_VERB is declared once', (src.match(/const ENTRY_LINE_VERB:/g) || []).length === 1);
   // AMENDED BY LABEL (CE-47 PTN-A1): the partner line under /plan shares the same pair of styles, so both are named
   // three times: Sign up, /plan, and "Partner with The Dream Wedding". One style object still; the cell shape is unchanged.
+  // AMENDED BY LABEL (CE-47 LAND-1): the partner line left this page, so the pair is named twice again, as R-42.10 ruled.
   ok('the sentence style is named exactly twice \u2014 Sign up and /plan',
-    (src.match(/style=\{ENTRY_LINE\}/g) || []).length === 3,
+    (src.match(/style=\{ENTRY_LINE\}/g) || []).length === 2,
     String((src.match(/style=\{ENTRY_LINE\}/g) || []).length));
   ok('the verb style is named exactly twice',
-    (src.match(/style=\{ENTRY_LINE_VERB\}/g) || []).length === 3,
+    (src.match(/style=\{ENTRY_LINE_VERB\}/g) || []).length === 2,
     String((src.match(/style=\{ENTRY_LINE_VERB\}/g) || []).length));
   // ── AMENDED BY LABEL — the founder's walk, 2026-09-10 (R-41.121) ──────────
   // THE GUARANTEE IS UNCHANGED: the pair sits 16 below the door above it, and that
@@ -164,15 +165,16 @@ sec('C5 \u00b7 30 -> 31, and method A untouched');
   const backs = count(/<BackBtn/g), golds = count(/<GoldBtn/g);
   ok('the button pair is 17/17, unmoved', opens === 17 && closes === 17, `${opens}/${closes}`);
   // AMENDED BY LABEL (CE-47 PTN-A1): the partner link is a fourth anchor (3 -> 4); the button pair stays 17/17.
-  ok('anchors moved 2 -> 3', anchors === 4, String(anchors));
+  // AMENDED BY LABEL (CE-47 LAND-1): the partner link left (4 -> 3); the button pair stays 17/17.
+  ok('anchors moved 2 -> 3', anchors === 3, String(anchors));
   // CE-47 FE-9, F-44.271, AMENDED BY LABEL: 31 -> 34. The "Your name" screen adds one BackBtn, one input and one GoldBtn (no button, no anchor),
   // so the 17/17 pair and the three anchors above stand untouched.
-  ok('the census totals 34 (31 and the Your name screen: one Back, one input, one Continue)', opens + inputs + anchors + backs + golds === 35,   // PTN-A1: +1 anchor
+  ok('the census totals 34 (31 and the Your name screen: one Back, one input, one Continue)', opens + inputs + anchors + backs + golds === 34,   // PTN-A1: +1 anchor; LAND-1: -1 anchor
     `button ${opens} \u00b7 input ${inputs} \u00b7 a ${anchors} \u00b7 BackBtn ${backs} \u00b7 GoldBtn ${golds}`);
   // b20_a4 is the census's own home and it was amended by label in this packet.
   const a4 = read('scripts/b20_a4_otpsignup_pwa.proof.mjs');
-  ok('b20_a4 was amended by label, not loosened', /=== 35/.test(a4) && !/>= 30/.test(a4) && !/>= 3[1-5]/.test(a4));   // PTN-A1: 34 -> 35
-  ok('and it pins the delta to anchors alone', /anchors === 4 && opens === 17/.test(a4));
+  ok('b20_a4 was amended by label, not loosened', /=== 34/.test(a4) && !/>= 30/.test(a4) && !/>= 3[1-5]/.test(a4));   // PTN-A1: 34 -> 35; LAND-1: 35 -> 34
+  ok('and it pins the delta to anchors alone', /anchors === 3 && opens === 17/.test(a4));
 }
 
 if (process.argv.includes('--mutate')) {

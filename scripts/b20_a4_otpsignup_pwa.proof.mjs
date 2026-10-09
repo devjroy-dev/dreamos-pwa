@@ -296,9 +296,11 @@ section('§6 · THE THIRTY CONTROLS, ALL KEPT — CE-115');
   // reason the ruling says text link and not third door.
   // ── AMENDED BY LABEL — CE-47 PTN-A1 (founder-ruled 6 Oct 2026): "Partner with The Dream Wedding" under the entry.
   // 34 -> 35, on ANCHORS alone (3 -> 4), for the same reason the /plan line moved it: a text link, never a third door.
-  ok('method B — the element census totals 35: 31, the Back, input and Continue of the Your name screen (F-44.271), and the partner link (PTN-A1) (R-42.10)', opens + inputs + anchors + backs + golds === 35,
+  // ── AMENDED BY LABEL — CE-47 LAND-1 (the founder, 9 Oct 2026): the partner line comes off this page (tdw.works carries
+  // it now). 35 -> 34, on ANCHORS alone (4 -> 3); the entry's vendor door changes its destination, not its element.
+  ok('method B — the element census totals 34: 31 and the Back, input and Continue of the Your name screen (F-44.271); the partner link left at LAND-1 (R-42.10)', opens + inputs + anchors + backs + golds === 34,
     `button ${opens} · input ${inputs} · a ${anchors} · BackBtn ${backs} · GoldBtn ${golds}`);
-  ok('and the delta is on ANCHORS alone — method A is untouched', anchors === 4 && opens === 17,
+  ok('and the delta is on ANCHORS alone — method A is untouched', anchors === 3 && opens === 17,
     `a ${anchors} · button ${opens}`);
   ok('e-8 is not inherited: the two methods agree on the button count', opens === 17 && closes === 17);
   ok('sendOtp still has its four call sites on the glass', (raw.match(/sendOtp\(/g) || []).length === 4);

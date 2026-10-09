@@ -5,7 +5,19 @@ const F = n => path.join(__dirname, 'node_modules/@fontsource', n, 'files');
 function css(family, pkg, specs) {
   return specs.map(([w, st]) => `/* latin */\n@font-face {\n  font-family: '${family}';\n  font-style: ${st};\n  font-weight: ${w};\n  font-display: swap;\n  src: url(${F(pkg)}/${pkg}-latin-${w}-${st}.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}\n`).join('');
 }
+// CE-47 LAND-1: variable faces (one file carries every weight and, for Bodoni Moda, the optical-size axis), served from
+// @fontsource-variable. `file` is the file's stem inside that package; `w` is the weight range the face declares.
+const FV = n => path.join(__dirname, 'node_modules/@fontsource-variable', n, 'files');
+function vcss(family, pkg, file, w, styles) {
+  return styles.map((st) => `/* latin */\n@font-face {\n  font-family: '${family}';\n  font-style: ${st};\n  font-weight: ${w};\n  font-display: swap;\n  src: url(${FV(pkg)}/${pkg}-latin-${file}-${st}.woff2) format('woff2');\n  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;\n}\n`).join('');
+}
 module.exports = {
+  // CE-47 LAND-1 · the tdw.works page (app/works/fonts.ts): Bodoni Moda (variable, opsz and wght), Manrope (variable),
+  // JetBrains Mono 400 and 500, Inter (variable).
+  'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&display=swap': vcss('Bodoni Moda', 'bodoni-moda', 'standard', '400 900', ['normal', 'italic']),
+  'https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap': vcss('Manrope', 'manrope', 'wght', '200 800', ['normal']),
+  'https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap': vcss('Inter', 'inter', 'wght', '100 900', ['normal']),
+  'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap': css('JetBrains Mono', 'jetbrains-mono', [[400, 'normal'], [500, 'normal']]),
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=block': css('Inter', 'inter', [[400, 'normal'], [500, 'normal'], [600, 'normal']]).replace(/swap/g, 'block'),
   // WEB-8 (MERGED): ADM-1's admin layout asks for Inter with 700 as well; without this a rig build on today's main stops at the font loader
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=block': css('Inter', 'inter', [[400, 'normal'], [500, 'normal'], [600, 'normal'], [700, 'normal']]).replace(/swap/g, 'block'),

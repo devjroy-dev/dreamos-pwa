@@ -13,6 +13,7 @@ const italiana = Italiana({
   subsets: ['latin'],
   weight: ['400'],
   variable: '--font-italiana',
+  preload: false,   // CE-47 LAND-1, ruled 9 Oct 2026: preloaded on every page, drawn on few (the tdw.works page draws none)
   display: 'swap',
 });
 
@@ -21,6 +22,7 @@ const cormorant = Cormorant_Garamond({
   weight: ['300', '400', '500'],
   style: ['normal', 'italic'],
   variable: '--font-cormorant',
+  preload: false,   // CE-47 LAND-1, ruled 9 Oct 2026 (as above)
   display: 'swap',
 });
 
@@ -28,6 +30,7 @@ const dmSans = DM_Sans({
   subsets: ['latin'],
   weight: ['300', '400', '500'],
   variable: '--font-dm-sans',
+  preload: false,   // CE-47 LAND-1, ruled 9 Oct 2026 (as above)
   display: 'swap',
 });
 
@@ -35,12 +38,31 @@ const jost = Jost({
   subsets: ['latin'],
   weight: ['200', '300', '400', '500'],
   variable: '--font-jost',
+  preload: false,   // CE-47 LAND-1, ruled 9 Oct 2026 (as above)
   display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: 'The Dream Wedding',
   description: 'The Wedding OS',
+  // R-41.126 — THE BRAND FAMILY, AT ITS ONE HOME (moved here from five hand-written <link> tags in <head> at CE-47
+  // LAND-1, the same five icons with the same sizes and types). Every icon this estate serves lives under /brand;
+  // app/favicon.ico is the family's .ico, served by Next's own convention. The three apple-touch sizes are all linked
+  // rather than only 180: an iPad asks for 152 and an older iPhone for 120, and a device that finds no size of its own
+  // scales the largest, which is how a seal with a thin rule comes out muddy on the one screen nobody tests on.
+  // WHY METADATA AND NOT <link>: a page's own metadata.icons replaces these, and only metadata can be replaced. The
+  // tdw.works page (app/works/page.tsx) carries its own family from public/works; every other page keeps this one.
+  icons: {
+    icon: [
+      { url: '/brand/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/brand/favicon-16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/brand/icon-graphite-180.png', sizes: '180x180' },
+      { url: '/brand/icon-graphite-152.png', sizes: '152x152' },
+      { url: '/brand/icon-graphite-120.png', sizes: '120x120' },
+    ],
+  },
 };
 
 export const viewport = {
@@ -73,17 +95,7 @@ export default function RootLayout({
             /manifest.json; this line is one of exactly two edits this arc makes to a
             pre-existing file, and it never travels to main. */}
         <link rel="manifest" href="/worklist-manifest.json" />
-        {/* R-41.126 — THE BRAND FAMILY, AT ITS ONE HOME. Every icon this estate serves
-            lives under /brand and is named here; app/favicon.ico is the family's .ico,
-            served by Next's own convention. The three apple-touch sizes are all linked
-            rather than only 180: an iPad asks for 152 and an older iPhone for 120, and a
-            device that finds no size of its own scales the largest, which is how a seal
-            with a thin rule comes out muddy on the one screen nobody tests on. */}
-        <link rel="icon" href="/brand/favicon-32.png" sizes="32x32" type="image/png" />
-        <link rel="icon" href="/brand/favicon-16.png" sizes="16x16" type="image/png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/brand/icon-graphite-180.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/brand/icon-graphite-152.png" />
-        <link rel="apple-touch-icon" sizes="120x120" href="/brand/icon-graphite-120.png" />
+        {/* R-41.126: the brand family's five icon links are in `metadata.icons` above (CE-47 LAND-1). */}
         <meta name="theme-color" content="#1E0A0E" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -127,8 +139,16 @@ export default function RootLayout({
   // from a link is exactly the arrival this branch exists for, and getting it
   // wrong here paints the app’s near-black above a cream intake.
   var isPublicStorefront=path.indexOf('/v/')===0||path.indexOf('/r/')===0||path.indexOf('/credits/')===0||path==='/plan'||path.indexOf('/plan/')===0;
+  // CE-47 LAND-1. THE FIFTH PUBLIC LANE, tdw.works: its own host, so its path is the root path and the landing
+  // branch below would paint the couples' near-black above a light page. It is asked first, by host, and its ground
+  // follows the page's own two modes (works.css): Chalk ground in light, Graphite ground in dark.
+  var isWorks=location.hostname==='tdw.works'||path==='/works';
   var bg=null;
-  if(isFrost){
+  if(isWorks){
+    var dk=false;
+    try{dk=window.matchMedia('(prefers-color-scheme: dark)').matches;}catch(e){}
+    bg=dk?'#0E1112':'#E7EAE6';
+  } else if(isFrost){
     var stored=null, manual=null;
     try{stored=localStorage.getItem('@frost.home_mode');}catch(e){}
     try{manual=localStorage.getItem('@frost.home_mode_manual');}catch(e){}

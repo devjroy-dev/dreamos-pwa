@@ -13,6 +13,7 @@ import type { NextRequest } from 'next/server';
 // F-44.238: this file keeps the deprecated `middleware` convention on purpose;
 // the rename to `proxy.ts` is its own later cut, ruled by the chair.
 import { decide } from '@/lib/public/vendorHost';
+import { worksDecide } from '@/lib/public/worksHost';
 import { LAYOUT_COOKIE, layoutForRequest, serverDefaultFor } from '@/lib/worklist/layoutSwitch';
 
 const SITE_BASE = process.env.NEXT_PUBLIC_SITE_BASE ?? 'https://thedreamwedding.in';
@@ -21,6 +22,16 @@ export function middleware(request: NextRequest): NextResponse | Promise<NextRes
   const host = request.headers.get('host') || '';
   const url  = request.nextUrl.clone();
   const path = url.pathname;
+
+  // ── CE-47 · LAND-1 · tdw.works → the vendors' front page (lib/public/worksHost.ts, one pure function) ──────────────
+  // First, because it is a whole host of its own: nothing below (the demo hosts, her address, the layout switch) is
+  // ever asked about it. Every other host gets null here and goes on exactly as before.
+  const w = worksDecide(host, path, url.search);
+  if (w) {
+    if (w.kind === 'rewrite') { url.pathname = w.pathname; return NextResponse.rewrite(url); }
+    if (w.kind === 'redirect') return NextResponse.redirect(w.url, w.status);
+    return NextResponse.next();
+  }
 
   // ── demodreamer.thedreamwedding.in → Frost ──────────────────────────────
   if (host.startsWith('demodreamer.')) {

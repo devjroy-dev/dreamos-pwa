@@ -39,7 +39,7 @@ function rigAnswers(root) {
   delete require.cache[require.resolve(file)];
   const answers = require(file);
   const pkgs = new Set();
-  for (const css of Object.values(answers)) for (const m of css.matchAll(/@fontsource\/([a-z0-9-]+)\/files\//g)) pkgs.add(m[1]);
+  for (const css of Object.values(answers)) for (const m of css.matchAll(/@fontsource(-variable)?\/([a-z0-9-]+)\/files\//g)) pkgs.add((m[1] ? 'variable-' : '') + m[2]);   // CE-47 LAND-1: the variable scope too
   return { answers, pkgs: [...pkgs].sort() };
 }
 
@@ -50,7 +50,8 @@ function ensureFaces(pkgs, bench) {
     const dir = path.join(CACHE, pkg);
     if (fs.existsSync(path.join(dir, '.complete'))) continue;
     fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir, { recursive: true });
-    const r = spawnSync('npm', ['pack', `@fontsource/${pkg}@5`, '--silent'], { cwd: dir, encoding: 'utf8', timeout: 180000 });
+    const spec = pkg.startsWith('variable-') ? `@fontsource-variable/${pkg.slice(9)}@5` : `@fontsource/${pkg}@5`;   // CE-47 LAND-1
+    const r = spawnSync('npm', ['pack', spec, '--silent'], { cwd: dir, encoding: 'utf8', timeout: 180000 });
     const tgz = r.status === 0 ? fs.readdirSync(dir).find((f) => f.endsWith('.tgz')) : null;
     if (!tgz) refuse(bench, `npm pack @fontsource/${pkg}@5 failed (${(r.stderr || r.error || 'no file').toString().trim().slice(0, 160)})`);
     const t = spawnSync('tar', ['xzf', tgz, 'package/files'], { cwd: dir, encoding: 'utf8' });
@@ -87,7 +88,7 @@ s.writeHead(404);s.end();}).listen(${port},'127.0.0.1');`;
   if (!up) { stop(); refuse(bench, `the font server on 127.0.0.1:${port} did not answer`); }
   // 3. The answers, self-contained, every face pointing at the server.
   const out = {};
-  for (const [url, css] of Object.entries(answers)) out[url] = css.replace(/url\([^)]*\/@fontsource\/([a-z0-9-]+)\/files\/([^)]+)\)/g, `url(http://127.0.0.1:${port}/$1/$2)`);
+  for (const [url, css] of Object.entries(answers)) out[url] = css.replace(/url\([^)]*\/@fontsource(-variable)?\/([a-z0-9-]+)\/files\/([^)]+)\)/g, (_m, v, pkg, f) => `url(http://127.0.0.1:${port}/${v ? 'variable-' : ''}${pkg}/${f})`);   // CE-47 LAND-1: both scopes
   const file = path.join(CACHE, `answers-${process.pid}.cjs`);
   fs.writeFileSync(file, `// written by scripts/lib/next_fonts.js for one run; faces at http://127.0.0.1:${port}\nmodule.exports = ${JSON.stringify(out, null, 1)};\n`);
   console.log(`  ${bench}: font stand-in on 127.0.0.1:${port} (pid ${srv.pid}), ${Object.keys(out).length} Google requests answered from @fontsource (${pkgs.join(', ')})`);

@@ -285,9 +285,12 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
       // (lib/vendor/session.ts getVendorSession) and redirects before it paints. b20_a4 counts the same file's elements.
       if (mode === 'light') {
         const land = fs.readFileSync(path.join(ROOT, 'app/(landing)/page.tsx'), 'utf8');
-        const at = land.indexOf('data-partner-entry');
-        const plan = land.indexOf('<a href="/plan"');
-        ok(at > 0 && /<a href="\/partner\/join" style=\{ENTRY_LINE_VERB\} data-partner-entry="">Partner with The Dream Wedding &#8594;<\/a>/.test(land) && plan > 0 && at > plan && at - plan < 1200, '§7.1 the main page carries "Partner with The Dream Wedding", an anchor to /partner/join, under the /plan line (source)');
+        // AMENDED BY LABEL · CE-47 LAND-1 (the founder, 9 Oct 2026): the line comes off the couples' page; tdw.works
+        // carries the agency door now ("Agency or brand? Send your calls here.", an anchor to /partner/join).
+        const works = fs.readFileSync(path.join(ROOT, 'app/works/page.tsx'), 'utf8');
+        ok(!/data-partner-entry|Partner with The Dream Wedding/.test(land) && /agency: 'https:\/\/thedreamwedding\.in\/partner\/join'/.test(fs.readFileSync(path.join(ROOT, 'lib/works/scenes.ts'), 'utf8'))
+          && (works.match(/<a className="agency" href=\{DOORS\.agency\}/g) || []).length === 3,
+          '§7.1 the partner door lives on tdw.works ("Agency or brand? Send your calls here." to /partner/join), and is off the couples\' page (source)');
       }
       p = await open(b, '/partner', mode, '[data-partner-area]', { partner: true });
       const area = await p.evaluate(() => document.querySelector('[data-partner-area]').textContent);
