@@ -1,0 +1,8 @@
+# scripts/floor-manifest-ptn-a2-4-app.txt
+# TDW CE-47 · PTN-A2-4 app, the Forward page (dreamos-pwa, base 0038eb41) · the delivery's own file table [F-14.16].
+# Every path this ZIP writes, and nothing else.
+app/admin/partners/forward/page.tsx
+docs/handovers/TDW_CE47_PTN_A2_4_APP.md
+scripts/b291_ptn_a1_app_bench.js
+scripts/floor-manifest-ptn-a2-4-app.txt
+scripts/ptn_a2_4_app.sha256

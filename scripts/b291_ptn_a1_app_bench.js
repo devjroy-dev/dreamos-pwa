@@ -20,7 +20,8 @@
 //      or first state and throws no page error.
 //   §9 everywhere above: no visible text outside an anchor reads as a handle or a website (the founder's rule).
 // --mutate: M1 ContactRow made to pass the phone on a Stopped row -> §4 reddens; M2 the mark's null guard dropped -> §3.2
-// reddens (an empty tag drawn); each file restored byte for byte.
+// reddens (an empty tag drawn); M3 (PTN-A2-4) "Open in WhatsApp" made to ignore STOP -> §11.5 reddens; each file restored byte for byte.
+// PTN-A2-4 (§11 added; §6 amended by label for version A and the first-name step).
 // R-47.1 (the founder's rule, 8 Oct 2026), amended by label at PTN-A2-1 app part 1: the cells that pinned PTN's old app
 // words now pin the rewritten lines (old and new side by side in docs/handovers/TDW_CE47_PTN_A2_1_APP_P1.md). The fixture's
 // connections line is A2-3's server wording.
@@ -43,9 +44,13 @@ const CONTACTS = [
   { id: 'c2', name: 'Neha Kapoor', kind: 'stylist', how_we_know: 'Sent by a vendor we know', phone: '+919811100032', knows_tdw: false, stopped: true, instagram_handle: 'neha.styles', instagram_url: 'https://www.instagram.com/neha.styles/', website_url: null },
 ];
 const ROW = { ...ORG, hidden_by_reports: false, reports_open: 0, connections_line: 'This partner has used 2 of its 3 free connections. This partner has no plan yet. After its 3rd connection, the plan costs Rs 2,999 a month.', blocked_reason: null, created_at: '2026-10-06T00:00:00Z' };
-const RECIP = { id: 'r1', contact: CONTACTS[0], sent_at: null, link: 'https://thedreamwedding.in/request/TOKEN', message: 'Hello Model Connect. Aanya Makeup Studio, a makeup artist on The Dream Wedding, needs a model in Delhi NCR on 18 October 2026. Budget Rs 3,000 to Rs 5,000. Paid. See the request and answer here: https://thedreamwedding.in/request/TOKEN', instagram_url: 'https://www.instagram.com/modelconnect.in/', threads_url: 'https://www.threads.com/@modelconnect.in' };
+const VERSION_A = 'Hi Model Connect, this is Dev from The Dream Wedding. One of our vendors, Aanya Makeup Studio, is looking for a model for a shoot on 18 October 2026 in Delhi NCR, and I thought of you. The details are here, and you can suggest someone in a minute: https://thedreamwedding.in/request/TOKEN\nHappy to answer anything here on WhatsApp too.';
+// Amended by label at PTN-A2-4: the server's hand message is version A (the founder's words, with the admin's first name).
+const RECIP = { id: 'r1', contact: CONTACTS[0], sent_at: null, link: 'https://thedreamwedding.in/request/TOKEN', message: VERSION_A, instagram_url: CONTACTS[0].instagram_url, threads_url: 'https://www.threads.com/@modelconnect.in' };
+const RECIP2 = { id: 'r2', contact: CONTACTS[1], sent_at: null, link: 'https://thedreamwedding.in/request/TOKEN2', message: VERSION_A.replace('Model Connect', 'Neha Kapoor'), instagram_url: CONTACTS[1].instagram_url, threads_url: null };
+let LAST_FWD = null;
 let THIN = false;   // §10: every door answers { ok: true } and nothing else
-function answer(method, route) {
+function answer(method, route, body) {
   if (THIN) return [200, { ok: true }];
   if (route === '/api/v2/public/partner/p/marked.in') return [200, { ok: true, partner: { name: 'Kaveri House', kind_words: 'Fashion house', cities: ['Jaipur'], instagram_handle: 'marked.in', instagram_url: 'https://www.instagram.com/marked.in/', website_url: null, check_words: 'Verified', fee_line: FEE } }];
   if (route === '/api/v2/public/partner/request/TOKEN') return [200, { ok: true, ended: false, request: { vendor: { name: 'Aanya Makeup Studio', trade: 'makeup artist', instagram_url: 'https://www.instagram.com/aanya.mua/', instagram_handle: 'aanya.mua' }, need: 'model', city: 'Delhi NCR', date_words: '18 October 2026', budget_words: 'Rs 3,000 to Rs 5,000', pay_words: 'Paid', note: 'Half a day.', phone_line: "The vendor's phone number is shared only when the vendor chooses to contact you." } }];
@@ -53,7 +58,8 @@ function answer(method, route) {
   if (route.startsWith('/api/v2/public/partner/p/')) return [404, { ok: false, error: 'This partner page does not exist.' }];
   if (route === '/api/v2/partner/me') return [200, { ok: true, name: 'Priya Mehta', partner: ORG, role: 'owner', people: [{ name: 'Priya Mehta', phone: '+919811100021', role: 'owner' }] }];
   if (route === '/api/v2/admin/partners/contacts') return [200, { ok: true, contacts: CONTACTS }];
-  if (route === '/api/v2/admin/partners/forward' && method === 'POST') return [200, { ok: true, request: {}, recipients: [RECIP] }];
+  if (route === '/api/v2/admin/partners/forward' && method === 'POST') { try { LAST_FWD = JSON.parse(body || '{}'); } catch (_e) { LAST_FWD = {}; }
+    return [200, { ok: true, request: {}, recipients: [RECIP, RECIP2], need_sender: null, vendor_notice: { sent: true, line: 'TDW told the vendor on WhatsApp that her request has gone to partners.' } }]; }
   if (route === '/api/v2/admin/partners/' || route === '/api/v2/admin/partners') return [200, { ok: true, tab: 'unchecked', counts: { unchecked: 1, checked: 0, blocked: 0 }, partners: [ROW] }];
   if (route === '/api/v2/admin/partners/o1') return [200, { ok: true, partner: ROW, people: [{ name: 'Priya Mehta', phone: '+919811100021', role: 'owner' }], reports: [] }];
   if (route.startsWith('/api/v2/admin/')) return [200, { ok: true }];
@@ -76,7 +82,22 @@ const hasSel = (s) => !!document.querySelector(s);
 const hasText = (t) => document.body && document.body.innerText.includes(t);
 // e-275: teardown is bounded; past the limit the process tree is killed and the verdict still prints.
 const bounded = (pr, ms) => Promise.race([pr, new Promise((r) => setTimeout(() => r('TIMEOUT'), ms))]);
+// PTN-A2-4, the 20-run proof (8 Oct 2026): run 7 of 20 under load waited past 120 s for /partner/join while next dev
+// compiled the route for the first time on two busy cores. Wait on the thing itself first: the route answers from the
+// server (any status under 500), bounded at 300 s, once per route, before any browser wait on it (b297's fix).
+const WARM = new Set();
+async function warm(route) {
+  if (WARM.has(route)) return;
+  const end = Date.now() + 300000; let up = false;
+  while (!up && Date.now() < end) {
+    try { const r = await fetch(`http://localhost:${PORT}${route}`, { signal: AbortSignal.timeout(Math.max(1000, end - Date.now())) }); up = r.status < 500; } catch (_e) { /* compiling */ }
+    if (!up) await new Promise((r) => setTimeout(r, 500));
+  }
+  if (!up) throw new Error(`${route}: the route did not compile within 300 s`);
+  WARM.add(route);
+}
 async function open(b, route, mode, wait, { admin = false, partner = false } = {}) {
+  await warm(route);
   const ctx = await b.createBrowserContext(); const p = await ctx.newPage(); p.__ctx = ctx;
   p.__errs = []; p.on('pageerror', (e) => p.__errs.push(String(e && e.message || e).slice(0, 160)));
   await p.setViewport({ width: 374, height: 812, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
@@ -84,7 +105,7 @@ async function open(b, route, mode, wait, { admin = false, partner = false } = {
   for (const name of ['tdw_wl_mode', 'tdw_adm_mode']) await p.setCookie({ name, value: mode, domain: 'localhost', path: '/' });
   await p.evaluateOnNewDocument((admin, partner) => { try { if (admin) { localStorage.setItem('admin_session_token', 'x.y'); localStorage.setItem('admin_session_expires', String(Date.now() + 864e5)); } if (partner) localStorage.setItem('tdw_partner_token', 'p.t'); } catch (_e) { /* */ } }, admin, partner);
   await p.setRequestInterception(true);
-  p.on('request', (r) => { const u = r.url(); if (!u.includes('/__api/')) return r.continue(); const rt = u.split('/__api')[1].split('?')[0]; const [s, body] = answer(r.method(), rt); r.respond({ status: s, contentType: 'application/json', body: JSON.stringify(body) }); });
+  p.on('request', (r) => { const u = r.url(); if (!u.includes('/__api/')) return r.continue(); const rt = u.split('/__api')[1].split('?')[0]; const [s, body] = answer(r.method(), rt, r.postData()); r.respond({ status: s, contentType: 'application/json', body: JSON.stringify(body) }); });
   await p.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'domcontentloaded', timeout: 240000 });
   if (!(await until(p, hasSel, wait, 120000))) throw new Error(`${route} (${mode}): ${wait} never appeared in 120 s`);
   // A tap before React hydrates does nothing (the 20-run proof, 7 Oct 2026: §1.3 red in 8 of 8 runs once the fixed pause
@@ -134,6 +155,17 @@ if (MUT) {
     finally { fs.writeFileSync(MARK_FILE, orig2); }
     ok(red2, 'M2 the mark\'s null guard dropped reddens §3.2 (an empty tag drawn)');
     ok(crypto.createHash('sha256').update(fs.readFileSync(MARK_FILE, 'utf8')).digest('hex') === crypto.createHash('sha256').update(orig2).digest('hex'), 'M2 Mark.tsx restored byte for byte');
+  }
+  {
+    // M3 (PTN-A2-4): "Open in WhatsApp" made to ignore STOP -> §11.5 reddens.
+    const FWD = path.join(ROOT, 'app/admin/partners/forward/page.tsx');
+    const orig3 = fs.readFileSync(FWD, 'utf8'); const t3 = '(c.phone && !c.stopped ? '; let red3 = false;
+    if (!orig3.includes(t3)) { console.log('MUTATION TARGET NOT FOUND (M3)'); process.exit(1); }
+    fs.writeFileSync(FWD, orig3.replace(t3, '(c.phone ? '));
+    try { const r = require('child_process').spawnSync(process.execPath, [__filename], { encoding: 'utf8', env: { ...process.env, PORT: String(PORT + 3), B291_MUT_CHILD: '1' } }); red3 = r.status !== 0 && /FAIL  §11\.5/.test(r.stdout); if (!red3) console.log(r.stdout.slice(-1500)); }
+    finally { fs.writeFileSync(FWD, orig3); }
+    ok(red3, 'M3 "Open in WhatsApp" for a contact who replied STOP reddens §11.5');
+    ok(crypto.createHash('sha256').update(fs.readFileSync(FWD, 'utf8')).digest('hex') === crypto.createHash('sha256').update(orig3).digest('hex'), 'M3 the Forward page restored byte for byte');
   }
   console.log(`\nb291 --mutate: ${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
 }
@@ -216,15 +248,38 @@ const ONLY = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7);
       ok(/Tick "She asked for this" first\./.test(await p.evaluate(() => document.body.innerText)), `§6.1 refused without "She asked for this", in the ruled words (${mode})`);
       await p.evaluate(() => { const c = document.querySelector('[data-asked] input'); if (c) c.click(); });
       await until(p, () => { const c = document.querySelector('[data-asked] input'); return !!c && c.checked; }, null, 10000);
+      // §11 (PTN-A2-4): no first name, no messages; the name goes with the request and this phone remembers it.
+      LAST_FWD = null;
+      await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => /Make the messages/.test(x.innerText)); if (b) b.click(); });
+      await until(p, hasText, 'Write your first name before you make the messages. TDW puts it in each message.', 10000);
+      ok(LAST_FWD === null && /Write your first name before you make the messages\. TDW puts it in each message\./.test(await p.evaluate(() => document.body.innerText)), `§11.1 no first name: the page asks for it and sends nothing (${mode})`);
+      await p.evaluate(() => { const l = [...document.querySelectorAll('label')].find((x) => /Your first name/.test(x.innerText)); const i = l && l.querySelector('input'); if (i) i.focus(); });
+      await p.keyboard.type('Dev');
+      await until(p, () => { const l = [...document.querySelectorAll('label')].find((x) => /Your first name/.test(x.innerText)); const i = l && l.querySelector('input'); return !!i && i.value === 'Dev'; }, null, 10000);
       await p.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => /Make the messages/.test(x.innerText)); if (b) b.click(); });
       await until(p, hasText, 'Send each one yourself', 15000);
+      ok(!!LAST_FWD && LAST_FWD.sender === 'Dev' && (await p.evaluate(() => localStorage.getItem('tdw_admin_first_name'))) === 'Dev', `§11.2 the first name goes with the request, and this phone remembers it (${mode})`, JSON.stringify(LAST_FWD && LAST_FWD.sender));
+      ok(await p.evaluate(() => { const n = document.querySelector('[data-vendor-notice]'); return !!n && n.textContent === 'TDW told the vendor on WhatsApp that her request has gone to partners.'; }), `§11.3 the page says in one line whether TDW told the vendor (${mode})`);
       await p.evaluate(() => { const d = [...document.querySelectorAll('div')].find((x) => /This message is not sent yet\. Tap to open it\./.test(x.innerText) && x.style.cursor === 'pointer'); if (d) d.click(); });
       await until(p, hasSel, '[role=dialog]', 15000);
       const fs6 = await p.evaluate(() => { const d = document.querySelector('[role=dialog]'); if (!d) return null; return { text: d.innerText, out: [...d.querySelectorAll('[data-ext-link]')].map((a) => ({ t: a.textContent.trim(), h: a.getAttribute('href'), tg: a.getAttribute('target'), rel: a.getAttribute('rel') })) }; });
       const box6 = await p.evaluate(() => { const bx = document.querySelector('[role=dialog] [data-copybox]'); if (!bx) return null; return { kids: bx.children.length, text: (bx.querySelector('[data-copytext]') || {}).textContent, ctl: (bx.querySelector('[data-copyctl]') || {}).textContent }; });
-      ok(!!box6 && box6.kids === 2 && /^Hello Model Connect\./.test(box6.text || '') && box6.ctl === 'Copy message', `§6.4 R-46.17: the message sits in its own CopyBox, the text and its one control, nothing else (${mode})`, JSON.stringify(box6));
-      ok(!!fs6 && /Copy message/.test(fs6.text) && /I sent it/.test(fs6.text) && /See the request and answer here: https:\/\/thedreamwedding\.in\/request\/TOKEN/.test(fs6.text), `§6.2 the sheet: the message, Copy message and "I sent it" (${mode})`, fs6 && fs6.text.slice(0, 200));
+      ok(!!box6 && box6.kids === 2 && /^Hi Model Connect, this is Dev from The Dream Wedding\./.test(box6.text || '') && box6.ctl === 'Copy message', `§6.4 R-46.17: the message sits in its own CopyBox, the text and its one control, nothing else (${mode})`, JSON.stringify(box6));
+      ok(!!fs6 && /Copy message/.test(fs6.text) && /I sent it/.test(fs6.text) && /you can suggest someone in a minute: https:\/\/thedreamwedding\.in\/request\/TOKEN/.test(fs6.text), `§6.2 the sheet: the message, Copy message and "I sent it" (${mode})`, fs6 && fs6.text.slice(0, 200));
       ok(!!fs6 && fs6.out.some((a) => a.t === 'Open on Instagram' && a.h === 'https://www.instagram.com/modelconnect.in/') && fs6.out.some((a) => a.t === 'Open on Threads' && a.h === 'https://www.threads.com/@modelconnect.in') && fs6.out.every(goodAnchor), `§6.3 Open on Instagram and Open on Threads open in a new tab (${mode})`, fs6 && JSON.stringify(fs6.out));
+      // §11.4 the admin changes the text; the CopyBox and "Open in WhatsApp" carry the changed text, to the contact's number.
+      await p.evaluate(() => { const t = document.querySelector('[data-hand-edit]'); if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); } });
+      await p.keyboard.type(' See you soon.');
+      await until(p, () => { const t = document.querySelector('[data-copybox] [data-copytext]'); return !!t && /See you soon\.$/.test(t.textContent); }, null, 10000);
+      const w11 = await p.evaluate(() => ({ copy: (document.querySelector('[data-copybox] [data-copytext]') || {}).textContent, wa: (document.querySelector('[data-open-wa]') || { getAttribute: () => null }).getAttribute('href'), tg: (document.querySelector('[data-open-wa]') || { getAttribute: () => null }).getAttribute('target') }));
+      ok(/See you soon\.$/.test(w11.copy || '') && /^https:\/\/wa\.me\/919811100021\?text=/.test(w11.wa || '') && decodeURIComponent((w11.wa || '').split('?text=')[1] || '') === w11.copy && w11.tg === '_blank',
+        `§11.4 the changed text is in the CopyBox and in "Open in WhatsApp", to the contact's own number (${mode})`, JSON.stringify(w11).slice(0, 200));
+      await p.evaluate(() => { const c = [...document.querySelectorAll('[role=dialog] button')].find((x) => /close/i.test(x.getAttribute('aria-label') || x.innerText)); if (c) c.click(); });
+      await until(p, () => !document.querySelector('[role=dialog]'), null, 10000);
+      await p.evaluate(() => { const d = [...document.querySelectorAll('div')].filter((x) => /This message is not sent yet\. Tap to open it\./.test(x.innerText) && x.style.cursor === 'pointer'); const n = d.find((x) => /Neha Kapoor/.test(x.innerText)); if (n) n.click(); });
+      await until(p, hasSel, '[role=dialog]', 15000);
+      const s11 = await p.evaluate(() => ({ name: /Neha Kapoor/.test((document.querySelector('[role=dialog]') || {}).innerText || ''), wa: !!document.querySelector('[data-open-wa]'), copy: !!document.querySelector('[role=dialog] [data-copybox]') }));
+      ok(s11.name && !s11.wa && s11.copy, `§11.5 a contact who replied STOP: the message to copy, and NO "Open in WhatsApp" (${mode})`, JSON.stringify(s11));
       await close(p);
       // §7 is read from the source, not drawn: under NEXT_PUBLIC_USE_MOCKS the main page finds the mock vendor session
       // (lib/vendor/session.ts getVendorSession) and redirects before it paints. b20_a4 counts the same file's elements.
