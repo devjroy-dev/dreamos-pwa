@@ -98,7 +98,7 @@ export function ShootTogetherSheet({ onClose, onSent }: { onClose: () => void; o
   );
 }
 
-const SHEET_CSS = `
+export const SHEET_CSS = `
 .hub-scrim{position:fixed;inset:0;z-index:100;background:var(--atelier-overlay);display:flex;align-items:flex-end}
 .hub-sheet{width:100%;max-height:92dvh;overflow-y:auto;box-sizing:border-box;background:var(--atelier-sheet-bg);border-top:1px solid var(--atelier-sheet-border);border-radius:16px 16px 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom))}
 .hub-sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}

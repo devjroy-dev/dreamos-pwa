@@ -5,7 +5,7 @@
 //  - no check label anywhere (CE-47, 7 Oct 2026): no field for one exists here;
 //  - My people (CE-47 ruling, 7 Oct 2026): a vendor adds another vendor directly. An organisation or a person joins
 //    only through a credit they answered yes to. Nobody outside the vendor pool is on a list without having agreed.
-import { getJson, postJson, deleteJson } from '@/lib/vendor/api/_base';
+import { getJson, postJson, deleteJson, patchJson } from '@/lib/vendor/api/_base';
 
 export type HubKind = 'vendor' | 'org' | 'person';
 
@@ -50,6 +50,14 @@ export interface WaitingCredit { id: string; from: NameLink | null; shoot_words:
 export interface WorkedLine { key: string; from_call: boolean; shoot_name: string; city: string | null; month_words: string; with: NameLink[] }
 export interface MineReply { ok: boolean; my_calls: MyCall[]; applied: Applied[]; waiting_for_your_yes: WaitingCredit[]; worked_with: WorkedLine[]; shoot_requests_left: number; waiting_count: number; error?: string }
 
+// HUB-2e · "Your page": her own page as the server reads it (name, city and Instagram from her TDW profile), and her
+// portfolio pictures that may go on it (R-47.2: any picture of hers in her TDW portfolio, never one the safety check holds).
+export interface MyPage extends HubCard { open_to?: string[] }
+export interface MeReply { ok: boolean; hub_open?: boolean; page?: MyPage; line?: string; error?: string }
+export interface MyPicture { id: string; url: string; on_page: boolean }
+export interface PicturesReply { ok: boolean; pictures?: MyPicture[]; most?: number; error?: string }
+export interface PageSave { roles: string[]; open_to: string[]; website: string; work_urls: string[] }
+
 export interface PeopleQuery { role?: string | null; city?: string | null; open_to?: string | null; mine?: boolean }
 
 export const HUB_API = {
@@ -67,6 +75,7 @@ export const HUB_API = {
   mine: () => '/api/v2/vendor/hub/mine',
   work: (allCities = false) => `/api/v2/vendor/hub/work${allCities ? '?all_cities=1' : ''}`,
   me: () => '/api/v2/vendor/hub/me',
+  myPictures: () => '/api/v2/vendor/hub/me/pictures',
 } as const;
 
 export const fetchPeople = (q: PeopleQuery) => getJson<PeopleReply>(HUB_API.people(q));
@@ -77,6 +86,15 @@ export const fetchMine = () => getJson<MineReply>(HUB_API.mine());
 export const answerCredit = (id: string, yes: boolean) => postJson<DoorReply>(`/api/v2/vendor/hub/credits/${encodeURIComponent(id)}/${yes ? 'yes' : 'no'}`, {});
 /** "I am interested" on a call: the Collab room's existing door (HUB-1 kept it). */
 export const sayInterested = (callId: string) => postJson<DoorReply>(`/api/v2/vendor/collab/${encodeURIComponent(callId)}/respond`, { action: 'interested' });
+export const fetchMyPage = () => getJson<MeReply>(HUB_API.me());
+export const fetchMyPictures = () => getJson<PicturesReply>(HUB_API.myPictures());
+export const saveMyPage = (body: PageSave) => patchJson<MeReply>(HUB_API.me(), body);
+/** Where she changes her name, city and Instagram (the Discover profile editor), and where her pictures live. */
+export const PROFILE_HREF = '/vendor/discover/profile';
+export const PORTFOLIO_HREF = '/vendor/portfolio';
+/** The server's limits for her page (dream-os src/api/vendor/hub.js PATCH /me). */
+export const MAX_ROLES = 5;
+export const MAX_PICTURES = 12;
 export const sendShootRequests = (body: { shoot_name: string; city: string; month: string; people: string[] }) =>
   postJson<DoorReply>(HUB_API.credits(), body);
 
@@ -168,6 +186,37 @@ export const HUB = {
     noWorked: 'You have no confirmed shoots yet. A shoot appears here after the other person confirms it.',
   },
   close: 'Close',
+  // HUB-2e · "Your page" (R-47.1: lines are whole sentences; labels are names)
+  page: {
+    open: 'Your page',
+    title: 'Your page',
+    note: 'Anyone can open this page at your Collab Hub address. You choose what it shows below.',
+    address: 'Your address',
+    see: 'See your page',
+    fromProfile: 'Your name, city and Instagram come from your TDW profile. To change them, edit your profile.',
+    editProfile: 'Edit your profile',
+    name: 'Name',
+    city: 'City',
+    instagram: 'Instagram',
+    notAdded: 'Not added',
+    roles: 'What you do',
+    rolesNote: `You can choose up to ${MAX_ROLES}.`,
+    rolesFull: `You have chosen ${MAX_ROLES}, which is the most your page can show.`,
+    openTo: 'Open to',
+    website: 'Website',
+    websiteHint: 'yourwebsite.com',
+    pictures: 'Pictures',
+    picturesNote: (n: number) => `Choose up to ${n} pictures from your TDW portfolio. They appear on your page in the order you choose them.`,
+    picturesFull: (n: number) => `You have chosen ${n} pictures, which is the most your page can show.`,
+    noPictures: 'Your TDW portfolio has no pictures yet. Pictures you add to your portfolio can be chosen here.',
+    openPortfolio: 'Open your portfolio',
+    chosen: (n: number, m: number) => `${n} of ${m} chosen`,
+    save: 'Save',
+    saving: 'Saving…',
+    saved: 'Your page is saved.',
+    failed: 'Your page was not saved. Please try again.',
+    unread: 'Your page could not be opened. Please try again.',
+  },
   // R-47.1: what the app says when a request fails (each one says what did not happen, then what to do)
   failed: {
     send: 'Your request did not go through. Please try again.',

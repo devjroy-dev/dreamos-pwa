@@ -1,0 +1,22 @@
+# scripts/floor-manifest-ce47-hub2e-app.txt
+# CE-47 · HUB-2e APP · "Your page" from Mine: her name, city and Instagram shown from her TDW profile (never sent; Edit your profile opens /vendor/discover/profile), what she does (up to 5), open to, website, and up to 12 pictures chosen only from her TDW portfolio as the server lists them (R-47.2; no uploader). BASE: 0038eb41 (app train 7). Server: HUB2E_SRV_1.
+# New cells, no label amended: b285 §10 (10.1 to 10.6, M13, M14); b190 §1e (1e.0 to 1e.4, P1, P2) and its stubs for /hub/me, /hub/me/pictures and PATCH /hub/me.
+# Against the base: sha256 · ADDED / CHANGED / DELETED · path
+# 821d24b2fa6a4ae9e0aa76eed3300a82a70a16a7117f7d4ebdf8892c52dabbb3 · ADDED · docs/handovers/TDW_CE47_HUB2E_APP_HANDOVER.md
+# dd92f28243d5324bd714ee9a318f7d984db3cfc03646384e00d1e00dbf7b400e · ADDED · docs/handovers/b285_ledger_HUB2E.txt
+# 84fda41008d7f66b284e8bed8e9374207740a4cbd536e76375ef3af490e8eb58 · CHANGED · scripts/b190_fe6_collab_room_bench.js
+# 805c3b0fe2f8ca544b8d3d8c298a73960bd9bd10d1fe58646dd6a508d8ef8c55 · CHANGED · scripts/b285_hub2_app_bench.js
+# f861dc0e11944f00ca1e5c94b8fa6bd995500b5aa161ed04348677e37578eb47 · CHANGED · v2/components/vendor/hub/HubMine.tsx
+# 5b1b731aaad679d34a0209eb9f7d396a737005bd67d4df56f338fb901f8a24cb · CHANGED · v2/components/vendor/hub/ShootTogetherSheet.tsx
+# fdaa8c9de463a2c2c331259dd5f8711ae4951ca1d5c34ad56547a27d0f80f43a · ADDED · v2/components/vendor/hub/YourPageSheet.tsx
+# ca86eaf2b5ed75bf7458e1c9c04bc3c6a951684e6b42822611ee344ebe98dc5b · CHANGED · v2/lib/vendor/hub.ts
+# (this file) · ADDED · scripts/floor-manifest-ce47-hub2e-app.txt
+docs/handovers/TDW_CE47_HUB2E_APP_HANDOVER.md
+docs/handovers/b285_ledger_HUB2E.txt
+scripts/b190_fe6_collab_room_bench.js
+scripts/b285_hub2_app_bench.js
+v2/components/vendor/hub/HubMine.tsx
+v2/components/vendor/hub/ShootTogetherSheet.tsx
+v2/components/vendor/hub/YourPageSheet.tsx
+v2/lib/vendor/hub.ts
+scripts/floor-manifest-ce47-hub2e-app.txt

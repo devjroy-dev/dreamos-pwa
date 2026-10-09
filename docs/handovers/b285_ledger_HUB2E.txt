@@ -1,0 +1,22 @@
+SERIES START 16:10:41 · base 0038eb41 + HUB2E_APP_1 · load: b59_v2 and ce41_e2i looping · each run with its 14 mutations through mutation_guard
+run 1 · b285 · 58 pass · 0 fail · rc 0 · 16:10:49
+run 2 · b285 · 58 pass · 0 fail · rc 0 · 16:10:56
+run 3 · b285 · 58 pass · 0 fail · rc 0 · 16:11:04
+run 4 · b285 · 58 pass · 0 fail · rc 0 · 16:11:12
+run 5 · b285 · 58 pass · 0 fail · rc 0 · 16:11:19
+run 6 · b285 · 58 pass · 0 fail · rc 0 · 16:11:28
+run 7 · b285 · 58 pass · 0 fail · rc 0 · 16:11:35
+run 8 · b285 · 58 pass · 0 fail · rc 0 · 16:11:43
+run 9 · b285 · 58 pass · 0 fail · rc 0 · 16:11:50
+run 10 · b285 · 58 pass · 0 fail · rc 0 · 16:11:58
+run 11 · b285 · 58 pass · 0 fail · rc 0 · 16:12:05
+run 12 · b285 · 58 pass · 0 fail · rc 0 · 16:12:13
+run 13 · b285 · 58 pass · 0 fail · rc 0 · 16:12:20
+run 14 · b285 · 58 pass · 0 fail · rc 0 · 16:12:27
+run 15 · b285 · 58 pass · 0 fail · rc 0 · 16:12:35
+run 16 · b285 · 58 pass · 0 fail · rc 0 · 16:12:43
+run 17 · b285 · 58 pass · 0 fail · rc 0 · 16:12:50
+run 18 · b285 · 58 pass · 0 fail · rc 0 · 16:12:57
+run 19 · b285 · 58 pass · 0 fail · rc 0 · 16:13:05
+run 20 · b285 · 58 pass · 0 fail · rc 0 · 16:13:12
+SERIES END 16:13:12 · not green: 0

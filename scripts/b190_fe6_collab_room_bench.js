@@ -79,6 +79,7 @@ const HUB_WORK = { ok: true, city: 'Delhi', roles: ['photographer'], all_cities:
 const HUB_MINE = { ok: true, my_calls: [{ id: 'c1', title: 'Photography needed', event_date: '2026-12-12', city: 'Delhi', details: 'Rooftop editorial', state: 'open', interested: 3, picked: 0, sent_by_tdw: false, line: null }, { id: 'c2', title: 'Decor needed', event_date: '2026-12-14', city: 'Delhi', details: null, state: 'open', interested: 0, picked: 0, sent_by_tdw: false, line: null }], applied: [], waiting_for_your_yes: [{ id: 'k1', from: { name: 'Aman Frames', page_url: 'https://thedreamwedding.in/c/amanframes' }, shoot_words: 'Summer colour shoot \u00b7 Noida \u00b7 July 2026' }], worked_with: [], shoot_requests_left: 20, waiting_count: 2 };
 
 let SERVER = null; let BROWSER = null;
+let PATCHED = null;   // HUB-2e: the last body "Your page" sent to PATCH /hub/me
 async function stopAll() {
   let portFree = true;
   try { if (BROWSER) await BROWSER.close(); } catch (_e) { /* gone */ }
@@ -96,7 +97,11 @@ async function main() {
   if (!ok(await SERVER.up(), '0.1 the dev server came up')) return;
   BROWSER = await puppeteer.launch({ executablePath: process.env.B190_CHROME || await chromium.executablePath(), headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  const HUB_ME = { open: { ok: true, hub_open: true, page: { city: 'Delhi' } }, closed: { ok: true, hub_open: false, line: 'Collab Hub is not open for your account yet.' }, thin: { ok: true, hub_open: true } };
+  // HUB-2e: her page as GET /hub/me sends it (name, city and Instagram from her TDW profile), and her portfolio pictures
+  const MY_PAGE = { id: 'pg-me', handle: 'teststudio.one', name: 'Test Studio One', kind: 'vendor', roles: ['photography'], city: 'Delhi', open_to: [], open_to_words: [], instagram: { handle: 'teststudio.one', url: 'https://www.instagram.com/teststudio.one/' }, website: null, page_url: 'https://thedreamwedding.in/c/teststudio.one', work: [] };
+  const PIC = (c) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50"><rect width="40" height="50" fill="${c}"/></svg>`)}`;
+  const MY_PICTURES = { ok: true, pictures: [{ id: 'pic-a', url: PIC('#7a6a5a'), on_page: false }, { id: 'pic-b', url: PIC('#5a6a7a'), on_page: false }, { id: 'pic-c', url: PIC('#6a7a5a'), on_page: false }], most: 12 };
+  const HUB_ME = { open: { ok: true, hub_open: true, page: MY_PAGE }, closed: { ok: true, hub_open: false, line: 'Collab Hub is not open for your account yet.' }, thin: { ok: true, hub_open: true } };
   async function open(width = 374, mode = 'open') {
     const p = await BROWSER.newPage();
     await p.setViewport({ width, height: 812, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
@@ -116,6 +121,8 @@ async function main() {
       if (route === '/api/v2/vendor/hub/work') return J(HUB_WORK);
       if (route === '/api/v2/vendor/hub/people') return J({ ok: true, people: HUB_PEOPLE, line: 'No messages inside TDW.' });
       if (route === '/api/v2/vendor/hub/mine') return J(HUB_MINE);
+      if (route === '/api/v2/vendor/hub/me/pictures') return J(MY_PICTURES);
+      if (route === '/api/v2/vendor/hub/me' && r.method() === 'PATCH') { try { PATCHED = JSON.parse(r.postData() || '{}'); } catch (_e) { PATCHED = { unreadable: true }; } return J({ ok: true, page: MY_PAGE, line: 'Your page is saved.' }); }
       if (route === '/api/v2/vendor/hub/me') return mode === 'unreadable' ? r.respond({ status: 500, contentType: 'text/plain', body: 'not json' }) : J(HUB_ME[mode]);
       if (/requirement-types|requirement_types/.test(route)) return J({ ok: true, requirement_types: ['second_shooter', 'hair_stylist', 'photographer'] });
       return J({ ok: true });
@@ -182,6 +189,36 @@ async function main() {
     const L = await q(p, () => { const root = document.querySelector('.wl-main') || document.body; const out = []; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) { if (n.parentElement && /^(SCRIPT|STYLE)$/.test(n.parentElement.tagName)) continue; const t = n.textContent.trim(); if (t) out.push(t); } return out; });
     ok(L && !L.some((t) => /couple/i.test(t)) && !L.includes('+ Post'), '1.8 no "couple"; "+ Post" gone', L && L.filter((t) => /couple|\+ Post/i.test(t)).join(' | '));
     await p.close();
+    sec('§1e "Your page" (HUB-2e)');
+    PATCHED = null;
+    p = await open(374);
+    if (ok(p.found, '1e.0 the room is on glass')) {
+      await tab(p, 'Mine');
+      await untilTrue(p, () => !!document.querySelector('[data-hub-page-open]'), 8000);
+      await p.evaluate(() => { const b = document.querySelector('[data-hub-page-open]'); if (b) b.click(); }).catch(() => null);
+      const up = await untilTrue(p, () => !!document.querySelector('[data-hub-page-sheet] [data-hub-page-pictures]'), 8000);
+      const shown = await q(p, () => { const s = document.querySelector('[data-hub-page-sheet]'); if (!s) return null;
+        return { t: s.innerText, inputs: [...s.querySelectorAll('input')].map((i) => (i.hasAttribute('data-hub-page-website') ? 'website' : i.type)), file: !!s.querySelector('input[type=file]'),
+          edit: (s.querySelector('[data-hub-page-edit-profile]') || { getAttribute: () => null }).getAttribute('href') }; });
+      ok(up && shown && /Test Studio One/.test(shown.t) && /Delhi/.test(shown.t) && /teststudio\.one/.test(shown.t) && shown.inputs.join(',') === 'website' && !shown.file && shown.edit === '/vendor/discover/profile'
+        && /Your name, city and Instagram come from your TDW profile\. To change them, edit your profile\./.test(shown.t),
+        '1e.1 "Your page" from Mine: her name, city and Instagram shown and not edited here (Edit your profile goes to her profile editor); her website is the only typed field; no uploader', JSON.stringify(shown).slice(0, 220));
+      await p.evaluate(() => { const b = [...document.querySelectorAll('[data-hub-page-pictures] button')]; if (b[1]) b[1].click(); }).catch(() => null);
+      await p.evaluate(() => { const b = [...document.querySelectorAll('[data-hub-page-pictures] button')]; if (b[0]) b[0].click(); }).catch(() => null);
+      const pics = await q(p, () => { const probe = document.createElement('i'); probe.style.color = 'var(--role-primary)'; document.querySelector('[data-hub-page-sheet]').appendChild(probe); const want = getComputedStyle(probe).color; probe.remove();
+        return { want, b: [...document.querySelectorAll('[data-hub-page-pictures] button')].map((b) => [b.getAttribute('aria-pressed'), (b.querySelector('.hub-pic-n') || { textContent: '' }).textContent, getComputedStyle(b).borderTopColor]) }; });
+      ok(pics && pics.b.length === 3 && JSON.stringify(pics.b.map((x) => [x[0], x[1]])) === JSON.stringify([['true', '2'], ['true', '1'], ['false', '']]) && pics.b[0][2] === pics.want && pics.b[1][2] === pics.want && pics.b[2][2] !== pics.want,
+        '1e.2 a tapped picture is chosen and numbered in the order she tapped it, its frame in the primary colour (veto 54)', JSON.stringify(pics));
+      await p.evaluate(() => { const c = [...document.querySelectorAll('[data-hub-page-open-to] button')].find((x) => x.innerText.trim() === 'Paid'); if (c) c.click(); }).catch(() => null);
+      await p.evaluate(() => { const w = document.querySelector('[data-hub-page-website]'); if (w) { const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; set.call(w, 'teststudio.example'); w.dispatchEvent(new Event('input', { bubbles: true })); } }).catch(() => null);
+      await p.evaluate(() => { const b = document.querySelector('[data-hub-page-save]'); if (b) b.click(); }).catch(() => null);
+      const sent = await untilTrue(p, () => !document.querySelector('[data-hub-page-sheet]'), 8000);
+      ok(sent && PATCHED && JSON.stringify(Object.keys(PATCHED).sort()) === '["open_to","roles","website","work_urls"]' && JSON.stringify(PATCHED.work_urls) === JSON.stringify([MY_PICTURES.pictures[1].url, MY_PICTURES.pictures[0].url])
+        && JSON.stringify(PATCHED.open_to) === '["paid"]' && PATCHED.website === 'teststudio.example' && JSON.stringify(PATCHED.roles) === '["photography"]',
+        '1e.3 Save sends her roles, what she is open to, her website and her pictures in her order, and never her name, city or Instagram', JSON.stringify(PATCHED));
+      ok(await untilTrue(p, () => /Your page is saved\./.test((document.querySelector('[data-hub-mine]') || {}).innerText || ''), 8000), '1e.4 the sheet closes and Mine shows the server’s line');
+    }
+    await p.close();
     sec('§1b a closed vendor: today\u2019s room, a32fbf4e\u2019s cells verbatim');
     p = await open(374, 'closed');
     if (!ok(p.found, '1b.0 the room is on glass within 180 s')) { await p.close(); }
@@ -236,6 +273,9 @@ async function main() {
       // (the shell's own button rule wins over a class's text-transform, so the capitals are planted in the words themselves)
       ['N2 the switch back in capitals', PAGE, "            {label(t)}\n          </button>", "            {label(t).toUpperCase()}\n          </button>", '1.2'],
       ['N3 "Add to my people" drawn on a person', 'v2/components/vendor/hub/HubPeople.tsx', "              {p.can_add && (", "              {(p.can_add || p.kind !== 'vendor') && (", '1.4'],
+      // HUB-2e: "Your page"
+      ['P1 a chosen picture marked by its number only', 'v2/components/vendor/hub/YourPageSheet.tsx', ".hub-pic.on{border-color:var(--role-primary)}", ".hub-pic.on{border-color:transparent}", '1e.2'],
+      ['P2 her city sent with the save', 'v2/components/vendor/hub/YourPageSheet.tsx', "saveMyPage({ roles, open_to: openTo, website: website.trim(), work_urls: chosen })", "saveMyPage({ roles, open_to: openTo, website: website.trim(), work_urls: chosen, city: page ? page.city : null } as never)", '1e.3'],
       // HUB-2d: the founder's walk
       ['H1 the chosen tab back to a thin underline', PAGE, ".col-seg button.on{background:var(--role-primary);color:var(--role-on-primary)}", ".col-seg button.on{background:var(--atelier-card-bg);color:var(--atelier-ink);box-shadow:inset 0 -2px 0 var(--atelier-accent-text)}", '1.10'],
       ['H2 Mine titles a call by its details again', 'v2/components/vendor/hub/HubMine.tsx', "{c.title || c.details || HUB.mine.untitled}", "{c.details || 'A call'}", '1.9'],

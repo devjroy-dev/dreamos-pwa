@@ -13,11 +13,13 @@ import { fmtDate } from '@/lib/vendor/collabFormat';
 import { HUB, arr, fetchMine, answerCredit, linkProps, type MineReply, type NameLink } from '@/v2/lib/vendor/hub';
 import { HUB_CSS } from './HubPeople';
 import { ShootTogetherSheet } from './ShootTogetherSheet';
+import { YourPageSheet } from './YourPageSheet';
 
 export function HubMine({ reloadKey = 0, onChanged }: { reloadKey?: number; onChanged?: () => void }) {
   const router = useRouter();
   const [d, setD] = useState<MineReply | null>(null);
   const [sheet, setSheet] = useState(false);
+  const [pageSheet, setPageSheet] = useState(false);   // HUB-2e: "Your page"
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -46,6 +48,8 @@ export function HubMine({ reloadKey = 0, onChanged }: { reloadKey?: number; onCh
   return (
     <div data-hub-mine="">
       <style>{HUB_CSS + MINE_CSS}</style>
+      {/* HUB-2e: her page at /c/<handle>, opened from here (the chair's ruling, 8 Oct 2026) */}
+      <div className="hub-btns"><button type="button" className="hub-btn s hub-wide" data-hub-page-open="" onClick={() => setPageSheet(true)}>{HUB.page.open}</button></div>
       <h2 className="hub-h">{HUB.mine.myCalls(d.my_calls.length)}</h2>
       {d.my_calls.length === 0 ? <p className="hub-note">{HUB.mine.noCalls}</p> : (
         <div className="hub-card hub-list">
@@ -101,6 +105,7 @@ export function HubMine({ reloadKey = 0, onChanged }: { reloadKey?: number; onCh
         <button type="button" className="hub-btn s hub-wide" data-hub-shoot-open="" onClick={() => setSheet(true)}>{HUB.shoot.open}</button>
       </div>
       {note && <p className="hub-small bad" role="alert">{note}</p>}
+      {pageSheet && <YourPageSheet onClose={() => setPageSheet(false)} onSaved={(line) => { setPageSheet(false); setNote(line); }} />}
       {sheet && <ShootTogetherSheet onClose={() => setSheet(false)} onSent={(line) => { setSheet(false); setNote(line || ''); load(); }} />}
     </div>
   );

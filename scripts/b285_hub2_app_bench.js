@@ -12,6 +12,8 @@
 //   §7 the public page: noindex, a neutral miss with no status code, links only through out(), no phone or email field
 //   §9 HUB-2d (the founder's walk, 8 Oct 2026): Mine titles a call by the server's title; the chosen tab is filled; the
 //      chair's People line word for word; "a, b and c" for what is not in yet; the old words gone; the plain words held
+//   §10 HUB-2e "Your page": name, city and Instagram shown, never sent; pictures only from the server's list (no uploader);
+//      the limits the server holds; the chosen picture marked with the primary; Mine opens it; every line a whole sentence
 //   §8 mutations of production code (each must red its cell in a child run; restored by sha; e-277 pre-check first)
 //      F-44.419 (CE-47 lesson 5, 8 Oct 2026): every mutation goes through scripts/lib/mutation_guard.js (kept copy and
 //      marker written and synced BEFORE the change, so a SIGKILL or a full disk leaves the tree recoverable), a killed
@@ -40,8 +42,9 @@ const F = {
   room: 'v2/lib/worklist/collabRoom.ts',
   form: 'v2/components/vendor/CollabPostForm.tsx',
   help: 'v2/lib/worklist/pageHelp.ts',
+  page: 'v2/components/vendor/hub/YourPageSheet.tsx',   // HUB-2e
 };
-const APP_FILES = [F.hub, F.people, F.work, F.mine, F.sheet, F.pub, F.screen, F.room];   // CollabRoomBefore is today's code, held by b190 1b
+const APP_FILES = [F.hub, F.people, F.work, F.mine, F.sheet, F.pub, F.screen, F.room, F.page];   // F.page: HUB-2e   // CollabRoomBefore is today's code, held by b190 1b
 
 /** linkProps, taken from hub.ts and run (TypeScript's own transpiler; the function has no imports). */
 function loadLinkProps() {
@@ -140,6 +143,24 @@ function cells() {
   const sentences = (code(hubSrc).match(/'[^'\n]{12,}'|`[^`\n]{12,}`/g) || []);
   ok(!sentences.some((x) => /\u2014/.test(x)), '9.6 no em dash in any Hub sentence', sentences.filter((x) => /\u2014/.test(x)).join(' | '));
 
+  sec('10  HUB-2e: "Your page"');
+  const pg = code(read(F.page)); const hubS = read(F.hub);
+  ok(/saveMyPage\(\{ roles, open_to: openTo, website: website\.trim\(\), work_urls: chosen \}\)/.test(pg) && !/type="file"|type=\{?'file'/.test(pg) && /export interface PageSave \{ roles: string\[\]; open_to: string\[\]; website: string; work_urls: string\[\] \}/.test(hubS),
+    '10.1 Save sends only her roles, what she is open to, her website and her pictures; her name, city and Instagram are never sent; there is no uploader');
+  ok(/export const PROFILE_HREF = '\/vendor\/discover\/profile';/.test(hubS) && /export const PORTFOLIO_HREF = '\/vendor\/portfolio';/.test(hubS)
+    && /<Link href=\{PROFILE_HREF\} className="hub-btn s"/.test(pg) && /<Link href=\{PORTFOLIO_HREF\} className="hub-btn s"/.test(pg),
+    '10.2 "Edit your profile" opens her profile editor and "Open your portfolio" her portfolio, both as quiet buttons');
+  ok(/export const MAX_ROLES = 5;/.test(hubS) && /export const MAX_PICTURES = 12;/.test(hubS) && /if \(chosen\.length >= most\)/.test(pg) && /setMost\(d\.most\)/.test(pg) && /if \(roles\.length >= MAX_ROLES\)/.test(pg),
+    '10.3 the limits are the server\u2019s: 5 roles, and the number of pictures the server sends (12)');
+  ok(/\.hub-pic\.on\{border-color:var\(--role-primary\)\}/.test(read(F.page)) && /\.hub-pic-n\{[^}]*background:var\(--role-primary\);color:var\(--role-on-primary\)/.test(read(F.page)) && /className=\{'hub-chip' \+ \(roles\.includes\(r\) \? ' on' : ''\)\}/.test(pg),
+    '10.4 a chosen picture and a chosen chip are marked with the primary colour (veto 54)');
+  ok(/data-hub-page-open="" onClick=\{\(\) => setPageSheet\(true\)\}>\{HUB\.page\.open\}/.test(code(read(F.mine))) && /\{pageSheet && <YourPageSheet /.test(code(read(F.mine))),
+    '10.5 Mine opens "Your page"');
+  const pageLines = ['note', 'fromProfile', 'rolesNote', 'rolesFull', 'noPictures', 'saved', 'failed', 'unread'].map((k) => (hubS.match(new RegExp(`\\n    ${k}: (?:'([^'\\n]*)'|\`([^\`\\n]*)\`),`)) || [])).map((m) => m[1] || m[2] || '');
+  const fnLines = [(hubS.match(/picturesNote: \(n: number\) => `([^`]*)`/) || [])[1] || '', (hubS.match(/picturesFull: \(n: number\) => `([^`]*)`/) || [])[1] || ''];
+  const all = pageLines.concat(fnLines);
+  ok(all.every((l) => l && /^[A-Z]/.test(l) && /\.$/.test(l) && !/\u2014/.test(l)), '10.6 every line on "Your page" is a whole sentence with no em dash (R-47.1)', all.filter((l) => !(l && /^[A-Z]/.test(l) && /\.$/.test(l))).join(' | '));
+
   sec('7  the public page');
   const pub2 = code(read(F.pub));
   ok(/robots: \{ index: false, follow: false \}/.test(pub2), '7.1 noindex, for every kind of owner (until HUB-3)');
@@ -149,6 +170,8 @@ function cells() {
 }
 
 const MUTS = [
+  ['v2/components/vendor/hub/YourPageSheet.tsx', "saveMyPage({ roles, open_to: openTo, website: website.trim(), work_urls: chosen })", "saveMyPage({ roles, open_to: openTo, website: website.trim(), work_urls: chosen, city: page ? page.city : null } as never)", 'M13 her city sent with the save', '10.1'],
+  ['v2/components/vendor/hub/YourPageSheet.tsx', ".hub-pic.on{border-color:var(--role-primary)}", ".hub-pic.on{border-color:transparent}", 'M14 a chosen picture marked by its number only', '10.4'],
   ['v2/lib/worklist/pageHelp.ts', "['list', 'Work shows calls from other vendors who need your craft.'],", "['list', 'Opportunities are posts from others. My posts are yours.'],", 'M12 the card back to the old room', '6.4'],
   ['v2/components/vendor/hub/HubMine.tsx', "{c.title || c.details || HUB.mine.untitled}", "{c.details || 'A call'}", 'M10 Mine titles a call by its details again', '9.1'],
   ['v2/app/vendor/(shell)/collab/screen.tsx', ".col-seg button.on{background:var(--role-primary);color:var(--role-on-primary)}", ".col-seg button.on{background:var(--atelier-card-bg);color:var(--atelier-ink);box-shadow:inset 0 -2px 0 var(--atelier-accent-text)}", 'M11 the chosen tab back to a thin underline', '9.2'],
