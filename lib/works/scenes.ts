@@ -138,8 +138,8 @@ export const DOORS = {
 /** The storefront's two photographs, in this order: her website's two look tiles and Discover's two tiles (the chair's
  *  two addresses, LAND-1 package 2, 10 Oct 2026). The one place they are named. */
 export const LOOK_PHOTOS = [
-  'https://res.cloudinary.com/dccso5ljv/image/upload/v1788328622/vendor_portfolio/a8c52506-d363-4a36-9cec-09b50cc32c4c/ig-5a637b957f1d.jpg',
-  'https://res.cloudinary.com/dccso5ljv/image/upload/v1788328616/vendor_portfolio/a8c52506-d363-4a36-9cec-09b50cc32c4c/ig-eca46f60edfc.jpg',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/c_fill,g_auto,ar_9:8,w_720,q_auto/v1788328622/vendor_portfolio/a8c52506-d363-4a36-9cec-09b50cc32c4c/ig-5a637b957f1d.jpg',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/c_fill,g_auto,ar_9:8,w_720,q_auto/v1788328616/vendor_portfolio/a8c52506-d363-4a36-9cec-09b50cc32c4c/ig-eca46f60edfc.jpg',
 ] as const;
 
 /** The first scene a visitor sees on landing is drawn at random from these five (the chair, 10 Oct 2026; the founder to
