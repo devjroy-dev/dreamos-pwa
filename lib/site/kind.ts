@@ -24,6 +24,8 @@ export async function siteKind(code: string, fresh: boolean): Promise<'classic' 
 export function sitePath(path: string): { code: string; to: string } | null {
   let r = /^\/v\/([^/]+)\/?$/.exec(path); if (r) return { code: decodeURIComponent(r[1]), to: `/site/${r[1]}` };
   r = /^\/v\/([^/]+)\/(looks|work|acts|events)\/([a-z0-9][a-z0-9-]{0,79})\/?$/.exec(path); if (r) return { code: decodeURIComponent(r[1]), to: `/site/${r[1]}/${r[2]}/${r[3]}` };
+  // CE-47 OFF-A2: an off-season shop item's page (/shop/<slug>), on the styles site only.
+  r = /^\/v\/([^/]+)\/shop\/([a-z0-9][a-z0-9-]{0,59})\/?$/.exec(path); if (r) return { code: decodeURIComponent(r[1]), to: `/site/${r[1]}/shop/${r[2]}` };
   r = /^\/v\/([^/]+)\/collections\/([a-z0-9][a-z0-9-]{0,79})\/?$/.exec(path); if (r) return { code: decodeURIComponent(r[1]), to: `/site/${r[1]}/collections/${r[2]}` };
   return null;
 }

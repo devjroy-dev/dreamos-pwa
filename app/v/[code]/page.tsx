@@ -53,6 +53,8 @@ import VendorProfileContent, { PROFILE_PALETTE, HERO_PALETTE } from '@/component
 import { heroSelectRules } from '@/lib/public/heroSelectRules.mjs';
 import { stripMetaPlaceholder } from '@/lib/public/metaPlaceholder';
 import { publicUrlFor } from '@/lib/public/vendorHost';
+// CE-47 OFF-A2 · the storefront row: her shown off-season shop items, each with its own Ask (CE-47 Q-A).
+import { fetchShop, classicShopRow, askScript } from '@/lib/site/shop';
 // R-G11.15 · the two bytes this leaf shares with the wedding page now live in
 // one home. Nothing is re-voiced; these read exactly as they read before.
 import { PUBLIC_MISS, PUBLIC_COLOPHON, PUBLIC_COLOPHON_LEAD, PUBLIC_ENQUIRE_LABEL, PUBLIC_DATE_CHECK, PUBLIC_WEDDINGS_LABEL } from '@/lib/public/copy';
@@ -407,6 +409,8 @@ export default async function PublicVendorPage(
     ? [hero, ...(card.photos || []).filter((p) => p !== hero)]
     : [];
   const wa = card.enquire_link;
+  // CE-47 OFF-A2: her shown shop items from OFF-A1's public door; none (or the shop shut, or the door down) draws nothing.
+  const shop = await fetchShop(card.handle || code);
 
   return (
     <main className="pv pv-card">
@@ -779,6 +783,15 @@ export default async function PublicVendorPage(
             </a>
           ))}
         </section>
+      )}
+
+      {/* CE-47 OFF-A2 · THE STOREFRONT ROW (Q-A). Each item opens its own Ask in place: the same public door, the same
+          thank-you and G2 lines as her styles site (lib/site/shop.ts draws both; every word in it is escaped there). */}
+      {shop.length > 0 && (
+        <>
+          <div dangerouslySetInnerHTML={{ __html: classicShopRow(shop, card.business_name || '') }} />
+          <script dangerouslySetInnerHTML={{ __html: askScript(API_BASE, card.handle || code) }} />
+        </>
       )}
 
       <footer className="pv-close">

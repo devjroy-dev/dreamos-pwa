@@ -68,7 +68,7 @@ export function middleware(request: NextRequest): NextResponse | Promise<NextRes
   // own address rewritten to one) waits for the answer; every other request stays synchronous, exactly as before. The
   // switch's module is loaded only on that branch.
   const target = d && d.kind === 'rewrite' ? d.pathname : path;
-  if (/^\/v\/[^/]+(\/(looks|work|acts|events|collections)\/[^/]+)?\/?$/.test(target) && url.searchParams.get('_tdw') !== 'classic') {
+  if (/^\/v\/[^/]+(\/(looks|work|acts|events|collections|shop)\/[^/]+)?\/?$/.test(target) && url.searchParams.get('_tdw') !== 'classic') {
     return (async () => {
       const { siteKind, sitePath } = await import('@/lib/site/kind');
       const sp = sitePath(target);

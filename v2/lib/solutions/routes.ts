@@ -320,6 +320,8 @@ export const API = {
 // ROOM_HREFS gains `reminders: PAYMENT_REMINDERS_HREF` and the row's chip flips
 // from Coming to Open. `ROOM_ROWS`' label is R-40.1's byte and is not touched.
 export const PAYMENT_REMINDERS_HREF = '/vendor/payment-reminders';
+/** The room's doors (dream-os OFF-A1: src/api/vendor/solutions/shop.js, mounted at /solutions/shop). */
+export const SHOP_API_PATH = '/api/v2/vendor/solutions/shop';
 
 // ── CE-42 · 4a PACKET 3b · INTRODUCTIONS — THE SIXTH CONSTANT ──────────────
 // R-42.8's screen, and the TENTH row of the hub. Introductions is NOT a
@@ -492,7 +494,7 @@ export const ROOM_HREFS: Record<RoomKey, string> = {
 // CE-47 hub cut (INS): the nine join, Option A as the chair ruled it (6 October 2026). Each seat removes ONLY its own key,
 // in the same edit that replaces its shell page. "No ninth chip" stands: the chip is still CHIPS.coming, one word.
 export const PREVIEW_KEYS: ReadonlySet<RoomKey> = new Set<RoomKey>(['dates', 'number',
-  'rebooking', 'quotes', 'payment_links', 'shop', 'brands', 'trends']);   // CE-47 INS-A: `insurance` left (its room landed, on PRO's bytes)
+  'rebooking', 'quotes', 'payment_links', 'brands', 'trends']);   // CE-47 INS-A: `insurance` left (its room landed, on PRO's bytes)
 
 /**
  * CE-45 FE-1 · THE ONE RESOLVER FROM A SHELF ITEM TO ITS ROUTE (q2: the pin key space is the

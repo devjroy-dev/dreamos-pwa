@@ -6,6 +6,7 @@ import { html, raw, href, esc, type Raw } from '../html';
 import { heartBtn, quotes, rs, HEART_SVG, PLAY_SVG, lq, quoteLink } from '../parts';
 import { at, srcset, pos } from '../img';
 import type { SiteCard, Section, Photo } from '../card';
+import { shopSection, type CardWithShop } from '../shop';
 import type { StyleCtx } from './index';
 
 // couture.html:491-517, per trade: the "new in" pair and the collections title (the style's defaults).
@@ -128,7 +129,9 @@ function enquire(c: SiteCard, x: StyleCtx, sec: Section): Raw {
     ${c.site.credit ? html`<div class="credit">Made with The Dream Wedding</div>` : ''}
   </footer>`;
 }
-const DRAW: Record<string, (c: SiteCard, x: StyleCtx, s: Section) => Raw> = { cover, looks, band, collections, reviews, pricing, studio, faq, enquire };
+const DRAW: Record<string, (c: SiteCard, x: StyleCtx, s: Section) => Raw> = { cover, looks, band, collections, reviews, pricing, studio, faq, enquire,
+  // CE-47 OFF-A2: the off-season shop, in this style's own section head (lib/site/shop.ts).
+  shop: (c, _x, sec) => shopSection('couture', (c as CardWithShop).shop || [], sec, (c as CardWithShop).shop_base || '') };
 
 export const couture = {
   id: 'couture',

@@ -3,7 +3,8 @@
 // styles card, goes to the classic answer for her home.
 import { fetchCard, isStyles } from '@/lib/site/card';
 import { fetchLook } from '@/lib/site/look';
-import { lookDocument } from '@/lib/site/doc';
+import { lookDocument, shopItemDocument } from '@/lib/site/doc';
+import { fetchShop } from '@/lib/site/shop';
 import { respond } from '@/lib/site/respond';
 import { publicUrlFor } from '@/lib/public/vendorHost';
 import { stripMetaPlaceholder } from '@/lib/public/metaPlaceholder';
@@ -18,6 +19,14 @@ export async function GET(req: Request, ctx: { params: Promise<{ code: string; w
   if (!isStyles(card)) return Response.redirect(new URL(`/v/${encodeURIComponent(code)}?_tdw=classic${pv ? `&preview=${encodeURIComponent(pv)}` : ''}`, u), 307);
   const base = publicUrlFor(card.handle || code, SITE_BASE).replace(/\/+$/, ''); const word = card.site.trade.items.toLowerCase();
   const asked = p.word;
+  const fd0 = process.env.TDW_SITE_FONT_DISPLAY; const display0 = fd0 === 'optional' || fd0 === 'swap' ? fd0 : 'mixed';
+  // CE-47 OFF-A2 · an off-season shop item's page: drawn while the item is shown on her shop; otherwise her home's shop.
+  if (asked === 'shop') {
+    const item = (await fetchShop(card.handle || code, preview)).find((i) => i.slug === slug);
+    if (!item) return Response.redirect(`${base}/#shop`, 307);
+    const doc = await shopItemDocument(card, item, { code: card.handle || code, base, api: API, display: display0, preview });
+    return doc ? respond(req, doc, preview) : Response.redirect(base, 307);
+  }
   if (asked === 'collections') return Response.redirect(base, 307);   // a collection's own page: not in this package (named in the note)
   if (asked !== word) return Response.redirect(`${base}/${word}/${encodeURIComponent(slug)}`, 308);
   const look = await fetchLook(card.handle || code, slug, pvq);

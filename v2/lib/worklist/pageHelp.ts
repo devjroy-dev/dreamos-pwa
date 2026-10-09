@@ -270,7 +270,13 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   [REBOOKING_HREF]: entry(ROW_DESC.rebooking, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
   [QUOTES_HREF]: entry(ROW_DESC.quotes, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
   [PAYMENT_LINKS_HREF]: entry(ROW_DESC.payment_links, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
-  [SHOP_HREF]: entry(ROW_DESC.shop, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  // CE-47 OFF-A2: the Off-season shop room (its row is INS's hub cut; this card names the room's own buttons).
+  [SHOP_HREF]: entry(ROW_DESC.shop, {   // its line read from the row (one home; b222 1.11, b140 1.2), the words the brief gave
+    can: how(['add', 'To sell something, tap New item. Then choose the kind of item and add its name, price and picture.'],
+             ['money', 'When a buyer pays you directly, open the order in Orders and tap Mark paid.'],
+             ['tag', 'When a buyer uses a voucher, type its code in Check a code and tap Mark redeemed.'],
+             ['switch', 'Turn on Show the shop on the website to show the shop on your website and storefront. Turn it off to hide it.']),
+    connects: 'A paid booking or workshop is added to your Calendar. A paid booking is also added to your enquiries as booked.' }),
   [BRANDS_HREF]: entry(ROW_DESC.brands, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
   // CE-47 · PRO P1 · Supplies is open: its own card replaces the shell card (one entry, same key).
   [SUPPLIES_HREF]: entry(ROW_DESC.supplies, { can: how(

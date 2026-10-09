@@ -32,7 +32,7 @@ const slug = (href) => href.replace('/vendor/', '');
 // for all nine); the Coming cells (1.5, 1.9, 1.11 and the glass) read only the rooms not yet landed. Each landing adds its
 // own key here, in its own edit (train 3: OFF 'shop', then PRO 'supplies' and 'papers', then INS 'insurance').
 // b122_v2 2.7 reads this line; it is the one home of the landed list.
-const LANDED = ['supplies', 'papers', 'insurance'];
+const LANDED = ['supplies', 'papers', 'insurance', 'shop'];
 const COMING = NINE.filter(([k]) => !LANDED.includes(k));
 
 sec('1  the four homes, the shell, the pages and the doors');

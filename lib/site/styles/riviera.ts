@@ -3,6 +3,7 @@
 import { html, raw, href, esc, type Raw } from '../html';
 import { pic, lq, heartBtn, quotes, rs, lines, PLAY_SVG, HEART_SVG, quoteLink } from '../parts';
 import type { SiteCard, Section, Photo } from '../card';
+import { shopSection, type CardWithShop } from '../shop';
 import type { StyleCtx } from './index';
 
 const LH: Record<string, string> = { makeup: 'Postcards from the season', photo: 'Postcards from the road', performer: 'Sets, sent home', planner: 'Postcards from our weddings' };   // :122
@@ -58,7 +59,9 @@ function enquire(c: SiteCard, x: StyleCtx, sec: Section): Raw {
   return html`<footer><div class="sun"></div><a class="rv" href="${href(x.dateHref)}" data-eliza style="display:block;margin:0 auto"><span class="caps">Enquire</span><span class="t">${line}</span><span class="btn"><span>Begin</span><span class="ar">→</span></span></a>
   <div class="fname rv" data-fill="200">${x.name}</div><div class="fl">${c.looks?.length ? html`<a href="#looks">${c.site.trade.items}</a>` : ''}${c.collections?.length ? html`<a href="#collections">Collections</a>` : ''}${c.packages?.length ? html`<a href="#pricing">Rates</a>` : ''}${x.instagram ? html`<a href="${href(x.instagram)}" rel="noopener">Instagram</a>` : ''}${c.enquire_link ? html`<a href="${href(c.enquire_link)}" rel="noopener">WhatsApp</a>` : ''}</div>${c.site.credit ? html`<div class="credit">Made with The Dream Wedding</div>` : ''}</footer>`;
 }
-const DRAW: Record<string, (c: SiteCard, x: StyleCtx, s: Section) => Raw> = { cover, looks, band, collections, reviews, pricing, studio, faq, enquire };
+const DRAW: Record<string, (c: SiteCard, x: StyleCtx, s: Section) => Raw> = { cover, looks, band, collections, reviews, pricing, studio, faq, enquire,
+  // CE-47 OFF-A2: the off-season shop, in this style's own section head (lib/site/shop.ts).
+  shop: (c, _x, sec) => shopSection('riviera', (c as CardWithShop).shop || [], sec, (c as CardWithShop).shop_base || '') };
 
 export const riviera = {
   id: 'riviera',
