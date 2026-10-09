@@ -51,6 +51,10 @@
 import { useEffect, useState } from 'react';
 import { selectStyle } from '@/lib/vendor/controls';
 import { useRouter } from 'next/navigation';
+// CE-47 HUB-2c: the people from outside TDW who answered her call (the door's `outside`), and the page's words.
+import { asOutside, REPLIES_WORDS } from '@/lib/vendor/callOutside';
+import type { Outside } from '@/lib/vendor/callOutside';
+import { CallOutsideReplies, drawnRows } from '@/components/vendor/CallOutsideReplies';
 import { getJson, postJson } from '@/lib/vendor/api/_base';
 import { fetchRoster, bridgeRosterEntry } from '@/lib/vendor/api/roster';
 import { fetchPayableFunctions, fetchPaymentSuggestion, type PayableFunction } from '@/lib/vendor/api/payments';
@@ -110,6 +114,7 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
   const router = useRouter();
   const [responses,   setResponses]   = useState<VendorResponse[]>([]);
   const [loading,     setLoading]     = useState(true);
+  const [outside,     setOutside]     = useState<Outside>({ rows: [], note: null });
   const [connecting,  setConnecting]  = useState<string | null>(null);
   // ── P5 · A3 — THE SETTLE STUB ────────────────────────────────────────────
   // Offered at connect-accept, which is where the spec puts it. Getting there
@@ -136,7 +141,7 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
       const data = await getJson<{ ok: boolean; responses: VendorResponse[] }>(
         `/api/v2/vendor/collab/${post_id}/responses`
       );
-      if (data.ok) setResponses(data.responses);
+      if (data.ok) { setResponses(data.responses); setOutside(asOutside(data)); }
     } catch { /* silent */ }
     finally { setLoading(false); }
   }
@@ -220,7 +225,7 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
           cursor: 'pointer', padding: '0 0 12px', display: 'block',
         }}>←</button>
         <h1 style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 25, lineHeight: 1.5, color: D.cream, marginBottom: 6 }}>
-          Interested vendors
+          {REPLIES_WORDS.heading}
         </h1>
         <p style={{ fontFamily: F.body, fontWeight: 300, fontSize: 16, color: D.muted, lineHeight: 1.6, paddingBottom: 16 }}>
           Their identity is revealed to you because you posted the requirement.
@@ -234,13 +239,13 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
           <div style={{ padding: '60px 0', textAlign: 'center' }}>
             <p style={{ fontFamily: F.display, fontStyle: 'italic', fontSize: 16, lineHeight: 1.5, color: D.muted }}>Loading…</p>
           </div>
-        ) : responses.length === 0 ? (
+        ) : responses.length === 0 && drawnRows(outside).length === 0 && !outside.note ? (
           <div style={{ padding: '60px 16px', textAlign: 'center' }}>
             <p style={{ fontFamily: F.display, fontWeight: 300, fontStyle: 'italic', fontSize: 20, color: D.muted, lineHeight: 1.6 }}>
-              No responses yet.
+              {REPLIES_WORDS.none}
             </p>
           </div>
-        ) : responses.map(r => (
+        ) : (<>{responses.map(r => (
           <div key={r.response_id} style={{
             ...CARD, borderRadius: 12,
             border: r.state === 'accepted' ? '0.5px solid var(--atelier-sheet-border)' : `0.5px solid ${D.borderCol}`,
@@ -301,6 +306,8 @@ export function ResponsesScreen({ post_id }: { post_id: string }) {
             )}
           </div>
         ))}
+        <CallOutsideReplies outside={outside} />
+        </>)}
       </div>
 
       {/* ── THE SETTLEMENT STUB ────────────────────────────────────────────

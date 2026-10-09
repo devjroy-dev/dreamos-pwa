@@ -1,0 +1,28 @@
+# scripts/floor-manifest-ce47-hub2c-app.txt
+# CE-47 · HUB-2c APP · her call's replies page draws the people from outside TDW (HUB-2b's `outside`), both trees: "From outside TDW" with the Instagram and Threads rows (chip, day, where to reply; no mark, no control); a partner's row kept in the slot for PTN's PartnerInterestRow.tsx; the server's note word for word; the founder's words ("Interested", "No one has answered this call yet."). BASE: 96fa4e06 (app train 8). App only.
+# Amended by label: b140 v1 and b140_v2, one string each (2.2's excused h1 text). New: b289q.
+# Against the base: sha256 · ADDED / CHANGED / DELETED · path
+# a0e66cb32faf8fc463ff17feb43a23bee49532ea4f231d724fbc6ce8dcaf7882 · ADDED · lib/vendor/callOutside.ts
+# e121a97d855f94fae8e936ca4ecea3e1191c2cbc197785efad30870b5ec5be03 · ADDED · v2/components/vendor/CallOutsideReplies.tsx
+# e121a97d855f94fae8e936ca4ecea3e1191c2cbc197785efad30870b5ec5be03 · ADDED · components/vendor/CallOutsideReplies.tsx
+# 1702f329d602809ee8d81ae5eaa5e2af4c4670781d4f1aae5d84ed345fc4a718 · ADDED · scripts/b289q_hub2c_call_replies_app_bench.js
+# 880b2b85937894b66e804aac17a7098a85ccc9a68a8d4b3f5507223de9237078 · ADDED · scripts/lib/b289q_replies_probe.mjs
+# 81df534c2e6b86d617f5e904f52a28783f36277476f3934e31257ec7ba05183a · ADDED · docs/handovers/TDW_CE47_HUB2C_APP_HANDOVER.md
+# 864dab91740575ee12dd8550a65f7fe56c54c15e1cce056b567c0a99585852c6 · ADDED · docs/handovers/b289q_ledger_HUB2C.txt
+# 76ac9787234f4c4b8dddcbd36902d59f187ea2a5ae240c4135c63624e3f77736 · CHANGED · v2/app/vendor/(shell)/collab/[post_id]/responses/screen.tsx
+# e32d6df99267c75ef9701360503bab5e5a56698cf20831b8d6e5b17d477c658b · CHANGED · app/vendor/(shell)/collab/[post_id]/responses/screen.tsx
+# 13ef73c098185159e997b6faac979a2d9f1be766d18437649b02e9bc09e87ded · CHANGED · scripts/b140_ce46_fe4_page_help_bench.js
+# e6fa3f695125a2ca55ae4af3888e0f1edc9aa264649aa5e38d0a1776e681d0db · CHANGED · scripts/b140_ce46_fe4_page_help_bench_v2.js
+# (this file) · ADDED · scripts/floor-manifest-ce47-hub2c-app.txt
+lib/vendor/callOutside.ts
+v2/components/vendor/CallOutsideReplies.tsx
+components/vendor/CallOutsideReplies.tsx
+scripts/b289q_hub2c_call_replies_app_bench.js
+scripts/lib/b289q_replies_probe.mjs
+docs/handovers/TDW_CE47_HUB2C_APP_HANDOVER.md
+docs/handovers/b289q_ledger_HUB2C.txt
+v2/app/vendor/(shell)/collab/[post_id]/responses/screen.tsx
+app/vendor/(shell)/collab/[post_id]/responses/screen.tsx
+scripts/b140_ce46_fe4_page_help_bench.js
+scripts/b140_ce46_fe4_page_help_bench_v2.js
+scripts/floor-manifest-ce47-hub2c-app.txt

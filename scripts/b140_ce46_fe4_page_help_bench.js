@@ -300,7 +300,7 @@ function glassCells(tag, x, route, help, depth, seen) {
   //   F-44.220  contracts/screen.tsx:774  the empty state "No agreements yet." typed at 24px Cormorant, a second t1 on Contracts
   //   F-44.221  collab/[post_id]/responses/screen.tsx:222  the page's own <h1> "Interested vendors" at 25px italic (off the
   //             rungs, italic against the rung law) under a back arrow the shell already provides; a second h1 on the page
-  const KNOWN = { '/vendor/contracts': ['DIV:No agreements yet.'], '/vendor/collab/p1/responses': ['H1:Interested vendors'] };
+  const KNOWN = { '/vendor/contracts': ['DIV:No agreements yet.'], '/vendor/collab/p1/responses': ['H1:Interested'] };   // RE-PINNED BY LABEL · CE-47 HUB-2c: the h1's words are the founder's "Interested" (9 Oct 2026); was 'H1:Interested vendors'
   const excused = KNOWN[route] || [];
   const others = (R.t1s || []).filter((t) => !t.startsWith('H1.wl-roomtitle') && !excused.includes(t));
   const extraH1 = excused.filter((t) => t.startsWith('H1:')).length;

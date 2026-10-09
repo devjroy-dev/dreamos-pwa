@@ -1,0 +1,22 @@
+SERIES START 10:56:14 · base 96fa4e06 + HUB2C_APP_1 · load: b59_v2 and ce41_e2i looping · each run B289Q_NO_GLASS=1 (§1 to §3 and M1 to M6 through mutation_guard; the glass is run alone in the main checkout)
+run 1 · b289q · 24 pass · 0 fail · rc 0 · 10:56:19
+run 2 · b289q · 24 pass · 0 fail · rc 0 · 10:56:24
+run 3 · b289q · 24 pass · 0 fail · rc 0 · 10:56:28
+run 4 · b289q · 24 pass · 0 fail · rc 0 · 10:56:33
+run 5 · b289q · 24 pass · 0 fail · rc 0 · 10:56:37
+run 6 · b289q · 24 pass · 0 fail · rc 0 · 10:56:41
+run 7 · b289q · 24 pass · 0 fail · rc 0 · 10:56:46
+run 8 · b289q · 24 pass · 0 fail · rc 0 · 10:56:50
+run 9 · b289q · 24 pass · 0 fail · rc 0 · 10:56:55
+run 10 · b289q · 24 pass · 0 fail · rc 0 · 10:56:59
+run 11 · b289q · 24 pass · 0 fail · rc 0 · 10:57:04
+run 12 · b289q · 24 pass · 0 fail · rc 0 · 10:57:08
+run 13 · b289q · 24 pass · 0 fail · rc 0 · 10:57:12
+run 14 · b289q · 24 pass · 0 fail · rc 0 · 10:57:17
+run 15 · b289q · 24 pass · 0 fail · rc 0 · 10:57:21
+run 16 · b289q · 24 pass · 0 fail · rc 0 · 10:57:26
+run 17 · b289q · 24 pass · 0 fail · rc 0 · 10:57:30
+run 18 · b289q · 24 pass · 0 fail · rc 0 · 10:57:35
+run 19 · b289q · 24 pass · 0 fail · rc 0 · 10:57:40
+run 20 · b289q · 24 pass · 0 fail · rc 0 · 10:57:44
+SERIES END 10:57:44 · not green: 0
