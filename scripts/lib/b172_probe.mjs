@@ -17,11 +17,9 @@ if (!usable(bin)) { bin = ['/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
 if (!usable(bin)) { try { const mod = await import('../../node_modules/@sparticuz/chromium/build/index.js'); const c = mod.default || mod; const p = await c.executablePath(); if (usable(p)) bin = p; } catch (_e) { /* named below */ } }
 if (!usable(bin)) { console.error('b172 probe: no browser found (CHROME_BIN, /opt/pw-browsers, @sparticuz/chromium all absent)'); process.exit(3); }
 if (process.env.B172_SAY_BROWSER) console.error('b172 probe: browser = ' + bin);
-const cache = path.join(os.tmpdir(), 'b123-fonts'); const want = ['dm-sans-latin-400-normal.woff2', 'dm-sans-latin-500-normal.woff2', 'cormorant-garamond-latin-500-normal.woff2'];
-if (!want.every((f) => fs.existsSync(path.join(cache, f)))) { fs.mkdirSync(cache, { recursive: true });
-  execSync('npm pack @fontsource/dm-sans@5 @fontsource/cormorant-garamond@5 --silent', { cwd: cache, stdio: 'ignore' });
-  for (const t of fs.readdirSync(cache).filter((f) => f.endsWith('.tgz'))) execSync(`tar xzf ${t} package/files`, { cwd: cache, stdio: 'ignore' });
-  for (const f of want) fs.copyFileSync(path.join(cache, 'package', 'files', f), path.join(cache, f)); }
+// WEB-8 (CE-47 ruling (A), 8 October): the faces now come from next dev itself, through b172's font stand-in
+// (scripts/lib/next_fonts.js), or from Google under B172_FONTS=google. The probe no longer paints faces of its own over
+// the page, so the 2.30 widths are read in the faces the room really draws with; each frame says which faces loaded.
 const settle = (ms) => new Promise((r) => setTimeout(r, ms));
 const plainPage = (name) => `<!doctype html><meta charset=utf-8><body style="margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#fbf3f1;font:40px Georgia;color:#2b1f2e">Studio Ivara<br><small style="font:14px sans-serif">${name}</small></body>`;
 const b = await puppeteer.launch({ executablePath: bin, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
@@ -58,9 +56,7 @@ try { for (const j of JOBS) {
   await p.goto(url, { waitUntil: 'domcontentloaded', timeout: 240000 }); await settle(2000);
   await p.goto(url, { waitUntil: 'networkidle2', timeout: 240000 });
   let up = false; for (let i = 0; i < 200 && !up; i++) { up = await p.evaluate(() => !!document.querySelector('[data-website-screen], [data-website-offer]')); if (!up) await settle(300); }
-  try { const names = await p.evaluate(() => { const cs = getComputedStyle(document.documentElement); const f = (v) => v.split(',')[0].trim().replace(/^["']|["']$/g, ''); return { dm: f(cs.getPropertyValue('--font-dm-sans')), co: f(cs.getPropertyValue('--font-cormorant')) }; });
-    const face = (fam, file, w) => `@font-face{font-family:'${fam}';font-weight:${w};src:url(data:font/woff2;base64,${fs.readFileSync(path.join(cache, file)).toString('base64')}) format('woff2');}`;
-    if (names.dm) await p.addStyleTag({ content: [face(names.dm, want[0], 400), face(names.dm, want[1], 500), names.co ? face(names.co, want[2], 500) : ''].join('\n') }); } catch (_e) { /* faces are cosmetic */ }
+  try { await p.evaluate(() => document.fonts.ready); } catch (_e) { /* read below either way */ }
   const res = { name: j.name, up, steps: [] };
   for (const st of j.steps || []) {
     if (st.type) { const h = await p.$(st.sel); if (h) { await h.click(); await p.keyboard.type(st.type); } res.steps.push([st.sel, !!h]); await settle(400); continue; }
@@ -91,6 +87,16 @@ try { for (const j of JOBS) {
         return { right: Math.round(r.right), top: Math.round(r.top), overlaps: hit }; })(),
       previews: [...document.querySelectorAll('.wb-win iframe')].map((f) => f.getAttribute('src')).slice(0, 8),
       // WEB-8 C2 (CE-47): a button whose label is wider than the button, or whose label runs past the screen, is clipped
+      // WEB-8 (CE-47, 8 October): every visible button's label width (the text itself, measured by a range), its box width
+      // (clientWidth) and its scrollWidth (which decides clipped, as cell 2.30 does), for the 2.30 table
+      buttons: [...document.querySelectorAll('.wb button, .wb-sheet button, .wb a.wl-btn, .wb a.wb-sbtn')].filter(vis).map((x) => { const r = x.getBoundingClientRect(); const rg = document.createRange(); rg.selectNodeContents(x); return { label: ((x.textContent || '').trim() || x.getAttribute('aria-label') || '(no label)').replace(/\s+/g, ' ').slice(0, 40), lw: Math.round(rg.getBoundingClientRect().width), bw: x.clientWidth, sw: x.scrollWidth, off: r.right > innerWidth + 1 || r.left < -1 }; }),
+      // every face the room's visible words are drawn in (the first family of each), and whether each face the page declares is loaded
+      faces: (() => { const generic = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-[a-z-]+|-apple-system|inherit|initial)$/i;
+        const used = new Set(); for (const e of document.querySelectorAll('.wb *, .wb-sheet *')) { if (!vis(e) || ![...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) continue;
+          const fam = getComputedStyle(e).fontFamily.split(',')[0].trim().replace(/^["']|["']$/g, ''); if (fam && !generic.test(fam)) used.add(fam); }
+        const fam = (x) => x.family.replace(/^["']|["']$/g, ''); const registered = new Set([...document.fonts].map(fam)); const loaded = new Set([...document.fonts].filter((x) => x.status === 'loaded').map(fam));
+        // a face the page declares (next/font's faces) must be loaded; a family with no face declared (Arial, a site face named in a sample) is drawn by the system and is listed, not judged
+        return { used: [...used].sort(), declared: [...used].filter((f) => registered.has(f)).sort(), missing: [...used].filter((f) => registered.has(f) && !loaded.has(f)).sort() }; })(),
       clipped: [...document.querySelectorAll('.wb button, .wb-sheet button, .wb a.wl-btn, .wb a.wb-sbtn')].filter(vis).filter((x) => { const r = x.getBoundingClientRect(); return x.scrollWidth > x.clientWidth + 1 || r.right > innerWidth + 1 || r.left < -1; }).map((x) => (x.textContent || '').trim().slice(0, 30) + ' (' + x.scrollWidth + '>' + x.clientWidth + ')'),
       // WEB-8 (Basic): the style page's controls and lines, the locked rows, and every disabled control on the screen
       basic: { use: [...document.querySelectorAll('[data-use-instead]')].filter(vis).length, clock: [...document.querySelectorAll('[data-clock-line]')].filter(vis).map((x) => x.textContent.trim()),

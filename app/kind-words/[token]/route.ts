@@ -15,7 +15,7 @@ function page(token: string): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="robots" content="noindex">
 <meta name="referrer" content="no-referrer"><title>Client reviews</title><style>${CSS}</style></head>
-<body><main id="m" aria-live="polite"><p class="eyebrow">Client reviews</p><p class="one">One moment.</p></main>
+<body><main id="m" aria-live="polite"><p class="eyebrow">Client reviews</p><p class="one">The page is loading.</p></main>
 <script type="application/json" id="cfg">${cfg}</script><script>${JS}</script></body></html>`;
 }
 
@@ -64,7 +64,7 @@ var ist=new Date(Date.now()+330*60000),NOW_Y=ist.getUTCFullYear(),NOW_M=ist.getU
 door('GET').then(function(r){
   if(r.status!==200||!r.body||!r.body.form){oneLine((r.body&&r.body.error)||GONE);return}
   var f=r.body.form,studio=f.studio_name||'the studio';M.textContent='';
-  M.append(el('p','eyebrow','Client reviews'),el('h1',null,studio),el('p','lede','A few words about your time with '+studio+". They show on the studio's website once the studio approves them."));
+  M.append(el('p','eyebrow','Client reviews'),el('h1',null,studio),el('p','lede','Please write a few words about your time with '+studio+". Your words appear on the studio's website after the studio approves them."));
   var form=el('form');form.noValidate=true;
   function field(label,input){var l=el('label',null,label);l.appendChild(input);return l}
   var name=el('input');name.maxLength=40;name.autocomplete='name';if(f.person_name)name.value=f.person_name;
@@ -86,7 +86,7 @@ door('GET').then(function(r){
     var body={name:name.value.trim(),occasion:occ.value.trim(),month:(yy.value&&mm.value)?yy.value+'-'+mm.value:'',place:place.value.trim(),words:words.value.trim(),consent:cb.checked===true};
     if(vid&&vid.value.trim())body.video_url=vid.value.trim();
     send.disabled=true;door('POST',body).then(function(r2){send.disabled=false;
-      if(r2.status===200&&r2.body&&r2.body.ok===true){M.textContent='';M.append(el('p','eyebrow','Client reviews'),el('h1',null,'Thank you.'),el('p','lede',studio+' has your words. They show on the website once the studio approves them.'));return}
+      if(r2.status===200&&r2.body&&r2.body.ok===true){M.textContent='';M.append(el('p','eyebrow','Client reviews'),el('h1',null,'Thank you.'),el('p','lede',studio+' has received your words. They appear on the website after the studio approves them.'));return}
       if(r2.status===404){oneLine((r2.body&&r2.body.error)||GONE);return}
       err.textContent=(r2.body&&typeof r2.body.error==='string')?r2.body.error:FAILED;err.scrollIntoView({block:'center'})})};
 });

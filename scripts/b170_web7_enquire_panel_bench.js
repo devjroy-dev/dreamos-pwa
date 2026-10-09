@@ -43,7 +43,7 @@ const LINES = [
   'Leave your name and number and ${studio()} will get back to you.', 'Thank you, ${st.name}. ${studio()} has your enquiry.',
   'Continue on WhatsApp', 'Would you like a call with ${studio()}?', 'Coming soon', 'Write a message', 'Name the occasion',
   'Please add your name.', 'Please add a 10-digit mobile number.', 'Please add your mobile number.', 'Search country or code',
-  'Your name and number go to ${studio()} through The Dream Wedding, only to answer this enquiry. ', 'Enquiries',
+  'The Dream Wedding passes your name and number to ${studio()} only to answer this enquiry. ', 'Enquiries',
 ];
 
 function source() {

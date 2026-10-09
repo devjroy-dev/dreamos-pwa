@@ -88,7 +88,7 @@ async function askEnquiry(withDate){
   f.append(ln,lp);let dIn=null;
   if(withDate){const ld=el('label',null,'Date');dIn=el('input','w7in');dIn.type='date';dIn.min=todayIST();ld.appendChild(dIn);f.appendChild(ld)}
   const err=el('div','w7err');
-  const cons=el('div','w7cons',`Your name and number go to ${studio()} through The Dream Wedding, only to answer this enquiry. `);
+  const cons=el('div','w7cons',`The Dream Wedding passes your name and number to ${studio()} only to answer this enquiry. `);
   const pl=el('a',null,'Privacy');pl.href='https://thedreamwedding.in/privacy';pl.target='_blank';pl.rel='noopener';cons.appendChild(pl);
   const b=el('button','w7btn','Send');b.type='submit';f.append(err,cons,b);push(f);
   f.onsubmit=async e=>{e.preventDefault();const name=n.value.trim();const d=p.value.replace(/\D/g,'');err.textContent='';
@@ -112,7 +112,7 @@ function openPicker(cur,done){
   const q=$('#w7PkQ'),L=$('#w7PkL');
   const draw=()=>{const s=q.value.trim().toLowerCase().replace(/^\+/,'');L.textContent='';
     const hits=CC.filter(r=>!s||r[1].toLowerCase().includes(s)||r[2].startsWith(s)||r[0].toLowerCase()===s);
-    if(!hits.length){L.appendChild(el('li','w7pke','No match'));return}
+    if(!hits.length){L.appendChild(el('li','w7pke','No country matches your search.'));return}
     hits.forEach(r=>{const li=el('li');const bt=el('button');bt.type='button';if(r===cur)bt.className='on';bt.append(el('span',null,r[1]),el('span',null,'+'+r[2]));
       bt.onclick=()=>{pk.hidden=true;done(r)};li.appendChild(bt);L.appendChild(li)})};
   q.value='';q.oninput=draw;draw();pk.hidden=false;$('#w7PkX').onclick=()=>{pk.hidden=true};setTimeout(()=>q.focus({preventScroll:true}),0)}

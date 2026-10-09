@@ -11,6 +11,8 @@
 // sha, a killed run's mutation put back at the next start); no mutation is planted unless the disk has room; and the
 // bench refuses (exit 3) when ../dream-os is missing or older than the commit it needs (lesson 4, scripts/lib/web8_gates.js).
 // The dev server is stopped BY PID (e-222), never by pattern. F-44.258: the run ends with git status against the list.
+// b172 always starts its own copies of the app's fonts, so its result never depends on Google (CE-47 ruling (A), 8 October).
+// To use Google's own fonts instead, run it with B172_FONTS=google; the floor never does this.
 // usage: node scripts/b172_web6_customiser_bench.js [--source] [--no-mutate] [--shots DIR]      THE EXIT CODE IS THE VERDICT.
 const fs = require('fs');
 const path = require('path');
@@ -33,6 +35,7 @@ const ROOM = 'components/website/WebsiteRoom.tsx';
 const COPYF = 'lib/website/copy.ts';
 const guard = require(path.join(ROOT, 'scripts/lib/mutation_guard.js'));
 const gates = require(path.join(ROOT, 'scripts/lib/web8_gates.js'));
+const nextFonts = require(path.join(ROOT, 'scripts/lib/next_fonts.js'));
 guard.recoverOrRefuse(ROOT, 'b172');   // F-44.258/F-44.419: a killed run's mutation is put back by sha before anything is read
 if (!args.includes('--source')) gates.siblingOrRefuse(path.join(ROOT, '..', 'dream-os'), gates.SITE_NEEDS, gates.SITE_NEEDS_WHY, 'b172');
 const CLIENT = 'components/website/client.ts';
@@ -169,12 +172,12 @@ const JOBS = [
 // WEB-8 (e-275): the port must be free before the server starts and after it stops, each within a bound; if the server
 // exits before it answers, the run says so with its last lines, instead of waiting out the full bound on a dead server.
 function portFree(boundS) { for (let i = 0; i < boundS; i += 1) { const r = spawnSync('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '2', `http://localhost:${PORT}/`], { encoding: 'utf8' }); if (r.stdout === '000') return true; spawnSync('sleep', ['1']); } return false; }
-function devUp() {
+function devUp(fontEnv) {
   const LOG = path.join(require('os').tmpdir(), 'b172-dev.log');
   const freeBefore = portFree(60);
   const log = fs.openSync(LOG, 'w');
   const dev = spawn('node', ['node_modules/.bin/next', 'dev', '-p', String(PORT)], { cwd: ROOT, detached: true, stdio: ['ignore', log, log],
-    env: { ...process.env, NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${PORT}/__api` } });
+    env: { ...process.env, ...fontEnv, NEXT_PUBLIC_USE_MOCKS: 'true', NEXT_PUBLIC_API_BASE: `http://localhost:${PORT}/__api` } });
   let up = false; let exited = null; dev.on('exit', (c, s) => { exited = `exit ${c === null ? s : c}`; });
   for (let i = 0; i < 150 && !up; i += 1) {
     const r = spawnSync('curl', ['-s', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '200', `http://localhost:${PORT}/vendor/your-website`], { encoding: 'utf8' }); up = /^[23]/.test(r.stdout);
@@ -186,9 +189,23 @@ function devUp() {
 }
 function devDown(dev) { try { process.kill(-dev.pid, 'SIGKILL'); } catch (_e) { /* already gone */ } portFree(30); }
 
+// WEB-8 (CE-47, 8 October): the 2.30 table, the same shape under the stand-in and under B172_FONTS=google, so the two
+// runs lie side by side: one row per visible button in every frame, then one final line.
+function table230(res) {
+  const rows = []; for (const x of res) for (const b of (x.read.buttons || [])) rows.push([x.name, b.label, b.lw, b.bw, b.sw > b.bw + 1 || b.off ? 'yes' : 'no']);
+  console.log(`\n2.30 TABLE (fonts: ${process.env.B172_FONTS === 'google' ? 'Google' : 'stand-in, @fontsource'})\nframe\tbutton label\tlabel width\tbox width\tclipped`);
+  for (const r of rows) console.log(r.join('\t'));
+  const clipped = rows.filter((r) => r[4] === 'yes');
+  console.log(clipped.length ? `2.30: ${rows.length} labels, ${clipped.length} clipped: ${clipped.map((r) => `${r[0]} ${r[1]}`).join('; ')}` : `2.30: ${rows.length} labels, 0 clipped`);
+}
+// every face the room's words are drawn in is loaded in every frame, so 2.30 measured the faces the room really draws with
+function faceCells(res) {
+  for (const x of res) { const f = x.read.faces || {}; ok(Array.isArray(f.declared) && f.declared.length > 0 && f.missing.length === 0, `2.0b ${x.name}: every face the page declares and the room's words are drawn in is loaded`, JSON.stringify(f)); }
+}
 function render() {
   sec('2 · the real room (mock mode, C-43.18)');
-  const { dev, up, why } = devUp();
+  const fonts = nextFonts.start(ROOT, 'b172', { google: process.env.B172_FONTS === 'google' });
+  const { dev, up, why } = devUp(fonts.env);
   try {
     ok(up, '2.0 next dev answers', why);
     if (!up) return;
@@ -204,45 +221,46 @@ function render() {
     if (JOBRX) {   // only the matched frames: the per-frame cells and the Basic cells
       for (const x of res) ok(x.up && x.errs.length === 0 && x.read.overflow.length === 0 && x.steps.every(([, h]) => h), `2.1 ${x.name}: mounted, 0 page errors, nothing past 374, every tap found its control`, JSON.stringify({ e: x.errs, o: x.read.overflow }));
       for (const x of res) ok(x.read.clipped.length === 0, `2.30 ${x.name}: no button clips its label`, JSON.stringify(x.read.clipped));
-      basicCells(res, by); return;
+      faceCells(res); table230(res); basicCells(res, by); return;
     }
     for (const x of res) ok(x.up && x.errs.length === 0 && x.read.overflow.length === 0 && x.steps.every(([, h]) => h), `2.1 ${x.name}: mounted, 0 page errors, nothing past 374, every tap found its control`, JSON.stringify({ e: x.errs, o: x.read.overflow, s: x.steps.filter(([, h]) => !h) }));
     for (const n of ['c_dark_11_looks_360', 'v2_dark_11_looks_360']) { const pill = res.find((x) => x.name === n);
       ok(pill && pill.read.pill && pill.read.pill.right <= 360 && pill.read.pill.overlaps === 0, `2.29 ${n}: at 360 the "+ New look" pill overlaps nothing and stays inside the screen`, JSON.stringify(pill && pill.read.pill)); }
     // WEB-8 C2 (CE-47): no button in the room clips its label, on any frame, at 374 and 360, both themes and layouts
     for (const x of res) ok(x.read.clipped.length === 0, `2.30 ${x.name}: no button clips its label`, JSON.stringify(x.read.clipped));
+    faceCells(res); table230(res);
     for (const n of ['c_dark_27_new', 'c_light_27_new', 'v2_dark_27_new', 'v2_light_27_new']) for (const w of ['', '_360']) { const f = by[n + w]; const pb = f && f.read.publishBtn;
       ok(pb && pb.label === 'Publish' && pb.sw <= pb.cw + 1 && pb.right <= (w ? 360 : 374), `2.31 ${n}${w}: beside "Visitors still see today's page..." the Publish button shows its whole label`, JSON.stringify(pb)); }
     for (const x of res) ok(x.read.headQs === 1, `2.2 ${x.name}: one "?" on the room head (item 8)`, x.read.headQs);
     for (const n of ['c_dark_19_help', 'v2_dark_19_help']) ok(by[n] && by[n].read.helpScroll !== null && by[n].read.helpScroll <= 1, `2.3 ${n}: the "?" card is whole at 374 by 812, nothing scrolls (item 1)`, by[n] && by[n].read.helpScroll);
-    const c2 = by.c_dark_02_changes.read; ok(c2.sheet === 'Changes not on the website yet' && c2.sheetButtons[c2.sheetButtons.length - 1] === 'Discard these changes' && /Colours changed/.test(c2.text) && !/\bsettings\b/.test(c2.text), '2.4 the pending line opens the list, Discard these changes last (item 3)', JSON.stringify(c2.sheetButtons));
+    const c2 = by.c_dark_02_changes.read; ok(c2.sheet === 'These changes are not on the website yet.' && c2.sheetButtons[c2.sheetButtons.length - 1] === 'Discard these changes' && /Colours changed/.test(c2.text) && !/\bsettings\b/.test(c2.text), '2.4 the pending line opens the list, Discard these changes last (item 3)', JSON.stringify(c2.sheetButtons));
     const c3 = by.c_dark_03_discard.read; ok(c3.sheet === 'Discard 3 changes?' && c3.sheetButtons.join('|') === 'Discard|Keep them', '2.5 discard asks first', JSON.stringify(c3.sheetButtons));
     const c4 = by.c_dark_04_publish.read; ok(c4.sheet === 'Publish 3 changes?' && /changes for every visitor within about 10 minutes\./.test(c4.text) && !/within a minute/.test(c4.text), '2.6 Publish says what happens: within about 10 minutes, as the line after it (item 3; WEB-8 C2 r2)', c4.text.slice(0, 300));
-    const c5 = by.c_dark_05_published; ok(/Published\. Visitors will see your new website within about 10 minutes\./.test(c5.read.text) && !/Published at \d/.test(c5.read.text) && c5.calls.some((c) => /^POST .*\/site\/publish$/.test(c)), '2.7 after Publish the line reads "Published. Visitors will see your new website within about 10 minutes." and the publish door was called (WEB-8 C2)', c5.calls.join(' '));
+    const c5 = by.c_dark_05_published; ok(/Published\. Visitors will see your new website within about 10 minutes\./.test(c5.read.text) && !/published at \d/i.test(c5.read.text) && c5.calls.some((c) => /^POST .*\/site\/publish$/.test(c)), '2.7 after Publish the line reads "Published. Visitors will see your new website within about 10 minutes." and the publish door was called (WEB-8 C2)', c5.calls.join(' '));
     const c7 = by.c_dark_07_swap.read; ok(c7.sheet === 'Which style should Noir replace?' && !c7.sheetButtons.includes('Aurora') && /are kept/.test(c7.text), '2.8 Choose on a full plan: which style it replaces, the one in use not offered, settings kept (item 2)', JSON.stringify(c7.sheetButtons));
     const c8 = by.c_dark_08_stamp.read.text; ok(/Glow/.test(c8) && /Glass/.test(c8) && /Aurora has no texture/.test(c8) && !/\bSoft\b|\bRound\b|Rounded/.test(c8), '2.9 only the ids GET /room offers for Aurora are drawn (Glow, Solid, Glass; one corner and one texture draw no control)');
-    ok(/One colour was adjusted/.test(by.c_dark_09_stamp_adjusted.read.text) && /made darker/.test(by.c_dark_09_stamp_adjusted.read.text) && /3\.1 to 1, now 4\.6 to 1/.test(by.c_dark_09_stamp_adjusted.read.text), '2.10 an own accent the gate moved says so, with its direction and both ratios');
+    ok(/One colour was adjusted/.test(by.c_dark_09_stamp_adjusted.read.text) && /accent colour darker/.test(by.c_dark_09_stamp_adjusted.read.text) && /contrast was 3\.1 to 1 and is now 4\.6 to 1/.test(by.c_dark_09_stamp_adjusted.read.text), '2.10 an own accent the gate moved says so, with its direction and both ratios');
     const c12 = by.c_dark_12_look.read.text; ok(/Waiting for approval/.test(c12) && /Approved/.test(c12) && /Not approved: The photo is blurred/.test(c12) && /A look saves on its own/.test(c12), '2.11 each photograph shows its review, a refusal its reason; the look\'s own saving rule is written (item 4)');
     ok(by.c_dark_13_look_delete.read.sheet === 'Delete The Emerald Bride?' && by.c_dark_13_look_delete.read.sheetButtons.join('|') === 'Delete|Cancel', '2.12 Delete this look asks first (item 4)');
     for (const n of ['c_dark_11_looks', 'v2_dark_11_looks']) { const c11 = by[n] ? by[n].read : null;
       ok(c11 && c11.pill && /\+\s*New look/.test(c11.pillText || '') && c11.pills === 1, `2.13 ${n}: Looks carries one "+ New look" pill (item 5)`, JSON.stringify(c11 && { t: c11.pillText, n: c11.pills })); }
     const c16 = by.c_dark_16_visitors.read.text; ok(/152 people visited/.test(c16) && /Instagram \(92\)/.test(c16), '2.14 visitors: the sentences, then one bar per source (item 6)');
-    ok(/shows on Signature/.test(by.c_dark_22_ess_visitors.read.text), '2.15 Essential: sources say their plan, never a zero');
+    ok(/The Signature plan shows where visitors come from/.test(by.c_dark_22_ess_visitors.read.text), '2.15 Essential: sources say their plan, never a zero');
     ok(/Visitors saved looks 23 times/.test(by.c_dark_25_pre_visitors.read.text), '2.16 Prestige: saved looks shown');
     ok(/Which style should/.test(by.c_dark_21_ess_swap.read.sheet || ''), '2.17 Essential holds two; a third asks which to replace (item 7)', by.c_dark_21_ess_swap.read.sheet);
-    const pre = by.c_dark_24_pre_sections.read.text; ok(!/Always first/.test(pre) && /Switch off to remove it/.test(pre), '2.18 Prestige: full order, the credit switch live (item 7)');
+    const pre = by.c_dark_24_pre_sections.read.text; ok(!/Always first/.test(pre) && /Switch this off to remove them/.test(pre), '2.18 Prestige: full order, the credit switch live (item 7)');
     basicCells(res, by);
-    ok(/Visitors still see today’s page\. The new website goes up at the first Publish\./.test(by.c_dark_27_new.read.text) && /Add the first look/.test(by.c_dark_27_new.read.text) && by.c_dark_28_new_publish.read.sheet === 'Put the new website up?' && /Pictures marked TDW are examples/.test(by.c_dark_29_new_looks.read.text), '2.20 before the first Publish: the room says visitors still see today\'s page; the example pictures; what Publish does then (item 7, cut 5)');
+    ok(/Visitors still see today’s page\. The new website replaces it when you tap Publish for the first time\./.test(by.c_dark_27_new.read.text) && /Add the first look/.test(by.c_dark_27_new.read.text) && by.c_dark_28_new_publish.read.sheet === 'Publish the new website?' && /Pictures marked TDW are examples/.test(by.c_dark_29_new_looks.read.text), '2.20 before the first Publish: the room says visitors still see today\'s page; the example pictures; what Publish does then (item 7, cut 5)');
     ok(by.c_dark_01_room.read.previews.some((u) => /[?&]preview=tok-aurora$/.test(u || '')) && by.c_dark_06_style.read.previews.some((u) => /[?&]preview=tok-aurora&style=noir$/.test(u || '')), '2.27 the preview frame loads her site with ?preview=<token>, a style card adds &style=<id> (cut 5)', JSON.stringify(by.c_dark_06_style.read.previews.slice(0, 2)));
     ok(by.c_dark_30_today_main.read.previews.every((u) => !/preview=/.test(u || '')), '2.28 with no token the frame shows today\'s live page, never a guessed parameter');
     ok(/This package costs less than your starting price/.test(by.c_dark_18_fix.read.text) && /Engagement makeup/.test(by.c_dark_18_fix.read.text), '2.21 What to fix draws to_fix.packages_below_starting_price');
     ok(/This switch works at once/.test(by.c_dark_17_prices.read.text) && /Share approximate prices in chat/.test(by.c_dark_17_prices.read.text), '2.22 Prices works at once and says so; the chat setting named as on screen (W6-d)');
     ok(/Hi Ananya, would you write/.test(by.c_dark_15_kind_link.read.text) && /Copy/.test(by.c_dark_15_kind_link.read.text), '2.23 the kind-words message sits in its own box with Copy (R-46.17)');
     ok(/Written before client links/i.test(by.c_dark_14_kind.read.text) && /cannot be shown/.test(by.c_dark_14_kind.read.text), '2.24 words not sent through a link are listed to delete, never shown');
-    const nd = by.c_dark_31_new_nodraft.read.text; ok(/Visitors still see today’s page/.test(nd) && !/\bPublish\b/.test(nd.replace(/first Publish/g, '')), '2.30 before the first Publish with no draft: the plain line, and no Publish that would be refused (cut 5)');
+    const nd = by.c_dark_31_new_nodraft.read.text; ok(/Visitors still see today’s page/.test(nd) && !/\bPublish\b/.test(nd.replace(/tap Publish for the first time/g, '')), '2.30 before the first Publish with no draft: the plain line, and no Publish that would be refused (cut 5)');
     const t = by.c_dark_30_today_main.read.text; ok(!/not on the website yet/.test(t) && !/\bPublish\b/.test(t) && /Colours and type/.test(t), '2.25 main as it stands (no draft fields yet): no pending line and no Publish drawn');
     for (const x of res) ok(!/\b\d{1,2}:\d{2}\b(?! ?(am|pm))/.test(x.read.text), `2.26 ${x.name}: no 24-hour time drawn`);
-  } finally { devDown(dev); }
+  } finally { devDown(dev); fonts.stop(); }
 }
 
 // WEB-8 (Basic's one free style): the Basic cells, run in the whole bench and alone under --jobs (e-275 amended)
