@@ -494,7 +494,7 @@ export const ROOM_HREFS: Record<RoomKey, string> = {
 // CE-47 hub cut (INS): the nine join, Option A as the chair ruled it (6 October 2026). Each seat removes ONLY its own key,
 // in the same edit that replaces its shell page. "No ninth chip" stands: the chip is still CHIPS.coming, one word.
 export const PREVIEW_KEYS: ReadonlySet<RoomKey> = new Set<RoomKey>(['dates', 'number',
-  'rebooking', 'quotes', 'payment_links', 'brands', 'trends']);   // CE-47 INS-A: `insurance` left (its room landed, on PRO's bytes)
+  'rebooking', 'quotes', 'brands', 'trends']);   // CE-47 OFF-A2: `shop` left (its room landed)   // CE-47 INS PAY-A: `payment_links` left (its room landed)   // CE-47 INS-A: `insurance` left (its room landed, on PRO's bytes)
 
 /**
  * CE-45 FE-1 · THE ONE RESOLVER FROM A SHELF ITEM TO ITS ROUTE (q2: the pin key space is the

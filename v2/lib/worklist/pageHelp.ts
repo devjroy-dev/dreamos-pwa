@@ -93,7 +93,9 @@ export const RESPONSES_HELP = {
 } as const;
 
 // CE-47 hub cut r2: the one connects line for a room not yet open (b140_v2 1.8). True and plain; one home.
-const COMING_CONNECTS = 'Nothing connects here yet. It will when this room opens.';
+// R-47.1 (the chair, 8 October; OFF-2's flag): the Coming card's two lines, one home each, plain statements of fact.
+const COMING_CONNECTS = 'This room is not linked to the rest of your account yet. It will be linked when the room opens.';
+const COMING_STEP = 'This room is not open yet. Business Solutions shows it as Coming until it opens.';
 
 const entry = (what: string, extra: Partial<PageHelp> = {}): PageHelp =>
   ({ what, can: HELD, connects: '', ...extra });
@@ -267,9 +269,15 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   // CE-47 · THE HUB CUT (INS): the nine Coming rooms' cards. `what` is the row's ruled line (one home); the one step says
   // what the screen draws. Each seat writes its room's own card when its room lands, in the same edit as its page.
   // r2 (b140_v2 1.8, the product's own rule: every surface says what it connects to): one true line for all nine, one home.
-  [REBOOKING_HREF]: entry(ROW_DESC.rebooking, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
-  [QUOTES_HREF]: entry(ROW_DESC.quotes, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
-  [PAYMENT_LINKS_HREF]: entry(ROW_DESC.payment_links, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [REBOOKING_HREF]: entry(ROW_DESC.rebooking, { can: how(['read', COMING_STEP]), connects: COMING_CONNECTS }),
+  [QUOTES_HREF]: entry(ROW_DESC.quotes, { can: how(['read', COMING_STEP]), connects: COMING_CONNECTS }),
+  // CE-47 INS PAY-A: the Payment links room landed; its own card replaces the hub cut's Coming card in place (R-47.1).
+  [PAYMENT_LINKS_HREF]: entry(ROW_DESC.payment_links, {
+    can: how(['switch', 'Tap Connect Razorpay to link your own Razorpay account. The money from every link goes straight to that account.'],
+             ['list', 'Tap an invoice with money owed. You can then make a link for the whole amount or for one instalment.'],
+             ['share', 'Copy the link, or send it to your client on WhatsApp.'],
+             ['read', 'Each payment through a link is marked on the invoice by itself. A refund is taken off the invoice only when you tap it.']),
+    connects: 'Payments through links appear on the same invoices you see in Money.' }),
   // CE-47 OFF-A2: the Off-season shop room (its row is INS's hub cut; this card names the room's own buttons).
   [SHOP_HREF]: entry(ROW_DESC.shop, {   // its line read from the row (one home; b222 1.11, b140 1.2), the words the brief gave
     can: how(['add', 'To sell something, tap New item. Then choose the kind of item and add its name, price and picture.'],
@@ -277,14 +285,14 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
              ['tag', 'When a buyer uses a voucher, type its code in Check a code and tap Mark redeemed.'],
              ['switch', 'Turn on Show the shop on the website to show the shop on your website and storefront. Turn it off to hide it.']),
     connects: 'A paid booking or workshop is added to your Calendar. A paid booking is also added to your enquiries as booked.' }),
-  [BRANDS_HREF]: entry(ROW_DESC.brands, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [BRANDS_HREF]: entry(ROW_DESC.brands, { can: how(['read', COMING_STEP]), connects: COMING_CONNECTS }),
   // CE-47 · PRO P1 · Supplies is open: its own card replaces the shell card (one entry, same key).
   [SUPPLIES_HREF]: entry(ROW_DESC.supplies, { can: how(
     ['list', 'Each card is a place to buy, checked by TDW, with what it costs to join. Open goes to its own site.'],
     ['share', 'Join with your TDW certificate makes your certificate, saves it as a PDF, and shows the steps to join.'],
     ['edit', 'Write my requirement writes your request for IndiaMART. Copy it, then paste it there.']),
     connects: 'Bills you add here go to Expenses with their GST, once you check them.' }),
-  [TRENDS_HREF]: entry(ROW_DESC.trends, { can: how(['read', 'This room is not open yet. It reads Coming in Business Solutions until it opens.']), connects: COMING_CONNECTS }),
+  [TRENDS_HREF]: entry(ROW_DESC.trends, { can: how(['read', COMING_STEP]), connects: COMING_CONNECTS }),
   // CE-47 · PRO P1 · Business papers is open: its own card replaces the shell card (one entry, same key).
   [PAPERS_HREF]: entry(ROW_DESC.papers, { can: how(
     ['add', 'New paper makes a certificate, an ID, a business statement or a pack for your CA.'],

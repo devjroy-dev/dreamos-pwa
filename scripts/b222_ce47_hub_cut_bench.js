@@ -32,7 +32,7 @@ const slug = (href) => href.replace('/vendor/', '');
 // for all nine); the Coming cells (1.5, 1.9, 1.11 and the glass) read only the rooms not yet landed. Each landing adds its
 // own key here, in its own edit (train 3: OFF 'shop', then PRO 'supplies' and 'papers', then INS 'insurance').
 // b122_v2 2.7 reads this line; it is the one home of the landed list.
-const LANDED = ['supplies', 'papers', 'insurance', 'shop'];
+const LANDED = ['supplies', 'papers', 'insurance', 'shop', 'payment_links'];
 const COMING = NINE.filter(([k]) => !LANDED.includes(k));
 
 sec('1  the four homes, the shell, the pages and the doors');
@@ -56,7 +56,7 @@ ok(() => /<Row title=\{COPY\.launchingSoon\} pill=\{\{ text: CHIPS\.coming, tone
 ok(() => /title=\{roomLabel\(k\)\}/.test(CR) && /\{ROW_DESC\[k\]\}/.test(CR) && !/['"`][A-Z][a-z]+ [a-z]+/.test(CR.replace(/^\s*\/\/.*$/gm, '').replace(/import[^\n]*\n/g, '').replace(/className="[^"]*"|aria-busy="true"|data-coming-room=\{k\}|router\.replace\('\/'\)/g, '')), '1.8 every word on the shell is read from its home: name, line, statement, chip');
 ok(() => COMING.every(([k, , , href]) => { const pg = read(`v2/app/vendor/(shell)/${slug(href)}/page.tsx`); return pg.includes(`<ComingRoom k="${k}" />`); }) && LANDED.every((k) => { const h = NINE.find(([x]) => x === k)[3]; return !read(`v2/app/vendor/(shell)/${slug(h)}/page.tsx`).includes('<ComingRoom'); }), '1.9 each room not yet landed draws the shell for its own key; a landed room draws its own page');
 ok(() => NINE.every(([, , , href]) => read(`app/v2/vendor/(shell)/${slug(href)}/page.tsx`).includes(`export { default } from '@/v2/app/vendor/(shell)/${slug(href)}/page';`)), '1.10 each has its door in the v2 route tree (a missing door is a 404)');
-ok(() => COMING.every(([k, , , , C]) => new RegExp(`\\[${C}\\]: entry\\(ROW_DESC\\.${k}, \\{ can: how\\(\\['read', 'This room is not open yet\\. It reads Coming in Business Solutions until it opens\\.'\\]\\), connects: COMING_CONNECTS \\}\\),`).test(PH)) && LANDED.every((k) => new RegExp(`\\[${NINE.find(([x]) => x === k)[4]}\\]: entry\\(ROW_DESC\\.${k},`).test(PH)) && /const COMING_CONNECTS = 'Nothing connects here yet\. It will when this room opens\.';/.test(PH), '1.11 each room not yet landed has its Coming card (its line, the one step, the connects line); a landed room keeps a card of its own');   // AMENDED BY LABEL · hub cut r2
+ok(() => COMING.every(([k, , , , C]) => new RegExp(`\\[${C}\\]: entry\\(ROW_DESC\\.${k}, \\{ can: how\\(\\['read', COMING_STEP\\]\\), connects: COMING_CONNECTS \\}\\),`).test(PH)) && LANDED.every((k) => new RegExp(`\\[${NINE.find(([x]) => x === k)[4]}\\]: entry\\(ROW_DESC\\.${k},`).test(PH)) && /const COMING_CONNECTS = 'This room is not linked to the rest of your account yet\. It will be linked when the room opens\.';/.test(PH) && /const COMING_STEP = 'This room is not open yet\. Business Solutions shows it as Coming until it opens\.';/.test(PH),   /* AMENDED BY LABEL · R-47.1, 8 October */ '1.11 each room not yet landed has its Coming card (its line, the one step, the connects line); a landed room keeps a card of its own');   // AMENDED BY LABEL · hub cut r2
 ok(() => !/HUB_COMING_CHIP/.test(read('v2/app/vendor/(shell)/support/page.tsx')), '1.12 P3 holds: the hub page carries no Coming chip and no flag for one (the founder, 6 October 2026)');
 ok(() => ['app/vendor/(shell)', 'lib/solutions'].every((d) => NINE.every(([, , , href]) => !fs.existsSync(path.join(ROOT, d, slug(href))))), '1.13 the legacy layout is untouched: no page of the nine under app/vendor or lib');
 
@@ -112,7 +112,9 @@ async function mutations() {
   if (process.env.B222_ROOT) return;
   sec('3  production mutations, each must turn its named cell red');
   const MUT = [
-    ['a row loses its Coming key', 'v2/lib/solutions/routes.ts', "'rebooking', 'quotes', 'payment_links',", "'quotes', 'payment_links',", '1.5'],
+    // M1 RE-ANCHORED BY LABEL · CE-47 INS PAY-A: 'payment_links' left PREVIEW_KEYS when its room landed (my turn-27 note),
+    // so the anchor names two keys still Coming.
+    ['a row loses its Coming key', 'v2/lib/solutions/routes.ts', "'rebooking', 'quotes', 'shop',", "'quotes', 'shop',", '1.5'],
     ['the statement becomes a button', 'v2/components/solutions/ComingRoom.tsx', "<Row title={COPY.launchingSoon} pill={{ text: CHIPS.coming, tone: 'soon' }} />", "<Row title={COPY.launchingSoon} pill={{ text: CHIPS.coming, tone: 'soon' }} onClick={() => {}} />", '1.7'],
     ['a door is missing', 'app/v2/vendor/(shell)/papers/page.tsx', "export { default } from '@/v2/app/vendor/(shell)/papers/page';", '', '1.10'],
     ['a line is retyped', 'v2/lib/solutions/copy.ts', "  quotes:        'Quote links sent to enquiries, and when each was opened',", "  quotes:        'Quote links sent to your enquiries',", '1.2'],

@@ -1,0 +1,16 @@
+# scripts/floor-manifest-ce47-ins-payment-links-pwa.txt
+# CE-47 · INS · the Payment links room (app train 8) + R-47.1 on the Insurance room and the hub's Coming card · base 0038eb41
+# SHARED (change only INS's own entries; the chair stacks FE-9, OFF-2, INS, PRO): v2/lib/solutions/routes.ts (payment_links out
+# of PREVIEW_KEYS), v2/lib/worklist/pageHelp.ts (COMING_CONNECTS, COMING_STEP, the payment-links card), scripts/b222 (LANDED,
+# M1, 1.11 by label), scripts/b223 (by label). No file deleted.
+docs/handovers/TDW_CE47_INS_PAYMENT_LINKS_ROOM_HANDOVER.md
+scripts/b222_ce47_hub_cut_bench.js
+scripts/b223_ce47_insurance_room_bench.js
+scripts/b228_ce47_payment_links_room_bench.js
+scripts/floor-manifest-ce47-ins-payment-links-pwa.txt
+v2/app/vendor/(shell)/insurance/page.tsx
+v2/app/vendor/(shell)/payment-links/page.tsx
+v2/lib/solutions/insurance.ts
+v2/lib/solutions/paymentLinks.ts
+v2/lib/solutions/routes.ts
+v2/lib/worklist/pageHelp.ts

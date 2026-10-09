@@ -38,19 +38,20 @@ ok(() => /export default function InsurancePage/.test(PG) && !/ComingRoom/.test(
 // is layered, OFF then PRO then INS), so no other key is pinned here; b222 1.5 holds the whole set against its LANDED list.
 ok(() => { const pk = (RT.match(/export const PREVIEW_KEYS[^\n]*\n?[^\n]*\]\);/) || [''])[0]; return pk.length > 0 && !pk.includes("'insurance'") && pk.includes("'dates'") && pk.includes("'number'"); }, '1.2 `insurance` has left PREVIEW_KEYS (the others are b222\'s to hold)');
 ok(() => /<Row title=\{INS\.buyHereComing\} pill=\{\{ text: INS\.comingSoon, tone: 'soon' \}\} \/>/.test(PG), '1.3 the "Buy a policy" row is a statement with the Coming soon tag: no onClick, no href');
-ok(() => IN.includes("buyHereComing: 'Buy a policy from the insurer you choose, here in TDW. TDW will take no fee.'") && IN.includes("notChecked: 'Details confirmed by you. Not checked by TDW.'") && IN.includes("quoteNote: 'Each one sets its own price and may charge its own fees. TDW takes nothing.'"), '1.4 the ruled words, word for word, in their one home');
+// AMENDED BY LABEL · R-47.1 (8 October): the room's sentences were rewritten as plain statements; the pins follow them.
+ok(() => IN.includes("buyHereComing: 'Soon you will be able to buy a policy from the insurer you choose, here in TDW. TDW will take no fee.'") && IN.includes("notChecked: 'You confirmed these details. TDW has not checked them.'") && IN.includes("quoteNote: 'Each one sets its own price and may charge its own fees. TDW takes nothing.'"), '1.4 the ruled words, word for word, in their one home');
 ok(() => /\{INS\.notChecked\}/.test(PG) && (PG.match(/data-ins-not-checked/g) || []).length === 1, '1.5 "Not checked by TDW" sits once under the Policies group (ruling b as placed, 6 October)');
 ok(() => /<p className="wl-shnote">\{brief\.fee_line\}<\/p>/.test(PG) && /<CopyBox text=\{brief\.text\}/.test(PG), '1.6 her brief shows the insurer\'s own fee line, and the brief in a CopyBox (R-46.17)');
 ok(() => /quoteBrief\(d\.name, answers, kinds\.map\(\(k\) => k\.key\)\)/.test(PG), '1.7 the brief is asked for with her own answers and the kinds she was shown, nothing else');
 // The one ruled sentence that names recommending does so to deny it (the founder's pictures, 4 October); it is taken out
 // by its exact bytes, so any OTHER use of these words still reddens.
-const RULED_DENIAL = 'These are kinds of cover, not policies. TDW does not recommend an insurer or a policy and takes no fee from any of them.';
+const RULED_DENIAL = 'These are kinds of cover, not policies. TDW does not recommend any insurer or policy. TDW takes no fee from any insurer.';   // R-47.1, by label
 ok(() => IN.includes(RULED_DENIAL) && !/commission|earn|recommend|best|cheapest|couple|bride/i.test(strip(IN).replace(RULED_DENIAL, '') + PG), '1.8 no word of commission, earning, recommending or ranking, and no client word, anywhere in the room (the ruled denial aside)');
 ok(() => /\[INSURANCE_HREF\]: entry\(ROW_DESC\.insurance, \{\n    can: how\(\['read', 'What cover do I need asks five questions/.test(PH) && !/\[INSURANCE_HREF\]: entry\(ROW_DESC\.insurance, \{ can: how\(\['read', 'This room is not open yet/.test(PH), '1.9 its "?" card names the room\'s own buttons; the Coming card is gone');
 ok(() => /const P = `\$\{SOLUTIONS_API_PATH\}\/insurance`;/.test(IN) && ['/kinds', '/quote-brief', '/policies/upload-url', '/policies/read', '/policies', '/settings'].every((x) => IN.includes(x)), '1.10 every call goes to INS-A r3\'s doors under Business Solutions, from one home');
 
 // ── fixtures, shaped as the server answers ─────────────────────────────────────────────────────────────────────────────
-const NOTC = 'Details confirmed by you. Not checked by TDW.';
+const NOTC = 'You confirmed these details. TDW has not checked them.';   // R-47.1, by label
 const POLICIES = [
   { id: 'p-1', kind: 'equipment', kind_title: 'Kit and equipment cover', insurer: 'HDFC ERGO', cover_amount: 300000, ends_on: '2027-02-14', has_document: true, state: 'in_date', state_label: 'In date', facts: 'HDFC ERGO · Rs 3,00,000 · ends 14 February 2027', checked: NOTC },
   { id: 'p-2', kind: 'public_liability', kind_title: 'Public liability', insurer: 'ICICI Lombard', cover_amount: 1000000, ends_on: '2026-11-02', has_document: false, state: 'renew_soon', state_label: 'Renew soon', facts: 'ICICI Lombard · Rs 10,00,000 · ends 2 November 2026', checked: NOTC },
@@ -111,11 +112,11 @@ async function glass() {
     for (const mode of ['dark', 'light']) {
       const { p } = await open(mode);
       const s = await p.evaluate(() => { const v = document.querySelector('[data-ins-view="home"]'); const t = v.innerText;
-        return { lede: (v.querySelector('.fr-lede') || {}).textContent, nc: (t.match(/Not checked by TDW\./g) || []).length, hdfc: /Kit and equipment cover/.test(t) && /In date/.test(t), icici: /Renew soon/.test(t), off: /Show Insured on my website/.test(t) && /\bOff\b/.test(t), find: /What cover do I need/.test(t) && /Get a quote/.test(t), add: !!document.querySelector('[data-room-title]') }; });
+        return { lede: (v.querySelector('.fr-lede') || {}).textContent, nc: (t.match(/TDW has not checked them\./g) || []).length, hdfc: /Kit and equipment cover/.test(t) && /In date/.test(t), icici: /Renew soon/.test(t), off: /Show Insured on my website/.test(t) && /\bOff\b/.test(t), find: /What cover do I need/.test(t) && /Get a quote/.test(t), add: !!document.querySelector('[data-room-title]') }; });
       await shot(p, `01_home__${mode}`);
-      ok(() => s.lede === 'Kinds of cover that fit the business, quotes from insurers, and the policies kept here.', `2.1 [${mode}] the room's lede`, s.lede);
+      ok(() => s.lede === 'This room shows the kinds of insurance cover that fit your business. It helps you ask insurers for a quote, and it keeps your policies in one place.', `2.1 [${mode}] the room's lede`, s.lede);
       ok(() => s.hdfc && s.icici, `2.2 [${mode}] each policy with its kind and its state`, JSON.stringify(s));
-      ok(() => s.nc === 1, `2.3 [${mode}] "Not checked by TDW." once, under the policies`, String(s.nc));
+      ok(() => s.nc === 1, `2.3 [${mode}] "TDW has not checked them." once, under the policies`, String(s.nc));
       ok(() => s.off && s.find, `2.4 [${mode}] the Insured switch reads Off, and Find cover holds both rows`, JSON.stringify(s));
       await p.close();
     }
@@ -130,7 +131,7 @@ async function glass() {
     await tapText(p, 'Get a quote');
     await p.waitForSelector('[data-ins-view="quote"]', { timeout: 30000 });
     const q = await p.evaluate(() => { const v = document.querySelector('[data-ins-view="quote"]'); const t = v.innerText;
-      const stmt = [...v.querySelectorAll('*')].find((e) => e.children.length > 0 && e.textContent.trim().startsWith('Buy a policy from the insurer you choose'));
+      const stmt = [...v.querySelectorAll('*')].find((e) => e.children.length > 0 && e.textContent.trim().startsWith('Soon you will be able to buy a policy from the insurer you choose')   /* by label: the founder's line, 8 October */);
       const ctl = stmt ? stmt.closest('button, a[href]') : null;
       return { comp: (t.match(/Comparison site/g) || []).length, ins: (t.match(/\bInsurer\b/g) || []).length, note: /Each one sets its own price and may charge its own fees\. TDW takes nothing\./.test(t), stmt: !!stmt, soon: /Coming soon/.test(t), ctl: !!ctl }; });
     await shot(p, '02_get_a_quote__dark');

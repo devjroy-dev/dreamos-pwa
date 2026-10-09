@@ -186,7 +186,7 @@ function InsuranceRoom() {
       ) : null}
       {sheet === 'policy' && editing ? (
         <Sheet title={editing.kind_title} onClose={() => { setSheet(null); setEditing(null); }}>
-          <p className="wl-shnote">{editing.facts}. {INS.notChecked} A reminder comes on WhatsApp 30 days and 7 days before it ends.</p>
+          <p className="wl-shnote">{editing.facts}. {INS.notChecked} {INS.reminder}</p>
           <div className="wl-brow">
             {editing.has_document ? <button type="button" className="wl-btn gho" onClick={() => openDoc(editing)}>{INS.openDoc}</button> : null}
             <button type="button" className="wl-btn gho" onClick={() => { setForm({ insurer: editing.insurer, kind: editing.kind, cover: String(editing.cover_amount), ends: editing.ends_on, docPath: null, docMime: null }); setSheet('add'); }}>{INS.replace}</button>
