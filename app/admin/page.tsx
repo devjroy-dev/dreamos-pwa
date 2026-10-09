@@ -44,7 +44,7 @@ export default function HomePage() {
       adminGet<{ claims: Claim[] }>('/api/v2/admin/demo/claims').then(d => setClaims(d.claims || [])),
       adminGet<{ prospects: Prospect[]; openers_sent_total?: number }>('/api/v2/admin/prospects/?state=all&limit=200')
         .then(d => { setPros(d.prospects || []); setSent(typeof d.openers_sent_total === 'number' ? d.openers_sent_total : null); }),
-      getPhotoQueue({ state: 'pending' }).then(d => setPhotos(d.photos.length)),
+      getPhotoQueue().then(d => setPhotos(d.total_held + d.total_reports)),   // CE-47 WEB-4 (R-47.2): held pictures and open reports
     ]);
   }, []);
 
@@ -83,7 +83,7 @@ export default function HomePage() {
         <div>
           <Group title="Waiting for you · 5 lists">
             <NavRow icon="star" label="Discover requests" sub="Vendors asking to be shown on Discover" n={b ? b.queue.approvals_pending.count : null} href="/admin/approvals/discover" />
-            <NavRow icon="photo" label="Photos to check" sub="Portfolio photos waiting for a yes or no" n={photos} href="/admin/approvals/photos" />
+            <NavRow icon="photo" label="Pictures to look at" sub="Held pictures and reports from Dreamers" n={photos} href="/admin/approvals/photos" />
             <NavRow icon="help" label="Asked for help" sub="Dreamers who asked TDW to find vendors" n={help} href="/admin/assistance" />
             <NavRow icon="alert" label="AI replies that failed" sub="Messages the assistant could not answer" n={b ? b.queue.failed_turns.count : null} href="/admin/numbers" />
             <NavRow icon="chat" label="Templates waiting for Meta" sub="WhatsApp messages Meta has not approved yet" n={b ? b.queue.templates_awaiting_verdict.count : null} href="/admin/switchboard" last />

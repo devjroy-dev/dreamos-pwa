@@ -109,10 +109,13 @@ function source() {
   ok(/RoomHeadAdd addKey="website:new-look" label=\{WEB\.newLook\}/.test(room) && /addInline \? <button type="button" className="wb-pill" data-add-key="website:new-look"/.test(room)
     && /<WebsiteRoom [^>]*addInline \/>/.test(read(PAGES[0])) && !/addInline/.test(read(PAGES[1])), '1.20 Looks carries "+ New look": through RoomHeadAdd\'s props { addKey, label, onAdd } in the new layout, as an inline pill (addInline) in classic (item 5)');
   ok(/updateMe\(\{ rate_display: v \}\)/.test(room) && !/show_prices/.test(room + strip(read(CLIENT))), '1.21 prices are vendors.rate_display through /me, not a drafted setting (W6-k ruling)');
-  const adm = strip(read('app/admin/approvals/photos/page.tsx')); const api = strip(read('lib/admin-api/index.ts'));
-  ok(/\{ value: 'look', label: 'Looks' \}/.test(adm) && /getPhotoQueue\(\{ state, kind,/.test(adm) && /approvePhoto\(id, kind\)/.test(adm) && /rejectPhoto\(id, .*, kind\)/.test(adm), '1.23 the photo approval page has a Looks tab over the same queue; approve and reject carry kind');
-  ok(/kind === 'look' \? \{ kind \} : \{\}/.test(api) && /kind === 'look' \? \{ reason, kind \} : \{ reason \}/.test(api) && /if \(p\.kind !== 'look'\) delete p\.kind/.test(api), '1.24 the portfolio queue is called exactly as before; only the Looks tab adds kind=look');
-  ok(/maxLength=\{200\}/.test(adm), '1.25 a look photo\'s reason is capped at 200, as the door keeps it');
+  // AMENDED BY LABEL, CE-47 WEB-4 admin package (R-47.2, the founder's rule of 8 October 2026): approval and its reason
+  // are gone on both sides. "Pictures to look at" lists held pictures of BOTH kinds in one list; the one act on a held
+  // picture is Release, which carries kind for a look picture; nothing asks the admin for a reason the vendor reads.
+  const adm = strip(read('app/admin/approvals/photos/page.tsx')); const api = strip(read('lib/admin-api/pictures.ts'));
+  ok(/releasePicture\(p\.id, p\.kind\)/.test(adm) && /p\.kind === 'look' \? WORDS\.look : WORDS\.portfolio/.test(adm) && !/approvePhoto|rejectPhoto/.test(adm), '1.23 "Pictures to look at" lists look pictures beside portfolio ones; release carries kind (R-47.2)');
+  ok(/kind === 'look' \? \{ kind \} : \{\}/.test(api) && !/admin\/photos\/\$\{id\}\/(approve|reject)`/.test(api + strip(read('lib/admin-api/index.ts'))), '1.24 a portfolio picture is released with no body; only a look picture adds kind=look; no approve or reject door is called');
+  ok(!/rejectReason|maxLength=\{200\}/.test(adm), '1.25 no reason is asked for a held picture (the look photo reason is gone with rejection)');
   ok(/previewToken\(room\.preview\)/.test(room) && !/preview_url/.test(room + strip(read(CLIENT))) && /`\$\{BASE\}\/room`/.test(strip(read(CLIENT))) && !/\/settings`\)/.test(strip(read(CLIENT)).replace(/patchJson[^;]*settings`, body\)/, '')), '1.22 the room reads GET /room, as landed');
 }
 

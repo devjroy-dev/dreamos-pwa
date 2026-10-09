@@ -91,7 +91,7 @@ export interface MoreGroup { title: string; sections: Section[] }
 export const MORE_GROUPS: MoreGroup[] = [
   { title: 'Approvals', sections: [
     { label: 'Discover requests', path: '/admin/approvals/discover', icon: 'star',  sub: 'Vendors asking to be shown on Discover', hints: ['deck', 'eligible', 'review'] },
-    { label: 'Photos to check',   path: '/admin/approvals/photos',   icon: 'photo', sub: 'Portfolio photos waiting for a yes or no', hints: ['portfolio', 'queue', 'looks'] },
+    { label: 'Pictures to look at', path: '/admin/approvals/photos', icon: 'photo', sub: 'Held pictures and reports from Dreamers', hints: ['portfolio', 'queue', 'looks', 'held', 'reports'] },   // CE-47 WEB-4 (R-47.2)
     { label: 'Collab calls',      path: '/admin/collab',             icon: 'star',  sub: 'Calls waiting to go on TDW\'s Instagram and Threads, and prospects', hints: ['collab', 'instagram', 'threads', 'prospects', 'share'] },
   ] },
   { title: 'Chats', sections: [
@@ -101,7 +101,7 @@ export const MORE_GROUPS: MoreGroup[] = [
   { title: 'Discover and showcase', sections: [
     { label: 'Couture',                    path: '/admin/couture',           icon: 'star',  sub: 'Invite-only vendors', hints: ['appointments'] },
     { label: 'Auspicious dates',           path: '/admin/hot-dates',         icon: 'cal',   sub: 'Muhurat dates shown in the app', hints: ['hot dates', 'availability'] },
-    { label: 'Upload photos for a vendor', path: '/admin/vendors/portfolio', icon: 'image', hints: ['portfolio', 'gallery'] },
+    { label: 'A vendor’s pictures', path: '/admin/vendors/portfolio', icon: 'image', hints: ['portfolio', 'gallery', 'upload', 'discover'] },   // CE-47 WEB-4 (R-47.2)
   ] },
   { title: 'Pictures in the Dreamers\' app', sections: [
     { label: 'Front page slideshow',  path: '/admin/content/landing',     icon: 'image', hints: ['landing', 'front door'] },
@@ -180,12 +180,9 @@ export const ROUTE_MAP: MappedRoute[] = [
   // ── PHANTOM — F-07.95, masterplan row 10, its own sitting ─────────────────
   { path: '/admin/discover-heroes',          domain: 'content',     disposition: 'PHANTOM',
     note: '494 ln. The heroes pair\'s second half. Dies with its twin at the spotlight consolidation; excluded from the palette.' },
-  { path: '/admin/approvals',                domain: 'marketplace', disposition: 'PHANTOM', note: 'Index route above the two live approval surfaces.' },
-  { path: '/admin/photos',                   domain: 'marketplace', disposition: 'PHANTOM', note: 'Older sibling of /admin/approvals/photos — which of the pair is authoritative is F-07.95\'s question, not P1\'s.' },
   { path: '/admin/featured',                 domain: 'marketplace', disposition: 'PHANTOM', note: 'FEATURED is the paid pipeline (CE-123). Backend exists at src/api/admin/featured.js.' },
   { path: '/admin/preview',                  domain: 'marketplace', disposition: 'PHANTOM', note: 'F-07.95 names preview a zero-sibling backend.' },
   { path: '/admin/exploring',                domain: 'content',     disposition: 'PHANTOM', note: 'Older sibling of /admin/content/exploring.' },
-  { path: '/admin/images',                   domain: 'content',     disposition: 'PHANTOM' },
   { path: '/admin/vendors',                  domain: 'people',      disposition: 'PHANTOM', note: 'Older sibling of /admin/makers.' },
   { path: '/admin/couples',                  domain: 'people',      disposition: 'PHANTOM', note: 'Older sibling of /admin/dreamers.' },
   { path: '/admin/messages',                 domain: 'people',      disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend.' },
@@ -215,6 +212,13 @@ export const ROUTE_MAP: MappedRoute[] = [
   { path: '/admin/money',                    domain: 'money',       disposition: 'RETIRED', note: 'RETIRED 2026-08-07 (F-10.76, founder 「 retire. 」). Fetched /api/v3/admin/money/overview — no server home; rendered Rs 0 beside the Bridge\'s true revenue. One Export-CSV control REMOVED-BY-RULING. P5 rebuilds on billing_events.' },
   { path: '/admin/revenue',                  domain: 'money',       disposition: 'RETIRED', note: 'RETIRED 2026-08-07 (F-10.76, founder 「 retire. 」). Fetched /api/v2/admin/revenue — no server home. Zero interactive controls. P5 rebuilds on billing_events.' },
   { path: '/admin/subscriptions',            domain: 'money',       disposition: 'RETIRED', note: 'RETIRED 2026-08-07 (F-10.76, Fork F ruled retire-alongside). Fetched /api/v3/admin/makers — the whole v3 namespace is unmounted (F-10.84). Zero interactive controls. Vendor subscription truth now lives on the vendor\'s own surface.' },
+  // ── RETIRED · CE-47 WEB-4 admin package (R-47.2, the founder's rule of 8 October 2026: no approval of pictures) ──
+  // Three pages that approved or rejected pictures, deleted. Two called /api/v3/admin/images (no server, F-10.84); one
+  // called PATCH /api/v2/admin/photos/:id/approve and /reject, which never existed as PATCH and are now gone as POST too
+  // (dream-os cut 30). "Pictures to look at" (/admin/approvals/photos) is their one successor.
+  { path: '/admin/approvals',                domain: 'marketplace', disposition: 'RETIRED', note: 'RETIRED 2026-10-09 (CE-47 WEB-4, R-47.2). Per-photo approve and reject over /api/v3/admin/images, which has no server. Successor: /admin/approvals/photos.' },
+  { path: '/admin/photos',                   domain: 'marketplace', disposition: 'RETIRED', note: 'RETIRED 2026-10-09 (CE-47 WEB-4, R-47.2). Approve and reject by PATCH, doors that never existed. Successor: /admin/approvals/photos.' },
+  { path: '/admin/images',                   domain: 'content',     disposition: 'RETIRED', note: 'RETIRED 2026-10-09 (CE-47 WEB-4, R-47.2). Approve, reject and approve-all over /api/v3/admin/images, which has no server. Successor: /admin/approvals/photos.' },
   { path: '/admin/health',                   domain: 'engine',      disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend. P4\'s health board rebuilds it.' },
   { path: '/admin/data',                     domain: 'engine',      disposition: 'PHANTOM', note: 'F-07.95: zero-sibling backend.' },
   { path: '/admin/control-room',             domain: 'engine',      disposition: 'PHANTOM', note: 'Name collides with the shell\'s own wordmark eyebrow; provenance unread.' },

@@ -1,0 +1,22 @@
+# scripts/floor-manifest-ce47-web4-admin-pictures.txt
+# CE-47 · WEB-4 admin package · R-47.2, a vendor's pictures belong to her (the app half of dream-os cut 30) · base 96fa4e06 (app train 8) · F-19.16: a dirty path outside this list stops the floor.
+# "Pictures to look at" (held pictures and Dreamers' reports; Release; Hide from Discover or No change) and "A vendor's pictures" (state per picture; hide, show, release; removal for a legal reason only). One home: lib/admin-api/pictures.ts. Rung b301p. Amended by label: b172 (1.23 to 1.25), adm1 (7.0), ce41_e2i census (the group list), tdw07_f0784 (§3.5), tdw10_p1 shell (the route ledger). Three dead pages deleted and RETIRED in the route map: app/admin/approvals/page.tsx, app/admin/images/page.tsx, app/admin/photos/page.tsx (each line below). No new directory.
+app/admin/_components/adminNav.ts
+app/admin/approvals/discover/page.tsx
+app/admin/approvals/page.tsx
+app/admin/approvals/photos/page.tsx
+app/admin/dashboard/page.tsx
+app/admin/images/page.tsx
+app/admin/page.tsx
+app/admin/photos/page.tsx
+app/admin/vendors/portfolio/page.tsx
+docs/handovers/TDW_CE47_WEB4_ADMIN_PICTURES_APP.md
+lib/admin-api/index.ts
+lib/admin-api/pictures.ts
+scripts/adm1_admin.proof.mjs
+scripts/b172_web6_customiser_bench.js
+scripts/b301p_ce47_web4_pictures_admin_bench.js
+scripts/ce41_e2i_cockpit_ink_census.mjs
+scripts/floor-manifest-ce47-web4-admin-pictures.txt
+scripts/tdw07_f0784_panel.proof.mjs
+scripts/tdw10_p1_shell.proof.mjs

@@ -93,12 +93,8 @@ export type DiscoverPreview = {
   discover_paused?: boolean;
 };
 
-export type PhotoQueueItem = {
-  id: string; vendor_id: string; image_url: string; caption: string | null;
-  aesthetic_tags?: string[]; approval_state: string; created_at: string;
-  look_id?: string; rejection_reason?: string | null;   // look photos (kind 'look')
-  vendor: { id: string; business_name: string; category: string; routing_handle: string };
-};
+// CE-47 WEB-4 admin package (R-47.2): PhotoQueueItem is gone with the approval queue. A picture's types, doors and
+// words live in one home, ./pictures (re-exported below).
 
 export type ConversationThread = {
   id: string; kind: string; state: string; last_message_at: string; created_at: string;
@@ -180,16 +176,10 @@ export const spotlightApi   = {
 
 // ── Approvals ─────────────────────────────────────────────────────────────────
 
-// CE-47 · WEB-6 · b172: `kind: 'look'` runs the same queue and doors over vendors' LOOK photos (dream-os
-// src/api/admin/photos.js, WEB-4 cut 3); a look photo's rejection keeps its reason (up to 200), which her room shows.
-export type PhotoKind = 'portfolio' | 'look';
-export const getPhotoQueue = (params?: { state?: string; category?: string; kind?: PhotoKind }) => {
-  const p = { ...(params ?? {}) } as Record<string, string>; if (p.kind !== 'look') delete p.kind;
-  const qs = new URLSearchParams(p).toString();
-  return adminGet<{ photos: PhotoQueueItem[] }>(`/api/v2/admin/photos/queue${qs ? '?' + qs : ''}`);
-};
-export const approvePhoto  = (id: string, kind?: PhotoKind)                  => adminPost(`/api/v2/admin/photos/${id}/approve`, kind === 'look' ? { kind } : {});
-export const rejectPhoto   = (id: string, reason?: string, kind?: PhotoKind) => adminPost(`/api/v2/admin/photos/${id}/reject`, kind === 'look' ? { reason, kind } : { reason });
+// CE-47 · WEB-4 admin package (R-47.2, the founder's rule of 8 October 2026): approve and reject are gone, on the
+// server (cut 30) and here. "Pictures to look at" reads the held pictures and the Dreamers' reports; its doors are in
+// ./pictures, the one home. getPhotoQueue keeps its name so Home's count reads the new queue.
+export { getPhotoQueue, type PictureKind as PhotoKind, type PictureQueue } from './pictures';
 export const getDiscoverQueue = ()                                 => adminGet<{ requests: DiscoverRequest[] }>('/api/v2/admin/discover/requests');
 export const grantDiscover    = (vendorId: string)                => adminPost(`/api/v2/admin/discover/grant/${vendorId}`, {});
 // THE REASON IS THE POINT. This call posted `{}` — so the deny route's `reason`

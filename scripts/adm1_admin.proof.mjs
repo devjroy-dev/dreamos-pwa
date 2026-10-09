@@ -118,9 +118,11 @@ H('§7 · CE-47 change 2: THE WORDS GATE');
 // Excluded by exact path, per CE-47; the final audit decides their deletion.
 // AMENDED CE-47 CLB-1 (count 15 -> 14): /admin/collab became LIVE when its door was mounted (F-44.300's cure), so it
 // left the PHANTOM list and joins the words gate below; the cell's claim (exclusions == PHANTOM pages with a file) holds.
-const DEAD = ['discover-heroes', 'approvals', 'photos', 'featured', 'preview', 'exploring', 'images', 'vendors', 'couples', 'messages', 'health', 'data', 'control-room', 'dashboard'].map(p => `app/admin/${p}/page.tsx`);
+// AMENDED BY LABEL, CE-47 WEB-4 admin package (count 14 -> 11; R-47.2): approvals, photos and images approved or rejected
+// pictures; they are deleted and RETIRED in the route map, so they leave the PHANTOM list. The cell's claim holds.
+const DEAD = ['discover-heroes', 'featured', 'preview', 'exploring', 'vendors', 'couples', 'messages', 'health', 'data', 'control-room', 'dashboard'].map(p => `app/admin/${p}/page.tsx`);
 const phantomWithFile = [...NAV.matchAll(/\{ path: '(\/admin\/[^']+)',\s+domain: '\w+',\s+disposition: 'PHANTOM'/g)].map(m => 'app' + m[1] + '/page.tsx').filter(f => fs.existsSync(P(f))).sort();
-ok('7.0 the exclusion list is exactly the PHANTOM pages that have a file (14)', DEAD.length === 14 && JSON.stringify([...DEAD].sort()) === JSON.stringify(phantomWithFile), JSON.stringify(phantomWithFile));
+ok('7.0 the exclusion list is exactly the PHANTOM pages that have a file (11)', DEAD.length === 11 && JSON.stringify([...DEAD].sort()) === JSON.stringify(phantomWithFile), JSON.stringify(phantomWithFile));
 const files = [...walk('app/admin'), ...walk('lib/admin-api')].filter(f => /\.(ts|tsx)$/.test(f) && !DEAD.includes(f)).sort();
 const hits = [];
 for (const f of files) {

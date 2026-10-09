@@ -150,7 +150,13 @@ sec('§3 · F-07.85 — the 26 senders ride one home');
      all.every(f => !/^const [A-Za-z_]+ *= *\{[^\n]*Authorization/m.test(stripComments(fs.readFileSync(f, 'utf8')))));
 
   const adopters = ADMIN_FILES.filter(f => /adminHeaders\(/.test(stripComments(fs.readFileSync(f, 'utf8'))));
-  ok(`§3.5 the adoption is wide, not token: ${adopters.length} screens call the authority`, adopters.length >= 20);
+  // AMENDED BY LABEL, CE-47 WEB-4 admin package (R-47.2): 20 -> 16. Three adopters were deleted (approvals, images,
+  // photos: they approved pictures), and the vendor's pictures page now reaches the SAME authority through its door
+  // file, lib/admin-api/pictures.ts, whose adminGet and adminPost are _base's (req() calls adminHeaders()). That door
+  // is asserted here too, so the authority is not routed around.
+  const picDoor = fs.readFileSync('lib/admin-api/pictures.ts', 'utf8');
+  ok(`§3.5 the adoption is wide, not token: ${adopters.length} screens call the authority`, adopters.length >= 16
+     && /import \{ adminGet, adminPost \} from '\.\/_base';/.test(picDoor) && !/fetch\(/.test(stripComments(picDoor)));
   ok('§3.6 every adopter imports it rather than redefining it',
      adopters.every(f => /from ['"]@\/lib\/admin-api\/_base['"]/.test(fs.readFileSync(f, 'utf8'))));
 }

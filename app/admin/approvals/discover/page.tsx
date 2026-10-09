@@ -305,7 +305,7 @@ export default function DiscoverApprovalsPage() {
                   fontFamily: '"Jost", sans-serif', fontSize: 10,
                   letterSpacing: '0.1em', color: 'var(--atelier-ink-mute)', marginTop: 3,
                 }}>
-                  {r.photos_total} photos · {r.photos_approved} approved
+                  {r.photos_total} photos · {r.photos_approved} on Discover
                   {!r.meets_floor && ` · below the ${r.photo_floor}-photo floor`}
                 </div>
               </div>

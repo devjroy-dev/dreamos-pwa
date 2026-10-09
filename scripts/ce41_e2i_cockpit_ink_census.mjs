@@ -59,14 +59,13 @@ const GROUP = [
   'app/admin/couples/page.tsx',
   'app/admin/messages/page.tsx',
   'app/admin/collab/page.tsx',
-  'app/admin/images/page.tsx',
-  'app/admin/photos/page.tsx',
+  // AMENDED BY LABEL, CE-47 WEB-4 admin package (R-47.2): images and photos (and approvals, below) are deleted, RETIRED in
+  // the route map; a deleted file holds no colour, so they leave the list rather than read "missing".
   'app/admin/featured/page.tsx',
   'app/admin/exploring/page.tsx',
   'app/admin/discover-heroes/page.tsx',
   'app/admin/preview/page.tsx',
   // (iv) the control-dense rooms
-  'app/admin/approvals/page.tsx',
   'app/admin/control-room/page.tsx',
   'app/admin/config/page.tsx',
   'app/admin/switchboard/page.tsx',

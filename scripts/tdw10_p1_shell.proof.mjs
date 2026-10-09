@@ -194,9 +194,11 @@ const retiredPaths = new Set(
 ok('every /admin row is EITHER a route on disk OR a labelled RETIRED tombstone',
    tablePaths.every(p => routes.includes(p) || retiredPaths.has(p)),
    tablePaths.filter(p => !routes.includes(p) && !retiredPaths.has(p)).join(', '));
-ok('the tombstones are exactly the three F-10.76 retired the founder ruled on',
-   retiredPaths.size === 3 &&
-   ['/admin/money', '/admin/revenue', '/admin/subscriptions'].every(p => retiredPaths.has(p)),
+// LABELED AMENDMENT (CE-47 WEB-4 admin package, R-47.2): three more tombstones, the pages that approved pictures
+// (/admin/approvals, /admin/photos, /admin/images), deleted on the founder's rule of 8 October 2026. 3 -> 6.
+ok('the tombstones are exactly the three F-10.76 retired the founder ruled on, and the three R-47.2 retired',
+   retiredPaths.size === 6 &&
+   ['/admin/money', '/admin/revenue', '/admin/subscriptions', '/admin/approvals', '/admin/photos', '/admin/images'].every(p => retiredPaths.has(p)),
    [...retiredPaths].join(', '));
 ok('NO tombstoned route survives on disk — retired means gone, not hidden',
    [...retiredPaths].every(p => !routes.includes(p)),
@@ -221,8 +223,10 @@ ok('NO tombstoned route survives on disk — retired means gone, not hidden',
 // /admin/partners/forward, all LIVE and all in ROUTE_MAP: 38→41 on disk, 41→44 rows, 23→26 LIVE (CLB-1's 23 stands). Same shape.
 // LABELED AMENDMENT (CE-47 PRO P3): two routes ADDED, /admin/brands and /admin/trends, both LIVE and both in ROUTE_MAP:
 // 41→43 on disk, 44→46 rows, 26→28 LIVE. Same shape.
+// LABELED AMENDMENT (CE-47 WEB-4 admin package, R-47.2): three routes DELETED (approvals, photos, images), their rows kept
+// as RETIRED tombstones: 43→40 on disk, rows stay 46, PHANTOM 14→11, RETIRED 3→6. Same shape; the ledger balances.
 ok('the disk carries exactly 36 non-login admin routes (39 minus F-10.76\'s three)',
-   routes.length === 43 && new Set(routes).size === 43, `disk=${routes.length}`);
+   routes.length === 40 && new Set(routes).size === 40, `disk=${routes.length}`);
 ok('the table still carries 39 rows — the three retired persist as tombstones',
    tablePaths.length === 46 && new Set(tablePaths).size === 46,
    `table=${tablePaths.length}`);
@@ -245,7 +249,7 @@ ok('20 LIVE + 1 RETIRES + 15 PHANTOM + 3 RETIRED = 39',
    liveCount + retireCount + phantomCount + retiredCount === 46 && liveCount === 28,   // PTN-A1: +3 LIVE over CLB-1's 23; PRO P3: +2
    `LIVE=${liveCount} RETIRES=${retireCount} PHANTOM=${phantomCount} RETIRED=${retiredCount}`);
 ok('F-10.76 reduced the phantom ledger by exactly three (acceptance ②)',
-   phantomCount === 14 && retiredCount === 3, `PHANTOM=${phantomCount} RETIRED=${retiredCount}`);   // 15 -> 14: CLB-1, above
+   phantomCount === 11 && retiredCount === 6, `PHANTOM=${phantomCount} RETIRED=${retiredCount}`);   // 15 -> 14: CLB-1, above; 14 -> 11 and RETIRED 3 -> 6: CE-47 WEB-4 (R-47.2)
 ok('the dead [data-theme="dark"] block is tabled as a CORPSE, not revived and not deleted (R-A1 rider i)',
    corpseCount === 1 && /P6-SWEEP/.test(NAV) && /data-theme="dark"/.test(NAV));
 // The question is whether anything SETS the attribute — the corpse's own row

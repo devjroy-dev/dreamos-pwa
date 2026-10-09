@@ -136,8 +136,8 @@ export default function CommandCentrePage() {
         <button onClick={exportReport} style={{ height: 36, padding: '0 16px', background: 'transparent', color: 'var(--atelier-sheet-bg)', border: '1px solid transparent', borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap' }}>
           ↓ Export Today's Report
         </button>
-        <button onClick={() => router.push('/admin/images')} style={{ height: 36, padding: '0 16px', background: 'transparent', color: 'var(--role-metal)', border: '1px solid var(--atelier-row-hover)', borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-          ⬡ Approve Images
+        <button onClick={() => router.push('/admin/approvals/photos')} style={{ height: 36, padding: '0 16px', background: 'transparent', color: 'var(--role-metal)', border: '1px solid var(--atelier-row-hover)', borderRadius: 8, fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          ⬡ Pictures to look at
         </button>
       </div>
 
