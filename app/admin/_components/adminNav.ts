@@ -117,6 +117,11 @@ export const MORE_GROUPS: MoreGroup[] = [
     { label: 'Contacts',          path: '/admin/partners/contacts', icon: 'chat', sub: 'People and organisations TDW knows', hints: ['contacts', 'stopped'] },
     { label: 'Forward a request', path: '/admin/partners/forward', icon: 'chat',  sub: 'Send a vendor\'s request to people TDW knows', hints: ['forward', 'request', 'matchmaking'] },
   ] },
+  // CE-47 PRO P3: the brand list for Brand collaborations, and the weekly Trend room briefs to approve.
+  { title: 'Business Solutions', sections: [
+    { label: 'Brands',        path: '/admin/brands', icon: 'star',  sub: 'Brands that vendors can pitch', hints: ['brands', 'pitches', 'collaborations', 'media kit'] },
+    { label: 'Trend briefs',  path: '/admin/trends', icon: 'chart', sub: 'Approve each week\'s brief before Monday 9:00 am', hints: ['trends', 'brief', 'weekly'] },
+  ] },
   { title: 'Settings', sections: [
     { label: 'Switches',          path: '/admin/switchboard', icon: 'sliders', sub: 'Turn features on or off, AI models, vendor layout', hints: ['switchboard', 'gates', 'flags', 'templates', 'meta'] },
     { label: 'AI message limits', path: '/admin/config',      icon: 'gear',    sub: 'Daily and monthly limits per plan', hints: ['caps', 'model', 'spend'] },
@@ -146,6 +151,8 @@ export const ROUTE_MAP: MappedRoute[] = [
   { path: '/admin/partners',                 domain: 'growth',      disposition: 'LIVE' }, // CE-47 PTN-A1
   { path: '/admin/partners/contacts',        domain: 'growth',      disposition: 'LIVE' }, // CE-47 PTN-A1
   { path: '/admin/partners/forward',         domain: 'growth',      disposition: 'LIVE' }, // CE-47 PTN-A1
+  { path: '/admin/brands',                   domain: 'growth',      disposition: 'LIVE' }, // CE-47 PRO P3
+  { path: '/admin/trends',                   domain: 'growth',      disposition: 'LIVE' }, // CE-47 PRO P3
   { path: '/admin/collab',                   domain: 'growth',      disposition: 'LIVE' }, // CE-47 CLB-1: F-44.300 cured; src/api/admin/collab.js serves it
   { path: '/admin/demo',                     domain: 'growth',      disposition: 'LIVE' },
   { path: '/admin/approvals/discover',       domain: 'marketplace', disposition: 'LIVE' },

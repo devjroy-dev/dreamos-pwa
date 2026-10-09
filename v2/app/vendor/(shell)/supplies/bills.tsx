@@ -32,18 +32,19 @@ export function BillsView({ vendorId, onBack }: { vendorId: string; onBack: () =
     if (!r.ok) { show(errOf(r), 'error'); void load(); return; }
     setOpen((r as { draft: BillDraft }).draft); void load();
   };
-  if (open) return <BillForm vendorId={vendorId} draft={open} onBack={() => { setOpen(null); void load(); }} show={show} />;
+  // A bill added or deleted leaves the list at once, before the list is read again (no stale row for a moment).
+  if (open) return <BillForm vendorId={vendorId} draft={open} onBack={(doneId?: string) => { if (doneId) setDrafts((xs) => (xs || []).filter((d) => d.id !== doneId)); setOpen(null); void load(); }} show={show} />;
   return (<Body>
     <button type="button" className="sp-back" onClick={onBack}>{'‹'} Back to Supplies</button>
     <Head text="Bills" />
     {note ? <p className={`sp-status ${note.kind}`} role={note.kind === 'error' ? 'alert' : 'status'} data-sp-status="">{note.text}</p> : null}
-    <p className="sp-lede">Add a photo or a PDF of a purchase bill. TDW reads it and fills in the figures; you check them and add it to Expenses with its GST.</p>
+    <p className="sp-lede">Add a photo or a PDF of a purchase bill. TDW reads the bill and fills in the figures. You check the figures and add the bill to Expenses with its GST.</p>
     <div className="sp-btns"><button type="button" className="sp-btn solid" data-bl-add="" disabled={busy} onClick={() => pick.current && pick.current.click()}>{busy ? 'Reading the bill…' : 'Add a bill'}</button></div>
     <input ref={pick} type="file" accept={BILL_MIME.join(',')} hidden data-bl-file="" onChange={(e) => void onFile(e.target.files ? e.target.files[0] : undefined)} />
     <p className="sp-mute">The bill is kept privately in your TDW account. Only you can open it.</p>
     {drafts && drafts.length ? (<><Head text="Not added yet" count={drafts.length} />
       <Group>{drafts.map((d) => (<div key={d.id} data-bl-draft={d.id}><Row title={d.fields.supplier_name || 'Bill'} facts={[rs(d.fields.amount), d.keep_line].filter(Boolean).join(' · ')} chevron onClick={() => setOpen(d)} /></div>))}</Group></>) : null}
-    {drafts && !drafts.length ? <p className="sp-mute" data-bl-none="">No bills waiting. Bills you add go to Expenses once you check them.</p> : null}
+    {drafts && !drafts.length ? <p className="sp-mute" data-bl-none="">No bills are waiting for you. A bill goes to Expenses after you check it.</p> : null}
     <style>{FR_CSS + SP_CSS + BL_CSS}</style>
   </Body>);
 }
@@ -57,9 +58,11 @@ const FIELDS: { k: keyof BillFields; label: string; money?: boolean; date?: bool
   { k: 'cgst', label: 'CGST (Rs)', money: true }, { k: 'sgst', label: 'SGST (Rs)', money: true }, { k: 'igst', label: 'IGST (Rs)', money: true },
   { k: 'amount', label: 'Total (Rs)', money: true, ph: '4,248' },
 ];
+/** "Value before GST (Rs)" → "The value before GST"; "CGST (Rs)" → "The CGST" (R-47.1: a full sentence names the box). */
+const numWord = (label: string) => { const w = label.replace(/\s*\(Rs\)$/, ''); return `The ${/^[A-Z][a-z]/.test(w) ? w[0].toLowerCase() + w.slice(1) : w}`; };
 const toNum = (s: string) => { const t = s.replace(/[,\s]/g, ''); if (!t) return null; const n = Number(t); return Number.isFinite(n) ? n : NaN; };
 
-function BillForm({ vendorId, draft, onBack, show }: { vendorId: string; draft: BillDraft; onBack: () => void; show: ShowFn }) {
+function BillForm({ vendorId, draft, onBack, show }: { vendorId: string; draft: BillDraft; onBack: (doneId?: string) => void; show: ShowFn }) {
   const [v, setV] = useState<Record<string, string>>(() => Object.fromEntries(FIELDS.map((f) => [f.k, draft.fields[f.k] == null ? '' : String(draft.fields[f.k])])));
   const [cat, setCat] = useState<string>('');
   const [problems, setProblems] = useState<string[]>(draft.problems || []);
@@ -67,18 +70,18 @@ function BillForm({ vendorId, draft, onBack, show }: { vendorId: string; draft: 
   const add = async () => {
     if (!cat) { setProblems(['Choose a category.']); return; }
     const body: Record<string, unknown> = { category: cat };
-    for (const f of FIELDS) { const s = (v[f.k] || '').trim(); if (!s) continue; if (f.money) { const n = toNum(s); if (Number.isNaN(n)) { setProblems([`${f.label}: type a number.`]); return; } body[f.k] = n; } else body[f.k] = s; }
+    for (const f of FIELDS) { const s = (v[f.k] || '').trim(); if (!s) continue; if (f.money) { const n = toNum(s); if (Number.isNaN(n)) { setProblems([`${numWord(f.label)} must be a number.`]); return; } body[f.k] = n; } else body[f.k] = s; }
     if (draft.fields.printed_rate != null) body.printed_rate = draft.fields.printed_rate;
     setBusy(true); const r = await confirmBill(vendorId, draft.id, body as BillFields & { category: string }); setBusy(false);
     if (!r.ok) { setProblems([errOf(r)]); return; }
-    show('Bill added to Expenses', 'success'); onBack();
+    show('The bill is added to Expenses.', 'success'); onBack(draft.id);
   };
-  const gone = async () => { setBusy(true); const r = await discardBill(vendorId, draft.id); setBusy(false); if (!r.ok) { setProblems([errOf(r)]); return; } show('Bill deleted', 'success'); onBack(); };
+  const gone = async () => { setBusy(true); const r = await discardBill(vendorId, draft.id); setBusy(false); if (!r.ok) { setProblems([errOf(r)]); return; } show('The bill is deleted.', 'success'); onBack(draft.id); };
   return (<Body>
-    <button type="button" className="sp-back" onClick={onBack}>{'‹'} Back to Bills</button>
+    <button type="button" className="sp-back" onClick={() => onBack()}>{'‹'} Back to Bills</button>
     <Head text="Check the bill" />
     <div className="sp-card" data-bl-form={draft.id}>
-      <p className="sp-mute">TDW read these from the bill. Correct anything that is wrong, then add it.</p>
+      <p className="sp-mute">TDW read these figures from the bill. Correct any figure that is wrong. Then tap Add to Expenses.</p>
       {FIELDS.map((f) => (<div key={f.k}><div className="sp-label">{f.label}</div>
         <input className="sp-in" data-bl-field={f.k} type={f.date ? 'date' : 'text'} inputMode={f.money ? 'decimal' : undefined} value={v[f.k] || ''} placeholder={f.ph}
           onChange={(e) => setV((x) => ({ ...x, [f.k]: e.target.value }))} />
@@ -89,7 +92,7 @@ function BillForm({ vendorId, draft, onBack, show }: { vendorId: string; draft: 
       <div className="sp-btns"><button type="button" className="sp-btn solid" data-bl-confirm="" disabled={busy} onClick={add}>{busy ? 'Adding…' : 'Add to Expenses'}</button>
         {confirmGone ? <button type="button" className="sp-btn" data-bl-gone="" disabled={busy} onClick={gone}>Delete the bill</button>
           : <button type="button" className="sp-btn" data-bl-throw="" onClick={() => setConfirmGone(true)}>Throw away</button>}</div>
-      {confirmGone ? <p className="sp-mute">The bill and what TDW read from it are deleted now. This cannot be undone.</p> : <p className="sp-mute">{draft.keep_line}</p>}
+      {confirmGone ? <p className="sp-mute">If you tap Delete the bill, TDW deletes the bill and what it read from the bill at once. You cannot undo this.</p> : <p className="sp-mute">{draft.keep_line}</p>}
     </div>
     <style>{FR_CSS + SP_CSS + BL_CSS}</style>
   </Body>);

@@ -179,7 +179,9 @@ async function mutations() {
     ['the fee line is dropped from the brief', 'v2/app/vendor/(shell)/insurance/page.tsx', '<p className="wl-shnote">{brief.fee_line}</p>', '', '1.6'],
     ['the not-checked line is dropped', 'v2/app/vendor/(shell)/insurance/page.tsx', '<p className="ins-note" data-ins-not-checked="">{INS.notChecked}</p>', '', '1.5'],
     // M4 re-anchored on PRO's PREVIEW_KEYS bytes (app train 3, layered OFF later, PRO, then INS).
-    ['insurance stays Coming', 'v2/lib/solutions/routes.ts', "'brands', 'trends']);", "'brands', 'trends', 'insurance']);", '1.2'],
+    // AMENDED BY LABEL · CE-47 PRO P3: `brands` and `trends` left PREVIEW_KEYS (their rooms landed); the anchor is the set's new end.
+    // RE-ANCHORED BY LABEL · CE-47 app train 8 (the chair's merge): the set now ends at quotes.
+    ['insurance stays Coming', 'v2/lib/solutions/routes.ts', "'rebooking', 'quotes']);", "'rebooking', 'quotes', 'insurance']);", '1.2'],
     ['a word of commission creeps in', 'v2/lib/solutions/insurance.ts', "quoteNote: 'Each one sets its own price and may charge its own fees. TDW takes nothing.'", "quoteNote: 'Each one sets its own price; TDW may earn a commission.'", '1.4'],
   ];
   for (const [name, file, from, to, cell] of MUT) {

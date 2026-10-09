@@ -13,8 +13,8 @@ import { errOf } from '@/v2/lib/vendor/api/papers';
 import { SP_CSS } from './style';
 
 type ShowFn = (msg: string, kind?: 'success' | 'error') => void;
-// The chair's line on an accepted loan, both sides (7 October 2026; the founder may reword it).
-export const DEPOSIT_LINE = 'Agree a deposit, and what happens if it is damaged or late, with each other before you hand it over.';
+// The founder's line on an accepted loan, both sides (approved 8 October 2026, R-47.1).
+export const DEPOSIT_LINE = 'Agree on a deposit with each other before you hand the item over. Also agree on what happens if the item comes back damaged or late.';
 const STATE_WORD = { requested: 'Asked', accepted: 'Accepted', declined: 'Declined', cancelled: 'Cancelled' } as const;
 const TONE = { requested: 'warn', accepted: 'ok', declined: 'plain', cancelled: 'plain' } as const;
 
@@ -30,7 +30,7 @@ export function GearView({ vendorId, city, onBack }: { vendorId: string; city: s
   const answer = async (q: GearRequest, verb: 'accept' | 'decline' | 'cancel') => {
     const r = await answerGear(vendorId, q.id, verb);
     if (!r.ok) { show(errOf(r), 'error'); return; }
-    show(verb === 'accept' ? 'Request accepted' : verb === 'decline' ? 'Request declined' : 'Cancelled', 'success'); void load();
+    show(verb === 'accept' ? 'You accepted the request.' : verb === 'decline' ? 'You declined the request.' : 'The request is cancelled.', 'success'); void load();
   };
   const back = () => { setView({ v: 'room' }); void load(); };
   if (view.v === 'list') return <ListForm vendorId={vendorId} city={city} onBack={back} show={show} />;
@@ -60,7 +60,7 @@ export function GearView({ vendorId, city, onBack }: { vendorId: string; city: s
       <div className="sp-btns"><button type="button" className="sp-btn" data-gr-list="" onClick={() => setView({ v: 'list' })}>List an item</button>
         {room.mine.some((i) => i.state === 'listed') ? <WithdrawPicker vendorId={vendorId} items={room.mine.filter((i) => i.state === 'listed')} onDone={() => void load()} show={show} /> : null}</div>
     </>) : <p className="sp-mute">Loading…</p>}
-    <p className="sp-lede" data-gr-nothing="">TDW takes nothing from a loan and holds no money. Days you lend stay here; nothing is added to your Calendar.</p>
+    <p className="sp-lede" data-gr-nothing="">TDW takes no fee from a loan and holds no money. The days you lend an item are kept here. TDW adds nothing to your Calendar.</p>
     <style>{FR_CSS + SP_CSS + GR_CSS}</style>
   </Body>);
 }
@@ -83,8 +83,8 @@ function Loan({ q, onAnswer }: { q: GearRequest; onAnswer: (q: GearRequest, verb
     {(q.state === 'requested' && !owner) || q.state === 'accepted' ? (sure
       ? (<div className="sp-btns"><button type="button" className="sp-btn" data-gr-cancel={q.id} onClick={() => onAnswer(q, 'cancel')}>{owner ? 'Cancel the loan' : 'Cancel the request'}</button></div>)
       : (<div className="sp-btns"><button type="button" className="sp-btn" onClick={() => setSure(true)}>Cancel</button></div>)) : null}
-    {q.state === 'requested' && owner ? <div className="sp-mute">Their WhatsApp number shows once you accept.</div> : null}
-    {q.state === 'requested' && !owner ? <div className="sp-mute">Their WhatsApp number shows once they accept.</div> : null}
+    {q.state === 'requested' && owner ? <div className="sp-mute">You will see their WhatsApp number after you accept the request.</div> : null}
+    {q.state === 'requested' && !owner ? <div className="sp-mute">You will see their WhatsApp number after the owner accepts your request.</div> : null}
   </div>);
 }
 
@@ -102,10 +102,10 @@ function ListForm({ vendorId, city, onBack, show }: { vendorId: string; city: st
   const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
   const save = async () => {
     const value_rs = whole(worth), price_per_day_rs = whole(price);
-    if (Number.isNaN(value_rs) || Number.isNaN(price_per_day_rs)) { setErr('Type rupees in whole numbers.'); return; }
+    if (Number.isNaN(value_rs) || Number.isNaN(price_per_day_rs)) { setErr('Type the rupee amounts as whole numbers.'); return; }
     setBusy(true); const r = await listGear(vendorId, { item: item.trim(), value_rs, price_per_day_rs, city: where.trim(), note: note.trim() || undefined }); setBusy(false);
     if (!r.ok) { setErr(errOf(r)); return; }
-    show('Item listed', 'success'); onBack();
+    show('Your item is listed.', 'success'); onBack();
   };
   return (<Body>
     <button type="button" className="sp-back" onClick={onBack}>{'‹'} Back to Gear</button>
@@ -130,7 +130,7 @@ function AskForm({ vendorId, item, onBack, show }: { vendorId: string; item: Gea
   const send = async () => {
     setBusy(true); const r = await askGear(vendorId, item.id, { date_from: from, date_to: to, note: note.trim() || undefined }); setBusy(false);
     if (!r.ok) { setErr(errOf(r)); return; }
-    show('Request sent', 'success'); onBack();
+    show('Your request is sent.', 'success'); onBack();
   };
   return (<Body>
     <button type="button" className="sp-back" onClick={onBack}>{'‹'} Back to Gear</button>
@@ -142,7 +142,7 @@ function AskForm({ vendorId, item, onBack, show }: { vendorId: string; item: Gea
       <div><div className="sp-label">Note (optional)</div><input className="sp-in" value={note} onChange={(e) => setNote(e.target.value)} placeholder="For a wedding shoot in Gurugram." /></div>
       {err ? <p className="bl-err" role="alert">{err}</p> : null}
       <div className="sp-btns"><button type="button" className="sp-btn solid" data-gr-send="" disabled={busy} onClick={send}>{busy ? 'Sending…' : 'Send request'}</button></div>
-      <p className="sp-mute">The owner sees your business name and city. Your WhatsApp numbers are shared with each other only if the owner accepts.</p>
+      <p className="sp-mute">The owner sees your business name and city. The owner and you see each other’s WhatsApp numbers only if the owner accepts.</p>
     </div>
     <style>{FR_CSS + SP_CSS + GR_CSS}</style>
   </Body>);

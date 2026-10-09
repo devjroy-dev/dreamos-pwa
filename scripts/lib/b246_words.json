@@ -1,0 +1,524 @@
+[
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "<p className=\"sp-lede\">Where {TRADE_WORD[trade]} buy at professional prices, and how each purchase comes back into TDW.</p>",
+  "new_code": "<p className=\"sp-lede\">These are places where {TRADE_WORD[trade]} buy at professional prices. A bill for each purchase can go to Expenses in TDW.</p>",
+  "old": "Where makeup artists buy at professional prices, and how each purchase comes back into TDW.",
+  "new": "These are places where makeup artists buy at professional prices. A bill for each purchase can go to Expenses in TDW.",
+  "why": "a fragment with no verb"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "TDW takes nothing from these. No links here pay TDW.",
+  "new_code": "TDW takes no fee from these places. None of these links pays TDW.",
+  "old": "TDW takes nothing from these. No links here pay TDW.",
+  "new": "TDW takes no fee from these places. None of these links pays TDW.",
+  "why": "\"nothing from these\" was shorthand"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "facts=\"Add a purchase bill; TDW reads it and files it to Expenses with its GST\"",
+  "new_code": "facts=\"Add a purchase bill. TDW reads the figures for you to check.\"",
+  "old": "Add a purchase bill; TDW reads it and files it to Expenses with its GST",
+  "new": "Add a purchase bill. TDW reads the figures for you to check.",
+  "why": "two ideas joined by a semicolon"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "facts={`Lend and borrow kit with vendors${about?.city ? ` in ${about.city}` : ''}`}",
+  "new_code": "facts={`You can lend and borrow kit with vendors${about?.city ? ` in ${about.city}` : ''}.`}",
+  "old": "Lend and borrow kit with vendors in New Delhi",
+  "new": "You can lend and borrow kit with vendors in New Delhi.",
+  "why": "subject missing"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "<span className=\"sp-tag\">Checked by TDW on {s.checked}</span>",
+  "new_code": "<span className=\"sp-tag\">Link checked on {s.checked}</span>",
+  "old": "Checked by TDW on 4 October 2026",
+  "new": "Link checked on 4 October 2026",
+  "why": "the founder’s decision, 8 October 2026 (a tag, not a sentence)"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": ": <div className=\"sp-txt\" data-sp-gstin=\"\">Not added yet</div>}",
+  "new_code": ": <div className=\"sp-txt\" data-sp-gstin=\"\">You have not added your GSTIN yet.</div>}",
+  "old": "Not added yet",
+  "new": "You have not added your GSTIN yet.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "<div className=\"sp-mute\">Quotes come to your phone, not to TDW. Check the seller before you pay.</div>",
+  "new_code": "<div className=\"sp-mute\">Sellers send their quotes to your phone, not to TDW. Check the seller before you pay.</div>",
+  "old": "Quotes come to your phone, not to TDW.",
+  "new": "Sellers send their quotes to your phone, not to TDW.",
+  "why": "subject missing"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "<span>After you buy: add the bill here, and it goes to Expenses with its GST.</span>",
+  "new_code": "<span>After you buy, tap Add a bill. The bill goes to Expenses with its GST after you check it.</span>",
+  "old": "After you buy: add the bill here, and it goes to Expenses with its GST.",
+  "new": "After you buy, tap Add a bill. The bill goes to Expenses with its GST after you check it.",
+  "why": "two ideas in one clause; names the button with \"Tap\""
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "'verified weddings'}, with a check link {src.from} can open.</div>",
+  "new_code": "'verified weddings'}. {src.from} can open its check link to see that it is real.</div>",
+  "old": "Your TDW certificate shows your name, trade, city and 14 verified weddings, with a check link Nykaa can open.",
+  "new": "Your TDW certificate shows your name, trade, city and 14 verified weddings. Nykaa can open its check link to see that it is real.",
+  "why": "two ideas in one sentence"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "{cert ? 'Save your certificate (PDF)' : 'Make and save your certificate (PDF)'}",
+  "new_code": "{cert ? 'Save your certificate as a PDF.' : 'Make your certificate and save it as a PDF.'}",
+  "old": "Make and save your certificate (PDF)",
+  "new": "Make your certificate and save it as a PDF.",
+  "why": "a step written as a sentence"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "<span className=\"sp-step\">Open {src.name} and choose Sign up</span>",
+  "new_code": "<span className=\"sp-step\">Open {src.name} and tap Sign up.</span>",
+  "old": "Open Nykaa PRO and choose Sign up",
+  "new": "Open Nykaa PRO and tap Sign up.",
+  "why": "a step written as a sentence"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "<span className=\"sp-step\">Add the certificate where it asks for proof of work</span>",
+  "new_code": "<span className=\"sp-step\">Add the certificate where the form asks for proof of work.</span>",
+  "old": "Add the certificate where it asks for proof of work",
+  "new": "Add the certificate where the form asks for proof of work.",
+  "why": "\"it\" was unclear"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "show('Certificate saved', 'success')",
+  "new_code": "show('Your certificate is saved.', 'success')",
+  "old": "Certificate saved",
+  "new": "Your certificate is saved.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "`Looking for ${qty.trim()} ${item.trim()}, delivered to ${where.trim()} by ${dayInWords(by)}. Please send your price per piece with GST and delivery charges.`",
+  "new_code": "`I am looking for ${qty.trim()} ${item.trim()}, delivered to ${where.trim()} by ${dayInWords(by)}. Please send your price for each piece, with GST and delivery charges.`",
+  "old": "Looking for 200 makeup sponges, delivered to New Delhi by 22 October 2026. Please send your price per piece with GST and delivery charges.",
+  "new": "I am looking for 200 makeup sponges, delivered to New Delhi by 22 October 2026. Please send your price for each piece, with GST and delivery charges.",
+  "why": "subject missing"
+ },
+ {
+  "room": "Supplies",
+  "file": "v2/app/vendor/(shell)/supplies/screen.tsx",
+  "old_code": "Fill in the item, quantity, city and date, and TDW writes the requirement for you.",
+  "new_code": "Fill in the item, the quantity, the city and the date. TDW then writes the requirement for you.",
+  "old": "Fill in the item, quantity, city and date, and TDW writes the requirement for you.",
+  "new": "Fill in the item, the quantity, the city and the date. TDW then writes the requirement for you.",
+  "why": "two ideas in one sentence"
+ },
+ {
+  "room": "Supplies · cards",
+  "file": "v2/lib/solutions/supplySources.ts",
+  "old_code": "Professional prices on makeup and hair for working artists.",
+  "new_code": "Nykaa PRO sells makeup and hair products at professional prices to working artists.",
+  "old": "Professional prices on makeup and hair for working artists.",
+  "new": "Nykaa PRO sells makeup and hair products at professional prices to working artists.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies · cards",
+  "file": "v2/lib/solutions/supplySources.ts",
+  "old_code": "Business prices and GST bills on most products.",
+  "new_code": "Amazon Business gives business prices and GST bills on most products.",
+  "old": "Business prices and GST bills on most products.",
+  "new": "Amazon Business gives business prices and GST bills on most products.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies · cards",
+  "file": "v2/lib/solutions/supplySources.ts",
+  "old_code": "Quotes from wholesalers for bulk buying.",
+  "new_code": "IndiaMART lets you ask wholesalers for quotes when you buy in bulk.",
+  "old": "Quotes from wholesalers for bulk buying.",
+  "new": "IndiaMART lets you ask wholesalers for quotes when you buy in bulk.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies · cards",
+  "file": "v2/lib/solutions/supplySources.ts",
+  "old_code": "Priority repair, a backup loan while yours is repaired, and lower labour charges. Not lower prices.",
+  "new_code": "Canon Professional Services gives priority repairs, a backup camera while yours is repaired and lower labour charges. It does not give lower prices.",
+  "old": "Priority repair, a backup loan while yours is repaired, and lower labour charges. Not lower prices.",
+  "new": "Canon Professional Services gives priority repairs, a backup camera while yours is repaired and lower labour charges. It does not give lower prices.",
+  "why": "fragments"
+ },
+ {
+  "room": "Supplies · cards",
+  "file": "v2/lib/solutions/supplySources.ts",
+  "old_code": "Service support for professionals who live and work in India. Sony decides who joins.",
+  "new_code": "Sony Imaging PRO Support gives service support to professionals who live and work in India. Sony decides who joins.",
+  "old": "Service support for professionals who live and work in India. Sony decides who joins.",
+  "new": "Sony Imaging PRO Support gives service support to professionals who live and work in India. Sony decides who joins.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies · Bills",
+  "file": "v2/app/vendor/(shell)/supplies/bills.tsx",
+  "old_code": "TDW reads it and fills in the figures; you check them and add it to Expenses with its GST.",
+  "new_code": "TDW reads the bill and fills in the figures. You check the figures and add the bill to Expenses with its GST.",
+  "old": "Add a photo or a PDF of a purchase bill. TDW reads it and fills in the figures; you check them and add it to Expenses with its GST.",
+  "new": "Add a photo or a PDF of a purchase bill. TDW reads the bill and fills in the figures. You check the figures and add the bill to Expenses with its GST.",
+  "why": "two ideas joined by a semicolon"
+ },
+ {
+  "room": "Supplies · Bills",
+  "file": "v2/app/vendor/(shell)/supplies/bills.tsx",
+  "old_code": "No bills waiting. Bills you add go to Expenses once you check them.",
+  "new_code": "No bills are waiting for you. A bill goes to Expenses after you check it.",
+  "old": "No bills waiting. Bills you add go to Expenses once you check them.",
+  "new": "No bills are waiting for you. A bill goes to Expenses after you check it.",
+  "why": "a noun where a sentence is needed"
+ },
+ {
+  "room": "Supplies · Bills",
+  "file": "v2/app/vendor/(shell)/supplies/bills.tsx",
+  "old_code": "show('Bill added to Expenses', 'success')",
+  "new_code": "show('The bill is added to Expenses.', 'success')",
+  "old": "Bill added to Expenses",
+  "new": "The bill is added to Expenses.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies · Bills",
+  "file": "v2/app/vendor/(shell)/supplies/bills.tsx",
+  "old_code": "show('Bill deleted', 'success')",
+  "new_code": "show('The bill is deleted.', 'success')",
+  "old": "Bill deleted",
+  "new": "The bill is deleted.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies · Bills",
+  "file": "v2/app/vendor/(shell)/supplies/bills.tsx",
+  "old_code": "TDW read these from the bill. Correct anything that is wrong, then add it.",
+  "new_code": "TDW read these figures from the bill. Correct any figure that is wrong. Then tap Add to Expenses.",
+  "old": "TDW read these from the bill. Correct anything that is wrong, then add it.",
+  "new": "TDW read these figures from the bill. Correct any figure that is wrong. Then tap Add to Expenses.",
+  "why": "two ideas in one sentence; names the button with \"Tap\""
+ },
+ {
+  "room": "Supplies · Bills",
+  "file": "v2/app/vendor/(shell)/supplies/bills.tsx",
+  "old_code": "The bill and what TDW read from it are deleted now. This cannot be undone.",
+  "new_code": "If you tap Delete the bill, TDW deletes the bill and what it read from the bill at once. You cannot undo this.",
+  "old": "The bill and what TDW read from it are deleted now. This cannot be undone.",
+  "new": "If you tap Delete the bill, TDW deletes the bill and what it read from the bill at once. You cannot undo this.",
+  "why": "said it was deleted before it was"
+ },
+ {
+  "room": "Supplies · Bills",
+  "file": "v2/app/vendor/(shell)/supplies/bills.tsx",
+  "old_code": "setProblems([`${f.label}: type a number.`])",
+  "new_code": "setProblems([`${numWord(f.label)} must be a number.`])",
+  "old": "Total (Rs): type a number.",
+  "new": "The total must be a number.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies · Bills",
+  "file": "v2/lib/vendor/api/bills.ts",
+  "old_code": "The bill could not be uploaded. Please try again.",
+  "new_code": "TDW could not upload the bill. Please try again.",
+  "old": "The bill could not be uploaded. Please try again.",
+  "new": "TDW could not upload the bill. Please try again.",
+  "why": "says who"
+ },
+ {
+  "room": "Supplies · Gear",
+  "file": "v2/app/vendor/(shell)/supplies/gear.tsx",
+  "old_code": "show(verb === 'accept' ? 'Request accepted' : verb === 'decline' ? 'Request declined' : 'Cancelled', 'success')",
+  "new_code": "show(verb === 'accept' ? 'You accepted the request.' : verb === 'decline' ? 'You declined the request.' : 'The request is cancelled.', 'success')",
+  "old": "Request accepted / Request declined / Cancelled",
+  "new": "You accepted the request. / You declined the request. / The request is cancelled.",
+  "why": "fragments"
+ },
+ {
+  "room": "Supplies · Gear",
+  "file": "v2/app/vendor/(shell)/supplies/gear.tsx",
+  "old_code": "TDW takes nothing from a loan and holds no money. Days you lend stay here; nothing is added to your Calendar.",
+  "new_code": "TDW takes no fee from a loan and holds no money. The days you lend an item are kept here. TDW adds nothing to your Calendar.",
+  "old": "TDW takes nothing from a loan and holds no money. Days you lend stay here; nothing is added to your Calendar.",
+  "new": "TDW takes no fee from a loan and holds no money. The days you lend an item are kept here. TDW adds nothing to your Calendar.",
+  "why": "two ideas joined by a semicolon"
+ },
+ {
+  "room": "Supplies · Gear",
+  "file": "v2/app/vendor/(shell)/supplies/gear.tsx",
+  "old_code": "Their WhatsApp number shows once you accept.",
+  "new_code": "You will see their WhatsApp number after you accept the request.",
+  "old": "Their WhatsApp number shows once you accept.",
+  "new": "You will see their WhatsApp number after you accept the request.",
+  "why": "unclear who acts"
+ },
+ {
+  "room": "Supplies · Gear",
+  "file": "v2/app/vendor/(shell)/supplies/gear.tsx",
+  "old_code": "Their WhatsApp number shows once they accept.",
+  "new_code": "You will see their WhatsApp number after the owner accepts your request.",
+  "old": "Their WhatsApp number shows once they accept.",
+  "new": "You will see their WhatsApp number after the owner accepts your request.",
+  "why": "unclear who acts"
+ },
+ {
+  "room": "Supplies · Gear",
+  "file": "v2/app/vendor/(shell)/supplies/gear.tsx",
+  "old_code": "setErr('Type rupees in whole numbers.')",
+  "new_code": "setErr('Type the rupee amounts as whole numbers.')",
+  "old": "Type rupees in whole numbers.",
+  "new": "Type the rupee amounts as whole numbers.",
+  "why": "clearer"
+ },
+ {
+  "room": "Supplies · Gear",
+  "file": "v2/app/vendor/(shell)/supplies/gear.tsx",
+  "old_code": "show('Item listed', 'success')",
+  "new_code": "show('Your item is listed.', 'success')",
+  "old": "Item listed",
+  "new": "Your item is listed.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies · Gear",
+  "file": "v2/app/vendor/(shell)/supplies/gear.tsx",
+  "old_code": "show('Request sent', 'success')",
+  "new_code": "show('Your request is sent.', 'success')",
+  "old": "Request sent",
+  "new": "Your request is sent.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Supplies · Gear",
+  "file": "v2/app/vendor/(shell)/supplies/gear.tsx",
+  "old_code": "Your WhatsApp numbers are shared with each other only if the owner accepts.",
+  "new_code": "The owner and you see each other’s WhatsApp numbers only if the owner accepts.",
+  "old": "Your WhatsApp numbers are shared with each other only if the owner accepts.",
+  "new": "The owner and you see each other’s WhatsApp numbers only if the owner accepts.",
+  "why": "passive; says who sees what"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "line: (a) => a ? `Your name, trade, city and ${a.weddings_verified} verified ${a.weddings_verified === 1 ? 'wedding' : 'weddings'}` : 'Your name, trade, city and verified weddings' }",
+  "new_code": "line: (a) => a ? `It shows your name, trade, city and ${a.weddings_verified} verified ${a.weddings_verified === 1 ? 'wedding' : 'weddings'}.` : 'It shows your name, trade, city and verified weddings.' }",
+  "old": "Your name, trade, city and 14 verified weddings",
+  "new": "It shows your name, trade, city and 14 verified weddings.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "line: () => 'A card with your photo, trade and city' }",
+  "new_code": "line: () => 'It is a card with your photo, trade and city.' }",
+  "old": "A card with your photo, trade and city",
+  "new": "It is a card with your photo, trade and city.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "line: () => 'Bookings and income for a period, for a bank, landlord or visa office' }",
+  "new_code": "line: () => 'It shows your bookings and income for a period, for a bank, a landlord or a visa office.' }",
+  "old": "Bookings and income for a period, for a bank, landlord or visa office",
+  "new": "It shows your bookings and income for a period, for a bank, a landlord or a visa office.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "line: () => 'Invoices, expenses with GST and TDS, month by month, as PDF and spreadsheet' }",
+  "new_code": "line: () => 'It holds your invoices, expenses with GST and TDS, month by month, as a PDF and spreadsheets.' }",
+  "old": "Invoices, expenses with GST and TDS, month by month, as PDF and spreadsheet",
+  "new": "It holds your invoices, expenses with GST and TDS, month by month, as a PDF and spreadsheets.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "Papers from your TDW records, each with a check link anyone can open.",
+  "new_code": "TDW makes these papers from your records. Each paper has a check link that anyone can open.",
+  "old": "Papers from your TDW records, each with a check link anyone can open.",
+  "new": "TDW makes these papers from your records. Each paper has a check link that anyone can open.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "<p className=\"pp-txt\">It will state:</p>",
+  "new_code": "<p className=\"pp-txt\">The paper will state these details.</p>",
+  "old": "It will state:",
+  "new": "The paper will state these details.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "Add a photo of yourself to your portfolio to put it on the ID. The ID can be made without one.",
+  "new_code": "To put your photo on the ID, add a photo of yourself to your portfolio. You can also make the ID without a photo.",
+  "old": "Add a photo of yourself to your portfolio to put it on the ID. The ID can be made without one.",
+  "new": "To put your photo on the ID, add a photo of yourself to your portfolio. You can also make the ID without a photo.",
+  "why": "\"it\" was unclear; passive"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "'No photo chosen. The ID can be made without one.'",
+  "new_code": "'You have not chosen a photo. You can make the ID without one.'",
+  "old": "No photo chosen. The ID can be made without one.",
+  "new": "You have not chosen a photo. You can make the ID without one.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "The statement shows the invoices you raised in this period, what they came to, and what was received on them. It says that TDW has not audited these figures.",
+  "new_code": "The statement shows the invoices you raised in this period and what they came to. It also shows what you received on them. It says that TDW has not audited these figures.",
+  "old": "The statement shows the invoices you raised in this period, what they came to, and what was received on them. It says that TDW has not audited these figures.",
+  "new": "The statement shows the invoices you raised in this period and what they came to. It also shows what you received on them. It says that TDW has not audited these figures.",
+  "why": "three ideas in one sentence"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "One file with a PDF and spreadsheets: sales, purchases and TDS for each month, and a summary.",
+  "new_code": "You get one file with a PDF and spreadsheets. It has your sales, purchases and TDS for each month, and a summary.",
+  "old": "One file with a PDF and spreadsheets: sales, purchases and TDS for each month, and a summary.",
+  "new": "You get one file with a PDF and spreadsheets. It has your sales, purchases and TDS for each month, and a summary.",
+  "why": "a fragment with a list"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "Withdraw this paper? Its check page will say it no longer stands. This cannot be undone.",
+  "new_code": "If you withdraw this paper, its check page will say that it no longer stands. You cannot undo this.",
+  "old": "Withdraw this paper? Its check page will say it no longer stands. This cannot be undone.",
+  "new": "If you withdraw this paper, its check page will say that it no longer stands. You cannot undo this.",
+  "why": "passive; says who"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "show('Paper made', 'success')",
+  "new_code": "show('The paper is made.', 'success')",
+  "old": "Paper made",
+  "new": "The paper is made.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/app/vendor/(shell)/papers/screen.tsx",
+  "old_code": "show('Paper withdrawn', 'success')",
+  "new_code": "show('The paper is withdrawn.', 'success')",
+  "old": "Paper withdrawn",
+  "new": "The paper is withdrawn.",
+  "why": "a fragment"
+ },
+ {
+  "room": "Business papers",
+  "file": "v2/lib/vendor/api/papers.ts",
+  "old_code": "The file could not be made just now. Please try again.",
+  "new_code": "TDW could not make the file just now. Please try again.",
+  "old": "The file could not be made just now. Please try again.",
+  "new": "TDW could not make the file just now. Please try again.",
+  "why": "says who"
+ },
+ {
+  "room": "Supplies · help card",
+  "file": "v2/lib/worklist/pageHelp.ts",
+  "old_code": "Each card is a place to buy, checked by TDW, with what it costs to join. Open goes to its own site.",
+  "new_code": "Each card is a place to buy at professional prices. The date on the card is the day its link was last checked. The card also says what it costs to join. Tap Open to go to that place\\u2019s own site.",
+  "old": "Each card is a place to buy, checked by TDW, with what it costs to join. Open goes to its own site.",
+  "new": "Each card is a place to buy at professional prices. The date on the card is the day its link was last checked. The card also says what it costs to join. Tap Open to go to that place’s own site.",
+  "why": "the founder’s tag; approved by the chair, 8 October 2026"
+ },
+ {
+  "room": "Supplies · help card",
+  "file": "v2/lib/worklist/pageHelp.ts",
+  "old_code": "Join with your TDW certificate makes your certificate, saves it as a PDF, and shows the steps to join.",
+  "new_code": "Tap Join with your TDW certificate. TDW makes your certificate as a PDF and shows the steps to join.",
+  "old": "Join with your TDW certificate makes your certificate, saves it as a PDF, and shows the steps to join.",
+  "new": "Tap Join with your TDW certificate. TDW makes your certificate as a PDF and shows the steps to join.",
+  "why": "a button used as a subject; \"Tap <button>\""
+ },
+ {
+  "room": "Supplies · help card",
+  "file": "v2/lib/worklist/pageHelp.ts",
+  "old_code": "Write my requirement writes your request for IndiaMART. Copy it, then paste it there.",
+  "new_code": "Tap Write my requirement. TDW writes your request for IndiaMART. Copy the request and paste it on IndiaMART.",
+  "old": "Write my requirement writes your request for IndiaMART. Copy it, then paste it there.",
+  "new": "Tap Write my requirement. TDW writes your request for IndiaMART. Copy the request and paste it on IndiaMART.",
+  "why": "a button used as a subject; \"there\" was unclear"
+ },
+ {
+  "room": "Supplies · help card",
+  "file": "v2/lib/worklist/pageHelp.ts",
+  "old_code": "Bills you add here go to Expenses with their GST, once you check them.",
+  "new_code": "A bill you add here goes to Expenses with its GST after you check it.",
+  "old": "Bills you add here go to Expenses with their GST, once you check them.",
+  "new": "A bill you add here goes to Expenses with its GST after you check it.",
+  "why": "clearer order"
+ },
+ {
+  "room": "Business papers · help card",
+  "file": "v2/lib/worklist/pageHelp.ts",
+  "old_code": "New paper makes a certificate, an ID, a business statement or a pack for your CA.",
+  "new_code": "Tap New paper to make a certificate, an ID, a business statement or a pack for your CA.",
+  "old": "New paper makes a certificate, an ID, a business statement or a pack for your CA.",
+  "new": "Tap New paper to make a certificate, an ID, a business statement or a pack for your CA.",
+  "why": "a button used as a subject; \"Tap <button>\""
+ },
+ {
+  "room": "Business papers · help card",
+  "file": "v2/lib/worklist/pageHelp.ts",
+  "old_code": "Each paper has a check link anyone can open to see that it is real.",
+  "new_code": "Each paper has a check link. Anyone who opens the link can see that the paper is real.",
+  "old": "Each paper has a check link anyone can open to see that it is real.",
+  "new": "Each paper has a check link. Anyone who opens the link can see that the paper is real.",
+  "why": "two ideas in one sentence"
+ },
+ {
+  "room": "Business papers · help card",
+  "file": "v2/lib/worklist/pageHelp.ts",
+  "old_code": "Withdraw a paper and its check page says it no longer stands.",
+  "new_code": "Tap Withdraw this paper to withdraw a paper. Its check page then says that the paper no longer stands.",
+  "old": "Withdraw a paper and its check page says it no longer stands.",
+  "new": "Tap Withdraw this paper to withdraw a paper. Its check page then says that the paper no longer stands.",
+  "why": "two ideas joined by \"and\"; names the button"
+ },
+ {
+  "room": "Supplies · Gear (the founder’s line)",
+  "file": "v2/app/vendor/(shell)/supplies/gear.tsx",
+  "old_code": "Agree a deposit, and what happens if it is damaged or late, with each other before you hand it over.",
+  "new_code": "Agree on a deposit with each other before you hand the item over. Also agree on what happens if the item comes back damaged or late.",
+  "old": "Agree a deposit, and what happens if it is damaged or late, with each other before you hand it over.",
+  "new": "Agree on a deposit with each other before you hand the item over. Also agree on what happens if the item comes back damaged or late.",
+  "why": "two ideas in one clause; \"it\" unclear (the founder said yes, 8 October 2026)"
+ }
+]

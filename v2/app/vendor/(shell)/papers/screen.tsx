@@ -15,10 +15,10 @@ import { fetchPortfolio } from '@/v2/lib/vendor/api/vendor';
 import type { PortfolioImage } from '@/lib/vendor/types/vendor';
 
 const KINDS: { kind: PaperKind; title: string; line: (a: About | null) => string }[] = [
-  { kind: 'certificate', title: 'Professional certificate', line: (a) => a ? `Your name, trade, city and ${a.weddings_verified} verified ${a.weddings_verified === 1 ? 'wedding' : 'weddings'}` : 'Your name, trade, city and verified weddings' },
-  { kind: 'id_card', title: 'Professional ID', line: () => 'A card with your photo, trade and city' },
-  { kind: 'statement', title: 'Business statement', line: () => 'Bookings and income for a period, for a bank, landlord or visa office' },
-  { kind: 'ca_pack', title: 'Ready for your CA', line: () => 'Invoices, expenses with GST and TDS, month by month, as PDF and spreadsheet' },
+  { kind: 'certificate', title: 'Professional certificate', line: (a) => a ? `It shows your name, trade, city and ${a.weddings_verified} verified ${a.weddings_verified === 1 ? 'wedding' : 'weddings'}.` : 'It shows your name, trade, city and verified weddings.' },
+  { kind: 'id_card', title: 'Professional ID', line: () => 'It is a card with your photo, trade and city.' },
+  { kind: 'statement', title: 'Business statement', line: () => 'It shows your bookings and income for a period, for a bank, a landlord or a visa office.' },
+  { kind: 'ca_pack', title: 'Ready for your CA', line: () => 'It holds your invoices, expenses with GST and TDS, month by month, as a PDF and spreadsheets.' },
 ];
 const PURPOSES: { v: Purpose; label: string }[] = [{ v: 'bank', label: 'A bank' }, { v: 'landlord', label: 'A landlord' }, { v: 'visa', label: 'A visa office' }, { v: 'other', label: 'Something else' }];
 const firstOfFY = (today: string) => { const [y, m] = today.split('-').map(Number); return `${m >= 4 ? y : y - 1}-04-01`; };
@@ -39,14 +39,14 @@ export function PapersScreen({ vendorId }: { vendorId: string }) {
 
   if (view.v === 'new') return (<NewPaper vendorId={vendorId} about={about} kind={view.kind} onKind={(k) => setView({ v: 'new', kind: k })}
     onBack={() => setView(view.kind ? { v: 'new', kind: null } : { v: 'list' })}
-    onIssued={(p) => { setPapers((xs) => [p, ...(xs || [])]); setView({ v: 'paper', id: p.id }); show('Paper made', 'success'); }} show={show} toast={toast} />);
+    onIssued={(p) => { setPapers((xs) => [p, ...(xs || [])]); setView({ v: 'paper', id: p.id }); show('The paper is made.', 'success'); }} show={show} toast={toast} />);
   if (open) return (<PaperView vendorId={vendorId} paper={open} onBack={() => setView({ v: 'list' })} show={show} toast={toast}
-    onWithdrawn={() => { setPapers((xs) => (xs || []).map((p) => (p.id === open.id ? { ...p, state: 'withdrawn', withdrawn_at: new Date().toISOString() } : p))); show('Paper withdrawn', 'success'); }} />);
+    onWithdrawn={() => { setPapers((xs) => (xs || []).map((p) => (p.id === open.id ? { ...p, state: 'withdrawn', withdrawn_at: new Date().toISOString() } : p))); show('The paper is withdrawn.', 'success'); }} />);
 
   return (<>
     <RoomHeadAdd addKey="paper" label="New paper" onAdd={() => setView({ v: 'new', kind: null })} />
     <Body>
-      <p className="pp-lede">Papers from your TDW records, each with a check link anyone can open.</p>
+      <p className="pp-lede">TDW makes these papers from your records. Each paper has a check link that anyone can open.</p>
       <Head text="Make a paper" />
       <Group>{KINDS.map((k) => (<div key={k.kind} data-pp-kind={k.kind}><Row title={k.title} facts={k.line(about)} chevron onClick={() => setView({ v: 'new', kind: k.kind })} /></div>))}</Group>
       {err ? <p className="pp-err" role="alert">{err}</p> : null}
@@ -84,23 +84,23 @@ function NewPaper({ vendorId, about, kind, onKind, onBack, onIssued, show, toast
       <Head text={k.title} />
       <div className="pp-card" data-pp-new={k.kind}>
         {k.kind === 'certificate' || k.kind === 'id_card' ? (<>
-          <p className="pp-txt">It will state:</p>
+          <p className="pp-txt">The paper will state these details.</p>
           {about ? <Lines lines={[['Name', about.name], ['Trade', about.trade], ['City', about.city], ['Weddings on TDW', `${about.weddings_verified}, verified by TDW`]]} /> : <p className="pp-mute">Reading your records…</p>}
           <p className="pp-mute">Weddings are counted by TDW from bookings with an invoice and a payment recorded in TDW.</p>
           {k.kind === 'id_card' ? (<div data-pp-photos="">
             <div className="pp-label">Photo on the ID</div>
-            {photos === null ? <p className="pp-mute">Reading your portfolio…</p> : photos.length === 0 ? <p className="pp-mute">Add a photo of yourself to your portfolio to put it on the ID. The ID can be made without one.</p> : (
+            {photos === null ? <p className="pp-mute">Reading your portfolio…</p> : photos.length === 0 ? <p className="pp-mute">To put your photo on the ID, add a photo of yourself to your portfolio. You can also make the ID without a photo.</p> : (
               <div className="pp-photos">{photos.map((im) => (<button key={im.id} type="button" data-pp-photo={im.id} aria-pressed={photo === im.image_url} className={`pp-ph${photo === im.image_url ? ' on' : ''}`} onClick={() => setPhoto(photo === im.image_url ? null : im.image_url)} aria-label={photo === im.image_url ? 'Chosen photo. Tap to remove.' : 'Use this photo'}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}<img src={im.image_url} alt="" loading="lazy" /></button>))}</div>)}
-            <p className="pp-mute">{photo ? 'This photo will be on the ID.' : 'No photo chosen. The ID can be made without one.'}</p>
+            <p className="pp-mute">{photo ? 'This photo will be on the ID.' : 'You have not chosen a photo. You can make the ID without one.'}</p>
           </div>) : null}
         </>) : (<>
           <div><div className="pp-label">First day</div><input className="pp-in" type="date" value={from} max={today} onChange={(e) => setFrom(e.target.value)} />{from ? <p className="pp-dw">{dayInWords(from)}</p> : null}</div>
           <div><div className="pp-label">Last day</div><input className="pp-in" type="date" value={to} max={today} onChange={(e) => setTo(e.target.value)} />{to ? <p className="pp-dw">{dayInWords(to)}</p> : null}</div>
           {k.kind === 'statement' ? (<div><div className="pp-label">Who is it for?</div><div className="pp-chips">{PURPOSES.map((p) => (
             <button key={p.v} type="button" data-pp-purpose={p.v} className={`pp-chip${purpose === p.v ? ' on' : ''}`} aria-pressed={purpose === p.v} onClick={() => setPurpose(p.v)}>{p.label}</button>))}</div></div>) : null}
-          {k.kind === 'statement' ? <p className="pp-mute">The statement shows the invoices you raised in this period, what they came to, and what was received on them. It says that TDW has not audited these figures.</p> : null}
-          {k.kind === 'ca_pack' ? <p className="pp-mute">One file with a PDF and spreadsheets: sales, purchases and TDS for each month, and a summary. GST input credit depends on your GST registration. Your CA confirms it.</p> : null}
+          {k.kind === 'statement' ? <p className="pp-mute">The statement shows the invoices you raised in this period and what they came to. It also shows what you received on them. It says that TDW has not audited these figures.</p> : null}
+          {k.kind === 'ca_pack' ? <p className="pp-mute">You get one file with a PDF and spreadsheets. It has your sales, purchases and TDS for each month, and a summary. GST input credit depends on your GST registration. Your CA confirms it.</p> : null}
         </>)}
         {why ? <p className="pp-err" role="alert">{why}</p> : null}
         <div className="pp-btns"><button type="button" className="pp-btn solid" data-pp-make="" disabled={busy} onClick={make}>{busy ? 'Making…' : `Make the ${k.kind === 'ca_pack' ? 'pack' : k.kind === 'id_card' ? 'ID' : k.kind === 'statement' ? 'statement' : 'certificate'}`}</button></div>
@@ -134,7 +134,7 @@ function PaperView({ vendorId, paper, onBack, onWithdrawn, show, toast }: { vend
         <button type="button" className="pp-btn solid" data-pp-download="" disabled={busy} onClick={dl}>{paper.kind === 'ca_pack' ? 'Download the pack' : 'Download PDF'}</button>
       </div>
       {valid ? (confirm ? (<div className="pp-confirm" data-pp-confirm="">
-        <p className="pp-txt">Withdraw this paper? Its check page will say it no longer stands. This cannot be undone.</p>
+        <p className="pp-txt">If you withdraw this paper, its check page will say that it no longer stands. You cannot undo this.</p>
         <div className="pp-btns"><button type="button" className="pp-btn danger" disabled={busy} onClick={wd}>Withdraw</button><button type="button" className="pp-btn" onClick={() => setConfirm(false)}>Keep it</button></div>
       </div>) : (<button type="button" className="pp-quiet" data-pp-withdraw="" onClick={() => setConfirm(true)}>Withdraw this paper</button>)) : null}
     </div>

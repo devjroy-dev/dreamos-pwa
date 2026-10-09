@@ -36,7 +36,7 @@ function fakePapers(o = {}) {
       n += 1; const code = `TDW-${['7Q4K', '3H8C', '9K2M', '4RTW'][n - 1] || 'AAAA'}-2M9P`;
       const p = { id: `00000000-0000-4000-8000-00000000000${n}`, kind: body.kind, title: TITLE[body.kind], period_from: body.period_from || null, period_to: body.period_to || null, purpose: body.purpose || null,
         issued_at: '2026-10-06T06:00:00Z', issued_on: '6 October 2026', withdrawn_at: null, state: 'valid', check_code: code, check_url: `https://thedreamwedding.in/check/${code}`,
-        lines: lines(body.kind, { from: body.period_from, to: body.period_to }), note: body.kind === 'statement' ? 'Figures as recorded by DEV440 Test Makeup in TDW. TDW confirms this statement was issued from her TDW account on 6 October 2026. TDW has not audited or verified these figures.' : 'Weddings are counted by TDW from bookings with an invoice and a payment recorded in TDW.' };
+        lines: lines(body.kind, { from: body.period_from, to: body.period_to }), note: body.kind === 'statement' ? 'These figures are as DEV440 Test Makeup recorded them in TDW. TDW confirms this statement was issued from her TDW account on 6 October 2026. TDW has not audited or verified these figures.' : 'Weddings are counted by TDW from bookings with an invoice and a payment recorded in TDW.' };
       if (body.photo_url) p.photo_url = body.photo_url;
       S.papers.unshift(p); return { ok: true, paper: p };
     }
@@ -196,7 +196,7 @@ try {
   await shot(p, 'papers_room');
   console.log('\n── 2  a certificate ──');
   await tap(p, '[data-pp-kind="certificate"]'); t = await text(p);
-  ok(t.includes('It will state') && t.includes('14, verified by TDW') && t.includes('Makeup artist'), '2.1 before making it, she sees what it will state');
+  ok(t.includes('The paper will state these details.') && t.includes('14, verified by TDW') && t.includes('Makeup artist'), '2.1 (P3, R-47.1) before making it, she sees what it will state');
   await shot(p, 'certificate_before');
   await tap(p, '[data-pp-make]'); t = await text(p);
   const post = f.S.log.find(([m, rt]) => m === 'POST' && rt === `/api/v2/vendor/papers/${V}`);
@@ -211,7 +211,7 @@ try {
   ok(f.S.log.some(([m, rt]) => m === 'GET' && new RegExp(`/papers/${V}/[^/]+/file$`).test(rt)) && (f.S.auth || []).length === 1, '2.5 Download fetches the file through her session (no new tab)', JSON.stringify(f.S.auth));
   console.log('\n── 3  withdraw ──');
   await tap(p, '[data-pp-withdraw]'); t = await text(p);
-  ok(t.includes('This cannot be undone') && !f.S.log.some(([m, rt]) => /withdraw$/.test(rt)), '3.1 withdraw asks first; nothing is sent yet');
+  ok(t.includes('You cannot undo this.') && !f.S.log.some(([m, rt]) => /withdraw$/.test(rt)), '3.1 (P3, R-47.1) withdraw asks first; nothing is sent yet');
   await shot(p, 'withdraw_confirm');
   await p.evaluate(() => [...document.querySelectorAll('[data-pp-confirm] button')].find((x) => x.textContent === 'Withdraw').click()); await settle(p); t = await text(p);
   ok(f.S.log.some(([m, rt]) => m === 'POST' && /withdraw$/.test(rt)) && t.includes('Withdrawn') && !t.includes('Withdraw this paper'), '3.2 withdrawn, and the button is gone');
@@ -252,7 +252,7 @@ try {
   const f7 = fakePapers(); const q7 = await openP(b, '/vendor/papers', f7, { wait: '[data-pp-kind]' });
   await tap(q7, '[data-pp-kind="id_card"]'); await q7.waitForSelector('[data-pp-photo]', { timeout: 15000 }).catch(() => {}); t = await text(q7);
   const offered = await q7.$$eval('[data-pp-photo]', (els) => els.map((e) => e.getAttribute('data-pp-photo')));
-  ok(JSON.stringify(offered) === '["img-1","img-2"]' && t.includes('No photo chosen. The ID can be made without one.'), '7.1 her portfolio photos are offered, a refused one is not; no photo is chosen by itself', JSON.stringify(offered));
+  ok(JSON.stringify(offered) === '["img-1","img-2"]' && t.includes('You have not chosen a photo. You can make the ID without one.'), '7.1 (P3, R-47.1) her portfolio photos are offered, a refused one is not; no photo is chosen by itself', JSON.stringify(offered));
   await tap(q7, '[data-pp-photo="img-1"]'); t = await text(q7);
   ok(t.includes('This photo will be on the ID.') && await q7.$eval('[data-pp-photo="img-1"]', (e) => e.getAttribute('aria-pressed')) === 'true', '7.2 tapping a photo chooses it, and says so');
   await shot(q7, 'id_photo_pick');
@@ -267,15 +267,16 @@ try {
   const fs1 = fakePapers(); const s1 = await openP(b, '/vendor/supplies', fs1, { wait: '[data-sp-src]' }); t = await text(s1);
   const keys = await s1.$$eval('[data-sp-src]', (els) => els.map((e) => e.getAttribute('data-sp-src')));
   ok(JSON.stringify(keys) === '["nykaa_pro","amazon_business","indiamart"]', '6.1 a makeup artist sees Nykaa PRO, Amazon Business and IndiaMART, in that order', JSON.stringify(keys));
-  ok(['From Nykaa', 'Checked by TDW on 4 October 2026', 'Free to join', 'Free for buyers', 'TDW takes nothing from these. No links here pay TDW.', 'Join with your TDW certificate', 'Nykaa decides who joins.'].every((w) => t.includes(w)), '6.2 every card is labelled; the ruled words are on glass');
+  // AMENDED BY LABEL · CE-47 PRO P3: the founder's tag "Link checked on <date>" (8 October 2026), and R-47.1's no-fee line; "Checked by TDW" is nowhere in Supplies
+  ok(['From Nykaa', 'Link checked on 4 October 2026', 'Free to join', 'Free for buyers', 'TDW takes no fee from these places. None of these links pays TDW.', 'Join with your TDW certificate', 'Nykaa decides who joins.'].every((w) => t.includes(w)) && !/Checked by TDW/i.test(t), '6.2 (P3) every card is labelled "Link checked on <date>"; "Checked by TDW" appears nowhere in Supplies; the ruled words are on glass');
   // P2 (by label): Bills and Gear landed, so nothing reads "Coming soon"; b243 walks Bills and Gear themselves.
-  ok(!t.includes('Coming soon') && (t.match(/After you buy: add the bill here, and it goes to Expenses with its GST\./g) || []).length === 3 && !/on WhatsApp/.test(t), '6.3 (P2) each card\u2019s bill loop says "add the bill here" (three cards), no WhatsApp, nothing "Coming soon"');
+  ok(!t.includes('Coming soon') && (t.match(/After you buy, tap Add a bill\. The bill goes to Expenses with its GST after you check it\./g) || []).length === 3 && !/on WhatsApp/.test(t), '6.3 (P2, P3 R-47.1) each card\u2019s bill loop says "tap Add a bill" (three cards), no WhatsApp, nothing "Coming soon"');
   const links = await s1.$$eval('a', (as) => as.filter((a) => /^https?:/.test(a.getAttribute('href') || '') && !a.closest('nav,header')).map((a) => [a.href, a.target, a.rel]));
   ok(links.length >= 3 && links.every(([h, tg, rl]) => /^https:\/\//.test(h) && tg === '_blank' && rl === 'noopener noreferrer'), '6.4 every outside link is https, a new tab, noopener noreferrer (standing)', JSON.stringify(links));
-  ok(t.includes('Not added yet') && t.includes('Add yours in Settings') && !(await s1.$('[data-sp-gstinbox]')), '6.5 (r3) no GSTIN: says so, sends her to Settings, offers no copy box');
+  ok(t.includes('You have not added your GSTIN yet.') && t.includes('Add yours in Settings') && !(await s1.$('[data-sp-gstinbox]')), '6.5 (r3, P3 R-47.1) no GSTIN: says so, sends her to Settings, offers no copy box');
   await shot(s1, 'supplies_where_to_buy');
   await tap(s1, '[data-sp-join="nykaa_pro"]'); t = await text(s1);
-  ok(t.includes('Join Nykaa PRO with your TDW certificate') && t.includes('Make and save your certificate (PDF)') && t.includes('14 verified weddings'), '6.6 the join steps, and with no certificate yet it says it will make one');
+  ok(t.includes('Join Nykaa PRO with your TDW certificate') && t.includes('Make your certificate and save it as a PDF.') && t.includes('14 verified weddings'), '6.6 (P3, R-47.1) the join steps, and with no certificate yet it says it will make one');
   await shot(s1, 'supplies_join');
   await tap(s1, '[data-sp-save]');
   const issued = fs1.S.log.filter(([m, rt]) => m === 'POST' && rt === `/api/v2/vendor/papers/${V}`);
@@ -286,7 +287,7 @@ try {
   await tap(s1, '[data-sp-req]');
   await s1.type('[data-sp-item]', 'makeup sponges'); await s1.type('[data-sp-qty]', '200'); await settle(s1); t = await text(s1);
   const dbox = await s1.$eval('[data-sp-draftbox]', (e) => ({ text: (e.querySelector('[data-sp-draft]') || {}).textContent, ctl: (e.querySelector('[data-copyctl]') || {}).textContent, kids: e.children.length })).catch(() => null);
-  ok(dbox && dbox.ctl === 'Copy' && dbox.kids === 2 && /Looking for 200 makeup sponges, delivered to Delhi by \d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\. Please send your price per piece with GST and delivery charges\./.test(dbox.text), '6.9 (r3) the IndiaMART requirement is drafted in plain words, the date in full, in its own box with Copy', JSON.stringify(dbox));
+  ok(dbox && dbox.ctl === 'Copy' && dbox.kids === 2 && /^I am looking for 200 makeup sponges, delivered to Delhi by \d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\. Please send your price for each piece, with GST and delivery charges\.$/.test(dbox.text), '6.9 (r3, P3 R-47.1) the IndiaMART requirement is drafted in plain words, the date in full, in its own box with Copy', JSON.stringify(dbox));
   await shot(s1, 'supplies_requirement'); await s1.close();
   const fs2 = fakePapers({ gstin: '07AAAAA0000A1Z5', trade: 'Photographer', papers: [] }); const s2 = await openP(b, '/vendor/supplies', fs2, { wait: '[data-sp-src]' }); t = await text(s2);
   const k2 = await s2.$$eval('[data-sp-src]', (els) => els.map((e) => e.getAttribute('data-sp-src')));

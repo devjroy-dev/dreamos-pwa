@@ -25,7 +25,7 @@ export async function addBill(vendorId: string, file: File): Promise<{ ok: true;
   const ok = u as { draft_id: string; upload_url: string };
   try {
     const put = await fetch(ok.upload_url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-    if (!put.ok) return { ok: false, error: 'The bill could not be uploaded. Please try again.' };
-  } catch { return { ok: false, error: 'The bill could not be uploaded. Please try again.' }; }
+    if (!put.ok) return { ok: false, error: 'TDW could not upload the bill. Please try again.' };
+  } catch { return { ok: false, error: 'TDW could not upload the bill. Please try again.' }; }
   return readBill(vendorId, ok.draft_id);
 }

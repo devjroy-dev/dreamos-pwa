@@ -32,7 +32,7 @@ const slug = (href) => href.replace('/vendor/', '');
 // for all nine); the Coming cells (1.5, 1.9, 1.11 and the glass) read only the rooms not yet landed. Each landing adds its
 // own key here, in its own edit (train 3: OFF 'shop', then PRO 'supplies' and 'papers', then INS 'insurance').
 // b122_v2 2.7 reads this line; it is the one home of the landed list.
-const LANDED = ['supplies', 'papers', 'insurance', 'shop', 'payment_links'];
+const LANDED = ['supplies', 'papers', 'insurance', 'shop', 'payment_links', 'brands', 'trends'];   // CE-47 OFF-A2, INS PAY-A and PRO P3: the shop, Payment links, Brand collaborations and the Trend room landed
 const COMING = NINE.filter(([k]) => !LANDED.includes(k));
 
 sec('1  the four homes, the shell, the pages and the doors');
@@ -114,7 +114,8 @@ async function mutations() {
   const MUT = [
     // M1 RE-ANCHORED BY LABEL · CE-47 INS PAY-A: 'payment_links' left PREVIEW_KEYS when its room landed (my turn-27 note),
     // so the anchor names two keys still Coming.
-    ['a row loses its Coming key', 'v2/lib/solutions/routes.ts', "'rebooking', 'quotes', 'shop',", "'quotes', 'shop',", '1.5'],
+    // RE-ANCHORED BY LABEL · CE-47 app train 8 (the chair's merge): shop, payment_links, brands and trends left PREVIEW_KEYS; rebooking and quotes stay Coming.
+    ['a row loses its Coming key', 'v2/lib/solutions/routes.ts', "  'rebooking', 'quotes']);", "  'quotes']);", '1.5'],
     ['the statement becomes a button', 'v2/components/solutions/ComingRoom.tsx', "<Row title={COPY.launchingSoon} pill={{ text: CHIPS.coming, tone: 'soon' }} />", "<Row title={COPY.launchingSoon} pill={{ text: CHIPS.coming, tone: 'soon' }} onClick={() => {}} />", '1.7'],
     ['a door is missing', 'app/v2/vendor/(shell)/papers/page.tsx', "export { default } from '@/v2/app/vendor/(shell)/papers/page';", '', '1.10'],
     ['a line is retyped', 'v2/lib/solutions/copy.ts', "  quotes:        'Quote links sent to enquiries, and when each was opened',", "  quotes:        'Quote links sent to your enquiries',", '1.2'],

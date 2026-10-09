@@ -285,19 +285,28 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
              ['tag', 'When a buyer uses a voucher, type its code in Check a code and tap Mark redeemed.'],
              ['switch', 'Turn on Show the shop on the website to show the shop on your website and storefront. Turn it off to hide it.']),
     connects: 'A paid booking or workshop is added to your Calendar. A paid booking is also added to your enquiries as booked.' }),
-  [BRANDS_HREF]: entry(ROW_DESC.brands, { can: how(['read', COMING_STEP]), connects: COMING_CONNECTS }),
+  // CE-47 · PRO P3 · Brand collaborations is open: its own card replaces the shell card (one entry, same key).
+  [BRANDS_HREF]: entry(ROW_DESC.brands, { can: how(
+    ['add', 'Tap New pitch to choose a brand. TDW writes a pitch for you. You send the pitch yourself.'],
+    ['share', 'Tap Copy link to copy the address of your media kit. Your kit shows brands your work and your figures.'],
+    ['list', 'After you send a pitch, tap I sent it. TDW counts the pitch and shows where it stands under Your pitches.']),
+    connects: 'Your kit takes its figures from your verified weddings and your Instagram account.' }),
   // CE-47 · PRO P1 · Supplies is open: its own card replaces the shell card (one entry, same key).
   [SUPPLIES_HREF]: entry(ROW_DESC.supplies, { can: how(
-    ['list', 'Each card is a place to buy, checked by TDW, with what it costs to join. Open goes to its own site.'],
-    ['share', 'Join with your TDW certificate makes your certificate, saves it as a PDF, and shows the steps to join.'],
-    ['edit', 'Write my requirement writes your request for IndiaMART. Copy it, then paste it there.']),
-    connects: 'Bills you add here go to Expenses with their GST, once you check them.' }),
-  [TRENDS_HREF]: entry(ROW_DESC.trends, { can: how(['read', COMING_STEP]), connects: COMING_CONNECTS }),
+    ['list', 'Each card is a place to buy at professional prices. The date on the card is the day its link was last checked. The card also says what it costs to join. Tap Open to go to that place\u2019s own site.'],
+    ['share', 'Tap Join with your TDW certificate. TDW makes your certificate as a PDF and shows the steps to join.'],
+    ['edit', 'Tap Write my requirement. TDW writes your request for IndiaMART. Copy the request and paste it on IndiaMART.']),
+    connects: 'A bill you add here goes to Expenses with its GST after you check it.' }),
+  // CE-47 · PRO P3 · the Trend room is open: its own card replaces the shell card (one entry, same key).
+  [TRENDS_HREF]: entry(ROW_DESC.trends, { can: how(
+    ['read', 'The brief shows what clients asked for in your trade and your city last week. TDW counts enquiries across all vendors and names no one.'],
+    ['list', 'Tap a past week to read its brief.']),
+    connects: 'TDW counts the brief from enquiries that clients sent to vendors on TDW.' }),
   // CE-47 · PRO P1 · Business papers is open: its own card replaces the shell card (one entry, same key).
   [PAPERS_HREF]: entry(ROW_DESC.papers, { can: how(
-    ['add', 'New paper makes a certificate, an ID, a business statement or a pack for your CA.'],
-    ['share', 'Each paper has a check link anyone can open to see that it is real.'],
-    ['switch', 'Withdraw a paper and its check page says it no longer stands.']),
+    ['add', 'Tap New paper to make a certificate, an ID, a business statement or a pack for your CA.'],
+    ['share', 'Each paper has a check link. Anyone who opens the link can see that the paper is real.'],
+    ['switch', 'Tap Withdraw this paper to withdraw a paper. Its check page then says that the paper no longer stands.']),
     connects: 'The figures come from your invoices, expenses and TDS in TDW.' }),
   // CE-47 INS-A: the Insurance room landed; its own card names its buttons, replacing the hub cut's Coming card in place.
   [INSURANCE_HREF]: entry(ROW_DESC.insurance, {

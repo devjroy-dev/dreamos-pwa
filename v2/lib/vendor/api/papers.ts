@@ -20,12 +20,12 @@ export const withdrawPaper = (vendorId: string, id: string): Promise<{ ok: true;
 export async function downloadPaper(vendorId: string, paper: Paper): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch(`${API_BASE}/api/v2/vendor/papers/${vendorId}/${paper.id}/file`, { headers: getAuthHeader() });
-    if (!res.ok) return { ok: false, error: 'The file could not be made just now. Please try again.' };
+    if (!res.ok) return { ok: false, error: 'TDW could not make the file just now. Please try again.' };
     const name = (/filename="([^"]+)"/.exec(res.headers.get('content-disposition') || '') || [])[1] || `TDW_${paper.check_code}${paper.kind === 'ca_pack' ? '.zip' : '.pdf'}`;
     const url = URL.createObjectURL(await res.blob());
     const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     return { ok: true };
-  } catch { return { ok: false, error: 'The file could not be made just now. Please try again.' }; }
+  } catch { return { ok: false, error: 'TDW could not make the file just now. Please try again.' }; }
 }
 
 /** The public check, called FROM THE VISITOR'S BROWSER (never from the page's server): the door allows 60 tries an hour

@@ -219,10 +219,12 @@ ok('NO tombstoned route survives on disk — retired means gone, not hidden',
 // both LIVE and both in ROUTE_MAP: 36→38 on disk, 39→41 rows, 20→22 LIVE. Same shape.
 // LABELED AMENDMENT (CE-47 PTN-A1, on CLB-1's bytes): three routes ADDED, /admin/partners, /admin/partners/contacts and
 // /admin/partners/forward, all LIVE and all in ROUTE_MAP: 38→41 on disk, 41→44 rows, 23→26 LIVE (CLB-1's 23 stands). Same shape.
+// LABELED AMENDMENT (CE-47 PRO P3): two routes ADDED, /admin/brands and /admin/trends, both LIVE and both in ROUTE_MAP:
+// 41→43 on disk, 44→46 rows, 26→28 LIVE. Same shape.
 ok('the disk carries exactly 36 non-login admin routes (39 minus F-10.76\'s three)',
-   routes.length === 41 && new Set(routes).size === 41, `disk=${routes.length}`);
+   routes.length === 43 && new Set(routes).size === 43, `disk=${routes.length}`);
 ok('the table still carries 39 rows — the three retired persist as tombstones',
-   tablePaths.length === 44 && new Set(tablePaths).size === 44,
+   tablePaths.length === 46 && new Set(tablePaths).size === 46,
    `table=${tablePaths.length}`);
 ok('table minus disk equals the retired count, exactly — no other row is dangling',
    tablePaths.length - routes.length === retiredPaths.size,
@@ -240,7 +242,7 @@ const corpseCount  = (NAV.match(/disposition:\s*'CORPSE'/g)  || []).length;
 // LABELED AMENDMENT (CE-47 CLB-1): /admin/collab moved PHANTOM -> LIVE when its door was mounted (F-44.300's cure).
 // The total stays 41 rows; LIVE 22 -> 23, PHANTOM 15 -> 14. Same shape, the ledger still balances.
 ok('20 LIVE + 1 RETIRES + 15 PHANTOM + 3 RETIRED = 39',
-   liveCount + retireCount + phantomCount + retiredCount === 44 && liveCount === 26,   // PTN-A1: +3 LIVE over CLB-1's 23
+   liveCount + retireCount + phantomCount + retiredCount === 46 && liveCount === 28,   // PTN-A1: +3 LIVE over CLB-1's 23; PRO P3: +2
    `LIVE=${liveCount} RETIRES=${retireCount} PHANTOM=${phantomCount} RETIRED=${retiredCount}`);
 ok('F-10.76 reduced the phantom ledger by exactly three (acceptance ②)',
    phantomCount === 14 && retiredCount === 3, `PHANTOM=${phantomCount} RETIRED=${retiredCount}`);   // 15 -> 14: CLB-1, above
