@@ -1,0 +1,10 @@
+# CE-47 · FE-9 · the two-minute start, package 2: S2 with two equal ways in (Connect Instagram, Add my own photos), B1 own photos through the portfolio upload, WEB-4's train-13 website fill (POST {step:"website"}, website_can_fill) offered on S4 and on the Home card, the founder's lines (approved 8 Oct 2026), R-47.1 plain-sentence rewrites · base 19631372 (app train 6's tip) · F-19.16: a dirty path outside this list is a STOP.
+# b183 base = cfe94b37c67f9f3cbc500705ca25171ea5588bdd6a9fce9a31732bfc63c7281b (six labelled amendments, frozen by CE-47); FE-9 made the SEVENTH labelled amendment (cell 2.1 expects the founder's OB.sub). scripts/lib/fe7_l4_kit.js is ADS-2's (196719f1…), on the tip, not carried.
+scripts/b183_fe7_onboarding_bench.js
+scripts/fe9_two_minute_start_bench.js
+scripts/floor-manifest-ce47-fe9-twominute-p2-pwa.txt
+v2/components/start/DetailsForm.tsx
+v2/components/start/FirstBuildCard.tsx
+v2/components/start/StartFlow.tsx
+v2/lib/vendor/api/firstBuild.ts
+v2/lib/vendor/startCopy.ts

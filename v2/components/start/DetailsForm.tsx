@@ -59,11 +59,11 @@ import { CopyBox } from '@/v2/components/worklist/CopyBox';
 import { formatRs } from '@/lib/vendor/format';
 // CE-47 L4 (FE-7): Onboarding's words, veto rows 54 to 59 as approved.
 const OB = {
-  brand: 'The Dream Wedding', title: 'Check your details', sub: 'We need these to set up your storefront.',   // RULING A
+  brand: 'The Dream Wedding', title: 'Check your details', sub: 'TDW needs these details to set up your storefront.',   // RULING A; the founder's words (R-47.1, 8 Oct 2026)
   name: 'Your name', business: 'Studio or business name', craft: 'What you do', city: 'Based in', cityHint: 'Mumbai',
   price: 'Your starting price, in Rs', area: 'Where you work', cities: 'Which cities',
   citiesHint: 'Add a city',
-  priceHelp: (rs: string) => `Shown on your storefront as From Rs ${rs}. You can change it any time.`,   // RULING A
+  priceHelp: (rs: string) => `Your storefront shows this as From Rs ${rs}. You can change it at any time.`,   // RULING A; R-47.1
   go: 'Continue',   // RULING A (was "Get started")
   setting: 'Setting up\u2026',
   doneTitle: (first: string) => `You\u2019re all set, ${first}.`, doneLine: 'Share your TDW link. Clients message you there.',
@@ -190,7 +190,7 @@ export default function DetailsForm({ withBuild = false, top = null, onSaved }: 
         if (!live) return;
         if (probe.allowed) setAllowed(probe.allowed);
       } catch {
-        if (live) showToast('Could not connect. Try again.');
+        if (live) showToast('TDW could not connect. Please try again.');
       }
       if (live) setLoading(false);
     })();
@@ -241,7 +241,7 @@ export default function DetailsForm({ withBuild = false, top = null, onSaved }: 
       forgetVendorMe();
       if (withBuild && onSaved) { onSaved(); setSubmitting(false); return; }   // the two-minute start carries on to S6
       setDone(true);
-    } catch { showToast('Could not connect. Try again.'); }
+    } catch { showToast('TDW could not connect. Please try again.'); }
     setSubmitting(false);
   }, [name, businessName, category, city, rate, area, cities, submitting, withBuild, onSaved]);
 

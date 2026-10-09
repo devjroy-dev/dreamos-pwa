@@ -12,14 +12,27 @@ export type StepState = 'waiting' | 'running' | 'done' | 'skipped' | 'failed';
 export type StepKey = 'photos' | 'website' | 'packages' | 'storefront' | 'eliza';
 export interface BuildOpen { line: string; plan: string }
 export interface BuildStep { key: StepKey; state: StepState; line: string | null; counts: Record<string, number | boolean> | null; opens?: BuildOpen[] | null }
-export interface Build { build_id: string; state: BuildState; steps: BuildStep[]; site_ready: boolean }
+export interface Build { build_id: string; state: BuildState; steps: BuildStep[]; site_ready: boolean; website_can_fill?: boolean }
 type Err = { ok: false; error?: string };
 
 export const POLL_MS = 2000;
 export const POLL_LIMIT_MS = 3 * 60 * 1000;
 
-export function startFirstBuild(): Promise<{ ok: true; build_id: string } | Err> {
+export function startFirstBuild(): Promise<{ ok: true; build_id: string; already?: boolean } | Err> {
   return postJson('/api/v2/vendor/first-build', {});
+}
+/** WEB-4's contract (server train 13): the website step alone, again, in her latest build, so the website draft uses the
+ *  photos in her portfolio. Offered only while GET /latest says website_can_fill (TDW's untouched draft, and at least one
+ *  photo). 200 -> follow build_id as today (already: a build was running; nothing new started). 409 or 400 -> `error`,
+ *  shown as it is (WEBSITE_HERS, NO_PHOTOS, NO_BUILD, STEP_UNKNOWN). */
+export function fillWebsite(): Promise<{ ok: true; build_id: string; already?: boolean } | (Err & { code?: string })> {
+  return postJson('/api/v2/vendor/first-build', { step: 'website' });
+}
+/** S2 (package 2, WEB-4 cut 20): the Instagram connect that returns her to set-up. The server allows one return value,
+ *  'start'; the callback then sends her to /vendor/onboarding?ig=<connected|cancelled|failed&reason=…>. The URL is minted
+ *  BEFORE she taps and S2's control is a real <a href> (F-07.22: no await between her finger and the navigation). */
+export function mintIgStart(): Promise<{ ok: true; authorize_url: string } | Err> {
+  return getJson('/api/v2/vendor/ig/authorize?return=start');
 }
 export async function readFirstBuild(id: string): Promise<Build | null> {
   const r = await getJson<({ ok: true } & Omit<Build, 'build_id'>) | Err>(`/api/v2/vendor/first-build/${encodeURIComponent(id)}`);

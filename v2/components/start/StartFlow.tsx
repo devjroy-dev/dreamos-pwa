@@ -1,9 +1,13 @@
 'use client';
-// v2/components/start/StartFlow.tsx · CE-47 · FE-9 · THE TWO-MINUTE START, PACKAGE 1 (S4 to S10).
-// Lives at /vendor/onboarding (G3): the page every unfinished vendor is already sent to. S2, S3 and B1/B2 come in
-// package 2 on WEB-4's cut 20 (the Instagram return to this address); until then the flow is entered in one of two ways:
-//   · she has a build (GET /latest)  -> S4 follows it (running) or shows how it ended, then S5 to S10;
-//   · she has none                   -> S5 alone, exactly what the old form did (finish, then Home).
+// v2/components/start/StartFlow.tsx · CE-47 · FE-9 · THE TWO-MINUTE START (package 1: S4 to S10; package 2: S2 and B1).
+// Lives at /vendor/onboarding (G3): the page every unfinished vendor is already sent to, and (WEB-4 cut 20) where the
+// Instagram connect started from S2 returns her, with ?ig=connected | cancelled | failed. Entered in one of four ways:
+//   · she has a build (GET /latest)           -> S4 follows it (running) or shows how it ended, then S5 to S10;
+//   · ?ig=connected and no build              -> the build starts (POST), then S4;
+//   · no build                                -> S2: Connect Instagram, or "I don't use Instagram" -> B1 (her phone's
+//                                                photos into her portfolio), then the build starts, then S4;
+//   · the build door cannot be read at all    -> S5 alone, exactly what the old form did (finish, then Home).
+// S3 is Instagram's own screen: TDW draws nothing there.
 // SERVER TRUTH, kept from the old form (OB-P 5): S5 shows only the fields in /vendor/me's onboarding.missing[] and the
 // server's own refusal words; the app holds no copy of the list. Every step line in S4 is the server's.
 // NOTHING SAYS "DONE" THAT WAS NOT DONE: each write waits on the server's ok; a refusal is shown in its own words.
@@ -21,14 +25,15 @@ import DetailsForm from '@/v2/components/start/DetailsForm';
 import { START, STYLES } from '@/v2/lib/vendor/startCopy';
 import {
   type Build, type BuildStep, type ElizaState, latestFirstBuild, followBuild, readWaEliza, switchWaEliza,
-  setSiteStyle, publishSite, markBuildChecked, patchSiteSettings,
+  setSiteStyle, publishSite, markBuildChecked, patchSiteSettings, startFirstBuild, readFirstBuild, mintIgStart, fillWebsite,
 } from '@/v2/lib/vendor/api/firstBuild';
+import { fetchUploadUrl, registerPortfolioImage } from '@/v2/lib/vendor/api/vendor';
 
 // the three service areas frozen at 0122 (the old form's own display half, unchanged)
 const AREAS: { token: string; label: string }[] = [
   { token: 'pan_india', label: 'Across India' }, { token: 'worldwide', label: 'Worldwide' }, { token: 'select_cities', label: 'Select cities' },
 ];
-type Step = 'loading' | 'build' | 'details' | 'style' | 'packages' | 'photos' | 'eliza' | 'ready';
+type Step = 'loading' | 'connect' | 'phone' | 'build' | 'details' | 'style' | 'packages' | 'photos' | 'eliza' | 'ready';
 interface Me {
   id: string; name?: string | null; business_name?: string | null; category?: string | null; city?: string | null;
   rate_min?: number | null; service_area?: string | null; service_cities?: string[] | null; instagram_handle?: string | null;
@@ -37,7 +42,6 @@ interface Me {
 interface Photo { id: string; image_url: string }
 interface Pkg { id: string; name: string; total: number | null; is_default: boolean }
 
-const plan = (p: string) => (p ? p.charAt(0).toUpperCase() + p.slice(1) : p);
 const digits = (s: string) => s.replace(/[^0-9]/g, '');
 
 function Tick({ state }: { state: BuildStep['state'] }) {
@@ -66,6 +70,9 @@ export default function StartFlow() {
   const [pkgs, setPkgs] = useState<Pkg[]>([]);
   const [style, setStyle] = useState('gallery');
   const [eliza, setEliza] = useState<ElizaState | null>(null);
+  const [igBack, setIgBack] = useState(false);              // S2 after Instagram sent her back without a connection
+  const [igUrl, setIgUrl] = useState<string | null>(null);  // S2's destination, minted BEFORE she taps (F-07.22)
+  const [upload, setUpload] = useState('');                 // B1's progress line
 
   const loadMe = useCallback(async (): Promise<Me | null> => {
     const r = await getJson<{ ok: boolean; vendor?: Me }>('/api/v2/vendor/me', true);
@@ -84,22 +91,109 @@ export default function StartFlow() {
         const m = await loadMe(); if (!live) return;
         if (!m) { setErr(START.noConnect); setStep('details'); return; }
         setMe(m);
+        // WEB-4 cut 20: Instagram's return. Read once, then taken off the address so a reload does not read it again.
+        const ig = new URLSearchParams(window.location.search).get('ig');
+        if (ig) window.history.replaceState(null, '', window.location.pathname);
         const b = await latestFirstBuild(); if (!live) return;
-        if (b) {
-          withBuild.current = true; setBuild(b); setStep('build'); void loadPhotos(m.id);
-          if (b.state === 'running') {
-            const f = followBuild(b.build_id, (nb) => { if (live) setBuild(nb); });
-            follow.current = f;
-            f.done.then((how) => { if (follow.current === f) follow.current = null; if (live && how === 'too_long') setTooLong(true); });
-          }
-          return;
-        }
+        if (b) { withBuild.current = true; void loadPhotos(m.id); showBuild(b, () => live); return; }
+        if (b === null && ig === 'connected') { void loadPhotos(m.id); await begin(() => live); return; }
         if (m.onboarding?.complete) { forgetVendorMe(); router.replace('/vendor'); return; }
-        setStep('details');   // no build: S5 alone, the old form's own screen and its done screen (G-b)
+        if (b === null) { setIgBack(ig === 'cancelled' || ig === 'failed'); setStep('connect'); return; }
+        setStep('details');   // the build door could not be read: S5 alone, the old form's own screen and its done screen
       } catch { if (live) { setErr(START.noConnect); setStep('details'); } }
     })();
     return () => { live = false; if (follow.current) follow.current.stop(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadMe, loadPhotos, router]);
+
+  // S4 for a build: follow it while it runs (each follow clears only its own handle).
+  function showBuild(b: Build, alive: () => boolean) {
+    setBuild(b); setStep('build');
+    if (b.state !== 'running') return;
+    const f = followBuild(b.build_id, (nb) => { if (alive()) setBuild(nb); });
+    follow.current = f;
+    void f.done.then((how) => { if (follow.current === f) follow.current = null; if (alive() && how === 'too_long') setTooLong(true); });
+  }
+  // The build starts (POST; a second POST returns the same build), then S4. A refusal stays on the screen she is on.
+  async function begin(alive: () => boolean = () => true): Promise<void> {
+    setBusy(true); setErr('');
+    try {
+      const r = await startFirstBuild();
+      if (!alive()) return;
+      if (!r || !r.ok) { setErr((r && 'error' in r && r.error) || START.noConnect); setStep((s) => (s === 'loading' ? 'connect' : s)); setBusy(false); return; }
+      withBuild.current = true;
+      const b = (await readFirstBuild(r.build_id)) || { build_id: r.build_id, state: 'running' as const, steps: [], site_ready: false };
+      if (!alive()) return;
+      showBuild(b, alive);
+    } catch { if (alive()) { setErr(START.noConnect); setStep((s) => (s === 'loading' ? 'connect' : s)); } }
+    setBusy(false);
+  }
+
+  // S2 · the destination is minted before she taps and the control is a real <a href> (F-07.22: no await between her
+  // finger and the navigation). /ig/authorize arms one state per vendor and each mint replaces the last, so it is minted
+  // again only while this tab is VISIBLE (she is not on Instagram's screen), 8 minutes after the last (the TTL is 10).
+  const mintIg = useCallback(async () => {
+    try {
+      const r = await mintIgStart();
+      if (r && r.ok && r.authorize_url) { setIgUrl(r.authorize_url); return true; }
+      setIgUrl(null); setErr((r && 'error' in r && r.error) || START.noConnect); return false;
+    } catch { setIgUrl(null); setErr(START.noConnect); return false; }
+  }, []);
+  useEffect(() => {
+    if (step !== 'connect') return;
+    void mintIg();
+    const t = setInterval(() => { if (document.visibilityState === 'visible') void mintIg(); }, 8 * 60 * 1000);
+    return () => clearInterval(t);
+  }, [step, mintIg]);
+
+  // B1 · her phone's photos go into her portfolio through the Portfolio room's own doors (sign, upload, register), one
+  // at a time (each register takes the next position); a refusal is shown in the server's words.
+  const addPhotos = useCallback(async (files: File[]) => {
+    if (!files.length || !me || busy) return;
+    setBusy(true); setErr('');
+    try {
+      for (let i = 0; i < files.length; i += 1) {
+        setUpload(START.uploading(i + 1, files.length));
+        const u = await fetchUploadUrl(files[i].name);
+        if (!u || !u.ok) { setErr((u as { error?: string }).error || START.uploadFailed); break; }
+        const form = new FormData();
+        Object.entries((u as { params: Record<string, unknown> }).params).forEach(([k, v]) => form.append(k, String(v)));
+        form.append('file', files[i]);
+        const c = await fetch((u as { upload_url: string }).upload_url, { method: 'POST', body: form });
+        if (!c.ok) { setErr(START.uploadFailed); break; }
+        const d = await c.json() as { secure_url?: string };
+        const reg = await registerPortfolioImage({ image_url: String(d.secure_url || '') });
+        if (!reg || !reg.ok) { setErr((reg as { error?: string }).error || START.uploadFailed); break; }
+        await loadPhotos(me.id);
+      }
+    } catch { setErr(START.uploadFailed); }
+    setUpload(''); setBusy(false);
+  }, [busy, loadPhotos, me]);
+
+  // S8 is shown only when the build's photos step brought photos from her Instagram; otherwise (B1, or that step not
+  // done) its words would not be true, so S7 goes straight to S9.
+  // WEB-4's contract: the website step alone, again (her own photos into TDW's untouched draft). Offered only while
+  // GET /latest said website_can_fill; the server's refusal is shown as it is; the build is then followed as today.
+  const fill = useCallback(async () => {
+    if (busy || !build) return; setBusy(true); setErr('');
+    try {
+      const r = await fillWebsite();
+      if (!r || !r.ok) { setErr((r && 'error' in r && r.error) || START.noConnect); setBusy(false); return; }
+      const b = (await readFirstBuild(r.build_id)) || { ...build, state: 'running' as const };
+      showBuild({ ...b, website_can_fill: false }, () => true);
+    } catch { setErr(START.noConnect); }
+    setBusy(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busy, build]);
+
+  // S8 says "TDW added N photos from your Instagram", so it is shown only when the photos step is done AND brought photos
+  // from Instagram (counts.imported > 0). Her own photos (WEB-4's "Your portfolio has N photos. We used them...") do not.
+  const afterPackages = useCallback(async () => {
+    const ph = build ? build.steps.find((x) => x.key === 'photos') : undefined;
+    const imported = ph && ph.counts && typeof ph.counts.imported === 'number' ? ph.counts.imported : 0;
+    if (ph && ph.state === 'done' && imported > 0) { setStep('photos'); return; }
+    setEliza(await readWaEliza().catch(() => null)); setStep('eliza');
+  }, [build]);
 
   // S4c (the chair, 6 Oct 2026): she may carry on while the build goes on. Reaching S6 reads it again, and follows it
   // while it still runs, so the screens after it never claim a step done that is not.
@@ -231,7 +325,10 @@ export default function StartFlow() {
    globals.css's light blanket (html.theme-light, color inherit, 0-3-1) outranks a class; the shell's own answer
    (WorklistShell: .wl .wl-btn.pri) is the one used here, so a filled control never reads ink on primary in light. */
 .st .rp-next{width:100%}
+.st-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+.st-two .rp-next{margin:0;padding:0 8px;text-align:center}
 .st .rp-next,.st .st-chip.on{color:var(--role-on-primary)!important}
+.st-foot label.rp-next{cursor:pointer}
 .st-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .st-grid button{position:relative;aspect-ratio:1/1;border:0;padding:0;border-radius:8px;overflow:hidden;background:none}
 .st-grid img{width:100%;height:100%;object-fit:cover;display:block}
@@ -250,6 +347,45 @@ export default function StartFlow() {
 
   const body = (() => {
     if (step === 'loading') return <div aria-busy="true" />;
+
+    if (step === 'connect') {
+      return (<>
+        <Top label={START.setting} n={1} />
+        <h1 className="st-h">{START.connectHead}</h1><p className="st-sub">{START.connectSub}</p>
+        {igBack ? <div className="st-card" data-ig-back="" role="status" style={{ marginBottom: 12 }}><p className="st-small st-ink" style={{ margin: 0 }}>{START.igCancelled}</p><p className="st-small">{START.igPersonal}</p></div> : null}
+        {err ? <p className="st-err" role="alert">{err}</p> : null}
+        <div className="st-grow">{START.connectRows.map((t) => <div key={t} className="st-card st-row"><Tick state="done" />{t}</div>)}</div>
+        <div className="st-foot">
+          {/* the founder's rule (8 Oct 2026): her own photos are a way in of EQUAL standing: the same filled control, the
+              same size, side by side */}
+          <div className="st-two">
+            {igUrl ? <a className="rp-next" href={igUrl} data-ig-connect="">{START.connect}</a>
+              : <button type="button" className="rp-next" disabled={busy} onClick={() => { setErr(''); void mintIg(); }} data-ig-connect="">{START.connect}</button>}
+            <button type="button" className="rp-next" disabled={busy} onClick={() => { setErr(''); if (me) void loadPhotos(me.id); setStep('phone'); }} data-own-photos="">{START.noInstagram}</button>
+          </div>
+        </div>
+      </>);
+    }
+
+    if (step === 'phone') {
+      const n = photos.length;
+      return (<>
+        <Top label={START.setting} n={3} />
+        <h1 className="st-h">{START.phoneHead}</h1><p className="st-sub">{START.phoneSub}</p>
+        {err ? <p className="st-err" role="alert">{err}</p> : null}
+        <div className="st-grow">
+          {n ? <div className="st-grid">{photos.map((p) => <button key={p.id} type="button" tabIndex={-1}><img src={p.image_url} alt="" /><span className="st-dot" /></button>)}</div> : null}
+          {upload ? <p className="st-small" role="status" data-upload="">{upload}</p> : null}
+          <p className="st-small">{START.phoneSmall}</p>
+        </div>
+        <div className="st-foot">
+          <label className="rp-next" htmlFor="st-file" aria-disabled={busy} data-choose="">{START.choose}</label>
+          <input id="st-file" type="file" accept="image/*" multiple disabled={busy} style={{ display: 'none' }}
+            onChange={(e) => { const f = Array.from(e.target.files || []); e.target.value = ''; void addPhotos(f); }} />
+          <button type="button" className="st-ghost" disabled={busy} onClick={() => void begin()}>{n ? START.withPhotos(n) : START.withNone}</button>
+        </div>
+      </>);
+    }
 
     if (step === 'build' && build) {
       const ended = build.state !== 'running';
@@ -270,13 +406,19 @@ export default function StartFlow() {
               <div key={s.key} className="st-row" data-step={s.key} data-state={s.state}>
                 <Tick state={s.state} />
                 <div><div>{s.state === 'waiting' || s.state === 'running' || !s.line ? START.stepName[s.key] : s.line}</div>
-                  {(s.opens || []).map((o, i) => <div key={i} className="st-small">{o.line} · {START.available(plan(o.plan))}</div>)}
+                  {(s.opens || []).map((o, i) => <div key={i} className="st-small" data-opens="">{o.line}</div>)}   {/* the server's sentence, whole (the chair, 8 Oct 2026) */}
                 </div>
               </div>
             ))}
           </div>
           {!ended && photos.length ? <div className="st-grid">{photos.slice(0, 6).map((p) => <button key={p.id} type="button" tabIndex={-1}><img src={p.image_url} alt="" /></button>)}</div> : null}
         </div>
+        {ended && build.website_can_fill ? (
+          <div className="st-card" data-fill-offer="" style={{ marginTop: 12 }}>
+            <p className="st-small" style={{ margin: '0 0 10px' }}>{START.fillLine}</p>
+            <button type="button" className="st-ghost" style={{ marginTop: 0 }} disabled={busy} onClick={() => void fill()}>{START.fillGo}</button>
+          </div>) : null}
+        {err ? <p className="st-err" role="alert" style={{ marginTop: 12 }}>{err}</p> : null}
         <div className="st-foot">
           {ended ? <button type="button" className="rp-next" onClick={() => afterBuild()}>{START.cont}</button>
             : tooLong ? <button type="button" className="rp-next" onClick={() => afterBuild()}>{START.cont}</button> : null}
@@ -317,7 +459,7 @@ export default function StartFlow() {
             </Link>))}
           <p className="st-small">{START.tapPkg}</p>
         </div>
-        <div className="st-foot"><button type="button" className="rp-next" onClick={() => setStep('photos')}>{START.pkgOk}</button></div>
+        <div className="st-foot"><button type="button" className="rp-next" onClick={() => void afterPackages()}>{START.pkgOk}</button></div>
       </>);
     }
 

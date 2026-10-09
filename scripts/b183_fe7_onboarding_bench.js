@@ -64,7 +64,8 @@ K.runBench({
     // AMENDED BY LABEL · CE-47 FE-9 (6 Oct 2026, RULING A): S5 is "Check your details", its sub line the chair's, and it
     // shows ONLY the boxes the server lists as missing (this scenario's: business name, craft, city, price, area; her
     // name is already on file, so its box is not drawn), each under today's label; the optional Instagram box is gone.
-    ok(['Check your details', 'We need these to set up your storefront.', 'Studio or business name', 'What you do', 'Based in', 'Your starting price, in Rs', 'Where you work'].every((w) => F.ws.includes(w)) && !F.ws.includes('Instagram handle') && !F.ws.includes('Your name'), '2.1 the title, the line and the labels of the missing boxes (ruling A)', JSON.stringify(F.ws));
+    // AMENDED BY LABEL · CE-47 FE-9 (8 Oct 2026, R-47.1, the founder's words): the seventh labelled amendment; S5's sub line.
+    ok(['Check your details', 'TDW needs these details to set up your storefront.', 'Studio or business name', 'What you do', 'Based in', 'Your starting price, in Rs', 'Where you work'].every((w) => F.ws.includes(w)) && !F.ws.includes('Instagram handle') && !F.ws.includes('Your name'), '2.1 the title, the line and the labels of the missing boxes (ruling A)', JSON.stringify(F.ws));
     // AMENDED BY LABEL · RULING A: every box shown is a missing one, so no "Still needed" marker is drawn at all.
     ok(F.need.n === 0, '2.2 no "Still needed" marker: every box shown is a missing one (ruling A)', JSON.stringify(F.need));
     ok(F.title.style === 'normal' && !/Cormorant/i.test(F.title.family), '2.3 the title in the app\'s sans, not italic', JSON.stringify(F.title));
