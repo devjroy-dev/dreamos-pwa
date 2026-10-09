@@ -14,7 +14,7 @@
 import type { Metadata, Viewport } from 'next';
 import { connection } from 'next/server';
 import { getImageProps } from 'next/image';
-import { buildScenes, columnHtml, sheetHtml, shuffled, TRADES, DOORS, LOOK_PHOTOS } from '@/lib/works/scenes';
+import { buildScenes, columnHtml, sheetHtml, shuffled, pickFirst, TRADES, DOORS, LOOK_PHOTOS } from '@/lib/works/scenes';
 import { worksFontClasses } from './fonts';
 import WorksMotion from './WorksMotion';
 import './works.css';
@@ -64,7 +64,9 @@ export default async function WorksPage() {
   const scenes = buildScenes(looks);
   const n = scenes.length;
   // The first scene on the glass: the first draw of a fresh bag, exactly as the file's script does it.
-  const first = shuffled(Array.from({ length: n }, (_, i) => i))[0];
+  // The landing scene: one of FIRST_POOL (leads, clients, book by chat, the assistant's draft, contracts), at random.
+  // Every scene after it is fully random (WorksMotion.tsx's bag).
+  const first = pickFirst(scenes);
   const wall = Array.from({ length: 6 }, (_, c) => columnHtml(scenes, shuffled(Array.from({ length: n }, (_, i) => i)), c)).join('');
   const trades = TRADES.map((x) => '<span>' + x + '</span>').join('');
 
@@ -76,9 +78,16 @@ export default async function WorksPage() {
         <header className="top">
           <a className="mark" href="/" aria-label="tdw.works, The Delegated Workspace"><b>TDW</b><span>tdw.works · The Delegated Workspace™</span></a>
           <nav className="nav" aria-label="TDW">
-            <button className="lnk" type="button" id="aboutOpen" aria-haspopup="dialog">About</button>
-            <a className="lnk wide" href={DOORS.privacy}>Privacy</a>
-            <a className="lnk wide" href={DOORS.terms}>Terms</a>
+            {/* LAND-1 package 2: About, Privacy and Terms were not legible over the wall. One "More" beside Sign in opens
+                a small menu on a solid ground; it closes on Esc, a tap outside, or a choice (WorksMotion.tsx). */}
+            <div className="more">
+              <button className="morebtn" type="button" id="moreBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="moreMenu">More</button>
+              <div className="menu" id="moreMenu" role="menu" aria-labelledby="moreBtn" hidden>
+                <button type="button" role="menuitem" id="aboutOpen">About</button>
+                <a role="menuitem" href={DOORS.privacy}>Privacy</a>
+                <a role="menuitem" href={DOORS.terms}>Terms</a>
+              </div>
+            </div>
             <a className="signin" href={DOORS.signIn} data-door="signin">Sign in</a>
           </nav>
         </header>

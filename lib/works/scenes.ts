@@ -9,7 +9,9 @@
 // tiles' markup comes in as `looks`, built on the server by getImageProps (next/image), so the strings below never
 // name an image address themselves.
 
-export type Scene = { k: string; w: string; cap: string; tag: [string, string]; h: string };
+// `hi`: the floating tag sits above the screen's top edge (LAND-1 package 2's eight scenes, whose first lines are the
+// point of the screen: her typed line, a crew date, the two ways to start).
+export type Scene = { k: string; w: string; cap: string; tag: [string, string]; h: string; hi?: boolean };
 
 const A = (th: string, title: string, sub: string, body: string, top?: string) =>
   '<div class="app ' + th + '">' + (top || '<div class="sb"><span>9:41 am</span><span>5G</span></div>') +
@@ -23,18 +25,41 @@ const CH = (t: string, k?: string) => '<span class="ch ' + (k || '') + '">' + t 
 const B = (t: string, f?: number) => '<span class="b' + (f ? ' f' : '') + '">' + t + '</span>';
 const L = (t: string) => '<div class="lb">' + t + '</div>';
 const T = (a: string, b: string) => '<div class="tick"><i>✓</i><span>' + a + '<small>' + b + '</small></span></div>';
+// A build step still running (now) or waiting its turn (wait), for the website being made (LAND-1 package 2).
+const P = (a: string, b: string, st: 'now' | 'wait') => '<div class="tick"><i class="' + st + '">' + (st === 'now' ? '•' : '') + '</i><span>' + a + '<small>' + b + '</small></span></div>';
+const BUB = (dir: 'in' | 'out', text: string, small: string) => '<div class="bub ' + dir + '">' + text + '<small>' + small + '</small></div>';
 
-/** The 18 scenes. `looks` is the markup for the two photographs in her website's look tiles and Discover's two tiles. */
+/** The 26 scenes. `looks` is the markup for the two photographs in her website's look tiles and Discover's two tiles. */
 export function buildScenes(looks: [string, string] = ['', '']): Scene[] {
   return [
+    // ── LAND-1 package 2 (CE-47, 10 Oct 2026): eight rooms that are live in the app, drawn with the app's own words
+    //    (v2/lib/worklist/copy.ts headlines, the rooms' state words, v2/lib/vendor/startCopy.ts, the vendor lane's
+    //    approval line). They join the shuffle; FIRST_POOL below names the five a visitor may land on first.
+    {k:'leads',hi:true,w:'leads.',cap:'Every new enquiry in one list, with where it came from and what was asked.',tag:['New enquiry','From Instagram'],
+     h:A('c','Enquiries','Enquiries \u00b7 4 open',C(R1('Tara Kapoor',CH('Instagram','t'))+R2('Wedding makeup \u00b7 14 December \u00b7 asked for the packages'))+C(R1('Rohan Malik',CH('WhatsApp','t'))+R2('Engagement shoot \u00b7 2 November \u00b7 asked the price'))+C(R1('Anya Bhatt',CH('Website','t'))+R2('Party makeup \u00b7 18 October \u00b7 asked if the date is free'))+C(R1('Ishaan Gupta',CH('WhatsApp','t'))+R2('Sangeet \u00b7 30 November \u00b7 asked for a trial')))},
+    {k:'clients',hi:true,w:'clients.',cap:'Your clients and their events, with what is booked and what is still owed.',tag:['Still owed','Rs 40,000'],
+     h:A('g','Clients','Booked \u00b7 3 clients',C(R1('Tara Kapoor','')+R2('Wedding \u00b7 14 December')+R('Booked','Rs 80,000')+R('Still owed','Rs 40,000'))+C(R1('Kabir Sethi',CH('Paid','ok'))+R2('Engagement \u00b7 8 October')+R('Booked','Rs 25,000'))+C(R1('Meera Arora','')+R2('Reception \u00b7 2 November')+R('Still owed','Rs 18,500')))},
+    {k:'bookchat',hi:true,w:'bookings.',cap:'Type a booking in your chat. TDW blocks the date and raises the invoice.',tag:['Date blocked','14 December'],
+     h:A('g','Ask TDW','',BUB('out','Book 14 December for Tara and raise the invoice','6:02 pm')+BUB('in','Booked. The client, the event and the invoice are ready.','6:02 pm')+C(R1('Date blocked',CH('14 December','t'))+R2('Monday \u00b7 Tara Kapoor'))+C(R1('INV-0143 \u00b7 Tara Kapoor','<b class="n">Rs 80,000</b>')+R2('Raised')))},
+    {k:'draft',hi:true,w:'messages.',cap:'Your assistant drafts the message. Nothing goes to the client until you say yes.',tag:['Sent after your yes','6:14 pm'],
+     h:A('c','Ask TDW','',BUB('out','Message Tara, confirm the booking for 14 December, and ask her to pay the 30% advance within 3 days.','6:12 pm')+BUB('in','Hi Tara, your booking for 14 December is confirmed. Please pay the advance of Rs 24,000 (30%) within 3 days to hold the date.','Draft \u00b7 not sent')+BUB('in','Send this to Tara? Reply YES or NO.','6:12 pm')+'<div class="bt" style="align-self:flex-end">'+B('YES',1)+B('NO')+'</div>'+'<div class="r2" style="align-self:center">Sent to Tara \u00b7 6:14 pm</div>')},
+    {k:'contracts',hi:true,w:'contracts.',cap:'Send a contract for a booking and see when it is signed.',tag:['Signed','Deposit received'],
+     h:A('g','Contracts','Agreements signed on WhatsApp; the date held on deposit',C(R1('Booking contract, Tara Kapoor',CH('Signed','ok'))+R2('Wedding \u00b7 14 December')+R('Deposit','Rs 24,000')+'<div class="bt">'+CH('Deposit received','ok')+'</div>')+C(R1('Booking contract, Rohan Malik',CH('Sent \u00b7 not signed yet','me'))+R2('Engagement \u00b7 2 November'))+C(R1('Booking contract, Anya Bhatt',CH('Draft'))+R2('Party \u00b7 18 October')))},
+    {k:'crew',hi:true,w:'crew.',cap:'Your crew for each event, and who works which date.',tag:['On 14 December','3 crew'],
+     h:A('c','Team','Crew, and who works which shoot',L('14 December \u00b7 Tara Kapoor')+C(R('Riya','Hair')+R('Sana','Draping')+R('Kunal','Assistant'))+L('18 October \u00b7 Anya Bhatt')+C(R('Riya','Hair'))+L('2 November \u00b7 Meera Arora')+C(R('Sana','Draping')+R('Kunal','Assistant')))},
+    {k:'igdm',hi:true,w:'Instagram.',cap:'Instagram messages answered in your studio\u2019s name, day and night.',tag:['Instagram','Answered in your name'],
+     h:A('g','Instagram messages','On. People who message your Instagram get a reply in your studio\u2019s name.',BUB('in','Hi! Do you do engagement makeup in Gurgaon?','Instagram \u00b7 10:12 pm')+BUB('out','Hi, this is Ilavari Studio. Yes, we do engagement makeup in Gurgaon. When is your event?','10:12 pm \u00b7 Ilavari Studio')+BUB('in','On 2 November, in the evening.','10:13 pm')+BUB('out','2 November is open. What time should the makeup be ready?','10:13 pm \u00b7 Ilavari Studio'))},
+    {k:'sitebuild',hi:true,w:'photos.',cap:'Connect Instagram or add your own photos. TDW builds your website from them.',tag:['Building','Your website'],
+     h:A('c','Building your business','TDW builds your website from your photos.','<div class="bt">'+CH('Connect Instagram','t')+CH('Add my own photos')+'</div>'+C(T('Your photos','Ready \u00b7 24 photos from Instagram')+P('Your website','Building','now')+P('Your packages','Setting up','wait')+P('Your storefront','Setting up','wait')+P('Eliza','Setting up','wait'))+'<div class="r2" style="padding:0 4px">Nothing is published until you say yes.</div>')},
+
     {k:'website',w:'website.',cap:'A website in your own style, built from your photos.',tag:['Your website','Published'],
      h:'<div class="app c"><div class="sb"><span>9:41 am</span><span>5G</span></div><div class="url">ilavari.thedreamwedding.in</div><div class="site"><div class="nm"><span>LOOKS</span><b>ILAVARI</b><span>ENQUIRE</span></div><h4>Looks for every occasion.</h4><div class="looks"><span class="lk">' + looks[0] + '<em>LOOK 01</em></span><span class="lk">' + looks[1] + '<em>LOOK 02</em></span></div><span class="cta">Enquire on WhatsApp</span></div></div>'},
     {k:'build',w:'launch.',cap:'Sign up, add your photos, and your business is online in about two minutes.',tag:['Ready in','1 min 52 sec'],
      h:A('g','Your business, from your photos','Four things are ready. Check each one.',C(T('Website published','ilavari.thedreamwedding.in')+T('3 packages drafted','Confirm each one before it is shown')+T('Storefront laid out','12 photos from your portfolio')+T('Eliza on WhatsApp','Answers new enquiries for you'))+'<div class="bt">'+B('See my website',1)+B('Review packages')+'</div>')},
     {k:'packages',w:'packages.',cap:'Your packages and prices, drafted from your posts. You confirm each one.',tag:['On your website','3 packages'],
      h:A('c','Packages','What clients can book, with prices.',C(R1('Wedding makeup','<b class="n">Rs 35,000</b>')+R2('Trial, makeup, hair, draping'))+C(R1('Party makeup','<b class="n">Rs 8,000</b>')+R2('Makeup and hair, one look'))+C(R1('Shoot look','<b class="n">Rs 12,000</b>')+R2('Two looks for a photo shoot')))},
-    {k:'calendar',w:'calendar.',cap:'Every booking and event, on one calendar.',tag:['Next booking','Sat 12 Oct, 6:00 am'],
-     h:A('g','Calendar','October',C('<div class="days"><span class="hd">M</span><span class="hd">T</span><span class="hd">W</span><span class="hd">T</span><span class="hd">F</span><span class="hd">S</span><span class="hd">S</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span class="on">12</span><span>13</span><span class="on">14</span><span>15</span><span>16</span><span>17</span><span class="on">18</span><span>19</span><span>20</span></div>')+L('This week')+C(R1('Engagement · Tara Kapoor',CH('6:00 am','t'))+R2('Saturday 12 October · Greater Kailash'))+C(R1('Studio shoot',CH('8:00 am','t'))+R2('Monday 14 October · Gurgaon')))},
+    {k:'calendar',w:'calendar.',cap:'Every booking and event, on one calendar.',tag:['Next booking','Mon 12 Oct, 6:00 am'],
+     h:A('g','Calendar','October',C('<div class="days"><span class="hd">M</span><span class="hd">T</span><span class="hd">W</span><span class="hd">T</span><span class="hd">F</span><span class="hd">S</span><span class="hd">S</span><span class="on">12</span><span>13</span><span class="on">14</span><span>15</span><span>16</span><span>17</span><span class="on">18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span></div>')+L('This week')+C(R1('Engagement · Tara Kapoor',CH('6:00 am','t'))+R2('Monday 12 October · Greater Kailash'))+C(R1('Studio shoot',CH('8:00 am','t'))+R2('Wednesday 14 October · Gurgaon')))},
     {k:'invoices',w:'invoices.',cap:'Invoices and instalments, with what is still owed.',tag:['Still owed','Rs 40,000'],
      h:A('c','Invoices','Every invoice, paid and owed.',C(R1('INV-0142 · Tara Kapoor','<b class="n">Rs 80,000</b>')+R('Paid','Rs 40,000')+R('Second instalment, 20 Oct','Rs 40,000'))+C(R1('INV-0139 · Kabir Sethi',CH('Paid','ok'))+R2('<span class="n">Rs 25,000</span> · 8 October'))+C(R1('INV-0137 · Meera Arora','<b class="n">Rs 18,500</b>')+R2('Due 2 November')))},
     {k:'payments',w:'payments.',cap:'Send a payment link with any invoice. It is marked paid when the money arrives.',tag:['Payment received','Rs 25,000'],
@@ -50,7 +75,7 @@ export function buildScenes(looks: [string, string] = ['', '']): Scene[] {
     {k:'posts',w:'posts.',cap:'Posts, reels and ad briefs, drafted from your work and your calendar.',tag:['Drafted for you','3 posts this week'],
      h:A('c','Posts and ads','Drafts from your work. You post them.',C(R1('Reel: three looks from Saturday',CH('Draft','me'))+R2('From the Tara Kapoor engagement'))+C(R1('Post: October dates open',CH('Draft','me'))+R2('Three dates left this month'))+C(R1('Ad brief: festive season',CH('Ready','ok'))+R2('For Delhi NCR, 7 days')))},
     {k:'shop',w:'shop.',cap:'Sell gift vouchers, classes and workshops from your own website.',tag:['Sold','2 seats in the class'],
-     h:A('g','Off-season shop','Sell more between bookings.',C(R1('Gift voucher','<b class="n">Rs 5,000</b>')+R2('Any service, valid for a year'))+C(R1('Makeup masterclass','<b class="n">Rs 3,500</b>')+R2('Sunday 2 November · 8 of 10 seats left'))+C(R1('Self-makeup kit session','<b class="n">Rs 2,000</b>')+R2('One hour, at your studio'))+'<div class="bt">'+B('Add an item',1)+'</div>')},
+     h:A('g','Off-season shop','Sell more between bookings.',C(R1('Gift voucher','<b class="n">Rs 5,000</b>')+R2('Any service, valid for a year'))+C(R1('Makeup masterclass','<b class="n">Rs 3,500</b>')+R2('Sunday 1 November · 8 of 10 seats left'))+C(R1('Self-makeup kit session','<b class="n">Rs 2,000</b>')+R2('One hour, at your studio'))+'<div class="bt">'+B('Add an item',1)+'</div>')},
     {k:'discover',w:'profile.',cap:'A profile on TDW Discover, where clients look for professionals.',tag:['On Discover','Delhi NCR'],
      h:A('c','Discover','How clients see you on TDW.',C(R1('Ilavari Studio',CH('Shown','ok'))+R2('Makeup artist · Delhi NCR')+'<div class="looks" style="height:92px"><span class="lk">' + looks[0] + '</span><span class="lk">' + looks[1] + '</span></div>')+C(R('Looks shown','6')+R('Packages shown','3')))},
     {k:'collabs',w:'collabs.',cap:'Find photographers, models and stylists to hire or barter with for your next shoot.',tag:['New collab call','Outdoor shoot, Noida'],
@@ -68,7 +93,7 @@ export function buildScenes(looks: [string, string] = ['', '']): Scene[] {
 
 /** The focus slot's sheet for one scene: the screen and its floating tag. */
 export function sheetHtml(s: Scene): string {
-  return s.h + '<div class="tag"><small>' + s.tag[0] + '</small><b>' + s.tag[1] + '</b></div>';
+  return s.h + '<div class="tag' + (s.hi ? ' hi' : '') + '"><small>' + s.tag[0] + '</small><b>' + s.tag[1] + '</b></div>';
 }
 
 /** One wall column: 7 scenes from `order`, drawn twice so the drift loops without a seam. */
@@ -110,8 +135,19 @@ export const DOORS = {
   terms: 'https://thedreamwedding.in/terms',
 } as const;
 
-/** TDW's landing photographs (app/(landing)/page.tsx FALLBACK_SLIDES, the first two), for her two look tiles. */
+/** The storefront's two photographs, in this order: her website's two look tiles and Discover's two tiles (the chair's
+ *  two addresses, LAND-1 package 2, 10 Oct 2026). The one place they are named. */
 export const LOOK_PHOTOS = [
-  'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
-  'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/v1788328622/vendor_portfolio/a8c52506-d363-4a36-9cec-09b50cc32c4c/ig-5a637b957f1d.jpg',
+  'https://res.cloudinary.com/dccso5ljv/image/upload/v1788328616/vendor_portfolio/a8c52506-d363-4a36-9cec-09b50cc32c4c/ig-eca46f60edfc.jpg',
 ] as const;
+
+/** The first scene a visitor sees on landing is drawn at random from these five (the chair, 10 Oct 2026; the founder to
+ *  confirm). Every scene after it is fully random, as before. */
+export const FIRST_POOL = ['leads', 'clients', 'bookchat', 'draft', 'contracts'] as const;
+
+/** The landing scene's index: one of FIRST_POOL, at random. */
+export function pickFirst(scenes: Scene[], rnd: () => number = Math.random): number {
+  const pool = scenes.map((s, i) => [s.k, i] as const).filter(([k]) => (FIRST_POOL as readonly string[]).includes(k)).map(([, i]) => i);
+  return pool[Math.floor(rnd() * pool.length)];
+}

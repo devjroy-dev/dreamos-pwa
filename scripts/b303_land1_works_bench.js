@@ -5,7 +5,7 @@
 // §1 NODE, no server:
 //   1.1 lib/public/worksHost.ts driven whole (transpiled with the tree's typescript): tdw.works and www, the page, the
 //       app's paths sent on to thedreamwedding.in, every other host untouched.
-//   1.2 lib/works/scenes.ts driven whole: 18 scenes, unique, landed rooms only (no Quotes, no Rebooking), the order rule
+//   1.2 lib/works/scenes.ts driven whole: 26 scenes (18, and LAND-1 package 2's eight), unique, landed rooms only (no Quotes, no Rebooking), the order rule
 //       over 2,000 random bags, the three doors by exact address.
 //   1.3 sources: middleware asks worksDecide first; next.config allows only TDW's Cloudinary folder; the four faces in
 //       app/works/fonts.ts; works.css fully scoped under .tdww with reduce motion stopping the wall, the trades line,
@@ -15,7 +15,7 @@
 //    stand-in, scripts/lib/next_fonts.js):
 //   2.1 no scroll and every door on screen at 360x640, 390x844 and 1440x900, in light and in dark; the ground follows the
 //       mode; 4 wall columns on a phone, 6 on a laptop.
-//   2.2 the 18 scenes: 36 draws (the 3000 ms clock shortened in the page only), each bag all 18 with no repeat, never the
+//   2.2 the 26 scenes: 52 draws (the 3000 ms clock shortened in the page only), each bag all 26 with no repeat, never the
 //       same scene twice in a row.
 //   2.3 the three doors' targets, everywhere they appear.
 //   2.4 a tap pauses and plays; a hidden tab stops the clock.
@@ -61,7 +61,7 @@ const DOORS = {
   start: 'https://thedreamwedding.in/?role=vendor',
   agency: 'https://thedreamwedding.in/partner/join',
 };
-const LANDED = ['website', 'build', 'packages', 'calendar', 'invoices', 'payments', 'insurance', 'papers', 'supplies', 'trends',
+const LANDED = ['leads', 'clients', 'bookchat', 'draft', 'contracts', 'crew', 'igdm', 'sitebuild', 'website', 'build', 'packages', 'calendar', 'invoices', 'payments', 'insurance', 'papers', 'supplies', 'trends',
   'posts', 'shop', 'discover', 'collabs', 'brands', 'kit', 'partners', 'eliza'];
 
 // ── §4 the planted defect ────────────────────────────────────────────────────────────────────────────────────────────
@@ -102,7 +102,22 @@ sec('1.2 the scenes (lib/works/scenes.ts)');
   const m = loadTs(SCENES_REL);
   const S = m.buildScenes(['<img a>', '<img b>']);
   const keys = S.map((s) => s.k);
-  ok(S.length === 18 && new Set(keys).size === 18, '18 scenes, each once', keys.join(','));
+  ok(S.length === 26 && new Set(keys).size === 26, '26 scenes, each once (the 18, and leads, clients, book by chat, the draft, contracts, crew, Instagram messages, the website being made)', keys.join(','));
+  // LAND-1 package 2: the eight new scenes carry the app's own words.
+  const by = (k) => (S.find((x) => x.k === k) || {}).h || '';
+  ok(/Enquiries \u00b7 4 open/.test(by('leads')) && ['Instagram', 'WhatsApp', 'Website'].every((w) => by('leads').includes('>' + w + '<')) && /asked/.test(by('leads')),
+    'leads: "Enquiries · N open", where each came from (Instagram, WhatsApp, Website) and what was asked');
+  ok(/Booked \u00b7 3 clients/.test(by('clients')) && /Booked<\/span>/.test(by('clients')) && /Still owed/.test(by('clients')), 'clients: "Booked · N clients", their events, what is booked and what is still owed');
+  ok(/Book 14 December for Tara and raise the invoice/.test(by('bookchat')) && /Booked\. The client, the event and the invoice are ready\./.test(by('bookchat')) && /Date blocked/.test(by('bookchat')) && /INV-0143/.test(by('bookchat')),
+    'book by chat: her line, the app\'s "Booked. The client, the event and the invoice are ready.", the date blocked and the invoice shown');
+  ok(/ask her to pay the 30% advance within 3 days/.test(by('draft')) && /Please pay the advance of Rs 24,000 \(30%\) within 3 days/.test(by('draft')) && /Draft \u00b7 not sent/.test(by('draft'))
+    && /Send this to Tara\? Reply YES or NO\./.test(by('draft')) && by('draft').indexOf('Reply YES or NO') < by('draft').indexOf('Sent to Tara'),
+    "the assistant's draft: her request, the draft marked not sent, the app's approval line, YES or NO, and only then sent with the time");
+  ok(['Signed', 'Sent \u00b7 not signed yet', 'Draft', 'Deposit received'].every((w) => by('contracts').includes(w)), 'contracts: the app\'s states, Signed, Sent · not signed yet, Draft, Deposit received');
+  ok(/Crew, and who works which shoot/.test(by('crew')) && (by('crew').match(/class="lb"/g) || []).length === 3, 'team and crew: who is on which date, three dates');
+  ok(/Instagram messages/.test(by('igdm')) && /reply in your studio\u2019s name/.test(by('igdm')) && /Ilavari Studio/.test(by('igdm')), "Instagram messages: a client's message answered in her studio's name");
+  ok(['Connect Instagram', 'Add my own photos', 'Building', 'Setting up', 'Nothing is published until you say yes.'].every((w) => by('sitebuild').includes(w)) && /class="now"/.test(by('sitebuild')),
+    'the website being made: Instagram or her own photos, a step building, the rest setting up, nothing published until she says yes');
   ok(keys.every((k) => LANDED.includes(k)) && !keys.includes('quotes') && !keys.includes('rebooking'), 'landed rooms only: no Quotes, no Rebooking (still Coming at 96fa4e06)');
   // Ruling 5 (9 Oct 2026): Discover's two tiles carry the same two photographs.
   const withImg = S.filter((s) => s.h.includes('<img')).map((s) => s.k);
@@ -110,16 +125,25 @@ sec('1.2 the scenes (lib/works/scenes.ts)');
     "the photographs are in her website's two look tiles and Discover's two tiles, nowhere else", withImg.join(','));
   const all = S.map((s) => s.w + s.cap + s.tag.join('') + s.h).join(' ');
   ok(!/—/.test(all) && !/\bcouples?\b/i.test(all), 'no em dash, no "couple" in any scene');
-  ok(S.every((s) => /^[a-z ]+\.$/.test(s.w) && s.cap.length > 10 && s.tag.length === 2), 'every scene has its word, its line and its tag');
-  // The order rule over 2,000 bags: each bag a permutation of 18, never the same scene twice in a row across a turn.
+  ok(S.every((s) => /^[A-Za-z ]+\.$/.test(s.w) && s.cap.length > 10 && s.tag.length === 2), 'every scene has its word, its line and its tag');
+  // The order rule over 2,000 bags: each bag a permutation of 26, never the same scene twice in a row across a turn.
   let bad = '';
   let x = 7; const rnd = () => { x = (x * 1103515245 + 12345) % 2147483648; return x / 2147483648; };
   const bag = []; let cur = null; const seq = [];
-  for (let i = 0; i < 18 * 2000; i += 1) { const d = m.draw(bag, 18, cur, rnd); seq.push(d); if (d === cur) { bad = bad || `repeat at ${i}`; } cur = d; }
-  for (let b = 0; b < 2000 && !bad; b += 1) { const part = seq.slice(b * 18, b * 18 + 18); if (new Set(part).size !== 18) bad = `bag ${b} is not all 18: ${part.join(',')}`; }
-  ok(!bad, 'order: 2,000 bags, each all 18 with no repeat, never the same scene twice in a row', bad);
+  for (let i = 0; i < 26 * 2000; i += 1) { const d = m.draw(bag, 26, cur, rnd); seq.push(d); if (d === cur) { bad = bad || `repeat at ${i}`; } cur = d; }
+  for (let b = 0; b < 2000 && !bad; b += 1) { const part = seq.slice(b * 26, b * 26 + 26); if (new Set(part).size !== 26) bad = `bag ${b} is not all 26: ${part.join(',')}`; }
+  ok(!bad, 'order: 2,000 bags, each all 26 with no repeat, never the same scene twice in a row', bad);
+  {
+    // The landing scene (the chair, 10 Oct 2026): drawn at random from leads, clients, book by chat, the draft, contracts.
+    const POOL = ['leads', 'clients', 'bookchat', 'draft', 'contracts'];
+    const seen = new Set(); let out = ''; let y = 3; const r2 = () => { y = (y * 1103515245 + 12345) % 2147483648; return y / 2147483648; };
+    for (let i = 0; i < 1000; i += 1) { const k = S[m.pickFirst(S, r2)].k; seen.add(k); if (!POOL.includes(k)) out = out || k; }
+    ok(!out && seen.size === 5 && JSON.stringify([...m.FIRST_POOL]) === JSON.stringify(POOL), 'the landing scene is always one of the five, and each of the five comes up (1,000 draws)', out || [...seen].join(','));
+  }
   ok(m.DOORS.signIn === DOORS.signin && m.DOORS.start === DOORS.start && m.DOORS.agency === DOORS.agency, 'the three doors by exact address');
-  ok(m.LOOK_PHOTOS.length === 2 && m.LOOK_PHOTOS.every((u) => u.startsWith('https://res.cloudinary.com/dccso5ljv/image/upload/')), "the two photographs are TDW's landing photographs");
+  ok(m.LOOK_PHOTOS.length === 2 && m.LOOK_PHOTOS[0].endsWith('/v1788328622/vendor_portfolio/a8c52506-d363-4a36-9cec-09b50cc32c4c/ig-5a637b957f1d.jpg')
+    && m.LOOK_PHOTOS[1].endsWith('/v1788328616/vendor_portfolio/a8c52506-d363-4a36-9cec-09b50cc32c4c/ig-eca46f60edfc.jpg')
+    && m.LOOK_PHOTOS.every((u) => u.startsWith('https://res.cloudinary.com/dccso5ljv/image/upload/')) && (read(SCENES_REL).match(/ig-5a637b957f1d\.jpg|ig-eca46f60edfc\.jpg/g) || []).length === 2, "the two photographs are TDW's landing photographs");
 }
 
 sec('1.3 the sources');
@@ -227,24 +251,28 @@ async function glass(puppeteer, bin, base, port) {
         const se = document.scrollingElement;
         return { sw: se.scrollWidth, sh: se.scrollHeight, iw: innerWidth, ih: innerHeight, doors, bg: getComputedStyle(document.querySelector('.tdww')).backgroundColor,
           cols: [...document.querySelectorAll('.colm')].filter((c) => getComputedStyle(c).display !== 'none').length,
-          h1: document.querySelector('.tdww h1').getBoundingClientRect().right <= innerWidth + 1, word: getComputedStyle(document.getElementById('word')).fontStyle };
+          h1: document.querySelector('.tdww h1').getBoundingClientRect().right <= innerWidth + 1, word: getComputedStyle(document.getElementById('word')).fontStyle,
+          // LAND-1 package 2: no tag sits on the caption (the line that carries the meaning).
+          capClear: (() => { const c = document.getElementById('cap').getBoundingClientRect(); return [...document.querySelectorAll('#slot .tag')].every((t) => { const r = t.getBoundingClientRect(); return getComputedStyle(t).display === 'none' || r.bottom <= c.top || r.top >= c.bottom || r.right <= c.left || r.left >= c.right; }); })() };
       });
       const want = mode === 'light' ? 'rgb(231, 234, 230)' : 'rgb(14, 17, 18)';
       ok(r.sw <= r.iw && r.sh <= r.ih && r.doors.signin && r.doors.start && r.doors.agency && r.h1,
         `${w}x${h} ${mode}: no scroll either way; Sign in, Start free and the agency door on screen; the heading inside`, JSON.stringify(r));
+      ok(r.capClear, `${w}x${h} ${mode}: no floating tag sits on the caption`, JSON.stringify(r));
       ok(r.bg === want && r.cols === (w < 860 ? 4 : 6) && r.word === 'italic', `${w}x${h} ${mode}: the ${mode} ground, ${w < 860 ? 4 : 6} wall columns, the word in italic`, JSON.stringify(r));
       await p.close();
     }
 
-    sec('2.2 the 18 scenes: random, each bag all 18, never twice in a row');
+    sec('2.2 the 26 scenes: random, each bag all 26, never twice in a row');
     {
       const p = await open(1440, 900, null, [FAST_CLOCK, RECORD]);
-      await p.waitForFunction(() => window.__seq && window.__seq.length >= 37, { timeout: 30000 }).catch(() => {});
-      const seq = (await p.evaluate(() => window.__seq.slice())).slice(0, 37);
-      const b1 = seq.slice(0, 18), b2 = seq.slice(18, 36);
+      await p.waitForFunction(() => window.__seq && window.__seq.length >= 53, { timeout: 30000 }).catch(() => {});
+      const seq = (await p.evaluate(() => window.__seq.slice())).slice(0, 53);
+      const b1 = seq.slice(0, 26), b2 = seq.slice(26, 52);
       const twice = seq.findIndex((k, i) => i > 0 && k === seq[i - 1]);
-      ok(seq.length === 37 && new Set(b1).size === 18 && new Set(b2).size === 18 && LANDED.every((k) => b1.includes(k)) && twice < 0,
-        '36 changes after the first: both bags are all 18 scenes, no repeat inside a bag, never the same scene twice in a row', seq.join(','));
+      ok(seq.length === 53 && new Set(b1).size === 26 && new Set(b2).size === 26 && LANDED.every((k) => b1.includes(k)) && twice < 0,
+        '52 changes after the first: both bags are all 26 scenes, no repeat inside a bag, never the same scene twice in a row', seq.join(','));
+      ok(['leads', 'clients', 'bookchat', 'draft', 'contracts'].includes(seq[0]), 'the landing scene was one of the five', seq[0]);
       const drawn = await p.evaluate(() => { const s = document.querySelector('#slot .sheet:last-child'); return !!(s && s.querySelector('.app') && s.querySelector('.tag b').textContent.trim()); });
       ok(drawn, 'each change draws an app screen and its tag');
       const changed = new Set(); for (let i = 0; i < 12; i += 1) { changed.add(await p.$eval('#word', (e) => e.textContent)); await sleep(FAST); }
@@ -286,18 +314,18 @@ async function glass(puppeteer, bin, base, port) {
       const p = await open(1440, 900, null, [FAST_CLOCK, RECORD]);
       await p.waitForFunction(() => window.__seq.length >= 2, { timeout: 20000 }).catch(() => {});
       const at = p.url();
-      await p.click('#aboutOpen'); await sleep(100);
+      await p.click('#moreBtn'); await sleep(50); await p.click('#aboutOpen'); await sleep(100);
       const st = await p.evaluate(() => ({ open: !document.getElementById('about').hidden, wall: getComputedStyle(document.querySelector('.track')).animationPlayState, run: getComputedStyle(document.querySelector('.run')).animationPlayState, focus: document.activeElement && document.activeElement.id, title: document.getElementById('abTitle').textContent }));
       const a0 = await p.evaluate(() => window.__seq.length); await sleep(FAST * 8); const a1 = await p.evaluate(() => window.__seq.length);
       ok(st.open && p.url() === at && st.focus === 'aboutClose' && /Everything your business needs/.test(st.title), 'About opens over the same page (no new address), Close has the focus', JSON.stringify(st));
       ok(a1 === a0 && st.wall === 'paused' && st.run === 'paused', 'while About is open the screens, the wall and the trades line stop', `${a0} -> ${a1} ${st.wall} ${st.run}`);
       await p.keyboard.press('Escape'); await sleep(FAST * 8);
       const e = await p.evaluate(() => ({ hidden: document.getElementById('about').hidden, n: window.__seq.length, focus: document.activeElement && document.activeElement.id, wall: getComputedStyle(document.querySelector('.track')).animationPlayState }));
-      ok(e.hidden && e.n > a1 && e.focus === 'aboutOpen' && e.wall === 'running', 'Esc returns to the page; the screens and the wall run again', JSON.stringify(e));
-      await p.click('#aboutOpen'); await sleep(50); await p.click('#aboutClose'); await sleep(FAST * 6);
+      ok(e.hidden && e.n > a1 && e.focus === 'moreBtn' && e.wall === 'running', 'Esc returns to the page; the screens and the wall run again', JSON.stringify(e));
+      await p.click('#moreBtn'); await sleep(50); await p.click('#aboutOpen'); await sleep(50); await p.click('#aboutClose'); await sleep(FAST * 6);
       ok(await p.evaluate(() => document.getElementById('about').hidden), 'Close returns to the page');
       await p.click('#focus'); const q0 = await p.evaluate(() => window.__seq.length);
-      await p.click('#aboutOpen'); await sleep(50); await p.click('#aboutClose'); await sleep(FAST * 8);
+      await p.click('#moreBtn'); await sleep(50); await p.click('#aboutOpen'); await sleep(50); await p.click('#aboutClose'); await sleep(FAST * 8);
       const q1 = await p.evaluate(() => window.__seq.length);
       ok(q1 === q0 && !(await p.$eval('#paused', (x) => x.hidden)), 'a page paused before About stays paused after it', `${q0} -> ${q1}`);
       await p.close();
@@ -351,6 +379,38 @@ async function glass(puppeteer, bin, base, port) {
       if (res.length && res.every((r) => r.status === 200)) ok(res.every((r) => r.kb <= 150), `every photograph file the tiles can ask for is 150 KB or less (${res.map((r) => r.kb + ' KB').join(', ')})`, JSON.stringify(res));
       else skipped('the photographs weighed', `Cloudinary is not reachable from this machine: ${res.map((r) => r.status).join(',')}; run b303 on a machine that reaches it`);
     }
+    sec('2.10 More: About, Privacy and Terms in a small menu on a solid ground (phone and laptop)');
+    for (const [w, h] of [[360, 640], [1440, 900]]) for (const mode of ['light', 'dark']) {
+      const p = await open(w, h, [{ name: 'prefers-color-scheme', value: mode }]);
+      const before = await p.evaluate(() => ({ old: !!document.querySelector('.top .lnk'), more: (() => { const b = document.getElementById('moreBtn').getBoundingClientRect(); return b.width > 0 && b.right <= innerWidth && b.top >= 0; })(),
+        signin: (() => { const b = document.querySelector('.top [data-door="signin"]').getBoundingClientRect(); return b.width > 0 && b.right <= innerWidth + 1; })(), hidden: document.getElementById('moreMenu').hidden }));
+      await p.click('#moreBtn'); await sleep(80);
+      const m = await p.evaluate(() => {
+        const menu = document.getElementById('moreMenu'); const r = menu.getBoundingClientRect(); const cs = getComputedStyle(menu);
+        const items = [...menu.querySelectorAll('[role="menuitem"]')].map((i) => ({ t: i.textContent.trim(), size: parseFloat(getComputedStyle(i).fontSize), href: i.getAttribute('href') }));
+        const alpha = (cs.backgroundColor.match(/rgba?\(([^)]+)\)/) || [, ''])[1].split(',').map(Number)[3];
+        return { open: !menu.hidden, exp: document.getElementById('moreBtn').getAttribute('aria-expanded'), items, solid: alpha === undefined || alpha === 1,
+          inside: r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight, focus: document.activeElement && document.activeElement.textContent.trim() };
+      });
+      ok(!before.old && before.more && before.signin && before.hidden, `${w} ${mode}: no loose About, Privacy, Terms; More and Sign in in the top bar; the menu starts closed`, JSON.stringify(before));
+      ok(m.open && m.exp === 'true' && m.items.map((i) => i.t).join(',') === 'About,Privacy,Terms' && m.items.every((i) => i.size >= 16) && m.solid && m.inside && m.focus === 'About',
+        `${w} ${mode}: More opens About, Privacy and Terms in full-size text (16 px or more) on a solid ground, inside the screen`, JSON.stringify(m));
+      ok(m.items[1].href === 'https://thedreamwedding.in/privacy' && m.items[2].href === 'https://thedreamwedding.in/terms', `${w} ${mode}: Privacy and Terms keep their addresses`);
+      await p.keyboard.press('Escape'); await sleep(60);
+      const esc = await p.evaluate(() => ({ hidden: document.getElementById('moreMenu').hidden, focus: document.activeElement && document.activeElement.id }));
+      await p.click('#moreBtn'); await sleep(60); await p.mouse.click(Math.round(w / 2), Math.round(h * 0.6)); await sleep(60);
+      const out = await p.evaluate(() => document.getElementById('moreMenu').hidden);
+      await p.click('#moreBtn'); await sleep(60); await p.click('#aboutOpen'); await sleep(80);
+      const ch = await p.evaluate(() => ({ menu: document.getElementById('moreMenu').hidden, about: !document.getElementById('about').hidden }));
+      ok(esc.hidden && esc.focus === 'moreBtn' && out && ch.menu && ch.about, `${w} ${mode}: the menu closes on Esc (focus back to More), on a tap outside, and on a choice (About opens)`, JSON.stringify({ esc, out, ch }));
+      await p.close();
+    }
+    {
+      const firsts = new Set(); let bad = '';
+      for (let i = 0; i < 12; i += 1) { const html = (await get(port, '/', 'tdw.works')).bytes.toString('utf8'); const k = (html.match(/data-scene="([a-z]+)"/) || [])[1]; firsts.add(k); if (!['leads', 'clients', 'bookchat', 'draft', 'contracts'].includes(k)) bad = bad || k; }
+      ok(!bad && firsts.size >= 2, `on landing, the first scene is one of the five, and it varies (12 visits: ${[...firsts].join(', ')})`, bad);
+    }
+
     sec('2.9 the tab icon: tdw.works its own, thedreamwedding.in unchanged');
     {
       const sha8 = (b) => crypto.createHash('sha256').update(b).digest('hex').slice(0, 8);

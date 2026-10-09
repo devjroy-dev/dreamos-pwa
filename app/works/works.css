@@ -39,6 +39,13 @@ html:has(.tdww),body:has(.tdww){height:100%;overflow:hidden;margin:0;overscroll-
 .tdww{position:fixed;inset:0;z-index:0;margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body);overflow:hidden;-webkit-font-smoothing:antialiased}
 .tdww [hidden]{display:none!important}
 .tdww .lk img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* LAND-1 package 2: a build step running (now) or waiting its turn (wait), in the app's own tick row. */
+.tdww .tick i.now{background:color-mix(in srgb,var(--t) 18%,transparent);color:var(--t)}
+.tdww .tick i.wait{background:none;border:1px solid var(--l)}
+/* LAND-1 package 2: the eight new scenes lift their tag above the screen's top edge, clear of the first lines. */
+.tdww .tag.hi{top:-34px;right:-18px}
+/* On a phone the lifted tag would sit on the caption, which carries the meaning; it says the same thing, so it goes. */
+@media (max-width:860px){.tdww .tag.hi{display:none}}
 .tdww a{color:inherit}
 .tdww :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
 
@@ -176,7 +183,17 @@ html:has(.tdww),body:has(.tdww){height:100%;overflow:hidden;margin:0;overscroll-
 .tdww .nav{display:flex;align-items:center;gap:6px}
 .tdww .lnk{font:500 14px/1 var(--body);color:var(--soft);text-decoration:none;background:none;border:0;padding:12px 10px;cursor:pointer}
 .tdww .lnk:hover{color:var(--ink)}
-.tdww .nav .signin{margin-left:8px}
+.tdww .nav .signin{margin-left:0}
+/* LAND-1 package 2: "More" beside Sign in, the same solid pill, and its menu on a solid ground in full-size text. */
+.tdww .nav{gap:10px}
+.tdww .more{position:relative}
+.tdww .morebtn{white-space:nowrap;font:600 15px/1 var(--body);padding:13px 20px;border-radius:999px;background:var(--bg);color:var(--ink);border:1px solid var(--line);cursor:pointer}
+.tdww .morebtn:hover,.tdww .morebtn[aria-expanded="true"]{border-color:var(--ink)}
+.tdww .menu{position:absolute;right:0;top:calc(100% + 8px);z-index:20;min-width:200px;padding:6px;border-radius:16px;background:var(--bg);
+  border:1px solid var(--line);box-shadow:0 24px 48px -20px rgba(0,0,0,.45);display:grid}
+.tdww .menu>*{display:block;width:100%;text-align:left;font:600 17px/1.2 var(--body);color:var(--ink);text-decoration:none;background:none;border:0;
+  padding:14px 16px;border-radius:10px;cursor:pointer}
+.tdww .menu>*:hover,.tdww .menu>*:focus-visible{background:var(--line);outline:none}
 
 /* about */
 .tdww .about{position:fixed;inset:0;z-index:10;background:color-mix(in srgb,var(--bg) 96%,transparent);
@@ -221,7 +238,7 @@ html:has(.tdww),body:has(.tdww){height:100%;overflow:hidden;margin:0;overscroll-
   .tdww .colm{width:200px}.tdww .mini{width:200px;height:264px}
   .tdww .wall::after{background:linear-gradient(180deg,var(--veil) 0%,var(--veil) 30%,var(--veil-0) 52%,var(--veil-0) 70%,var(--veil) 90%)}
   .tdww .top{padding-block:14px}
-  .tdww .mark{flex-direction:column;align-items:flex-start;gap:6px}.tdww .mark b{font-size:28px}.tdww .mark span{font-size:9px;letter-spacing:.06em;white-space:nowrap}.tdww .signin{padding:11px 16px;font-size:14px}.tdww .lnk{padding:10px 6px}
+  .tdww .mark{flex-direction:column;align-items:flex-start;gap:6px}.tdww .mark b{font-size:28px}.tdww .mark span{font-size:9px;letter-spacing:.06em;white-space:nowrap}.tdww .signin,.tdww .morebtn{padding:11px 16px;font-size:14px}.tdww .lnk{padding:10px 6px}
   .tdww .main{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);gap:6px}
   .tdww .copy{gap:10px;text-align:left}
   .tdww .kicker{display:none}

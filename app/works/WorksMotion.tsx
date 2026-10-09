@@ -18,7 +18,7 @@ export default function WorksMotion({ looks, first }: { looks: [string, string];
     const $ = (id: string) => document.getElementById(id) as HTMLElement;
     const root = document.querySelector('.tdww') as HTMLElement;
     const slot = $('slot'), focus = $('focus'), word = $('word'), cap = $('cap'), meter = $('meter'), pausedEl = $('paused');
-    const about = $('about'), openB = $('aboutOpen'), closeB = $('aboutClose');
+    const about = $('about'), openB = $('aboutOpen'), closeB = $('aboutClose'), moreB = $('moreBtn'), menu = $('moreMenu');
     if (!root || !slot || !focus || !word || !cap || !meter) return undefined;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     const bag: number[] = [];
@@ -65,9 +65,23 @@ export default function WorksMotion({ looks, first }: { looks: [string, string];
       wasPaused = paused; if (!paused) setPaused(true); pausedEl.hidden = true; closeB.focus();
     };
     // One line beyond the chair's file: a page paused before About shows its "Paused" again after it (the file left it hidden).
-    const closeAbout = () => { about.hidden = true; root.classList.remove('about-open'); if (!wasPaused) setPaused(false); else pausedEl.hidden = false; openB.focus(); };
-    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !about.hidden) closeAbout(); };
-    openB.addEventListener('click', openAbout); closeB.addEventListener('click', closeAbout);
+    const closeAbout = () => { about.hidden = true; root.classList.remove('about-open'); if (!wasPaused) setPaused(false); else pausedEl.hidden = false; (moreB || openB).focus(); };
+
+    // More (LAND-1 package 2): a small menu beside Sign in. It closes on Esc, a tap outside, or a choice.
+    const menuOpen = () => !!menu && !menu.hidden;
+    const closeMenu = (focusBack: boolean) => { if (!menu || menu.hidden) return; menu.hidden = true; moreB.setAttribute('aria-expanded', 'false'); if (focusBack) moreB.focus(); };
+    const openMenu = () => { menu.hidden = false; moreB.setAttribute('aria-expanded', 'true'); const f = menu.querySelector('[role="menuitem"]') as HTMLElement | null; if (f) f.focus(); };
+    const onMore = () => { if (menuOpen()) closeMenu(true); else openMenu(); };
+    const onOutside = (e: Event) => { if (menuOpen() && !menu.contains(e.target as Node) && !moreB.contains(e.target as Node)) closeMenu(false); };
+    const onChoice = () => closeMenu(false);
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (menuOpen()) { closeMenu(true); return; }
+      if (!about.hidden) closeAbout();
+    };
+    const onAbout = () => { closeMenu(false); openAbout(); };
+    if (moreB && menu) { moreB.addEventListener('click', onMore); menu.addEventListener('click', onChoice); document.addEventListener('pointerdown', onOutside); }
+    openB.addEventListener('click', onAbout); closeB.addEventListener('click', closeAbout);
     document.addEventListener('keydown', onEsc);
 
     fit(); startMeter(); schedule();
@@ -77,7 +91,8 @@ export default function WorksMotion({ looks, first }: { looks: [string, string];
       if (ro) ro.disconnect(); else window.removeEventListener('resize', fit);
       focus.removeEventListener('click', onClick); focus.removeEventListener('keydown', onKey);
       document.removeEventListener('visibilitychange', onVis); document.removeEventListener('keydown', onEsc);
-      openB.removeEventListener('click', openAbout); closeB.removeEventListener('click', closeAbout);
+      openB.removeEventListener('click', onAbout); closeB.removeEventListener('click', closeAbout);
+      if (moreB && menu) { moreB.removeEventListener('click', onMore); menu.removeEventListener('click', onChoice); document.removeEventListener('pointerdown', onOutside); }
       root.removeAttribute('data-ready');
     };
   }, [looks, first]);
