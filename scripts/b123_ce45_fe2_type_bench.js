@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 'use strict';
+// FLOOR-ALONE: yes
+// (AMENDED BY LABEL, CE-47 ADS-2, F-44.421, the chair's ruling of 8 Oct 2026: red on a full floor and green alone,
+//  485/485 on two machines; run-floor.sh runs this bench last and by itself.)
 // scripts/b123_ce45_fe2_type_bench.js · TDW CE-45 · FE-2 · TYPE_1 · THE LEGACY FAMILY ON THE APP'S TYPE.
 // Rung b123 (the estate's one line of rung numbers across both repos: b121 SRV_1, b122 HOME_1/2).
 //
@@ -264,6 +267,12 @@ function baseTree() {
   // A worktree at the named base, beside the repo (Turbopack refuses a node_modules symlinked from
   // outside its root, so the base gets a hard-linked copy, or a full one where links cannot cross).
   const dir = path.resolve(ROOT, '..', `.b123-base-${BASE.slice(0, 12)}`);
+  // F-44.425 (AMENDED BY LABEL, CE-47 ADS-2, 8 Oct 2026): six old base worktrees (870 MB each) sat beside the repo. Every
+  // .b123-base-* of THIS repo but the one this run needs is removed first; one another process runs in is named and kept.
+  { const pr = require(P('scripts/lib/base_worktrees.js')).prune(ROOT, '.b123-base-', dir);
+    for (const d of pr.removed) console.log(`  NOTE  an old base worktree was removed: ${d}`);
+    for (const d of pr.inUse) console.log(`  NOTE  an old base worktree is in use and was kept: ${d}`);
+    for (const d of pr.failed) console.log(`  NOTE  an old base worktree could not be removed: ${d}`); }
   if (!fs.existsSync(path.join(dir, 'package.json'))) {
     const r = spawnSync('git', ['worktree', 'add', '--detach', dir, BASE], { cwd: ROOT, encoding: 'utf8' });
     if (r.status !== 0) return { dir: null, why: 'git worktree add refused: ' + (r.stderr || '').trim().split('\n')[0] };

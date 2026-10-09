@@ -38,6 +38,9 @@ set -u
 member="${1:-unknown}"
 root="$(pwd -P)"
 scope=root; [ "$member" = "(before the floor)" ] && scope=any
+# F-44.421 (CE-47, ruled 8 Oct 2026; built by ADS-2): before and after a FLOOR-ALONE member, run-floor.sh calls this reaper
+# as "(alone: <member>)", and that pass too stops a next dev in ANY root, by pid, and says what it killed.
+case "$member" in "(alone: "*) scope=any ;; esac
 # ── F-44.365 (CE-47, design accepted 7 Oct 2026; built by ADS-2) · A NARROWING ONLY A BENCH SETS ─────────────────
 # b140's and b140_v2's cell 1.7 drives this reaper's "(before the floor)" pass, which stops a next dev in ANY root. Inside a floor
 # that is right; beside other benches (e-275's load, a seat's container, a second terminal) it stopped THEIR servers
@@ -121,7 +124,9 @@ done
 alive=""; for p in $tree; do kill -0 "$p" 2>/dev/null && alive="$alive $p"; done
 [ -z "$alive" ] || { kill -KILL $alive 2>/dev/null || true; sleep 1; }
 
-if [ "$scope" = any ]; then
+if [ "$scope" = any ] && [ "$member" != "(before the floor)" ]; then
+  echo "REAPED ${member} (F-44.421): a next dev was running (pids ${cands% }; ports ${ports:-unknown}); stopped, whole tree${killed}"
+elif [ "$scope" = any ]; then
   echo "REAPED (before the floor, A-46.6): a next dev was running before the first member (pids ${cands% }; ports ${ports:-unknown}); stopped, whole tree${killed}"
 else
   echo "LEAK: ${member} left a next dev running in the root (pids ${cands% }; ports ${ports:-unknown}); stopped, whole tree"

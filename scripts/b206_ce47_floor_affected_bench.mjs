@@ -1,12 +1,18 @@
 // scripts/b206_ce47_floor_affected_bench.mjs · CE-47 · ADS-2 · THE AFFECTED-ONLY CHECK (the chair's ruling, 3 Oct 2026).
-// FLOOR-SUBJECTS: scripts/lib/floor_affected.mjs scripts/run-floor.sh
+// FLOOR-SUBJECTS: scripts/lib/floor_affected.mjs scripts/run-floor.sh scripts/lib/floor_reap.sh scripts/lib/mutation_guard.js scripts/lib/base_worktrees.js
 // Holds: scripts/lib/floor_affected.mjs (the selection, driven on fixture trees in memory, every rule both ways) and
 // run-floor.sh's --affected wiring (its own base-cut program run on fixtures; the skip placed before any ledger line).
-// No browser, no network. Mutations of the selector and the runner run in fresh children, restored by sha.
+// No browser, no network. Mutations of the selector and the runner run in fresh children, through mutation_guard.js.
+// §11 (F-44.423) the floor's two locks; §12 (F-44.421) a FLOOR-ALONE member, both on fixture repos; §13 (F-44.425) the base
+// worktree cleanup on a fixture with a second clone beside it; M9 to M14 bite them.
 import fs from 'node:fs'; import path from 'node:path'; import crypto from 'node:crypto'; import cp from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url)); const ROOT = path.join(HERE, '..');
 const CHILD = !!process.env.B206_CHILD;
+// F-44.419 and F-44.422: a mutation a killed run of this bench left is restored (or the bench refuses) before anything is read;
+// the parent only (a child runs on purpose with the parent's mutation planted).
+const { createRequire } = await import('node:module'); const guard = createRequire(import.meta.url)(path.join(ROOT, 'scripts/lib/mutation_guard.js'));
+if (!CHILD) guard.recoverOrRefuse(ROOT, 'b206');
 let pass = 0, fail = 0; const failed = [];
 const ok = (c, name, info) => { if (c) { pass++; if (!CHILD) console.log(`  PASS  ${name}`); } else { fail++; failed.push(name); console.log(`  FAIL  ${name}${info === undefined ? '' : '  [' + String(info).slice(0, 200) + ']'}`); } };
 const sel = await import(pathToFileURL(path.join(ROOT, 'scripts/lib/floor_affected.mjs')).href + `?t=${Date.now()}`);
@@ -117,6 +123,99 @@ if (!CHILD) console.log('\n── 10  --affected then --resume, end to end on a 
   ok(get('RC2') === '0' && /R2VERDICT yes/.test(o) && /m_a_green/.test(get('RAN')) && /m_b_named/.test(get('RAN')), '10.5 the resumed floor ends FLOOR = NAMED BASE, no delta, with both selected members in ran.txt', get('RAN') + ' rc ' + get('RC2'));
 }
 
+// A fixture repo with run-floor.sh, the reaper and the slice reader; members are written by each section.
+const fixture = (members, extra = '') => `set -u
+SRC="$B206_ROOT"; T=$(mktemp -d "\${TMPDIR:-/tmp}/b206-lk.XXXX"); cd $T
+git init -q -b main r && cd r && git config user.email t@l && git config user.name t
+mkdir -p scripts/lib lib && cp $SRC/scripts/run-floor.sh scripts/ && cp $SRC/scripts/lib/floor_reap.sh $SRC/scripts/lib/floor_slice.sh $SRC/scripts/lib/floor_affected.mjs scripts/lib/
+ln -s $SRC/node_modules node_modules; printf 'node_modules\\n/.next/\\n' > .gitignore; echo '{"name": "web"}' > package.json
+${members}
+git add -A && git commit -q -m base
+export FX_RUNS=$T/runs.log TMPDIR=$T/tmp; mkdir -p $TMPDIR
+${extra}
+cd /; rm -rf $T
+`;
+
+if (!CHILD) console.log('\n── 11  F-44.423: one floor at a time (the clone’s lock and the log folder’s lock) ──');
+{
+  const M = `cat > scripts/m_slow.js <<'X'
+require('fs').appendFileSync(process.env.FX_RUNS, 'm_slow\\n'); setTimeout(() => console.log('m_slow 1 pass 0 fail'), 4000);
+X`;
+  const X = `setsid bash scripts/run-floor.sh --check > $T/f1.log 2>&1 & P1=$!
+for i in $(seq 1 100); do [ -f "$TMPDIR/tdw-floor-pwa/floor.id" ] && break; sleep 0.1; done
+ls $TMPDIR/tdw-floor-pwa > $T/before2.txt 2>/dev/null; cp $TMPDIR/tdw-floor-pwa/floor.id $T/id_before2 2>/dev/null
+bash scripts/run-floor.sh --check > $T/f2.log 2>&1; echo "RC2 $?"; echo "F2: $(head -c 300 $T/f2.log | tr '\\n' ' ')"
+ls $TMPDIR/tdw-floor-pwa > $T/after2.txt 2>/dev/null; GONE=$(comm -23 <(sort $T/before2.txt) <(sort $T/after2.txt) | tr '\\n' ' ')
+[ -s $T/before2.txt ] && [ -z "$GONE" ] && echo "NOTHING REMOVED yes"; echo "GONE: $GONE"; [ -s $T/id_before2 ] && cmp -s $T/id_before2 $TMPDIR/tdw-floor-pwa/floor.id && echo "ID SAME yes"
+git clone -q . ../r2 && (cd ../r2 && bash scripts/run-floor.sh --check > $T/f3.log 2>&1; echo "RC3 $?"); echo "F3: $(head -c 300 $T/f3.log | tr '\\n' ' ')"
+kill -9 -$P1 2>/dev/null; sleep 1
+bash scripts/run-floor.sh --check > $T/f4.log 2>&1; echo "RC4 $?"; grep -c "A stale floor lock (pid [0-9]*, no longer running) was moved aside" $T/f4.log | sed 's/^/STALE /'; grep -q "^FLOOR" $T/f4.log && echo "F4 RAN yes"
+[ -d "$(git rev-parse --git-dir)/tdw-floor.lock" ] && echo "LOCK LEFT yes" || echo "LOCK LEFT no"; echo "RUNS: $(tr '\\n' ' ' < $FX_RUNS)"`;
+  const r = cp.spawnSync('bash', ['-c', fixture(M, X)], { env: { ...process.env, B206_ROOT: ROOT }, encoding: 'utf8', timeout: 240000 });
+  const o = r.stdout || ''; const get = (k) => ((o.match(new RegExp('^' + k + ':? ?(.*)$', 'm')) || [])[1] || '').trim();
+  // (AMENDED BY LABEL, CE-47 ADS-2, the chair's ruling of 8 Oct 2026: under load the running floor wrote a new log between
+  //  the two listings and an equality check went red, sB run 4. "Removes nothing" is now what it says: every name listed
+  //  before the second start is still there after it, and floor.id is byte for byte unchanged. The cell names the part.)
+  { const parts = [['rc 3', get('RC2') === '3'],
+      ['the sentence', /^REFUSED — a floor is already running in this tree \(pid \d+, started .+\)\. Nothing was run, nothing removed\./.test(get('F2'))],
+      ['nothing removed', /NOTHING REMOVED yes/.test(o)], ['floor.id unchanged', /ID SAME yes/.test(o)]];
+    const bad = parts.filter(([, v]) => !v).map(([k]) => k);
+    ok(!bad.length, '11.1 a second start in the same clone refuses with rc 3, names the running floor, and removes nothing',
+      bad.length ? `failed: ${bad.join(', ')} · ${get('RC2')} ${get('F2').slice(0, 120)} · gone: ${get('GONE') || 'none'}` : `${get('RC2')} ${get('F2').slice(0, 160)}`); }
+  ok(get('RC3') === '3' && /^REFUSED — a floor is already running in the log folder .*tdw-floor-pwa \(pid \d+/.test(get('F3')),
+    '11.2 a start in ANOTHER clone with the same TMPDIR refuses on the log folder’s lock', `${get('RC3')} ${get('F3').slice(0, 160)}`);
+  ok(get('RC4') !== '3' && get('STALE') === '2' && /F4 RAN yes/.test(o) && /LOCK LEFT no/.test(o),
+    '11.3 after the running floor is killed (kill -9), the next start moves both stale locks aside, runs, and releases its locks', `rc ${get('RC4')} stale ${get('STALE')} ${get('RUNS')}`);
+}
+
+if (!CHILD) console.log('\n── 12  F-44.421: a FLOOR-ALONE member runs last and by itself ──');
+{
+  const M = `cat > scripts/m_0_alone.js <<'X'
+// FLOOR-ALONE: yes
+const fs = require('fs'); fs.appendFileSync(process.env.FX_RUNS, 'm_0_alone tmp=' + process.env.TMPDIR + ' next=' + fs.existsSync('.next') + '\\n'); console.log('m_0_alone 1 pass 0 fail');
+X
+cat > scripts/m_1_first.js <<'X'
+const fs = require('fs'); fs.mkdirSync('.next/dev', { recursive: true }); fs.writeFileSync('.next/dev/left-by-m_1', 'x'); fs.writeFileSync(process.env.FX_GO, 'go'); fs.appendFileSync(process.env.FX_RUNS, 'm_1_first\\n'); setTimeout(() => console.log('ok'), 800);
+X`;
+  // The stand-in is a server an EARLIER member leaves running in another root. Its pid must be known before the floor (the
+  // narrowing is read at start), and the floor's own pre-floor pass must not see it: so it starts as a shell waiting
+  // for m_1_first's signal and then execs, under the SAME pid, a node whose command line reads "next dev".
+  const X = `mkdir -p $T/elsewhere; export FX_GO=$T/elsewhere/go
+SP=$(cd $T/elsewhere && { bash -c 'while [ ! -f go ]; do sleep 0.1; done; exec node -e "setInterval(() => {}, 1e9)" next dev -p 3997' >/dev/null 2>&1 & echo $!; })
+sleep 0.5; export FLOOR_REAP_ONLY_PIDS="$SP"
+bash scripts/run-floor.sh --check > $T/f.log 2>&1; echo "RC $?"
+echo "RUNS: $(tr '\\n' '|' < $FX_RUNS)"; grep -c "^ALONE: m_0_alone runs last and by itself (F-44.421)\\.$" $TMPDIR/tdw-floor-pwa/m_0_alone.log | sed 's/^/ALONELINE /'
+grep -q "^REAPED (alone: m_0_alone) (F-44.421): a next dev was running (pids $SP;" $TMPDIR/tdw-floor-pwa/m_0_alone.log && echo "REAPED yes"
+kill -0 $SP 2>/dev/null && echo "STANDIN alive" || echo "STANDIN gone"; kill -9 $SP 2>/dev/null
+[ -f "$(git rev-parse --git-dir)/next-aside/dev/left-by-m_1" ] && echo "ASIDE yes"; [ -z "$(git status --porcelain)" ] && echo "CLEAN yes"`;
+  const r = cp.spawnSync('bash', ['-c', fixture(M, X)], { env: { ...process.env, B206_ROOT: ROOT }, encoding: 'utf8', timeout: 240000 });
+  const o = r.stdout || ''; const get = (k) => ((o.match(new RegExp('^' + k + ':? ?(.*)$', 'm')) || [])[1] || '').trim();
+  const runs = get('RUNS').split('|').filter(Boolean);
+  ok(runs.length === 2 && runs[0] === 'm_1_first' && /^m_0_alone /.test(runs[1]) && get('ALONELINE') === '1', '12.1 the FLOOR-ALONE member runs after every other member (its name sorts first), and its log says so', get('RUNS'));
+  ok(/REAPED yes/.test(o) && /STANDIN gone/.test(o), '12.2 before it, a next dev in ANOTHER root is stopped by pid and named (the pass is any-root; narrowed here to the planted stand-in)', o.split('\n').filter((l) => /REAPED|STANDIN/.test(l)).join(' / '));
+  ok(/next=false/.test(runs[1] || '') && /ASIDE yes/.test(o) && /CLEAN yes/.test(o), '12.3 .next is moved aside into the clone’s .git (kept, never a dirty path), so the member starts without it', `${runs[1]} ${/ASIDE yes/.test(o)} ${/CLEAN yes/.test(o)}`);
+  ok(/tmp=\S*\/tdw-alone-m_0_alone\.\w+/.test(runs[1] || ''), '12.4 the member runs with a TMPDIR of its own', runs[1]);
+}
+
+if (!CHILD) console.log('\n── 13  F-44.425: a bench keeps one base worktree, removes its own old ones, never another clone’s or one in use ──');
+{
+  const SH = `set -u
+P=$(mktemp -d "\${TMPDIR:-/tmp}/b206-wt.XXXX"); cd $P
+git init -q -b main r && cd r && git config user.email t@l && git config user.name t && echo a > a && git add a && git commit -qm a
+for n in aaa bbb ccc; do git worktree add -q --detach ../.b123-base-$n HEAD; done
+git init -q -b main ../other && (cd ../other && git config user.email t@l && git config user.name t && echo z > z && git add z && git commit -qm z && git worktree add -q --detach ../.b123-base-zzz HEAD)
+(cd ../.b123-base-bbb && sleep 30) & BUSY=$!; sleep 0.5
+node -e "const r = require(process.argv[1]).prune(process.cwd(), '.b123-base-', require('path').resolve('../.b123-base-ccc')); console.log('PRUNE ' + JSON.stringify(r))" "$B206_ROOT/scripts/lib/base_worktrees.js"
+for n in aaa bbb ccc zzz; do [ -d ../.b123-base-$n ] && echo "LEFT $n"; done
+kill $BUSY 2>/dev/null; wait $BUSY 2>/dev/null; cd /; rm -rf $P
+`;
+  const r = cp.spawnSync('bash', ['-c', SH], { env: { ...process.env, B206_ROOT: ROOT }, encoding: 'utf8', timeout: 120000 });
+  const o = r.stdout || ''; const left = (o.match(/^LEFT (\w+)$/gm) || []).map((l) => l.slice(5)).join(',');
+  let pr = {}; try { pr = JSON.parse((o.match(/^PRUNE (.*)$/m) || [])[1] || '{}'); } catch (_e) { pr = {}; }
+  ok(left === 'bbb,ccc,zzz' && (pr.removed || []).length === 1 && /\.b123-base-aaa$/.test(pr.removed[0]) && (pr.inUse || []).length === 1 && /\.b123-base-bbb \(pids \d+/.test(pr.inUse[0]),
+    '13.1 its own old worktree is removed; the one it needs, one in use (named), and another clone’s are kept', `left ${left} · ${JSON.stringify(pr).slice(0, 200)}`);
+}
+
 const MUTS = [
   ['scripts/lib/floor_affected.mjs', '  const r = routeOf(p); if (r) out.add(r);\n', '', 'M1 the route rule lost', '6.2'],
   ['scripts/lib/floor_affected.mjs', "for (const [imp, d] of importers) if (!T.has(imp)) T.set(imp, `imports ${d}`);", '', 'M2 the importer rule lost', '6.3'],
@@ -126,15 +225,28 @@ const MUTS = [
   ['scripts/run-floor.sh', 'if (m in ran) print', 'print', 'M6 the base not cut', '7.1'],
   ['scripts/train.sh', 'dup=$(sort "$W/m$i" | comm -12 - <(sort "$W/all")); [ -z "$dup" ] || stop "a path in two packages: $(echo $dup)"', 'true', 'M7 a path in two packages let through', '9.3'],
   ['scripts/run-floor.sh', '  if [ ! -f "$LOG_DIR/next-build.ok" ]; then', '  if true; then', 'M8 the resume builds again', '10.2'],
+  ['scripts/run-floor.sh', 'floor_lock "$(git rev-parse --git-dir 2>/dev/null || echo .git)/tdw-floor.lock" "this tree"', 'true', 'M9 the clone\'s lock not taken (F-44.423)', '11.1'],
+  ['scripts/run-floor.sh', '    if floor_owner_alive "$op" "$os"; then', '    if false; then', 'M10 a live owner not honoured (F-44.423)', '11.1'],
+  ['scripts/run-floor.sh', "ALONE=$(grep -lx '// FLOOR-ALONE: yes' $NEEDS_CLEAN $REST 2>/dev/null | sort -u)", 'ALONE=""', 'M11 FLOOR-ALONE not read (F-44.421)', '12.1'],
+  ['scripts/run-floor.sh', '  if [ -d .next ]; then rm -rf "$aside"; mv .next "$aside"', '  if false; then rm -rf "$aside"; mv .next "$aside"', 'M12 .next not moved aside (F-44.421)', '12.3'],
+  ['scripts/lib/base_worktrees.js', '    if (pids.length) { out.inUse.push(', '    if (false) { out.inUse.push(', 'M13 a worktree in use removed (F-44.425)', '13.1'],
+  ['scripts/lib/base_worktrees.js', "    if (!path.basename(dir).startsWith(prefix) || path.resolve(dir) === keepReal) continue;", "    if (!path.basename(dir).startsWith(prefix)) continue;", 'M14 the needed worktree removed too (F-44.425)', '13.1'],
 ];
 if (CHILD) { console.log(`b206 child · ${pass} pass · ${fail} fail`); process.exit(fail ? 1 : 0); }
 console.log('\n── 8  mutations (each in a fresh child, restored by sha) ──');
 const sha = (p) => crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
+// F-44.419 (lesson 5): each mutation goes through scripts/lib/mutation_guard.js (the original kept and synced, then the
+// marker, then the mutation), free space is checked first, and a killed run's mutation is restored at this bench's start.
+const free = (() => { try { const f = fs.statfsSync(ROOT); return f.bavail * f.bsize; } catch (_e) { return null; } })();
+ok(free === null || free >= 256 * 1024 * 1024, '8.0 free space before the first mutation (256 MB at least)', free === null ? 'statfs unavailable' : `${Math.round(free / 1048576)} MB`);
+if (free !== null && free < 256 * 1024 * 1024) { console.log(`\nb206 · ${pass} pass · ${fail} fail`); process.exit(1); }
 for (const [file, from, to, name, cell] of MUTS) {
   const p = path.join(ROOT, file); const src = fs.readFileSync(p, 'utf8'); const before = sha(p);
   if (src.split(from).length !== 2) { ok(false, `${name}: anchor found exactly once`, file); continue; }
-  fs.writeFileSync(p, src.replace(from, to));
-  let r; try { r = cp.spawnSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, B206_CHILD: '1' }, encoding: 'utf8' }); } finally { fs.writeFileSync(p, src); }
+  let r; let planted = null;
+  try { planted = guard.apply(ROOT, file, from, to, 'b206'); r = cp.spawnSync(process.execPath, [fileURLToPath(import.meta.url)], { env: { ...process.env, B206_CHILD: '1' }, encoding: 'utf8' }); }
+  finally { if (planted) planted.restore(); else if (sha(p) !== before) fs.writeFileSync(p, src); }
+  r = r || { status: null, stdout: '' };
   ok(r.status === 1 && new RegExp(`FAIL  ${cell.replace('.', '\\.')} `).test(r.stdout || '') && sha(p) === before, `${name}: reddens ${cell}, restored by sha`, (r.stdout || '').split('\n').filter((l) => l.includes('FAIL')).join(' / '));
 }
 console.log(`\nb206 · ${pass} pass · ${fail} fail`);

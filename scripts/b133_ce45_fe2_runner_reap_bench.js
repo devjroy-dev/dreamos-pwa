@@ -71,9 +71,16 @@ async function leak(port) {
   const r0 = reap(REAP, 'b133-quiet');
   cell('2.1 with nothing running, the reaper prints nothing and exits 0', r0.status === 0 && !r0.stdout.trim() ? null : `exit ${r0.status} · printed "${r0.stdout.trim()}"`);
   // 2.3 · a shell that only MENTIONS next dev, in the root, is left alone
-  const bystander = spawn('bash', ['-c', 'sleep 60 # next dev -p 3985 (a shell that only mentions it)'], { cwd: ROOT, detached: true, stdio: 'ignore' });
+  // (AMENDED BY LABEL, CE-47 ADS-2, the chair's ruling of 9 Oct 2026: under load the fixture below took over a minute and
+  //  the bystander's own `sleep 60` ended first, read as "the reaper stopped a shell" (sC run 1). It sleeps 600 now and is
+  //  still killed at the cell's end. bash runs a one-command -c string by exec, so the old bystander was a bare
+  //  `sleep 60` whose command line did not say "next dev"; a second command keeps it a shell that mentions it, the cell
+  //  checks that it does, and a red says how old the bystander was when it was found dead.)
+  const bystander = spawn('bash', ['-c', 'sleep 600; : next dev -p 3985 a shell that only mentions it'], { cwd: ROOT, detached: true, stdio: 'ignore' });
   bystander.unref();
+  const bystanderBorn = Date.now();
   await sleep(500);
+  let bystanderArgs = ''; try { bystanderArgs = fs.readFileSync(`/proc/${bystander.pid}/cmdline`, 'utf8').replace(/\0/g, ' '); } catch (_e) { bystanderArgs = require('child_process').spawnSync('ps', ['-o', 'args=', '-p', String(bystander.pid)], { encoding: 'utf8' }).stdout || ''; }
   // 2.2 · a real leak
   const up = await leak(3985);
   if (!up) { cell('2.2 a leaked next dev is named and stopped, whole tree', 'the fixture server never answered'); try { process.kill(-bystander.pid); } catch (_e) { /* gone */ } return done(); }
@@ -84,7 +91,10 @@ async function leak(port) {
     r1.status !== 0 ? `exit ${r1.status}` : !/^LEAK: b133-fixture left a next dev running in the root \(pids [\d ]+; ports [^)]*3985[^)]*\); stopped, whole tree$/m.test(r1.stdout) ? `printed "${r1.stdout.trim()}"`
       : r1.stdout.trim().split('\n').length !== 1 ? 'more than one line' : left.length ? 'still alive: ' + left.join(', ') : null);
   let bystanderAlive = false; try { process.kill(bystander.pid, 0); bystanderAlive = true; } catch (_e) { /* gone */ }
-  cell('2.3 a shell whose command line merely contains "next dev" is never touched', bystanderAlive ? null : 'the reaper stopped a shell');
+  const bystanderAge = Math.round((Date.now() - bystanderBorn) / 1000);
+  cell('2.3 a shell whose command line merely contains "next dev" is never touched',
+    !/next dev/.test(bystanderArgs) ? `the bystander does not mention next dev (its command line: "${bystanderArgs.trim()}")`
+      : bystanderAlive ? null : `the reaper stopped a shell (the bystander was ${bystanderAge} s old; its own sleep is 600 s)`);
   try { process.kill(-bystander.pid, 'SIGKILL'); } catch (_e) { /* gone */ }
 
   // §3 · the mutation: a reaper that stops only each candidate's own pid, never its tree

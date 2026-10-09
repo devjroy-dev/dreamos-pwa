@@ -65,6 +65,45 @@
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
+# ── F-44.423 (CE-47, ruled 8 Oct 2026; built by ADS-2) · ONE FLOOR AT A TIME, TAKEN BEFORE ANYTHING ELSE ──────────────
+# THE DEFECT. Pressed three times on a frozen Codespace, the train's start line started three floors. Each start ran
+# `rm -rf "$LOG_DIR"` under the floor before it (its logs and its resume ledger), and with --affected a `next build`
+# rewrote .next under the members' dev servers. Nothing refused the second start.
+# THE CURE. Two locks, taken here, before any argument is read, any file removed or any member run:
+#   the clone's lock  $(git rev-parse --git-dir)/tdw-floor.lock    (one floor per clone; inside .git, so never a dirty path)
+#   the log lock      ${TMPDIR:-/tmp}/tdw-floor-pwa.lock           (one floor per log folder, for two clones on one TMPDIR)
+# Each is a `mkdir`, atomic on Linux and on the Mac (which has no flock). Its owner file names the pid AND that process's
+# start time (ps -o lstart=), so a pid the system later hands to another program is not taken for the owner. A lock
+# whose owner is alive refuses this start with rc 3 and removes nothing. A lock whose owner is gone (a kill -9, a
+# restart) is moved aside to <lock>.stale (the newest kept), said so, and taken. Both are released on exit.
+FLOOR_LOCKS=""
+trap 'for l in $FLOOR_LOCKS; do rm -rf "$l"; done' EXIT
+floor_owner_alive() {   # <pid> <start>
+  [ -n "${1:-}" ] && [ -n "${2:-}" ] && kill -0 "$1" 2>/dev/null || return 1
+  [ "$(ps -o stat= -p "$1" 2>/dev/null | cut -c1)" != Z ] || return 1
+  [ "$(ps -o lstart= -p "$1" 2>/dev/null | sed 's/^ *//')" = "$2" ]
+}
+floor_lock() {   # <lock dir> <what it holds, for the sentence>
+  local L="$1" what="$2" me op os
+  me=$(ps -o lstart= -p $$ 2>/dev/null | sed 's/^ *//')
+  for _ in 1 2; do
+    if mkdir "$L" 2>/dev/null; then
+      printf '%s\n%s\n%s\n' "$$" "$me" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$L/owner"; FLOOR_LOCKS="$FLOOR_LOCKS $L"; return 0
+    fi
+    op=$(sed -n 1p "$L/owner" 2>/dev/null); os=$(sed -n 2p "$L/owner" 2>/dev/null)
+    if [ -z "$op" ]; then sleep 1; op=$(sed -n 1p "$L/owner" 2>/dev/null); os=$(sed -n 2p "$L/owner" 2>/dev/null); fi   # an owner mid-write
+    if floor_owner_alive "$op" "$os"; then
+      echo "REFUSED — a floor is already running in ${what} (pid ${op}, started ${os}). Nothing was run, nothing removed."
+      exit 3
+    fi
+    rm -rf "$L.stale"; mv "$L" "$L.stale" 2>/dev/null && echo "A stale floor lock (pid ${op:-unknown}, no longer running) was moved aside to $L.stale."
+  done
+  echo "REFUSED — the floor lock $L could not be taken. Nothing was run, nothing removed."
+  exit 3
+}
+floor_lock "$(git rev-parse --git-dir 2>/dev/null || echo .git)/tdw-floor.lock" "this tree"
+mkdir -p "${TMPDIR:-/tmp}"; floor_lock "${TMPDIR:-/tmp}/tdw-floor-pwa.lock" "the log folder ${TMPDIR:-/tmp}/tdw-floor-pwa"
+
 # ── ARGUMENTS ────────────────────────────────────────────────────────────────
 # Order-independent, because a caller who types `--check --delivery FILE` means
 # the same thing as the reverse and should not be punished for it. This replaces
@@ -294,6 +333,29 @@ fi
 # is how the next such bench gets missed.
 NEEDS_CLEAN=$(grep -l 'git status --porcelain' $ALL 2>/dev/null | sort -u)
 REST=$(comm -23 <(echo "$ALL" | tr ' ' '\n' | sort -u) <(echo "$NEEDS_CLEAN" | sort -u))
+# ── F-44.421 (CE-47, ruled 8 Oct 2026; built by ADS-2) · A MEMBER THAT RUNS STRICTLY ALONE ────────────────────────
+# A bench whose header carries `// FLOOR-ALONE: yes` runs after every other member, one at a time, and before it:
+# every next dev in ANY root is stopped by pid and named (floor_reap.sh "(alone: <member>)"); the run waits, bounded
+# (60 s), until no headless browser is left from earlier members; .next is moved aside, the newest one kept in
+# $(git rev-parse --git-dir)/next-aside (lesson 3: kept, never deleted, and never a dirty path); and the member gets a
+# TMPDIR of its own. After it, the same any-root pass runs again. b123 went red on a full floor and green alone (485/485,
+# two machines); a member run this way meets no state an earlier member left.
+ALONE=$(grep -lx '// FLOOR-ALONE: yes' $NEEDS_CLEAN $REST 2>/dev/null | sort -u)
+if [ -n "$ALONE" ]; then
+  NEEDS_CLEAN=$(comm -23 <(echo "$NEEDS_CLEAN" | tr ' ' '\n' | sort -u) <(echo "$ALONE"))
+  REST=$(comm -23 <(echo "$REST" | tr ' ' '\n' | sort -u) <(echo "$ALONE"))
+fi
+headless_left() { ps -eo args= 2>/dev/null | grep -c -- '[-]-headless'; }
+alone_before() {   # <member name> <log>
+  echo "ALONE: ${1} runs last and by itself (F-44.421)." | tee -a "$2"
+  local r left aside
+  r=$(bash scripts/lib/floor_reap.sh "(alone: $1)"); [ -n "$r" ] && echo "$r" | tee -a "$2"
+  for _ in $(seq 1 60); do [ "$(headless_left)" -eq 0 ] && break; sleep 1; done
+  left=$(headless_left); [ "$left" -eq 0 ] || echo "ALONE: ${left} headless browser process(es) from earlier members were still running after 60 s." | tee -a "$2"
+  aside="$(git rev-parse --git-dir 2>/dev/null || echo .git)/next-aside"
+  if [ -d .next ]; then rm -rf "$aside"; mv .next "$aside" && echo "ALONE: .next was moved aside to ${aside} (kept)." | tee -a "$2"; fi
+  ALONE_TMP=$(mktemp -d "${TMPDIR:-/tmp}/tdw-alone-${1}.XXXXXX")
+}
 
 # ── F-39.47 · EXIT 3 IS A REFUSAL AND GETS ITS OWN COLUMN ────────────────────
 # A bench that could not READ its subject is not a bench that FAILED it. C81 and
@@ -392,7 +454,7 @@ if [ -n "$AFFECTED" ]; then
   sed 's/^/  /' "$LOG_DIR/affected.txt"
 fi
 SKIPPED=0
-for b in $NEEDS_CLEAN $REST $WRAPPERS; do
+for b in $NEEDS_CLEAN $REST $WRAPPERS $ALONE; do
   [ -f "$b" ] || continue
   n=$(basename "$b" | sed 's/\.proof\.mjs$//; s/\.mjs$//; s/\.js$//; s/\.sh$//')
   if [ -n "$AFFECTED" ] && ! grep -qF "RUN  ${b} " "$LOG_DIR/affected.txt"; then continue; fi   # outside the radius: not run, no ledger line
@@ -419,12 +481,17 @@ for b in $NEEDS_CLEAN $REST $WRAPPERS; do
     whole*)  SLICE_ARGS=$(sed -n 's|^// FLOOR-WHOLE: args||p' "$b" | head -n 1)
              echo "${n}: whole ${SLICE#whole }" | tee -a "$LOG" ;;
   esac
+  IS_ALONE=""; case " $(echo $ALONE) " in *" $b "*) IS_ALONE=yes ;; esac
+  if [ -n "$IS_ALONE" ]; then alone_before "$n" "$LOG"; SLICE_ENV="$SLICE_ENV TMPDIR=$ALONE_TMP"; fi
   case "$b" in
     *.sh) bash "$b" >>"$LOG" 2>&1 ;;
     *)    env $SLICE_ENV node "$b" $SLICE_ARGS >>"$LOG" 2>&1 ;;
   esac
   rc=$?
   LEAK_LINE=$(bash scripts/lib/floor_reap.sh "$n")
+  # F-44.421: after a FLOOR-ALONE member, the any-root pass runs too (after the root pass above, which b133 pins)
+  if [ -n "$IS_ALONE" ]; then ALONE_REAP=$(bash scripts/lib/floor_reap.sh "(alone: $n)"); [ -n "$ALONE_REAP" ] && LEAK_LINE="${LEAK_LINE:+${LEAK_LINE}
+}${ALONE_REAP}"; fi
   [ -n "$LEAK_LINE" ] && { LEAKS="${LEAKS}${LEAK_LINE}\n"; echo "$LEAK_LINE"; }
   if [ "$rc" -eq 3 ]; then
     REFUSED_SET="${REFUSED_SET}REFUSED: ${n}\n"

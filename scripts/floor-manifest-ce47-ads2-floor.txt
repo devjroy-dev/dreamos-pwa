@@ -1,0 +1,15 @@
+# scripts/floor-manifest-ce47-ads2-floor.txt
+# CE-47 · ADS-2 · PACKAGE B: run-floor.sh takes two locks first (F-44.423) and runs a FLOOR-ALONE member last and by
+# itself (F-44.421; b123 declares it); b123 and b123_v2 remove their old base worktrees on start (F-44.425,
+# scripts/lib/base_worktrees.js); b206 §11 to §13 and its mutations through the guard;
+# b133 §2.3's bystander outlives a slow fixture. BASE: 0038eb41 + PACKAGE A.
+# Scripts only. F-19.16: a dirty path outside this list is a STOP.
+docs/handovers/TDW_CE47_ADS2_FLOOR_HANDOVER.md
+scripts/b133_ce45_fe2_runner_reap_bench.js
+scripts/b123_ce45_fe2_type_bench.js
+scripts/b123_ce45_fe2_type_bench_v2.js
+scripts/b206_ce47_floor_affected_bench.mjs
+scripts/floor-manifest-ce47-ads2-floor.txt
+scripts/lib/base_worktrees.js
+scripts/lib/floor_reap.sh
+scripts/run-floor.sh
