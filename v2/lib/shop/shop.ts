@@ -39,7 +39,7 @@ export const W = {
   kinds: { voucher: ['Gift voucher', 'A gift voucher is worth an amount of money, or one service.'], workshop: ['Workshop', 'The workshop runs on one date, in person or online, with a set number of seats.'], class: ['Online class', 'The class runs on set dates, or on a date the buyer asks for.'], booking: ['Booking', 'The booking is for a party, an engagement or a pre-wedding shoot.'] } as Record<Kind, [string, string]>,
   f: { name: 'Name', price: 'Price in rupees', voucherFor: 'The voucher is for (optional)', validMonths: 'Valid for (months)', startsAt: 'Date and start time', place: 'Place',
     online: 'Online', seats: 'Seats', classDates: 'Dates (leave empty if each buyer asks for a date)', addDate: 'Add a date', occasion: 'Occasion', hours: 'Hours', leadDays: 'Book at least this many days ahead',
-    includes: 'What is included (up to six lines)', addLine: 'Add a line', picture: 'Picture', pickPicture: 'Pick from your portfolio', changePicture: 'Change the picture', noPictures: 'Your portfolio has no approved pictures yet.',
+    includes: 'What is included (up to six lines)', addLine: 'Add a line', picture: 'Picture', pickPicture: 'Pick from your portfolio', changePicture: 'Change the picture', noPictures: 'Your portfolio has no pictures to choose from yet.',
     shown: 'Show on the website' },
   occasions: { party: 'Party', engagement: 'Engagement', pre_wedding: 'Pre-wedding', other: 'Other' } as Record<string, string>,
   save: 'Save', saving: 'Saving', remove: 'Remove this item', removeAsk: 'Remove this item from the shop? Its orders stay in Orders.', removeYes: 'Yes, remove it', cancel: 'Cancel',

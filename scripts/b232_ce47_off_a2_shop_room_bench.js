@@ -57,7 +57,7 @@ const ORDERS = [
   { id: 'o4', item_id: 'i4', buyer_name: 'Tara Nair', buyer_phone: '+919811022343', qty: 1, amount: 2000, amount_words: 'Rs 2,000', wanted_date: null, state: 'paid', hold_until: null, paid_at: '2026-10-04T07:00:00Z', paid_by: 'vendor', created_at: '2026-10-04T06:30:00Z', item_name: 'Second online class', item_kind: 'class', voucher: null },
 ];
 
-async function openRoom(b, H, { mode, open = true, thin = null }) {
+async function openRoom(b, H, { mode, open = true, thin = null, pics = null }) {
   const p = await b.newPage(); const writes = []; const errors = [];
   p.on('pageerror', (e) => errors.push(String(e && e.message || e)));
   await p.setViewport({ width: 374, height: 812, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
@@ -79,6 +79,9 @@ async function openRoom(b, H, { mode, open = true, thin = null }) {
       else if (/^\/orders\/o1\/paid$/.test(sub)) body = { ok: true, voucher: { code: 'K7QM-4XPA', valid_until: '2027-10-05' }, lead_id: null, event_id: null, calendar_line: null };
       else if (sub === '/vouchers/check') body = { ok: true, voucher: { code: 'K7QM-4XPA', item_name: 'Makeup trial voucher', buyer_name: 'Ananya Gupta', line: 'Ananya Gupta · Paid Rs 3,000 on 5 October 2026 · Valid until 5 October 2027', valid_until: '2027-10-05', redeemed_at: null, state: 'valid' } };
       else body = { ok: true, item: ITEMS[0] };
+    } else if (pics && m === 'GET' && rt.startsWith('/api/v2/vendor/portfolio/')) {
+      // R-47.2 (WEB-4 cut 30, section 4): the portfolio door, as the contract writes it; every ask is recorded
+      writes.push({ m, sub: 'portfolio', query: (u.split('?')[1] || '') }); body = { images: pics, total: pics.length, notices: [] };
     } else body = m === 'GET' ? H.answer(rt) : { ok: true };
     return r.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
   });
@@ -189,6 +192,30 @@ async function tapRow(p, re) {
       ok(/Your shop has nothing for sale yet/.test(t) && /Items/.test(t) && /Orders/.test(t) && /Vouchers/.test(t) && !s4.errors.length, `${mode} 7u open with no lists: the head, the three tabs and the empty words, nothing thrown`   /* AMENDED BY LABEL · R-47.1: the empty words are sentences */, JSON.stringify(s4.errors));
       if (await tapText(s4.p, /^Orders/)) { ok(await mainHas(s4.p, /There are no orders yet/) && !s4.errors.length, `${mode} 7v its Orders tab reads There are no orders yet`   /* AMENDED BY LABEL · R-47.1 */, JSON.stringify(s4.errors)); } else ok(false, `${mode} 7v its Orders tab reads There are no orders yet`   /* AMENDED BY LABEL · R-47.1 */, 'no Orders tab to tap');
       await s4.p.close();
+    }
+    sec('R-47.2: the picture picker (WEB-4 cut 30, section 4)');
+    {
+      const PIC = (n, shown, extra = {}) => ({ id: `p${n}`, image_url: `https://res.cloudinary.com/tdw/image/upload/v1/p${n}.jpg`, caption: null, is_hero: false, in_carousel: true, shown_on_her_pages: shown, shown_on_discover: shown, notice: shown ? null : 'TDW is checking this picture. It is not shown yet.', ...extra });
+      const openPicker = async (pics) => {
+        const r = await openRoom(b, H, { mode: 'dark', pics });
+        await waitFor(r.p, () => [...document.querySelectorAll('button')].some((x) => /New item/.test(x.innerText)));
+        await tapText(r.p, /^\+?\s*New item$/); await sheetIs(r.p, 'New item');
+        await tapText(r.p, /^Pick from your portfolio$/);
+        await waitFor(r.p, () => !!document.querySelector('.os-pics button') || /Your portfolio has no pictures to choose from yet\./.test(document.body.innerText));
+        return r;
+      };
+      // three pictures: one passed, one never checked (live on her pages), one held
+      let r = await openPicker([PIC(1, true), PIC(2, true, { shown_on_discover: false }), PIC(3, false)]);
+      const offered = await r.p.evaluate(() => [...document.querySelectorAll('.os-pics img')].map((i) => i.getAttribute('src')));
+      ok(offered.length === 2 && offered.every((u) => /p[12]\.jpg$/.test(u)), 'P1 the picker offers every picture shown on her pages, the one not on Discover too, and never a held one', JSON.stringify(offered));
+      ok(r.writes.some((w) => w.sub === 'portfolio' && /(^|&)state=all(&|$)/.test(w.query)) && !r.writes.some((w) => w.sub === 'portfolio' && /approved/.test(w.query)), 'P2 it asks the door for state=all and never for an approval state', JSON.stringify(r.writes.filter((w) => w.sub === 'portfolio')));
+      await r.p.close();
+      // all held, or an older answer without the flag: nothing is offered and the empty line says so
+      r = await openPicker([PIC(4, false), { id: 'p5', image_url: 'https://res.cloudinary.com/tdw/image/upload/v1/p5.jpg' }]);
+      const empty = await r.p.evaluate(() => ({ n: document.querySelectorAll('.os-pics img').length, line: /Your portfolio has no pictures to choose from yet\./.test(document.body.innerText) }));
+      ok(empty.n === 0 && empty.line, 'P3 with only held pictures (or no shown_on_her_pages on the answer) nothing is offered, and the line reads "Your portfolio has no pictures to choose from yet."', JSON.stringify(empty));
+      ok(!r.errors.length, 'P4 nothing thrown', JSON.stringify(r.errors));
+      await r.p.close();
     }
     sec('both themes');
     ok(bg.dark && bg.light && bg.dark !== bg.light, 'the room is drawn in each theme\'s own ground', JSON.stringify(bg));

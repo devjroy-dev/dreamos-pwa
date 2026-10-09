@@ -175,7 +175,9 @@ function ItemSheet({ vendorId, item, onClose, onSaved }: { vendorId: string; ite
   const [pics, setPics] = useState<string[] | null>(null); const [picking, setPicking] = useState(false);
   const set = (p: Partial<Item>) => setI((x) => ({ ...x, ...p }));
   const startLocal = i.starts_at ? new Date(Date.parse(i.starts_at) + 330 * 60000).toISOString().slice(0, 16) : '';
-  async function openPics() { setPicking(true); if (pics) return; const r = await fetchPortfolio(vendorId, 'approved'); const imgs = (r as { images?: { image_url: string }[] }).images || []; setPics(imgs.map((x) => x.image_url).filter((u) => /^https:\/\//.test(u))); }
+  // R-47.2 (the founder, 8 October; WEB-4 cut 30's contract, section 4): her pictures are hers. The picker offers every
+  // picture that is not held, read from the door's own shown_on_her_pages, never from an approval state.
+  async function openPics() { setPicking(true); if (pics) return; const r = await fetchPortfolio(vendorId, 'all'); const imgs = (r as { images?: { image_url: string; shown_on_her_pages?: boolean }[] }).images || []; setPics(imgs.filter((x) => x.shown_on_her_pages === true).map((x) => x.image_url).filter((u) => /^https:\/\//.test(u))); }
   async function save() {
     setBusy(true); setErr(null);
     const r = isNew ? await shopApi.create(itemBody(i)) : await shopApi.update(i.id as string, itemBody(i)); setBusy(false);
