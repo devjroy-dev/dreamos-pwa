@@ -4,7 +4,7 @@
 // Instagram connect started from S2 returns her, with ?ig=connected | cancelled | failed. Entered in one of four ways:
 //   · she has a build (GET /latest)           -> S4 follows it (running) or shows how it ended, then S5 to S10;
 //   · ?ig=connected and no build              -> the build starts (POST), then S4;
-//   · no build                                -> S2: Connect Instagram, or "I don't use Instagram" -> B1 (her phone's
+//   · no build                                -> S2: "Connect Instagram", or "Add my own photos" -> B1 (her phone's
 //                                                photos into her portfolio), then the build starts, then S4;
 //   · the build door cannot be read at all    -> S5 alone, exactly what the old form did (finish, then Home).
 // S3 is Instagram's own screen: TDW draws nothing there.
@@ -370,7 +370,7 @@ export default function StartFlow() {
     if (step === 'phone') {
       const n = photos.length;
       return (<>
-        <Top label={START.setting} n={3} />
+        <Top label={START.setting} n={2} />
         <h1 className="st-h">{START.phoneHead}</h1><p className="st-sub">{START.phoneSub}</p>
         {err ? <p className="st-err" role="alert">{err}</p> : null}
         <div className="st-grow">

@@ -1,0 +1,6 @@
+# CE-47 · FE-9 · the two-minute start, package 3: B1 is step 2 of 8, in S3's place (ruled 8 Oct 2026); two out-of-date comments corrected (startCopy's S2 title, StartFlow's header); cell 16.4 added; no copy changed · base 0038eb41 (app train 7's tip) WITH package 2 applied (its eight paths by sha) · F-19.16: a dirty path outside this list and package 2's is a STOP.
+# Package 2's manifest (scripts/floor-manifest-ce47-fe9-twominute-p2-pwa.txt) still lists package 2's paths; this one lists package 3's.
+scripts/fe9_two_minute_start_bench.js
+scripts/floor-manifest-ce47-fe9-twominute-p3-pwa.txt
+v2/components/start/StartFlow.tsx
+v2/lib/vendor/startCopy.ts

@@ -3,8 +3,8 @@
 export const START = {
   setting: 'Setting up', building: 'Building', ready: 'Ready', of: (n: number) => `${n} of 8`,
   // S2 (approved 5 Oct 2026; no step count, as S5 to S10)
-  // THE FOUNDER'S RULE (8 Oct 2026): Instagram is one way in, not the only way. The two choices' words: the founder's,
-  // approved 8 Oct 2026. The title and sub line: working words, with the plain-descriptions pass below.
+  // THE FOUNDER'S RULE (8 Oct 2026): Instagram is one way in, not the only way. The two choices' words and the title: the
+  // founder's, approved 8 Oct 2026. The sub line and the rows: R-47.1, in the handover's old and new table.
   // PLAIN DESCRIPTIONS (the founder, 8 Oct 2026): every line read as a first-time vendor would read it once; the lines
   // rewritten are marked PLAIN, each with its old line in the handover.
   connectHead: 'Build your business from your photos',

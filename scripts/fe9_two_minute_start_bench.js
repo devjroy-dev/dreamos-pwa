@@ -336,6 +336,9 @@ async function main() {
       await v16.p.evaluate(() => { const b = Array.from(document.querySelectorAll('button')).find((x) => x.innerText.trim() === 'Add my own photos'); if (b) b.click(); });
       await v16.waitStep('phone');
       ok((await v16.words()).includes('Continue without photos') && (await v16.words()).includes('Choose from your phone'), '16.0 B1 with no photos yet: Choose from your phone, Continue without photos');
+      // package 3 (FE-9, 8 Oct 2026): B1 stands in S3's place (S3 is Instagram's own screen), so it counts as step 2, and S4 stays 3
+      const top16 = await v16.p.evaluate(() => (document.querySelector('.st-top') || {}).innerText || '');
+      ok(top16.replace(/\s+/g, ' ').trim() === 'Setting up 2 of 8', '16.4 B1 is step 2 of 8, in S3\u2019s place (S2 is 1, S4 is 3)', top16);
       const fileIn = await v16.p.$('#st-file');
       await fileIn.uploadFile(path.join(ROOT, 'public/examples/ads/example-hands.jpg'), path.join(ROOT, 'public/examples/ads/example-bouquet.jpg'));
       await until(async () => (await v16.words()).includes('Continue with 2 photos'), 30000, '16.1 (its wait): two photos');
