@@ -200,6 +200,7 @@ function BioBlock({ vendorId }: { vendorId: string }) {
   const { current, loading } = useSettings();
   const [approved, setApproved] = useState(0);
   const [pending, setPending] = useState(0);
+  const [live, setLive] = useState(0);   // R-47.2: on her own pages
   const [hasHero, setHasHero] = useState(false);
   const [serverFloor, setServerFloor] = useState<number | undefined>(undefined);
   // ── F-39.10 · THE LEADS READOUT IS REMOVED-BY-RULING (CE-39, 2026-08-29) ───
@@ -230,13 +231,16 @@ function BioBlock({ vendorId }: { vendorId: string }) {
     fetchDiscoverStatus().then((res) => {
       if (!live) return;
       if (res.ok) {
+        // R-47.2 (WEB-4 cut 30): approved counts what Discover shows; held (TDW is checking it) replaces pending; hidden replaces rejected.
+        // Her storefront shows every picture that is not held, so "live" is the total less the held ones.
         setApproved(res.portfolio_summary?.approved ?? 0);
-        setPending(res.portfolio_summary?.pending ?? 0);
+        setPending(res.portfolio_summary?.held ?? 0);
+        setLive(Math.max(0, (res.portfolio_summary?.total ?? 0) - (res.portfolio_summary?.held ?? 0)));
         setServerFloor(res.min_portfolio_images);
       }
     }).catch(() => { /* the meter degrades to zeros; it never blocks the door */ })
       .finally(() => { if (live) setStatusDone(true); });
-    fetchPortfolio(vendorId, 'approved').then((res) => {
+    fetchPortfolio(vendorId, 'shown').then((res) => {   // R-47.2: her hero among the pictures her pages show
       if (!live) return;
       if (res.ok) setHasHero((res.images as PortfolioImage[]).some((i) => i.is_hero));
     }).catch(() => { /* same */ })
@@ -315,7 +319,7 @@ function BioBlock({ vendorId }: { vendorId: string }) {
     <div className="sf-bio" data-storefront-bio="">
       <p className="sf-big" data-strength="">{SF.strength(pct)}</p>
       <div className="sf-bar" aria-hidden="true"><i style={{ width: `${pct}%` }} /></div>
-      <p className="sf-line" data-photos-live="">{SF.photosLive(approved, pending)}</p>
+      <p className="sf-line" data-photos-live="">{SF.photosLive(live, pending)}</p>
       <Link href="/vendor/discover/profile" className="wl-btn pri" style={{ textDecoration: 'none' }}>{COPY.storefrontBioCta}</Link>
       {missing.length > 0 && (<>
         <h2 className="sf-h">{SF.whatToAdd}</h2>

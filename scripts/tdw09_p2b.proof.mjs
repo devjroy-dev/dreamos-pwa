@@ -80,7 +80,9 @@ console.log('\n── §3 · Storefront §1 (F-3(a) + counts + V1/V2) ──');
   cell('3.1', raw.includes('label="Complete your bio"'), 'the FOUNDER-VETOED heading seats as §1');
   cell('3.2', src.includes('scoreOf(gaps)') && src.includes('<Meter score={score} />'),
     'the completeness score beside it — THE one model, one arc');
-  cell('3.3', src.includes('res.min_portfolio_images') && src.includes("fetchPortfolio(vendorId, 'approved')"),
+  // AMENDED BY LABEL · CE-47 FE-9 R-47.2 (WEB-4 cut 30): the door has no 'approved' state; the storefront reads its hero among the
+  // pictures her own pages show ('shown')
+  cell('3.3', src.includes('res.min_portfolio_images') && src.includes("fetchPortfolio(vendorId, 'shown')"),
     "the meter's inputs are the profile page's own reads, byte-for-byte");
   cell('3.4', raw.includes('How couples see you'), 'the bio row carries the drawer\u2019s vetoed subtitle');
   cell('3.5', raw.includes('/vendor/discover/profile'), 'the block LINKS the bio route — byte-identical path');

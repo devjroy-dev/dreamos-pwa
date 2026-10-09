@@ -71,10 +71,10 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
   useEffect(() => {
     Promise.all([
       fetchDiscoverStatus().catch(() => null),
-      fetchPortfolio(vendorId, 'approved').catch(() => null),
+      fetchPortfolio(vendorId, 'all').catch(() => null),   // R-47.2: no 'approved' state; Discover's own are filtered below
     ]).then(([statusRes, portRes]) => {
       if (statusRes?.ok) setStatus(statusRes as DiscoverStatus);
-      if (portRes?.ok)   setPortfolio(portRes.images);
+      if (portRes?.ok)   setPortfolio(portRes.images.filter((i) => i.shown_on_discover === true));
     }).finally(() => setLoading(false));
   }, [vendorId]);
 
@@ -222,9 +222,10 @@ function DiscoverScreen({ vendorId, vendorName }: { vendorId: string; vendorName
           }}>
             {[
               { label: 'Pieces',   value: String(status.portfolio_summary.total),    accent: status.portfolio_summary.total > 0,    color: 'var(--atelier-ink)' },
-              { label: 'Approved', value: String(status.portfolio_summary.approved), accent: status.portfolio_summary.approved > 0, color: A.brassWarm, divider: true },
-              { label: 'Pending',  value: String(status.portfolio_summary.pending),  accent: status.portfolio_summary.pending > 0,  color: 'var(--atelier-ink)', divider: true },
-              { label: 'Held',     value: String(status.portfolio_summary.rejected), accent: status.portfolio_summary.rejected > 0, color: status.portfolio_summary.rejected > 0 ? A.red : 'var(--atelier-ink)', divider: true },
+              // R-47.2 (WEB-4 cut 30): approved counts what Discover shows; held and hidden replace pending and rejected (the founder's words, approved 9 Oct 2026)
+              { label: 'On Discover', value: String(status.portfolio_summary.approved), accent: status.portfolio_summary.approved > 0, color: A.brassWarm, divider: true },
+              { label: 'Checking', value: String(status.portfolio_summary.held ?? 0),  accent: (status.portfolio_summary.held ?? 0) > 0,  color: 'var(--atelier-ink)', divider: true },
+              { label: 'Hidden',   value: String(status.portfolio_summary.hidden ?? 0), accent: (status.portfolio_summary.hidden ?? 0) > 0, color: 'var(--atelier-ink)', divider: true },
             ].map(({ label, value, accent, color, divider }) => (
               <div key={label} style={{
                 flex: 1, textAlign: 'center', padding: '0 4px', position: 'relative',

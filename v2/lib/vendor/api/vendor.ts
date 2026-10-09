@@ -1208,8 +1208,14 @@ export function registerPortfolioImage(body: {
   return postJson('/api/v2/vendor/portfolio', body);
 }
 
-export function fetchPortfolio(vendorId: string, state = 'all'): Promise<PortfolioListResponse | ApiErr> {
+/** R-47.2 (WEB-4 cut 30): state is all | shown | held | hidden. */
+export function fetchPortfolio(vendorId: string, state: 'all' | 'shown' | 'held' | 'hidden' = 'all'): Promise<PortfolioListResponse | ApiErr> {
   return getJson<PortfolioListResponse | ApiErr>(`/api/v2/vendor/portfolio/${vendorId}?state=${state}`);
+}
+
+/** R-47.2 (WEB-4 cut 30): she has read a notice; it stops showing (the door answers ok). */
+export function markNoticeSeen(noticeId: string): Promise<{ ok: true } | ApiErr> {
+  return patchJson('/api/v2/vendor/portfolio/notices/' + encodeURIComponent(noticeId) + '/seen', {});
 }
 
 export function updatePortfolioImage(imageId: string, body: {

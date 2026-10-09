@@ -197,6 +197,7 @@ function BioBlock({ vendorId }: { vendorId: string }) {
   const { current, loading } = useSettings();
   const [approved, setApproved] = useState(0);
   const [pending, setPending] = useState(0);
+  const [live, setLive] = useState(0);   // R-47.2: on her own pages
   const [hasHero, setHasHero] = useState(false);
   const [serverFloor, setServerFloor] = useState<number | undefined>(undefined);
   // ── F-39.10 · THE LEADS READOUT IS REMOVED-BY-RULING (CE-39, 2026-08-29) ───
@@ -227,13 +228,16 @@ function BioBlock({ vendorId }: { vendorId: string }) {
     fetchDiscoverStatus().then((res) => {
       if (!live) return;
       if (res.ok) {
+        // R-47.2 (WEB-4 cut 30): approved counts what Discover shows; held (TDW is checking it) replaces pending; hidden replaces rejected.
+        // Her storefront shows every picture that is not held, so "live" is the total less the held ones.
         setApproved(res.portfolio_summary?.approved ?? 0);
-        setPending(res.portfolio_summary?.pending ?? 0);
+        setPending(res.portfolio_summary?.held ?? 0);
+        setLive(Math.max(0, (res.portfolio_summary?.total ?? 0) - (res.portfolio_summary?.held ?? 0)));
         setServerFloor(res.min_portfolio_images);
       }
     }).catch(() => { /* the meter degrades to zeros; it never blocks the door */ })
       .finally(() => { if (live) setStatusDone(true); });
-    fetchPortfolio(vendorId, 'approved').then((res) => {
+    fetchPortfolio(vendorId, 'shown').then((res) => {   // R-47.2: her hero among the pictures her pages show
       if (!live) return;
       if (res.ok) setHasHero((res.images as PortfolioImage[]).some((i) => i.is_hero));
     }).catch(() => { /* same */ })
@@ -323,7 +327,7 @@ function BioBlock({ vendorId }: { vendorId: string }) {
       {/* Live counts under the same roof (readouts, not copy): */}
       <div style={{ display: 'flex', gap: 18, padding: '10px var(--slice-inset, 24px) 4px' }}>
         <span style={{ fontFamily: F.label, fontWeight: 300, fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: A.inkMute }}>
-          {approved} photos live{pending > 0 ? ` · ${pending} pending` : ''}
+          {live} photos live{pending > 0 ? ` · ${pending} waiting` : ''}
         </span>
       </div>
     </div>

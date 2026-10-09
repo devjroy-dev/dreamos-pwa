@@ -82,7 +82,7 @@ const ADS_HELP = {
 // tdw07_p3 pins G1 and G3 as rendered by the reorder state), so they are not repeated here. None is reworded.
 export const PORTFOLIO_HELP = {
   H2: "Instagram only allows this for professional accounts (business or creator). If yours is personal, switching is free and takes a minute in Instagram’s own settings.",
-  F4: 'People see your approved photos. The rest are with our team.',
+  F4: 'Your photos show on your own pages as soon as you add them.',   // R-47.2 (the founder's words, approved 9 Oct 2026)
   H12: 'Photos are copied into your portfolio, so they stay put even if your Instagram changes.',
 } as const;
 

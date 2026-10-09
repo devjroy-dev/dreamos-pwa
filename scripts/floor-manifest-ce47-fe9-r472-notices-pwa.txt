@@ -1,0 +1,21 @@
+# CE-47 · FE-9 · R-47.2 (the founder, 8 Oct 2026): a vendor's pictures are hers. The vendor app's half of WEB-4's cut 30 (section 4): her notices with Mark as read, the tile marks, the sheet's notice, the filters on shown / held / hidden, and every vendor reader of the old states moved; the founder's words approved 9 Oct 2026 · base 96fa4e06 (app train 8's tip) · F-19.16: a dirty path outside this list is a STOP.
+# b194, b241 and tdw09_p2b amended by label (the cut 30 wire). New bench: fe9_r472_notices.
+app/vendor/(legacy)/discover/page.tsx
+app/vendor/(legacy)/discover/profile/page.tsx
+app/vendor/(shell)/portfolio/screen.tsx
+app/vendor/(shell)/storefront/screen.tsx
+lib/vendor/api/vendor.ts
+lib/vendor/types/vendor.ts
+scripts/b194_fe6_storefront_room_bench.js
+scripts/b241_ce47_pro_p1_app_bench.mjs
+scripts/fe9_r472_notices_bench.js
+scripts/floor-manifest-ce47-fe9-r472-notices-pwa.txt
+scripts/tdw09_p2b.proof.mjs
+v2/app/vendor/(legacy)/discover/page.tsx
+v2/app/vendor/(legacy)/discover/profile/page.tsx
+v2/app/vendor/(shell)/off-season-shop/page.tsx
+v2/app/vendor/(shell)/papers/screen.tsx
+v2/app/vendor/(shell)/portfolio/screen.tsx
+v2/app/vendor/(shell)/storefront/screen.tsx
+v2/lib/vendor/api/vendor.ts
+v2/lib/worklist/pageHelp.ts

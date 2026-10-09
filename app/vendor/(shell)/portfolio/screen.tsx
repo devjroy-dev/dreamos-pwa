@@ -53,18 +53,21 @@ import { useToast } from '@/hooks/vendor/useToast';
 import {
   fetchPortfolio, fetchUploadUrl, registerPortfolioImage, setHeroImage,
   deletePortfolioImage, updatePortfolioImage, reorderPortfolio, fetchDiscoverStatus,
-  fetchIgStatus, fetchIgAuthorizeUrl, fetchIgMedia, importIgPhotos, disconnectIg,
+  fetchIgStatus, fetchIgAuthorizeUrl, fetchIgMedia, importIgPhotos, disconnectIg, markNoticeSeen,
 } from '@/lib/vendor/api/vendor';
 import type { IgStatus, IgMediaItem } from '@/lib/vendor/api/vendor';
 import { imgUrl, lqipUrl } from '@/lib/vendor/img';
 import { moveIndex, canMove } from '@/lib/vendor/reorder';
-import type { PortfolioImage } from '@/lib/vendor/types/vendor';
+import type { PortfolioImage, PortfolioNotice } from '@/lib/vendor/types/vendor';
 
 // Restored per CE §0.2 ruling (a). These tabs exist on the live surface and a
 // rewrite does not get to delete a working control as a side effect of resolving
 // an interaction conflict. See the interlock below for how the conflict is
 // actually resolved.
-const STATE_FILTERS = ['all', 'approved', 'pending', 'rejected'] as const;
+// R-47.2 (the founder, 8 Oct 2026; WEB-4 cut 30): her pictures are hers. The server's four states replace approved,
+// pending and rejected: shown (on her own pages), held (TDW is checking it), hidden (not shown on Discover).
+const STATE_FILTERS = ['all', 'shown', 'held', 'hidden'] as const;
+type StateFilter = typeof STATE_FILTERS[number];
 
 const A = {
   // R-37.74 arm (iii): the interactive half of the old `brass`. Buttons, chips, carets
@@ -96,9 +99,9 @@ const COPY = {
   // F2-1/2/3 — the batch set. Founder-vetoed byte-exact 2026-07-29 (F-2's cure).
   // Single-file uploads keep B1/B2; these render only for a batch of two or more.
   F2_1: (i: number, n: number) => `Uploading ${i} of ${n}…`,
-  F2_2: (n: number) => `${n} photos added — with our team for review.`,
+  F2_2: (n: number) => `${n} photos added.`,   // R-47.2: nothing waits for a review
   F2_3: (r: number) => `Room for ${r} more — adding the first ${r}.`,
-  B2: 'Photo added — with our team for review',
+  B2: 'Photo added.',   // R-47.2: nothing waits for a review
   B3: "That upload didn’t go through. Try again.",
   C1: 'Remove this photo?',
   C2: "It leaves your portfolio and Discover straight away. This can’t be undone.",
@@ -111,9 +114,13 @@ const COPY = {
   E2: 'Make this the cover',
   E3: 'Cover photo set',
   E4: 'Your cover is the first photo couples see.',
-  F1: 'Awaiting review',
-  F3: 'Not approved',
-  F4: 'Couples see your approved photos. The rest are with our team.',
+  // R-47.2: the short marks on a tile and the filter names (the founder's words, approved 9 Oct 2026). The whole notice,
+  // in the founder's words, is the server's and is drawn in the photo's sheet as it comes.
+  F1: 'Checking',
+  F3: 'Hidden',
+  F5: 'Mark as read',
+  FILTER: { all: 'All', shown: 'Shown', held: 'Checking', hidden: 'Hidden' } as Record<string, string>,
+  F4: 'Your photos show on your own pages as soon as you add them.',   // R-47.2 (the founder's words, approved 9 Oct 2026)
   G1: 'Press and drag to reorder. The first photo is your cover.',
   // G3 — the filter/drag interlock line. Founder-vetoed byte-exact 2026-07-29.
   // Rendered ONLY while a non-`all` filter is active; never otherwise.
@@ -335,7 +342,10 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
   const [progress, setProgress]   = useState<string>(COPY.B1);
   const [maxImages, setMaxImages] = useState<number | null>(null);
   const [dragId, setDragId]   = useState<string | null>(null);
-  const [filter, setFilter]   = useState<string>('all');
+  const [filter, setFilter]   = useState<StateFilter>('all');
+  // R-47.2: her unseen notices (a legal removal, in the founder's words), newest first, as the list door sends them.
+  const [notices, setNotices] = useState<PortfolioNotice[]>([]);
+  const [seenBusy, setSeenBusy] = useState<string | null>(null);
   // TDW_07 P4a — the IG action's state. `ig` is null until the server answers,
   // and the block renders on nothing until then: an entry that appears and then
   // corrects itself is a flicker the vendor reads as a bug.
@@ -407,6 +417,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
     fetchPortfolio(vendorId, filter).then(res => {
       if (res.ok) {
         setImages(res.images);
+        setNotices(Array.isArray(res.notices) ? res.notices : []);
         lastCommitted.current = res.images.map(i => i.id).join(',');
       } else show((res as { error?: string }).error ?? 'Failed to load portfolio.', 'error');
     }).catch((e: unknown) => show(String(e), 'error')).finally(() => setLoading(false));
@@ -858,8 +869,19 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
     setConfirming(false); setSel(null); load();
   }
 
-  const stateLabel = (s: string) => s === 'pending' ? COPY.F1 : s === 'rejected' ? COPY.F3 : '';
-  const stateColor = (s: string) => s === 'approved' ? A.brassWarm : s === 'rejected' ? A.red : A.inkMute;
+  // R-47.2: a tile's mark says only what the server says: held (not on her pages yet) or a notice (not on Discover).
+  const stateLabel = (i: PortfolioImage) => i.shown_on_her_pages === false ? COPY.F1 : i.notice ? COPY.F3 : '';
+  const stateColor = (i: PortfolioImage) => i.shown_on_her_pages === false ? A.inkMute : A.brassWarm;
+  // She marks a notice read; it goes only on the server's ok, and a refusal is shown in its own words.
+  async function seen(id: string) {
+    if (seenBusy) return; setSeenBusy(id);
+    try {
+      const r = await markNoticeSeen(id);
+      if (r && r.ok) setNotices((n) => n.filter((x) => x.id !== id));
+      else show((r as { error?: string }).error ?? COPY.B3, 'error');
+    } catch { show(COPY.B3, 'error'); }
+    setSeenBusy(null);
+  }
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
@@ -922,6 +944,20 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
         </button>
       </div>
 
+      {/* R-47.2 · HER NOTICES: each in the founder's words exactly as the server sends it, with one way to mark it read. */}
+      {notices.length > 0 && (
+        <div data-notices="" style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px var(--slice-inset, 16px) 0' }}>
+          {notices.map((n) => (
+            <div key={n.id} data-notice={n.id} role="status" style={{ border: '1px solid var(--atelier-card-border)', borderRadius: 12, background: 'var(--atelier-card-bg)', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <p style={{ margin: 0, font: 'var(--wl-t3)', color: A.ink, overflowWrap: 'break-word' }}>{n.line}</p>
+              <button type="button" disabled={seenBusy !== null} onClick={() => void seen(n.id)}
+                style={{ alignSelf: 'flex-start', minHeight: 44, padding: '0 16px', borderRadius: 12, background: 'transparent',
+                  border: '0.5px solid var(--atelier-input-border)', fontFamily: F.body, fontSize: '0.9375rem', textTransform: 'none',
+                  letterSpacing: 'normal', color: A.interactiveWarm, cursor: 'pointer' }}>{COPY.F5}</button>
+            </div>
+          ))}
+        </div>
+      )}
       {/* Filter pills — restored (CE §0.2 (a)). Ghost/bordered only: the screen's
           one filled gold stays the Upload action. */}
       <div style={{ display: 'flex', gap: 8, padding: '12px var(--slice-inset, 22px) 0', flexWrap: 'wrap' }}>
@@ -933,7 +969,7 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
             fontFamily: F.label, fontWeight: 300, fontSize: 9,
             color: filter === sf ? A.interactiveWarm : A.inkMute,
             letterSpacing: '0.28em', textTransform: 'uppercase',
-          }}>{sf}</button>
+          }}>{COPY.FILTER[sf]}</button>
         ))}
       </div>
 
@@ -1033,14 +1069,14 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
                     color: 'var(--role-ink-on-metal)', letterSpacing: '0.28em',  // F-09.102: ground is var(--role-metal), which themes
                   }}>{COPY.E1}</div>
                 )}
-                {stateLabel(img.approval_state) && (
+                {stateLabel(img) && (
                   <div style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 8px',
                     background: 'var(--atelier-overlay)',
                     fontFamily: F.label, fontWeight: 300, fontSize: 8,
                     letterSpacing: '0.24em', textTransform: 'uppercase',
-                    color: stateColor(img.approval_state),
-                  }}>{stateLabel(img.approval_state)}</div>
+                    color: stateColor(img),
+                  }} data-photo-mark="">{stateLabel(img)}</div>
                 )}
               </div>
             ))}
@@ -1376,17 +1412,11 @@ export function PortfolioScreen({ vendorId }: { vendorId: string }) {
               borderRadius: 2, marginBottom: 14, border: '0.5px solid rgba(201,168,76,0.2)',
             }} />
 
-            <div style={{
-              fontFamily: F.label, fontWeight: 300, fontSize: 9,
-              letterSpacing: '0.32em', textTransform: 'uppercase',
-              color: stateColor(sel.approval_state), marginBottom: 6,
-            }}>{sel.approval_state}</div>
-
-            {sel.rejection_reason && (
-              <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, color: A.red, marginBottom: 12, lineHeight: 1.4 }}>
-                {sel.rejection_reason}
+            {sel.notice ? (
+              <div data-photo-notice="" style={{ fontFamily: F.script, fontWeight: 300, fontSize: '1rem', lineHeight: 1.5, color: A.ink, marginBottom: 12 }}>
+                {sel.notice}
               </div>
-            )}
+            ) : null}
 
             {sel.position === 0 && (
               <div style={{ fontFamily: F.script, fontWeight: 300, fontSize: 16, lineHeight: 1.5, color: A.inkMute, marginBottom: 12 }}>

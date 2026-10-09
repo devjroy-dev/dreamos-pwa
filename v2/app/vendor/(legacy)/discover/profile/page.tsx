@@ -104,8 +104,8 @@ const HINT_COPY: Record<Term, (g: Gaps[Term]) => string> = {
   photos: (g) => {
     const short = Math.max(0, (g.need ?? 0) - (g.have ?? 0));
     const pending = g.pending ?? 0;
-    if (pending >= short) return `${plural(pending, 'photo', 'photos')} awaiting review`;
-    if (pending > 0) return `Add ${plural(short - pending, 'more photo', 'more photos')} — ${pending} awaiting review`;
+    if (pending >= short) return `${plural(pending, 'photo', 'photos')} being checked`;   // R-47.2 (the founder's words, approved 9 Oct 2026)
+    if (pending > 0) return `Add ${plural(short - pending, 'more photo', 'more photos')} — ${pending} being checked`;   // R-47.2 (the founder's words, approved 9 Oct 2026)
     return `Add ${plural(short, 'more photo', 'more photos')}`;
   },
   about:  () => 'Write your About',
@@ -152,12 +152,12 @@ function ProfileScreen({ vendorId, vendorName }: { vendorId: string; vendorName:
       if (!active || !res.ok) return;
       setTotal(res.portfolio_summary?.total ?? 0);
       setApproved(res.portfolio_summary?.approved ?? 0);
-      setPending(res.portfolio_summary?.pending ?? 0);
+      setPending(res.portfolio_summary?.held ?? 0);   // R-47.2 (WEB-4 cut 30): approved counts what Discover shows; held (TDW is checking it) replaces pending; hidden replaces rejected.
       setServerFloor(res.min_portfolio_images);
     }).catch(() => { /* the meter degrades to zeros; it never blocks the editor */ });
-    fetchPortfolio(vendorId, 'approved').then((res) => {
+    fetchPortfolio(vendorId, 'all').then((res) => {   // R-47.2: the hero as Discover shows it (no 'approved' state any more)
       if (!active || !res.ok) return;
-      setHasHero((res.images as PortfolioImage[]).some((i) => i.is_hero));
+      setHasHero((res.images as PortfolioImage[]).some((i) => i.is_hero && i.shown_on_discover === true));
     }).catch(() => { /* same */ });
     return () => { active = false; };
   }, [vendorId]);

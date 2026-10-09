@@ -60,9 +60,11 @@ const sec = (t) => { if (!quiet) console.log(`\n── ${t}`); };
 // in its own box (R-46.17); no "couple" on the room or its card. §7 mutations through the guard.
 const ME = (over) => ({ ok: true, vendor: { id: 'v1', name: 'Swati Roy Makeup', handle: 'swati', about: '', rate_min: null, instagram_handle: '', aesthetic_tags: [], travel_notes: '', ...over } });
 const SCEN = {
-  gaps: { me: ME({}), status: { ok: true, portfolio_summary: { approved: 2, pending: 1 }, min_portfolio_images: 6 }, images: [] },
+  // AMENDED BY LABEL · CE-47 FE-9 R-47.2 (WEB-4 cut 30): the summary's wire is total, approved (what Discover shows), held and
+  // hidden; "photos live" is the total less the held, "waiting" the held. 1.2 keeps its words: 2 live, 1 waiting.
+  gaps: { me: ME({}), status: { ok: true, portfolio_summary: { total: 3, approved: 2, held: 1, hidden: 0 }, min_portfolio_images: 6 }, images: [] },
   full: { me: ME({ about: 'Bridal makeup in Delhi.', rate_min: 25000, instagram_handle: 'swatiroymakeup', aesthetic_tags: ['Soft', 'Glam', 'Traditional'], travel_notes: 'Delhi NCR and Jaipur' }),
-    status: { ok: true, portfolio_summary: { approved: 8, pending: 0 }, min_portfolio_images: 6 }, images: [{ id: 'i1', is_hero: true }] },
+    status: { ok: true, portfolio_summary: { total: 8, approved: 8, held: 0, hidden: 0 }, min_portfolio_images: 6 }, images: [{ id: 'i1', is_hero: true }] },
 };
 
 let SERVER = null; let BROWSER = null;

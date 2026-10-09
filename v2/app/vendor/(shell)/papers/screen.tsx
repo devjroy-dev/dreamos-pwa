@@ -71,7 +71,7 @@ function NewPaper({ vendorId, about, kind, onKind, onBack, onIssued, show, toast
   const [photos, setPhotos] = useState<PortfolioImage[] | null>(null); const [photo, setPhoto] = useState<string | null>(null);
   useEffect(() => { if (kind !== 'id_card' || photos) return; void fetchPortfolio(vendorId).then((r) => {
     const imgs = r.ok ? ((r as { images?: PortfolioImage[] }).images || []) : [];
-    setPhotos(imgs.filter((i) => i.approval_state !== 'rejected' && /^https:\/\//.test(i.image_url)).slice(0, 24)); }); }, [kind, photos, vendorId]);
+    setPhotos(imgs.filter((i) => i.shown_on_her_pages !== false && /^https:\/\//.test(i.image_url))   /* R-47.2: papers refuse a held picture */.slice(0, 24)); }); }, [kind, photos, vendorId]);
   const make = async () => {
     if (!kind) return; setBusy(true); setWhy(null);
     const body = kind === 'id_card' ? { kind, ...(photo ? { photo_url: photo } : {}) } : kind === 'certificate' ? { kind } : kind === 'statement' ? { kind, period_from: from, period_to: to, ...(purpose ? { purpose } : {}) } : { kind, period_from: from, period_to: to };

@@ -26,10 +26,12 @@ function fakePapers(o = {}) {
   return { S, answer(method, rt, body) {
     S.log.push([method, rt, body]);
     if (rt === `/api/v2/vendor/papers/${V}` && method === 'GET') return { ok: true, papers: S.papers };
+    // AMENDED BY LABEL · CE-47 FE-9 R-47.2 (WEB-4 cut 30): the wire carries shown_on_her_pages, shown_on_discover and notice, never
+    // approval_state; the refused photo of 7.1 is now a held one (not on her own pages, so never on her papers).
     if (rt === `/api/v2/vendor/portfolio/${V}`) return { ok: true, total: 3, images: [
-      { id: 'img-1', image_url: 'https://res.cloudinary.com/tdw/image/upload/v1/me.jpg', approval_state: 'approved', caption: null, aesthetic_tags: [], is_hero: true, in_carousel: true, rejection_reason: null, created_at: '2026-09-01T00:00:00Z' },
-      { id: 'img-2', image_url: 'https://res.cloudinary.com/tdw/image/upload/v1/look.jpg', approval_state: 'pending', caption: null, aesthetic_tags: [], is_hero: false, in_carousel: true, rejection_reason: null, created_at: '2026-09-02T00:00:00Z' },
-      { id: 'img-3', image_url: 'https://res.cloudinary.com/tdw/image/upload/v1/no.jpg', approval_state: 'rejected', caption: null, aesthetic_tags: [], is_hero: false, in_carousel: true, rejection_reason: 'blurry', created_at: '2026-09-03T00:00:00Z' }] };
+      { id: 'img-1', image_url: 'https://res.cloudinary.com/tdw/image/upload/v1/me.jpg', shown_on_her_pages: true, shown_on_discover: true, notice: null, caption: null, aesthetic_tags: [], is_hero: true, in_carousel: true, created_at: '2026-09-01T00:00:00Z' },
+      { id: 'img-2', image_url: 'https://res.cloudinary.com/tdw/image/upload/v1/look.jpg', shown_on_her_pages: true, shown_on_discover: false, notice: null, caption: null, aesthetic_tags: [], is_hero: false, in_carousel: true, created_at: '2026-09-02T00:00:00Z' },
+      { id: 'img-3', image_url: 'https://res.cloudinary.com/tdw/image/upload/v1/no.jpg', shown_on_her_pages: false, shown_on_discover: false, notice: 'TDW is checking this picture. It is not shown yet.', caption: null, aesthetic_tags: [], is_hero: false, in_carousel: true, created_at: '2026-09-03T00:00:00Z' }] };
     if (rt === `/api/v2/vendor/papers/${V}/about`) return { ok: true, about: { name: 'DEV440 Test Makeup', trade: o.trade || 'Makeup artist', city: 'Delhi', weddings_verified: 14, as_of: '2026-10-06', gstin: o.gstin || null } };
     if (rt === `/api/v2/vendor/papers/${V}` && method === 'POST') {
       if (body.kind === 'statement' && !body.purpose) return { status: 400, body: { ok: false, error: 'Pick who the statement is for.' } };

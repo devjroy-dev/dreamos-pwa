@@ -1091,17 +1091,27 @@ export interface PortfolioImage {
   aesthetic_tags: string[];
   is_hero:        boolean;
   in_carousel:    boolean;
-  approval_state: 'pending' | 'approved' | 'rejected';
-  rejection_reason: string | null;
+  // R-47.2 (the founder, 8 Oct 2026; WEB-4 cut 30 section 4): a vendor's pictures are hers. The server no longer sends
+  // approval_state or rejection_reason; each picture says where it shows, and carries the founder's line when it does not.
+  /** false only while TDW checks it (held): every other picture is on her own pages. */
+  shown_on_her_pages?: boolean;
+  shown_on_discover?:  boolean;
+  /** null, or one of the founder's two lines, word for word ("TDW is checking this picture. It is not shown yet." or
+   *  "This picture is not shown on Discover."). Drawn as the server sends it, never rewritten. */
+  notice?:        string | null;
   created_at:     string;
   /** TDW_07 P3 (0102) — the ordering authority. position 0 is the cover. */
   position?:      number;
 }
 
+/** R-47.2: a notice on her portfolio (a legal removal, in the founder's words); unseen ones, newest first. */
+export interface PortfolioNotice { id: string; line: string; created_at: string }
+
 export interface PortfolioListResponse {
   ok: boolean;
   images: PortfolioImage[];
   total: number;
+  notices?: PortfolioNotice[];
 }
 
 export interface UploadUrlResponse {
@@ -1140,7 +1150,8 @@ export interface DiscoverStatus {
   ok: boolean;
   discover_request_state: string;
   discover_eligible: boolean;
-  portfolio_summary: { total: number; approved: number; pending: number; rejected: number };
+  // R-47.2 (WEB-4 cut 30): approved counts what Discover shows; held and hidden replace pending and rejected.
+  portfolio_summary: { total: number; approved: number; held?: number; hidden?: number };
   // TDW_07 P2 · CE ruling §F — the SERVER carries the floor so the client renders a
   // number it was told rather than one it typed. Optional because a client may run
   // against a backend deployed before this field; DISCOVER_PHOTO_FLOOR in
