@@ -519,10 +519,13 @@ ok('3.0c', 'control: the hazard is real — prose describing controls DOES exist
 
    Both-ways is automatic and was shown: these amended cells go RED at acb68f9,
    where the counts are 201 and 108/8/36/4/3/42. */
-ok('3.1', 'the Sanctuary surface carries 202 controls (201 + TDW_19 G1.1c: 1, itemised above)', total === 202,
+/* AMENDED BY LABEL · CE-47 FE-9 R-47.2 (the founder, 8 Oct 2026; WEB-4 cut 30 section 4): Discover gains the picture's
+   "⋯" (a button) and its one menu item, Report this picture (a button): 202 KEPT, 2 ADDED, 0 MOVED, 0 REMOVED. button
+   108 -> 110. The Report sheet itself lives in components/frost/ReportPictureSheet.tsx, outside this census's walk. */
+ok('3.1', 'the Sanctuary surface carries 204 controls (201 + TDW_19 G1.1c: 1 + R-47.2: 2, itemised above)', total === 204,
    `got ${total} — ${JSON.stringify(counts)}`);
 ok('3.2', 'the per-class split matches the amended census',
-   counts.button === 108 && counts.anchor === 8 && counts.input === 36 &&
+   counts.button === 110 && counts.anchor === 8 && counts.input === 36 &&
    counts.textarea === 4 && counts.select === 3 && counts.tapdiv === 43,
    JSON.stringify(counts));
 

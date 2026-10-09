@@ -1,7 +1,7 @@
 // lib/frost-api/discover.ts
 // Typed discover API client. Public endpoints — no auth required.
 
-import { USE_MOCKS, API_BASE, apiGet } from './_base';
+import { USE_MOCKS, API_BASE, apiGet, apiPost } from './_base';
 import type { DiscoverVendor, FeaturedCollection, DiscoverHero } from '../types/discover';
 import { waNumberFor } from '@/lib/waNumbers';
 
@@ -56,4 +56,14 @@ export async function fetchFeatured(): Promise<{ ok: true; collections: Featured
 export async function fetchHeroes(): Promise<{ ok: true; heroes: DiscoverHero[] }> {
   if (USE_MOCKS) return { ok: true, heroes: [] };
   return apiGet('/api/v2/discover/heroes');
+}
+
+// ── R-47.2 (the founder, 8 Oct 2026; WEB-4 cut 30 section 4) · A DREAMER'S REPORT ─────────────────────────────────────
+// POST /api/v2/discover/report { vendor_id, image_url, reason, note? }, signed in (requireCoupleAuth). It goes to the admin
+// and never hides a picture by itself. The answer is { already } on 200; a 400, 401 or 404 carries the server's own
+// sentence, which apiPost throws as an ApiClientError whose message is that sentence (shown as it comes).
+export type ReportReason = 'not_wedding_work' | 'not_their_work' | 'offensive' | 'other';
+export async function reportPicture(body: { vendor_id: string; image_url: string; reason: ReportReason; note?: string }): Promise<{ ok: true; already: boolean }> {
+  const r = await apiPost<{ ok?: boolean; already?: boolean }>('/api/v2/discover/report', body);
+  return { ok: true, already: !!(r && r.already) };
 }

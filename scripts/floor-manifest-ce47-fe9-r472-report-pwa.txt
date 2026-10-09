@@ -1,0 +1,8 @@
+# CE-47 · FE-9 · R-47.2 (the founder, 8 Oct 2026): a Dreamer's Report. Discover's "⋯" on the picture she is looking at, then Report this picture: the founder's four reasons word for word, an optional note, POST /api/v2/discover/report (WEB-4 cut 30 section 4); it never hides the picture; every refusal in the server's own words · base 96fa4e06 (app train 8's tip) · F-19.16: a dirty path outside this list is a STOP.
+# tdw09_frost_parity 3.1 and 3.2 amended by label (two controls added: the ⋯ and its menu item); the sheet sits on the bride tree's rungs (FT).
+components/frost/ReportPictureSheet.tsx
+components/frost/blooms/discover.tsx
+lib/frost-api/discover.ts
+scripts/fe9_r472_report_bench.js
+scripts/floor-manifest-ce47-fe9-r472-report-pwa.txt
+scripts/tdw09_frost_parity.proof.mjs

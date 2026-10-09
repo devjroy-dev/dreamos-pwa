@@ -8,6 +8,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import EnquirySheet from '@/components/frost/EnquirySheet';
+import ReportPictureSheet, { REPORT_COPY } from '@/components/frost/ReportPictureSheet';   // R-47.2 (CE-47 FE-9)
 import { API_BASE, getCoupleSession, getAccessToken } from '@/lib/frost-api/_base';
 import { vocabularyFor } from '@/lib/shared/tagVocabulary';
 import { BUDGET_BANDS, bandLabelFor } from '@/lib/frost/budgetBands';
@@ -320,6 +321,10 @@ export function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
   const [showFilter, setShowFilter] = React.useState(false);
   const [filters,    setFilters]    = React.useState<DiscFilterState>({category:null,city:null,vibes:[],budget:null});
   const [enquiring,  setEnquiring]  = React.useState(false);
+  // R-47.2 (CE-47 FE-9): the picture's "⋯" menu and the Report sheet, for the picture she is looking at.
+  const [moreOpen,   setMoreOpen]   = React.useState(false);
+  const [reportFor,  setReportFor]  = React.useState<{ vendorId: string; imageUrl: string } | null>(null);
+  React.useEffect(()=>{setMoreOpen(false);},[vIdx,imgIdx]);   // the menu belongs to one picture: it closes when she moves on
 
   const touchStart  = React.useRef<{x:number;y:number;t:number}|null>(null);
   const tapTimer    = React.useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -870,6 +875,37 @@ export function DiscoverRoom({ dark, accent }: DiscoverRoomProps) {
           </svg>
         </button>
       )}
+
+      {/* ── R-47.2 · THE PICTURE'S "⋯" (CE-47 FE-9): one item, Report this picture. It consumes its own touches, as the
+          heart does, so the swipe surface under it is unchanged. A report never hides the picture. */}
+      {!isBlind&&!panelOpen&&vendor&&photos[imgIdx]&&(
+        <button type="button" data-picture-more=""
+          onClick={e=>{e.stopPropagation();setMoreOpen(o=>!o);}}
+          onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+          aria-label="More" aria-haspopup="menu" aria-expanded={moreOpen}
+          style={{
+            position:'absolute',
+            bottom:'calc(env(safe-area-inset-bottom,0px) + 198px)', right:22, zIndex:12,
+            width:40,height:40,borderRadius:20,
+            background:'rgba(8,6,8,.42)',backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)' as any,
+            border:'0.5px solid rgba(248,247,245,.16)',
+            display:'flex',alignItems:'center',justifyContent:'center',
+            cursor:'pointer',WebkitTapHighlightColor:'transparent',padding:0,
+          }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="rgba(248,247,245,.82)" aria-hidden="true">
+            <circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/>
+          </svg>
+        </button>
+      )}
+      {moreOpen&&!panelOpen&&vendor&&photos[imgIdx]&&(
+        <div role="menu" data-picture-menu="" onTouchStart={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}
+          style={{position:'absolute',bottom:'calc(env(safe-area-inset-bottom,0px) + 246px)',right:22,zIndex:13,borderRadius:12,overflow:'hidden',
+            background:'rgba(14,12,14,.96)',border:'0.5px solid rgba(248,247,245,.16)'}}>
+          <button type="button" role="menuitem" onClick={e=>{e.stopPropagation();setMoreOpen(false);setReportFor({vendorId:vendor.id,imageUrl:photos[imgIdx]});}}
+            style={{minHeight:48,padding:'0 16px',background:'transparent',border:'none',color:'rgba(248,247,245,.92)',fontSize:FT.body,cursor:'pointer',whiteSpace:'nowrap'}}>{REPORT_COPY.menu}</button>
+        </div>
+      )}
+      {reportFor&&<ReportPictureSheet vendorId={reportFor.vendorId} imageUrl={reportFor.imageUrl} onClose={()=>setReportFor(null)}/>}
 
       {/* Image dots — bottom, above the name line */}
       {/* TDW_07 P6 — the estate's ONE position indicator, carrying the ROOM accent.
