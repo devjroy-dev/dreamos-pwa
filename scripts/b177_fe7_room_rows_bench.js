@@ -71,7 +71,7 @@ async function glass(g, only) {
 
 async function main() {
   const back = K.recovered();
-  ok(true, `0.0 no interrupted mutation left in the tree${back ? ` (restored ${back} from the journal)` : ''}`);
+  ok(true, `0.0 no interrupted mutation left in the tree${back ? ` (${back})` : ''}`);   // AMENDED BY LABEL (CE-47 ADS-2, F-44.422): the guard's words, not the journal's
   const srcGreen = source();
   const g = await K.startGlass(PORT);
   if (!g) { ok(false, '0.1 the dev server came up'); return end(); }

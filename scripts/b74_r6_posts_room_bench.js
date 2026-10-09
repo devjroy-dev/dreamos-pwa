@@ -160,7 +160,7 @@ cell('C11 4b-2 · the broadcast copy carries the vetoed bytes verbatim', () => {
     referralNextLine: /referralNextLine = \(iso: string\) => `Your referral message goes once a year\. Next: \$\{fullDate\(iso\)\}\.`/,
   };
   for (const [k, re] of Object.entries(fns)) if (!re.test(copyHome)) return `${k} is not the vetoed byte`;
-  if (!/referralLabel:\s*'Referral message'/.test(copyHome) || !/noCouples:\s*'No past clients with a number yet\.'/.test(copyHome)) return 'a label/empty byte drifted';
+  if (!/referralLabel:\s*'Referral message'/.test(copyHome) || !/noCouples:\s*'None of your past clients has a phone number saved yet\.'/.test(copyHome)) return 'a label/empty byte drifted';
   if (!/month: 'long'/.test(copyHome)) return 'the next date is not a full month (F-42.112)';
 });
 

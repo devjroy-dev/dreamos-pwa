@@ -70,10 +70,10 @@ const TYPED_WHAT = {
 // home). Line 1 of the Ads card is READ from the Posts & ads row (ROW_DESC.posts), b140 1.2's rule: typed line 1s stay four;
 // these three are the card's "can" lines.
 const ADS_HELP = {
-  what:  'Boosting shows one of your Instagram or Facebook posts to people in your city who are planning a wedding, for a daily amount you set and a number of days you choose.',
+  what:  'An ad shows one of your Instagram or Facebook posts to people in your city who are planning a wedding. You set the amount for each day and the number of days.',   // R-47.1 (CE-47 ADS-2, 8 Oct 2026): rewritten, the old line in the handover's table
   pays:  'Meta takes the amount from your ad account\u2019s payment method. TDW never charges for ads and never runs one without your tap.',   // cut1e 5, the founder's ok (29 September 2026)
   // LANDING (conflict 1, main's words kept for what and pays; leads names the new layout's own tab, Enquiries, and 'this page')
-  leads: 'People who write after seeing the ad land in Enquiries, and this page tells you what each ad reached, what it cost, and what to try next.',
+  leads: 'People who write to you after seeing an ad appear in Enquiries. This page shows what each ad reached, what it cost, and what to try next.',   // R-47.1 (CE-47 ADS-2, 8 Oct 2026): rewritten, the old line in the handover's table
 } as const;
 
 // DESIGN-1 · STAGE 2 · THE PORTFOLIO'S EXPLANATIONS, MOVED OFF THE PAGE (the founder, 29 Sept 2026: "make the photos the
@@ -253,18 +253,20 @@ export const PAGE_HELP: Readonly<Record<string, PageHelp>> = {
   [POSTS_HREF]: entry(ROW_DESC.posts, {
     // three how-to lines at most (the room-rework standard, 30 Sept 2026: nothing scrolls inside a "?" card at 374); the
     // caption's Copy is named on its own box and is not a step here
-    can: how(['share', 'To post one: tap Download or Share beside it.'],
-             ['send', 'To run or see your ads: tap the row under Ads.'],
-             ['send', 'To send a message to past clients: tap Newest work message or Referral message.']),
-    connects: 'Connects to your wedding pages and your Meta ad account.' }),
+    // R-47.1 (CE-47 ADS-2, 8 Oct 2026): the three steps and the connects line rewritten; the old lines in the handover's table
+    can: how(['share', 'To post a card, tap Download or Share beside it.'],
+             ['send', 'To run or see your ads, tap the row under Ads.'],
+             ['send', 'To send a message to your past clients, tap Newest work message or Referral message.']),
+    connects: 'This room uses your wedding pages and your Meta ad account.' }),
   [ADS_HREF]: entry(ROW_DESC.posts, {
     app: ADS_HELP.what + ' ' + ADS_HELP.pays,
     // ADS-1's four lines, VERBATIM, read by ADS-1 from the live page at 85c66ef5 (relayed by the chair 29 Sept 2026).
     // ADS-1's cut1e later updates the first to the restored consent sheet.
-    can: how(['switch', 'To start: tap Connect ad account, then Continue to Meta. Meta opens in its own window; come back when it is done.'],
-             ['send', 'To run an ad: check the post at the top, tap Change beside Who sees it, Where it appears, Amount or Dates if you want, then tap Run this ad and confirm.'],
-             ['read', 'To see it as people will: the post at the top is shown the way people see it.'],
-             ['edit', 'To stop an ad: tap the ad under Your ads, then Pause this ad or End it now.']),
+    // R-47.1 (CE-47 ADS-2, 8 Oct 2026): the four steps rewritten; the old lines in the handover's table
+    can: how(['switch', 'To start, tap Connect ad account, then tap Continue to Meta. Meta opens in its own window. Come back here when you are done.'],
+             ['send', 'To run an ad, check the post at the top. To change who sees it, where it appears, the amount or the dates, tap Change beside that row. Then tap Run this ad and confirm.'],
+             ['read', 'The post at the top is shown the way people will see it.'],
+             ['edit', 'To stop an ad, tap it under Your ads, then tap Pause this ad or End it now.']),
     connects: ADS_HELP.leads }),
   // CE-47 · THE HUB CUT (INS): the nine Coming rooms' cards. `what` is the row's ruled line (one home); the one step says
   // what the screen draws. Each seat writes its room's own card when its room lands, in the same edit as its page.

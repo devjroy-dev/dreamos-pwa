@@ -410,7 +410,7 @@ async function main() {
       }
       p = await open(mode, 'choose_funds', '/vendor/posts/ads', { wait: '[data-chooser]' });
       const f = await p.evaluate(() => Array.from(document.querySelectorAll('[data-chooser] .ads-opt')).map((o) => { const x = o.querySelector('[data-funds]'); return x ? x.textContent : null; })).catch(() => null);
-      ok(!!f && f[0] === 'Funds: Rs 200' && f[1] === 'Funds: Rs 200.50', `${mode} 11.2 the funds line in the money words: Rs 200, and Rs 200.50 when paise exist`, JSON.stringify(f));
+      ok(!!f && f[0] === 'This account has Rs 200 to spend.' && f[1] === 'This account has Rs 200.50 to spend.', `${mode} 11.2 the funds line in the money words: Rs 200, and Rs 200.50 when paise exist`, JSON.stringify(f));  // AMENDED BY LABEL (R-47.1, CE-47 ADS-2, 8 Oct 2026): the line was rewritten
       ok(!!f && f.length === 5 && f[2] === null && f[3] === null && f[4] === null, `${mode} 11.3 no line for another currency or when Meta returned nothing`, JSON.stringify(f));
       const cl = await p.evaluate(() => Array.from(document.querySelectorAll('[data-chooser] .ads-opt')).map((o) => { const x = o.querySelector('[data-currency]'); return x ? x.textContent : null; })).catch(() => null);
       ok(!!cl && cl[2] === 'This account pays in US dollars. TDW runs ads on rupee accounts for now.' && cl[0] === null && cl[1] === null && cl[3] === null,

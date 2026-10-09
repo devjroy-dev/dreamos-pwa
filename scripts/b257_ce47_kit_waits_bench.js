@@ -1,9 +1,10 @@
 'use strict';
 // scripts/b257_ce47_kit_waits_bench.js · CE-47 · ADS-2 · e-275: THE FE-7 KIT WAITS ON THE THING ITSELF, BOUNDED.
-// FLOOR-SUBJECTS: scripts/lib/fe7_l4_kit.js scripts/b177_fe7_room_rows_bench.js scripts/b178_fe7_dates_introductions_bench.js scripts/b179_fe7_exchange_bench.js scripts/b180_fe7_wedding_pages_bench.js scripts/b181_fe7_reviews_advisor_solutions_bench.js scripts/b182_fe7_referrals_notes_bench.js scripts/b183_fe7_onboarding_bench.js scripts/b184_fe7_help_cards_bench.js scripts/b185_fe7_expenses_bench.js scripts/b186_fe7_tds_bench.js scripts/b187_fe7_books_bench.js scripts/b188_fe7_reminders_bench.js scripts/b189_fe7_settings_bench.js
+// FLOOR-SUBJECTS: scripts/lib/fe7_l4_kit.js scripts/lib/mutation_guard.js scripts/b177_fe7_room_rows_bench.js scripts/b178_fe7_dates_introductions_bench.js scripts/b179_fe7_exchange_bench.js scripts/b180_fe7_wedding_pages_bench.js scripts/b181_fe7_reviews_advisor_solutions_bench.js scripts/b182_fe7_referrals_notes_bench.js scripts/b183_fe7_onboarding_bench.js scripts/b184_fe7_help_cards_bench.js scripts/b185_fe7_expenses_bench.js scripts/b186_fe7_tds_bench.js scripts/b187_fe7_books_bench.js scripts/b188_fe7_reminders_bench.js scripts/b189_fe7_settings_bench.js
 // Holds the kit's waits in a real chromium, each both ways: settle (quiet, restless, late), waitFor, waitUrl on data:
 // pages; reloaded and logQuiet on a temp log. Mutations (each wait turned back into a blind return) red in children.
-// §9 (F-44.419): the kit mutations go through mutation_guard.js, free space checked first; 9.K kills a run mid-mutation
+// §7 (F-44.419, F-44.422): the kit's mutate() plants through the guard (7.1), survives a kill (7.2), refuses below the
+// free-space floor (7.3); the old shared journal is retired (7.4). §9 (F-44.419): the kit mutations go through mutation_guard.js, free space checked first; 9.K kills a run mid-mutation
 // and recovers the kit by sha. §6 F-44.418: standing()'s four measuring cells red when no room drew, green when it did; M7 undoes the guard.
 // §5 (CE-47 ADS-2, F-44.365 follow-up): after K.open, any second selector read in the page waits on that selector or
 // guards a null, and a K.words result is guarded before it is used as an array; a bare read is a defect. The thirteen
@@ -278,6 +279,44 @@ const WORDS_GUARDED_AS_READ = [
     ["    ok(drew && bad.length === 0, `${room} at ${w}: every row's facts in at most two lines, nothing clipped`", "    ok(bad.length === 0, `${room} at ${w}: every row's facts in at most two lines, nothing clipped`", 'M7 F-44.418 undone: the facts cell measures nothing and reads green', '6.1'],
   ];
   if (CHILD) { console.log(`b257 child · ${pass} pass · ${fail} fail`); process.exit(fail ? 1 : 0); }
+  if (!CHILD) console.log('\n── 7  F-44.419 and F-44.422: the kit’s mutate() goes through the guard; the old journal is retired ──');
+  if (!CHILD) {
+    const DIR = path.join(ROOT, 'scripts', '.b257-scratch'); const REL7 = 'scripts/.b257-scratch/target.txt'; const T7 = path.join(ROOT, REL7);
+    const ORIG7 = 'the word is Keep it\n'; const PEND = path.join(ROOT, 'scripts', '.mutation-pending');
+    const kid = (code, env = {}) => cp.spawnSync(process.execPath, ['-e', `const K = require(${JSON.stringify(path.join(ROOT, 'scripts/lib/fe7_l4_kit.js'))}); ${code}`], { encoding: 'utf8', timeout: 60000, env: { ...process.env, ...env } });
+    fs.mkdirSync(DIR, { recursive: true });
+    try {
+      fs.writeFileSync(T7, ORIG7);
+      // 7.1 a mutation is planted through the guard: during its cell the marker names this run; after it, the file is back
+      let r = kid(`const fs = require('fs'); const out = []; K.mutate((c, n) => out.push((c ? 'G ' : 'R ') + n), 'X', ${JSON.stringify(REL7)}, 'Keep it', 'Keep', async () => { const m = fs.readdirSync(${JSON.stringify(PEND)}).filter((f) => f.endsWith('.json')).map((f) => JSON.parse(fs.readFileSync(${JSON.stringify(PEND)} + '/' + f, 'utf8'))); console.log('MARK ' + JSON.stringify(m.map((x) => [x.rel, x.owner, x.pid === process.pid]))); console.log('DISK ' + fs.readFileSync(${JSON.stringify(T7)}, 'utf8').trim()); return false; }).then(() => console.log('OUT ' + out.join(' | ')));`);
+      ok(/MARK \[\["scripts\/\.b257-scratch\/target\.txt","fe7_l4",true\]\]/.test(r.stdout) && /DISK the word is Keep$/m.test(r.stdout) && /OUT G X: the cell goes red with the mutation planted \| G X: scripts\/\.b257-scratch\/target\.txt restored to its sha/.test(r.stdout) && fs.readFileSync(T7, 'utf8') === ORIG7 && !fs.existsSync(PEND),
+        '7.1 a mutation is planted through the guard (a marker naming this run), its cell sees it, and the file is restored by sha', r.stdout.replace(/\n/g, ' / ').slice(0, 200));
+      // 7.2 a run SIGKILLed mid-mutation leaves the tree recoverable; the next start (recovered()) restores it by sha
+      r = kid(`K.mutate(() => {}, 'X', ${JSON.stringify(REL7)}, 'Keep it', 'Keep', async () => { process.kill(process.pid, 'SIGKILL'); });`);
+      const left = fs.readFileSync(T7, 'utf8'); const r2 = kid(`console.log('BACK ' + K.recovered());`);
+      ok(r.signal === 'SIGKILL' && left.includes('is Keep\n') && /BACK restored scripts\/\.b257-scratch\/target\.txt by sha/.test(r2.stdout) && fs.readFileSync(T7, 'utf8') === ORIG7 && !fs.existsSync(PEND),
+        '7.2 a run killed mid-mutation leaves it recoverable, and the next start restores it by sha', `${r.signal} ${JSON.stringify(left)} ${r2.stdout.trim()}`);
+      // 7.3 below the free-space floor the mutation is not planted: its cell is a named red, the file untouched
+      r = kid(`const out = []; K.mutate((c, n, i) => out.push((c ? 'G ' : 'R ') + n + (i ? ' [' + i + ']' : '')), 'X', ${JSON.stringify(REL7)}, 'Keep it', 'Keep', async () => false).then(() => console.log('OUT ' + out.join(' | ')));`, { FE7_MIN_FREE_BYTES: String(Number.MAX_SAFE_INTEGER) });
+      ok(/OUT R X: the cell goes red with the mutation planted \[not planted: \d+ MB free/.test(r.stdout) && /G X: scripts\/\.b257-scratch\/target\.txt restored to its sha/.test(r.stdout) && fs.readFileSync(T7, 'utf8') === ORIG7 && !fs.existsSync(PEND),
+        '7.3 below the free-space floor nothing is planted, and the cell says so', r.stdout.trim().slice(0, 200));
+      // 7.4 the old journal: one whose file is already the original is removed; one whose file differs is SET ASIDE, never written in
+      const J = kid(`console.log(K.OLD_JOURNAL);`).stdout.trim(); const had = fs.existsSync(J) ? fs.readFileSync(J) : null;
+      try {
+        fs.writeFileSync(J, JSON.stringify({ rel: REL7, sha: crypto.createHash('sha256').update(ORIG7).digest('hex'), orig: ORIG7 }));
+        const a = kid(`console.log('BACK ' + K.recovered());`);
+        fs.writeFileSync(T7, 'the word is Keep it, as tree Y has it\n');
+        fs.writeFileSync(J, JSON.stringify({ rel: REL7, sha: crypto.createHash('sha256').update(ORIG7).digest('hex'), orig: ORIG7 }));
+        const b = kid(`console.log('BACK ' + K.recovered());`);
+        const aside = (b.stdout.match(/set aside at (\S+) /) || [])[1];
+        const asideA = (a.stdout.match(/set aside at (\S+) /) || [])[1];
+        ok(/the file is the original in this tree\); it names no tree, so nothing was written/.test(a.stdout) && /the file is NOT the original in this tree\); it names no tree, so nothing was written/.test(b.stdout)
+          && fs.readFileSync(T7, 'utf8').includes('tree Y') && !fs.existsSync(J) && asideA && fs.existsSync(asideA) && aside && fs.existsSync(aside),
+          '7.4 the old journal is retired: set aside and named either way (it names no tree), never deleted, never written into a tree', `${a.stdout.trim()} / ${b.stdout.trim()}`.slice(0, 240));
+        for (const x of [asideA, aside]) if (x) fs.rmSync(x, { force: true });
+      } finally { if (had) fs.writeFileSync(J, had); else fs.rmSync(J, { force: true }); }
+    } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+  }
   console.log('\n── 5  no bare read after K.open (the thirteen FE-7 benches, read as text) ──');
   { const BENCHES = fs.readdirSync(path.join(ROOT, 'scripts')).filter((f) => /^b1(7[7-9]|8[0-9])_fe7_.*_bench\.js$/.test(f)).sort();
     ok(BENCHES.length === 13 && BENCHES[0].startsWith('b177_') && BENCHES[12].startsWith('b189_'), '5.1 the thirteen benches, b177 to b189, are all here', BENCHES.join(' '));

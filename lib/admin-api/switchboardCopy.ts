@@ -127,17 +127,19 @@ export const GATE_COPY: Readonly<Record<string, GateCopy>> = Object.freeze({
   'perm.instagram_business_manage_insights': { name: "Read a vendor's Instagram insights", spec: 'Meta app · feeds the Sunday brief · not filed' },
   'perm.instagram_business_content_publish': { name: "Post to a vendor's Instagram", spec: 'Meta app · posts from the studio · not filed' },
   'perm.instagram_business_manage_comments': { name: 'Reply to Instagram comments', spec: 'Meta app · not filed' },
-  'perm.ads_read':                         { name: "Read a vendor's ad results", spec: 'Meta app TDW ADS · in review' },
-  'perm.business_management':              { name: "Manage a vendor's ads account", spec: 'Meta app TDW ADS · in review' },
+  'perm.ads_read':                         { name: "Read a vendor's ad results", spec: 'This permission belongs to the Meta app TDW ADS. Meta is still reviewing it.' },
+  'perm.business_management':              { name: "Manage a vendor's ads account", spec: 'This permission belongs to the Meta app TDW ADS. Meta is still reviewing it.' },
   // CE-47 ADS-2 cut 2 (the chair's ruling, 1 Oct 2026): the ads gates 0177 and 0192 added, named.
-  'flag.ads':                               { name: 'Let vendors run their own Meta ads', spec: 'Meta app TDW ADS · needs all six ads permissions below' },
-  'perm.ads_management':                   { name: "Create and run a vendor's ads", spec: 'Meta app TDW ADS · in review' },
-  'perm.pages_read_engagement':            { name: "Read a vendor's Facebook Page posts", spec: 'Meta app TDW ADS · in review' },
-  'perm.pages_show_list':                  { name: "List a vendor's Facebook Pages", spec: 'Meta app TDW ADS · in review' },
-  'perm.pages_manage_ads':                 { name: "Run ads from a vendor's Facebook Page", spec: 'Meta app TDW ADS · in review' },
-  'perm.instagram_basic':                  { name: "Read a vendor's Instagram for ads", spec: 'Meta app TDW ADS · in review' },
-  'perm.instagram_manage_insights':        { name: "Read a vendor's Instagram post results", spec: 'Meta app TDW ADS · in review' },
-  'flag.ig_photo_import':                   { name: "Import a vendor's Instagram photos", spec: 'Meta app App-LIVE · needs Instagram basic' },
+  // R-47.1 (CE-47 ADS-2, 8 Oct 2026): the ten spec lines of the ads gates and the photo import are sentences now; the old
+  // lines ("Meta app TDW ADS · in review" and the two "· needs …") are in the handover's table.
+  'flag.ads':                               { name: 'Let vendors run their own Meta ads', spec: 'This switch belongs to the Meta app TDW ADS. It needs all six ads permissions listed below.' },
+  'perm.ads_management':                   { name: "Create and run a vendor's ads", spec: 'This permission belongs to the Meta app TDW ADS. Meta is still reviewing it.' },
+  'perm.pages_read_engagement':            { name: "Read a vendor's Facebook Page posts", spec: 'This permission belongs to the Meta app TDW ADS. Meta is still reviewing it.' },
+  'perm.pages_show_list':                  { name: "List a vendor's Facebook Pages", spec: 'This permission belongs to the Meta app TDW ADS. Meta is still reviewing it.' },
+  'perm.pages_manage_ads':                 { name: "Run ads from a vendor's Facebook Page", spec: 'This permission belongs to the Meta app TDW ADS. Meta is still reviewing it.' },
+  'perm.instagram_basic':                  { name: "Read a vendor's Instagram for ads", spec: 'This permission belongs to the Meta app TDW ADS. Meta is still reviewing it.' },
+  'perm.instagram_manage_insights':        { name: "Read a vendor's Instagram post results", spec: 'This permission belongs to the Meta app TDW ADS. Meta is still reviewing it.' },
+  'flag.ig_photo_import':                   { name: "Import a vendor's Instagram photos", spec: 'This switch belongs to the Meta app App-LIVE. It needs the Instagram basic permission.' },
 
   // ── Google access (scope.*) ───────────────────────────────────────────────
   'scope.google.siteverification':         { name: "Verify a vendor's website", spec: 'house grant · every vendor\'s website · granted' },

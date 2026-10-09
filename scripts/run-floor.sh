@@ -133,6 +133,15 @@ if [ -n "$AFFECTED" ]; then
   cat $AFFECTED | sed 's/#.*//' | sed 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' | sort -u > "$MANIFEST"
   echo "AFFECTED: $(echo $AFFECTED | wc -w) manifest(s), $(grep -c . "$MANIFEST") delivered path(s) in the union" >&2
 fi
+# ── F-44.424 (CE-47, 8 Oct 2026; built by ADS-2) · A KILLED RUN'S MUTATION IS PUT BACK BEFORE THE DIRT IS READ ──────────
+# A Codespace restart killed b189 mid-mutation on the founder's floor and left v2/components/vendor/AtelierForm.tsx
+# changed ("void only;"); the floor's own restart then stopped on "dirt OUTSIDE the declared manifest", and the chair put
+# the file back by hand. Every bench that plants through scripts/lib/mutation_guard.js (the FE-7 kit's mutate() among
+# them) leaves a marker naming its run; the floor now settles every marker FIRST: a dead run's file is restored by sha
+# and named, a live run is waited for (bounded) and then refused (rc 3), an unprovable one refused (rc 2). Only then is
+# the dirt read. A mutation planted outside the guard cannot be put back from here, and still stops the floor.
+# (A tree without the guard, such as a bench's own fixture repo, has nothing to settle.)
+if [ -f scripts/lib/mutation_guard.js ]; then node scripts/lib/mutation_guard.js --recover "(the floor)" || exit $?; fi
 DIRT=$(dirt_paths)
 
 if [ -n "$MANIFEST" ]; then

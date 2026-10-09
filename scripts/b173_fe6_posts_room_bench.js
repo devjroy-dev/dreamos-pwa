@@ -170,7 +170,7 @@ async function main() {
       return { rows: rows.map((e) => ({ tag: e.tagName, dead: e.hasAttribute('data-dead'), chev: !!e.querySelector('.pst-chev'), text: e.innerText })),
         sun: sun ? { tag: sun.tagName, dead: sun.hasAttribute('data-dead'), chev: !!sun.querySelector('.pst-chev'), pill: (sun.querySelector('[data-pill]') || {}).innerText, text: sun.innerText } : null };
     });
-    ok(dead && dead.rows.length === 2 && dead.rows.every((r) => r.dead && !r.chev && r.tag !== 'BUTTON' && r.text.includes('No past clients with a number yet.')),
+    ok(dead && dead.rows.length === 2 && dead.rows.every((r) => r.dead && !r.chev && r.tag !== 'BUTTON' && r.text.includes('None of your past clients has a phone number saved yet.')),
       '3.1 no one to send to: both message rows are dead, with the W1 line', dead && JSON.stringify(dead.rows));
     ok(dead && dead.sun && dead.sun.dead && !dead.sun.chev && dead.sun.tag !== 'BUTTON' && dead.sun.pill === 'Coming soon' && dead.sun.text.includes('This opens once Instagram approves our access.'),
       '4.1 Sunday waiting: one dead row, Coming soon, no chevron, no tap (R-46.14)', dead && JSON.stringify(dead.sun));
@@ -228,8 +228,9 @@ async function main() {
     await p.evaluate(() => { const b = document.querySelector('.wl-roomhead .wl-helpq'); if (b) b.click(); }).catch(() => null);
     await new Promise((r) => setTimeout(r, 700));
     const card = await q(p, () => { const c = document.querySelector('.wl-helpcard'); return c ? c.innerText : null; });
-    const STEPS = ['To post one: tap Download or Share beside it.', 'To run or see your ads: tap the row under Ads.',
-      'To send a message to past clients: tap Newest work message or Referral message.', 'Connects to your wedding pages and your Meta ad account.'];
+    // AMENDED BY LABEL (R-47.1, CE-47 ADS-2, 8 Oct 2026): the card's steps and connects line, as rewritten
+    const STEPS = ['To post a card, tap Download or Share beside it.', 'To run or see your ads, tap the row under Ads.',
+      'To send a message to your past clients, tap Newest work message or Referral message.', 'This room uses your wedding pages and your Meta ad account.'];
     ok(card && STEPS.every((s) => card.includes(s)), '6.1 the card carries the three approved steps and the connects line', card && card.slice(0, 200));
     const card2 = await q(p, () => { const c = document.querySelector('.wl-helpcard'); if (!c) return null; const r = c.getBoundingClientRect(); const sc = [...c.querySelectorAll('*')].concat([c]).some((e) => e.scrollHeight > e.clientHeight + 1 && /(auto|scroll)/.test(getComputedStyle(e).overflowY)); return { steps: c.querySelectorAll('.wl-helpdo li, .wl-helpdo > *').length, inView: r.top >= 0 && r.bottom <= innerHeight, scrolls: sc }; });
     ok(card2 && card2.inView && !card2.scrolls, '6.3 the card fits at 374 with nothing scrolling inside it (the rework standard)', card2 && JSON.stringify(card2));
@@ -283,7 +284,7 @@ async function main() {
     const MUTS = [
       ['M1 Share back under Download', PAGE, src, '<div className="pst-two" data-posts-actions="">', '<div className="pst-stack" data-posts-actions="">', '1.3'],
       ['M2 the Coming soon row made a button', PAGE, src, '<div className="pst-lrow pst-dead" data-sunday-row="" data-dead="">', '<div className="pst-lrow" data-sunday-row="">', '4.1'],
-      ['M3 W1 undone', WORDS, words, "noCouples:      'No past clients with a number yet.',", "noCouples:      'No past couples with a number yet.',", '3.1'],
+      ['M3 W1 undone', WORDS, words, "noCouples:      'None of your past clients has a phone number saved yet.',", "noCouples:      'None of your past couples has a phone number saved yet.',", '3.1'],   // AMENDED BY LABEL (R-47.1): the line's new words
       ['M4 Send opens a second dialog', PAGE, src, "{confirm === kind && fee ? (", "{false ? (", '3.5'],
       ['M5 Disconnect without asking', 'v2/app/vendor/(shell)/posts/ads/page.tsx', fs.readFileSync(path.join(ROOT, 'v2/app/vendor/(shell)/posts/ads/page.tsx'), 'utf8'), "data-disconnect-open onClick={() => setAskDisc(true)}", "data-disconnect-open onClick={() => { postJson(API.adsDisconnect(), {}); }}", 'A.5'],
     ];

@@ -1,0 +1,23 @@
+# scripts/floor-manifest-ce47-ads2-guard.txt
+# CE-47 · ADS-2 · PACKAGE A: mutation_guard.js knows a live writer (F-44.422); the FE-7 kit's mutate() plants through it
+# with a free-space check, the shared journal retired (F-44.419); run-floor.sh settles every marker before its dirt check
+# (F-44.424); R-47.1 Table 2 for Posts & ads (v2 ads.ts, posts.ts, pageHelp.ts, the admin switchboard) and the benches
+# that pin those words, amended by label. BASE: 0038eb41 (main's tip). No new folder. F-19.16: a dirty path outside this
+# list is a STOP.
+docs/handovers/TDW_CE47_ADS2_GUARD_HANDOVER.md
+lib/admin-api/switchboardCopy.ts
+lib/worklist/posts.ts
+scripts/b140_ce46_fe4_page_help_bench_v2.js
+scripts/b143_ads1_ads_page_bench_v2.js
+scripts/b173_fe6_posts_room_bench.js
+scripts/b174_f44258_mutation_guard_bench.js
+scripts/b177_fe7_room_rows_bench.js
+scripts/b256_ce47_feature_switches_bench.js
+scripts/b257_ce47_kit_waits_bench.js
+scripts/b74_r6_posts_room_bench.js
+scripts/floor-manifest-ce47-ads2-guard.txt
+scripts/lib/fe7_l4_kit.js
+scripts/lib/mutation_guard.js
+scripts/run-floor.sh
+v2/lib/worklist/ads.ts
+v2/lib/worklist/pageHelp.ts

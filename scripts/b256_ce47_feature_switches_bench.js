@@ -37,7 +37,8 @@ for (const tree of ['', 'v2/']) {
   ok(/aria-pressed=\{f\.choice === c\}/.test(sw) && /lineFor\(f\)/.test(sw) && /setList\(before\)/.test(sw), `2.5 ${t} the switch shows her choice pressed, the line under it, and reverts a failed save`);
 }
 const sb = rd('lib/admin-api/switchboardCopy.ts');
-ok(/needs all six ads permissions below/.test(sb) && !/needs all seven/.test(sb) && /Meta app App-LIVE . needs Instagram basic'/.test(sb), '3.1 the switchboard: ads needs six; the photo import needs Instagram basic');
+ok(/It needs all six ads permissions listed below\./.test(sb) && !/needs all seven/.test(sb) && /the Meta app App-LIVE\. It needs the Instagram basic permission\.'/.test(sb),   // AMENDED BY LABEL (R-47.1, CE-47 ADS-2): the spec lines are sentences now
+   '3.1 the switchboard: ads needs six; the photo import needs Instagram basic');
 
 const MUTS = [
   ['lib/worklist/features.ts', "return f.live ? FEATURE_WORDS.live : FEATURE_WORDS.waiting;", "return FEATURE_WORDS.live;", 'M1 the waiting line never shown', '1.2 app/'],

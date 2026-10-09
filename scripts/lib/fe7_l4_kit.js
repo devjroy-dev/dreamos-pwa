@@ -267,28 +267,50 @@ function words(p, sel = '.wl-main') {
  * A MUTATION: plant `to` for `from` in a production file (exactly one occurrence), run `cell` (which must go red),
  * restore by sha. The restore runs on every exit path; a restore that does not match the original sha is a red.
  */
-// THE JOURNAL: before a plant, the original bytes go to disk; a run killed by SIGKILL (which no handler survives)
-// leaves the journal, and the next run of ANY L4 bench restores it first and says so (recovered()).
-const JOURNAL = path.join(require('os').tmpdir(), 'fe7_l4_mutation_journal.json');
+// ── F-44.419 and F-44.422 (CE-47, ruled 8 Oct 2026; built by ADS-2) · A MUTATION GOES THROUGH THE GUARD ─────────────
+// Every plant goes through scripts/lib/mutation_guard.js: the original kept and synced, then a marker naming this run
+// (pid and start time), then the mutation. A run killed at any instant leaves the tree recoverable, per tree, and the
+// next start of ANY L4 bench restores it by sha, or refuses (rc 2), or, while that run is still alive, waits for it
+// (bounded) and then refuses with rc 3 (recoverOrRefuse). Free space is checked before every write (lesson 5): below
+// MIN_FREE the mutation is not planted and its cell is a named red.
+// THE OLD JOURNAL IS RETIRED. It was one file in os.tmpdir() shared by every tree on the machine, read against the
+// CURRENT tree: it restored a live run's mutation, two runs overwrote each other's, and a journal from tree X could be
+// written into tree Y. It names no tree and holds no mutated sha, so nothing can prove whose bytes it means: a journal
+// found at start is SET ASIDE (never deleted, never written into any tree) and named, for a person to compare.
+const guard = require(path.join(ROOT, 'scripts/lib/mutation_guard.js'));
+const OLD_JOURNAL = path.join(require('os').tmpdir(), 'fe7_l4_mutation_journal.json');
+const MIN_FREE = Number(process.env.FE7_MIN_FREE_BYTES || 256 * 1024 * 1024);   // the env raises it in b257 §7 only, to prove the refusal
+function freeBytes() { try { const f = fs.statfsSync(ROOT); return f.bavail * f.bsize; } catch (_e) { return null; } }
 function recovered() {
-  if (!fs.existsSync(JOURNAL)) return null;
-  const j = JSON.parse(fs.readFileSync(JOURNAL, 'utf8'));
-  const file = path.join(ROOT, j.rel);
-  if (sha(fs.readFileSync(file, 'utf8')) !== j.sha) fs.writeFileSync(file, j.orig);
-  fs.unlinkSync(JOURNAL);
-  return j.rel;
+  const said = [];
+  if (fs.existsSync(OLD_JOURNAL)) {
+    let j = null; try { j = JSON.parse(fs.readFileSync(OLD_JOURNAL, 'utf8')); } catch (_e) { j = null; }
+    const file = j && j.rel ? path.join(ROOT, j.rel) : null;
+    // Set aside ALWAYS, never deleted: the journal names no tree, so even a file that is the original HERE says nothing
+    // of the tree that wrote it (seen 8 Oct 2026: a restart left one for the base tree while this tree was clean).
+    const here = file && fs.existsSync(file) && sha(fs.readFileSync(file, 'utf8')) === j.sha ? 'the original in this tree' : 'NOT the original in this tree';
+    const aside = `${OLD_JOURNAL}.aside-${Date.now()}`; fs.renameSync(OLD_JOURNAL, aside);
+    said.push(`an old journal${j && j.rel ? ` for ${j.rel}` : ''} was set aside at ${aside} (the file is ${here}); it names no tree, so nothing was written; compare the file by hand in the tree that ran${j && j.sha ? ` (its original sha ${j.sha})` : ''}`);
+  }
+  const r = guard.recoverOrRefuse(ROOT, 'fe7_l4');
+  for (const rel of r.restored) said.push(`restored ${rel} by sha`);
+  return said.length ? said.join('; ') : null;
 }
 async function mutate(ok, name, rel, from, to, cell) {
   const file = path.join(ROOT, rel); const orig = fs.readFileSync(file, 'utf8'); const origSha = sha(orig);
-  fs.writeFileSync(JOURNAL, JSON.stringify({ rel, sha: origSha, orig }));
   const n = orig.split(from).length - 1;
-  if (n !== 1) { try { fs.unlinkSync(JOURNAL); } catch (_e) { /* gone */ } ok(false, `${name}: planted exactly once`, `${n} occurrences in ${rel}`); return; }
-  const restore = () => { if (sha(fs.readFileSync(file, 'utf8')) !== origSha) fs.writeFileSync(file, orig); try { fs.unlinkSync(JOURNAL); } catch (_e) { /* gone */ } };
-  process.once('exit', restore);
-  fs.writeFileSync(file, orig.replace(from, to));
-  let red = null;
-  try { red = !(await cell()); } catch (e) { red = true; } finally { restore(); }
-  ok(red === true, `${name}: the cell goes red with the mutation planted`);
+  if (n !== 1) { ok(false, `${name}: planted exactly once`, `${n} occurrences in ${rel}`); return; }
+  const free = freeBytes();
+  if (free !== null && free < MIN_FREE) {   // lesson 5: never start a write the disk cannot finish
+    ok(false, `${name}: the cell goes red with the mutation planted`, `not planted: ${Math.round(free / 1048576)} MB free, ${MIN_FREE / 1048576} MB needed`);
+    ok(sha(fs.readFileSync(file, 'utf8')) === origSha, `${name}: ${rel} restored to its sha`);
+    return;
+  }
+  let planted = null; let red = null;
+  const onExit = () => { if (planted) planted.restore(); };
+  process.once('exit', onExit);
+  try { planted = guard.apply(ROOT, rel, from, to, 'fe7_l4'); red = !(await cell()); } catch (e) { red = true; } finally { if (planted) planted.restore(); process.removeListener('exit', onExit); }
+  ok(red === true && planted !== null, `${name}: the cell goes red with the mutation planted`, planted ? undefined : 'the guard did not plant it');
   ok(sha(fs.readFileSync(file, 'utf8')) === origSha, `${name}: ${rel} restored to its sha`);
 }
 
@@ -297,11 +319,12 @@ async function warm(g, urls) {
   await Promise.all([...new Set(urls)].map((u) => fetch(`http://localhost:${g.port}${u}`, { headers: { cookie: 'tdw_layout=v2; tdw_wl_mode=dark' } }).then((r) => r.text()).catch(() => null)));
 }
 /**
- * ONE RUNNER for b178 to b189: the journal first; the source cells; glass (warmed); the glass cells; the mutations
+ * ONE RUNNER for b178 to b189: recovery through the guard first; the source cells; glass (warmed); the glass cells; the mutations
  * (unless --no-mutate); then the stop, the port and the leftovers. The exit code is the verdict.
  * spec: { tag, port, urls, source(ok, sec), glass(g, ok, sec), mutations: [{ name, rel, from, to, cell: async (g) => bool }] }
  */
 async function runBench(spec) {
+  const back = recovered();   // F-44.422: a killed run's mutation is restored BEFORE the anchors are read
   { const bad = anchorsClean(spec.mutations); if (bad.length) { console.log('STOP e-277: a mutation anchor is not clean before the first cell:\n  ' + bad.join('\n  ')); process.exit(1); } }
   const T = tally(spec.tag); const { ok, sec } = T;
   const quiet = (c) => !!c; const nosec = () => {};
@@ -315,8 +338,7 @@ async function runBench(spec) {
     process.exit(T.verdict());
   };
   try {
-    const back = recovered();
-    ok(true, `0.0 no interrupted mutation left in the tree${back ? ` (restored ${back} from the journal)` : ''}`);
+    ok(true, `0.0 no interrupted mutation left in the tree${back ? ` (${back})` : ''}`);
     if (spec.source) spec.source(ok, sec);
     const g = await startGlass(spec.port);
     if (!g) { ok(false, '0.1 the dev server came up'); return end(); }
@@ -392,4 +414,4 @@ async function standing(g, ok, room, url, o = {}) {
 }
 /** The words on a page must not say "couple" (the standing rule), in any case or plural. */
 const noCouple = (ws) => Array.isArray(ws) && !ws.some((w) => /\bcouples?\b/i.test(w));
-module.exports = { descendants, anchorsClean, watchReload, settle, waitFor, waitUrl, reloaded, logMark, logQuiet, instrument, roomChecks, tappedNames, standing, runBench, noCouple, recovered, warm, ROOT, read, code, sha, tally, startGlass, stopGlass, leftovers, open, tap, measureFacts, words, mutate, FIX, stopTree };
+module.exports = { OLD_JOURNAL, descendants, anchorsClean, watchReload, settle, waitFor, waitUrl, reloaded, logMark, logQuiet, instrument, roomChecks, tappedNames, standing, runBench, noCouple, recovered, warm, ROOT, read, code, sha, tally, startGlass, stopGlass, leftovers, open, tap, measureFacts, words, mutate, FIX, stopTree };

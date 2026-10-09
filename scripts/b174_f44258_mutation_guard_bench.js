@@ -2,7 +2,7 @@
 // scripts/b174_f44258_mutation_guard_bench.js · TDW CE-47 · F-44.258's cure · rung b174 (FE-6's allocation).
 //
 // WHAT IT HOLDS: scripts/lib/mutation_guard.js, the one pending-marker guard every mutating bench plants through, holds
-// its self-test (S1 to S3, A1 to A4, B1 to B4; the cells are written out in the helper). This rung is the floor's way
+// its self-test (S1 to S3, A1 to A4, B1 to B4, L1 to L5; the cells are written out in the helper). This rung is the floor's way
 // in: it runs the helper's --selftest and requires every named cell to PASS, then proves the cells bite by running the
 // SAME self-test on temporary COPIES of the helper with one defect planted in each (M1 to M4). Each copy must fail its
 // named cell. No file in the tree is ever mutated here, so this rung needs no guard of its own.
@@ -11,6 +11,12 @@
 //   M2 the kept-copy-without-marker sweep removed                               -> B1 must FAIL
 //   M3 restore() removes the kept copy before the marker                        -> B4 must FAIL
 //   M4 the mutated sha no longer recorded in the marker                         -> A1 must FAIL
+//   F-44.422 (CE-47 ADS-2, 8 Oct 2026): L1 to L5 in the helper (a live writer left alone and reported; restored once
+//   dead; a reused pid is not the writer; recoverOrRefuse waits, bounded, then rc 3; a young kept copy not swept), and
+//   M5 the live check removed -> L1 must FAIL · M6 the start time not compared -> L3 must FAIL · M7 the orphan's age
+//   not checked -> L5 must FAIL.
+// §R (F-44.424): a floor start after a kill mid-mutation restores the file by sha before it reads the dirt (R1); without
+// its recovery line the same floor stops on the dirt (R2).
 // THE EXIT CODE IS THE VERDICT.
 const fs = require('fs');
 const os = require('os');
@@ -18,7 +24,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const HELPER = path.join(__dirname, 'lib', 'mutation_guard.js');
-const CELLS = ['S1', 'S2', 'S3', 'A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4'];
+const CELLS = ['S1', 'S2', 'S3', 'A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4', 'L1', 'L2', 'L3', 'L4', 'L5'];
 let pass = 0; let fail = 0; const failed = [];
 function ok(c, name, info) {
   if (c) { pass += 1; console.log(`  PASS  ${name}`); } else { fail += 1; failed.push(name); console.log(`  FAIL  ${name}${info ? '  [' + String(info).slice(0, 300) + ']' : ''}`); }
@@ -38,10 +44,15 @@ ok(base.rc === 0, '1.2 the self-test exits 0', base.rc);
 const src = fs.readFileSync(HELPER, 'utf8');
 const MUTS = [
   ['M1', 'A3', "    if (disk !== m.mutSha) { out.refused.push(`${m.rel}: the file was edited since the mutation (${three})`); continue; }\n", ''],
-  ['M2', 'B1', "    if (!names.includes(name.replace(/\\.orig$/, '.json'))) { fs.unlinkSync(path.join(dir, name)); out.orphans.push(name); }", '    void name;'],
+  // M2 AMENDED BY LABEL (CE-47 ADS-2, F-44.422): the sweep line now checks the orphan's age first; the anchor is the sweep itself
+  ['M2', 'B1', " fs.unlinkSync(path.join(dir, name)); out.orphans.push(name); }", ' void name; }'],
   ['M3', 'B4', "      if (back) { try { fs.unlinkSync(markerFile); } catch (_e) { /* gone */ } try { fs.unlinkSync(keptFile); } catch (_e) { /* gone */ }",
     "      if (back) { try { fs.unlinkSync(keptFile); } catch (_e) { /* gone */ } try { fs.unlinkSync(markerFile); } catch (_e) { /* gone */ }"],
   ['M4', 'A1', 'JSON.stringify({ rel, sha: h, mutSha: mh, owner,', 'JSON.stringify({ rel, sha: h, owner,'],
+  // F-44.422 (CE-47 ADS-2, 8 Oct 2026): the live-writer check, the start-time check, the orphan's age
+  ['M5', 'L1', "    if (ownerAlive(m)) { out.live.push(", "    if (false) { out.live.push("],
+  ['M6', 'L3', "  return startOf(m.pid) === m.start;\n}", "  return true;\n}"],
+  ['M7', 'L5', "if (Date.now() - fs.statSync(path.join(dir, name)).mtimeMs < ORPHAN_MIN_AGE_MS) continue; ", ""],
 ];
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'b174-'));
 try {
@@ -96,5 +107,37 @@ try {
   ok(/SLICE=\$\(bash scripts\/lib\/floor_slice\.sh "\$b" "\$\{MANIFEST:-\}"\)/.test(rf) && /env \$SLICE_ENV node "\$b" \$SLICE_ARGS >>"\$LOG" 2>&1/.test(rf) && /echo "\$\{n\}: states only/.test(rf),
     'F6 run-floor.sh asks floor_slice.sh per member, prints which it did and why, and runs the recipe');
 } finally { fs.rmSync(tmpF, { recursive: true, force: true }); }
+// §R · F-44.424 (CE-47, 8 Oct 2026; built by ADS-2): a Codespace restart killed b189 mid-mutation on the founder's
+// floor, and the floor's restart then stopped on the dirt. On a fixture repo: a run planting through the guard is
+// SIGKILLed; the next floor start restores its file by sha BEFORE it reads the dirt, and runs. Both ways: the same floor
+// with its recovery line removed stops on "dirt OUTSIDE the declared manifest", as the founder's did.
+console.log('\n§R a floor start after a kill mid-mutation restores the file before it reads the dirt (F-44.424)');
+{
+  const FX = (rf) => `set -u
+SRC="$B174_ROOT"; T=$(mktemp -d "\${TMPDIR:-/tmp}/b174R.XXXX"); cd $T
+git init -q -b main r && cd r && git config user.email t@l && git config user.name t
+mkdir -p scripts/lib lib && cp "${rf}" scripts/run-floor.sh && cp $SRC/scripts/lib/mutation_guard.js $SRC/scripts/lib/floor_reap.sh $SRC/scripts/lib/floor_slice.sh $SRC/scripts/lib/floor_affected.mjs scripts/lib/
+ln -s $SRC/node_modules node_modules; printf 'node_modules\\n/.next/\\n' > .gitignore; echo '{"name": "web"}' > package.json
+echo 'export const only = true;' > lib/AtelierForm.tsx; echo 'console.log("m_ok 1 pass 0 fail");' > scripts/m_ok.js
+git add -A && git commit -q -m base; printf '# a delivery\\nscripts/m_ok.js\\n' > ../m.txt
+node -e "const g = require('./scripts/lib/mutation_guard.js'); g.apply(process.cwd(), 'lib/AtelierForm.tsx', 'only = true', 'only = false; void only', 'b189'); process.kill(process.pid, 'SIGKILL')"
+echo "PLANTED: $(cat lib/AtelierForm.tsx)"
+export TMPDIR=$T/tmp; mkdir -p $TMPDIR
+bash scripts/run-floor.sh --delivery ../m.txt --check > $T/f.log 2>&1; echo "RC $?"
+echo "OUT: $(grep -E 'restored by sha|dirt OUTSIDE|^FLOOR' $T/f.log | tr '\\n' ' ')"; echo "AFTER: $(cat lib/AtelierForm.tsx)"
+cd /; rm -rf $T
+`;
+  const run = (rf) => { const r = spawnSync('bash', ['-c', FX(rf)], { env: { ...process.env, B174_ROOT: ROOT }, encoding: 'utf8', timeout: 180000 }); const o = r.stdout || ''; return (k) => ((o.match(new RegExp('^' + k + ':? ?(.*)$', 'm')) || [])[1] || '').trim(); };
+  let get = run(path.join(ROOT, 'scripts/run-floor.sh'));
+  ok(/void only/.test(get('PLANTED')) && /\(the floor\): a pending mutation from a killed run was restored by sha: lib\/AtelierForm\.tsx/.test(get('OUT')) && !/dirt OUTSIDE/.test(get('OUT')) && get('AFTER') === 'export const only = true;',
+    'R1 a floor start after a kill mid-mutation restores the file by sha before the dirt is read, and goes on', `rc ${get('RC')} · ${get('OUT').slice(0, 200)} · ${get('AFTER')}`);
+  const tmpR = fs.mkdtempSync(path.join(os.tmpdir(), 'b174R-')); const noRec = path.join(tmpR, 'run-floor.sh');
+  try {
+    const rfSrc = fs.readFileSync(path.join(ROOT, 'scripts/run-floor.sh'), 'utf8'); const line = 'if [ -f scripts/lib/mutation_guard.js ]; then node scripts/lib/mutation_guard.js --recover "(the floor)" || exit $?; fi\n';
+    fs.writeFileSync(noRec, rfSrc.replace(line, ''));
+    get = run(noRec);
+    ok(rfSrc.includes(line) && /dirt OUTSIDE the declared manifest/.test(get('OUT')) && /void only/.test(get('AFTER')), 'R2 both ways: the same floor without its recovery line stops on the dirt, the file left changed (the founder’s case)', `${get('OUT').slice(0, 160)} · ${get('AFTER')}`);
+  } finally { fs.rmSync(tmpR, { recursive: true, force: true }); }
+}
 console.log(`\nb174 · ${pass} passed, ${fail} failed${failed.length ? ' · ' + failed.join(' ; ') : ''}`);
 process.exit(fail ? 1 : 0);

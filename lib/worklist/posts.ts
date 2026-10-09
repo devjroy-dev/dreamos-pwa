@@ -51,7 +51,7 @@ export const PO = {
   // ── 4b-2 · BROADCAST (4b veto sheet + frame veto, 2026-09-10) ─────────────
   referralLabel:  'Referral message',
   // CE-46 FE-6 cut 1, W1 (the chair's yes, 30 Sept 2026, under the founder's no-"couple" rule of 29 Sept): past clients.
-  noCouples:      'No past clients with a number yet.',
+  noCouples:      'None of your past clients has a phone number saved yet.',   // R-47.1 (CE-47 ADS-2, 8 Oct 2026): rewritten, the old line in the handover's table
 
   // ── CE-46 FE-6 cut 1 · the reworked room (the founder's verdict on the mock, 30 Sept 2026) ──────────────────────
   exampleLine:    'An example card. Yours are made from your last wedding page.',   // W6

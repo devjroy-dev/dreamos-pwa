@@ -27,7 +27,7 @@ export const ADS = {
 
   // cut1e 2 · the chooser (e2), approved 29 September 2026. {n} is Meta's own count on her login.
   choose: {
-    funds: 'Funds: {amount}',   // CE-47 ADS-2 item 4: drawn only for INR, through formatRs
+    funds: 'This account has {amount} to spend.',   // CE-47 ADS-2 item 4: drawn only for INR, through formatRs. R-47.1 (CE-47 ADS-2, 8 Oct 2026): rewritten, the old line in the handover's table
     // CE-47 (the founder's words, 1 Oct 2026): a non-INR account names its currency and is not pickable for now.
     currencyLine: 'This account pays in {name}.',
     rupeesOnly: 'TDW runs ads on rupee accounts for now.',
@@ -35,7 +35,7 @@ export const ADS = {
     accountQ: 'Which ad account should your ads use?',
     pageQ: 'Which Page should your ads come from?',
     accountBody: 'Meta shows {n} ad accounts on your login. Pick the one to use for TDW. You can change it later in All settings.',
-    pageBody: 'Meta shows {n} Pages on your login. Pick the one to use for TDW. You can change it later in All settings.',   // the Pages twin of the approved line, for the chair
+    pageBody: 'Your Meta login has {n} Pages. Pick the one your ads should come from. You can change it later in All settings.',   // R-47.1 (CE-47 ADS-2, 8 Oct 2026): rewritten, the old line in the handover's table   // the Pages twin of the approved line, for the chair
     useAccount: 'Use this ad account',
     usePage: 'Use this Page',
   },
