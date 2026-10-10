@@ -27,6 +27,17 @@
 //   2.8 photographs: her two look tiles carry next/image addresses for TDW's folder at quality 60; each file the tiles can
 //       ask for is weighed (150 KB at most) when this machine can reach Cloudinary, and the cell says SKIP when it cannot.
 //       Discover's two tiles carry the same two (ruling 5, 9 Oct 2026).
+// §5 THE VENDOR SIGN-IN IN tdw.works's LOOK (LAND-1 package 2), on the same build, thedreamwedding.in mapped to it:
+//   1.4 sources: one home (the landing and the six PIN pages draw WorksBackdrop; it and tdw.works draw lib/works/wall.ts
+//       and WorksWall); the couples' page loads it only for a vendor screen; the Back rule; the two PIN checks.
+//   5.1 the vendor sign-in and sign-up at 360x640, 390x844 and 1440x900, light and dark: the wall (4 or 6 columns), no
+//       photographs, the glass panel inside the screen (a sheet on a phone, centred on a laptop), solid enough glass,
+//       full-size text, 4.5:1 contrast over the wall's worst, the works faces, the mark, the browser bar's colour.
+//   5.2 the same steps and checks: Continue and Send code stay shut until the fields are given; the code screen.
+//   5.3 Back: to tdw.works (from tdw.works's doors), to the chooser (from the chooser); the browser bar given back.
+//   5.4 the Dreamer's screens untouched.
+//   5.5 the PIN screens, classic and v2 (tdw_layout=v2): the look, the mark TDW / tdw.works and no tagline, the words,
+//       Forgot PIN?, and the two checks that now send her to the vendor sign-in.
 // §3 --perf: on the same build, the first full view (the heading's face loaded, the largest paint done)
 //    under two 4G profiles, 360x640: the bar is 2.5 s.
 // §4 --mutate: lib/works/scenes.ts's draw() made to forget the bag; 1.2's order cell and 2.2 must go red. Restored by sha.
@@ -199,6 +210,31 @@ sec('1.3 the sources');
     "the root layout paints tdw.works's own ground and browser bar, not the couples' near-black");
 }
 
+sec('1.4 the vendor sign-in: one home, the Back rule, the PIN checks (LAND-1 package 2)');
+{
+  const L = read('app/(landing)/page.tsx'), BD = read('app/works/WorksBackdrop.tsx'), PG = read('app/works/page.tsx'), WL = read('lib/works/wall.ts');
+  const PINS = ['app', 'v2/app'].flatMap((t) => ['pin-login', 'pin', 'pin-reset'].map((f) => `${t}/vendor/(legacy)/${f}/page.tsx`));
+  ok(/import WorksWall from '\.\/WorksWall';/.test(BD) && /import \{ freshWall \} from '@\/lib\/works\/wall';/.test(BD) && /<WorksWall html=\{wall\} \/>/.test(BD)
+    && /import \{ worksLooks, wallHtml \} from '@\/lib\/works\/wall';/.test(PG) && /<WorksWall html=\{wall\} \/>/.test(PG) && /buildScenes\(worksLooks\(\)\)/.test(WL) && /columnHtml\(/.test(WL),
+    'one home: tdw.works and the sign-in draw the same wall (WorksWall), from the same scenes and columns (lib/works/wall.ts)');
+  ok(PINS.every((f) => /import WorksBackdrop from '@\/app\/works\/WorksBackdrop';/.test(read(f)) && /<WorksBackdrop label=/.test(read(f)) && !/FALLBACK_SLIDES|landing-slides|The Dream Wedding<|MAKER PORTAL/.test(read(f))),
+    'the six PIN pages (classic and v2) stand on WorksBackdrop: no photographs, no "The Dream Wedding", no "MAKER PORTAL"');
+  ok(/const WorksBackdrop = dynamic\(\(\) => import\('@\/app\/works\/WorksBackdrop'\), \{ ssr: false \}\);/.test(L) && !/import WorksBackdrop/.test(L) && !/works\.css|glass\.css|signinFonts/.test(L)
+    && !/preload: (true|undefined)/.test(read('app/works/signinFonts.ts')) && (read('app/works/signinFonts.ts').match(/preload: false/g) || []).length === 4,
+    "the couples' page loads the works look only when a vendor screen opens, and none of its four faces is preloaded");
+  ok(/const WORKS_SCREENS = \['join_phone', 'join_otp', 'signin_phone', 'signin_otp', 'your_name'\];/.test(L) && /const works = role === 'Maker' && WORKS_SCREENS\.includes\(screen\);/.test(L),
+    'the works look: the vendor (Maker) on phone, code and name screens only; the entry, the chooser and the feed as before');
+  ok((L.match(/<BackBtn onClick=\{works \? vendorBack : \(\) => setScreen\('entry'\)\} \/>/g) || []).length === 3
+    && /<BackBtn onClick=\{\(\) => setScreen\(screen === 'join_otp' \? 'join_phone' : 'signin_phone'\)\} \/>/.test(L)
+    && /const vendorBack = \(\) => \{ if \(viaChooser\.current\) \{ setScreen\('chooser'\); return; \} window\.location\.assign\(TDW_WORKS\); \};/.test(L),
+    'Back on the vendor phone and name screens: the chooser if she came from it, else tdw.works; the code screen\'s Back unchanged');
+  const PL = ['app', 'v2/app'].map((t) => read(`${t}/vendor/(legacy)/pin-login/page.tsx`)), PN = ['app', 'v2/app'].map((t) => read(`${t}/vendor/(legacy)/pin/page.tsx`));
+  ok(PL.every((s) => /if \(!s\?\.id \|\| !s\?\.pin_set\) \{ router\.replace\(VENDOR_SIGNIN\); return; \}/.test(s) && /if \(next >= 5\) \{[\s\S]{0,260}router\.replace\(VENDOR_SIGNIN\);/.test(s) && !/router\.replace\('\/'\)/.test(s))
+    && PN.every((s) => /if \(!s\?\.id\) \{ router\.replace\(VENDOR_SIGNIN\); return; \}/.test(s) && /\} catch \{ router\.replace\(VENDOR_SIGNIN\); return; \}/.test(s) && !/router\.replace\('\/'\)/.test(s))
+    && [...PL, ...PN].every((s) => /const VENDOR_SIGNIN = '\/\?role=vendor-signin';/.test(s)),
+    'the PIN checks (no session; five wrong PINs) keep their tests and now send her to /?role=vendor-signin, in both trees');
+}
+
 // ── §2 glass ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 function browserBin() {
   const usable = (p) => { try { return !!p && fs.statSync(p).isFile(); } catch (_e) { return false; } };
@@ -208,9 +244,9 @@ function browserBin() {
 }
 async function sparticuz() { try { const mod = require(path.join(ROOT, 'node_modules/@sparticuz/chromium')); const p = await (mod.default || mod).executablePath(); return p; } catch (_e) { return null; } }
 function freePort() { const r = spawnSync(process.execPath, ['-e', "const s=require('net').createServer();s.listen(0,'127.0.0.1',()=>{console.log(s.address().port);s.close();});"], { encoding: 'utf8' }); return Number((r.stdout || '').trim()); }
-function get(port, p, host) {
+function get(port, p, host, cookie) {
   return new Promise((resolve) => {
-    const req = http.get({ host: '127.0.0.1', port, path: p, headers: { host: host || `127.0.0.1:${port}` } }, (res) => { const b = []; res.on('data', (c) => b.push(c)); res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, bytes: Buffer.concat(b) })); });
+    const req = http.get({ host: '127.0.0.1', port, path: p, headers: { host: host || `127.0.0.1:${port}`, ...(cookie ? { cookie } : {}) } }, (res) => { const b = []; res.on('data', (c) => b.push(c)); res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, bytes: Buffer.concat(b) })); });
     req.on('error', (e) => resolve({ status: 0, error: String(e), bytes: Buffer.alloc(0) }));
     req.setTimeout(120000, () => { req.destroy(); resolve({ status: 0, error: 'timeout', bytes: Buffer.alloc(0) }); });
   });
@@ -443,6 +479,243 @@ async function glass(puppeteer, bin, base, port) {
   }
 }
 
+// ── §5 the vendor sign-in in tdw.works's look (LAND-1 package 2) ──────────────────────────────────────────────────────
+// thedreamwedding.in is mapped to the same production build. The app's API is answered here for the three calls the
+// cells need (send a code, a wrong PIN) and refused for everything else, so nothing leaves this machine.
+const WORKS_BAR = { light: '#E7EAE6', dark: '#0E1112' };
+const SESSION = { id: 'b303-vendor', user_id: 'b303-user', phone: '+919876500001', name: 'Asha Rao', pin_set: true, _v: 2 };
+async function signin(puppeteer, bin, port) {
+  const browser = await puppeteer.launch({ executablePath: bin, headless: true, args: ['--no-sandbox', '--host-resolver-rules=MAP tdw.works 127.0.0.1, MAP thedreamwedding.in 127.0.0.1'] });
+  const site = `http://thedreamwedding.in:${port}`;
+  const open = async (w, h, { mode, at = '/', session, layout, wait = '.wg-panel' } = {}) => {
+    const ctx = await browser.createBrowserContext();
+    const p = await ctx.newPage();
+    await p.setViewport({ width: w, height: h, deviceScaleFactor: 1, isMobile: w < 800, hasTouch: w < 800 });
+    if (mode) await p.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: mode }]);
+    if (session) await p.evaluateOnNewDocument((s) => { try { localStorage.setItem('vendor_web_session', JSON.stringify(s)); localStorage.setItem('vendor_session', JSON.stringify(s)); } catch (_e) { /* none */ } }, session);
+    if (layout) await p.setCookie({ name: 'tdw_layout', value: layout, url: site });
+    p.left = []; p.api = [];
+    await p.setRequestInterception(true);
+    p.on('request', (r) => {
+      const u = r.url();
+      if (u.startsWith('https://tdw.works')) { if (r.isNavigationRequest()) p.left.push(u); return r.respond({ status: 200, contentType: 'text/html', body: '<!doctype html><title>tdw.works</title>tdw.works' }); }
+      if (/^http:\/\/(thedreamwedding\.in|tdw\.works):\d+\//.test(u)) return r.continue();
+      if (r.method() === 'OPTIONS' && /\/send-otp|\/vendor\/auth\/pin-login/.test(u)) return r.respond({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'POST' } });
+      if (/\/send-otp/.test(u)) { p.api.push('send-otp'); return r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ ok: true }) }); }
+      if (/\/vendor\/auth\/pin-login/.test(u)) { p.api.push('pin-login'); return r.respond({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ ok: false, error: 'Incorrect PIN.' }) }); }
+      return r.abort();
+    });
+    await p.goto(site + at, { waitUntil: 'load', timeout: 240000 });
+    if (wait) await p.waitForSelector(wait, { timeout: 30000 }).catch(() => {});
+    await p.evaluate(() => document.fonts.ready);
+    p.ctx = ctx; return p;
+  };
+  const close = async (p) => { await p.ctx.close(); };
+  const look = (p) => p.evaluate(async () => {
+    const panel = document.querySelector('.wg-panel'); if (!panel) return { panel: false, text: document.body.innerText.slice(0, 200) };
+    await Promise.all(panel.getAnimations().map((a) => a.finished.catch(() => null)));   // measured at rest, after the panel's rise
+    // Chrome reports a color-mix() as color(srgb r g b / a) with 0..1 channels, and a plain colour as rgb()/rgba().
+    const rgb = (c) => { const k = c.match(/color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+)(?: \/ ([\d.e-]+))?\)/); if (k) return { r: k[1] * 255, g: k[2] * 255, b: k[3] * 255, a: k[4] === undefined ? 1 : Number(k[4]) };
+      const m = (c.match(/rgba?\(([^)]+)\)/) || [, '0,0,0,0'])[1].split(',').map(Number); return { r: m[0], g: m[1], b: m[2], a: m[3] === undefined ? 1 : m[3] }; };
+    const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+    const pb = rgb(getComputedStyle(panel).backgroundColor);
+    // The worst ground under the glass: the wall at its opposite extreme (pure black in light mode, pure white in dark),
+    // under the wall's own veil (read from the page), then the panel at its own alpha over that.
+    const tdww = document.querySelector('.tdww');
+    const ground = rgb(getComputedStyle(tdww).backgroundColor);
+    const veil = rgb(getComputedStyle(document.querySelector('.tdww .wall'), '::after').backgroundColor);
+    const o = lum(ground) < 0.2 ? 255 : 0;
+    const mix = (top, a, bot) => ({ r: top.r * a + bot.r * (1 - a), g: top.g * a + bot.g * (1 - a), b: top.b * a + bot.b * (1 - a) });
+    const wallWorst = mix(veil, veil.a, { r: o, g: o, b: o });
+    const worst = mix(pb, pb.a, wallWorst);
+    const under = (e) => { for (let x = e; x && x !== panel; x = x.parentElement) { const c = rgb(getComputedStyle(x).backgroundColor); if (c.a >= 0.99) return c; } return worst; };
+    const shown = [...panel.querySelectorAll('p, button, input, b, span, label')].filter((e) => { const b = e.getBoundingClientRect(); return b.width > 0 && getComputedStyle(e).display !== 'none' && (e.matches('input') || (e.textContent || '').trim()); });
+    const sizes = shown.map((e) => ({ t: (e.textContent || e.placeholder || e.tagName).trim().slice(0, 24), s: parseFloat(getComputedStyle(e).fontSize), c: ratio(rgb(getComputedStyle(e).color), under(e)), tag: e.tagName, off: !!e.disabled || (e.closest('button') && e.closest('button').disabled) }));
+    const h = panel.querySelector('.wg-h'); const sub = panel.querySelector('.wg-sub');
+    const r = panel.getBoundingClientRect();
+    const meta = [...document.querySelectorAll('meta[name="theme-color"]')].map((m) => m.getAttribute('content'));
+    const se = document.scrollingElement;
+    return { panel: true, alpha: pb.a, blur: /blur\(/.test(getComputedStyle(panel).backdropFilter || getComputedStyle(panel).webkitBackdropFilter || ''),
+      inside: r.left >= -1 && r.top >= -1 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1, bottom: Math.round(innerHeight - r.bottom), centre: Math.round(Math.abs((r.left + r.right) / 2 - innerWidth / 2)), width: Math.round(r.width),
+      cols: [...document.querySelectorAll('.tdww .colm')].filter((c) => getComputedStyle(c).display !== 'none').length, minis: document.querySelectorAll('.tdww .mini').length,
+      photos: [...document.querySelectorAll('div')].filter((d) => /res\.cloudinary\.com/.test(d.style.backgroundImage || '')).length,
+      drift: getComputedStyle(document.querySelector('.tdww .track') || document.body).animationName,
+      min: Math.min(...sizes.map((x) => x.s)), small: sizes.filter((x) => x.s < 14), lowc: sizes.filter((x) => x.c < 4.5 && !x.off),
+      h: h && { t: h.textContent, s: parseFloat(getComputedStyle(h).fontSize), f: getComputedStyle(h).fontFamily }, sub: sub && { s: parseFloat(getComputedStyle(sub).fontSize), f: getComputedStyle(sub).fontFamily },
+      mark: [...panel.querySelectorAll('.wg-mark b, .wg-mark span')].map((e) => e.textContent), meta: meta.map((m) => (m || '').toUpperCase()), cls: document.documentElement.classList.contains('works-signin'),
+      sw: se.scrollWidth, iw: innerWidth, text: panel.innerText };
+  });
+  const btn = (p, label) => p.evaluate((l) => { const b = [...document.querySelectorAll('button, p')].find((x) => x.textContent.trim() === l); return b ? { found: true, disabled: !!b.disabled } : { found: false }; }, label);
+  const tap = (p, label) => p.evaluate((l) => { const b = [...document.querySelectorAll('button, p')].find((x) => x.textContent.trim() === l); if (b) b.click(); return !!b; }, label);
+  const type = async (p, sel, v) => { await p.focus(sel); await p.keyboard.type(v); };
+  try {
+    sec('5.1 the vendor sign-in and sign-up wear tdw.works: the wall, the glass, full-size text (phone and laptop, light and dark)');
+    for (const [w, h] of [[360, 640], [390, 844], [1440, 900]]) for (const mode of ['light', 'dark']) for (const [at, head] of [['/?role=vendor-signin', 'Welcome back.'], ['/?role=vendor', 'Welcome. Let’s begin.']]) {
+      const p = await open(w, h, { mode, at });
+      await p.waitForFunction(() => document.querySelectorAll('.tdww .mini').length > 0, { timeout: 15000 }).catch(() => {});
+      const r = await look(p);
+      const tag = `${w}x${h} ${mode} ${at.slice(7)}`;
+      ok(r.panel && r.cols === (w < 860 ? 4 : 6) && r.minis >= 24 && r.photos === 0 && r.drift === 'tdww-drift',
+        `${tag}: tdw.works's wall behind (its drift, ${w < 860 ? 4 : 6} columns of the app's screens), no photographs`, JSON.stringify({ cols: r.cols, minis: r.minis, photos: r.photos, drift: r.drift }));
+      ok(r.inside && r.sw <= r.iw && (w < 860 ? r.bottom === 0 && r.width === w : r.centre <= 2 && r.width <= 460),
+        `${tag}: the glass panel inside the screen, ${w < 860 ? 'a sheet from the bottom' : 'centred'}, no sideways scroll`, JSON.stringify({ inside: r.inside, bottom: r.bottom, centre: r.centre, width: r.width, sw: r.sw }));
+      ok(r.alpha >= 0.8 && r.blur, `${tag}: frosted glass, solid enough to read over the moving wall (${r.alpha})`);
+      ok(r.h && r.h.t === head && r.h.s >= 28 && /Bodoni Moda/.test(r.h.f) && (!r.sub || (r.sub.s >= 16 && /Manrope/.test(r.sub.f))) && r.min >= 14 && !r.small.length,
+        `${tag}: full-size text: "${head}" in Bodoni at ${r.h && r.h.s}px, the lines in Manrope at 16px, nothing under 14px`, JSON.stringify({ h: r.h, sub: r.sub, small: r.small }));
+      ok(!r.lowc.length, `${tag}: every line reads at 4.5:1 or better on the glass, even over the wall's opposite extreme`, JSON.stringify(r.lowc));
+      ok(r.mark.join('|') === 'TDW|tdw.works' && r.cls && r.meta.length && r.meta.every((m) => m === WORKS_BAR[mode].toUpperCase()),
+        `${tag}: the mark (TDW, tdw.works); the browser bar takes works.css's ${mode} ground (${WORKS_BAR[mode]})`, JSON.stringify({ mark: r.mark, meta: r.meta }));
+      await close(p);
+    }
+
+    sec('5.2 the same steps and checks, on the glass');
+    {
+      const p = await open(390, 844, { at: '/?role=vendor-signin' });
+      const c0 = await btn(p, 'Continue →');
+      await type(p, '.wg-panel input[type="tel"]', '9876500011');
+      const c1 = await btn(p, 'Continue →');
+      ok(c0.found && c0.disabled && c1.found && !c1.disabled, 'sign in: phone, then Continue (shut until the number is whole), as before', JSON.stringify({ c0, c1 }));
+      await close(p);
+      const q = await open(390, 844, { at: '/?role=vendor' });
+      const s0 = await btn(q, 'Send code →');
+      await type(q, '.wg-panel input[placeholder="First name"]', 'Asha');
+      await type(q, '.wg-panel input[type="tel"]', '9876500012');
+      const s1 = await btn(q, 'Send code →');
+      const chip = await q.evaluate(() => { const c = [...document.querySelectorAll('.wg-chip')].find((x) => x.textContent.trim() === 'Makeup'); c.click(); return true; });
+      await sleep(80);
+      const pressed = await q.evaluate(() => [...document.querySelectorAll('.wg-chip[aria-pressed="true"]')].map((x) => x.textContent.trim()));
+      const chipLook = await q.evaluate(() => { const c = document.querySelector('.wg-chip[aria-pressed="true"]'); return { s: parseFloat(getComputedStyle(c).fontSize), tt: getComputedStyle(c).textTransform }; });
+      const s2 = await btn(q, 'Send code →');
+      ok(s0.disabled && s1.disabled && chip && pressed.join() === 'Makeup' && !s2.disabled && chipLook.s >= 14 && chipLook.tt === 'none',
+        'sign up: name, phone and craft, every time (F-44.271): Send code stays shut until all three are given; the craft shows chosen', JSON.stringify({ s0, s1, pressed, s2, chipLook }));
+      await tap(q, 'Send code →');
+      await q.waitForFunction(() => document.querySelectorAll('.wg-panel input[autocomplete="one-time-code"]').length === 6, { timeout: 10000 }).catch(() => {});
+      const r = await look(q);
+      const otp = await q.evaluate(() => [...document.querySelectorAll('.wg-panel input[autocomplete="one-time-code"]')].map((i) => parseFloat(getComputedStyle(i).fontSize)));
+      ok(q.api.includes('send-otp') && r.h && r.h.t === 'Check your messages.' && otp.length === 6 && otp.every((s) => s >= 22) && !r.small.length && !r.lowc.length,
+        'the code screen: the same six boxes on the glass, full size; Verify and Resend code as before', JSON.stringify({ api: q.api, h: r.h, otp, small: r.small }));
+      await q.click('.wg-back'); await sleep(150);
+      const back = await q.evaluate(() => ({ h: (document.querySelector('.wg-h') || {}).textContent, glass: !!document.querySelector('.wg-panel') }));
+      ok(back.glass && back.h === 'Welcome. Let’s begin.' && !q.left.length, "the code screen's Back still returns to the phone step (unchanged)", JSON.stringify(back));
+      await close(q);
+    }
+
+    sec('5.3 Back from a vendor screen: where she came from, never the Dreamer entry');
+    for (const at of ['/?role=vendor-signin', '/?role=vendor']) {
+      const p = await open(390, 844, { at });
+      await p.click('.wg-back'); await sleep(400);
+      ok(p.left.length === 1 && p.left[0].replace(/\/$/, '') === 'https://tdw.works', `${at}: Back goes to tdw.works`, JSON.stringify(p.left));
+      await close(p);
+    }
+    {
+      const p = await open(390, 844, { at: '/', wait: null });
+      await p.waitForFunction(() => [...document.querySelectorAll('button')].some((b) => b.textContent.trim() === 'Sign up'), { timeout: 30000 }).catch(() => {});
+      const bar0 = await p.evaluate(() => [...document.querySelectorAll('meta[name="theme-color"]')].map((m) => (m.getAttribute('content') || '').toUpperCase()));
+      await tap(p, 'Sign up'); await sleep(150);
+      await p.evaluate(() => { const b = [...document.querySelectorAll('button')].filter((x) => x.textContent.trim() === 'I’m a wedding vendor' || x.textContent.trim() === "I'm a wedding vendor").pop(); b.click(); });
+      await p.waitForSelector('.wg-panel', { timeout: 15000 }).catch(() => {});
+      const on = await look(p);
+      await p.click('.wg-back'); await sleep(300);
+      const after = await p.evaluate(() => ({ glass: !!document.querySelector('.tdww'), heads: [...document.querySelectorAll('p')].map((x) => x.textContent.trim()).filter((t) => t === 'New here?'), cls: document.documentElement.classList.contains('works-signin'),
+        meta: [...document.querySelectorAll('meta[name="theme-color"]')].map((m) => (m.getAttribute('content') || '').toUpperCase()), photos: [...document.querySelectorAll('div')].filter((d) => /url\(/.test(d.style.backgroundImage || '')).length }));
+      ok(on.panel && on.h.t === 'Welcome. Let’s begin.' && !after.glass && after.heads.length === 1 && !p.left.length,
+        'from the sign-up chooser: the vendor screen is on the glass, and Back returns to the chooser ("New here?")', JSON.stringify({ on: on.h, after, left: p.left }));
+      ok(!after.cls && JSON.stringify(after.meta) === JSON.stringify(bar0) && on.meta.every((m) => m === WORKS_BAR.light.toUpperCase()),
+        'the browser bar is the works ground on the vendor screen and gets its own colour back when she leaves it', JSON.stringify({ before: bar0, on: on.meta, after: after.meta }));
+      await close(p);
+    }
+
+    sec("5.4 the Dreamer's screens are untouched");
+    {
+      const p = await open(390, 844, { at: '/', wait: null });
+      await p.waitForFunction(() => [...document.querySelectorAll('button')].some((b) => /getting married/.test(b.textContent)), { timeout: 30000 }).catch(() => {});
+      await p.evaluate(() => { [...document.querySelectorAll('button')].find((b) => /getting married/.test(b.textContent)).click(); });
+      await sleep(300);
+      const d = await p.evaluate(() => {
+        const h = [...document.querySelectorAll('p')].find((x) => x.textContent.trim() === 'Welcome back.');
+        const panel = h && h.parentElement; const ps = panel && getComputedStyle(panel);
+        return { tdww: !!document.querySelector('.tdww'), cls: document.documentElement.classList.contains('works-signin'), hf: h && getComputedStyle(h).fontFamily, hs: h && getComputedStyle(h).fontSize,
+          bg: ps && ps.backgroundColor, photos: [...document.querySelectorAll('div')].filter((x) => /url\(/.test(x.style.backgroundImage || '')).length,
+          gold: (() => { const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim() === 'Continue →'); return b && getComputedStyle(b).fontFamily; })() };
+      });
+      ok(!d.tdww && !d.cls && /Cormorant/.test(d.hf) && d.hs === '20px' && d.bg === 'rgba(12, 10, 9, 0.3)' && d.photos >= 1 && /Jost/.test(d.gold),
+        "the Dreamer's sign-in keeps its look: the photographs, the dark glass, Cormorant at 20px, the gold button in Jost; no wall", JSON.stringify(d));
+      await close(p);
+      const q = await open(390, 844, { at: '/?role=couple', wait: null }); await sleep(800);
+      ok(!(await q.evaluate(() => !!document.querySelector('.tdww') || document.documentElement.classList.contains('works-signin'))), '?role=couple opens the feed as before, no wall');
+      await close(q);
+    }
+
+    sec('5.5 the PIN screens, classic and v2 (tdw_layout=v2)');
+    for (const layout of [null, 'v2']) {
+      const L = layout ? 'v2' : 'classic';
+      for (const [w, h] of [[390, 844], [1440, 900]]) {
+        const p = await open(w, h, { at: '/vendor/pin-login', session: SESSION, layout });
+        const r = await look(p);
+        const pins = await p.evaluate(() => [...document.querySelectorAll('.wg-panel input')].map((i) => parseFloat(getComputedStyle(i).fontSize)));
+        ok(r.panel && r.cols === (w < 860 ? 4 : 6) && r.photos === 0 && r.inside && r.alpha >= 0.8 && r.mark.join('|') === 'TDW|tdw.works'
+          && !/The Dream Wedding|MAKER PORTAL|Delegated Workspace/i.test(r.text) && r.meta.every((m) => m === WORKS_BAR.light.toUpperCase()),
+          `${L} ${w}: pin-login on tdw.works's wall and glass, headed TDW / tdw.works (no tagline, no "The Dream Wedding", no "MAKER PORTAL"); the browser bar`, JSON.stringify({ cols: r.cols, mark: r.mark, text: r.text.slice(0, 120), meta: r.meta }));
+        ok(r.h.t === 'Welcome back, Asha.' && /Enter your PIN to continue\./.test(r.text) && /Forgot PIN\?/.test(r.text) && pins.length === 4 && pins.every((s) => s >= 24) && !r.small.length && !r.lowc.length,
+          `${L} ${w}: the same words and four PIN boxes, full size, readable`, JSON.stringify({ h: r.h, pins, small: r.small, lowc: r.lowc }));
+        await close(p);
+      }
+      {
+        // the served page is the tree's own: v2's files when tdw_layout=v2 (middleware.ts rewrites /vendor/* to /v2/...)
+        const html = (await get(port, '/vendor/pin-login', 'thedreamwedding.in', layout ? 'tdw_layout=v2' : '')).bytes.toString('utf8');
+        // The page's own route, as the server rendered it: v2's is "", "v2", "vendor", "pin-login".
+        const V2 = html.includes('\\"c\\":[\\"\\",\\"v2\\",\\"vendor\\",\\"pin-login\\"]'), CL = html.includes('\\"c\\":[\\"\\",\\"vendor\\",\\"pin-login\\"]');
+        ok(layout ? V2 && !CL : CL && !V2, `${L}: the ${L} tree's pin-login is the one served (the server's own route for the page)`, JSON.stringify({ V2, CL }));
+      }
+      {
+        const p = await open(390, 844, { at: '/vendor/pin-login', session: SESSION, layout });
+        await tap(p, 'Forgot PIN?');
+        await p.waitForFunction(() => location.pathname === '/vendor/pin-reset' && !!document.querySelector('.wg-h'), { timeout: 15000 }).catch(() => {});
+        const r = await look(p);
+        const phone = await p.evaluate(() => { const i = document.querySelector('.wg-panel input[placeholder="WhatsApp number"]'); return i && { v: i.value, s: parseFloat(getComputedStyle(i).fontSize) }; });
+        ok(r.panel && r.h.t === 'Reset your PIN.' && /Send reset code/.test(r.text) && /Back to PIN entry/.test(r.text) && phone && phone.v === SESSION.phone && phone.s >= 18 && !r.small.length && r.mark.join('|') === 'TDW|tdw.works',
+          `${L}: Forgot PIN? opens pin-reset on the same glass, the number filled from her session, Send reset code and Back to PIN entry`, JSON.stringify({ h: r.h, phone, small: r.small }));
+        await close(p);
+      }
+      {
+        const p = await open(390, 844, { at: '/vendor/pin', session: { ...SESSION, pin_set: false }, layout });
+        const r = await look(p);
+        ok(r.panel && r.h.t === 'Create your PIN.' && /Four digits\. Quick access every time\./.test(r.text) && r.mark.join('|') === 'TDW|tdw.works' && !r.small.length,
+          `${L}: pin (the first PIN) on the same glass, its words unchanged`, JSON.stringify({ h: r.h, text: r.text.slice(0, 100) }));
+        await close(p);
+      }
+      for (const [at, sess, why] of [['/vendor/pin-login', null, 'pin-login with no session'], ['/vendor/pin', null, 'pin with no session']]) {
+        const p = await open(390, 844, { at, session: sess, layout, wait: null });
+        await p.waitForFunction(() => location.pathname === '/' && !!document.querySelector('.wg-h'), { timeout: 20000 }).catch(() => {});
+        const r = await p.evaluate(() => ({ at: location.pathname + location.search, h: (document.querySelector('.wg-h') || {}).textContent }));
+        ok(r.at === '/?role=vendor-signin' && r.h === 'Welcome back.', `${L}: ${why} sends her to the vendor sign-in, not the couples' page`, JSON.stringify(r));
+        await close(p);
+      }
+      {
+        const p = await open(390, 844, { at: '/vendor/pin-login', session: SESSION, layout });
+        const toasts = [];
+        for (let i = 0; i < 5; i += 1) {
+          await p.waitForFunction(() => { const x = document.querySelector('.wg-panel input'); return x && !x.disabled; }, { timeout: 10000 }).catch(() => {});
+          await p.focus('.wg-panel input'); await p.keyboard.type('1234');
+          const want = i < 4 ? `${4 - i} attempt` : 'Too many attempts.';
+          await p.waitForFunction((w) => ((document.querySelector('.wg-toast') || {}).textContent || '').includes(w), { timeout: 5000 }, want).catch(() => {});
+          toasts.push(await p.evaluate(() => (document.querySelector('.wg-toast') || {}).textContent || ''));
+        }
+        const toastLook = await p.evaluate(() => { const t = document.querySelector('.wg-toast'); return t && { s: parseFloat(getComputedStyle(t).fontSize), f: getComputedStyle(t).fontFamily }; });
+        await p.waitForFunction(() => location.pathname === '/' && !!document.querySelector('.wg-h'), { timeout: 20000 }).catch(() => {});
+        const r = await p.evaluate(() => ({ at: location.pathname + location.search, h: (document.querySelector('.wg-h') || {}).textContent }));
+        ok(p.api.filter((x) => x === 'pin-login').length === 5 && /4 attempts left/.test(toasts[0]) && /Too many attempts\./.test(toasts[4]) && toastLook && toastLook.s >= 15 && /Manrope/.test(toastLook.f),
+          `${L}: five wrong PINs: the same count and words ("4 attempts left" ... "Too many attempts."), the message in the works look`, JSON.stringify({ toasts, toastLook, api: p.api.length }));
+        ok(r.at === '/?role=vendor-signin' && r.h === 'Welcome back.', `${L}: after five wrong PINs she is sent to the vendor sign-in, not the couples' page`, JSON.stringify(r));
+        await close(p);
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+}
+
 async function perf(puppeteer, bin, port) {
   sec('3 the first full view on 4G (the production build, 360x640)');
   const browser = await puppeteer.launch({ executablePath: bin, headless: true, args: ['--no-sandbox', '--host-resolver-rules=MAP tdw.works 127.0.0.1'] });
@@ -495,7 +768,7 @@ async function perf(puppeteer, bin, port) {
           srv = spawn(path.join(ROOT, 'node_modules/.bin/next'), ['start', '-p', String(port)], { cwd: ROOT, detached: true, stdio: 'ignore', env: { ...process.env, ...fonts.env } });
           let up = false; for (let i = 0; i < 60 && !up; i += 1) { up = (await get(port, '/', 'tdw.works')).status === 200; if (!up) await sleep(1000); }
           if (!up) ok(false, 'next start came up');
-          else { if (GLASS) await glass(puppeteer, bin, `http://127.0.0.1:${port}`, port); if (PERF) await perf(puppeteer, bin, port); }
+          else { if (GLASS) { await glass(puppeteer, bin, `http://127.0.0.1:${port}`, port); await signin(puppeteer, bin, port); } if (PERF) await perf(puppeteer, bin, port); }
         }
       } finally {
         if (srv) { try { process.kill(-srv.pid, 'SIGKILL'); } catch (_e) { /* gone */ } }

@@ -1,0 +1,108 @@
+/* app/works/glass.css · CE-47 · LAND-1 package 2 · the vendor sign-in, sign-up and PIN screens in tdw.works's look.
+   The founder's ruling: these screens look exactly like tdw.works, with the same wall, motion, fonts and colours, and
+   the sign-in sits on a frosted-glass panel over the wall, readable on phone and laptop.
+
+   WHERE IT APPLIES. Inside WorksBackdrop (.tdww.tdww-signin), and, for the two pieces a page draws outside it (the
+   message strip and the country list), under html.works-signin, which WorksBackdrop sets while it is open and takes off
+   when it leaves. Nothing here reaches tdw.works itself or any Dreamer screen: they carry neither.
+
+   WHY !important. The landing page's vendor screens share their elements with the Dreamer's (the same helpers, the same
+   fields), and the Dreamer's look is not touched, so their inline styles stay byte for byte. These rules win over them
+   only inside the vendor look. The PIN pages carry no inline look at all; there the flag changes nothing.
+
+   COLOURS are works.css's own tokens (--bg, --ink, --soft, --accent, --on-accent, --line), light and dark by the
+   phone's setting exactly as tdw.works. */
+
+html.works-signin{
+  --bg:#E7EAE6;--ink:#111516;--soft:#4A5457;--accent:#0B6B5A;--on-accent:#FFFFFF;--line:rgba(17,21,22,.14);
+  --body:var(--works-body),system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){html.works-signin:not([data-theme="light"]){
+  --bg:#0E1112;--ink:#EEF1F0;--soft:#A5ADAF;--accent:#4DBBA4;--on-accent:#0A1A16;--line:rgba(238,241,240,.14)}}
+html.works-signin[data-theme="dark"]{--bg:#0E1112;--ink:#EEF1F0;--soft:#A5ADAF;--accent:#4DBBA4;--on-accent:#0A1A16;--line:rgba(238,241,240,.14)}
+
+.tdww-signin{--strong:color-mix(in srgb,var(--ink) 34%,transparent)}
+html.works-signin{--strong:color-mix(in srgb,var(--ink) 34%,transparent)}
+
+/* the wall behind the glass: the whole wall, evenly softened (tdw.works veils its left side for the headline) */
+.tdww.tdww-signin .wall::after{background:color-mix(in srgb,var(--bg) 46%,transparent)}
+/* tdw.works sets its wall to the right of the headline; behind a centred panel it spans the whole screen */
+@media (min-width:861px){.tdww.tdww-signin .plane{left:-8%;width:132%}}
+
+/* ---------- the glass panel: centred on a laptop, a sheet from the bottom on a phone ---------- */
+.tdww-signin .wg-wrap{position:fixed;inset:0;z-index:1;display:grid;place-items:center;padding:24px;overflow-y:auto}
+.tdww-signin .wg-panel{position:relative;width:min(460px,100%);max-height:calc(100dvh - 48px);overflow-y:auto;overscroll-behavior:contain;
+  background:color-mix(in srgb,var(--bg) 92%,transparent);
+  -webkit-backdrop-filter:blur(24px) saturate(1.15);backdrop-filter:blur(24px) saturate(1.15);
+  border:1px solid var(--line);border-radius:28px;padding:30px 30px 32px;box-shadow:var(--shadow);color:var(--ink);
+  animation:tdww-rise .5s var(--ease)}
+@media (max-width:860px){
+  .tdww-signin .wg-wrap{place-items:end stretch;padding:0}
+  .tdww-signin .wg-panel{width:100%;max-height:88dvh;border-radius:26px 26px 0 0;border-bottom:0;
+    padding:22px 20px calc(env(safe-area-inset-bottom,0px) + 24px)}
+}
+@media (prefers-reduced-motion:reduce){.tdww-signin .wg-panel{animation:none}}
+
+/* the mark: TDW, and tdw.works under it */
+.tdww-signin .wg-mark{display:flex;flex-direction:column;gap:6px;margin:0 0 22px}
+.tdww-signin .wg-mark b{font:500 30px/1 var(--display);letter-spacing:.06em;color:var(--ink)}
+.tdww-signin .wg-mark span{font:500 14px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+
+/* ---------- what sits on the glass ---------- */
+:is(.tdww-signin,html.works-signin) .wg-back{display:block!important;min-height:44px;min-width:44px;padding:0 0 8px!important;margin:0!important;background:none!important;border:0!important;
+  font:400 26px/1 var(--body)!important;color:var(--ink)!important;cursor:pointer;text-align:left}
+:is(.tdww-signin,html.works-signin) .wg-h{margin:0 0 8px!important;font:500 30px/1.15 var(--display)!important;letter-spacing:-.01em!important;color:var(--ink)!important;font-style:normal!important}
+:is(.tdww-signin,html.works-signin) .wg-sub{margin:0 0 22px!important;font:400 16px/1.5 var(--body)!important;color:var(--soft)!important}
+:is(.tdww-signin,html.works-signin) .wg-label{margin:0 0 6px!important;font:600 14px/1.3 var(--body)!important;letter-spacing:0!important;text-transform:none!important;color:var(--soft)!important}
+:is(.tdww-signin,html.works-signin) .wg-h + .wg-label{margin-top:16px!important}
+:is(.tdww-signin,html.works-signin) .wg-in{width:100%;margin:0 0 18px!important;padding:10px 0!important;background:transparent!important;border:0!important;
+  border-bottom:1.5px solid var(--strong)!important;border-radius:0!important;outline:none;font:400 17px/1.5 var(--body)!important;color:var(--ink)!important;caret-color:var(--accent)}
+:is(.tdww-signin,html.works-signin) .wg-in:focus{border-bottom-color:var(--accent)!important}
+:is(.tdww-signin,html.works-signin) .wg-in::placeholder{color:var(--soft);opacity:.75}
+/* the phone row (the country button, then the number), found by its shape so the landing's row keeps its bytes */
+.tdww-signin .wg-panel div:has(> button + input[type="tel"]){border-bottom:1.5px solid var(--strong)!important;margin-bottom:18px!important}
+.tdww-signin .wg-panel div:has(> button + input[type="tel"]):focus-within{border-bottom-color:var(--accent)!important}
+.tdww-signin .wg-panel div:has(> button + input[type="tel"]) > button{border-right:1px solid var(--line)!important;color:var(--ink)!important;min-height:44px;font-size:16px!important}
+.tdww-signin .wg-panel div:has(> button + input[type="tel"]) > button > span:last-child{font:500 16px/1.5 var(--body)!important;color:var(--soft)!important}
+.tdww-signin .wg-panel div:has(> button + input[type="tel"]) > input{flex:1;min-width:0;margin:0!important;padding:10px 0!important;background:transparent!important;border:0!important;outline:none;
+  font:400 17px/1.5 var(--body)!important;color:var(--ink)!important;caret-color:var(--accent)}
+.tdww-signin .wg-panel div:has(> button + input[type="tel"]) > input::placeholder{color:var(--soft);opacity:.75}
+:is(.tdww-signin,html.works-signin) .wg-chips{gap:8px!important;margin-bottom:18px!important}
+:is(.tdww-signin,html.works-signin) .wg-chip{padding:10px 14px!important;border-radius:999px!important;border:1px solid var(--strong)!important;background:transparent!important;
+  color:var(--ink)!important;font:500 14px/1.2 var(--body)!important;letter-spacing:0!important;text-transform:none!important;cursor:pointer}
+:is(.tdww-signin,html.works-signin) .wg-chip[aria-pressed="true"]{background:var(--accent)!important;border-color:var(--accent)!important;color:var(--on-accent)!important}
+:is(.tdww-signin,html.works-signin) .wg-go{display:flex!important;align-items:center;justify-content:center;width:100%;height:54px!important;margin:12px 0 0!important;padding:0 24px!important;
+  border:0!important;border-radius:999px!important;background:var(--accent)!important;color:var(--on-accent)!important;
+  font:700 16px/1 var(--body)!important;letter-spacing:0!important;text-transform:none!important;cursor:pointer;
+  box-shadow:0 18px 36px -20px var(--accent)}
+:is(.tdww-signin,html.works-signin) .wg-go:disabled,:is(.tdww-signin,html.works-signin) .wg-go[aria-disabled="true"]{opacity:.42;cursor:default;box-shadow:none}
+:is(.tdww-signin,html.works-signin) .wg-digits{display:flex!important;justify-content:center;gap:10px!important;margin-bottom:20px!important}
+:is(.tdww-signin,html.works-signin) .wg-otp{width:46px!important;height:58px!important;padding:0!important;background:transparent!important;border:0!important;
+  border-bottom:2px solid var(--strong)!important;border-radius:0!important;outline:none;text-align:center;
+  font:600 24px/1.5 var(--app)!important;color:var(--ink)!important;caret-color:var(--accent)}
+:is(.tdww-signin,html.works-signin) .wg-otp:focus{border-bottom-color:var(--accent)!important}
+:is(.tdww-signin,html.works-signin) .wg-pin{width:56px!important;height:64px!important;font-size:28px!important}
+:is(.tdww-signin,html.works-signin) .wg-phone{width:100%!important;font:500 20px/1.5 var(--body)!important;letter-spacing:.02em!important}
+:is(.tdww-signin,html.works-signin) .wg-link{display:block!important;width:100%;margin:10px 0 0!important;padding:12px 0!important;background:none!important;border:0!important;
+  font:600 15px/1.4 var(--body)!important;letter-spacing:0!important;text-transform:none!important;color:var(--accent)!important;text-align:center;cursor:pointer}
+:is(.tdww-signin,html.works-signin) .wg-note{margin:0 0 14px!important;font:500 15px/1.4 var(--body)!important;letter-spacing:0!important;text-transform:none!important;color:var(--soft)!important;text-align:center}
+
+/* the message strip and the country list, drawn outside the panel */
+html.works-signin .wg-toast{background:var(--bg)!important;color:var(--ink)!important;border:1px solid var(--line)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;font:600 15px/1.4 var(--body)!important;
+  box-shadow:0 20px 40px -22px rgba(0,0,0,.5);max-width:calc(100vw - 32px);white-space:normal!important;text-align:center}
+html.works-signin .wg-sheet-veil{background:color-mix(in srgb,var(--ink) 30%,transparent)!important}
+html.works-signin .wg-sheet{background:var(--bg)!important;border-top:1px solid var(--line)!important;color:var(--ink)}
+@media (min-width:861px){html.works-signin .wg-sheet{left:50%!important;right:auto!important;width:460px;transform:translateX(-50%)}}
+html.works-signin .wg-sheet-h{font:600 14px/1.3 var(--body)!important;letter-spacing:0!important;text-transform:none!important;color:var(--soft)!important}
+html.works-signin .wg-cty-name{font:500 16px/1.4 var(--body)!important;color:var(--ink)!important}
+html.works-signin .wg-cty-code{font:500 15px/1.4 var(--body)!important;letter-spacing:0!important;color:var(--soft)!important}
+
+/* the message strip's place (the landing draws its own; the PIN screens draw it by this class alone) */
+html.works-signin .wg-toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 20px);left:50%;transform:translateX(-50%);z-index:9999;
+  padding:12px 20px;border-radius:999px;animation:tdww-toast .3s cubic-bezier(.22,1,.36,1)}
+@keyframes tdww-toast{from{opacity:0;transform:translate(-50%,-12px)}}
+/* a wrong PIN or code: the digits shake, as before */
+.tdww-signin .wg-shake{animation:tdww-shake 320ms cubic-bezier(.22,1,.36,1)}
+@keyframes tdww-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){.tdww-signin .wg-shake{animation:none}html.works-signin .wg-toast{animation:none}}

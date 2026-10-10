@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { entryRedirectFor } from '@/lib/frost/entryRedirect';
 import { getCoupleSession } from '@/lib/frost-api/_base';
 import { getVendorSession } from '@/lib/vendor/session'; // F-41.18 / R-41.53b: the SHELL's read, so `/` and `/vendor/rooms` cannot disagree
@@ -43,6 +44,14 @@ const COLUMN = 520;
 // CE-47 LAND-1: the vendors' front page. "I'm a wedding vendor" on the entry goes here.
 const TDW_WORKS = 'https://tdw.works';
 
+// ── CE-47 LAND-1 package 2 · THE VENDOR SCREENS WEAR tdw.works's LOOK (the founder, 10 Oct 2026) ──────────────────
+// The vendor's sign-in and sign-up (phone, code, name) sit on a frosted-glass panel over tdw.works's own wall, in its
+// fonts and colours (app/works/WorksBackdrop.tsx, the one home tdw.works draws from). Only the look moves: every step,
+// door and check below is the same code, and the Dreamer's screens are untouched. Loaded only when a vendor screen
+// opens, so the couples' front page downloads none of it.
+const WorksBackdrop = dynamic(() => import('@/app/works/WorksBackdrop'), { ssr: false });
+const WORKS_SCREENS = ['join_phone', 'join_otp', 'signin_phone', 'signin_otp', 'your_name'];
+
 const FALLBACK_SLIDES: string[] = [
   'https://res.cloudinary.com/dccso5ljv/image/upload/IMG_2544.PNG_cyeqlj',
   'https://res.cloudinary.com/dccso5ljv/image/upload/Facetune_14-05-2026-11-06-49_qs4dg6',
@@ -74,8 +83,8 @@ function CountrySheet({ visible, onSelect, onClose }: {
   if (!visible) return null;
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(12,10,9,0.5)' }} />
-      <div style={{
+      <div className="wg-sheet-veil" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(12,10,9,0.5)' }} />
+      <div className="wg-sheet" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 201,
         background: 'rgba(12,10,9,0.88)',
         backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
@@ -84,12 +93,12 @@ function CountrySheet({ visible, onSelect, onClose }: {
         padding: '16px 0 calc(env(safe-area-inset-bottom, 16px) + 16px)',
         maxHeight: '60vh', overflowY: 'auto',
       }}>
-        <p style={{ fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 8, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.4)', margin: '0 0 12px 20px' }}>Select country</p>
+        <p className="wg-sheet-h" style={{ fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 8, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.4)', margin: '0 0 12px 20px' }}>Select country</p>
         {COUNTRIES.map(c => (
           <button key={c.dialCode + c.name} onClick={() => { onSelect(c); onClose(); }} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', background: 'none', border: 'none', padding: '12px 20px', cursor: 'pointer', touchAction: 'manipulation' }}>
             <span style={{ fontSize: 22 }}>{c.flag}</span>
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: 15, color: '#F8F7F5', flex: 1, textAlign: 'left' }}>{c.name}</span>
-            <span style={{ fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 13, color: 'rgba(248,247,245,0.4)', letterSpacing: '0.05em' }}>{c.dialCode}</span>
+            <span className="wg-cty-name" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: 15, color: '#F8F7F5', flex: 1, textAlign: 'left' }}>{c.name}</span>
+            <span className="wg-cty-code" style={{ fontFamily: "'Jost', sans-serif", fontWeight: 200, fontSize: 13, color: 'rgba(248,247,245,0.4)', letterSpacing: '0.05em' }}>{c.dialCode}</span>
           </button>
         ))}
       </div>
@@ -243,7 +252,7 @@ function FlagSlot({ flag }: { flag: string }) {
 // ─── Gold CTA button ──────────────────────────────────────────────────────────
 function GoldBtn({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
   return (
-    <button onClick={onClick} disabled={disabled} style={{
+    <button className="wg-go" onClick={onClick} disabled={disabled} style={{
       width: '100%', height: 52,
       background: disabled ? 'rgba(201,168,76,0.3)' : '#C9A84C',
       color: disabled ? 'rgba(12,10,9,0.4)' : '#0C0A09',
@@ -274,7 +283,7 @@ function GhostBtn({ label, onClick }: { label: string; onClick: () => void }) {
 // ─── Back button ──────────────────────────────────────────────────────────────
 function BackBtn({ onClick }: { onClick: () => void }) {
   return (
-    <button onClick={onClick} style={{
+    <button className="wg-back" aria-label="Back" onClick={onClick} style={{
       background: 'none', border: 'none', cursor: 'pointer',
       fontFamily: "'Jost', sans-serif", fontSize: 18,
       color: 'rgba(248,247,245,0.5)', padding: '0 0 12px', display: 'block',
@@ -286,7 +295,7 @@ function BackBtn({ onClick }: { onClick: () => void }) {
 // ─── Section label ────────────────────────────────────────────────────────────
 function Label({ text }: { text: string }) {
   return (
-    <p style={{
+    <p className="wg-label" style={{
       fontFamily: "'Jost', sans-serif", fontSize: 8, fontWeight: 200,
       letterSpacing: '0.25em', textTransform: 'uppercase',
       color: 'rgba(248,247,245,0.5)', margin: '0 0 6px',
@@ -366,6 +375,23 @@ export default function Home() {
       setScreen('signin_phone');
     }
   }, []);
+
+  // ── CE-47 LAND-1 package 2 · BACK FROM A VENDOR SCREEN (the chair's ruling, 10 Oct 2026) ─────────────────────────
+  // Back returns her to where she came from, and never to the Dreamer entry with its photos:
+  //   · she reached the vendor screens from the sign-up chooser on this page  → the chooser, as she left it;
+  //   · otherwise (tdw.works's Sign in or Start free, the vendor. address, a shared link) → tdw.works, the vendors'
+  //     own front page.
+  // Only the vendor screens' Back moves (`works` below). The code screen's Back to the phone step, every other door
+  // and every Dreamer Back are unchanged.
+  const viaChooser = useRef(false);
+  const prevScreen = useRef<Screen>('entry');
+  useEffect(() => {
+    if (screen === 'join_phone' && prevScreen.current === 'chooser') viaChooser.current = true;
+    if (screen === 'entry') viaChooser.current = false;
+    prevScreen.current = screen;
+  }, [screen]);
+  const works = role === 'Maker' && WORKS_SCREENS.includes(screen);
+  const vendorBack = () => { if (viaChooser.current) { setScreen('chooser'); return; } window.location.assign(TDW_WORKS); };
 
   // ── F-41.1 · THE FRONT DOOR READS THE SESSION (CE-41 seat A, packet A3) ──────
   // A signed-in member who types the domain used to land here, on the marketing
@@ -614,6 +640,213 @@ export default function Home() {
   // session read has settled. A signed-in member never sees the marketing page flash.
   if (!entryChecked) return <div aria-hidden style={{ position: 'fixed', inset: 0, background: '#0C0A09' }} />;
 
+  // The panel's screens, one copy: drawn on the Dreamer's glass as always, or on tdw.works's glass for a vendor
+  // (CE-47 LAND-1 package 2). Moved here whole from inside the panel; not one byte of them changed in the move.
+  const panelScreens = (
+    <>
+            {/* ── THE FIVE REMOVED SCREENS ──────────────────────────────────────
+                REMOVED BY RULING (R-X10 arm (a), founder-ratified): `request_who`,
+                `request_dreamer`, `request_maker`, `request_done` with its 60-second
+                edit window, and the dead `invite_code` screen. The ceremony they made
+                gated nothing — the two acquisition doors already walked past it into
+                open phone-OTP self-mint, and `invite_code` was reachable from no
+                `setScreen` call in the machine. Its backend route is gone too.
+                Curation is real and lives at the Discover approval queue, the only
+                surface a couple ever sees. Nothing here was demoted; it was retired.
+                The controls that MOVED rather than died are named in the handover's
+                control inventory, each accounted KEPT / MOVED / REMOVED-BY-RULING. */}
+            {/* ── JOIN: NAME + PHONE (was `invite_phone`) ───────────────────── */}
+            {screen === 'join_phone' && (
+              <>
+                <BackBtn onClick={works ? vendorBack : () => setScreen('entry')} />
+                <p className="wg-h" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Welcome. Let’s begin.</p>
+                <p className="wg-sub" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 20px' }}>Enter your details. We’ll send a code to your WhatsApp.</p>
+                <Label text="Your first name" />
+                <input
+                  value={joinName}
+                  onChange={e => setJoinName(e.target.value)}
+                  placeholder="First name"
+                  className="wg-in"
+                  style={{ ...INPUT }}
+                />
+                <Label text="Phone number" />
+                {/* R-O5 · R-X24 ACCEPTANCE SHOT ① — baseline row, shared line-height,
+                    the flag in a fixed square slot. Measured ~1px above before. */}
+                <div style={{ ...rowBaseline(), borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
+                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, ...rowBaseline(), gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
+                    <FlagSlot flag={country.flag} />
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: ROW_LINE_HEIGHT, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
+                  </button>
+                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1, lineHeight: ROW_LINE_HEIGHT }} />
+                </div>
+                {role === 'Maker' && (
+                  <>
+                    <Label text="Your craft" />
+                    <div className="wg-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+                      {VENDOR_FIELDS.map(f => (
+                        <button key={f.value} className="wg-chip" aria-pressed={joinCategory === f.value} onClick={() => setJoinCategory(f.value)} style={{
+                          padding: '6px 12px', borderRadius: 100, border: 'none',
+                          background: joinCategory === f.value ? '#C9A84C' : 'rgba(255,255,255,0.08)',
+                          color: joinCategory === f.value ? '#0C0A09' : 'rgba(248,247,245,0.7)',
+                          fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
+                          letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+                        }}>{f.label}</button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {/* THE NAME GATE — the founder's word, 2026-08-18: BOTH ROLES.
+                    The three terms are, in order: phone-invalid · trimmed-name-
+                    empty · (Maker AND category-empty).
+
+                    THE NAME TERM CARRIES NO ROLE GUARD, and that is the ruling
+                    rather than an oversight. This screen has been asymmetric its
+                    whole life — it gated the vendor's CRAFT and let anyone
+                    through without a NAME — and 20 of 38 couples on file with no
+                    name is what the asymmetry cost. A guard reading
+                    `role === 'Dreamer' && !joinName.trim()` would re-open the
+                    same hole one door over.
+
+                    `.trim()` and not truthiness: a name of one space is not a
+                    name, which is the same rule `brideComplete` refuses by at
+                    the onboarding form (dream-os
+                    src/lib/onboardingPredicate.js). The door and the form must
+                    not disagree about what a name is.
+
+                    The vendor category gate stands UNTOUCHED beside it. ZERO new
+                    copy: the button label, the field label at :800 and the
+                    placeholder at :804 all pre-date this, and a disabled button
+                    mints no string. */}
+                <GoldBtn label="Send code →" onClick={() => sendOtp(phone, joinName)} disabled={phone.length < country.maxDigits || !joinName.trim() || (role === 'Maker' && !joinCategory)} />
+              </>
+            )}
+
+            {/* ── OTP ENTRY ─────────────────────────────────────────────────── */}
+            {(screen === 'join_otp' || screen === 'signin_otp') && (
+              <>
+                <BackBtn onClick={() => setScreen(screen === 'join_otp' ? 'join_phone' : 'signin_phone')} />
+                <p className="wg-h" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Check your messages.</p>
+                <p className="wg-sub" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 16px' }}>Enter the 6-digit code we sent you.</p>
+                <div className="wg-digits" style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 16 }}>
+                  {otp.map((v, i) => (
+                    <input
+                      key={i} ref={el => { otpRefs.current[i] = el; }} className="wg-otp"
+                      value={v} onChange={e => handleOtpInput(i, e.target.value)}
+                      onKeyDown={e => handleOtpKey(i, e)}
+                      type="tel" inputMode="numeric" maxLength={1}
+                      autoComplete="one-time-code"
+                      style={{
+                        width: 40, height: 48, border: 'none',
+                        borderBottom: '1.5px solid rgba(255,255,255,0.4)',
+                        background: 'transparent', outline: 'none',
+                        fontFamily: "'DM Sans', sans-serif", fontWeight: 400,
+                        fontSize: 20, color: '#F8F7F5', textAlign: 'center',
+                      }}
+                    />
+                  ))}
+                </div>
+                <GoldBtn label="Verify →" onClick={verifyOtp} disabled={otp.join('').length < 6} />
+                <button
+                  className="wg-link"
+                  onClick={() => { setOtp(['', '', '', '', '', '']); sendOtp(phone, screen === 'join_otp' ? joinName : undefined); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', touchAction: 'manipulation', fontFamily: "'Jost', sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.3)', marginTop: 12, display: 'block', width: '100%' }}
+                >Resend code</button>
+              </>
+            )}
+
+            {/* ── L-1 · THE SIGN-UP CHOOSER ──────────────────────────────────
+                The doors became sign-in doors, so the sign-up path needs a home. It is the
+                SAME QUESTION with the same two bytes (S6, S7 — byte-identical to the doors
+                above, deliberately: a person who taps `Sign up` is answering the question he
+                was already asked, not a new one) leading into today's sign-up flows,
+                unchanged: the couple's is `startExploring()`, the vendor's is `join_phone`.
+                Mock frame `L1-chooser`. The sub-line the frame first carried was STRUCK by
+                the founder (S5) — the heading asks the question and the labels answer it.
+                ‹ Back returns to `entry`, the one host this screen is drawn for; a vendor
+                arriving on the `vendor.` subdomain has no entry to return to, which is
+                F-39.84 — pre-existing, filed, not guessed at here. */}
+            {screen === 'chooser' && (
+              <>
+                <BackBtn onClick={() => setScreen('entry')} />
+                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 16px' }}>New here?</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button
+                    onClick={() => { setRole('Dreamer'); startExploring(); }}
+                    style={{
+                      width: '100%', height: 48, background: 'transparent',
+                      border: '0.5px solid rgba(248,247,245,0.25)', borderRadius: 100,
+                      cursor: 'pointer', touchAction: 'manipulation',
+                      fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
+                      letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F8F7F5',
+                    }}
+                  >I&apos;m getting married</button>
+                  <button
+                    onClick={() => { setRole('Maker'); setScreen('join_phone'); }}
+                    style={{
+                      width: '100%', height: 48, background: '#C9A84C', border: 'none',
+                      borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
+                      fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 400,
+                      letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09',
+                    }}
+                  >I&apos;m a wedding vendor</button>
+                </div>
+              </>
+            )}
+
+            {/* ── SIGN IN: PHONE ────────────────────────────────────────────── */}
+            {screen === 'signin_phone' && (
+              <>
+                <BackBtn onClick={works ? vendorBack : () => setScreen('entry')} />
+                <p className="wg-h" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Welcome back.</p>
+                {/* L-1: THE ROLE CHIPS ARE RETIRED (R-O3 discharged). They existed because the
+                    old `Already a member?` line entered this screen with `setRole(null)`, so a
+                    returning VENDOR could otherwise be signed in against the couple endpoints.
+                    That line is gone: every entry to `signin_phone` now presets the role — the
+                    two doors above (Dreamer / Maker) and the `vendor.` subdomain effect. With
+                    nothing left to choose, the control asked a question already answered, which
+                    is the F-09.47 disease the founder walked. `handleSignIn`'s
+                    `isVendor = role === 'Maker'` is UNCHANGED and now always has an answer. */}
+                <Label text="Phone number" />
+                {/* R-O5 · R-X24 ACCEPTANCE SHOT ② — the same rule, second surface. */}
+                <div style={{ ...rowBaseline(), borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
+                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, ...rowBaseline(), gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
+                    <FlagSlot flag={country.flag} />
+                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: ROW_LINE_HEIGHT, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
+                  </button>
+                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1, lineHeight: ROW_LINE_HEIGHT }} />
+                </div>
+                {/* L-1: the `!role` half of this guard retired WITH the toggle it protected.
+                    R-O3's warning was "do not remove either half without replacing the other" —
+                    the replacement is upstream: no entry to this screen leaves `role` null, so
+                    the guard had nothing to catch. The phone-length half stands. */}
+                <GoldBtn label="Continue →" onClick={handleSignIn} disabled={phone.length < country.maxDigits} />
+              </>
+            )}
+
+            {/* ── F-44.271 · YOUR NAME ──────────────────────────────────────────
+                A number that is verified but has no name on file (either role) gives one here, and only then is the
+                account finished and anything opened. The two lines are NAME_WORDS (lib/auth/otpSignup.ts), the
+                founder's to veto; the button is the sign-in screen's own `Continue →`. */}
+            {screen === 'your_name' && (
+              <>
+                <BackBtn onClick={works ? vendorBack : () => setScreen('entry')} />
+                <p data-your-name="" className="wg-h" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>{NAME_WORDS.head}</p>
+                <p className="wg-sub" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 20px' }}>{NAME_WORDS.ask}</p>
+                <input
+                  value={yourName}
+                  onChange={e => setYourName(e.target.value)}
+                  aria-label={NAME_WORDS.head}
+                  autoComplete="name"
+                  className="wg-in"
+                  style={{ ...INPUT }}
+                />
+                <GoldBtn label="Continue →" onClick={() => submitName(yourName)} disabled={!yourName.trim()} />
+              </>
+            )}
+
+    </>
+  );
+
   return (
     <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: '#0C0A09' }}>
       <style>{`
@@ -626,7 +859,8 @@ export default function Home() {
       `}</style>
 
       {/* ── Carousel ─────────────────────────────────────────────────────── */}
-      {slides.map((url, i) => (
+      {/* CE-47 LAND-1 package 2: the vendor screens stand on tdw.works's wall instead (WorksBackdrop). */}
+      {!works && slides.map((url, i) => (
         <div key={i} style={{
           ...S,
           backgroundImage: `url(${url})`,
@@ -643,19 +877,19 @@ export default function Home() {
       ))}
 
       {/* ── Vignette ──────────────────────────────────────────────────────── */}
-      <div style={{
+      {!works && <div style={{
         ...S, zIndex: 2, pointerEvents: 'none',
         background: 'radial-gradient(ellipse at 50% 60%, transparent 20%, rgba(0,0,0,0.55) 100%)',
-      }} />
+      }} />}
 
       {/* ── Dark overlay for non-exploring screens ────────────────────────── */}
-      {screen !== 'exploring' && (
+      {screen !== 'exploring' && !works && (
         <div style={{ ...S, zIndex: 3, background: 'rgba(12,10,9,0.15)', pointerEvents: 'none' }} />
       )}
 
       {/* ── Toast ─────────────────────────────────────────────────────────── */}
       {toast && (
-        <div style={{
+        <div className="wg-toast" style={{
           position: 'absolute', top: 24, left: '50%', transform: 'translateX(-50%)',
           background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)',
           border: '0.5px solid rgba(255,255,255,0.2)',
@@ -838,7 +1072,9 @@ export default function Home() {
       )}
 
       {/* ── Glass panel — all non-entry, non-exploring screens — BOTTOM ─────── */}
-      {screen !== 'exploring' && screen !== 'entry' && (
+      {/* CE-47 LAND-1 package 2: a vendor screen sits on tdw.works's glass over its wall; every other screen as before. */}
+      {screen !== 'exploring' && screen !== 'entry' && works && <WorksBackdrop>{panelScreens}</WorksBackdrop>}
+      {screen !== 'exploring' && screen !== 'entry' && !works && (
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20,
           maxHeight: '80vh', overflowY: 'auto',
@@ -855,203 +1091,7 @@ export default function Home() {
             <div style={{ maxWidth: COLUMN, margin: '0 auto' }}>
 
             </div>
-            {/* ── THE FIVE REMOVED SCREENS ──────────────────────────────────────
-                REMOVED BY RULING (R-X10 arm (a), founder-ratified): `request_who`,
-                `request_dreamer`, `request_maker`, `request_done` with its 60-second
-                edit window, and the dead `invite_code` screen. The ceremony they made
-                gated nothing — the two acquisition doors already walked past it into
-                open phone-OTP self-mint, and `invite_code` was reachable from no
-                `setScreen` call in the machine. Its backend route is gone too.
-                Curation is real and lives at the Discover approval queue, the only
-                surface a couple ever sees. Nothing here was demoted; it was retired.
-                The controls that MOVED rather than died are named in the handover's
-                control inventory, each accounted KEPT / MOVED / REMOVED-BY-RULING. */}
-            {/* ── JOIN: NAME + PHONE (was `invite_phone`) ───────────────────── */}
-            {screen === 'join_phone' && (
-              <>
-                <BackBtn onClick={() => setScreen('entry')} />
-                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Welcome. Let’s begin.</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 20px' }}>Enter your details. We’ll send a code to your WhatsApp.</p>
-                <Label text="Your first name" />
-                <input
-                  value={joinName}
-                  onChange={e => setJoinName(e.target.value)}
-                  placeholder="First name"
-                  style={{ ...INPUT }}
-                />
-                <Label text="Phone number" />
-                {/* R-O5 · R-X24 ACCEPTANCE SHOT ① — baseline row, shared line-height,
-                    the flag in a fixed square slot. Measured ~1px above before. */}
-                <div style={{ ...rowBaseline(), borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
-                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, ...rowBaseline(), gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
-                    <FlagSlot flag={country.flag} />
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: ROW_LINE_HEIGHT, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
-                  </button>
-                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1, lineHeight: ROW_LINE_HEIGHT }} />
-                </div>
-                {role === 'Maker' && (
-                  <>
-                    <Label text="Your craft" />
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-                      {VENDOR_FIELDS.map(f => (
-                        <button key={f.value} onClick={() => setJoinCategory(f.value)} style={{
-                          padding: '6px 12px', borderRadius: 100, border: 'none',
-                          background: joinCategory === f.value ? '#C9A84C' : 'rgba(255,255,255,0.08)',
-                          color: joinCategory === f.value ? '#0C0A09' : 'rgba(248,247,245,0.7)',
-                          fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
-                          letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
-                        }}>{f.label}</button>
-                      ))}
-                    </div>
-                  </>
-                )}
-                {/* THE NAME GATE — the founder's word, 2026-08-18: BOTH ROLES.
-                    The three terms are, in order: phone-invalid · trimmed-name-
-                    empty · (Maker AND category-empty).
-
-                    THE NAME TERM CARRIES NO ROLE GUARD, and that is the ruling
-                    rather than an oversight. This screen has been asymmetric its
-                    whole life — it gated the vendor's CRAFT and let anyone
-                    through without a NAME — and 20 of 38 couples on file with no
-                    name is what the asymmetry cost. A guard reading
-                    `role === 'Dreamer' && !joinName.trim()` would re-open the
-                    same hole one door over.
-
-                    `.trim()` and not truthiness: a name of one space is not a
-                    name, which is the same rule `brideComplete` refuses by at
-                    the onboarding form (dream-os
-                    src/lib/onboardingPredicate.js). The door and the form must
-                    not disagree about what a name is.
-
-                    The vendor category gate stands UNTOUCHED beside it. ZERO new
-                    copy: the button label, the field label at :800 and the
-                    placeholder at :804 all pre-date this, and a disabled button
-                    mints no string. */}
-                <GoldBtn label="Send code →" onClick={() => sendOtp(phone, joinName)} disabled={phone.length < country.maxDigits || !joinName.trim() || (role === 'Maker' && !joinCategory)} />
-              </>
-            )}
-
-            {/* ── OTP ENTRY ─────────────────────────────────────────────────── */}
-            {(screen === 'join_otp' || screen === 'signin_otp') && (
-              <>
-                <BackBtn onClick={() => setScreen(screen === 'join_otp' ? 'join_phone' : 'signin_phone')} />
-                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Check your messages.</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 16px' }}>Enter the 6-digit code we sent you.</p>
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 16 }}>
-                  {otp.map((v, i) => (
-                    <input
-                      key={i} ref={el => { otpRefs.current[i] = el; }}
-                      value={v} onChange={e => handleOtpInput(i, e.target.value)}
-                      onKeyDown={e => handleOtpKey(i, e)}
-                      type="tel" inputMode="numeric" maxLength={1}
-                      autoComplete="one-time-code"
-                      style={{
-                        width: 40, height: 48, border: 'none',
-                        borderBottom: '1.5px solid rgba(255,255,255,0.4)',
-                        background: 'transparent', outline: 'none',
-                        fontFamily: "'DM Sans', sans-serif", fontWeight: 400,
-                        fontSize: 20, color: '#F8F7F5', textAlign: 'center',
-                      }}
-                    />
-                  ))}
-                </div>
-                <GoldBtn label="Verify →" onClick={verifyOtp} disabled={otp.join('').length < 6} />
-                <button
-                  onClick={() => { setOtp(['', '', '', '', '', '']); sendOtp(phone, screen === 'join_otp' ? joinName : undefined); }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', touchAction: 'manipulation', fontFamily: "'Jost', sans-serif", fontSize: 8, fontWeight: 200, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(248,247,245,0.3)', marginTop: 12, display: 'block', width: '100%' }}
-                >Resend code</button>
-              </>
-            )}
-
-            {/* ── L-1 · THE SIGN-UP CHOOSER ──────────────────────────────────
-                The doors became sign-in doors, so the sign-up path needs a home. It is the
-                SAME QUESTION with the same two bytes (S6, S7 — byte-identical to the doors
-                above, deliberately: a person who taps `Sign up` is answering the question he
-                was already asked, not a new one) leading into today's sign-up flows,
-                unchanged: the couple's is `startExploring()`, the vendor's is `join_phone`.
-                Mock frame `L1-chooser`. The sub-line the frame first carried was STRUCK by
-                the founder (S5) — the heading asks the question and the labels answer it.
-                ‹ Back returns to `entry`, the one host this screen is drawn for; a vendor
-                arriving on the `vendor.` subdomain has no entry to return to, which is
-                F-39.84 — pre-existing, filed, not guessed at here. */}
-            {screen === 'chooser' && (
-              <>
-                <BackBtn onClick={() => setScreen('entry')} />
-                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 16px' }}>New here?</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <button
-                    onClick={() => { setRole('Dreamer'); startExploring(); }}
-                    style={{
-                      width: '100%', height: 48, background: 'transparent',
-                      border: '0.5px solid rgba(248,247,245,0.25)', borderRadius: 100,
-                      cursor: 'pointer', touchAction: 'manipulation',
-                      fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 300,
-                      letterSpacing: '0.22em', textTransform: 'uppercase', color: '#F8F7F5',
-                    }}
-                  >I&apos;m getting married</button>
-                  <button
-                    onClick={() => { setRole('Maker'); setScreen('join_phone'); }}
-                    style={{
-                      width: '100%', height: 48, background: '#C9A84C', border: 'none',
-                      borderRadius: 100, cursor: 'pointer', touchAction: 'manipulation',
-                      fontFamily: "'Jost', sans-serif", fontSize: 9, fontWeight: 400,
-                      letterSpacing: '0.22em', textTransform: 'uppercase', color: '#0C0A09',
-                    }}
-                  >I&apos;m a wedding vendor</button>
-                </div>
-              </>
-            )}
-
-            {/* ── SIGN IN: PHONE ────────────────────────────────────────────── */}
-            {screen === 'signin_phone' && (
-              <>
-                <BackBtn onClick={() => setScreen('entry')} />
-                <p style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>Welcome back.</p>
-                {/* L-1: THE ROLE CHIPS ARE RETIRED (R-O3 discharged). They existed because the
-                    old `Already a member?` line entered this screen with `setRole(null)`, so a
-                    returning VENDOR could otherwise be signed in against the couple endpoints.
-                    That line is gone: every entry to `signin_phone` now presets the role — the
-                    two doors above (Dreamer / Maker) and the `vendor.` subdomain effect. With
-                    nothing left to choose, the control asked a question already answered, which
-                    is the F-09.47 disease the founder walked. `handleSignIn`'s
-                    `isVendor = role === 'Maker'` is UNCHANGED and now always has an answer. */}
-                <Label text="Phone number" />
-                {/* R-O5 · R-X24 ACCEPTANCE SHOT ② — the same rule, second surface. */}
-                <div style={{ ...rowBaseline(), borderBottom: '1px solid rgba(255,255,255,0.2)', marginBottom: 12 }}>
-                  <button onClick={() => setShowCountrySheet(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px 0 0', borderRight: '1px solid rgba(255,255,255,0.2)', marginRight: 10, ...rowBaseline(), gap: 6, touchAction: 'manipulation', whiteSpace: 'nowrap' }}>
-                    <FlagSlot flag={country.flag} />
-                    <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, lineHeight: ROW_LINE_HEIGHT, color: 'rgba(248,247,245,0.5)' }}>{country.dialCode}</span>
-                  </button>
-                  <input value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.maxDigits))} type="tel" maxLength={country.maxDigits} placeholder="00000 00000" style={{ ...INPUT, borderBottom: 'none', marginBottom: 0, flex: 1, lineHeight: ROW_LINE_HEIGHT }} />
-                </div>
-                {/* L-1: the `!role` half of this guard retired WITH the toggle it protected.
-                    R-O3's warning was "do not remove either half without replacing the other" —
-                    the replacement is upstream: no entry to this screen leaves `role` null, so
-                    the guard had nothing to catch. The phone-length half stands. */}
-                <GoldBtn label="Continue →" onClick={handleSignIn} disabled={phone.length < country.maxDigits} />
-              </>
-            )}
-
-            {/* ── F-44.271 · YOUR NAME ──────────────────────────────────────────
-                A number that is verified but has no name on file (either role) gives one here, and only then is the
-                account finished and anything opened. The two lines are NAME_WORDS (lib/auth/otpSignup.ts), the
-                founder's to veto; the button is the sign-in screen's own `Continue →`. */}
-            {screen === 'your_name' && (
-              <>
-                <BackBtn onClick={() => setScreen('entry')} />
-                <p data-your-name="" style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, fontSize: 20, color: '#F8F7F5', margin: '0 0 4px' }}>{NAME_WORDS.head}</p>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(248,247,245,0.5)', margin: '0 0 20px' }}>{NAME_WORDS.ask}</p>
-                <input
-                  value={yourName}
-                  onChange={e => setYourName(e.target.value)}
-                  aria-label={NAME_WORDS.head}
-                  autoComplete="name"
-                  style={{ ...INPUT }}
-                />
-                <GoldBtn label="Continue →" onClick={() => submitName(yourName)} disabled={!yourName.trim()} />
-              </>
-            )}
-
+            {panelScreens}
           </div>
         </div>
       )}

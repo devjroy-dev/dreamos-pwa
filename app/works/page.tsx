@@ -13,10 +13,11 @@
 // phone (works.css). The doors are DOORS in lib/works/scenes.ts.
 import type { Metadata, Viewport } from 'next';
 import { connection } from 'next/server';
-import { getImageProps } from 'next/image';
-import { buildScenes, columnHtml, sheetHtml, shuffled, pickFirst, TRADES, DOORS, LOOK_PHOTOS } from '@/lib/works/scenes';
+import { buildScenes, sheetHtml, pickFirst, TRADES, DOORS } from '@/lib/works/scenes';
+import { worksLooks, wallHtml } from '@/lib/works/wall';
 import { worksFontClasses } from './fonts';
 import WorksMotion from './WorksMotion';
+import WorksWall from './WorksWall';
 import './works.css';
 
 export const metadata: Metadata = {
@@ -43,14 +44,7 @@ export const viewport: Viewport = {
   ],
 };
 
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-
-/** One look tile's photograph, as markup: next/image's own props (optimised, sized, lazy), written into the scene string. */
-function lookImg(src: string): string {
-  const { props } = getImageProps({ src, alt: '', width: 640, height: 800, quality: 60, sizes: '(max-width: 860px) 140px, 240px' });
-  return '<img alt="" src="' + esc(String(props.src)) + '" srcset="' + esc(String(props.srcSet || '')) + '" sizes="' + esc(String(props.sizes || ''))
-    + '" width="640" height="800" loading="lazy" decoding="async" onerror="this.remove()">';
-}
+// The photographs and the wall are drawn by lib/works/wall.ts, the one home the sign-in screens draw from too (package 2).
 
 const FIT_NOW = "(function(){var f=document.getElementById('focus'),s=document.getElementById('slot');if(f&&s){var k=Math.min(f.clientWidth/440,f.clientHeight/560,1.25);s.style.setProperty('--k',Math.max(k,.5).toFixed(3))}})()";
 
@@ -60,19 +54,18 @@ const ARROW = (
 
 export default async function WorksPage() {
   await connection();
-  const looks: [string, string] = [lookImg(LOOK_PHOTOS[0]), lookImg(LOOK_PHOTOS[1])];
+  const looks: [string, string] = worksLooks();
   const scenes = buildScenes(looks);
-  const n = scenes.length;
   // The first scene on the glass: the first draw of a fresh bag, exactly as the file's script does it.
   // The landing scene: one of FIRST_POOL (leads, clients, book by chat, the assistant's draft, contracts), at random.
   // Every scene after it is fully random (WorksMotion.tsx's bag).
   const first = pickFirst(scenes);
-  const wall = Array.from({ length: 6 }, (_, c) => columnHtml(scenes, shuffled(Array.from({ length: n }, (_, i) => i)), c)).join('');
+  const wall = wallHtml(scenes);
   const trades = TRADES.map((x) => '<span>' + x + '</span>').join('');
 
   return (
     <div className={'tdww ' + worksFontClasses}>
-      <div className="wall" aria-hidden="true"><div className="plane" id="plane" dangerouslySetInnerHTML={{ __html: wall }} /></div>
+      <WorksWall html={wall} />
 
       <div className="page">
         <header className="top">

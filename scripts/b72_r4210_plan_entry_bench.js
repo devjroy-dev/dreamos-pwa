@@ -152,7 +152,12 @@ sec('C4 \u00b7 placement and shape');
   ok('it is a real href, not a router push',
     !/onClick=\{\(\) => router\.push\('\/plan'\)\}/.test(src));
   // A link, not a third door — the whole reason method A never had to open.
-  ok('no third door was minted', (src.match(/setScreen\('chooser'\)/g) || []).length === 1);
+  // AMENDED BY LABEL (CE-47 LAND-1 package 2): the chair's Back rule returns a vendor who came from the sign-up chooser
+  // to it (vendorBack). That is a way BACK to the chooser, not a door into it: the chooser's own door stays the one
+  // `Sign up`, so the count is 2 and the second is pinned to vendorBack by name.
+  ok('no third door was minted', (src.match(/setScreen\('chooser'\)/g) || []).length === 2
+    && /const vendorBack = \(\) => \{ if \(viaChooser\.current\) \{ setScreen\('chooser'\); return; \}/.test(src)
+    && (src.match(/onClick=\{\(\) => setScreen\('chooser'\)\}/g) || []).length === 1);
 }
 
 // ── C5 · THE CENSUS MOVED ON ANCHORS ALONE ──────────────────────────────────
