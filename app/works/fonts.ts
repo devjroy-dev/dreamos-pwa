@@ -1,22 +1,40 @@
-// app/works/fonts.ts · CE-47 · LAND-1 · point 1: the page's four faces through next/font, self-hosted (served from this
-// site at build, no request to Google from a visitor's phone). Each face is named by the CSS variable app/works/works.css
-// reads; the fallback stacks live there.
+// app/works/fonts.ts · CE-47 · LAND-1 · point 1: the page's four faces, self-hosted.
 //
-//   Bodoni Moda   the display face. Variable, with its optical-size axis, as the chair's file asks for it
-//                 (opsz 6..96): "Your" and the changing word are drawn at display size from the same file.
-//   Manrope       every other line on the page. Variable weight (one file in place of four).
-//   JetBrains Mono the small labels (the mark's line, the kicker, the tags). Not preloaded: it sits in small type and
-//                 swaps in without moving anything.
-//   Inter         inside the app screens only (the app's 400, 500 and 600), variable: one file in place of three.
-import { Bodoni_Moda, Manrope, JetBrains_Mono, Inter } from 'next/font/google';
+// LAND-1 package 3 (the chair's addendum, 10 Oct 2026): next/font/local, from the woff2 files in app/works/fonts/, each
+// face beside its SIL Open Font License (OFL.txt). Nothing here asks Google for anything at build or in dev: Vercel's
+// build of train 12 failed on a font fetch from Google that came back empty, and that cannot happen to these faces now.
+// The files are Google's own faces as @fontsource 5.3.0 ships them (the latin subset), with the same axes, weights,
+// styles, CSS variable names and preload choices next/font/google gave them.
+//
+//   Bodoni Moda    the display face: variable weight 400..900 with its optical-size axis (opsz 6..96), normal and italic.
+//   Manrope        every other line on the page: variable weight 200..800.
+//   JetBrains Mono the small labels: 400 and 500. Not preloaded: small type that swaps in without moving anything.
+//   Inter          inside the app screens only: variable weight 100..900.
+import localFont from 'next/font/local';
 
-export const worksDisplay = Bodoni_Moda({
-  subsets: ['latin'], style: ['normal', 'italic'], axes: ['opsz'], display: 'swap', variable: '--works-display',
+export const BodoniModa = localFont({
+  src: [
+    { path: './fonts/bodoni-moda/bodoni-moda-latin-opsz-normal.woff2', weight: '400 900', style: 'normal' },
+    { path: './fonts/bodoni-moda/bodoni-moda-latin-opsz-italic.woff2', weight: '400 900', style: 'italic' },
+  ],
+  display: 'swap', variable: '--works-display', adjustFontFallback: 'Times New Roman',
 });
-export const worksBody = Manrope({ subsets: ['latin'], display: 'swap', variable: '--works-body' });
-export const worksMono = JetBrains_Mono({
-  subsets: ['latin'], weight: ['400', '500'], display: 'swap', preload: false, variable: '--works-mono',
+export const Manrope = localFont({
+  src: [{ path: './fonts/manrope/manrope-latin-wght-normal.woff2', weight: '200 800', style: 'normal' }],
+  display: 'swap', variable: '--works-body',
 });
-export const worksApp = Inter({ subsets: ['latin'], display: 'swap', variable: '--works-app' });   // variable: one file for 400, 500 and 600
+export const JetBrainsMono = localFont({
+  src: [
+    { path: './fonts/jetbrains-mono/jetbrains-mono-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/jetbrains-mono/jetbrains-mono-latin-500-normal.woff2', weight: '500', style: 'normal' },
+  ],
+  display: 'swap', preload: false, variable: '--works-mono', adjustFontFallback: false,
+});
+export const InterWorks = localFont({
+  src: [{ path: './fonts/inter/inter-latin-wght-normal.woff2', weight: '100 900', style: 'normal' }],
+  display: 'swap', variable: '--works-app',
+});
 
-export const worksFontClasses = [worksDisplay.variable, worksBody.variable, worksMono.variable, worksApp.variable].join(' ');
+// next/font/local names each family after its const: BodoniModa, Manrope, JetBrainsMono, InterWorks (InterWorks, not
+// Inter, so it never shares a family name with the Google Inter other routes load).
+export const worksFontClasses = [BodoniModa.variable, Manrope.variable, JetBrainsMono.variable, InterWorks.variable].join(' ');

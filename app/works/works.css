@@ -203,13 +203,15 @@ html:has(.tdww),body:has(.tdww){height:100%;overflow:hidden;margin:0;overscroll-
 @keyframes tdww-rise{from{opacity:0;transform:translateY(16px)}}
 .tdww .ab-in{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(36px,5vw,64px)}
 .tdww .ab-top{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;padding-block:6px;z-index:1}
+/* LAND-1 package 3 r2: the sticky top keeps a ground, so the longer About text scrolls under it, not through it. */
+.tdww .ab-top{background:color-mix(in srgb,var(--bg) 96%,transparent);margin-inline:-8px;padding-inline:8px}
 .tdww .ab-close{font:600 14px/1 var(--body);padding:12px 18px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
 .tdww .ab-close:hover{border-color:var(--ink)}
 .tdww .ab-head{display:grid;gap:18px;max-width:46rem}
 .tdww .ab-head h2{margin:0;font:500 clamp(40px,5.6vw,76px)/1 var(--display);letter-spacing:-.015em;text-wrap:balance}
 .tdww .ab-head h2 em{font-weight:400}
 .tdww .ab-head p:not(.kicker){margin:0;font:500 clamp(17px,1.4vw,20px)/1.55 var(--body);color:var(--soft);max-width:40rem}
-.tdww .promises{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(16px,2.4vw,32px);border-block:1px solid var(--line);padding-block:clamp(22px,3vw,34px)}
+.tdww .promises{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,2.4vw,32px);border-block:1px solid var(--line);padding-block:clamp(22px,3vw,34px)}
 .tdww .promises div{display:grid;gap:6px;min-width:0}
 .tdww .promises b{font:italic 400 clamp(26px,2.6vw,36px)/1.05 var(--display)}
 .tdww .promises span{font:400 15px/1.5 var(--body);color:var(--soft)}
@@ -219,6 +221,8 @@ html:has(.tdww),body:has(.tdww){height:100%;overflow:hidden;margin:0;overscroll-
 .tdww .chap h3 small{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--metal)}
 .tdww .item{display:grid;gap:3px;padding-block:13px;border-top:1px solid var(--line)}
 .tdww .item b{font:700 16px/1.35 var(--body)}
+/* LAND-1 package 3 r2: the agency door sits in About as one of its lines (For agencies and brands.) */
+.tdww a.item{text-decoration:none;color:inherit}.tdww a.item:hover b{color:var(--accent)}
 .tdww .item span{font:400 15px/1.5 var(--body);color:var(--soft)}
 .tdww .forwho{display:grid;gap:14px}
 .tdww .forwho p:not(.kicker){margin:0;font:italic 400 clamp(22px,2.4vw,32px)/1.35 var(--display);text-wrap:balance}

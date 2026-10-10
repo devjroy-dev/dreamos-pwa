@@ -29,11 +29,22 @@ html.works-signin{--strong:color-mix(in srgb,var(--ink) 34%,transparent)}
 /* tdw.works sets its wall to the right of the headline; behind a centred panel it spans the whole screen */
 @media (min-width:861px){.tdww.tdww-signin .plane{left:-8%;width:132%}}
 
+/* ---------- the glass (LAND-1 package 3, the founder: it must read as frosted glass, the wall moving behind it) ----------
+   The panel is 70% of the ground. Behind it, and only behind it, its own backdrop filter frosts the wall: a 28 px blur,
+   and the wall's light and dark pulled together (contrast) and toward the ground (brightness), so every line keeps
+   4.5:1 or better even where the wall is at its opposite extreme (pure black screens in light, pure white in dark).
+   Worked through, light: the wall's black under its veil reads rgb(106); the filter lifts it to rgb(190); the panel
+   over it is rgb(219); the teal links on that are 4.7:1, the grey lines 5.6:1. Dark: the wall's white under its veil
+   reads rgb(144); the filter brings it to rgb(110); the panel is rgb(43); the grey lines are 6.1:1. b303 §5 measures it. */
+.tdww-signin{--glass-filter:blur(28px) contrast(.4) brightness(1.6) saturate(1.1)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tdww-signin{--glass-filter:blur(28px) contrast(.6) brightness(.8) saturate(1.1)}}
+:root[data-theme="dark"] .tdww-signin{--glass-filter:blur(28px) contrast(.6) brightness(.8) saturate(1.1)}
+
 /* ---------- the glass panel: centred on a laptop, a sheet from the bottom on a phone ---------- */
 .tdww-signin .wg-wrap{position:fixed;inset:0;z-index:1;display:grid;place-items:center;padding:24px;overflow-y:auto}
 .tdww-signin .wg-panel{position:relative;width:min(460px,100%);max-height:calc(100dvh - 48px);overflow-y:auto;overscroll-behavior:contain;
-  background:color-mix(in srgb,var(--bg) 92%,transparent);
-  -webkit-backdrop-filter:blur(24px) saturate(1.15);backdrop-filter:blur(24px) saturate(1.15);
+  background:color-mix(in srgb,var(--bg) 70%,transparent);
+  -webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);
   border:1px solid var(--line);border-radius:28px;padding:30px 30px 32px;box-shadow:var(--shadow);color:var(--ink);
   animation:tdww-rise .5s var(--ease)}
 @media (max-width:860px){

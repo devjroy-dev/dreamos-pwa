@@ -117,55 +117,63 @@ export default async function WorksPage() {
         <div className="ab-in">
           <div className="ab-top"><span className="mark"><b>TDW</b><span>tdw.works · The Delegated Workspace™</span></span><button className="ab-close" type="button" id="aboutClose">Close</button></div>
 
+          {/* LAND-1 package 3 r2: the founder's approved About text, word for word (apostrophes and quotes typographic, R-40.19).
+              The layout's style is kept: kicker, headline, intro, four promises, grouped lines, Made for, Start free, the footer. */}
           <header className="ab-head">
             <p className="kicker">About TDW</p>
-            <h2 id="abTitle">Everything your business needs, <em>in one app.</em></h2>
-            <p>tdw.works, The Delegated Workspace, is the workspace for the people who make weddings and events beautiful. Your website, your clients, your money and your collaborations live in one place, and much of the busy work is done for you.</p>
+            <h2 id="abTitle">Your business, <em>in one app.</em></h2>
+            <p>TDW is an app for creative professionals and their businesses: makeup artists, photographers, designers, stylists, event planners, influencers, content creators, studios, and talent and modelling agencies. It holds your clients, bookings, money and collaborations in one place, and does routine work for you.</p>
           </header>
 
           <div className="promises">
-            <div><b>No commission.</b><span>Your bookings are yours. Payments go straight to your own account.</span></div>
-            <div><b>Two minutes.</b><span>Add your photos, and your website, packages and storefront are ready.</span></div>
-            <div><b>Day and night.</b><span>Eliza answers your new enquiries on WhatsApp at any hour.</span></div>
+            <div><b>No commission.</b><span>TDW takes no cut of your bookings. Payments go to your own account.</span></div>
+            <div><b>Two-minute start.</b><span>Add your photos or connect Instagram. Your website, packages and shop are set up for you.</span></div>
+            <div><b>Replies at any hour.</b><span>New messages on WhatsApp and Instagram get a reply in your business’s name.</span></div>
+            <div><b>Run it from WhatsApp.</b><span>Type what you need in plain words, for example “Book Tara for 14 December and ask for the 30% advance”. TDW blocks the date, raises the invoice and drafts the message. Nothing is sent until you approve it.</span></div>
           </div>
 
           <div className="chaps">
-            <section className="chap"><h3>Run your business <small>5 rooms</small></h3>
-              <div className="item"><b>Your website</b><span>A beautiful website in your style, made from your own photos. Clients enquire straight to your WhatsApp.</span></div>
-              <div className="item"><b>Two-minute start</b><span>Sign up, add your photos or connect Instagram, and your business is online in about two minutes.</span></div>
-              <div className="item"><b>Packages</b><span>Your services and prices, drafted for you. Nothing is shown until you confirm it.</span></div>
-              <div className="item"><b>Calendar</b><span>Every booking, shoot and event in one calendar.</span></div>
-              <div className="item"><b>Invoices</b><span>Invoices and instalments, with exactly what each client still owes.</span></div>
+            <section className="chap"><h3>Clients and bookings</h3>
+              <div className="item"><b>Leads.</b><span>Every new enquiry in one list, with what was asked and where it came from.</span></div>
+              <div className="item"><b>Clients.</b><span>Each client’s events, bookings and amount still owed.</span></div>
+              <div className="item"><b>Packages.</b><span>Your services and prices, drafted for you to check and confirm.</span></div>
+              <div className="item"><b>Calendar.</b><span>All bookings, shoots and events in one calendar.</span></div>
+              <div className="item"><b>Contracts.</b><span>Send a contract with a booking and see when it is signed.</span></div>
+              <div className="item"><b>Team and crew.</b><span>Who is working on which date.</span></div>
             </section>
-            <section className="chap"><h3>Grow <small>4 rooms</small></h3>
-              <div className="item"><b>Trend room</b><span>Every Monday, what clients in your trade and your city are asking for.</span></div>
-              <div className="item"><b>Posts and ads</b><span>Posts, reels and ad briefs, drafted from your own work.</span></div>
-              <div className="item"><b>Off-season shop</b><span>Sell gift vouchers, classes and workshops from your website, all year round.</span></div>
-              <div className="item"><b>Discover</b><span>A profile on TDW Discover, where clients come looking for professionals.</span></div>
+            <section className="chap"><h3>Website and marketing</h3>
+              <div className="item"><b>Website.</b><span>Choose a style, customize and put it on your own domain. Enquiries come to your WhatsApp.</span></div>
+              <div className="item"><b>Google.</b><span>Your business name, work and city show in Google search.</span></div>
+              <div className="item"><b>Instagram messages.</b><span>Enquiries on Instagram are answered in your name and saved as leads.</span></div>
+              <div className="item"><b>Posts and ads.</b><span>Posts, reels and ads made from your own photos, with saves, shares, reach and enquiries.</span></div>
+              <div className="item"><b>Discover.</b><span>Your profile on TDW Discover, where people look for professionals.</span></div>
             </section>
-            <section className="chap"><h3>Get paid, stay protected <small>4 rooms</small></h3>
-              <div className="item"><b>Payment links</b><span>Send a payment link with any invoice. The money goes to your own account, and TDW takes no fee.</span></div>
-              <div className="item"><b>Insurance</b><span>Cover for your kit and your events, and a note when a policy needs renewing.</span></div>
-              <div className="item"><b>Business papers</b><span>Your certificate, ID, business statement and a ready pack for your CA.</span></div>
-              <div className="item"><b>Supplies</b><span>Bills read from a photo and added to your expenses, and gear you can lend or borrow.</span></div>
+            <section className="chap"><h3>Business Solutions</h3>
+              <div className="item"><b>Payment links.</b><span>A link with any invoice. The money goes to your own account. TDW takes no fee.</span></div>
+              <div className="item"><b>Off-season shop.</b><span>Sell gift vouchers, classes and workshops from your website.</span></div>
+              <div className="item"><b>Supplies.</b><span>Bills read from a photo and added to your expenses. Lend or borrow gear.</span></div>
+              <div className="item"><b>Business papers.</b><span>Certificate, ID, business statement and a pack for your CA.</span></div>
+              <div className="item"><b>Insurance.</b><span>Cover for your kit and your events, with renewal reminders.</span></div>
+              <div className="item"><b>Brand collaborations.</b><span>Pitch brands and send the pitches yourself.</span></div>
+              <div className="item"><b>Media kit.</b><span>One page with your work and your numbers, to send to brands.</span></div>
+              <div className="item"><b>Trends.</b><span>Every Monday, what clients in your field and your city are asking for.</span></div>
             </section>
-            <section className="chap"><h3>Work together <small>5 rooms</small></h3>
-              <div className="item"><b>Collab Hub</b><span>Find photographers, models and stylists to hire or barter with for your next shoot.</span></div>
-              <div className="item"><b>Brand collaborations</b><span>Write strong pitches to brands, and send them yourself.</span></div>
-              <div className="item"><b>Media kit</b><span>One page with your work and your numbers, ready to send to any brand.</span></div>
-              <div className="item"><b>Calls from agencies and brands</b><span>Talent agencies, modelling agencies and fashion houses send their casting and collab calls to you.</span></div>
-              <div className="item"><b>Eliza</b><span>Your assistant on WhatsApp. New enquiries get a reply, day and night.</span></div>
+            <section className="chap"><h3>Collaborations and hiring</h3>
+              <div className="item"><b>Collab Hub.</b><span>Post what you need for a shoot or an event, or answer other people’s posts. Paid or barter.</span></div>
+              <div className="item"><b>Hire other artists.</b><span>Find photographers, makeup artists, models and stylists, see their work and hire them.</span></div>
+              <div className="item"><b>Shoot directory.</b><span>Photographers, models and locations, with their Instagram.</span></div>
+              <div className="item"><b>Agencies and brands.</b><span>Talent agencies, modelling agencies and fashion houses send casting and collab calls to professionals on TDW.</span></div>
+              <a className="item" href={DOORS.agency} data-door="agency"><b>For agencies and brands.</b><span>Post casting and collab calls, and reach the professionals on TDW.</span></a>
             </section>
           </div>
 
           <div className="forwho">
             <p className="kicker">Made for</p>
-            <p>Makeup artists<i>·</i>Photographers<i>·</i>Influencers<i>·</i>Content creators<i>·</i>Event planners<i>·</i>Talent management agencies<i>·</i>Modelling agencies<i>·</i>Designers<i>·</i>Stylists<i>·</i>Decorators<i>·</i>Studios<i>·</i>Social media managers</p>
+            <p>makeup artists, photographers, influencers, content creators, event planners, talent agencies, modelling agencies, designers, stylists, decorators, studios and social media managers.</p>
           </div>
 
           <div className="ab-end">
             <a className="start" href={DOORS.start} data-door="start">Start free{ARROW}</a>
-            <a className="agency" href={DOORS.agency} data-door="agency"><b>Agency or brand? Send your calls here.</b><span>Post casting and collab calls to the professionals on TDW.</span></a>
           </div>
           <div className="ab-foot"><span>© 2026 tdw.works · The Delegated Workspace™</span><a href={DOORS.privacy}>Privacy</a><a href={DOORS.terms}>Terms</a></div>
         </div>

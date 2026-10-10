@@ -5,7 +5,7 @@
 // §1 NODE, no server:
 //   1.1 lib/public/worksHost.ts driven whole (transpiled with the tree's typescript): tdw.works and www, the page, the
 //       app's paths sent on to thedreamwedding.in, every other host untouched.
-//   1.2 lib/works/scenes.ts driven whole: 26 scenes (18, and LAND-1 package 2's eight), unique, landed rooms only (no Quotes, no Rebooking), the order rule
+//   1.2 lib/works/scenes.ts driven whole: 28 scenes (18, LAND-1 package 2's eight, package 3's shoot directory and Google listing), unique, landed rooms only (no Quotes, no Rebooking), the order rule
 //       over 2,000 random bags, the three doors by exact address.
 //   1.3 sources: middleware asks worksDecide first; next.config allows only TDW's Cloudinary folder; the four faces in
 //       app/works/fonts.ts; works.css fully scoped under .tdww with reduce motion stopping the wall, the trades line,
@@ -22,6 +22,8 @@
 //   2.5 About: opens on the same page, the screens and the wall stop, Esc and Close return; a paused page stays paused.
 //   2.6 reduce motion: the wall, the trades line and the meter stop; a change swaps at once, with no enter or leave.
 //   2.7 faces: the heading is Bodoni Moda, and every face file the page loads for its four families is served by the site.
+//   2.11 package 3: "Your posts and ads." and "Your Google listing." on one line at 360, 390, 1024 and 1440; the posts, shoot
+//       team and Google listing screens whole on the glass; the next word back at the heading's size.
 //   2.9 the tab icon: on tdw.works the icons point to /works/* and /favicon.ico serves da5ed966; on thedreamwedding.in
 //       the five /brand/ links and the D at /favicon.ico, unchanged.
 //   2.8 photographs: her two look tiles carry next/image addresses for TDW's folder at quality 60; each file the tiles can
@@ -73,7 +75,8 @@ const DOORS = {
   agency: 'https://thedreamwedding.in/partner/join',
 };
 const LANDED = ['leads', 'clients', 'bookchat', 'draft', 'contracts', 'crew', 'igdm', 'sitebuild', 'website', 'build', 'packages', 'calendar', 'invoices', 'payments', 'insurance', 'papers', 'supplies', 'trends',
-  'posts', 'shop', 'discover', 'collabs', 'brands', 'kit', 'partners', 'eliza'];
+  'posts', 'shop', 'discover', 'collabs', 'brands', 'kit', 'partners', 'shootdir', 'seo', 'eliza'];   // LAND-1 package 3: shootdir, seo
+const N = LANDED.length;   // 28
 
 // ── §4 the planted defect ────────────────────────────────────────────────────────────────────────────────────────────
 const SCENES_REL = 'lib/works/scenes.ts';
@@ -113,9 +116,29 @@ sec('1.2 the scenes (lib/works/scenes.ts)');
   const m = loadTs(SCENES_REL);
   const S = m.buildScenes(['<img a>', '<img b>']);
   const keys = S.map((s) => s.k);
-  ok(S.length === 26 && new Set(keys).size === 26, '26 scenes, each once (the 18, and leads, clients, book by chat, the draft, contracts, crew, Instagram messages, the website being made)', keys.join(','));
-  // LAND-1 package 2: the eight new scenes carry the app's own words.
   const by = (k) => (S.find((x) => x.k === k) || {}).h || '';
+  ok(S.length === N && N === 28 && new Set(keys).size === N, '28 scenes, each once (the 26, and LAND-1 package 3\'s shoot directory and Google listing)', keys.join(','));
+  // LAND-1 package 3: her own address on her website; posts and ads, a post and an ad; the shoot directory; her Google listing.
+  ok(/<div class="url">ilavari\.in<\/div>/.test(by('website')) && !/thedreamwedding\.in/.test(by('website') + by('build')) && /Website published<small>ilavari\.in</.test(by('build')),
+    'the website shows her own address, ilavari.in (and the launch screen names the same)');
+  {
+    const ps = S.find((x) => x.k === 'posts');
+    ok(ps.w === 'posts and ads.' && ps.fit > 0 && ps.fit < 1 && /Best post/.test(ps.h) && /Saves 31 \u00b7 Shares 9/.test(ps.h) && />Ads</.test(ps.h) && /Running/.test(ps.h)
+      && /is running\. 1,240 people have seen it today\./.test(ps.h) && /Spent this month/.test(ps.h) && /Enquiries from ads/.test(ps.h) && /Run your Instagram and Facebook ads yourself, right here in TDW\./.test(ps.h),
+      'posts: "Your posts and ads.", a post (Best post, Saves and Shares, Reach) and an ad (Running, people today, Spent this month, Enquiries from ads), in the room\'s words');
+    ok(m.sheetHtml(ps).includes('data-fit="posts"') && /#word:not\(\.go\)[^{]*\{font-size:0?\.\d+em\}/.test(m.sheetHtml(ps)) && S.filter((x) => x.fit).map((x) => x.k).join() === 'posts,shootdir,seo' && !m.sheetHtml(S.find((x) => x.k === 'leads')).includes('data-fit'),
+      'the size of a long word rides on its own sheet alone (posts, the shoot directory, the Google listing)');
+  }
+  ok(/Everyone on Collab Hub is listed here\./.test(by('shootdir')) && ['Photography &amp; Videography', 'Photography & Videography'].some((w) => by('shootdir').includes(w)) && /Model/.test(by('shootdir')) && /Studio/.test(by('shootdir'))
+    && (by('shootdir').match(/Instagram @[a-z0-9._]+</g) || []).length === 4 && (by('shootdir').match(/See their page/g) || []).length === 4,
+    'shoot directory: photographers, models and places on Collab Hub, each with "Instagram @handle" and "See their page"');
+  // LAND-1 package 3 r2: the founder's words for the website slide's line, and "Your shoot directory."
+  ok(S.find((x) => x.k === 'website').cap === 'Choose a style, customize and put it on your own domain.' && S.find((x) => x.k === 'shootdir').w === 'shoot directory.',
+    'r2: the website slide reads "Choose a style, customize and put it on your own domain."; the shoot slide is "Your shoot directory."');
+  ok(/SEO: found on Google/.test(by('seo')) && /What Google shows/.test(by('seo')) && /ilavari\.in/.test(by('seo')) && /Ilavari Studio \u00b7 Makeup artist \u00b7 Delhi NCR/.test(by('seo'))
+    && /The last 28 days/.test(by('seo')) && /Times you appeared on Google/.test(by('seo')) && /What people typed/.test(by('seo')),
+    'Google listing: what Google shows (her address, her name, craft and city), the last 28 days, and what people typed');
+  // LAND-1 package 2: the eight new scenes carry the app's own words.
   ok(/Enquiries \u00b7 4 open/.test(by('leads')) && ['Instagram', 'WhatsApp', 'Website'].every((w) => by('leads').includes('>' + w + '<')) && /asked/.test(by('leads')),
     'leads: "Enquiries · N open", where each came from (Instagram, WhatsApp, Website) and what was asked');
   ok(/Booked \u00b7 3 clients/.test(by('clients')) && /Booked<\/span>/.test(by('clients')) && /Still owed/.test(by('clients')), 'clients: "Booked · N clients", their events, what is booked and what is still owed');
@@ -141,9 +164,9 @@ sec('1.2 the scenes (lib/works/scenes.ts)');
   let bad = '';
   let x = 7; const rnd = () => { x = (x * 1103515245 + 12345) % 2147483648; return x / 2147483648; };
   const bag = []; let cur = null; const seq = [];
-  for (let i = 0; i < 26 * 2000; i += 1) { const d = m.draw(bag, 26, cur, rnd); seq.push(d); if (d === cur) { bad = bad || `repeat at ${i}`; } cur = d; }
-  for (let b = 0; b < 2000 && !bad; b += 1) { const part = seq.slice(b * 26, b * 26 + 26); if (new Set(part).size !== 26) bad = `bag ${b} is not all 26: ${part.join(',')}`; }
-  ok(!bad, 'order: 2,000 bags, each all 26 with no repeat, never the same scene twice in a row', bad);
+  for (let i = 0; i < N * 2000; i += 1) { const d = m.draw(bag, N, cur, rnd); seq.push(d); if (d === cur) { bad = bad || `repeat at ${i}`; } cur = d; }
+  for (let b = 0; b < 2000 && !bad; b += 1) { const part = seq.slice(b * N, b * N + N); if (new Set(part).size !== N) bad = `bag ${b} is not all ${N}: ${part.join(',')}`; }
+  ok(!bad, `order: 2,000 bags, each all ${N} with no repeat, never the same scene twice in a row`, bad);
   {
     // The landing scene (the chair, 10 Oct 2026): drawn at random from leads, clients, book by chat, the draft, contracts.
     const POOL = ['leads', 'clients', 'bookchat', 'draft', 'contracts'];
@@ -166,8 +189,26 @@ sec('1.3 the sources');
   ok(/remotePatterns:\s*\[new URL\('https:\/\/res\.cloudinary\.com\/dccso5ljv\/image\/upload\/\*\*'\)\]/.test(nc) && /qualities:\s*\[60, 75\]/.test(nc),
     "next/image allows TDW's Cloudinary folder only, qualities 60 and 75");
   const fo = read('app/works/fonts.ts');
-  ok(/Bodoni_Moda\(\{[^}]*axes: \['opsz'\]/.test(fo) && /Manrope\(/.test(fo) && /JetBrains_Mono\(/.test(fo) && /Inter\(\{ subsets: \['latin'\], display: 'swap', variable: '--works-app' \}\)/.test(fo),
-    'the four faces through next/font: Bodoni Moda (with opsz), Manrope, JetBrains Mono, Inter (variable, for the app weights)');
+  // AMENDED BY LABEL (LAND-1 package 3, the chair's addendum): the four faces are self-hosted through next/font/local,
+  // from app/works/fonts/, each beside its SIL Open Font License; nothing in app/works or lib/works asks Google.
+  {
+    const SI = read('app/works/signinFonts.ts');
+    const files = ['bodoni-moda/bodoni-moda-latin-opsz-normal.woff2', 'bodoni-moda/bodoni-moda-latin-opsz-italic.woff2', 'manrope/manrope-latin-wght-normal.woff2',
+      'jetbrains-mono/jetbrains-mono-latin-400-normal.woff2', 'jetbrains-mono/jetbrains-mono-latin-500-normal.woff2', 'inter/inter-latin-wght-normal.woff2'];
+    const both = (re) => re.test(fo) && re.test(SI);
+    ok([fo, SI].every((x) => /import localFont from 'next\/font\/local';/.test(x) && !/next\/font\/google'/.test(x)) && files.every((f) => both(new RegExp("path: '\\./fonts/" + f.replace(/[.]/g, '\\.') + "'")))
+      && both(/bodoni-moda-latin-opsz-normal\.woff2', weight: '400 900', style: 'normal'/) && both(/bodoni-moda-latin-opsz-italic\.woff2', weight: '400 900', style: 'italic'/)
+      && both(/weight: '200 800'/) && both(/weight: '100 900'/) && both(/jetbrains-mono-latin-400-normal\.woff2', weight: '400'/) && both(/jetbrains-mono-latin-500-normal\.woff2', weight: '500'/)
+      && ['--works-display', '--works-body', '--works-mono', '--works-app'].every((v) => both(new RegExp("variable: '" + v + "'"))),
+      'the four faces through next/font/local, in both files: Bodoni Moda (weight 400..900 with opsz, normal and italic), Manrope 200..800, JetBrains Mono 400 and 500, Inter 100..900; the same CSS variables');
+    ok((fo.match(/preload: false/g) || []).length === 1 && /JetBrainsMono = localFont\(\{[\s\S]{0,400}preload: false/.test(fo) && (SI.match(/preload: false/g) || []).length === 4,
+      'the same preload choices: tdw.works preloads all but JetBrains Mono; the sign-in preloads none');
+    ok(files.every((f) => fs.existsSync(path.join(ROOT, 'app/works/fonts', f)) && fs.statSync(path.join(ROOT, 'app/works/fonts', f)).size > 15000)
+      && ['bodoni-moda', 'manrope', 'jetbrains-mono', 'inter'].every((d) => /SIL Open Font License, Version 1\.1/.test(fs.readFileSync(path.join(ROOT, 'app/works/fonts', d, 'OFL.txt'), 'utf8'))),
+      'the six woff2 files are in app/works/fonts, each face beside its SIL Open Font License (OFL.txt)');
+    const g = spawnSync('grep', ['-rlE', "next/font/google'", 'app/works', 'lib/works'], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
+    ok(g === '', 'nothing in app/works or lib/works imports next/font/google', g);
+  }
   const css = read('app/works/works.css').replace(/\/\*[\s\S]*?\*\//g, '');
   const heads = []; const walk = (s) => { let i = 0; while (i < s.length) { const j = s.indexOf('{', i); if (j < 0) break; const h = s.slice(i, j).trim(); let d = 0, k = j; for (; k < s.length; k += 1) { if (s[k] === '{') d += 1; else if (s[k] === '}') { d -= 1; if (!d) break; } } const body = s.slice(j + 1, k); if (h.startsWith('@media')) walk(body); else if (!h.startsWith('@keyframes')) heads.push(h); i = k + 1; } };
   walk(css);
@@ -204,8 +245,40 @@ sec('1.3 the sources');
   }
   const pg = read('app/works/page.tsx');
   ok((pg.match(/<b>TDW<\/b><span>tdw\.works · The Delegated Workspace™<\/span>/g) || []).length === 2, 'ruling 4: the line under TDW reads "tdw.works · The Delegated Workspace™" (top bar and About)');
-  ok(/at any hour\./.test(pg) && !/while you work/.test(pg) && /and a note when a policy needs renewing\./.test(pg) && !/reminder before/.test(pg + read(SCENES_REL)),
-    'ruling 5: "at any hour" and "a note when a policy needs renewing" on the page and in the scenes');
+  // AMENDED BY LABEL (LAND-1 package 3 r2): About is now the founder's approved text, word for word, which supersedes
+  // ruling 5's About wording ("with renewal reminders"); the scenes keep ruling 5's line.
+  ok(/Replies at any hour\./.test(pg) && !/while you work/.test(pg) && /Cover for your kit and your events, with renewal reminders\./.test(pg) && /and a note when a policy needs renewing\./.test(read(SCENES_REL)) && !/reminder before/.test(pg + read(SCENES_REL)),
+    'ruling 5 in the scenes ("a note when a policy needs renewing"); About in the founder\'s approved words ("Replies at any hour.", "with renewal reminders.")');
+  {
+    // LAND-1 package 3 r2: About, the founder's approved text, word for word, in the layout's own style.
+    const ab = pg.slice(pg.indexOf('className="about"'), pg.indexOf('className="ab-foot"'));
+    const txt = ab.replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/<[^>]+>/g, '|').replace(/\{ARROW\}/g, '').replace(/\u2019/g, "'").replace(/[\u201c\u201d]/g, '"').split('|').map((x) => x.trim()).filter((x) => x && !x.startsWith('<'));
+    const WANT = ['About TDW', 'Your business,', 'in one app.',
+      'TDW is an app for creative professionals and their businesses: makeup artists, photographers, designers, stylists, event planners, influencers, content creators, studios, and talent and modelling agencies. It holds your clients, bookings, money and collaborations in one place, and does routine work for you.',
+      'No commission.', 'TDW takes no cut of your bookings. Payments go to your own account.',
+      'Two-minute start.', 'Add your photos or connect Instagram. Your website, packages and shop are set up for you.',
+      'Replies at any hour.', "New messages on WhatsApp and Instagram get a reply in your business's name.",
+      'Run it from WhatsApp.', 'Type what you need in plain words, for example "Book Tara for 14 December and ask for the 30% advance". TDW blocks the date, raises the invoice and drafts the message. Nothing is sent until you approve it.',
+      'Clients and bookings', 'Leads.', 'Every new enquiry in one list, with what was asked and where it came from.', 'Clients.', "Each client's events, bookings and amount still owed.",
+      'Packages.', 'Your services and prices, drafted for you to check and confirm.', 'Calendar.', 'All bookings, shoots and events in one calendar.',
+      'Contracts.', 'Send a contract with a booking and see when it is signed.', 'Team and crew.', 'Who is working on which date.',
+      'Website and marketing', 'Website.', 'Choose a style, customize and put it on your own domain. Enquiries come to your WhatsApp.', 'Google.', 'Your business name, work and city show in Google search.',
+      'Instagram messages.', 'Enquiries on Instagram are answered in your name and saved as leads.', 'Posts and ads.', 'Posts, reels and ads made from your own photos, with saves, shares, reach and enquiries.',
+      'Discover.', 'Your profile on TDW Discover, where people look for professionals.',
+      'Business Solutions', 'Payment links.', 'A link with any invoice. The money goes to your own account. TDW takes no fee.', 'Off-season shop.', 'Sell gift vouchers, classes and workshops from your website.',
+      'Supplies.', 'Bills read from a photo and added to your expenses. Lend or borrow gear.', 'Business papers.', 'Certificate, ID, business statement and a pack for your CA.',
+      'Insurance.', 'Cover for your kit and your events, with renewal reminders.', 'Brand collaborations.', 'Pitch brands and send the pitches yourself.',
+      'Media kit.', 'One page with your work and your numbers, to send to brands.', 'Trends.', 'Every Monday, what clients in your field and your city are asking for.',
+      'Collaborations and hiring', 'Collab Hub.', "Post what you need for a shoot or an event, or answer other people's posts. Paid or barter.",
+      'Hire other artists.', 'Find photographers, makeup artists, models and stylists, see their work and hire them.', 'Shoot directory.', 'Photographers, models and locations, with their Instagram.',
+      'Agencies and brands.', 'Talent agencies, modelling agencies and fashion houses send casting and collab calls to professionals on TDW.',
+      'For agencies and brands.', 'Post casting and collab calls, and reach the professionals on TDW.',
+      'Made for', 'makeup artists, photographers, influencers, content creators, event planners, talent agencies, modelling agencies, designers, stylists, decorators, studios and social media managers.',
+      'Start free'];
+    const body = txt.slice(txt.indexOf('About TDW'));
+    ok(JSON.stringify(body) === JSON.stringify(WANT), "About is the founder's approved text, word for word and in order (apostrophes and quotes typographic)", body.filter((x, i) => x !== WANT[i]).slice(0, 4).join(' | '));
+    ok(!/<small>/.test(ab) && !/rooms?</.test(ab) && !/—/.test(ab) && !/\bcouples?\b|brid/i.test(ab), 'About has no room counts, no em dash, no couple or bride');
+  }
   ok(/var isWorks=location\.hostname==='tdw\.works'\|\|path==='\/works';/.test(lay) && /if\(isWorks\)\{[\s\S]{0,200}bg=dk\?'#0E1112':'#E7EAE6';/.test(lay),
     "the root layout paints tdw.works's own ground and browser bar, not the couples' near-black");
 }
@@ -299,15 +372,15 @@ async function glass(puppeteer, bin, base, port) {
       await p.close();
     }
 
-    sec('2.2 the 26 scenes: random, each bag all 26, never twice in a row');
+    sec(`2.2 the ${N} scenes: random, each bag all ${N}, never twice in a row`);
     {
       const p = await open(1440, 900, null, [FAST_CLOCK, RECORD]);
-      await p.waitForFunction(() => window.__seq && window.__seq.length >= 53, { timeout: 30000 }).catch(() => {});
-      const seq = (await p.evaluate(() => window.__seq.slice())).slice(0, 53);
-      const b1 = seq.slice(0, 26), b2 = seq.slice(26, 52);
+      await p.waitForFunction((n) => window.__seq && window.__seq.length >= 2 * n + 1, { timeout: 30000 }, N).catch(() => {});
+      const seq = (await p.evaluate(() => window.__seq.slice())).slice(0, 2 * N + 1);
+      const b1 = seq.slice(0, N), b2 = seq.slice(N, 2 * N);
       const twice = seq.findIndex((k, i) => i > 0 && k === seq[i - 1]);
-      ok(seq.length === 53 && new Set(b1).size === 26 && new Set(b2).size === 26 && LANDED.every((k) => b1.includes(k)) && twice < 0,
-        '52 changes after the first: both bags are all 26 scenes, no repeat inside a bag, never the same scene twice in a row', seq.join(','));
+      ok(seq.length === 2 * N + 1 && new Set(b1).size === N && new Set(b2).size === N && LANDED.every((k) => b1.includes(k)) && twice < 0,
+        `${2 * N} changes after the first: both bags are all ${N} scenes, no repeat inside a bag, never the same scene twice in a row`, seq.join(','));
       ok(['leads', 'clients', 'bookchat', 'draft', 'contracts'].includes(seq[0]), 'the landing scene was one of the five', seq[0]);
       const drawn = await p.evaluate(() => { const s = document.querySelector('#slot .sheet:last-child'); return !!(s && s.querySelector('.app') && s.querySelector('.tag b').textContent.trim()); });
       ok(drawn, 'each change draws an app screen and its tag');
@@ -322,7 +395,9 @@ async function glass(puppeteer, bin, base, port) {
       const d = await p.evaluate(() => ({ signin: [...document.querySelectorAll('[data-door="signin"]')].map((a) => a.href), start: [...document.querySelectorAll('[data-door="start"]')].map((a) => a.href), agency: [...document.querySelectorAll('[data-door="agency"]')].map((a) => a.href), text: [...document.querySelectorAll('[data-door="agency"] b')].map((b) => b.textContent) }));
       ok(d.signin.length === 1 && d.signin.every((h) => h === DOORS.signin), 'Sign in goes to ?role=vendor-signin', JSON.stringify(d.signin));
       ok(d.start.length === 3 && d.start.every((h) => h === DOORS.start), 'Start free (hero, phone dock, About) goes to ?role=vendor', JSON.stringify(d.start));
-      ok(d.agency.length === 3 && d.agency.every((h) => h === DOORS.agency) && d.text.every((t) => t === 'Agency or brand? Send your calls here.'), '"Agency or brand? Send your calls here." goes to /partner/join', JSON.stringify(d));
+      // AMENDED BY LABEL (LAND-1 package 3 r2): in About the agency door is the founder's line "For agencies and brands.".
+      ok(d.agency.length === 3 && d.agency.every((h) => h === DOORS.agency) && JSON.stringify(d.text) === JSON.stringify(['Agency or brand? Send your calls here.', 'Agency or brand? Send your calls here.', 'For agencies and brands.']),
+        '"Agency or brand? Send your calls here." (hero and phone dock) and About\'s "For agencies and brands." go to /partner/join', JSON.stringify(d));
       await p.close();
     }
 
@@ -353,7 +428,7 @@ async function glass(puppeteer, bin, base, port) {
       await p.click('#moreBtn'); await sleep(50); await p.click('#aboutOpen'); await sleep(100);
       const st = await p.evaluate(() => ({ open: !document.getElementById('about').hidden, wall: getComputedStyle(document.querySelector('.track')).animationPlayState, run: getComputedStyle(document.querySelector('.run')).animationPlayState, focus: document.activeElement && document.activeElement.id, title: document.getElementById('abTitle').textContent }));
       const a0 = await p.evaluate(() => window.__seq.length); await sleep(FAST * 8); const a1 = await p.evaluate(() => window.__seq.length);
-      ok(st.open && p.url() === at && st.focus === 'aboutClose' && /Everything your business needs/.test(st.title), 'About opens over the same page (no new address), Close has the focus', JSON.stringify(st));
+      ok(st.open && p.url() === at && st.focus === 'aboutClose' && /Your business, in one app\./.test(st.title), 'About opens over the same page (no new address), Close has the focus', JSON.stringify(st));
       ok(a1 === a0 && st.wall === 'paused' && st.run === 'paused', 'while About is open the screens, the wall and the trades line stop', `${a0} -> ${a1} ${st.wall} ${st.run}`);
       await p.keyboard.press('Escape'); await sleep(FAST * 8);
       const e = await p.evaluate(() => ({ hidden: document.getElementById('about').hidden, n: window.__seq.length, focus: document.activeElement && document.activeElement.id, wall: getComputedStyle(document.querySelector('.track')).animationPlayState }));
@@ -384,8 +459,9 @@ async function glass(puppeteer, bin, base, port) {
       const p = await open(1440, 900);
       const f = await p.evaluate(() => ({ h1: getComputedStyle(document.querySelector('.tdww h1')).fontFamily, cap: getComputedStyle(document.getElementById('cap')).fontFamily,
         kick: getComputedStyle(document.querySelector('.tdww .kicker')).fontFamily, app: getComputedStyle(document.querySelector('#slot .app')).fontFamily,
-        loaded: ['500 40px "Bodoni Moda"', 'italic 400 40px "Bodoni Moda"', '500 16px "Manrope"', '500 16px "Inter"'].map((s) => document.fonts.check(s)) }));
-      ok(/^"Bodoni Moda"/.test(f.h1) && /^"?Manrope/.test(f.cap) && /^"?JetBrains Mono/.test(f.kick) && /^"?Inter/.test(f.app), 'Bodoni Moda for the heading, Manrope for the lines, JetBrains Mono for the labels, Inter in the screens', JSON.stringify(f));
+        loaded: ['500 40px BodoniModa', 'italic 400 40px BodoniModa', '500 16px Manrope', '500 16px InterWorks'].map((s) => document.fonts.check(s)) }));
+      // AMENDED BY LABEL (LAND-1 package 3): next/font/local names each family after its const (BodoniModa, Manrope, JetBrainsMono, InterWorks).
+      ok(/^"?BodoniModa/.test(f.h1) && /^"?Manrope/.test(f.cap) && /^"?JetBrainsMono/.test(f.kick) && /^"?InterWorks/.test(f.app), 'Bodoni Moda for the heading, Manrope for the lines, JetBrains Mono for the labels, Inter in the screens', JSON.stringify(f));
       ok(f.loaded.every(Boolean), 'the heading, its italic, the body and the app faces are loaded', JSON.stringify(f.loaded));
       const faces = p.reqs.filter((u) => /\.woff2(\?|$)/.test(u));
       ok(faces.length > 0 && faces.every((u) => u.startsWith(`${url}_next/static/media/`)), `every face file the page loads (${faces.length}) is served by the site itself`, faces.join(' '));
@@ -398,9 +474,14 @@ async function glass(puppeteer, bin, base, port) {
     {
       // Read from the server's own markup: on a machine that cannot reach Cloudinary the tiles drop a photograph that
       // fails to load (onerror), so the live page may no longer hold it.
-      const html = (await get(port, '/', 'tdw.works')).bytes.toString('utf8');
+      // AMENDED BY LABEL (LAND-1 package 3): the wall is random, and with 28 scenes a visit can draw neither her website nor
+      // Discover (about 1 in 30). The cell reads up to 12 visits until one carries the tiles; what it checks is unchanged.
+      let html = '', tags = [];
       const attr = (tag, a) => ((tag.match(new RegExp(' ' + a + '="([^"]*)"')) || [])[1] || '').replace(/&amp;/g, '&');
-      const tags = [...new Set((html.match(/<span class="lk"><img [^>]*>/g) || []).map((t) => t.slice(17)))];
+      for (let v = 0; v < 12 && tags.length < 2; v += 1) {
+        html = (await get(port, '/', 'tdw.works')).bytes.toString('utf8');
+        tags = [...new Set((html.match(/<span class="lk"><img [^>]*>/g) || []).map((t) => t.slice(17)))];
+      }
       const imgs = tags.slice(0, 2).map((t) => ({ src: attr(t, 'src'), srcset: attr(t, 'srcset'), sizes: attr(t, 'sizes') }));
       const p = await open(1440, 900);
       const okSrc = imgs.length === 2 && imgs.every((i) => /^\/_next\/image\?url=https%3A%2F%2Fres\.cloudinary\.com%2Fdccso5ljv%2Fimage%2Fupload%2F/.test(i.src) && /&q=60$/.test(i.src) && /w=640&q=60 640w/.test(i.srcset));
@@ -445,6 +526,41 @@ async function glass(puppeteer, bin, base, port) {
       const firsts = new Set(); let bad = '';
       for (let i = 0; i < 12; i += 1) { const html = (await get(port, '/', 'tdw.works')).bytes.toString('utf8'); const k = (html.match(/data-scene="([a-z]+)"/) || [])[1]; firsts.add(k); if (!['leads', 'clients', 'bookchat', 'draft', 'contracts'].includes(k)) bad = bad || k; }
       ok(!bad && firsts.size >= 2, `on landing, the first scene is one of the five, and it varies (12 visits: ${[...firsts].join(', ')})`, bad);
+    }
+
+    sec('2.11 package 3: "Your posts and ads.", "Your shoot directory." and "Your Google listing." on one line; the three screens whole on the glass');
+    for (const [w, h] of [[360, 640], [390, 844], [1024, 768], [1440, 900]]) for (const want of ['posts', 'shootdir', 'seo']) {
+      // The page's own clock, shortened; the screen pauses itself (a tap, as a visitor would) the moment `want` arrives.
+      const STOP = `(() => { const go = () => { const f = document.getElementById('focus'); if (!f) return setTimeout(go, 20);
+        new MutationObserver(() => { if (f.dataset.scene === '${want}' && !window.__stopped) { window.__stopped = true; f.click(); } }).observe(f, { attributes: true, attributeFilter: ['data-scene'] }); };
+        document.addEventListener('DOMContentLoaded', go); })();`;
+      const p = await open(w, h, null, [FAST_CLOCK, STOP]);
+      await p.waitForFunction(() => window.__stopped, { timeout: 30000 }).catch(() => {});
+      await sleep(700);
+      const r = await p.evaluate(() => {
+        const word = document.getElementById('word'), h1 = document.querySelector('.tdww h1'), copy = document.querySelector('.tdww .copy');
+        const wr = word.getBoundingClientRect(), cr = copy.getBoundingClientRect();
+        const lh = parseFloat(getComputedStyle(word).fontSize) * 1.2;
+        const sheet = document.querySelector('#slot .sheet:last-child .app'), ab = sheet && sheet.querySelector('.ab'), last = ab && ab.lastElementChild;
+        return { scene: document.getElementById('focus').dataset.scene, text: word.textContent, size: parseFloat(getComputedStyle(word).fontSize), h1: parseFloat(getComputedStyle(h1).fontSize),
+          right: Math.round(wr.right), colRight: Math.round(cr.right), iw: innerWidth, lines: Math.round(wr.height / lh), sw: document.scrollingElement.scrollWidth,
+          whole: !!(last && last.getBoundingClientRect().bottom <= sheet.getBoundingClientRect().bottom + 1) };
+      });
+      if (want === 'posts' || want === 'seo' || want === 'shootdir') {
+        const W = want === 'posts' ? 'posts and ads.' : want === 'seo' ? 'Google listing.' : 'shoot directory.';
+        ok(r.scene === want && r.text === W && r.lines === 1 && r.right <= Math.min(r.colRight, r.iw) + 1 && r.sw <= r.iw && r.size < r.h1,
+          `${w}x${h}: "Your ${W}" stays on one line inside the column (${r.size}px under a ${r.h1}px heading), no sideways scroll`, JSON.stringify(r));
+      }
+      ok(r.scene === want && r.whole, `${w}x${h}: the ${want} screen is whole on the glass (its last row inside the screen)`, JSON.stringify(r));
+      if (want === 'posts') {
+        // the next word takes the heading's own size again
+        await p.click('#focus'); await p.waitForFunction(() => document.getElementById('focus').dataset.scene !== 'posts', { timeout: 10000 }).catch(() => {}); await p.click('#focus'); await sleep(700);
+        const n = await p.evaluate(() => ({ scene: document.getElementById('focus').dataset.scene, size: parseFloat(getComputedStyle(document.getElementById('word')).fontSize), h1: parseFloat(getComputedStyle(document.querySelector('.tdww h1')).fontSize) }));
+        // its own size: the heading's, or that scene's own fit if it has one (the Google listing has 0.88)
+        const fitOf = Object.fromEntries(loadTs(SCENES_REL).buildScenes(['', '']).map((x) => [x.k, x.fit || 1]));
+        ok(n.scene !== 'posts' && Math.abs(n.size - n.h1 * fitOf[n.scene]) < 0.5, `${w}x${h}: after posts, the next word takes its own size again (${n.scene}: ${fitOf[n.scene]} of the heading), not posts'`, JSON.stringify(n));
+      }
+      await p.close();
     }
 
     sec('2.9 the tab icon: tdw.works its own, thedreamwedding.in unchanged');
@@ -527,7 +643,16 @@ async function signin(puppeteer, bin, port) {
     const veil = rgb(getComputedStyle(document.querySelector('.tdww .wall'), '::after').backgroundColor);
     const o = lum(ground) < 0.2 ? 255 : 0;
     const mix = (top, a, bot) => ({ r: top.r * a + bot.r * (1 - a), g: top.g * a + bot.g * (1 - a), b: top.b * a + bot.b * (1 - a) });
-    const wallWorst = mix(veil, veil.a, { r: o, g: o, b: o });
+    const wallRaw = mix(veil, veil.a, { r: o, g: o, b: o });
+    // LAND-1 package 3: the panel's own backdrop filter frosts the wall behind it (contrast, then brightness, in the
+    // order written); the worst ground is the wall's opposite extreme after that filter, under the panel's colour.
+    const bf = getComputedStyle(panel).backdropFilter || getComputedStyle(panel).webkitBackdropFilter || '';
+    const blurPx = Number((bf.match(/blur\(([\d.]+)px\)/) || [])[1] || 0);
+    let wallWorst = wallRaw;
+    for (const [fn, v] of bf.split(/\)\s*/).map((x) => x.split('(')).filter((x) => x.length === 2).map(([n, a]) => [n.trim(), Number(a.replace('%', '')) / (a.includes('%') ? 100 : 1)])) {
+      const ch = (c) => fn === 'contrast' ? Math.min(255, Math.max(0, ((c / 255 - 0.5) * v + 0.5) * 255)) : fn === 'brightness' ? Math.min(255, c * v) : c;
+      wallWorst = { r: ch(wallWorst.r), g: ch(wallWorst.g), b: ch(wallWorst.b) };
+    }
     const worst = mix(pb, pb.a, wallWorst);
     const under = (e) => { for (let x = e; x && x !== panel; x = x.parentElement) { const c = rgb(getComputedStyle(x).backgroundColor); if (c.a >= 0.99) return c; } return worst; };
     const shown = [...panel.querySelectorAll('p, button, input, b, span, label')].filter((e) => { const b = e.getBoundingClientRect(); return b.width > 0 && getComputedStyle(e).display !== 'none' && (e.matches('input') || (e.textContent || '').trim()); });
@@ -536,7 +661,7 @@ async function signin(puppeteer, bin, port) {
     const r = panel.getBoundingClientRect();
     const meta = [...document.querySelectorAll('meta[name="theme-color"]')].map((m) => m.getAttribute('content'));
     const se = document.scrollingElement;
-    return { panel: true, alpha: pb.a, blur: /blur\(/.test(getComputedStyle(panel).backdropFilter || getComputedStyle(panel).webkitBackdropFilter || ''),
+    return { panel: true, alpha: pb.a, blur: blurPx >= 24 && blurPx <= 30, blurPx, filter: bf, worstGround: [wallWorst.r, worst.r].map(Math.round),
       inside: r.left >= -1 && r.top >= -1 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1, bottom: Math.round(innerHeight - r.bottom), centre: Math.round(Math.abs((r.left + r.right) / 2 - innerWidth / 2)), width: Math.round(r.width),
       cols: [...document.querySelectorAll('.tdww .colm')].filter((c) => getComputedStyle(c).display !== 'none').length, minis: document.querySelectorAll('.tdww .mini').length,
       photos: [...document.querySelectorAll('div')].filter((d) => /res\.cloudinary\.com/.test(d.style.backgroundImage || '')).length,
@@ -550,6 +675,14 @@ async function signin(puppeteer, bin, port) {
   const tap = (p, label) => p.evaluate((l) => { const b = [...document.querySelectorAll('button, p')].find((x) => x.textContent.trim() === l); if (b) b.click(); return !!b; }, label);
   const type = async (p, sel, v) => { await p.focus(sel); await p.keyboard.type(v); };
   try {
+    {
+      // LAND-1 package 3: the frosted glass ships with both forms of the filter (Safari reads the -webkit- one).
+      const dir = path.join(ROOT, '.next', 'static'); let css = '';
+      try { for (const f of fs.readdirSync(dir, { recursive: true })) if (String(f).endsWith('.css')) css += fs.readFileSync(path.join(dir, String(f)), 'utf8'); } catch (_e) { /* no build */ }
+      const rule = (css.match(/\.tdww-signin \.wg-panel\{[^}]*\}/g) || []).find((r) => /backdrop-filter/.test(r)) || '';
+      ok(/-webkit-backdrop-filter:var\(--glass-filter\)/.test(rule) && /[;{]backdrop-filter:var\(--glass-filter\)/.test(rule) && /--glass-filter:blur\(28px\)/.test(css),
+        'the built CSS keeps both forms of the panel\'s filter (-webkit- and plain), a 28 px blur', rule.slice(0, 300));
+    }
     sec('5.1 the vendor sign-in and sign-up wear tdw.works: the wall, the glass, full-size text (phone and laptop, light and dark)');
     for (const [w, h] of [[360, 640], [390, 844], [1440, 900]]) for (const mode of ['light', 'dark']) for (const [at, head] of [['/?role=vendor-signin', 'Welcome back.'], ['/?role=vendor', 'Welcome. Let’s begin.']]) {
       const p = await open(w, h, { mode, at });
@@ -560,8 +693,8 @@ async function signin(puppeteer, bin, port) {
         `${tag}: tdw.works's wall behind (its drift, ${w < 860 ? 4 : 6} columns of the app's screens), no photographs`, JSON.stringify({ cols: r.cols, minis: r.minis, photos: r.photos, drift: r.drift }));
       ok(r.inside && r.sw <= r.iw && (w < 860 ? r.bottom === 0 && r.width === w : r.centre <= 2 && r.width <= 460),
         `${tag}: the glass panel inside the screen, ${w < 860 ? 'a sheet from the bottom' : 'centred'}, no sideways scroll`, JSON.stringify({ inside: r.inside, bottom: r.bottom, centre: r.centre, width: r.width, sw: r.sw }));
-      ok(r.alpha >= 0.8 && r.blur, `${tag}: frosted glass, solid enough to read over the moving wall (${r.alpha})`);
-      ok(r.h && r.h.t === head && r.h.s >= 28 && /Bodoni Moda/.test(r.h.f) && (!r.sub || (r.sub.s >= 16 && /Manrope/.test(r.sub.f))) && r.min >= 14 && !r.small.length,
+      ok(r.alpha >= 0.65 && r.alpha <= 0.75 && r.blur, `${tag}: frosted glass: the panel at ${Math.round(r.alpha * 100)}%, a ${r.blurPx}px blur, the wall moving behind it`, JSON.stringify({ alpha: r.alpha, filter: r.filter }));
+      ok(r.h && r.h.t === head && r.h.s >= 28 && /BodoniModa/.test(r.h.f) && (!r.sub || (r.sub.s >= 16 && /Manrope/.test(r.sub.f))) && r.min >= 14 && !r.small.length,
         `${tag}: full-size text: "${head}" in Bodoni at ${r.h && r.h.s}px, the lines in Manrope at 16px, nothing under 14px`, JSON.stringify({ h: r.h, sub: r.sub, small: r.small }));
       ok(!r.lowc.length, `${tag}: every line reads at 4.5:1 or better on the glass, even over the wall's opposite extreme`, JSON.stringify(r.lowc));
       ok(r.mark.join('|') === 'TDW|tdw.works' && r.cls && r.meta.length && r.meta.every((m) => m === WORKS_BAR[mode].toUpperCase()),
@@ -654,7 +787,7 @@ async function signin(puppeteer, bin, port) {
         const p = await open(w, h, { at: '/vendor/pin-login', session: SESSION, layout });
         const r = await look(p);
         const pins = await p.evaluate(() => [...document.querySelectorAll('.wg-panel input')].map((i) => parseFloat(getComputedStyle(i).fontSize)));
-        ok(r.panel && r.cols === (w < 860 ? 4 : 6) && r.photos === 0 && r.inside && r.alpha >= 0.8 && r.mark.join('|') === 'TDW|tdw.works'
+        ok(r.panel && r.cols === (w < 860 ? 4 : 6) && r.photos === 0 && r.inside && r.alpha >= 0.65 && r.alpha <= 0.75 && r.blur && r.mark.join('|') === 'TDW|tdw.works'
           && !/The Dream Wedding|MAKER PORTAL|Delegated Workspace/i.test(r.text) && r.meta.every((m) => m === WORKS_BAR.light.toUpperCase()),
           `${L} ${w}: pin-login on tdw.works's wall and glass, headed TDW / tdw.works (no tagline, no "The Dream Wedding", no "MAKER PORTAL"); the browser bar`, JSON.stringify({ cols: r.cols, mark: r.mark, text: r.text.slice(0, 120), meta: r.meta }));
         ok(r.h.t === 'Welcome back, Asha.' && /Enter your PIN to continue\./.test(r.text) && /Forgot PIN\?/.test(r.text) && pins.length === 4 && pins.every((s) => s >= 24) && !r.small.length && !r.lowc.length,

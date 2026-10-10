@@ -11,7 +11,10 @@
 
 // `hi`: the floating tag sits above the screen's top edge (LAND-1 package 2's eight scenes, whose first lines are the
 // point of the screen: her typed line, a crew date, the two ways to start).
-export type Scene = { k: string; w: string; cap: string; tag: [string, string]; h: string; hi?: boolean };
+// `fit`: the changing word's size against the heading's, for a word too long for the heading's own size (LAND-1
+// package 3: "posts and ads." and "Google listing." stay on one line on a phone and a laptop). Applied by sheetHtml
+// below, only while that scene is on the glass.
+export type Scene = { k: string; w: string; cap: string; tag: [string, string]; h: string; hi?: boolean; fit?: number };
 
 const A = (th: string, title: string, sub: string, body: string, top?: string) =>
   '<div class="app ' + th + '">' + (top || '<div class="sb"><span>9:41 am</span><span>5G</span></div>') +
@@ -27,9 +30,11 @@ const L = (t: string) => '<div class="lb">' + t + '</div>';
 const T = (a: string, b: string) => '<div class="tick"><i>✓</i><span>' + a + '<small>' + b + '</small></span></div>';
 // A build step still running (now) or waiting its turn (wait), for the website being made (LAND-1 package 2).
 const P = (a: string, b: string, st: 'now' | 'wait') => '<div class="tick"><i class="' + st + '">' + (st === 'now' ? '•' : '') + '</i><span>' + a + '<small>' + b + '</small></span></div>';
+// An Instagram handle as the Collab Hub draws it: "Instagram @handle", a link in the app (LAND-1 package 3).
+const IG = (h: string) => '<div class="r2" style="color:var(--t)">Instagram ' + h + '</div>';
 const BUB = (dir: 'in' | 'out', text: string, small: string) => '<div class="bub ' + dir + '">' + text + '<small>' + small + '</small></div>';
 
-/** The 26 scenes. `looks` is the markup for the two photographs in her website's look tiles and Discover's two tiles. */
+/** The 28 scenes. `looks` is the markup for the two photographs in her website's look tiles and Discover's two tiles. */
 export function buildScenes(looks: [string, string] = ['', '']): Scene[] {
   return [
     // ── LAND-1 package 2 (CE-47, 10 Oct 2026): eight rooms that are live in the app, drawn with the app's own words
@@ -52,10 +57,10 @@ export function buildScenes(looks: [string, string] = ['', '']): Scene[] {
     {k:'sitebuild',hi:true,w:'photos.',cap:'Connect Instagram or add your own photos. TDW builds your website from them.',tag:['Building','Your website'],
      h:A('c','Building your business','TDW builds your website from your photos.','<div class="bt">'+CH('Connect Instagram','t')+CH('Add my own photos')+'</div>'+C(T('Your photos','Ready \u00b7 24 photos from Instagram')+P('Your website','Building','now')+P('Your packages','Setting up','wait')+P('Your storefront','Setting up','wait')+P('Eliza','Setting up','wait'))+'<div class="r2" style="padding:0 4px">Nothing is published until you say yes.</div>')},
 
-    {k:'website',w:'website.',cap:'A website in your own style, built from your photos.',tag:['Your website','Published'],
-     h:'<div class="app c"><div class="sb"><span>9:41 am</span><span>5G</span></div><div class="url">ilavari.thedreamwedding.in</div><div class="site"><div class="nm"><span>LOOKS</span><b>ILAVARI</b><span>ENQUIRE</span></div><h4>Looks for every occasion.</h4><div class="looks"><span class="lk">' + looks[0] + '<em>LOOK 01</em></span><span class="lk">' + looks[1] + '<em>LOOK 02</em></span></div><span class="cta">Enquire on WhatsApp</span></div></div>'},
+    {k:'website',w:'website.',cap:'Choose a style, customize and put it on your own domain.',tag:['Your website','Published'],
+     h:'<div class="app c"><div class="sb"><span>9:41 am</span><span>5G</span></div><div class="url">ilavari.in</div><div class="site"><div class="nm"><span>LOOKS</span><b>ILAVARI</b><span>ENQUIRE</span></div><h4>Looks for every occasion.</h4><div class="looks"><span class="lk">' + looks[0] + '<em>LOOK 01</em></span><span class="lk">' + looks[1] + '<em>LOOK 02</em></span></div><span class="cta">Enquire on WhatsApp</span></div></div>'},
     {k:'build',w:'launch.',cap:'Sign up, add your photos, and your business is online in about two minutes.',tag:['Ready in','1 min 52 sec'],
-     h:A('g','Your business, from your photos','Four things are ready. Check each one.',C(T('Website published','ilavari.thedreamwedding.in')+T('3 packages drafted','Confirm each one before it is shown')+T('Storefront laid out','12 photos from your portfolio')+T('Eliza on WhatsApp','Answers new enquiries for you'))+'<div class="bt">'+B('See my website',1)+B('Review packages')+'</div>')},
+     h:A('g','Your business, from your photos','Four things are ready. Check each one.',C(T('Website published','ilavari.in')+T('3 packages drafted','Confirm each one before it is shown')+T('Storefront laid out','12 photos from your portfolio')+T('Eliza on WhatsApp','Answers new enquiries for you'))+'<div class="bt">'+B('See my website',1)+B('Review packages')+'</div>')},
     {k:'packages',w:'packages.',cap:'Your packages and prices, drafted from your posts. You confirm each one.',tag:['On your website','3 packages'],
      h:A('c','Packages','What clients can book, with prices.',C(R1('Wedding makeup','<b class="n">Rs 35,000</b>')+R2('Trial, makeup, hair, draping'))+C(R1('Party makeup','<b class="n">Rs 8,000</b>')+R2('Makeup and hair, one look'))+C(R1('Shoot look','<b class="n">Rs 12,000</b>')+R2('Two looks for a photo shoot')))},
     {k:'calendar',w:'calendar.',cap:'Every booking and event, on one calendar.',tag:['Next booking','Mon 12 Oct, 6:00 am'],
@@ -72,8 +77,9 @@ export function buildScenes(looks: [string, string] = ['', '']): Scene[] {
      h:A('c','Supplies','Bills, gear and where to buy.',L('Bills')+C(R1('Beauty supplies store','<b class="n">Rs 6,240</b>')+R2('GST Rs 952 · read from your photo')+'<div class="bt">'+CH('Added to expenses','ok')+'</div>')+L('Gear to share')+C(R1('Ring light, 18 inch',CH('Lend','t'))+R2('Free on 15 and 16 October')))},
     {k:'trends',w:'trends.',cap:'Every Monday, a brief on what clients ask for in your trade and your city.',tag:['This week','Soft pastel colours'],
      h:A('g','Trend room','A new brief every Monday at 9:00 am.',L('What clients asked for')+C(R('Soft pastel colours','12 enquiries')+R('Short reels under 30 sec','9 enquiries')+R('Same-day photo edits','6 enquiries'))+L('New in your trade')+C(R1('Lighter fabrics for daytime events','')+'<span class="r2" style="color:var(--t)">Read it at the source</span>'))},
-    {k:'posts',w:'posts.',cap:'Posts, reels and ad briefs, drafted from your work and your calendar.',tag:['Drafted for you','3 posts this week'],
-     h:A('c','Posts and ads','Drafts from your work. You post them.',C(R1('Reel: three looks from Saturday',CH('Draft','me'))+R2('From the Tara Kapoor engagement'))+C(R1('Post: October dates open',CH('Draft','me'))+R2('Three dates left this month'))+C(R1('Ad brief: festive season',CH('Ready','ok'))+R2('For Delhi NCR, 7 days')))},
+    // LAND-1 package 3: a post and an ad, in the room's own words (lib/worklist/sunday.ts SU, v2/lib/worklist/ads.ts ADS).
+    {k:'posts',hi:true,w:'posts and ads.',fit:0.9,cap:'Your best post of the week, and ads you run from your own Meta ad account.',tag:['Ad running','1,240 people today'],
+     h:A('c','Posts and ads','Run your Instagram and Facebook ads yourself, right here in TDW.',L('Best post')+C(R1('Reel: three looks from Saturday','')+R2('Saves 31 \u00b7 Shares 9')+R('Reach','8,420'))+L('Ads')+C(R1('Three looks from Saturday',CH('Running','ok'))+R2('Three looks from Saturday is running. 1,240 people have seen it today.'))+C(R('Spent this month','Rs 2,400')+R('Enquiries from ads','14')))},
     {k:'shop',w:'shop.',cap:'Sell gift vouchers, classes and workshops from your own website.',tag:['Sold','2 seats in the class'],
      h:A('g','Off-season shop','Sell more between bookings.',C(R1('Gift voucher','<b class="n">Rs 5,000</b>')+R2('Any service, valid for a year'))+C(R1('Makeup masterclass','<b class="n">Rs 3,500</b>')+R2('Sunday 1 November · 8 of 10 seats left'))+C(R1('Self-makeup kit session','<b class="n">Rs 2,000</b>')+R2('One hour, at your studio'))+'<div class="bt">'+B('Add an item',1)+'</div>')},
     {k:'discover',w:'profile.',cap:'A profile on TDW Discover, where clients look for professionals.',tag:['On Discover','Delhi NCR'],
@@ -86,6 +92,20 @@ export function buildScenes(looks: [string, string] = ['', '']): Scene[] {
      h:A('g','Media kit','A page to send to brands.','<div class="url" style="margin:0">thedreamwedding.in/v/ilavari/kit</div>'+C('<div class="r1"><span style="font-family:var(--display);font-size:22px">Ilavari Studio</span></div>'+R2('Makeup artist · Delhi NCR'))+'<div class="kit"><div><b>48.2k</b><span>followers</span></div><div><b>36</b><span>looks</span></div><div><b>120</b><span>events</span></div></div>'+'<div class="bt">'+B('Copy link',1)+'</div>')},
     {k:'partners',w:'partners.',cap:'Agencies and fashion houses send their calls to the professionals on TDW.',tag:['From an agency','Festive campaign'],
      h:A('c','Collab Hub','Calls from agencies and fashion houses.',C(R1('Festive campaign · Delhi',CH('Paid','me'))+R2('A model agency · needs two makeup artists')+'<div class="bt">'+B('Interested',1)+'</div>')+C(R1('Lookbook shoot · Mumbai',CH('Paid','me'))+R2('A fashion house · needs a stylist')))},
+    // LAND-1 package 3: finding people and places for a shoot (Collab Hub's People tab, v2/lib/vendor/hub.ts HUB: every
+    // name with its Instagram, roles from the collab role list, "See their page").
+    {k:'shootdir',hi:true,w:'shoot directory.',fit:0.83,cap:'Find photographers, models and places for a shoot on Collab Hub, each with their Instagram.',tag:['For your shoot','Instagram on every name'],
+     h:A('c','Collab Hub','Everyone on Collab Hub is listed here.','<div class="bt">'+CH('Photography & Videography','t')+CH('Model','t')+CH('Studio','t')+CH('Delhi NCR')+'</div>'
+       +C(R1('Kabir Anand',B('See their page'))+R2('Photography & Videography \u00b7 Delhi NCR')+IG('@kabiranand.frames'))
+       +C(R1('Noor Fatima',B('See their page'))+R2('Model \u00b7 Gurgaon')+IG('@noorfatima.looks'))
+       +C(R1('Sundial Studio',B('See their page'))+R2('Studio \u00b7 Noida')+IG('@sundial.studio.noida'))
+       +C(R1('The Courtyard, Mehrauli',B('See their page'))+R2('Venue & Catering \u00b7 Delhi NCR')+IG('@thecourtyard.mehrauli')))},
+    // LAND-1 package 3: her website on Google (the website room's SEO screen, v2/app/vendor/(shell)/your-website/screen.tsx:
+    // "SEO: found on Google", "What Google shows", the last 28 days, "What people typed"). The title is her name, craft and city.
+    {k:'seo',hi:true,w:'Google listing.',fit:0.88,cap:'Your website on Google with your name, craft and city, and what people typed to find you.',tag:['Found on Google','Connected'],
+     h:A('g','SEO: found on Google','What Google shows for you, and what people typed to get there.',L('What Google shows')+C('<div class="r2">ilavari.in</div><div class="r1"><span style="color:var(--t)">Ilavari Studio \u00b7 Makeup artist \u00b7 Delhi NCR</span></div>'+R2('Wedding, party and engagement makeup in Delhi NCR. Enquire on WhatsApp.'))
+       +L('The last 28 days')+C(R('Times you appeared on Google','1,180')+R('Times someone opened your page','64'))
+       +L('What people typed')+'<div class="bt">'+CH('makeup artist delhi ncr','t')+CH('party makeup gurgaon','t')+'</div>')},
     {k:'eliza',w:'enquiries.',cap:'Eliza answers new enquiries on WhatsApp for you, day and night.',tag:['New enquiry','Answered by Eliza'],
      h:A('g','Eliza on WhatsApp','',  '<div class="bub in">Hi, is 14 December free for wedding makeup?<small>11:40 pm</small></div><div class="bub out">Hi Tara, 14 December is open. Wedding makeup with Ilavari starts at Rs 35,000. Here are the packages.<small>11:40 pm · Eliza</small></div><div class="bub in">Lovely, please share them.<small>11:41 pm</small></div>')}
   ];
@@ -93,7 +113,23 @@ export function buildScenes(looks: [string, string] = ['', '']): Scene[] {
 
 /** The focus slot's sheet for one scene: the screen and its floating tag. */
 export function sheetHtml(s: Scene): string {
-  return s.h + '<div class="tag' + (s.hi ? ' hi' : '') + '"><small>' + s.tag[0] + '</small><b>' + s.tag[1] + '</b></div>';
+  return s.h + '<div class="tag' + (s.hi ? ' hi' : '') + '"><small>' + s.tag[0] + '</small><b>' + s.tag[1] + '</b></div>' + (s.fit ? fitHtml(s) : '');
+}
+
+/**
+ * A long word's size (LAND-1 package 3), carried by the scene's own sheet so it lives only while that sheet is on the
+ * glass. It sets the word under "Your" to `fit` of the heading's size while this scene is shown, and keeps it there
+ * while the word fades out on the turn to the next scene (the leaving sheet carries the mark); the next word keeps the
+ * heading's own size throughout. A phone and a laptop take the same fraction: the heading and the column both follow
+ * the screen's width (measured at full size: "posts and ads." overruns its column by 4%, "Google listing." by 7% and
+ * "shoot directory." by 12% between
+ * 1024 and 1440 px wide; all three fit on a phone; every other word fits everywhere).
+ */
+function fitHtml(s: Scene): string {
+  const k = s.k.replace(/[^a-z]/g, '');
+  return '<i hidden data-fit="' + k + '"></i><style>'
+    + '.tdww:has(#focus[data-scene="' + k + '"]) #word:not(.go),.tdww:has(#slot .sheet.leave [data-fit="' + k + '"]) #word.go{font-size:' + s.fit + 'em}'
+    + '</style>';
 }
 
 /** One wall column: 7 scenes from `order`, drawn twice so the drift loops without a seam. */
